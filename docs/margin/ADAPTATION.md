@@ -2,7 +2,7 @@
 
 What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. The target behavior comes from the Margin product decisions recorded on the earlier Margin branch (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`). That file is used as a requirements list only; no code is taken from it.
 
-Status values: `todo`, `doing`, `done`, `blocked`. "Not verified" lists anything not yet checked for real.
+Status values: `todo`, `doing`, `done`, `blocked`. "Not verified" lists anything not yet checked for real. Tickets, acceptance checks and execution order are in [PLAN.md](PLAN.md); if this table and PLAN.md disagree, PLAN.md wins.
 
 ## Phase 0 – baseline and records
 
