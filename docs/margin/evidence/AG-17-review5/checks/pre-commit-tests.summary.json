@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-10-07T23:08:08.111Z",
+  "head": "5c30ec84b5e064f4b2003ecb82a3b22e8fd60f1e",
+  "uncommittedPaths": 9,
+  "uncommittedPathList": [
+    "M electron/LLMHelper.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/preload.ts",
+    " M electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    " M src/components/MeetingChatOverlay.tsx",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/types/electron.d.ts",
+    " M tests/margin/meeting-storage.test.mjs",
+    "?? electron/services/meetingChatContext.ts"
+  ],
+  "reference": null,
+  "steps": [
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 10290,
+      "log": "../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/pre5-tests/tests.log",
+      "tap": "../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/pre5-tests/tests.tap",
+      "perFile": "../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/pre5-tests/tests.files.json",
+      "files": 104,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 736,
+        "pass": 731,
+        "fail": 0,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-07T23:08:18.403Z",
+  "allPassed": true
+}
