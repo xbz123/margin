@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { launchApp } from '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/launch-app.mjs';
+import { makeSandbox } from '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/env.mjs';
+test('launchApp refuses when the recorder writes no evidence', async () => {
+  const sandbox = makeSandbox('no-recorder');
+  await assert.rejects(launchApp(sandbox, { NODE_ENV: 'production', MARGIN_MAIN_ERRORS_LOG: '' }), /main-process error record missing/);
+});

@@ -1,0 +1,3 @@
+$ MARGIN_ISOLATION_LOG=/nonexistent-margin-dir/isolation.jsonl node -r scripts/margin/isolation/guard.cjs -e "console.log(\"alive\")"
+[isolation] cannot write the isolation log /nonexistent-margin-dir/isolation.jsonl: ENOENT: no such file or directory, open '/nonexistent-margin-dir/isolation.jsonl'; exiting
+exit 70

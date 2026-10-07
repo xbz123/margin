@@ -1,0 +1,23 @@
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+(node:52764) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ transcript scope denial omits transcript from cloud calls (1.571583ms)
+✔ LLMHelper infers auxiliary context scopes before cloud routing (0.425459ms)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (2.711834ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (74.729041ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (0.668416ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (1.322375ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.476375

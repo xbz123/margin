@@ -635,7 +635,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
 | AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
 | AG-17 | 完成 | 见 AG-17 提交 | 见下文 AG-17 记录。Electron 43.1.0；两个 `tsc` 退出 0；基线遗留的 20 条测试失败全部处理（5 个用例跳过并写明原因）；证据：`docs/margin/evidence/AG-17/summary.json`，对照 `AG-16/` |
-| 阶段 1 出口 / Astra 复核 | 复核修复完成，待 Astra 复查 | 见复核修复提交 | Astra 复核 `e9b25ec3` 的结论是"修复后可接受"，提出 3 个阻塞项和 2 个应修项，均已修复（见第 9 节）。修复后重新验收：第 2–7 条通过，第 1 条因 D5 受阻。证据：`docs/margin/evidence/AG-17-review/summary.json`，对照 `AG-17/` |
+| 阶段 1 出口 / Astra 复核 | 第二轮复核修复完成，待 Astra 再次复查 | `2e71066b`、`94a10fb1` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"，第二轮复查（`2e71066b`）结论"仍需进一步修复"，两轮的发现均已修复（见第 9 节）。在提交后的干净树上重新验收：第 2–7 条通过，第 1 条因 D5 受阻。证据：`docs/margin/evidence/AG-17-review2/summary.json`（`94a10fb1`，0 个未提交路径），对照 `AG-17-review/` |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
 ### AG-10 记录（2026-10-07）
@@ -1217,19 +1217,22 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 ### 阶段 1 出口验收（2026-10-07）
 
-逐条对照第 5 节。第一次验收（证据 `AG-17/`，提交 `e9b25ec3`）的结论是"第 2–7 条通过"。Astra 复核指出其中第 3、5、6 条的证据不足，还发现了一个隐私范围缺陷（见第 9 节），所以该结论作废。下表是修复后的重新验收，证据都在 `docs/margin/evidence/AG-17-review/`，除非另行注明。这次运行的 15 个步骤全部退出 0，是第一次没有任何步骤依赖"与参照相比没有新增"才算通过。
+逐条对照第 5 节。验收经过三轮：
+- **第一次**（`AG-17/`，提交 `e9b25ec3`）：结论"第 2–7 条通过"。Astra 第一轮复核指出第 3、5、6 条证据不足，还有一个隐私范围缺陷，结论作废。
+- **第二次**（`AG-17-review/`，`e9b25ec3` 上未提交的修复）：Astra 第二轮复查指出，隐私修复漏了 Codex 路径，取消后立即开始新流仍可能显示旧流的事件，帮助页仍有本地运行的说法，守卫日志写入失败和提前结束的文件仍能让检查漏报。结论再次作废。
+- **本次**（`AG-17-review2/`，提交 `94a10fb1`，干净的工作树）：下表的证据都在这个目录，除非另行注明；一次性检查和事件的原始输出在其中的 `checks/`。15 个步骤全部退出 0，没有任何步骤依赖"与参照相比没有新增"才算通过。
 
 | # | 条目 | 结论 | 证据 |
 | --- | --- | --- | --- |
 | 1 | 干净安装 | **受阻（D5）** | 本机没有完整的 Xcode，Rust 原生模块（`cidre`）无法从零构建，本机的 `setup:native` 用的是 X3 复制来的 cargo 缓存。按用户指示，D5 不做新决定：不安装 Xcode，也不给干净构建开例外，本条如实记为受阻。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。<br>CI（装有 Xcode 的干净 macOS）上的 `npm ci` → `setup:native` → 全部门禁可作参考，**不算本条通过** |
 | 2 | 构建与类型 | 通过 | 清空构建目录后 `build-electron`、`vite build` 退出 0；两个 `tsc` 都退出 0，0 诊断 |
-| 3 | 退役清理 | 通过 | `retired-check.mjs --all`：248 条规则零命中。新增 6 条规则覆盖复核找到的残留：主机 `natively.software`（整个域名，不再只列子域和几个路径）、`src/lib/featureFlags.ts` 与 `PREMIUM_ENABLED`、`Phone Mirror`、`Modes Manager`、`In-App Updates`；这些规则在修复前的 `e9b25ec3` 上全部有命中。`git ls-tree -r HEAD` 中没有 `premium`、`natively-api`、`.gitmodules`，也没有 gitlink |
-| 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条，恢复要求见 AG-41、AG-61） | 守卫下 104 个文件，719 个测试，714 通过，0 失败，5 跳过；`test-failures.txt` 为空；没有任何文件被守卫拦截（`tests.log` 为空），也没有"退出码非 0 但没有失败用例"的文件 |
-| 5 | 启动冒烟 | 通过 | `startup.log`：启动器和设置窗口可见，观察 15 秒，`app.quit()` 后退出码 0。异常检查有两条独立通道：在应用代码之前用 `-r` 加载的 `record-main-errors.cjs`，以及应用自己的 `natively_debug.log`。两者都必须存在；退出前在主进程里故意抛出一个异常和一个未处理的 rejection，两条通道都必须记到，此外不能有任何其他异常记录。守卫日志也必须存在，并有主进程的加载记录；外连为零 |
-| 6 | 行为回归 | 通过 | `regression.log`：5/5。取消用例在取消之后经真实的 main → preload → renderer 通道送入一个迟到 token 和一个完成事件，界面都不显示；取消前先送入一个 token 并确认会显示，证明这条注入通道有效 |
+| 3 | 退役清理 | 通过 | `retired-check.mjs --all`：253 条规则零命中。两轮复核共新增 11 条规则，覆盖复核找到的残留：主机 `natively.software`（整个域名）、`src/lib/featureFlags.ts` 与 `PREMIUM_ENABLED`、`Phone Mirror`、`Modes Manager`、`In-App Updates`、`entirely on-device`、`fully custom endpoints`、`Autonomous Registry Sync`，以及帮助页曾加载的远程图标主机 `cdn.simpleicons.org`、`groq.com/favicon.svg`。每条规则在加入前的提交上都有命中。`git ls-tree -r HEAD` 中没有 `premium`、`natively-api`、`.gitmodules`，也没有 gitlink。G3 只能证明这些规则零命中，不能证明全部清理完毕；复核中逐页检查过设置、帮助、关于和启动页 |
+| 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条，恢复要求见 AG-41、AG-61） | 守卫下 104 个文件，721 个测试，716 通过，0 失败，5 跳过；`test-failures.txt` 为空。每个文件的隔离日志都由门禁直接读取：没有拦截记录，也都有守卫的加载记录（`tests.log` 为空）；没有"退出码非 0 但没有失败用例"的文件 |
+| 5 | 启动冒烟 | 通过 | `startup.log`：启动器和设置窗口可见，观察 15 秒，`app.quit()` 后退出码 0。<br>异常检查有两条独立通道：一是在应用代码之前用 `-r` 加载的 `record-main-errors.cjs`，二是应用自己的 `natively_debug.log`。两份文件都必须存在。退出前在主进程里故意抛出一个异常和一个未处理的 rejection，两条通道都必须记到；除此之外不能有任何其他异常记录。<br>守卫日志必须有主进程 PID 的加载记录；守卫写不进记录时会结束进程。外连为零 |
+| 6 | 行为回归 | 通过 | `regression.log`：5/5。<br>取消用例在页面里通过同一个 preload 接口记录实际送达的事件，依次检查四种情况：<br>- 取消后的空档，旧流的 token 和完成事件不送达；<br>- 立即开始新流后，旧流的 token、完成和错误事件不送达；<br>- 不带流标识的事件不送达；<br>- 新流自己的事件照常送达，新流以恰好一次完成事件正常结束。<br>流标识由主进程的发送监听取得，事件经真实的 main → preload → renderer 通道注入 |
 | 7 | 会议存储 | 通过 | `storage.log`：2/2。临时 SQLite 上保存、读取、重启后读取、删除；关闭 Transcripts 数据范围时，会议照常保存，但不为标题和摘要发出任何请求。不加载向量扩展（AG-14 已删除 `sqlite-vec`） |
 
-**结论**：修复后第 2–7 条通过，第 1 条因 D5 受阻。修复需要 Astra 再做一次只读复查；复查通过且 D5 有结论之前，不进入阶段 2。
+**结论**：第 2–7 条通过，第 1 条因 D5 受阻。第二轮修复还需要 Astra 再次只读复查；复查通过且 D5 有结论之前，不进入阶段 2。
 
 ### 事件记录（2026-10-07）
 
@@ -1254,15 +1257,16 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
    - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 4. **启动冒烟测试有一次外层进程没有加守卫。**
    - **经过**：修复复核第 4 条时，本想只检查新测试文件的语法，却用 `node -e "import(...)"` 直接加载了它，于是测试真的运行了一次。外层 node 进程没有通过 `run-node.mjs` 启动，所以没有守卫。
-   - **影响**：被启动的应用本身仍然隔离：`launchApp` 使用沙盒 `HOME`、`-r` 加载守卫，并在守卫未生效时中止。外层进程只负责驱动 Playwright，本身不发网络请求。
-   - **未能证明**：无法证明外层进程在这段时间没有外连。
+   - **影响**：被启动的应用本身仍然隔离：`launchApp` 使用沙盒 `HOME`、`-r` 加载守卫，并在守卫未生效时中止。外层进程运行的是测试代码和 Playwright；测试代码里没有发起外部请求的调用。
+   - **未能证明**：外层进程没有守卫，无法证明它在这段时间没有外连。这次运行没有留下单独的日志，只有会话里的命令输出（测试通过，启动器就绪 2.3 秒）。
    - **之后**：测试文件只通过 `run-node.mjs` 运行，语法检查只用 `node --check`。
 5. **一次加了守卫的启动冒烟运行失败，原因未查明。**
    - **经过**：同一轮里，守卫下的启动冒烟有一次在 15 秒观察窗口内失败：主进程以退出码 0 提前结束。这次运行和随后的变异检查发生在用户中断那条命令的同时。中断后 `launch-app.mjs` 停在变异状态（去掉了异常记录器的 `-r`），已从运行前的备份恢复，并核对了恢复后的内容。
    - **复验**：之后单独重跑一次，以及两次完整门禁中的 `startup` 步骤，都通过。
+   - **原始输出**：`docs/margin/evidence/AG-17-review2/checks/` 中的 `incident5-*.log`（失败的运行、被中断的变异运行、随后的重跑）。备份恢复只核对了启动参数一行（恢复后又有 `-r`、记录器），没有保存逐行比对。
    - **未能证明**：提前退出的原因没有查明。时间上与中断吻合，可能是应用被从外部退出，但没有证据。如果再次出现，要先查明原因。
 
-**下一步**：提交复核修复，由 Astra 只读复查这些修复。复查通过且 D5 有结论之前，不进入阶段 2。
+**下一步**：Astra 只读复查第二轮修复（`94a10fb1` 和证据提交）。复查通过且 D5 有结论之前，不进入阶段 2。
 
 ## 9. 评审记录
 
@@ -1286,7 +1290,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 本轮新增：X4 mock 回归通道。退役之后，基线里没有任何能把回答请求打到本地 mock 服务的路径。这是主线程核对时发现的。
 
-**2026-10-07，Codex gpt-6-astra，只读模式，复核阶段 1 出口（提交 `e9b25ec3`）**。命令：`codex exec -m gpt-6-astra -s read-only`。结论：**修复后可接受**。D5 继续阻塞第 1 条的记录正确；原始计数可信（直接汇总 `AG-17/tests.tap` 得到 104 个文件、716 个测试、711 通过、0 失败、5 跳过）。但"第 2–7 条全部通过"不能成立。全部采纳，均已修复：
+**2026-10-07，Codex gpt-6-astra，只读模式，复核阶段 1 出口（提交 `e9b25ec3`）**。命令：`codex exec -m gpt-6-astra -s read-only`。结论：**修复后可接受**。D5 继续阻塞第 1 条的记录正确；原始计数可信（直接汇总 `AG-17/tests.tap` 得到 104 个文件、716 个测试、711 通过、0 失败、5 跳过）。但"第 2–7 条全部通过"不能成立。全部采纳，均已修复（`2e71066b`）。其中第 1、2、3、4、5 条的修复在第二轮复查中被发现不完整，补充修复见下一条记录：
 
 1. **阻塞：隐私范围承诺不成立。** 会议摘要只检查 `post_call_summary`，关闭 Transcripts、保留摘要时，转写仍会发给 Groq。
    - **修复**：`LLMHelper.generateMeetingSummary` 同时检查 `transcript` 和 `post_call_summary`，任一被拒就不发送（这条路径上全是云端提供商）。
@@ -1312,3 +1316,44 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 7. **说明：Native setup、来源检查和其余修复未发现阻塞问题。** 本机证据只覆盖 CommandLineTools 分支；装有 Xcode 的分支见 CI 记录（AG-17 收尾运行）。
 
 修复后的全部门禁：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-17-review --ref docs/margin/evidence/AG-17`，15 个步骤全部退出 0。G2 新增 1 条白名单：`ScopeLocalFallback` 替身里的 `codexCliConfig: { enabled: false },`，这是基线 `LLMHelper` 的字段。
+
+**2026-10-07，Codex gpt-6-astra，只读模式，复查第一轮修复（提交 `2e71066b`）**。命令：`codex exec -m gpt-6-astra -s read-only`。结论：**仍需进一步修复后才可接受**。复查确认：
+- 标题和会后摘要的修复成立；
+- 第一轮新增的 6 条 G3 规则覆盖了上次指出的残留；
+- 门禁能识别原来 `defaults` 的拦截，`ImeDetectorCache` 的替身有效；
+- 直接汇总 `AG-17-review/tests.tap` 得到 104 个文件、719 个测试、714 通过、5 跳过；
+- D5 和 5 个跳过的定位正确。
+
+同意 `prompts.ts` 中 Profile Intelligence 的描述按决定 1 暂留。以下发现全部采纳并已修复（`94a10fb1`），一次性检查的原始输出在 `docs/margin/evidence/AG-17-review2/checks/`：
+
+1. **阻塞：隐私修复没有覆盖 Codex 路径。** 会中 Recap 和自动压缩把转写放在 `message` 里，拒绝时只清掉了 `context`。路由到 Codex CLI 时，发送前没有数据范围检查。
+   - **修复**：`generateWithCodexCli` 和 `streamWithCodexCli` 在启动 CLI 之前检查数据范围，与其他云端提供商相同。`CodexCliService.run/stream` 只在这两个函数里调用，所以覆盖了所有经过 Codex 的路径。
+   - **测试**：在 `ScopeLocalFallback` 中替换 `spawn`。允许时调用到达替身；关闭 Transcripts 时抛出 `ProviderScopeError`，且没有启动 CLI。
+   - **变异检查**：从构建产物中删掉这两行检查后，两个用例失败（`checks/codex-scope-check-removed.log`）。
+2. **阻塞：取消后立即开始新流，旧流的事件仍可能送达。** 第一轮的布尔标记在新流开始时就被清除，而事件不带流标识。
+   - **修复**：preload 为每次请求分配标识，主进程在每个 token、完成和错误事件里带回这个标识。preload 只送达当前流的事件：取消后不送达，新流开始后不送达旧流的，不带标识的也不送达。
+   - **测试**：回归用例按出口第 6 条所述检查四种情况。
+   - **变异检查**：把 preload 改成忽略标识（等同第一轮的布尔标记）后，用例在旧流的完成事件处失败（送达 2 次）；改成全部送达后，用例在取消后的空档失败（`checks/preload-*.log`）。
+3. **阻塞：退役文案仍未清完。**
+   - **修复**：帮助页删掉"entirely on-device"、"local models / fully custom endpoints"，以及并不存在的"模型列表每 14 天自动同步"。
+   - **复核中的额外发现**：帮助页的两个提供商图标从 groq.com 和 cdn.simpleicons.org 远程加载（CSP 允许任意 `https:` 图片），打开帮助页就会外连。已改用打包内的图标。
+   - **规则**：G3 新增 5 条规则。
+   - **未改动**：`tinyPrompts.ts` 中关于本地模型的一句属于提示词，按决定 1 暂留。OpenAI STT 的自定义地址是现有的 STT 设置，不在 S6 的退役清单里，由 AG-41 收窄 STT 时处理。
+4. **应修：守卫日志检查还没有完全 fail-closed。**
+   - **修复**：
+     - 守卫写不进记录时以退出码 70 结束进程；
+     - 日志为空或没有加载记录时，`readGuardLog()` 报错；
+     - 可以要求某个 PID 的加载记录。`run-node.mjs` 用它检查测试进程，`launchApp` 用它检查应用主进程。
+   - **验证**：`checks/guard-unwritable-log.log`、`checks/guard-log-reader.log`。
+5. **应修：被提前结束的文件能藏住拦截记录。**
+   - **修复**：`run-gates.mjs` 为每个测试文件的 `run-node.mjs` 指定隔离日志路径，在进程结束后（包括被结束的情况）直接读取。没有加载记录的文件同样判失败。
+   - **验证**：临时探针测试做一次被拦截的 DNS 查询，然后保持句柄不退出。它被进程组强制结束（这次是 180 秒时限；"footer 之后结束"用的是同一个结束方式），`run-node.mjs` 没有输出汇总，门禁仍从日志中报出拦截并判失败（`checks/gates-footer-probe.*`）。
+6. **说明：记录器并非完全不改变行为。** `unhandledRejection` 监听会让 `main.ts` 安装处理器之前的 rejection 被记录，而不走 Node 的默认处理。文件注释已改为如实说明。
+7. **说明：证据来自未提交的工作树，事件缺少原始记录。**
+   - 本次先提交 `94a10fb1`，在干净的工作树上运行门禁（`summary.json` 中未提交路径为 0），证据单独提交。
+   - 事件 5 的三份原始输出已归档。
+   - 事件 4 没有单独的日志，影响描述已改为限定说法。
+   - 第一轮修复的变异检查只记在会话里，没有归档。本轮的都已归档。
+8. **说明：延期与出口边界记录正确。** 无需改动。
+
+修复后的全部门禁：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-17-review2 --ref docs/margin/evidence/AG-17-review`，在 `94a10fb1` 上 15 个步骤全部退出 0。G2 新增 3 条白名单：两条通用写法；另一条是 Codex 的范围检查 `this.assertOutboundScopes('codex', userContent, imagePaths);`。这一行是基线已有的调用写法（`a786910e` `LLMHelper.ts:2076`）配上基线的参数名，受限的后期上游代码里有同样的一行，但不是从那里取的。

@@ -56,6 +56,7 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `AG-16/` | AG-16 on the worktree, compared with `AG-15/`; also `install-check.log` (removed packages after `npm ci`) and `validateImagePath.log` (an `electron/utils` test, which the `tests` step does not cover, run by hand under the guard) |
 | `AG-17/` | AG-17 on the worktree (Electron 43.1.0), compared with `AG-16/`; also `install-check.log` (`npm ci` and `setup:native` with Electron 43). From AG-17 the `tests` step also covers `electron/utils`, `electron/test` and `src/lib` tests, and a `startup` step runs `tests/margin/startup-smoke.test.mjs` |
 | `AG-17-review/` | The fixes for the Astra review of the phase 1 exit (PLAN.md section 9), on the uncommitted tree over `e9b25ec3`, compared with `AG-17/`. From this run, any blocked isolation attempt or a non-zero exit without a failing test fails the `tests` step on its own |
+| `AG-17-review2/` | The fixes for the second Astra review, on the committed, clean tree of `94a10fb1`, compared with `AG-17-review/`. From this run the `tests` step reads each file's isolation log itself (a file without a guard-loaded record fails too). `checks/` holds the raw outputs of the one-off checks and incident runs (see its README) |
 
 Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
 The `regression`, `storage` and `startup` steps need a display session (they launch the app

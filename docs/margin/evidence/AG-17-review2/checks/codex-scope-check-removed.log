@@ -1,0 +1,63 @@
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+(node:52804) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ transcript scope denial omits transcript from cloud calls (1.3115ms)
+✔ LLMHelper infers auxiliary context scopes before cloud routing (0.399166ms)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (2.750083ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (73.858167ms)
+✖ Codex CLI (generate) does not start when the transcript scope is denied (2.036875ms)
+✖ Codex CLI (stream) does not start when the transcript scope is denied (0.5325ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 185.086792
+
+✖ failing tests:
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:133:3
+✖ Codex CLI (generate) does not start when the transcript scope is denied (2.036875ms)
+  AssertionError [ERR_ASSERTION]: expected a scope error, got Error: spawn-stub-reached
+  + actual - expected
+  
+  + 'Error'
+  - 'ProviderScopeError'
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:139:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'ProviderScopeError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:133:3
+✖ Codex CLI (stream) does not start when the transcript scope is denied (0.5325ms)
+  AssertionError [ERR_ASSERTION]: expected a scope error, got Error: spawn-stub-reached
+  + actual - expected
+  
+  + 'Error'
+  - 'ProviderScopeError'
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:139:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'Error',
+    expected: 'ProviderScopeError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

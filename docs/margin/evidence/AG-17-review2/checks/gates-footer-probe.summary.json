@@ -1,0 +1,47 @@
+{
+  "startedAt": "2026-10-07T21:38:24.730Z",
+  "head": "2e71066be27a725b28796ae2ae456a545bbbfa87",
+  "uncommittedPaths": 14,
+  "reference": "docs/margin/evidence/AG-17-review",
+  "steps": [
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 188320,
+      "log": "../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/mutations/gates-footer-probe/tests.log",
+      "tap": "../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/mutations/gates-footer-probe/tests.tap",
+      "perFile": "../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/mutations/gates-footer-probe/tests.files.json",
+      "files": 105,
+      "filesNotFinished": [
+        "electron/services/__tests__/ZZMarginGateProbe.test.mjs"
+      ],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 721,
+        "pass": 716,
+        "fail": 0,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [
+        "electron/services/__tests__/ZZMarginGateProbe.test.mjs :: dns margin-probe.invalid"
+      ],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 1,
+        "inherited": 0,
+        "new": [
+          "electron/services/__tests__/ZZMarginGateProbe.test.mjs :: <did not finish>"
+        ],
+        "resolved": []
+      },
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-07T21:41:33.055Z",
+  "allPassed": false
+}

@@ -1,0 +1,5 @@
+✖ the app starts, opens the launcher and settings, stays up, and quits cleanly (932.7975ms)
+
+Interrupted while running:
+
+⚠ tests/margin/startup-smoke.test.mjs (tests/margin/startup-smoke.test.mjs:1:1)
