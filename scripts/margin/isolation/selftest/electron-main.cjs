@@ -45,6 +45,10 @@ app.whenReady().then(async () => {
   Object.assign(results, await rendererProbe(port));
   results['main loopback'] = await (await net.fetch(`http://127.0.0.1:${port}/`)).text();
 
+  const { systemPreferences, desktopCapturer } = require('electron');
+  results['mic permission request'] = (await systemPreferences.askForMediaAccess('microphone')) === false ? 'refused' : 'NOT BLOCKED';
+  results['screen sources'] = (await desktopCapturer.getSources({ types: ['screen'] })).length === 0 ? 'refused' : 'NOT BLOCKED';
+
   results['safeStorage available'] = safeStorage.isEncryptionAvailable();
   if (results['safeStorage available']) {
     const enc = safeStorage.encryptString('margin-test-value');

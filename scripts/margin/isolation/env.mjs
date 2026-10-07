@@ -36,6 +36,8 @@ export function isolatedEnv(sandbox, extra = {}) {
     MARGIN_ISOLATION_LOG: sandbox.log,
     MARGIN_ISOLATION_ALLOW_EXEC: '',
     NO_PROXY: '*',
+    // The app's own dev switch: skip the startup screen-recording permission probe.
+    NATIVELY_DEV_BYPASS_SCREEN_TCC: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
   }, extra);
   return env;

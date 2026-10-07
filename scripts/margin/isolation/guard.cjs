@@ -196,6 +196,21 @@ function installChromiumGuard(electron) {
       try { fs.mkdirSync(dir, { recursive: true }); electron.app.setPath(key, dir); } catch (e) { record('setPath', `${key}: ${e.message}`); }
     }
   }
+  // Never let a test or smoke launch raise an OS permission dialog (microphone,
+  // camera, screen recording). Answer "not granted" and record the attempt instead.
+  try {
+    electron.systemPreferences.askForMediaAccess = async (mediaType) => {
+      record('permission', `askForMediaAccess ${mediaType}`);
+      return false;
+    };
+  } catch (e) { record('permission', `cannot stub askForMediaAccess: ${e.message}`); }
+  try {
+    electron.desktopCapturer.getSources = async (opts) => {
+      record('permission', `desktopCapturer.getSources ${JSON.stringify(opts && opts.types)}`);
+      return [];
+    };
+  } catch (e) { record('permission', `cannot stub desktopCapturer.getSources: ${e.message}`); }
+
   const allowedUrl = (url) => {
     if (/^(file|data|blob|devtools|chrome|chrome-extension|about):/i.test(url)) return true;
     try {
