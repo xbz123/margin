@@ -1,0 +1,81 @@
+# Margin ticket gates on a clean macOS runner (PLAN.md §8, "CI 门禁").
+# Runs only when a push to the migration branch says "[gates]" in its head commit
+# message, or by hand. It reads the upstream repository (public, read-only) so the
+# provenance check sees the same restricted pool as a local run, uses no secrets,
+# and keeps the raw gate output as a run artifact. A green run is a reference for a
+# clean install; it does not settle D5 (building without Xcode on the local Mac).
+name: Margin gates
+
+on:
+  push:
+    branches: [codex/margin-agpl-migration]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[gates]')
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream refs and extra restricted commits (read-only)
+        run: |
+          # The empty extraheader keeps the checkout token from being sent to the upstream repository.
+          git -c http.https://github.com/.extraheader= fetch --no-tags https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant.git \
+            '+refs/heads/*:refs/remotes/upstream/*'
+          for sha in $(node -p "require('./docs/margin/provenance-config.json').restrictedExtraRefs.join(' ')"); do
+            git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch --no-tags origin "$sha"
+            git cat-file -e "$sha^{commit}"
+          done
+          echo "upstream refs: $(git for-each-ref refs/remotes/upstream --format=x | wc -l)"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26.0.0
+
+      - name: Toolchain versions
+        id: tools
+        run: |
+          node -v; npm -v; rustc -V; cargo -V; xcodebuild -version
+          echo "rustc=$(rustc -V | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/Library/Caches/electron
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-${{ runner.arch }}-
+
+      - uses: actions/cache@v6
+        with:
+          path: native-module/target
+          key: cargo-target-${{ runner.os }}-${{ runner.arch }}-${{ steps.tools.outputs.rustc }}-${{ hashFiles('native-module/Cargo.lock') }}
+          restore-keys: cargo-target-${{ runner.os }}-${{ runner.arch }}-${{ steps.tools.outputs.rustc }}-
+
+      - run: npm ci
+
+      - run: npm run setup:native
+
+      - name: Run gates against the newest local ticket evidence
+        run: |
+          ref=$(node -e "
+            const fs = require('fs');
+            const dirs = fs.readdirSync('docs/margin/evidence').filter((d) => /^AG-\d+$/.test(d));
+            dirs.sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)));
+            console.log('docs/margin/evidence/' + dirs.at(-1));
+          ")
+          echo "reference: $ref"
+          node scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \
+            --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, compared with $ref"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: margin-gates-${{ github.sha }}
+          path: ci-evidence/
+          retention-days: 30

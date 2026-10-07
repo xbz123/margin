@@ -631,6 +631,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | 证据方法 | 已更正 | 见 AG-13 提交 | 门禁统一由 `scripts/margin/run-gates.mjs` 运行，原始输出和退出码存于 `docs/margin/evidence/`。发现并修正了两处会让测试结果失真的问题（构建不清理旧产物；`--test-force-exit` 漏报测试），详见下文 AG-13 记录 |
 | AG-13 | 完成 | 见 AG-13 提交 | 见下文 AG-13 记录。证据：`docs/margin/evidence/AG-13/summary.json`，对照 `pre-AG-13/`。**待用户决定**：是否保留默认回答提示词（见记录中的决定 1） |
 | AG-14 | 完成 | `93fa62fe` 及 AG-14 (2/2) 提交 | 见下文 AG-14 记录。证据：`docs/margin/evidence/AG-14/summary.json`，对照 `AG-13/`；守卫记录到对 `11434` 端口零请求 |
+| CI 门禁 | 已加入，首次运行待对照 | 见 CI 门禁提交 | `.github/workflows/margin-gates.yml`，见下文 CI 门禁记录。只作干净安装的参考，**不算 D5 已通过** |
 | AG-15–17 | 待开始 | | AG-15 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
@@ -873,6 +874,23 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
 - **测试数从 666 降到 624 的来源**（按文件对照 `tests.files.json`）：删除两个 RAG 测试文件，共 7 个用例；`VisionCapability` 减少 25 个（Ollama 视觉判断）；`ProviderGatewayPolicy` 减少 3 个、`ScopeLocalFallback` 减少 3 个、`VisionProviderFallbackChain` 减少 2 个、`ProviderRouter` 和 `ProviderRouting` 各减少 1 个（RAG、Ollama 或仅本地相关）。7 + 25 + 3 + 3 + 2 + 1 + 1 = 42。
 - **继承失败**：`suggestionPromptAssembly` 中那个基线就失败的用例，删掉了对 Ollama 调用的断言；它仍然在基线就失败的 `streamChat` 调用次数断言上失败，继续交给 AG-17。`OpenAIRealtimeGAProtocol` 仍是 `<did not finish>`，属于基线已知的挂起。
 - **未验证**：阶段 1 出口第 1 条（干净安装）仍等待 D5。
+
+### CI 门禁记录（2026-10-07）
+
+- **文件**：`.github/workflows/margin-gates.yml`。
+- **触发**：只在推送到 `codex/margin-agpl-migration`、且推送的最新提交说明含 `[gates]` 时运行；另可手动触发（`workflow_dispatch`）。按用户的额度安排（约 3,000 分钟免费额度，私有仓库 macOS 按 10 倍计费），只在每张 ticket 收尾时跑一次。
+- **环境**：`macos-15`，`permissions: contents: read`，单次上限 45 分钟，不使用任何密钥。
+- **步骤**：
+  1. `actions/checkout`（`fetch-depth: 0`）；
+  2. 只读拉取上游仓库的 `refs/heads/*` 到 `refs/remotes/upstream/*`（拉取时清空 checkout 的认证头，令牌不发给上游），再确认 `provenance-config.json` 中 `restrictedExtraRefs` 列出的提交都在，缺的从 origin 拉取；
+  3. `setup-node` 26.0.0，打印 node、npm、rustc、cargo、Xcode 版本；
+  4. 缓存 `~/Library/Caches/electron` 和 `native-module/target`（后者按 rustc 版本和 `Cargo.lock` 区分）；
+  5. `npm ci` → `npm run setup:native`；
+  6. `node scripts/margin/run-gates.mjs --out ci-evidence --ref <最新的 docs/margin/evidence/AG-*>`；
+  7. 无论成败，`ci-evidence/` 都作为运行产物上传，保留 30 天。
+- **定位**：GitHub 的 macOS 镜像装有完整 Xcode，所以 CI 能从零构建 Rust 原生模块。这只能作为"干净安装可行"的参考，**不等于 D5 已通过**：D5 问的是本机没有 Xcode 时怎么办，仍由用户决定。
+- **与本机的已知差异**：上游现在有 123 个分支，本机的 `refs/remotes/upstream/*` 是 77 个（本机不重新拉取，以免改动与原工作区共享的引用）。CI 的受限池因此可能更大，来源检查可能多出命中。
+- **首次运行对照**：待运行后补充。
 
 ### 事件记录（2026-10-07）
 
