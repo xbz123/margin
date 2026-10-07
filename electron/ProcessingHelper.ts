@@ -86,12 +86,6 @@ export class ProcessingHelper {
       this.llmHelper.setDeepseekApiKey(deepseekKey);
     }
 
-    const nativelyKey = credManager.getNativelyApiKey();
-    if (nativelyKey) {
-      console.log("[ProcessingHelper] Loading stored Natively API Key from CredentialsManager");
-      this.llmHelper.setNativelyKey(nativelyKey);
-    }
-
     // CRITICAL: Re-initialize IntelligenceManager now that keys are loaded
     // This fixes the issue where buttons don't work in production because of late key loading
     this.appState.getIntelligenceManager().initializeLLMs();

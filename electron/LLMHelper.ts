@@ -40,7 +40,6 @@ import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { deepVariableReplacer, getByPath, injectImageIntoMessages } from './utils/curlUtils';
 import curl2Json from "@bany/curl-to-json";
 import { CustomProvider, CurlProvider } from './services/CredentialsManager';
-import { TRIAL_SENTINEL_KEY } from './config/constants';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import axios from 'axios';
@@ -99,13 +98,10 @@ export class LLMHelper {
   private activeCurlProvider: CurlProvider | null = null;
   private groqFastTextMode: boolean = false;
   private codexCliConfig: CodexCliConfig = DEFAULT_CODEX_CLI_CONFIG;
-  private knowledgeOrchestrator: any = null;
-  private negotiationCoachingHandler: ((payload: unknown) => void) | null = null;
   private customNotes: string = '';
   private personaPrompt: string = '';
   private aiResponseLanguage: string = 'auto';
   private sttLanguage: string = 'english-us';
-  private nativelyKey: string | null = null;
 
   // Rate limiters per provider to prevent 429 errors on free tiers
   private rateLimiters: ReturnType<typeof createProviderRateLimiters>;
@@ -300,11 +296,6 @@ export class LLMHelper {
     console.log("[LLMHelper] DeepSeek API Key updated.");
   }
 
-  public setNativelyKey(key: string | null): void {
-    this.nativelyKey = key || null;
-    console.log(`[LLMHelper] Natively key ${key ? 'set' : 'cleared'}`);
-  }
-
   /**
    * Enable or disable local-only mode.
    * When enabled, cloud providers (Gemini, OpenAI, Claude, Groq) will be blocked.
@@ -317,10 +308,6 @@ export class LLMHelper {
 
   public isLocalOnly(): boolean {
     return this.isLocalOnlyMode;
-  }
-
-  private hasNatively(): boolean {
-    return !!this.nativelyKey;
   }
 
   /**
@@ -355,14 +342,12 @@ export class LLMHelper {
   // these named entry points so the surface stays auditable.
 
   public async runVisionRequest(
-    providerId: 'natively' | 'openai' | 'claude' | 'gemini_flash' | 'gemini_pro' | 'groq_scout' | 'custom',
+    providerId: 'openai' | 'claude' | 'gemini_flash' | 'gemini_pro' | 'groq_scout' | 'custom',
     userPrompt: string,
     systemPrompt: string,
     imagePath: string,
   ): Promise<string> {
     switch (providerId) {
-      case 'natively':
-        return this.generateWithNatively(userPrompt, systemPrompt, [imagePath]);
       case 'openai':
         return this.generateWithOpenai(userPrompt, systemPrompt, [imagePath]);
       case 'claude':
@@ -418,7 +403,6 @@ export class LLMHelper {
     this.openaiApiKey = null;
     this.claudeApiKey = null;
     this.deepseekApiKey = null;
-    this.nativelyKey = null;
     this.client = null;
     this.groqClient = null;
     this.openaiClient = null;
@@ -1246,52 +1230,12 @@ ANSWER DIRECTLY:`;
     }
   }
 
-  public setKnowledgeOrchestrator(orchestrator: any): void {
-    this.knowledgeOrchestrator = orchestrator;
-    console.log('[LLMHelper] KnowledgeOrchestrator attached');
-  }
-
-  // Dedicated channel for live-negotiation coaching — replaces the in-band
-  // __negotiationCoaching JSON sentinel that used to be yielded through the
-  // streamChat token stream. IntelligenceEngine installs this handler and
-  // re-emits as a 'negotiation_coaching' event.
-  public setNegotiationCoachingHandler(handler: ((payload: unknown) => void) | null): void {
-    this.negotiationCoachingHandler = handler;
-  }
-
-  // Issue #272: gate the ENTIRE premium knowledge intercept by active mode
-  // template so the tracker can never overwrite a technical-interview /
-  // team-meet / lecture answer with premium-flavored content. This closes
-  // three sibling bug vectors at once: (a) negotiation coaching card emission,
-  // (b) intro-question canned response, and (c) premium system-prompt /
-  // context-block injection into a downstream LLM call. Default to true if
-  // ModesManager is unavailable so we never regress modes that legitimately
-  // use the intercept (looking-for-work, sales, recruiting, general).
-  private isPremiumKnowledgeInterceptAllowed(): boolean {
-    let ModesManager: any;
-    try {
-      ({ ModesManager } = require('./services/ModesManager'));
-    } catch (_err) {
-      return true;
-    }
-
-    try {
-      return ModesManager.getInstance().isPremiumKnowledgeInterceptAllowed();
-    } catch (_err) {
-      return false;
-    }
-  }
-
   public setCustomNotes(notes: string): void {
     this.customNotes = notes;
   }
 
   public setPersonaPrompt(prompt: string): void {
     this.personaPrompt = prompt;
-  }
-
-  public getKnowledgeOrchestrator(): any {
-    return this.knowledgeOrchestrator;
   }
 
   public setAiResponseLanguage(language: string) {
@@ -1426,54 +1370,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     try {
       console.log(`[LLMHelper] chatWithGemini called`, { messageLength: message.length, imageCount: imagePaths?.length ?? 0, hasContext: Boolean(context) })
 
-      // ============================================================
-      // KNOWLEDGE MODE INTERCEPT
-      // If knowledge mode is active, check for intro questions and
-      // inject system prompt + relevant context
-      // ============================================================
-      if (this.knowledgeOrchestrator?.isKnowledgeMode()) {
-        try {
-          // Feed only to the depth scorer — NOT feedInterviewerUtterance, which also routes to the
-          // negotiation tracker and would misclassify the user's typed question as a recruiter utterance.
-          // Recruiter utterances reach the tracker exclusively via the STT path in main.ts.
-          this.knowledgeOrchestrator.feedForDepthScoring(message);
-
-          const knowledgeResult = await this.knowledgeOrchestrator.processQuestion(message);
-          // Issue #272: gate ALL premium-intercept side-effects (coaching,
-          // intro shortcut, prompt/context injection) by active mode. The
-          // depth scorer above stays unconditional so it keeps getting signal.
-          // When the gate blocks, fall through entirely so the call proceeds
-          // as a normal LLM request with no premium-flavored injection.
-          if (knowledgeResult && this.isPremiumKnowledgeInterceptAllowed()) {
-            // Live negotiation coaching short-circuit — bypass second LLM call.
-            // Coaching payload travels on the dedicated handler channel, NOT
-            // through the chat() return value. We return an empty string so
-            // the caller emits no normal answer.
-            if (knowledgeResult.liveNegotiationResponse) {
-              this.negotiationCoachingHandler?.(knowledgeResult.liveNegotiationResponse);
-              return '';
-            }
-            // Intro question shortcut — return generated response directly
-            if (knowledgeResult.isIntroQuestion && knowledgeResult.introResponse) {
-              console.log('[LLMHelper] Knowledge mode: returning generated intro response');
-              return knowledgeResult.introResponse;
-            }
-            // Inject knowledge system prompt and context
-            if (!skipSystemPrompt && knowledgeResult.systemPromptInjection) {
-              skipSystemPrompt = false; // ensure we use the knowledge prompt
-              // Prepend knowledge context to existing context
-              if (knowledgeResult.contextBlock) {
-                context = context
-                  ? `${knowledgeResult.contextBlock}\n\n${context}`
-                  : knowledgeResult.contextBlock;
-              }
-            }
-          }
-        } catch (knowledgeError: any) {
-          console.warn('[LLMHelper] Knowledge mode processing failed, falling back to normal:', knowledgeError.message);
-        }
-      }
-
       const isMultimodal = !!(imagePaths?.length);
 
       // Helper to build combined prompts for Groq/Gemini
@@ -1542,8 +1438,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       // selections aren't silently routed to Groq. See streamChat() for matching gate.
       const fastModeAppliesNS = this.groqFastTextMode && !isMultimodal && (
         this.codexCliConfig.enabled ||
-        this.isGroqModel(this.currentModelId) ||
-        this.currentModelId === 'natively'
+        this.isGroqModel(this.currentModelId)
       );
       if (fastModeAppliesNS && this.codexCliConfig.enabled) {
         console.log(`[LLMHelper] ⚡️ Fast Text Mode Active. Routing to Codex CLI...`);
@@ -1598,19 +1493,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
 
       // --- Direct Routing based on Selected Model ---
-      if (this.currentModelId === 'natively') {
-        const { CredentialsManager } = require('./services/CredentialsManager');
-        const nativelyKey = CredentialsManager.getInstance().getNativelyApiKey();
-        if (nativelyKey) {
-          try {
-            return await this.generateWithNatively(cloudUserContent, openaiSystemPrompt, cloudImagePaths);
-          } catch (err: any) {
-            console.warn('[LLMHelper] Natively API failed in chatWithGemini, falling back to Gemini:', err.message);
-            // Fall through to smart dynamic fallback below
-          }
-        }
-        // No key or call failed — fall through to default routing
-      }
       if (this.isOpenAiModel(this.currentModelId) && this.openaiClient) {
         return await this.generateWithOpenai(cloudUserContent, openaiSystemPrompt, cloudImagePaths);
       }
@@ -1654,7 +1536,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         capability: 'chat',
         multimodal: cloudIsMultimodal,
         availability: {
-          hasNatively: this.hasNatively(),
           hasGroq: Boolean(this.groqClient),
           groqDisabled: this._groqLocalDisabled,
           hasCodex: this.codexCliConfig.enabled,
@@ -1681,9 +1562,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       for (const routedProvider of routedProviders) {
         if (routedProvider.status !== 'available') continue;
         switch (routedProvider.provider) {
-          case 'natively':
-            providers.push({ name: routedProvider.name, execute: () => this.generateWithNatively(cloudUserContent, openaiSystemPrompt, cloudIsMultimodal ? cloudImagePaths : undefined) });
-            break;
           case 'groq':
             if (cloudIsMultimodal) {
               providers.push({ name: `Groq (meta-llama/llama-4-scout-17b-16e-instruct)`, execute: () => this.generateWithGroqMultimodal(cloudUserContent, cloudImagePaths!, openaiSystemPrompt) });
@@ -1722,7 +1600,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
       if (providers.length === 0) {
         if (cloudIsMultimodal && this.deepseekClient) {
-          return "DeepSeek is configured for text-only requests. Add a vision-capable provider like Gemini, OpenAI, Claude, Groq, or Natively to analyze images.";
+          return "DeepSeek is configured for text-only requests. Add a vision-capable provider like Gemini, OpenAI, Claude, or Groq to analyze images.";
         }
         return "No AI providers configured. Please add at least one API key in Settings.";
       }
@@ -1882,19 +1760,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       });
     }
 
-    // Priority 8: Natively API — used when no other provider is available, or as final fallback
-    const nativelyKeyForStructured = this.nativelyKey || (() => {
-      try { return require('./services/CredentialsManager').CredentialsManager.getInstance().getNativelyApiKey() || null; } catch { return null; }
-    })();
-    if (nativelyKeyForStructured) {
-      providers.push({
-        name: 'Natively API',
-        execute: () => this.generateWithNatively(message)
-      });
-    }
-
     if (providers.length === 0) {
-      throw new Error('No reasoning model available. Please configure an API key (OpenAI, Claude, Gemini, Groq, Natively) or a custom provider.');
+      throw new Error('No reasoning model available. Please configure an API key (OpenAI, Claude, Gemini, Groq) or a custom provider.');
     }
 
     const MAX_ROTATIONS = 3;
@@ -1979,93 +1846,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   /**
    * Non-streaming OpenAI generation with proper system/user separation
    */
-  /**
-   * Routes AI generation through the Natively API backend (Gemini-powered).
-   */
-  private async generateWithNatively(userMessage: string, systemPrompt?: string, imagePaths?: string[]): Promise<string> {
-    this.assertOutboundScopes('natively', userMessage, imagePaths);
-    // Prefer the in-memory field; fall back to CredentialsManager for the direct-routing path
-    // where currentModelId === 'natively' but setNativelyKey() wasn't called yet.
-    let nativelyKey = this.nativelyKey;
-    if (!nativelyKey) {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      nativelyKey = CredentialsManager.getInstance().getNativelyApiKey() || null;
-    }
-    if (!nativelyKey) throw new Error('Natively API key not set');
-
-    const endpointUrl = 'https://api.natively.software/v1/chat';
-    // When the key is the trial sentinel, authenticate with the real trial token
-    // instead — the server validates x-trial-token, not __trial__ as an API key.
-    const headers: any = { 'Content-Type': 'application/json' };
-    if (nativelyKey === TRIAL_SENTINEL_KEY) {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const trialToken = CredentialsManager.getInstance().getTrialToken();
-      if (!trialToken) throw new Error('Trial token not found');
-      headers['x-trial-token'] = trialToken;
-    } else {
-      headers['x-natively-key'] = nativelyKey;
-    }
-
-    const body: any = { messages: [{ role: 'user', content: userMessage }] };
-
-    // Signal fast mode so the server routes to Groq Llama 3.3 (text-only, key-rotated).
-    // Only sent for text-only requests — server ignores it when images are present.
-    if (this.groqFastTextMode) body.fast_mode = true;
-
-    // Send images as a structured array so the server can build proper Gemini inlineData parts.
-    // Embedding base64 in the text content would be truncated at 4000 chars and treated as text.
-    //
-    // Compress before sending: retina screenshots are 2-5 MB PNG; the Natively API body limit
-    // is 4 MB. Resize to max 1920px (above the 1470px logical resolution of a MacBook Air, so
-    // no detail is lost) and encode as JPEG 85% — typically 200-250 KB per image.
-    // 4 screenshots × ~278KB base64 = ~1.1 MB, well within the 4 MB server limit.
-    if (imagePaths?.length) {
-      const images: { mime_type: string; data: string }[] = [];
-      for (const p of imagePaths) {
-        if (fs.existsSync(p)) {
-          try {
-            const compressed = await sharp(p)
-              .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-              .jpeg({ quality: 85 })
-              .toBuffer();
-            images.push({ mime_type: 'image/jpeg', data: compressed.toString('base64') });
-          } catch (compressErr: any) {
-            // Fallback: send raw if sharp fails (e.g. unsupported format)
-            console.warn('[LLMHelper] Image compression failed, sending raw:', compressErr.message);
-            const imageData = await fs.promises.readFile(p);
-            if (imageData.length > 500 * 1024) {
-              console.warn('[LLMHelper] Raw fallback image too large to send, skipping:', p);
-              continue;
-            }
-            images.push({ mime_type: 'image/png', data: imageData.toString('base64') });
-          }
-        }
-      }
-      if (images.length) body.images = images;
-    }
-    if (systemPrompt) body.system = systemPrompt;
-    if (this.aiResponseLanguage && this.aiResponseLanguage !== 'English') {
-      body.language = this.aiResponseLanguage; // 'auto' is forwarded — server handles it
-    }
-
-    // 8s hard cap: a `fetch failed` network error without this can stall the provider
-    // waterfall for 25-30s before the OS-level TCP reset fires.
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(8000),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(`Natively API error ${response.status}: ${errData.error || 'unknown'}`);
-    }
-
-    const data = await response.json();
-    return data.content || '';
-  }
-
   /**
    * Non-streaming OpenAI generation with proper system/user separation.
    * PREFIX CACHING: see streamWithOpenai for the caching contract.
@@ -2913,10 +2693,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const textGroq = this.modelVersionManager.getTextTieredModels(TextModelFamily.GROQ).tier1;
 
     if (isMultimodal) {
-      // MULTIMODAL PROVIDER ORDER: [Natively] -> Codex CLI -> OpenAI -> Gemini Flash -> Claude -> Gemini Pro -> Groq Scout 4
-      if (this.hasNatively()) {
-        providers.push({ name: 'Natively API', execute: () => this.streamWithNatively(userContent, openaiSystemPrompt, imagePaths, abortSignal) });
-      }
+      // MULTIMODAL PROVIDER ORDER: Codex CLI -> OpenAI -> Gemini Flash -> Claude -> Gemini Pro -> Groq Scout 4
       if (this.codexCliConfig.enabled) {
         providers.push({ name: `Codex CLI (${this.codexCliConfig.model})`, execute: () => this.streamWithCodexCli(userContent, openaiSystemPrompt, false, imagePaths, abortSignal) });
       }
@@ -2938,10 +2715,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         providers.push({ name: `Groq (meta-llama/llama-4-scout-17b-16e-instruct)`, execute: () => this.streamWithGroqMultimodal(userContent, imagePaths!, openaiSystemPrompt, abortSignal) });
       }
     } else {
-      // TEXT-ONLY PROVIDER ORDER: [Natively] -> Groq -> Codex CLI -> OpenAI -> Claude -> Gemini Flash -> Gemini Pro
-      if (this.hasNatively()) {
-        providers.push({ name: 'Natively API', execute: () => this.streamWithNatively(userContent, openaiSystemPrompt, undefined, abortSignal) });
-      }
+      // TEXT-ONLY PROVIDER ORDER: Groq -> Codex CLI -> OpenAI -> Claude -> Gemini Flash -> Gemini Pro
       if (this.groqClient) {
         // CACHE: pass system separately so Groq prefix-cache hits across turns.
         providers.push({ name: `Groq (${textGroq})`, execute: () => this.streamWithGroq(userContent, textGroq, groqSystemForCache, abortSignal) });
@@ -2969,7 +2743,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (providers.length === 0) {
       if (isMultimodal && imagePaths && this.deepseekClient) {
-        yield "DeepSeek is configured for text-only requests. Add a vision-capable provider like Gemini, OpenAI, Claude, Groq, or Natively to analyze images.";
+        yield "DeepSeek is configured for text-only requests. Add a vision-capable provider like Gemini, OpenAI, Claude, or Groq to analyze images.";
         return;
       }
       yield "No AI providers configured. Please add at least one API key in Settings.";
@@ -2981,8 +2755,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // Ensure the model the user selected handles the request first
     // before falling back to others.
     // ============================================================
-    const currentFamilyLabel = this.currentModelId === 'natively' ? 'Natively'
-      : this.isClaudeModel(this.currentModelId) ? 'Claude'
+    const currentFamilyLabel = this.isClaudeModel(this.currentModelId) ? 'Claude'
         : this.isOpenAiModel(this.currentModelId) ? 'OpenAI'
           : this.isGroqModel(this.currentModelId) ? 'Groq'
             : this.isDeepseekModel(this.currentModelId) ? 'DeepSeek'
@@ -2995,16 +2768,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         if (!a.name.startsWith(currentFamilyLabel) && b.name.startsWith(currentFamilyLabel)) return 1;
         return 0;
       });
-    }
-
-    // Natively is always first when configured, regardless of which model is selected.
-    // The sort above may have displaced it — restore it to position 0.
-    if (this.hasNatively() && providers[0]?.name !== 'Natively API') {
-      const idx = providers.findIndex(p => p.name === 'Natively API');
-      if (idx > 0) {
-        const [entry] = providers.splice(idx, 1);
-        providers.unshift(entry);
-      }
     }
 
     // ============================================================
@@ -3062,7 +2825,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   // The single multimodal (screenshot + text) entry point for streaming. Every
   // image-bearing streamChat request routes here so we get ONE robust, telemetry-
   // rich fallback chain instead of the old ad-hoc per-model routing that died
-  // when the selected model (e.g. `natively`) timed out and only Gemini remained.
+  // when the selected model (e.g. a cloud model) timed out and only Gemini remained.
   //
   // Design — the "commit point" / first-token-buffering pattern used by LiteLLM,
   // OpenRouter, and the Vercel AI SDK for streaming fallback:
@@ -3075,7 +2838,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   //      would duplicate output) — we end the stream gracefully.
   //
   // Priority order (user-specified): OpenAI → Claude → Gemini Flash → Gemini Pro
-  //   → Groq Scout → Natively → (local) Custom → Ollama. Healthy providers are
+  //   → Groq Scout → (local) Custom → Ollama. Healthy providers are
   //   then re-ordered fastest-first by measured TTFT EWMA ("rearrange the queue
   //   in the speed"). Explicitly-selected local providers (Ollama / Custom) are
   //   honored first; local-only mode uses local providers exclusively.
@@ -3126,10 +2889,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       if (this.groqClient) {
         cloud.push({ id: 'groq', name: 'Groq Llama-4 Scout', isLocal: false, priority: prio++,
           open: (sig) => this.streamWithGroqMultimodal(userContent, imagePaths, systemPrompt, sig) });
-      }
-      if (this.hasNatively()) {
-        cloud.push({ id: 'natively', name: 'Natively API', isLocal: false, priority: prio++,
-          open: (sig) => this.streamWithNatively(userContent, systemPrompt, imagePaths, sig) });
       }
     }
 
@@ -3234,60 +2993,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   ): AsyncGenerator<string, void, unknown> {
 
     // ============================================================
-    // KNOWLEDGE MODE INTERCEPT (Streaming)
-    // Skip when fast-text mode is active — intent classification +
-    // hybrid search add 300-800ms that defeat the purpose of fast mode.
-    // ============================================================
-    const shouldRunKnowledge = !ignoreKnowledgeMode &&
-      !this.groqFastTextMode &&
-      this.knowledgeOrchestrator?.isKnowledgeMode();
-
-    if (shouldRunKnowledge) {
-      try {
-        // Feed to depth scorer only (not negotiation tracker) — mirrors non-streaming path fix.
-        this.knowledgeOrchestrator.feedForDepthScoring(message);
-
-        const knowledgeResult = await this.knowledgeOrchestrator.processQuestion(message);
-        // Issue #272: gate ALL premium-intercept side-effects (coaching, intro
-        // shortcut, prompt/context injection) by active mode. The depth scorer
-        // above stays unconditional so it keeps getting signal. When the gate
-        // blocks, fall through entirely so the stream proceeds as a normal LLM
-        // call with no premium-flavored injection.
-        if (knowledgeResult && this.isPremiumKnowledgeInterceptAllowed()) {
-          // Live negotiation coaching short-circuit — bypass second LLM call.
-          // Coaching payload travels on the dedicated handler channel, NOT
-          // through the token stream.
-          if (knowledgeResult.liveNegotiationResponse) {
-            this.negotiationCoachingHandler?.(knowledgeResult.liveNegotiationResponse);
-            return;
-          }
-          // Intro question shortcut — yield generated response directly
-          if (knowledgeResult.isIntroQuestion && knowledgeResult.introResponse) {
-            console.log('[LLMHelper] Knowledge mode (stream): returning generated intro response');
-            yield knowledgeResult.introResponse;
-            return;
-          }
-          // Inject knowledge system prompt — prepend CORE_IDENTITY so the
-          // <security>/creator/universal-behavior rules survive. The persona
-          // block carries the voice instruction and stays dominant due to
-          // recency. Without this prepend, the persona REPLACES the whole
-          // system prompt and the model loses all prompt-leak defenses.
-          if (knowledgeResult.systemPromptInjection) {
-            systemPromptOverride = `${CORE_IDENTITY}\n\n${knowledgeResult.systemPromptInjection}`;
-          }
-          // Inject knowledge context
-          if (knowledgeResult.contextBlock) {
-            context = context
-              ? `${knowledgeResult.contextBlock}\n\n${context}`
-              : knowledgeResult.contextBlock;
-          }
-        }
-      } catch (knowledgeError: any) {
-        console.warn('[LLMHelper] Knowledge mode (stream) processing failed, falling back:', knowledgeError.message);
-      }
-    }
-
-    // ============================================================
     // ACTIVE MODE INJECTION (Context + System Prompt Suffix)
     // Skipped for UNIVERSAL_* callers — those prompts have their own
     // CORE_IDENTITY/EXECUTION_CONTRACT and context-handling rules; appending
@@ -3375,10 +3080,10 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     // ── UNIFIED MULTIMODAL PATH ────────────────────────────────────────────
     // Every image-bearing request goes through the single streaming vision
-    // fallback chain (OpenAI → Claude → Gemini → Groq → Natively → local) with
+    // fallback chain (OpenAI → Claude → Gemini → Groq → local) with
     // first-token commit, per-provider retries, circuit breaking, and speed
     // reordering. This replaces the old per-model multimodal branches below,
-    // which would dead-end when the selected model (e.g. `natively`) failed and
+    // which would dead-end when the selected model (e.g. a cloud model) failed and
     // only Gemini remained. The text-only routing below is unchanged.
     if (isMultimodal && imagePaths && imagePaths.length > 0) {
       let visionYielded = false;
@@ -3402,16 +3107,14 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
 
     // GROQ FAST TEXT OVERRIDE (Text-Only)
-    // Two paths: local Groq key → call Groq directly; Natively API only → send fast_mode:true
-    // to the server so it routes to its internal Groq pool (llama-3.3-70b-versatile).
+    // Local Groq key → call Groq directly.
     //
     // Gate: only short-circuit to fast paths when the user's picked model is one of
     // the providers fast-mode actually routes to. Otherwise picking Gemini/Claude/OpenAI
     // in the UI is silently ignored because fast-mode returns before model routing runs.
     const fastModeApplies = this.groqFastTextMode && !isMultimodal && (
       this.codexCliConfig.enabled ||
-      this.isGroqModel(this.currentModelId) ||
-      this.currentModelId === 'natively'
+      this.isGroqModel(this.currentModelId)
     );
     if (fastModeApplies) {
       if (this.codexCliConfig.enabled) {
@@ -3429,7 +3132,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           const groqSystem = systemPromptOverride || GROQ_SYSTEM_PROMPT;
           const finalGroqSystem = this.injectLanguageInstruction(groqSystem);
           // Only thread currentModelId when it's actually a Groq model; otherwise
-          // we'd send 'natively' or a Gemini ID as the Groq model name → 400.
+          // we'd send a Gemini or other model ID as the Groq model name → 400.
           const groqModelId = this.isGroqModel(this.currentModelId) ? this.currentModelId : GROQ_MODEL;
           // CACHE: pass system separately so Groq prefix-cache hits across turns.
           yield* this.streamWithGroq(userContent, groqModelId, finalGroqSystem, abortSignal);
@@ -3441,17 +3144,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
             console.warn("[LLMHelper] Local Groq key rejected (401) — disabling local Groq for the rest of this session. Re-enable by saving a new key in Settings.");
           }
         }
-        // Local Groq failed — fall through to Natively if available
-      }
-      if (this.hasNatively()) {
-        // streamWithNatively → generateWithNatively → sends fast_mode:true → server Groq pool
-        console.log(`[LLMHelper] ⚡️ Groq Fast Text Mode Active (Streaming). Routing to Natively server Groq pool...`);
-        try {
-          yield* this.streamWithNatively(userContent, finalSystemPrompt, undefined, abortSignal);
-          return;
-        } catch (e: any) {
-          console.warn("[LLMHelper] Natively fast-mode failed, falling back:", e.message);
-        }
+        // Local Groq failed — fall through to the normal provider chain
       }
     }
 
@@ -3513,7 +3206,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
 
     // DeepSeek (text-only). When images are present, fall through so the
-    // vision-first chain (Gemini/Claude/OpenAI/Natively) handles them instead.
+    // vision-first chain (Gemini/Claude/OpenAI) handles them instead.
     if (this.isDeepseekModel(this.currentModelId) && this.deepseekClient && !(isMultimodal && imagePaths)) {
       const deepseekSystem = systemPromptOverride || OPENAI_SYSTEM_PROMPT;
       const finalDeepseekSystem = this.injectLanguageInstruction(deepseekSystem);
@@ -3538,41 +3231,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       return;
     }
 
-    // 3b. Natively API
-    if (this.currentModelId === 'natively') {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const nativelyKey = CredentialsManager.getInstance().getNativelyApiKey();
-      if (nativelyKey) {
-        try {
-          yield* this.streamWithNatively(userContent, finalSystemPrompt, imagePaths, abortSignal);
-          return;
-        } catch (err: any) {
-          console.warn('[LLMHelper] Natively API failed in streamChat, trying Groq fallback:', err.message);
-          // Try Groq before Gemini — Groq key is more commonly available
-          if (this.groqClient) {
-            try {
-              if (isMultimodal && imagePaths) {
-                const groqSystem = systemPromptOverride || OPENAI_SYSTEM_PROMPT;
-                const finalGroqSystem = this.injectLanguageInstruction(groqSystem);
-                yield* this.streamWithGroqMultimodal(userContent, imagePaths, finalGroqSystem, abortSignal);
-              } else {
-                const groqSystem = systemPromptOverride ? baseSystemPrompt : GROQ_SYSTEM_PROMPT;
-                const finalGroqSystem = this.injectLanguageInstruction(groqSystem);
-                // intentional: emergency fallback waterfall — use stable GROQ_MODEL baseline, not currentModelId
-                // CACHE: pass system separately so Groq prefix-cache hits across turns.
-                yield* this.streamWithGroq(userContent, GROQ_MODEL, finalGroqSystem, abortSignal);
-              }
-              return;
-            } catch (groqErr: any) {
-              console.warn('[LLMHelper] Groq fallback also failed, trying Gemini:', groqErr.message);
-            }
-          }
-          // Fall through to Gemini
-        }
-      }
-      // No key or all fallbacks failed — fall through to Gemini
-    }
-
     // 4. Gemini Routing & Fallback
     if (this.client) {
       // CACHE: pass system prompt via `systemInstruction` so it is structurally
@@ -3589,178 +3247,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       return;
     }
 
-    // 5. Last-resort: Natively API (if user has a key but no cloud provider configured)
-    if (this.hasNatively()) {
-      try {
-        yield* this.streamWithNatively(userContent, finalSystemPrompt, imagePaths, abortSignal);
-        return;
-      } catch (e: any) {
-        console.warn('[LLMHelper] Natively last-resort fallback failed:', e.message);
-      }
-    }
-
     throw new Error("No AI provider configured. Please add at least one API key in Settings.");
-  }
-
-  /**
-   * Fake-stream for Natively API (non-streaming endpoint).
-   * Yields the full response in small word-batches so the UI typing effect still plays.
-   * Throws on empty response so the fallback chain tries the next provider.
-   */
-  private async * streamWithNatively(userContent: string, systemPrompt?: string, imagePaths?: string[], abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    // ── REAL SSE STREAM (replaces the fake word-by-word simulation) ──────────
-    // Previous implementation called generateWithNatively() (blocking, waited for
-    // the full response), then drip-fed words with setTimeout delays — pure theater.
-    // This version opens a streaming fetch and yields tokens as the server generates
-    // them, cutting time-to-first-token from ~3s to ~80ms.
-    let nativelyKey = this.nativelyKey;
-    if (!nativelyKey) {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      nativelyKey = CredentialsManager.getInstance().getNativelyApiKey() || null;
-    }
-    if (!nativelyKey) throw new Error('Natively API key not set');
-
-    const body: Record<string, unknown> = {
-      messages: [{ role: 'user', content: userContent }],
-      stream: true,
-    };
-    if (this.groqFastTextMode) body.fast_mode = true;
-    if (systemPrompt) body.system = systemPrompt;
-    if (this.aiResponseLanguage && this.aiResponseLanguage !== 'English') {
-      body.language = this.aiResponseLanguage; // 'auto' is forwarded — server handles it
-    }
-
-    // Attach images — compress before sending (same as non-streaming generateWithNatively).
-    // Retina screenshots are 2-5 MB PNG; the Natively API body limit is 4 MB.
-    // Resize to max 1920px and encode as JPEG 85% — typically 200-250 KB per image.
-    // 4 screenshots × ~278KB base64 = ~1.1 MB, well within the 4 MB server limit.
-    if (imagePaths?.length) {
-      const images: { mime_type: string; data: string }[] = [];
-      for (const p of imagePaths) {
-        if (fs.existsSync(p)) {
-          try {
-            const compressed = await sharp(p)
-              .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-              .jpeg({ quality: 85 })
-              .toBuffer();
-            images.push({ mime_type: 'image/jpeg', data: compressed.toString('base64') });
-          } catch (compressErr: any) {
-            // Fallback: send raw if sharp fails (e.g. unsupported format)
-            console.warn('[LLMHelper] streamWithNatively: image compression failed, sending raw:', compressErr.message);
-            const imageData = await fs.promises.readFile(p);
-            if (imageData.length > 500 * 1024) {
-              console.warn('[LLMHelper] streamWithNatively: raw fallback image too large, skipping:', p);
-              continue;
-            }
-            images.push({ mime_type: 'image/png', data: imageData.toString('base64') });
-          }
-        }
-      }
-      if (images.length) body.images = images;
-    }
-
-    // When the key is the trial sentinel, authenticate with the real trial token.
-    const streamHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Accept': 'text/event-stream',
-    };
-    if (nativelyKey === TRIAL_SENTINEL_KEY) {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const trialToken = CredentialsManager.getInstance().getTrialToken();
-      if (!trialToken) throw new Error('Trial token not found');
-      streamHeaders['x-trial-token'] = trialToken;
-    } else {
-      streamHeaders['x-natively-key'] = nativelyKey;
-    }
-
-    // Early-bail if the caller has already aborted (e.g., user superseded
-    // the request before we even built the body). Saves an HTTP roundtrip.
-    if (abortSignal?.aborted) return;
-
-    // Single controller for the entire stream lifetime. Both phases (connect
-    // and read) honor it. We multiplex two abort sources into it:
-    //   1. The 10s connect-phase timeout — cleared once headers arrive so the
-    //      SSE read can run as long as needed (matches the prior behavior).
-    //   2. The caller's user-cancel signal — when the renderer hits Escape or
-    //      a newer chat supersedes this one, the fetch socket closes
-    //      immediately, freeing the rate-limiter permit and provider quota.
-    //      Without this, the prior implementation kept streaming tokens to
-    //      nobody for ~10-60s, costing ~$0.045 per cancelled Pro request.
-    // IMPORTANT: AbortSignal.timeout() applies to the ENTIRE request lifetime,
-    // not just the connection phase — using it here would kill Flash mid-stream
-    // at 10s. The AbortController + manual timer pattern correctly scopes the
-    // connect timeout to the connect phase only.
-    const streamController = new AbortController();
-    let connectTimer: NodeJS.Timeout | null = setTimeout(
-      () => streamController.abort(new Error('Natively API connect timeout (10s)')),
-      10_000,
-    );
-    const onCallerAbort = () => {
-      try { streamController.abort(abortSignal?.reason); } catch { /* already aborted */ }
-    };
-    abortSignal?.addEventListener('abort', onCallerAbort, { once: true });
-
-    let response: Response;
-    try {
-      response = await fetch('https://api.natively.software/v1/chat', {
-        method: 'POST',
-        headers: streamHeaders,
-        body: JSON.stringify(body),
-        signal: streamController.signal,
-      });
-    } finally {
-      // Connection established (or failed) — stop the connect-phase timer.
-      // The stream body will now be read without any timeout (until/unless
-      // the caller's abortSignal fires, in which case fetch's reader throws).
-      if (connectTimer) { clearTimeout(connectTimer); connectTimer = null; }
-    }
-
-    if (!response.ok) {
-      abortSignal?.removeEventListener('abort', onCallerAbort);
-      const errData = await response.json().catch(() => ({}) as Record<string, unknown>);
-      throw new Error(`Natively API ${response.status}: ${(errData as any).error || 'unknown'}`);
-    }
-
-    // Parse the SSE response body incrementally.
-    // Protocol: each line starting with "data: " carries a JSON payload.
-    //   data: {"delta":"token","model":"llama-3.3-70b"}
-    //   data: [DONE]
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder();
-    let buf = '';
-
-    try {
-      outer: while (true) {
-        // Cheap pre-read abort check — saves one round trip to the reader if
-        // the caller cancelled while we were processing the previous chunk.
-        if (abortSignal?.aborted) break outer;
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buf += decoder.decode(value, { stream: true });
-        const lines = buf.split('\n');
-        buf = lines.pop()!;  // last line may be incomplete — carry it to next chunk
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const payload = line.slice(6).trim();
-          if (payload === '[DONE]') break outer;
-
-          let chunk: any;
-          try { chunk = JSON.parse(payload); } catch { continue; }
-
-          if (chunk.error) throw new Error(`Server error: ${chunk.error}`);
-          if (typeof chunk.delta === 'string' && chunk.delta) yield chunk.delta;
-        }
-      }
-    } finally {
-      // Always release the connection AND drop the caller-abort listener so
-      // we don't leak DOM event subscriptions on long-lived AbortSignals
-      // (e.g., the IPC handler's per-stream controller is short-lived, but a
-      // future caller might reuse a single signal across many calls).
-      try { reader.cancel(); } catch { }
-      abortSignal?.removeEventListener('abort', onCallerAbort);
-    }
   }
 
   /**
@@ -5024,7 +4511,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Robust Meeting Summary Generation
    * Strategy:
    * 0. Custom / cURL Provider (if user selected one — always takes priority)
-   * 1. Natively API (if configured)
    * 2. Groq (if context text < 100k tokens approx)
    * 3. Gemini Flash (Retry 2x)
    * 4. Gemini Pro (Retry 5x)
@@ -5032,7 +4518,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   public async generateMeetingSummary(systemPrompt: string, context: string, groqSystemPrompt?: string): Promise<string> {
     console.log(`[LLMHelper] generateMeetingSummary called. Context length: ${context.length}`);
     // Short-circuit on empty/whitespace context. With no transcript content to
-    // summarise, the provider fallback chain (Natively → Codex → Groq → Gemini
+    // summarise, the provider fallback chain (Codex → Groq → Gemini
     // Flash → Gemini Pro) burns up to ~10 minutes of wall-clock time on retries
     // for a result that will be discarded by the caller anyway. The caller
     // (MeetingPersistence) already checks `transcript.length > 2` before using
@@ -5078,26 +4564,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         }
       } catch (e: any) {
         console.warn(`[LLMHelper] ⚠️ Custom provider summary failed: ${e.message}. Falling back...`);
-      }
-    }
-
-    // ATTEMPT 1: Natively API (if configured — first in chain)
-    // Inner fetch timeout: 8s (AbortSignal.timeout in generateWithNatively).
-    // Outer safety net: 10s — covers JSON parsing + any overhead after the fetch resolves.
-    if (this.hasNatively()) {
-      try {
-        console.log(`[LLMHelper] Attempting Natively API for summary...`);
-        const text = await this.withTimeout(
-          this.generateWithNatively(`Context:\n${context}`, systemPrompt),
-          10000,
-          'Natively Summary'
-        );
-        if (text.trim().length > 0) {
-          console.log(`[LLMHelper] ✅ Natively API summary generated successfully.`);
-          return this.processResponse(text);
-        }
-      } catch (e: any) {
-        console.warn(`[LLMHelper] ⚠️ Natively API summary failed: ${e.message}. Falling back...`);
       }
     }
 

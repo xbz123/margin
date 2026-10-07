@@ -58,13 +58,6 @@ export interface IntelligenceModeEvents {
     'manual_answer_result': (answer: string, question: string) => void;
     'mode_changed': (mode: IntelligenceMode) => void;
     'error': (error: Error, mode: IntelligenceMode) => void;
-    // ARCHITECTURE: dedicated channel for live negotiation coaching payloads.
-    // Previously the coaching JSON was multiplexed into the suggested_answer
-    // / suggested_answer_token streams as a sentinel-string, which forced the
-    // renderer to JSON.parse every streaming token to detect the marker.
-    // Splitting the channel removes that hack and gives coaching its own
-    // typed payload.
-    'negotiation_coaching': (payload: unknown) => void;
     // Phase 3: Cluely-style auto-detected action card. Engine emits one per
     // newly created candidate action (post-dedupe). Renderer subscribes via
     // window.electronAPI.onIntelligenceDynamicAction and renders cards.
@@ -130,13 +123,6 @@ export class IntelligenceEngine extends EventEmitter {
         this.llmHelper = llmHelper;
         this.session = session;
         this.initializeLLMs();
-
-        // Dedicated channel: LLMHelper invokes this when KnowledgeOrchestrator
-        // produces a live-negotiation-coaching payload. We forward it on the
-        // typed 'negotiation_coaching' event — no in-band JSON sentinels.
-        this.llmHelper.setNegotiationCoachingHandler((payload) => {
-            this.emit('negotiation_coaching', payload);
-        });
     }
 
     getLLMHelper(): LLMHelper {

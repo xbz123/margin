@@ -65,46 +65,12 @@ interface ElectronAPI {
   setOpenaiApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
   setClaudeApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
   setDeepseekApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setNativelyApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  getNativelyPricing: () => Promise<{
-    ok: boolean;
-    currency?: string;
-    fetchedAt?: string;
-    stale?: boolean;
-    products?: Record<string, {
-      id: string;
-      dodoProductId: string;
-      name: string;
-      amount: number | null;
-      currency: string;
-      formattedPrice: string | null;
-      interval: 'month' | 'year' | 'lifetime';
-      checkoutUrl: string;
-      coupon: { code: string; eligible: boolean; discountPercent: number; reason?: string };
-    }>;
-    error?: string;
-    status?: number;
-  }>;
-  getNativelyUsage: () => Promise<{
-    ok: boolean;
-    plan?: string;
-    quota?: {
-      transcription: { used: number; limit: number; remaining: number };
-      ai: { used: number; limit: number; remaining: number };
-      search: { used: number; limit: number; remaining: number };
-      resets_at: string;
-    };
-    member_since?: string;
-    error?: string;
-    status?: number;
-  }>;
   getStoredCredentials: () => Promise<{
     hasGeminiKey: boolean;
     hasGroqKey: boolean;
     hasOpenaiKey: boolean;
     hasClaudeKey: boolean;
     hasDeepseekKey: boolean;
-    hasNativelyKey: boolean;
     googleServiceAccountPath: string | null;
     sttProvider: string;
     hasSttGroqKey: boolean;
@@ -117,46 +83,6 @@ interface ElectronAPI {
     ibmWatsonRegion: string;
     hasSonioxKey: boolean;
   }>;
-  // Free Trial
-  startTrial: () => Promise<{
-    ok: boolean;
-    hasToken?: boolean;
-    started_at?: string;
-    expires_at?: string;
-    expired?: boolean;
-    already_used?: boolean;
-    converted_to?: string | null;
-    usage?: { ai: number; stt_seconds: number; search: number };
-    limits?: {
-      duration_ms: number;
-      ai_requests: number;
-      stt_minutes: number;
-      search_requests: number;
-    };
-    error?: string;
-    status?: number;
-  }>;
-  getTrialStatus: () => Promise<{
-    ok: boolean;
-    expired?: boolean;
-    remaining_ms?: number;
-    started_at?: string;
-    expires_at?: string;
-    converted_to?: string | null;
-    usage?: { ai: number; stt_seconds: number; search: number };
-    limits?: object;
-    error?: string;
-  }>;
-  getLocalTrial: () => Promise<{
-    hasToken: boolean;
-    trialClaimed?: boolean;
-    expiresAt?: string;
-    startedAt?: string;
-    expired?: boolean;
-  }>;
-  convertTrial: (choice: string) => Promise<{ ok: boolean }>;
-  endTrialByok: () => Promise<{ success: boolean; error?: string }>;
-  onTrialEnded: (cb: (data: { choice: string }) => void) => () => void;
   onModesActiveCleared: (cb: () => void) => () => void;
 
   // STT Provider Management
@@ -171,7 +97,6 @@ interface ElectronAPI {
       | 'azure'
       | 'ibmwatson'
       | 'soniox'
-      | 'natively'
       | 'local-whisper',
   ) => Promise<{ success: boolean; error?: string }>;
   localWhisperGetModels: () => Promise<{ models: any[]; activeModelId: string }>;
@@ -356,9 +281,6 @@ interface ElectronAPI {
   ) => () => void;
   onIntelligenceModeChanged: (callback: (data: { mode: string }) => void) => () => void;
   onIntelligenceError: (callback: (data: { error: string; mode: string }) => void) => () => void;
-  // Sprint 7: dedicated negotiation-coaching channel. Replaces the
-  // sentinel-string multiplex through suggested_answer_token / suggested_answer.
-  onIntelligenceNegotiationCoaching: (callback: (data: { payload: any }) => void) => () => void;
   // Sprint 9: time-batched IPC token channel. Carries a batch of streaming
   // tokens for ANY of the 5 streaming kinds in one IPC send. Replaces
   // per-token sends to the 5 individual channels (which still exist as
@@ -438,7 +360,6 @@ interface ElectronAPI {
   // Follow-up Email
   generateFollowupEmail: (input: any) => Promise<string>;
   extractEmailsFromTranscript: (transcript: Array<{ text: string }>) => Promise<string[]>;
-  getCalendarAttendees: (eventId: string) => Promise<Array<{ email: string; name: string }>>;
   openMailto: (params: {
     to: string;
     subject: string;
@@ -501,21 +422,6 @@ interface ElectronAPI {
     callback: (data: { mode: 'system' | 'light' | 'dark'; resolved: 'light' | 'dark' }) => void,
   ) => () => void;
 
-  // Calendar
-  calendarConnect: () => Promise<{ success: boolean; error?: string }>;
-  calendarDisconnect: () => Promise<{ success: boolean; error?: string }>;
-  getCalendarStatus: () => Promise<{ connected: boolean; email?: string }>;
-  getUpcomingEvents: () => Promise<
-    Array<{
-      id: string;
-      title: string;
-      startTime: string;
-      endTime: string;
-      link?: string;
-      source: 'google';
-    }>
-  >;
-  calendarRefresh: () => Promise<{ success: boolean; error?: string }>;
 
   // Auto-Update
   onUpdateAvailable: (callback: (info: any) => void) => () => void;
@@ -614,41 +520,7 @@ interface ElectronAPI {
   markDonationToastShown: () => Promise<{ success: boolean }>;
   setDonationComplete: () => Promise<{ success: boolean }>;
 
-  // Profile Engine API
-  profileUploadResume: (filePath: string) => Promise<{ success: boolean; error?: string }>;
-  profileGetStatus: () => Promise<{
-    hasProfile: boolean;
-    profileMode: boolean;
-    name?: string;
-    role?: string;
-    totalExperienceYears?: number;
-  }>;
-  profileSetMode: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  profileDelete: () => Promise<{ success: boolean; error?: string }>;
-  profileGetProfile: () => Promise<any>;
-  profileSelectFile: () => Promise<{
-    success?: boolean;
-    cancelled?: boolean;
-    filePath?: string;
-    error?: string;
-  }>;
 
-  // JD & Research API
-  profileUploadJD: (filePath: string) => Promise<{ success: boolean; error?: string }>;
-  profileDeleteJD: () => Promise<{ success: boolean; error?: string }>;
-  profileResearchCompany: (
-    companyName: string,
-  ) => Promise<{ success: boolean; dossier?: any; error?: string }>;
-  profileGenerateNegotiation: (
-    force?: boolean,
-  ) => Promise<{ success: boolean; script?: any; error?: string }>;
-  profileGetNegotiationState: () => Promise<{
-    success: boolean;
-    state?: any;
-    isActive?: boolean;
-    error?: string;
-  }>;
-  profileResetNegotiation: () => Promise<{ success: boolean; error?: string }>;
 
   // Tavily Search API
   setTavilyApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
@@ -1070,27 +942,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setOpenaiApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-api-key', apiKey),
   setClaudeApiKey: (apiKey: string) => ipcRenderer.invoke('set-claude-api-key', apiKey),
   setDeepseekApiKey: (apiKey: string) => ipcRenderer.invoke('set-deepseek-api-key', apiKey),
-  setNativelyApiKey: (apiKey: string) => ipcRenderer.invoke('set-natively-api-key', apiKey),
-  getNativelyPricing: () => ipcRenderer.invoke('get-natively-pricing'),
-  getNativelyUsage: () => ipcRenderer.invoke('get-natively-usage'),
   getStoredCredentials: () => ipcRenderer.invoke('get-stored-credentials'),
 
   // Permissions
   checkPermissions: () => ipcRenderer.invoke('permissions:check'),
   requestMicPermission: () => ipcRenderer.invoke('permissions:request-mic'),
 
-  // Free Trial
-  startTrial: () => ipcRenderer.invoke('trial:start'),
-  getTrialStatus: () => ipcRenderer.invoke('trial:status'),
-  getLocalTrial: () => ipcRenderer.invoke('trial:get-local'),
-  convertTrial: (choice: string) => ipcRenderer.invoke('trial:convert', choice),
-  endTrialByok: () => ipcRenderer.invoke('trial:end-byok'),
-  wipeTrialProfileData: () => ipcRenderer.invoke('trial:wipe-profile-data'),
-  onTrialEnded: (cb: (data: { choice: string }) => void) => {
-    const sub = (_: any, data: any) => cb(data);
-    ipcRenderer.on('trial-ended', sub);
-    return () => ipcRenderer.removeListener('trial-ended', sub);
-  },
 
   // STT Provider Management
   setSttProvider: (
@@ -1104,7 +961,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       | 'azure'
       | 'ibmwatson'
       | 'soniox'
-      | 'natively'
       | 'local-whisper',
   ) => ipcRenderer.invoke('set-stt-provider', provider),
   getSttProvider: () => ipcRenderer.invoke('get-stt-provider'),
@@ -1148,7 +1004,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   localWhisperPreload: (modelId?: string) => ipcRenderer.invoke('local-whisper-preload', modelId),
   localWhisperGetHardware: () => ipcRenderer.invoke('local-whisper-get-hardware'),
 
-  // STT Config Events (Adapted from public PR #173 — verify premium interaction)
+  // STT Config Events (Adapted from public PR #173)
   onSttConfigChanged: (callback: (data: { configured: boolean; provider: string }) => void) => {
     const subscription = (_: any, data: any) => callback(data);
     ipcRenderer.on('stt-config-changed', subscription);
@@ -1407,14 +1263,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('intelligence-suggested-answer', subscription);
     };
   },
-  // Sprint 7: dedicated negotiation-coaching channel.
-  onIntelligenceNegotiationCoaching: (callback: (data: { payload: any }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('intelligence-negotiation-coaching', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-negotiation-coaching', subscription);
-    };
-  },
   // Sprint 9: time-batched IPC token channel.
   onIntelligenceTokenBatch: (callback: (data: { kind: string; items: any[] }) => void) => {
     const subscription = (_: any, data: any) => callback(data);
@@ -1593,7 +1441,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   generateFollowupEmail: (input: any) => ipcRenderer.invoke('generate-followup-email', input),
   extractEmailsFromTranscript: (transcript: Array<{ text: string }>) =>
     ipcRenderer.invoke('extract-emails-from-transcript', transcript),
-  getCalendarAttendees: (eventId: string) => ipcRenderer.invoke('get-calendar-attendees', eventId),
   openMailto: (params: { to: string; subject: string; body: string }) =>
     ipcRenderer.invoke('open-mailto', params),
 
@@ -1689,12 +1536,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
 
-  // Calendar API
-  calendarConnect: () => ipcRenderer.invoke('calendar-connect'),
-  calendarDisconnect: () => ipcRenderer.invoke('calendar-disconnect'),
-  getCalendarStatus: () => ipcRenderer.invoke('get-calendar-status'),
-  getUpcomingEvents: () => ipcRenderer.invoke('get-upcoming-events'),
-  calendarRefresh: () => ipcRenderer.invoke('calendar-refresh'),
 
   // Auto-Update
   onUpdateAvailable: (callback: (info: any) => void) => {
@@ -1856,27 +1697,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   markDonationToastShown: () => ipcRenderer.invoke('mark-donation-toast-shown'),
   setDonationComplete: () => ipcRenderer.invoke('set-donation-complete'),
 
-  // Profile Engine API
-  profileUploadResume: (filePath: string) => ipcRenderer.invoke('profile:upload-resume', filePath),
-  profileGetStatus: () => ipcRenderer.invoke('profile:get-status'),
-  profileSetMode: (enabled: boolean) => ipcRenderer.invoke('profile:set-mode', enabled),
-  profileDelete: () => ipcRenderer.invoke('profile:delete'),
-  profileGetProfile: () => ipcRenderer.invoke('profile:get-profile'),
-  profileSelectFile: () => ipcRenderer.invoke('profile:select-file'),
 
-  // JD & Research API
-  profileUploadJD: (filePath: string) => ipcRenderer.invoke('profile:upload-jd', filePath),
-  profileDeleteJD: () => ipcRenderer.invoke('profile:delete-jd'),
-  profileResearchCompany: (companyName: string) =>
-    ipcRenderer.invoke('profile:research-company', companyName),
-  profileGenerateNegotiation: (force?: boolean) =>
-    ipcRenderer.invoke('profile:generate-negotiation', force),
-  profileGetNegotiationState: () => ipcRenderer.invoke('profile:get-negotiation-state'),
-  profileResetNegotiation: () => ipcRenderer.invoke('profile:reset-negotiation'),
-  profileGetNotes: () => ipcRenderer.invoke('profile:get-notes'),
-  profileSaveNotes: (content: string) => ipcRenderer.invoke('profile:save-notes', content),
-  profileGetPersona: () => ipcRenderer.invoke('profile:get-persona'),
-  profileSavePersona: (content: string) => ipcRenderer.invoke('profile:save-persona', content),
 
   // Tavily Search API
   setTavilyApiKey: (apiKey: string) => ipcRenderer.invoke('set-tavily-api-key', apiKey),
@@ -1887,20 +1708,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) =>
     ipcRenderer.invoke('set-provider-preferred-model', provider, modelId),
 
-  // License Management
-  licenseActivate: (key: string) => ipcRenderer.invoke('license:activate', key),
-  licenseCheckPremium: () => ipcRenderer.invoke('license:check-premium'),
-  licenseGetDetails: () => ipcRenderer.invoke('license:get-details'),
-  licenseCheckPremiumAsync: () => ipcRenderer.invoke('license:check-premium-async'),
-  licenseDeactivate: () => ipcRenderer.invoke('license:deactivate'),
-  licenseGetHardwareId: () => ipcRenderer.invoke('license:get-hardware-id'),
-  onLicenseStatusChanged: (callback: (data: { isPremium: boolean; plan?: string }) => void) => {
-    const subscription = (_: any, data: { isPremium: boolean; plan?: string }) => callback(data);
-    ipcRenderer.on('license-status-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('license-status-changed', subscription);
-    };
-  },
 
   onModesActiveCleared: (callback: () => void) => {
     const subscription = () => callback();

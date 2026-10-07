@@ -33,7 +33,6 @@ export type ProviderHint =
   | 'gemini'
   | 'groq'
   | 'ollama'
-  | 'natively'
   | 'codex'
   | 'custom'
   | 'generic';
@@ -81,10 +80,6 @@ function applyProviderTweaks(
     case 'ollama':
       // Local — keep buffer reasonable so base64 payload doesn't choke HTTP.
       return { ...base, format: 'jpeg' };
-    case 'natively':
-      // Server enforces a 4 MB body cap; the per-image quality bump used in
-      // streamWithNatively (q=85, 1920px) is consistent with the 'best' profile.
-      return base;
     case 'gemini':
     case 'openai':
     case 'claude':

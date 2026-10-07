@@ -84,7 +84,6 @@ import {
   getOverlayAppearance,
   OVERLAY_OPACITY_DEFAULT,
 } from '../lib/overlayAppearance';
-import { NegotiationCoachingCard } from '../premium';
 import type { DynamicActionPayload } from '../types/electron';
 import { getCodexCliModelDisplayName } from '../utils/modelUtils';
 import { getModifierSymbol, isMac } from '../utils/platformUtils';
@@ -110,16 +109,6 @@ interface Message {
   screenshotPreview?: string;
   isCode?: boolean;
   intent?: string;
-  isNegotiationCoaching?: boolean;
-  negotiationCoachingData?: {
-    tacticalNote: string;
-    exactScript: string;
-    showSilenceTimer: boolean;
-    phase: string;
-    theirOffer: number | null;
-    yourTarget: number | null;
-    currency: string;
-  };
 }
 
 interface NativelyInterfaceProps {
@@ -1879,8 +1868,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     cleanups.push(
       window.electronAPI.onIntelligenceSuggestedAnswerToken((data) => {
         pinAnswerPanel();
-        // Coaching now arrives via onIntelligenceNegotiationCoaching only —
-        // sentinel detection on this stream has been removed.
         queueToken('what_to_answer', data.token);
       }),
     );
@@ -1915,51 +1902,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         } else if (kind === 'follow_up_questions') {
           for (const it of items) queueToken('follow_up_questions', (it as any).token);
         }
-      }),
-    );
-
-    // Sprint 7: dedicated negotiation-coaching channel.
-    // The engine now intercepts the coaching sentinel server-side and
-    // emits this event INSTEAD of suggested_answer / suggested_answer_token.
-    // Renderer no longer needs JSON.parse-per-token detection (the
-    // existing prefix-gated detection paths above are kept as defense-
-    // in-depth — they are inert because the engine never sends sentinel
-    // tokens through suggested_answer anymore).
-    cleanups.push(
-      window.electronAPI.onIntelligenceNegotiationCoaching((data) => {
-        // Flush any pending streamed tokens before swapping the streaming
-        // row to a coaching card; otherwise rAF-buffered text would be
-        // appended onto the card row's empty text after this setMessages.
-        flushToken();
-        setIsProcessing(false);
-        const coaching = data.payload;
-        setMessages((prev) => {
-          const lastMsg = prev[prev.length - 1];
-          // If a what_to_answer streaming row is in flight, replace it
-          // with the coaching card so the user doesn't see two bubbles.
-          if (lastMsg && lastMsg.isStreaming && lastMsg.intent === 'what_to_answer') {
-            const updated = [...prev];
-            updated[prev.length - 1] = {
-              ...lastMsg,
-              text: '',
-              isStreaming: false,
-              isNegotiationCoaching: true,
-              negotiationCoachingData: coaching,
-            };
-            return updated;
-          }
-          return [
-            ...prev,
-            {
-              id: genMessageId(),
-              role: 'system',
-              text: '',
-              intent: 'what_to_answer',
-              isNegotiationCoaching: true,
-              negotiationCoachingData: coaching,
-            },
-          ];
-        });
       }),
     );
 
@@ -2880,7 +2822,7 @@ Provide only the answer, nothing else.`;
       // without going through React reconciliation.
       // On stream completion, flushToken() resets streamingMsgIdRef and the
       // next render falls through to the normal intent-specific path below.
-      if (msg.isStreaming && msg.role === 'system' && !msg.isNegotiationCoaching) {
+      if (msg.isStreaming && msg.role === 'system') {
         if (msg.id === streamingMsgIdRef.current) {
           // CRITICAL: key="streaming" forces React to UNMOUNT this div (taking
           // the imperative innerHTML with it) when the row transitions to the
@@ -2949,30 +2891,6 @@ Provide only the answer, nothing else.`;
         }
       }
       // ────────────────────────────────────────────────────────────────────
-
-      // Negotiation coaching card takes priority
-      if (msg.isNegotiationCoaching && msg.negotiationCoachingData) {
-        return (
-          <NegotiationCoachingCard
-            {...msg.negotiationCoachingData}
-            phase={msg.negotiationCoachingData.phase as any}
-            onSilenceTimerEnd={() => {
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === msg.id
-                    ? {
-                        ...m,
-                        negotiationCoachingData: m.negotiationCoachingData
-                          ? { ...m.negotiationCoachingData, showSilenceTimer: false }
-                          : undefined,
-                      }
-                    : m,
-                ),
-              );
-            }}
-          />
-        );
-      }
 
       // Code-containing messages get special styling
       // We split by code blocks to keep the "Code Solution" UI intact for the code parts

@@ -690,7 +690,7 @@ export class WindowHelper {
   public switchToOverlay(inactive?: boolean): void {
     console.log(`[WindowHelper] Switching to OVERLAY (inactive: ${!!inactive})`);
     this.currentWindowMode = 'overlay';
-    KeybindManager.getInstance().setMode('overlay'); // Adapted from public PR #123 — verify premium interaction
+    KeybindManager.getInstance().setMode('overlay'); // Adapted from public PR #123
 
     // Show Overlay FIRST
     if (this.overlayWindow && !this.overlayWindow.isDestroyed()) {
@@ -779,7 +779,7 @@ export class WindowHelper {
   public switchToLauncher(inactive?: boolean): void {
     console.log(`[WindowHelper] Switching to LAUNCHER (inactive: ${!!inactive})`);
     this.currentWindowMode = 'launcher';
-    KeybindManager.getInstance().setMode('launcher'); // Adapted from public PR #123 — verify premium interaction
+    KeybindManager.getInstance().setMode('launcher'); // Adapted from public PR #123
 
     // Show Launcher FIRST
     if (this.launcherWindow && !this.launcherWindow.isDestroyed()) {

@@ -389,14 +389,13 @@ import { DeepgramStreamingSTT } from "./audio/DeepgramStreamingSTT"
 import { SonioxStreamingSTT } from "./audio/SonioxStreamingSTT"
 import { ElevenLabsStreamingSTT } from "./audio/ElevenLabsStreamingSTT"
 import { OpenAIStreamingSTT } from "./audio/OpenAIStreamingSTT"
-import { NativelyProSTT } from "./audio/NativelyProSTT"
 import { ThemeManager } from "./ThemeManager"
 import { RAGManager } from "./rag/RAGManager"
 import { DatabaseManager } from "./db/DatabaseManager"
 import { warmupIntentClassifier } from "./llm"
 
 /** Unified type for all STT providers with optional extended capabilities */
-type STTProvider = (GoogleSTT | RestSTT | DeepgramStreamingSTT | SonioxStreamingSTT | ElevenLabsStreamingSTT | OpenAIStreamingSTT | NativelyProSTT) & {
+type STTProvider = (GoogleSTT | RestSTT | DeepgramStreamingSTT | SonioxStreamingSTT | ElevenLabsStreamingSTT | OpenAIStreamingSTT) & {
   finalize?: () => void;
   setAudioChannelCount?: (count: number) => void;
   notifySpeechEnded?: () => void;
@@ -429,16 +428,6 @@ interface ScreenshotCaptureSession {
   restoreWithoutFocus: boolean;
 }
 
-// Premium: Knowledge modules loaded conditionally
-let KnowledgeOrchestratorClass: any = null;
-let KnowledgeDatabaseManagerClass: any = null;
-try {
-    KnowledgeOrchestratorClass = require('../premium/electron/knowledge/KnowledgeOrchestrator').KnowledgeOrchestrator;
-    KnowledgeDatabaseManagerClass = require('../premium/electron/knowledge/KnowledgeDatabaseManager').KnowledgeDatabaseManager;
-} catch {
-    console.log('[Main] Knowledge modules not available — profile intelligence disabled.');
-}
-
 import { CredentialsManager } from "./services/CredentialsManager"
 import { SettingsManager } from "./services/SettingsManager"
 import { PhoneMirrorService } from "./services/PhoneMirrorService"
@@ -460,7 +449,6 @@ export class AppState {
   private intelligenceManager: IntelligenceManager
   private themeManager: ThemeManager
   private ragManager: RAGManager | null = null
-  private knowledgeOrchestrator: any = null
   private tray: Tray | null = null
   private updateAvailable: boolean = false
   private disguiseMode: 'terminal' | 'settings' | 'activity' | 'none' = 'none'
@@ -660,7 +648,7 @@ export class AppState {
         if (actionId === 'general:toggle-visibility') {
           this.toggleMainWindow();
         } else if (actionId === 'general:toggle-mouse-passthrough') {
-          // Adapted from public PR #113 — verify premium interaction
+          // Adapted from public PR #113
           this.toggleOverlayMousePassthrough();
         } else if (actionId === 'general:take-screenshot') {
           // Route to renderer via global-shortcut so the renderer handles the
@@ -800,9 +788,7 @@ export class AppState {
 
     // Restore toggle states that live in LLMHelper memory.
     // This MUST happen here — not inside initializeRAGManager() — so that
-    // it runs unconditionally regardless of whether premium modules are available.
-    // Previously, groqFastTextMode restore was inside the KnowledgeOrchestrator
-    // block which silently skips when premium modules are absent.
+    // it runs unconditionally.
     {
       const llmHelper = this.processingHelper.getLLMHelper();
       if (settingsManager.get('groqFastTextMode')) {
@@ -819,7 +805,7 @@ export class AppState {
         serviceTier: settingsManager.get('codexCliServiceTier') || 'default',
         modelReasoningEffort: settingsManager.get('codexCliModelReasoningEffort'),
       });
-      // Restore custom notes for non-premium path
+      // Restore custom notes
       try {
         const savedNotes = DatabaseManager.getInstance().getCustomNotes();
         if (savedNotes) {
@@ -977,71 +963,6 @@ export class AppState {
       }
     } catch (error) {
       console.error('[AppState] Failed to initialize RAGManager:', error);
-    }
-
-    // Initialize Knowledge Orchestrator
-    try {
-      const db = DatabaseManager.getInstance();
-      const sqliteDb = db.getDb();
-
-      if (sqliteDb && KnowledgeDatabaseManagerClass && KnowledgeOrchestratorClass) {
-        const knowledgeDb = new KnowledgeDatabaseManagerClass(sqliteDb);
-        this.knowledgeOrchestrator = new KnowledgeOrchestratorClass(knowledgeDb);
-
-        // Wire up LLM functions
-        const llmHelper = this.processingHelper.getLLMHelper();
-
-        // generateContent function for LLM calls
-        this.knowledgeOrchestrator.setGenerateContentFn(async (contents: any[]) => {
-          return await llmHelper.generateContentStructured(
-            contents[0]?.text || ''
-          );
-        });
-
-        // Embedding function — lazily delegate to the cascaded EmbeddingPipeline
-        // (OpenAI → Gemini → Ollama → Local bundled model).
-        // We await waitForReady() so uploads during boot wait for the pipeline
-        // instead of immediately throwing 'not ready'.
-        const self = this;
-        this.knowledgeOrchestrator.setEmbedFn(async (text: string) => {
-          const pipeline = self.ragManager?.getEmbeddingPipeline();
-          if (!pipeline) throw new Error('RAG pipeline not available');
-          await pipeline.waitForReady();
-          return await pipeline.getEmbedding(text);
-        });
-        if (typeof this.knowledgeOrchestrator.setEmbedQueryFn === 'function') {
-          this.knowledgeOrchestrator.setEmbedQueryFn(async (text: string) => {
-            const pipeline = self.ragManager?.getEmbeddingPipeline();
-            if (!pipeline) throw new Error('RAG pipeline not available');
-            await pipeline.waitForReady();
-            return await pipeline.getEmbeddingForQuery(text);
-          });
-        }
-
-        // Attach KnowledgeOrchestrator to LLMHelper
-        llmHelper.setKnowledgeOrchestrator(this.knowledgeOrchestrator);
-
-        // Restore persisted toggle states so UI reflects what the user left them as.
-        // NOTE: groqFastTextMode is now restored unconditionally in the AppState constructor
-        // so it is not repeated here.
-        const sm = SettingsManager.getInstance();
-        if (sm.get('knowledgeMode')) {
-          this.knowledgeOrchestrator.setKnowledgeMode(true);
-          console.log('[AppState] Knowledge mode restored from settings');
-        }
-
-        // Restore custom notes so orchestrator has them from first request
-        const savedNotes = DatabaseManager.getInstance().getCustomNotes();
-        if (savedNotes) {
-          this.knowledgeOrchestrator.setCustomNotes(savedNotes);
-          llmHelper.setCustomNotes(savedNotes);
-          console.log('[AppState] Custom notes restored');
-        }
-
-        console.log('[AppState] KnowledgeOrchestrator initialized');
-      }
-    } catch (error) {
-      console.error('[AppState] Failed to initialize KnowledgeOrchestrator:', error);
     }
   }
 
@@ -1307,19 +1228,7 @@ export class AppState {
 
     let stt: STTProvider;
 
-    if (sttProvider === 'natively') {
-      const nativelyKey = CredentialsManager.getInstance().getNativelyApiKey();
-      if (!nativelyKey) {
-        // Natively is Coming Soon — no key means degrade gracefully like every other provider
-        console.warn(`[Main] No Natively API Key configured for ${speaker}, falling back to GoogleSTT`);
-        stt = new GoogleSTT(speaker);
-      } else {
-        // 'system' for interviewer (system audio), 'mic' for user (microphone).
-        // The server uses ${key}:${channel} as the session key so both streams
-        // can coexist without triggering concurrent_session_blocked.
-        stt = new NativelyProSTT(nativelyKey, speaker === 'interviewer' ? 'system' : 'mic');
-      }
-    } else if (sttProvider === 'deepgram') {
+    if (sttProvider === 'deepgram') {
       const apiKey = CredentialsManager.getInstance().getDeepgramApiKey();
       if (apiKey) {
         console.log(`[Main] Using DeepgramStreamingSTT for ${speaker}`);
@@ -1446,25 +1355,6 @@ export class AppState {
       helper.getLauncherWindow()?.webContents.send('native-audio-transcript', payload);
       helper.getOverlayWindow()?.webContents.send('native-audio-transcript', payload);
 
-      // Feed final recruiter (system audio) transcripts to the premium
-      // negotiation tracker. Issue #272: gate by active mode template so the
-      // tracker never accumulates negotiation state in modes where salary is
-      // out of scope (technical-interview, team-meet, lecture). Output gating
-      // in LLMHelper is the primary defense; gating at the source stops state
-      // from carrying over to any future read site. Fails open if ModesManager
-      // is unavailable.
-      if (segment.isFinal && speaker === 'interviewer') {
-        let trackerFeedAllowed = true;
-        try {
-          const { ModesManager } = require('./services/ModesManager');
-          trackerFeedAllowed = ModesManager.getInstance().isPremiumKnowledgeInterceptAllowed();
-        } catch (_err) {
-          // fail open — preserve existing behaviour for modes that need the tracker
-        }
-        if (trackerFeedAllowed) {
-          this.knowledgeOrchestrator?.feedInterviewerUtterance?.(segment.text);
-        }
-      }
     });
 
     // Consecutive failure counter — reset on any successful final transcript
@@ -1578,46 +1468,6 @@ export class AppState {
       console.warn(`[Main] STT (${speaker}) warning: ${w?.code ?? 'unknown'}`,
         { provider: sttProvider, message: w?.message, droppedBytes: w?.droppedBytes });
     });
-
-    // Auto language detection: NativelyProSTT emits 'languageDetected' when the
-    // backend resolves the language from the first audio batch. Notify the renderer
-    // so the settings UI can show what was detected.
-    if (stt instanceof NativelyProSTT) {
-      stt.on('connected', () => {
-        _consecutiveErrors = 0;
-        if (_lastState !== 'connected') {
-          _lastState = 'awaiting-audio';
-          this.sendSttStatus({
-            state: 'awaiting-audio',
-            provider: sttProvider,
-            channel: speaker,
-          } as SttStatusPayload);
-        }
-      });
-
-      stt.on('languageDetected', (bcp47: string) => {
-        console.log(`[Main] STT language auto-detected (${speaker}): ${bcp47}`);
-        const helper = this.getWindowHelper();
-        helper.getMainWindow()?.webContents.send('stt-language-auto-detected', bcp47);
-        helper.getLauncherWindow()?.webContents.send('stt-language-auto-detected', bcp47);
-      });
-
-      // Persistent-reconnect signal: NativelyProSTT now retries indefinitely
-      // with a 30s backoff cap, but we want the user to know after ~5 attempts
-      // (~30–90s of dead transcript) that the issue is sustained, not a blip.
-      // Reuse the stt-status channel with state='reconnecting' and a higher
-      // attempts count so the renderer's existing banner picks it up.
-      stt.on('persistent-reconnect', (info: { attempts: number }) => {
-        console.warn(`[Main] STT persistent reconnect (${speaker}): ${info.attempts} consecutive attempts.`);
-        this.sendSttStatus( {
-          state: 'reconnecting',
-          provider: sttProvider,
-          error: `Reconnecting to transcription service — ${info.attempts} consecutive attempts. Check your network connection.`,
-          channel: speaker,
-          reconnectAttempts: info.attempts,
-        } as SttStatusPayload);
-      });
-    }
 
     // B2: Emit 'awaiting-audio' once the STT provider is wired up but before
     // any audio has flowed. Renderers that joined mid-session sync to this
@@ -3808,20 +3658,6 @@ export class AppState {
       queueBatch('suggested_answer', { token, question, confidence });
     })
 
-    // Sprint 7: dedicated negotiation-coaching channel. Engine emits this
-    // INSTEAD of suggested_answer / suggested_answer_token when it detects
-    // the coaching sentinel, so the renderer no longer needs JSON.parse-
-    // every-token detection.
-    this.intelligenceManager.on('negotiation_coaching', (payload: unknown) => {
-      // Sprint 9: flush any pending batched tokens first so the renderer
-      // sees them before the coaching card swap.
-      flushBatchesBeforeFinal();
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-negotiation-coaching', { payload })
-      }
-    })
-
     this.intelligenceManager.on('refined_answer_token', (token: string, intent: string) => {
       // Sprint 9: batch.
       queueBatch('refined_answer', { token, intent });
@@ -3929,9 +3765,8 @@ export class AppState {
     const { CredentialsManager } = require('./services/CredentialsManager');
     CredentialsManager.getInstance().setSttLanguage(key);
 
-    // 'auto' is only meaningful for NativelyProSTT — other providers fall back to en-US.
-    const sttProvider = CredentialsManager.getInstance().getSttProvider();
-    const effectiveKey = (key === 'auto' && sttProvider !== 'natively') ? 'english-us' : key;
+    // 'auto' needs server-side language detection, which no remaining provider offers.
+    const effectiveKey = key === 'auto' ? 'english-us' : key;
 
     this.googleSTT?.setRecognitionLanguage(effectiveKey);
     this.googleSTT_User?.setRecognitionLanguage(effectiveKey);
@@ -3964,10 +3799,6 @@ export class AppState {
 
   public getRAGManager(): RAGManager | null {
     return this.ragManager;
-  }
-
-  public getKnowledgeOrchestrator(): any {
-    return this.knowledgeOrchestrator;
   }
 
   public getView(): "queue" | "solutions" {
@@ -4511,7 +4342,7 @@ export class AppState {
     return this.isUndetectable
   }
 
-  // --- Mouse Passthrough (Adapted from public PR #113 — verify premium interaction) ---
+  // --- Mouse Passthrough (Adapted from public PR #113) ---
   private overlayMousePassthrough: boolean = false;
 
   public setOverlayMousePassthrough(state: boolean): void {
@@ -5012,31 +4843,6 @@ async function initializeApp() {
         console.warn('[Init] Startup screen recording permission check failed:', e);
       }
     }, 800);
-  }
-
-  // Initialize CalendarManager
-  try {
-    const { CalendarManager } = require('./services/CalendarManager');
-    const calMgr = CalendarManager.getInstance();
-    calMgr.init();
-
-    calMgr.on('start-meeting-requested', (event: any) => {
-      console.log('[Main] Start meeting requested from calendar notification', event);
-      appState.centerAndShowWindow();
-      appState.startMeeting({
-        title: event.title,
-        calendarEventId: event.id,
-        source: 'calendar'
-      });
-    });
-
-    calMgr.on('open-requested', () => {
-      appState.centerAndShowWindow();
-    });
-
-    console.log('[Main] CalendarManager initialized');
-  } catch (e) {
-    console.error('[Main] Failed to initialize CalendarManager:', e);
   }
 
   // Recover unprocessed meetings (persistence check)

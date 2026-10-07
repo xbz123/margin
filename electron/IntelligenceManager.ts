@@ -56,8 +56,6 @@ export class IntelligenceManager extends EventEmitter {
             'follow_up_questions_update', 'follow_up_questions_token',
             'manual_answer_started', 'manual_answer_result',
             'mode_changed', 'error',
-            // Sprint 7: dedicated channel for negotiation coaching payloads.
-            'negotiation_coaching',
             // Phase 3: Cluely-style dynamic action card emissions.
             'dynamic_action_emitted',
         ];

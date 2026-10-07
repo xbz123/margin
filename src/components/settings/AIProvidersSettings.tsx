@@ -160,7 +160,7 @@ export const AIProvidersSettings: React.FC = () => {
     const [defaultModel, setDefaultModel] = useState<string>('gemini-3.1-flash-lite-preview');
     const [fastResponseMode, setFastResponseMode] = useState(false);
     const [credentialsLoaded, setCredentialsLoaded] = useState(false);
-    const canUseFastMode = !!(hasStoredKey.groq || hasStoredKey.natively || codexCliConfig.enabled);
+    const canUseFastMode = !!(hasStoredKey.groq || codexCliConfig.enabled);
 
     // --- Dynamic Model Discovery ---
     const [preferredModels, setPreferredModels] = useState<Record<string, string>>({});
@@ -188,8 +188,7 @@ export const AIProvidersSettings: React.FC = () => {
                         groq: creds.hasGroqKey,
                         openai: creds.hasOpenaiKey,
                         claude: creds.hasClaudeKey,
-                        deepseek: creds.hasDeepseekKey || false,
-                        natively: creds.hasNativelyKey || false
+                        deepseek: creds.hasDeepseekKey || false
                     });
                     // Load preferred models
                     const pm: Record<string, string> = {};
@@ -247,7 +246,7 @@ export const AIProvidersSettings: React.FC = () => {
         }
     }, []);
 
-    // Effect to enforce fast mode disabled if neither Groq key nor Natively API is configured.
+    // Effect to enforce fast mode disabled if neither a Groq key nor Codex CLI is configured.
     // Guard with credentialsLoaded so this never fires during the initial async load phase
     // (when hasStoredKey is still empty and canUseFastMode is incorrectly false).
     useEffect(() => {
@@ -588,10 +587,6 @@ export const AIProvidersSettings: React.FC = () => {
                         options={(() => {
                             const opts: { id: string; name: string }[] = [];
 
-                            if (hasStoredKey.natively) {
-                                opts.push({ id: 'natively', name: 'Natively API' });
-                            }
-
                             for (const [prov, cfg] of Object.entries(STANDARD_CLOUD_MODELS)) {
                                 if (!hasStoredKey[prov as keyof typeof hasStoredKey]) continue;
                                 cfg.ids.forEach((id, i) => opts.push({ id, name: cfg.names[i] }));
@@ -628,22 +623,22 @@ export const AIProvidersSettings: React.FC = () => {
                 {/* Fast Response Mode */}
                 <div
                     className={`bg-bg-item-surface rounded-xl p-5 border border-border-subtle flex items-center justify-between gap-4 ${!canUseFastMode ? 'opacity-50 grayscale' : ''}`}
-                    title={!canUseFastMode ? "Requires Groq, Natively API, or Codex CLI to be configured" : ""}
+                    title={!canUseFastMode ? "Requires Groq or Codex CLI to be configured" : ""}
                 >
                     <div className="flex-1">
                         <div className="flex items-center gap-2">
                             <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Fast Response Mode</label>
                             <span className="bg-orange-500/10 text-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded border border-orange-500/20">NEW</span>
                         </div>
-                        <p className="text-[10px] text-text-secondary mt-0.5">Super fast responses using the Codex CLI fast model, Groq, or Natively. Turn this off to use the selected normal model.</p>
+                        <p className="text-[10px] text-text-secondary mt-0.5">Super fast responses using the Codex CLI fast model or Groq. Turn this off to use the selected normal model.</p>
                         {!canUseFastMode && (
-                            <p className="text-[10px] text-orange-500 mt-0.5 font-medium">Requires Groq, Natively API, or Codex CLI to be configured.</p>
+                            <p className="text-[10px] text-orange-500 mt-0.5 font-medium">Requires Groq or Codex CLI to be configured.</p>
                         )}
                     </div>
                     <div
                         onClick={async () => {
                             if (!canUseFastMode) {
-                                alert("Please configure Groq, Natively API, or Codex CLI first to enable Fast Response Mode.");
+                                alert("Please configure Groq or Codex CLI first to enable Fast Response Mode.");
                                 return;
                             }
                             const newState = !fastResponseMode;
