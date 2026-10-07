@@ -1,0 +1,37 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4112.071875ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (559.260667ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5129.246292ms)
+✔ a meeting edit that fails to save is rolled back and reported (1711.605292ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4243.054791ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16284.870167
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:392:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4243.054791ms)
+  AssertionError [ERR_ASSERTION]: no request for a recovered meeting with profile_history off
+  + actual - expected
+  
+  + [
+  +   '/openai/v1/chat/completions',
+  +   '/openai/v1/chat/completions'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:437:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ '/openai/v1/chat/completions', '/openai/v1/chat/completions' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

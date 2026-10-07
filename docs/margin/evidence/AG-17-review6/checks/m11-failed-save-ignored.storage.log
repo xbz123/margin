@@ -1,0 +1,25 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4235.836542ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (604.128792ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5135.361125ms)
+✖ a meeting edit that fails to save is rolled back and reported (11324.581625ms)
+✔ startup recovery of an unprocessed meeting follows the profile_history scope (7492.066333ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29331.4105
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:349:1
+✖ a meeting edit that fails to save is rolled back and reported (11324.581625ms)
+  locator.waitFor: Timeout 10000ms exceeded.
+  Call log:
+    - waiting for getByRole('alert').filter({ hasText: 'This change could not be saved.' }) to be visible
+  
+      at TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:377:70) {
+    name: 'TimeoutError'
+  }

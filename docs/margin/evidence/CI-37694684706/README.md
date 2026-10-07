@@ -10,7 +10,7 @@ with `no_cache: true` on commit `ac879152`. Downloaded with `gh run download` an
 | `job.log` | The full job log (`gh run view 37694684706 --log`). GitHub masks the checkout token as `***`. Both `actions/cache` steps are absent from the step output because they were skipped; `Native setup` shows `Compiling cidre v0.11.10` |
 | `job-steps.json` | Step names and conclusions from the run's job (`gh run view --json jobs`): both cache steps `skipped`, every other step `success` |
 | `gates/` | The `margin-gates-ac879152…` artifact: the output of `run-gates.mjs` on the runner (summary.json, logs, tests.tap) |
-| `native/` | The `margin-native-ac879152…` artifact without the built `index.darwin-arm64.node` binary: `BUILD-INFO.txt` (with the binary's sha256) and `setup-native.log` |
+| `native/` | The `margin-native-ac879152…` artifact without the built `index.darwin-arm64.node` binary: `BUILD-INFO.txt` (with the binary's sha256) and `setup-native.log`. `sha256-recheck.txt` (added 2026-10-08 for the sixth review) records a fresh download of the artifact: the recomputed sha256 of the binary matches `BUILD-INFO.txt`, and both kept files are byte-identical to the download |
 
 `gates/summary.json` counts 1 uncommitted path but, in this version of `run-gates.mjs`,
 does not list it. The run's workflow wrote `native-artifact/` into the checkout before

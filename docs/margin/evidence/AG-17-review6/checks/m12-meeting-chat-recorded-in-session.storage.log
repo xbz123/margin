@@ -1,0 +1,29 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4283.064916ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (535.794334ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5139.72875ms)
+✔ a meeting edit that fails to save is rolled back and reported (1661.287125ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4187.130708ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16330.91025
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:392:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4187.130708ms)
+  AssertionError [ERR_ASSERTION]: meeting chat turns must not enter the next meeting: ["CHAT_QUESTION one: what did we agree?","CHAT_ANSWER shown.","CHAT_QUESTION two: what else was said?","CHAT_ANSWER shown.","CHAT_QUESTION three: who owns step four?","CHAT_QUESTION four","CHAT_ANSWER shown.","RECOVER_DENIED one: we plan the offsite.","RECOVER_DENIED two: the offsite is in May.","RECOVER_DENIED three: the budget is fixed.","RECOVER_DENIED four: I will book the venue."]
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:446:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
