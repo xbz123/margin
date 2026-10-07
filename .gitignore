@@ -252,3 +252,6 @@ refactor_profile.py
 refactor.js
 skills-lock.json
 windowswork.md
+
+# Margin local caches (provenance pools, isolation run logs)
+/.margin-cache/

@@ -1,0 +1,16 @@
+{
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "restrictedRefPrefixes": ["refs/remotes/upstream/"],
+  "restrictedExtraRefs": ["f326de04e50678ae63689cdabac491ec366e5c28"],
+  "approvedLineKeyFiles": [],
+  "approvedFiles": [],
+  "excludePaths": ["docs/margin", "package-lock.json"],
+  "allowLines": [
+    { "line": "app.whenReady().then(async () => {", "reason": "Standard Electron startup idiom; written for this branch (X2 self-test), 2026-10-07" },
+    { "line": "await new Promise((r) => server.listen(0, '127.0.0.1', r));", "reason": "Standard Node loopback test-server idiom; written for this branch (X2), 2026-10-07" },
+    { "line": "const i = args.indexOf(name);", "reason": "Generic argument parsing; written for this branch (X1), 2026-10-07" },
+    { "line": "for (const raw of text.split('\\n')) {", "reason": "Generic line iteration; written for this branch (X1), 2026-10-07" },
+    { "line": "const u = new URL(url);", "reason": "Generic URL parsing; written for this branch (X2), 2026-10-07" },
+    { "line": "child.on('exit', (code, signal) => {", "reason": "Standard child_process exit handler; written for this branch (X2), 2026-10-07" }
+  ]
+}
