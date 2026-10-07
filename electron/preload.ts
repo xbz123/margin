@@ -38,7 +38,7 @@ interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{
-    provider: 'gemini' | 'custom' | 'codex-cli';
+    provider: 'gemini' | 'codex-cli';
     model: string;
   }>;
   switchToGemini: (
@@ -179,7 +179,6 @@ interface ElectronAPI {
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
-    options?: { promptInstruction?: string },
   ) => Promise<{
     answer: string | null;
     question?: string;
@@ -316,20 +315,6 @@ interface ElectronAPI {
   // Demo
   seedDemo: () => Promise<{ success: boolean }>;
 
-  // Custom Providers
-  saveCustomProvider: (provider: any) => Promise<{ success: boolean; id?: string; error?: string }>;
-  getCustomProviders: () => Promise<any[]>;
-  deleteCustomProvider: (id: string) => Promise<{ success: boolean; error?: string }>;
-
-  // Follow-up Email
-  generateFollowupEmail: (input: any) => Promise<string>;
-  extractEmailsFromTranscript: (transcript: Array<{ text: string }>) => Promise<string[]>;
-  openMailto: (params: {
-    to: string;
-    subject: string;
-    body: string;
-  }) => Promise<{ success: boolean; error?: string }>;
-
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;
   stopAudioTest: () => Promise<{ success: boolean }>;
@@ -426,9 +411,6 @@ interface ElectronAPI {
 
 
 
-
-  // Tavily Search API
-  setTavilyApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
 
   // Overlay Opacity (Stealth Mode)
   setOverlayOpacity: (opacity: number) => Promise<void>;
@@ -722,31 +704,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   skillsRefresh: () => ipcRenderer.invoke('skills:list'),
   skillsOpenFolder: () => ipcRenderer.invoke('skills:open-folder'),
 
-  // Phone Mirror — stream live AI responses to a paired phone over the LAN.
-  phoneMirrorGetInfo: () => ipcRenderer.invoke('phone-mirror:get-info'),
-  phoneMirrorEnable: (exposeOnLan: boolean) =>
-    ipcRenderer.invoke('phone-mirror:enable', exposeOnLan),
-  phoneMirrorDisable: () => ipcRenderer.invoke('phone-mirror:disable'),
-  phoneMirrorSetLan: (exposeOnLan: boolean) =>
-    ipcRenderer.invoke('phone-mirror:set-lan', exposeOnLan),
-  phoneMirrorRotateToken: () => ipcRenderer.invoke('phone-mirror:rotate-token'),
-  phoneMirrorPushScreenshot: (screenshotPath?: string) =>
-    ipcRenderer.invoke('phone-mirror:push-screenshot', screenshotPath),
-  onPhoneMirrorStatus: (callback: (info: any) => void) => {
-    const subscription = (_: any, info: any) => callback(info);
-    ipcRenderer.on('phone-mirror:status', subscription);
-    return () => {
-      ipcRenderer.removeListener('phone-mirror:status', subscription);
-    };
-  },
-  onPhoneMirrorIncomingChat: (callback: (data: { message: string; streamId: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('phone-mirror:incoming-chat', subscription);
-    return () => {
-      ipcRenderer.removeListener('phone-mirror:incoming-chat', subscription);
-    };
-  },
-
   onSettingsVisibilityChange: (callback: (isVisible: boolean) => void) => {
     const subscription = (_: any, isVisible: boolean) => callback(isVisible);
     ipcRenderer.on('settings-visibility-changed', subscription);
@@ -968,8 +925,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
-    options?: { promptInstruction?: string },
-  ) => ipcRenderer.invoke('generate-what-to-say', question, imagePaths, options),
+  ) => ipcRenderer.invoke('generate-what-to-say', question, imagePaths),
   generateClarify: () => ipcRenderer.invoke('generate-clarify'),
   generateCodeHint: (imagePaths?: string[], problemStatement?: string) =>
     ipcRenderer.invoke('generate-code-hint', imagePaths, problemStatement),
@@ -1034,18 +990,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('intelligence-assist-update', subscription);
     };
   },
-  // Phase 3 — Dynamic Action Cards
-  onIntelligenceDynamicAction: (callback: (data: { action: any }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('intelligence-dynamic-action', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-dynamic-action', subscription);
-    };
-  },
-  acceptDynamicAction: (actionId: string) => ipcRenderer.invoke('dynamic-action:accept', actionId),
-  dismissDynamicAction: (actionId: string) =>
-    ipcRenderer.invoke('dynamic-action:dismiss', actionId),
-  listDynamicActions: () => ipcRenderer.invoke('dynamic-action:list'),
   onIntelligenceSuggestedAnswerToken: (
     callback: (data: { token: string; question: string; confidence: number }) => void,
   ) => {
@@ -1232,18 +1176,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Demo
   seedDemo: () => ipcRenderer.invoke('seed-demo'),
 
-  // Custom Providers
-  saveCustomProvider: (provider: any) => ipcRenderer.invoke('save-custom-provider', provider),
-  getCustomProviders: () => ipcRenderer.invoke('get-custom-providers'),
-  deleteCustomProvider: (id: string) => ipcRenderer.invoke('delete-custom-provider', id),
-
-  // Follow-up Email
-  generateFollowupEmail: (input: any) => ipcRenderer.invoke('generate-followup-email', input),
-  extractEmailsFromTranscript: (transcript: Array<{ text: string }>) =>
-    ipcRenderer.invoke('extract-emails-from-transcript', transcript),
-  openMailto: (params: { to: string; subject: string; body: string }) =>
-    ipcRenderer.invoke('open-mailto', params),
-
   // Audio Test
   startAudioTest: (deviceId?: string) => ipcRenderer.invoke('start-audio-test', deviceId),
   stopAudioTest: () => ipcRenderer.invoke('stop-audio-test'),
@@ -1381,9 +1313,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 
 
-
-  // Tavily Search API
-  setTavilyApiKey: (apiKey: string) => ipcRenderer.invoke('set-tavily-api-key', apiKey),
 
   // Dynamic Model Discovery
   fetchProviderModels: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) =>

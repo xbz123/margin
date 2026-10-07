@@ -17,7 +17,6 @@ import { ScreenContext } from './services/screen/ScreenContextService';
 // Re-export types for backward compatibility
 export type { TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
 export type { IntelligenceMode, IntelligenceModeEvents } from './IntelligenceEngine';
-export type { DynamicAction } from './services/dynamic-actions/DynamicAction';
 
 export const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview";
 
@@ -56,8 +55,6 @@ export class IntelligenceManager extends EventEmitter {
             'follow_up_questions_update', 'follow_up_questions_token',
             'manual_answer_started', 'manual_answer_result',
             'mode_changed', 'error',
-            // Phase 3: Cluely-style dynamic action card emissions.
-            'dynamic_action_emitted',
         ];
 
         for (const event of events) {
@@ -144,7 +141,7 @@ export class IntelligenceManager extends EventEmitter {
         return this.engine.runAssistMode();
     }
 
-    async runWhatShouldISay(question?: string, confidence?: number, imagePaths?: string[], options?: { skipCooldown?: boolean; screenContext?: ScreenContext; promptInstruction?: string; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
+    async runWhatShouldISay(question?: string, confidence?: number, imagePaths?: string[], options?: { skipCooldown?: boolean; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
         return this.engine.runWhatShouldISay(question, confidence, imagePaths, options);
     }
 
@@ -217,34 +214,6 @@ export class IntelligenceManager extends EventEmitter {
     // Mode Context Management
     // ============================================
 
-
-    // ============================================
-    // Phase 3 — Dynamic Actions facade
-    // ============================================
-
-    /**
-     * Bind dynamic-action engine to the active meeting.
-     * Caller is the IPC handler that starts a meeting (with sessionId).
-     */
-    setDynamicActionContext(params: { sessionId: string; modeId: string; modeTemplateType: string }): void {
-        this.engine.setDynamicActionContext(params);
-    }
-
-    clearDynamicActionContext(): void {
-        this.engine.clearDynamicActionContext();
-    }
-
-    acceptDynamicAction(actionId: string): import('./services/dynamic-actions/DynamicAction').DynamicAction | null {
-        return this.engine.acceptDynamicAction(actionId);
-    }
-
-    dismissDynamicAction(actionId: string): void {
-        this.engine.dismissDynamicAction(actionId);
-    }
-
-    getActiveDynamicActions(): import('./services/dynamic-actions/DynamicAction').DynamicAction[] {
-        return this.engine.getActiveDynamicActions();
-    }
 
     // ============================================
     // Reset (resets all sub-modules)

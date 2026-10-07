@@ -82,10 +82,8 @@ import {
   getOverlayAppearance,
   OVERLAY_OPACITY_DEFAULT,
 } from '../lib/overlayAppearance';
-import type { DynamicActionPayload } from '../types/electron';
 import { getCodexCliModelDisplayName } from '../utils/modelUtils';
 import { getModifierSymbol, isMac } from '../utils/platformUtils';
-import { DynamicActionBar } from './dynamic-actions/DynamicActionBar';
 import GlassEffectLayer from './ui/GlassEffectLayer';
 import RollingTranscript from './ui/RollingTranscript';
 import TopPill from './ui/TopPill';
@@ -567,11 +565,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       if (!mounted || !config) return;
       setLlmProviderLabel(formatProviderLabel(config.provider));
       setLlmPrivacyLabel(
-        config.provider === 'codex-cli'
-          ? 'Local/private route'
-          : config.provider === 'custom'
-            ? 'Custom endpoint route'
-            : null,
+        config.provider === 'codex-cli' ? 'Local/private route' : null,
       );
     };
     loadLlmRoute();
@@ -2008,10 +2002,8 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Optional: Trigger a small toast or state change for visual feedback
   }, []);
 
-  const handleWhatToSay = async (promptInstruction?: string | React.MouseEvent) => {
+  const handleWhatToSay = async () => {
     if (!tryBeginOverlayAction('what_to_say')) return;
-    const dynamicPromptInstruction =
-      typeof promptInstruction === 'string' ? promptInstruction : undefined;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
@@ -2049,7 +2041,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       const result = await window.electronAPI.generateWhatToSay(
         undefined,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
-        dynamicPromptInstruction ? { promptInstruction: dynamicPromptInstruction } : undefined,
       );
       setScreenContextStatus(result.screenContextStatus || 'not_available');
       setLatestUsedImageInput(Boolean(result.usedImageInput));
@@ -2357,38 +2348,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
             },
           ];
         });
-      }),
-    );
-
-    // Phone-initiated chat: main process streams tokens via gemini-stream-*; this
-    // event adds the user turn + streaming placeholder before tokens arrive.
-    cleanups.push(
-      window.electronAPI.onPhoneMirrorIncomingChat(({ message }) => {
-        flushToken();
-        requestStartTimeRef.current = Date.now();
-        const userId = genMessageId();
-        const placeholderId = `${userId}-reply`;
-        streamingMsgIdRef.current = placeholderId;
-        streamingIntentRef.current = 'chat';
-        streamingTextRef.current = '';
-        streamingNodeRef.current = null;
-        setMessages((prev) => [
-          ...prev,
-          { id: userId, role: 'user', text: message },
-          {
-            id: placeholderId,
-            role: 'system',
-            text: '',
-            intent: 'chat',
-            isStreaming: true,
-          },
-        ]);
-        setIsExpanded(true);
-        setIsProcessing(true);
-        pinAnswerPanel();
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 50);
       }),
     );
 
@@ -4196,16 +4155,6 @@ Provide only the answer, nothing else.`;
                   </div>
                 </div>
               )}
-
-              {/* Phase 3 — Dynamic action card row (Cluely-style live triggers).
-                                Appears between status pills and rolling transcript so users see
-                                actionable suggestions in their primary scan path. Bar self-hides
-                                when no actions are present. */}
-              <DynamicActionBar
-                onAcceptAction={(action: DynamicActionPayload) => {
-                  void handleWhatToSay(action.promptInstruction);
-                }}
-              />
 
               {/* Rolling Transcript Bar — live transcript + on-demand diagnostics
                   for hard failures. Reconnecting/awaiting-audio status is owned by

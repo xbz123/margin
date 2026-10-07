@@ -9,7 +9,6 @@ import { AudioDevices } from './audio/AudioDevices';
 import { DatabaseManager } from './db/DatabaseManager'; // Import Database Manager
 import { AppState } from './main';
 import { CodexCliService } from './services/CodexCliService';
-import { PhoneMirrorService } from './services/PhoneMirrorService';
 import { SettingsManager } from './services/SettingsManager';
 import { SkillsManager } from './services/SkillsManager';
 
@@ -324,7 +323,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // Streaming IPC Handler
   let _chatStreamId = 0;
-  // Keep IDs globally unique for phone/desktop message correlation; supersession is per sender.
+  // Keep IDs globally unique; supersession is per sender.
   const _chatStreamsBySender = new Map<number, { streamId: number; controller: AbortController }>();
 
   // Matches narrow identity/meta probes only. Kept tight so coding/normal asks don't trip it.
@@ -374,11 +373,6 @@ export function initializeIpcHandlers(appState: AppState): void {
               { text: message, speaker: 'user', timestamp: Date.now(), final: true },
               true,
             );
-            try {
-              PhoneMirrorService.getInstance().publishUserMessage(String(myStreamId), message);
-            } catch (_) {
-              /* noop */
-            }
             // Guard against a newer chat stream having taken over while we were computing
             // the canned reply — matches the protection the LLM path uses around its token
             // loop. Prevents cross-stream UI bleed.
@@ -390,16 +384,6 @@ export function initializeIpcHandlers(appState: AppState): void {
             }
             event.sender.send('gemini-stream-token', identityHit);
             event.sender.send('gemini-stream-done');
-            try {
-              PhoneMirrorService.getInstance().publishToken(String(myStreamId), identityHit);
-            } catch (_) {
-              /* noop */
-            }
-            try {
-              PhoneMirrorService.getInstance().publishDone(String(myStreamId), identityHit);
-            } catch (_) {
-              /* noop */
-            }
             intelligenceManager.addAssistantMessage(identityHit);
             intelligenceManager.logUsage('chat', message, identityHit);
             return null;
@@ -429,13 +413,6 @@ export function initializeIpcHandlers(appState: AppState): void {
           },
           true,
         );
-
-        // Mirror to phone (no-op if PhoneMirrorService isn't running).
-        try {
-          PhoneMirrorService.getInstance().publishUserMessage(String(myStreamId), message);
-        } catch (_) {
-          /* noop */
-        }
 
         let fullResponse = '';
 
@@ -480,22 +457,12 @@ export function initializeIpcHandlers(appState: AppState): void {
               return null;
             }
             event.sender.send('gemini-stream-token', token);
-            try {
-              PhoneMirrorService.getInstance().publishToken(String(myStreamId), token);
-            } catch (_) {
-              /* noop */
-            }
             fullResponse += token;
           }
 
           // Final check: only send done if we are still the active stream
           if (_chatStreamsBySender.get(senderId)?.streamId === myStreamId) {
             event.sender.send('gemini-stream-done');
-            try {
-              PhoneMirrorService.getInstance().publishDone(String(myStreamId), fullResponse);
-            } catch (_) {
-              /* noop */
-            }
 
             // Update IntelligenceManager with ASSISTANT message after completion
             if (fullResponse.trim().length > 0) {
@@ -511,14 +478,6 @@ export function initializeIpcHandlers(appState: AppState): void {
               'gemini-stream-error',
               streamError.message || 'Unknown streaming error',
             );
-            try {
-              PhoneMirrorService.getInstance().publishError(
-                String(myStreamId),
-                streamError?.message || 'Unknown streaming error',
-              );
-            } catch (_) {
-              /* noop */
-            }
           }
         }
 
@@ -1044,167 +1003,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  // Custom Provider Handlers
-  safeHandle('get-custom-providers', async () => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const cm = CredentialsManager.getInstance();
-      // Merge new Curl Providers with legacy Custom Providers
-      // New ones take precedence if IDs conflict (though unlikely as UUIDs)
-      const curlProviders = cm.getCurlProviders();
-      const legacyProviders = cm.getCustomProviders() || [];
-      return [...curlProviders, ...legacyProviders];
-    } catch (error: any) {
-      console.error('Error getting custom providers:', error);
-      return [];
-    }
-  });
-
-  const validateCurlProviderPayload = (provider: unknown): { ok: true } | { ok: false; error: string } => {
-    if (
-      typeof provider !== 'object' ||
-      provider === null ||
-      typeof (provider as any).id !== 'string' ||
-      typeof (provider as any).name !== 'string' ||
-      typeof (provider as any).curlCommand !== 'string'
-    ) {
-      return { ok: false, error: 'Invalid provider payload' };
-    }
-
-    if (!(provider as any).curlCommand.includes('{{TEXT}}')) {
-      return { ok: false, error: 'curlCommand must contain {{TEXT}} placeholder for the prompt' };
-    }
-
-    if (
-      'responsePath' in provider &&
-      typeof (provider as any).responsePath !== 'string'
-    ) {
-      return { ok: false, error: 'Invalid provider responsePath' };
-    }
-
-    return { ok: true };
-  };
-
-  safeHandle('save-custom-provider', async (_, provider: unknown) => {
-    try {
-      const validation = validateCurlProviderPayload(provider);
-      if (!validation.ok) {
-        console.error('[IPC] save-custom-provider: invalid payload');
-        return { success: false, error: validation.error };
-      }
-
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().saveCurlProvider(provider as any);
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving custom provider:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  safeHandle('delete-custom-provider', async (_, id: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      // Try deleting from both storages to be safe
-      CredentialsManager.getInstance().deleteCurlProvider(id);
-      CredentialsManager.getInstance().deleteCustomProvider(id);
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error deleting custom provider:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  safeHandle('switch-to-custom-provider', async (_, providerId: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const cm = CredentialsManager.getInstance();
-      // BUG-05 fix: providers may be in either the curl or legacy custom store —
-      // merge both when looking up by id so neither store is silently ignored.
-      const provider = [...(cm.getCurlProviders() || []), ...(cm.getCustomProviders() || [])].find(
-        (p: any) => p.id === providerId,
-      );
-
-      if (!provider) {
-        throw new Error('Provider not found');
-      }
-
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      await llmHelper.switchToCustom(provider);
-
-      // Re-init IntelligenceManager (optional, but good for consistency)
-      appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error switching to custom provider:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  // cURL Provider Handlers
-  safeHandle('get-curl-providers', async () => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      return CredentialsManager.getInstance().getCurlProviders();
-    } catch (error: any) {
-      console.error('Error getting curl providers:', error);
-      return [];
-    }
-  });
-
-  safeHandle('save-curl-provider', async (_, provider: unknown) => {
-    try {
-      const validation = validateCurlProviderPayload(provider);
-      if (!validation.ok) {
-        console.error('[IPC] save-curl-provider: invalid payload');
-        return { success: false, error: validation.error };
-      }
-
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().saveCurlProvider(provider as any);
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving curl provider:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  safeHandle('delete-curl-provider', async (_, id: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().deleteCurlProvider(id);
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error deleting curl provider:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  safeHandle('switch-to-curl-provider', async (_, providerId: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const provider = CredentialsManager.getInstance()
-        .getCurlProviders()
-        .find((p: any) => p.id === providerId);
-
-      if (!provider) {
-        throw new Error('Provider not found');
-      }
-
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      await llmHelper.switchToCurl(provider);
-
-      // Re-init IntelligenceManager (optional, but good for consistency)
-      appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error switching to curl provider:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
   // Get stored API keys (masked for UI display)
   safeHandle('get-stored-credentials', async () => {
     try {
@@ -1243,7 +1041,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         sttIbmKey: creds.ibmWatsonApiKey ? `sk-...${creds.ibmWatsonApiKey.slice(-4)}` : '',
         sttSonioxKey: creds.sonioxApiKey ? `sk-...${creds.sonioxApiKey.slice(-4)}` : '',
         openAiSttBaseUrl: creds.openAiSttBaseUrl || '',
-        hasTavilyKey: hasKey(creds.tavilyApiKey),
         // Dynamic Model Discovery - preferred models
         geminiPreferredModel: creds.geminiPreferredModel || undefined,
         groqPreferredModel: creds.groqPreferredModel || undefined,
@@ -1271,7 +1068,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasIbmWatsonKey: false,
         ibmWatsonRegion: 'us-south',
         hasSonioxKey: false,
-        hasTavilyKey: false,
         sttGroqKey: '',
         sttOpenaiKey: '',
         sttDeepgramKey: '',
@@ -1989,15 +1785,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-model', async (_, modelId: string) => {
     try {
       const llmHelper = appState.processingHelper.getLLMHelper();
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const cm = CredentialsManager.getInstance();
-
-      // Get all providers (Curl + Custom)
-      const curlProviders = cm.getCurlProviders();
-      const legacyProviders = cm.getCustomProviders() || [];
-      const allProviders = [...curlProviders, ...legacyProviders];
-
-      llmHelper.setModel(modelId, allProviders);
+      llmHelper.setModel(modelId);
 
       appState.sendModelChanged(modelId);
 
@@ -2020,10 +1808,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
       // Also update the runtime model
       const llmHelper = appState.processingHelper.getLLMHelper();
-      const curlProviders = cm.getCurlProviders();
-      const legacyProviders = cm.getCustomProviders() || [];
-      const allProviders = [...curlProviders, ...legacyProviders];
-      llmHelper.setModel(modelId, allProviders);
+      llmHelper.setModel(modelId);
 
       appState.sendModelChanged(modelId);
 
@@ -2275,15 +2060,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const insight = await intelligenceManager.runAssistMode();
-      if (insight) {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            insight,
-            'Assist',
-          );
-        } catch (_) {}
-      }
       return { insight };
     } catch (error: any) {
       throw error;
@@ -2294,17 +2070,14 @@ export function initializeIpcHandlers(appState: AppState): void {
   //
   // VISION-FIRST: image paths are validated and forwarded to IntelligenceManager
   // which routes them through the vision provider fallback chain.
-  // LEGACY OCR PATH DISABLED: the previous build called ScreenContextService.captureScreenFromPath
-  // here to run Tesseract OCR before answering. That path is now removed from the runtime —
-  // Natively answers from the image directly via a vision-capable provider. Do not re-introduce
-  // OCR here unless a future explicit OCR-only mode is reintroduced.
+  // OCR was removed (PLAN.md AG-16): the app answers from the image directly via a
+  // vision-capable provider.
   safeHandle(
     'generate-what-to-say',
     async (
       _,
       question?: string,
       imagePaths?: string[],
-      options?: { promptInstruction?: string },
     ) => {
       try {
         let screenContext: any;
@@ -2335,7 +2108,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           }
 
           const { app } = require('electron');
-          const { validateImagePath } = require('./utils/curlUtils');
+          const { validateImagePath } = require('./utils/imagePathValidation');
           const userDataDir = app.getPath('userData');
 
           for (const imagePath of imagePaths) {
@@ -2412,21 +2185,8 @@ export function initializeIpcHandlers(appState: AppState): void {
           {
             skipCooldown: process.env.NODE_ENV === 'test',
             screenContext,
-            promptInstruction:
-              typeof options?.promptInstruction === 'string'
-                ? options.promptInstruction
-                : undefined,
           },
         );
-        if (answer) {
-          try {
-            PhoneMirrorService.getInstance().publishAssistantMessage(
-              crypto.randomUUID(),
-              answer,
-              'What to Answer',
-            );
-          } catch (_) {}
-        }
         return {
           answer,
           question: question || 'inferred from context',
@@ -2462,14 +2222,6 @@ export function initializeIpcHandlers(appState: AppState): void {
             'Could not generate a clarifying question. Try again after some audio context is available.',
           mode: 'clarify',
         });
-      } else {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            clarification,
-            'Clarify',
-          );
-        } catch (_) {}
       }
       return { clarification };
     } catch (error: any) {
@@ -2520,7 +2272,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       // SECURITY (P0): Validate image paths if provided from renderer
       if (imagePaths && imagePaths.length > 0) {
         const { app } = require('electron');
-        const { validateImagePath } = require('./utils/curlUtils');
+        const { validateImagePath } = require('./utils/imagePathValidation');
         const userDataDir = app.getPath('userData');
 
         for (const imagePath of imagePaths) {
@@ -2551,15 +2303,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         optimizedPaths.length > 0 ? optimizedPaths : undefined,
         problemStatement,
       );
-      if (hint) {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            hint,
-            'Code Hint',
-          );
-        } catch (_) {}
-      }
       return { hint };
     } catch (error: any) {
       throw error;
@@ -2577,7 +2320,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       // SECURITY (P0): Validate image paths if provided from renderer
       if (imagePaths && imagePaths.length > 0) {
         const { app } = require('electron');
-        const { validateImagePath } = require('./utils/curlUtils');
+        const { validateImagePath } = require('./utils/imagePathValidation');
         const userDataDir = app.getPath('userData');
 
         for (const imagePath of imagePaths) {
@@ -2607,15 +2350,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         optimizedPaths.length > 0 ? optimizedPaths : undefined,
         problemStatement,
       );
-      if (script) {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            script,
-            'Brainstorm',
-          );
-        } catch (_) {}
-      }
       return { script };
     } catch (error: any) {
       throw error;
@@ -2648,15 +2382,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const refined = await intelligenceManager.runFollowUp(intent, userRequest);
-      if (refined) {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            refined,
-            'Follow Up',
-          );
-        } catch (_) {}
-      }
       return { refined, intent };
     } catch (error: any) {
       throw error;
@@ -2668,15 +2393,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const summary = await intelligenceManager.runRecap();
-      if (summary) {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            summary,
-            'Recap',
-          );
-        } catch (_) {}
-      }
       return { summary };
     } catch (error: any) {
       throw error;
@@ -2688,15 +2404,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const questions = await intelligenceManager.runFollowUpQuestions();
-      if (questions) {
-        try {
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            questions,
-            'Follow-Up Questions',
-          );
-        } catch (_) {}
-      }
       return { questions };
     } catch (error: any) {
       throw error;
@@ -2708,16 +2415,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const answer = await intelligenceManager.runManualAnswer(question);
-      if (answer) {
-        try {
-          PhoneMirrorService.getInstance().publishUserMessage(crypto.randomUUID(), question);
-          PhoneMirrorService.getInstance().publishAssistantMessage(
-            crypto.randomUUID(),
-            answer,
-            'Answer',
-          );
-        } catch (_) {}
-      }
       return { answer, question };
     } catch (error: any) {
       throw error;
@@ -2746,48 +2443,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
-    }
-  });
-
-  // Phase 3 — Dynamic Actions IPC. Accept/dismiss/list. The action emission
-  // direction is push-only (intelligence-dynamic-action channel from main →
-  // renderer); these handlers are the renderer → main control plane.
-  safeHandle('dynamic-action:accept', async (_, actionId: string) => {
-    try {
-      if (typeof actionId !== 'string' || !actionId) {
-        return { success: false, error: 'invalid_action_id' };
-      }
-      const intelligenceManager = appState.getIntelligenceManager();
-      const action = intelligenceManager.acceptDynamicAction(actionId);
-      if (!action) return { success: false, error: 'not_found' };
-      // Caller (renderer) is expected to follow up with a normal Ask-AI call
-      // using action.promptInstruction. We return the action so the renderer
-      // can populate the answer prompt without a second round-trip.
-      return { success: true, action };
-    } catch (error: any) {
-      return { success: false, error: error?.message ?? 'internal_error' };
-    }
-  });
-
-  safeHandle('dynamic-action:dismiss', async (_, actionId: string) => {
-    try {
-      if (typeof actionId !== 'string' || !actionId) {
-        return { success: false, error: 'invalid_action_id' };
-      }
-      const intelligenceManager = appState.getIntelligenceManager();
-      intelligenceManager.dismissDynamicAction(actionId);
-      return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error?.message ?? 'internal_error' };
-    }
-  });
-
-  safeHandle('dynamic-action:list', async () => {
-    try {
-      const intelligenceManager = appState.getIntelligenceManager();
-      return { success: true, actions: intelligenceManager.getActiveDynamicActions() };
-    } catch (error: any) {
-      return { success: false, error: error?.message ?? 'internal_error', actions: [] };
     }
   });
 
@@ -2859,86 +2514,6 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // ==========================================
-  // Calendar Integration Handlers
-  // ==========================================
-
-  // ==========================================
-  // Follow-up Email Handlers
-  // ==========================================
-
-  safeHandle('generate-followup-email', async (_, input: any) => {
-    try {
-      const { FOLLOWUP_EMAIL_PROMPT, GROQ_FOLLOWUP_EMAIL_PROMPT } = require('./llm/prompts');
-      const { buildFollowUpEmailPromptInput } = require('./utils/emailUtils');
-
-      const llmHelper = appState.processingHelper.getLLMHelper();
-
-      // Build the context string from input
-      const contextString = buildFollowUpEmailPromptInput(input);
-
-      // Build prompts
-      const geminiPrompt = `${FOLLOWUP_EMAIL_PROMPT}\n\nMEETING DETAILS:\n${contextString}`;
-      const groqPrompt = `${GROQ_FOLLOWUP_EMAIL_PROMPT}\n\nMEETING DETAILS:\n${contextString}`;
-
-      // Use chatWithGemini with alternateGroqMessage for fallback
-      const emailBody = await llmHelper.chatWithGemini(
-        geminiPrompt,
-        undefined,
-        undefined,
-        true,
-        groqPrompt,
-      );
-
-      return emailBody;
-    } catch (error: any) {
-      console.error('Error generating follow-up email:', error);
-      throw error;
-    }
-  });
-
-  safeHandle('extract-emails-from-transcript', async (_, transcript: Array<{ text: string }>) => {
-    try {
-      const { extractEmailsFromTranscript } = require('./utils/emailUtils');
-      return extractEmailsFromTranscript(transcript);
-    } catch (error: any) {
-      console.error('Error extracting emails:', error);
-      return [];
-    }
-  });
-
-  safeHandle(
-    'open-mailto',
-    async (_, { to, subject, body }: { to: string; subject: string; body: string }) => {
-      try {
-        const { buildMailtoLink } = require('./utils/emailUtils');
-        const mailtoUrl = buildMailtoLink(to, subject, body);
-        await shell.openExternal(mailtoUrl);
-        return { success: true };
-      } catch (error: any) {
-        console.error('Error opening mailto:', error);
-        return { success: false, error: error.message };
-      }
-    },
-  );
-
-  // ==========================================
-  // Tavily Search API Credentials
-  // ==========================================
-
-  safeHandle('set-tavily-api-key', async (_, apiKey: string) => {
-    try {
-      if (apiKey && !apiKey.startsWith('tvly-')) {
-        return { success: false, error: 'Invalid Tavily API key. Keys must start with "tvly-".' };
-      }
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setTavilyApiKey(apiKey);
-      return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  });
-
-  // ==========================================
   // Overlay Opacity (Stealth Mode)
   // ==========================================
 
@@ -2974,23 +2549,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  // -----------------------------------------------------------------------
-  // Phone Mirror — stream live AI responses to a paired phone over WS.
-  // -----------------------------------------------------------------------
-
-  // Push status updates to the renderer whenever the service starts/stops
-  // or a phone connects/disconnects. Idempotent — multiple windows can listen.
-  PhoneMirrorService.getInstance().onStatusChange((info) => {
-    const win = appState.getMainWindow();
-    win?.webContents.send('phone-mirror:status', info);
-    try {
-      const settingsWin = (appState as any).settingsWindowHelper?.getWindow?.();
-      settingsWin?.webContents?.send('phone-mirror:status', info);
-    } catch (_) {
-      /* settings window may not exist yet */
-    }
-  });
-
   safeHandle('skills:list', () => {
     try {
       return SkillsManager.getInstance().listSkills();
@@ -3006,176 +2564,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     } catch (e: any) {
       console.warn('[IPC] skills:open-folder error:', e?.message || e);
       return { success: false, path: '', error: e?.message || 'failed to open skills folder' };
-    }
-  });
-
-  safeHandle('phone-mirror:get-info', async () => {
-    return PhoneMirrorService.getInstance().snapshot();
-  });
-
-  safeHandle('phone-mirror:enable', async (_, exposeOnLan?: boolean) => {
-    try {
-      return await PhoneMirrorService.getInstance().start({
-        exposeOnLan: !!exposeOnLan,
-        persist: true,
-      });
-    } catch (e: any) {
-      console.error('[IPC] phone-mirror:enable error:', e);
-      return { error: e?.message || 'failed to start phone mirror' };
-    }
-  });
-
-  safeHandle('phone-mirror:disable', async () => {
-    await PhoneMirrorService.getInstance().stop({ persist: true });
-    return { success: true };
-  });
-
-  safeHandle('phone-mirror:set-lan', async (_, exposeOnLan: boolean) => {
-    try {
-      return await PhoneMirrorService.getInstance().setExposeOnLan(!!exposeOnLan);
-    } catch (e: any) {
-      console.error('[IPC] phone-mirror:set-lan error:', e);
-      return { error: e?.message || 'failed to update lan setting' };
-    }
-  });
-
-  safeHandle('phone-mirror:rotate-token', async () => {
-    try {
-      return await PhoneMirrorService.getInstance().rotateToken();
-    } catch (e: any) {
-      console.error('[IPC] phone-mirror:rotate-token error:', e);
-      return { error: e?.message || 'failed to rotate token' };
-    }
-  });
-
-  // Stealth screenshot capture triggered from the phone UI.
-  // Takes a screenshot on the PC (adding it to the screenshot queue so it can
-  // be used in the next AI prompt), then broadcasts an ack so the phone shows
-  // a confirmation toast.  The image is NOT sent to the phone — the phone is
-  // just a remote shutter; the screenshot stays on the desktop for AI use.
-  safeHandle('phone-mirror:push-screenshot', async (_, screenshotPath?: string) => {
-    try {
-      const imgPath = screenshotPath || (await appState.takeScreenshot(false));
-      PhoneMirrorService.getInstance().publishAck(
-        'screenshot',
-        'Screenshot captured — queued for AI',
-      );
-      return { success: true, path: imgPath };
-    } catch (e: any) {
-      console.error('[IPC] phone-mirror:push-screenshot error:', e);
-      return { error: e?.message || 'failed to capture screenshot' };
-    }
-  });
-
-  // Route commands sent by the phone browser back to the Electron renderer so
-  // the existing action system (global-shortcut events, chat stream) handles
-  // them without duplicating logic.
-  PhoneMirrorService.getInstance().onPhoneCommand(async (cmd) => {
-    const win = appState.getMainWindow();
-
-    if (cmd.type === 'action') {
-      // Re-use the same global-shortcut dispatch path the keyboard uses.
-      // This keeps phone actions identical to key-triggered stealth actions.
-      const helper = appState.getWindowHelper();
-      const sent = new Set<number>();
-      for (const w of [helper.getLauncherWindow(), helper.getOverlayWindow()]) {
-        if (!w || w.isDestroyed() || sent.has(w.id)) continue;
-        sent.add(w.id);
-        try {
-          w.webContents.send('global-shortcut', { action: cmd.action });
-        } catch {
-          // Window is tearing down; keep delivering to any other valid surface.
-        }
-      }
-    } else if (cmd.type === 'chat') {
-      // Stream a phone-initiated chat through the LLM exactly like gemini-chat-stream
-      // but without requiring a renderer event sender. Tokens are pushed directly to
-      // the phone over WebSocket; desktop renderer also receives them so both views
-      // stay in sync.
-      const myStreamId = ++_chatStreamId;
-      const message = cmd.message;
-      const phoneMirror = PhoneMirrorService.getInstance();
-      const intelligenceManager = appState.getIntelligenceManager();
-
-      // Capture rolling context BEFORE adding the new user message — same ordering
-      // as gemini-chat-stream so Recap / Follow Up / What to Answer see phone turns.
-      let context: string | undefined;
-      try {
-        const snap = intelligenceManager.getFormattedContext(100);
-        if (snap && snap.trim().length > 0) context = snap;
-      } catch (ctxErr) {
-        console.warn('[PhoneMirror] Failed to capture pre-turn context:', ctxErr);
-      }
-
-      intelligenceManager.addTranscript(
-        { text: message, speaker: 'user', timestamp: Date.now(), final: true },
-        true,
-      );
-
-      try {
-        phoneMirror.publishUserMessage(String(myStreamId), message);
-      } catch (_) {}
-      // Notify renderer so it can display the incoming phone message too.
-      win?.webContents.send('phone-mirror:incoming-chat', {
-        message,
-        streamId: String(myStreamId),
-      });
-
-      try {
-        const llmHelper = appState.processingHelper.getLLMHelper();
-        const stream = llmHelper.streamChat(message, undefined, context, CHAT_MODE_PROMPT);
-        let full = '';
-        for await (const token of stream) {
-          // Bail if a newer stream has taken over (phone or desktop chat).
-          if (_chatStreamId !== myStreamId) {
-            console.log(
-              `[PhoneMirror] phone-chat ${myStreamId} superseded by ${_chatStreamId}, stopping.`,
-            );
-            return;
-          }
-          // Cancel early if all phones have disconnected — no point burning LLM
-          // tokens when nobody is receiving them and we have no desktop renderer
-          // context to show the result in either.
-          if (!phoneMirror.hasClients() && win?.isDestroyed()) break;
-          try {
-            phoneMirror.publishToken(String(myStreamId), token);
-          } catch (_) {}
-          win?.webContents.send('gemini-stream-token', token);
-          full += token;
-        }
-        if (_chatStreamId === myStreamId) {
-          try {
-            phoneMirror.publishDone(String(myStreamId), full);
-          } catch (_) {}
-          win?.webContents.send('gemini-stream-done');
-          if (full.trim().length > 0) {
-            intelligenceManager.addAssistantMessage(full);
-            intelligenceManager.logUsage('chat', message, full);
-          }
-        }
-      } catch (err: any) {
-        console.error('[PhoneMirror] phone-chat stream error:', err);
-        if (_chatStreamId === myStreamId) {
-          try {
-            phoneMirror.publishError(String(myStreamId), err?.message || 'stream error');
-          } catch (_) {}
-          win?.webContents.send('gemini-stream-error', err?.message || 'stream error');
-        }
-      }
-    } else if (cmd.type === 'screenshot') {
-      // Stealth screenshot: capture on PC → add to screenshot queue → ack to phone.
-      // The image is NOT sent to the phone — it stays on the desktop for AI use.
-      // The phone simply acts as a remote shutter button.
-      try {
-        await appState.takeScreenshot(false);
-        PhoneMirrorService.getInstance().publishAck(
-          'screenshot',
-          'Screenshot captured — queued for AI',
-        );
-      } catch (e: any) {
-        console.error('[PhoneMirror] phone screenshot request failed:', e);
-        PhoneMirrorService.getInstance().publishAck('screenshot', 'Screenshot failed');
-      }
     }
   });
 }

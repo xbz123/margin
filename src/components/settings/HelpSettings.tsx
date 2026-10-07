@@ -1168,28 +1168,6 @@ export const HelpSettings: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-3 pt-4">
-                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">2. Custom Providers</h4>
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-3">
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Use Custom Providers to hook up any standard external LLM router (like OpenRouter, LMStudio, or proprietary company endpoints). Create a new provider using a cURL command template.
-                                </p>
-                                <div className="bg-bg-input p-3 rounded-lg border border-border-subtle space-y-2">
-                                    <div className="text-[11px] font-mono text-text-secondary">
-                                        <div className="text-purple-400">curl</div> <span className="text-blue-400">https://openrouter.ai/api/v1/chat/completions</span> \
-                                        <br />  -H <span className="text-green-400">"Authorization: Bearer YOUR_KEY"</span> \
-                                        <br /> ...
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-2 mt-2">
-                                    <div className="w-5 h-5 rounded bg-orange-500/20 text-orange-500 flex items-center justify-center shrink-0 mt-0.5"><Zap size={10} /></div>
-                                    <div className="text-xs text-text-secondary leading-relaxed">
-                                        <strong>Crucial: The Response Path.</strong> You must inform Natively how to parse the JSON text back. Deeply nested outputs must define the exact path array. For OpenAI/OpenRouter compliant endpoints, this is strictly: <span className={kbdClass}>choices[0].message.content</span>.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </AccordionSection>
 

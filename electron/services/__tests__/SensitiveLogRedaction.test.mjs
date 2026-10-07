@@ -33,18 +33,13 @@ test('IntelligenceEngine logs interim transcript metadata without text snippets'
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}substring\(/);
 });
 
-test('LLMHelper logs request and custom provider metadata without prompt or response snippets', () => {
+test('LLMHelper logs request metadata without prompt or response snippets', () => {
   const source = read('electron/LLMHelper.ts');
 
   assert.match(source, /chatWithGemini called`, \{ messageLength: message\.length/);
   assert.match(source, /streamChatWithGemini called`, \{ messageLength: message\.length/);
-  assert.match(source, /Custom Provider response received`, \{ status: response\.status, ok: response\.ok \}/);
-  assert.match(source, /throw new Error\(`Custom Provider HTTP \$\{response\.status\}`\)/);
-  assert.match(source, /Custom Provider stream HTTP error', \{ status: response\.status \}/);
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}message\.substring\(/);
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}JSON\.stringify\(data\)\.substring\(/);
-  assert.doesNotMatch(source, /Custom Provider HTTP \$\{response\.status\}: \$\{JSON\.stringify\(data\)\.substring/);
-  assert.doesNotMatch(source, /Custom Provider HTTP \$\{response\.status\}: \$\{errorText\.substring/);
 });
 
 test('STT providers log transcript metadata without transcript text', () => {

@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const modPath = path.resolve(__dirname, '../../../dist-electron/electron/utils/curlUtils.js');
+const modPath = path.resolve(__dirname, '../../../dist-electron/electron/utils/imagePathValidation.js');
 const { validateImagePath } = await import(pathToFileURL(modPath).href);
 
 const MAC_USER_DATA = '/Users/alice/Library/Application Support/Natively';

@@ -89,10 +89,7 @@ export class ProcessingHelper {
     const defaultModel = credManager.getDefaultModel();
     if (defaultModel) {
       console.log(`[ProcessingHelper] Loading stored Default Model: ${defaultModel}`);
-      const customProviders = credManager.getCustomProviders();
-      const curlProviders = credManager.getCurlProviders();
-      const allProviders = [...(customProviders || []), ...(curlProviders || [])];
-      this.llmHelper.setModel(defaultModel, allProviders);
+      this.llmHelper.setModel(defaultModel);
     }
 
     // Load Languages

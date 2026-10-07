@@ -103,8 +103,6 @@ export const TINY_SUMMARY_JSON_PROMPT = `Convert this conversation into concise 
 {"summary": string, "keyPoints": string[], "actionItems": string[], "decisions": string[]}
 No markdown, no commentary. JSON only.`;
 
-export const TINY_FOLLOWUP_EMAIL_PROMPT = `Write a short professional follow-up email after a meeting. 3-5 sentences. Friendly, specific, no fluff. Output the email body only — no subject line, no signature.`;
-
 // Set of all tiny prompts that should bypass the default answer suffix in streamChat.
 // Keep in sync with the individual exports above.
 export const TINY_PROMPTS_SET: ReadonlySet<string> = new Set([

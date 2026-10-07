@@ -75,7 +75,7 @@ export class MeetingPersistence {
         };
 
         // BUG-04 fix: snapshot metadata BEFORE reset() clears it so the
-        // background processAndSaveMeeting worker receives the calendar info.
+        // background processAndSaveMeeting worker receives the meeting title.
         const metadataSnapshot = this.session.getMeetingMetadata();
 
         // 2. Reset state immediately so new meeting can start or UI is clean
@@ -122,24 +122,17 @@ export class MeetingPersistence {
     private async processAndSaveMeeting(
         data: { transcript: TranscriptSegment[], usage: any[], startTime: number, durationMs: number, context: string },
         meetingId: string,
-        // BUG-04 fix: accept metadata snapshot so calendar info is not lost after session.reset()
-        metadata?: { title?: string; calendarEventId?: string; source?: 'manual' | 'calendar' } | null
+        // BUG-04 fix: accept metadata snapshot so the title is not lost after session.reset()
+        metadata?: { title?: string } | null
     ): Promise<void> {
         let title = "Untitled Session";
         let summaryData: { overview?: string; actionItems: string[], keyPoints: string[], sections?: Array<{ title: string; bullets: string[] }> } = { actionItems: [], keyPoints: [] };
 
         // Use passed-in metadata snapshot (NOT this.session.getMeetingMetadata() which is already cleared)
-        let calendarEventId: string | undefined;
-        let source: 'manual' | 'calendar' = 'manual';
-
-        if (metadata) {
-            if (metadata.title) title = metadata.title;
-            if (metadata.calendarEventId) calendarEventId = metadata.calendarEventId;
-            if (metadata.source) source = metadata.source;
-        }
+        if (metadata?.title) title = metadata.title;
 
         try {
-            // Generate Title (only if not set by calendar)
+            // Generate Title (only if the meeting was not started with one)
             if (!metadata || !metadata.title) {
                 const titlePrompt = `Generate a concise 3-6 word title for this meeting context. Output ONLY the title text. Do not use quotes or conversational filler.`;
                 const groqTitlePrompt = GROQ_TITLE_PROMPT;
@@ -273,8 +266,7 @@ Return ONLY valid JSON (no markdown code blocks):
                 detailedSummary: summaryData,
                 transcript: data.transcript,
                 usage: data.usage,
-                calendarEventId: calendarEventId,
-                source: source,
+                source: 'manual',
                 isProcessed: true
             };
 

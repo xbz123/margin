@@ -70,34 +70,6 @@ test('runWhatShouldISay passes screenContext and preserves imagePaths', async ()
   assert.equal(calls[0].receivedScreenContext, screenContext);
 });
 
-test('runWhatShouldISay forwards dynamic action promptInstruction to WhatToAnswerLLM', async () => {
-  const { engine, session } = await makeEngine();
-  const calls = [];
-
-  session.addTranscript({
-    speaker: 'interviewer',
-    text: 'How should we respond to this objection?',
-    timestamp: Date.now(),
-    final: true,
-  });
-
-  engine.whatToAnswerLLM = {
-    async *generateStream(cleanedTranscript, temporalContext, intentResult, receivedImagePaths, receivedScreenContext, promptInstruction) {
-      calls.push({ cleanedTranscript, temporalContext, intentResult, receivedImagePaths, receivedScreenContext, promptInstruction });
-      yield 'Acknowledge the objection and ask a discovery question.';
-    }
-  };
-
-  const answer = await engine.runWhatShouldISay(undefined, 0.8, undefined, {
-    skipCooldown: true,
-    promptInstruction: 'DYNAMIC_ACTION_PROMPT_INSTRUCTION_SENTINEL',
-  });
-
-  assert.equal(answer, 'Acknowledge the objection and ask a discovery question.');
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].promptInstruction, 'DYNAMIC_ACTION_PROMPT_INSTRUCTION_SENTINEL');
-});
-
 test('runWhatShouldISay works without screenContext', async () => {
   const { engine, session } = await makeEngine();
   let receivedScreenContext = 'unset';

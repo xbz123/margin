@@ -112,13 +112,15 @@ test('a typed question streams the mock answer into the overlay', async () => {
 });
 
 test('cancelChatStream stops the stream and late tokens are not shown', async () => {
-  mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 400 });
+  // 800 ms between chunks leaves ~2.4 s between "Cancel test" showing and LATE-3 being
+  // sent. At 400 ms (~1.2 s) a slow CI runner once cancelled after LATE-3 (PLAN.md AG-16).
+  mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800 });
   await ask('Please give a long answer.');
   await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000 });
   await overlay.evaluate(() => window.electronAPI.cancelChatStream());
 
   const req = mock.chatRequests().at(-1);
-  await new Promise((r) => setTimeout(r, 3_000)); // longer than the remaining script
+  await new Promise((r) => setTimeout(r, 4_500)); // longer than the remaining script
   const text = await overlayText();
   assert.ok(!text.includes('LATE-3') && !text.includes('LATE-4'), `late tokens leaked into the UI:\n${text.slice(-400)}`);
   assert.ok(req.closedEarly || req.chunksSent < 6, 'the client should abort the HTTP stream');

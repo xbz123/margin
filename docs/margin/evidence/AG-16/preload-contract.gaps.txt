@@ -1,0 +1,4 @@
+closeAdvancedSettings
+closeSettingsWindow
+path
+stealthTapRefreshIme

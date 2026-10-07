@@ -17,7 +17,6 @@ export interface StructuredActionItem {
 export interface PostCallEnhancements {
   schemaVersion: 2;
   actionItemsStructured: StructuredActionItem[];
-  followUpDraft: string;
 }
 
 const ACTION_PATTERNS = [
@@ -38,7 +37,6 @@ export function buildPostCallEnhancements(params: {
   return {
     schemaVersion: 2,
     actionItemsStructured,
-    followUpDraft: buildFollowUpDraft(actionItemsStructured, params.summaryData),
   };
 }
 
@@ -83,34 +81,6 @@ export function extractStructuredActionItems(
   }
 
   return items.slice(0, 8);
-}
-
-export function buildFollowUpDraft(
-  actionItems: StructuredActionItem[],
-  summaryData?: { overview?: string; keyPoints?: string[]; sections?: Array<{ title: string; bullets: string[] }> }
-): string {
-  const lines = ['Hi team,', '', 'Thanks for the conversation today.'];
-
-  if (summaryData?.overview) {
-    lines.push('', summaryData.overview.trim());
-  }
-
-  const nextSteps = actionItems.map(item => {
-    const owner = item.owner ? `${item.owner}: ` : '';
-    const deadline = item.deadline ? ` by ${item.deadline}` : '';
-    return `- ${owner}${item.text}${deadline}`;
-  });
-
-  if (nextSteps.length > 0) {
-    lines.push('', 'Next steps:', ...nextSteps);
-  }
-
-  if (nextSteps.length === 0) {
-    lines.push('', 'I will follow up if anything else is needed.');
-  }
-
-  lines.push('', 'Best,');
-  return lines.join('\n');
 }
 
 function normalizeActionText(value: string): string {

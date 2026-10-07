@@ -15,7 +15,6 @@
 //   5. Gemini Pro vision (if configured)
 //   6. Groq Llama-4-Scout vision (if configured)
 //   7. Codex CLI vision (if enabled AND CLI supports vision)
-//   8. Custom cURL provider (only if multimodal=true AND screenshots scope enabled)
 //
 // Telemetry redaction:
 //   - We never log image paths, base64 payloads, or full prompts.
@@ -195,7 +194,7 @@ export async function runVisionFallback(params: RunFallbackParams): Promise<Visi
       continue;
     }
 
-    // 3. scope check (custom-provider screenshots data scope)
+    // 3. scope check (screenshots data scope)
     if (!provider.scopeAllowsScreenshots) {
       attempts.push({
         provider: provider.id,

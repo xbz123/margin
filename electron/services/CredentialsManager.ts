@@ -9,28 +9,6 @@ import path from 'path';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
-export interface CustomProvider {
-    id: string;
-    name: string;
-    curlCommand: string;
-    /**
-     * Whether this provider can accept screenshots. When undefined, vision
-     * support is auto-detected from the cURL template (an `{{IMAGE_BASE64}}`
-     * placeholder, or an OpenAI-compatible `messages` body). Set explicitly to
-     * override the guess. See customProviderSupportsVision().
-     */
-    multimodal?: boolean;
-    /** True if this provider's endpoint is loopback/local (skips cloud-scope gating). */
-    localOnly?: boolean;
-}
-
-export interface CurlProvider {
-    id: string;
-    name: string;
-    curlCommand: string;
-    responsePath: string; // e.g. "choices[0].message.content"
-}
-
 export interface StoredCredentials {
     geminiApiKey?: string;
     groqApiKey?: string;
@@ -38,8 +16,6 @@ export interface StoredCredentials {
     claudeApiKey?: string;
     deepseekApiKey?: string;
     googleServiceAccountPath?: string;
-    customProviders?: CustomProvider[];
-    curlProviders?: CurlProvider[];
     defaultModel?: string;
     // STT Provider settings
     sttProvider?: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox';
@@ -58,8 +34,6 @@ export interface StoredCredentials {
     sonioxApiKey?: string;
     sttLanguage?: string;
     aiResponseLanguage?: string;
-    // Tavily Search
-    tavilyApiKey?: string;
     // Dynamic Model Discovery – preferred models per provider
     geminiPreferredModel?: string;
     groqPreferredModel?: string;
@@ -120,9 +94,6 @@ export class CredentialsManager {
         return this.credentials.googleServiceAccountPath;
     }
 
-    public getCustomProviders(): CustomProvider[] {
-        return this.credentials.customProviders || [];
-    }
 
     public getSttProvider(): 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox' {
         // 'local-whisper' was retired with local STT (PLAN.md AG-15). Treat it as "no
@@ -176,10 +147,6 @@ export class CredentialsManager {
         return this.credentials.sonioxApiKey;
     }
 
-    public getTavilyApiKey(): string | undefined {
-        return this.credentials.tavilyApiKey;
-    }
-
     public getSttLanguage(): string {
         return this.credentials.sttLanguage || 'english-us';
     }
@@ -208,9 +175,6 @@ export class CredentialsManager {
         if (this.credentials.claudeApiKey) return true;          // Claude vision
         if (this.credentials.geminiApiKey) return true;          // Gemini vision
         if (this.credentials.groqApiKey) return true;            // Groq llama-4-scout vision
-        // Custom providers: only count if they have screenshots scope AND multimodal flag
-        const custom = this.credentials.customProviders || [];
-        if (custom.some(p => (p as any)?.multimodal === true)) return true;
         // Codex CLI is counted as configured; its vision capability is verified by ProviderRouter.
         const codexCliPath = (this.credentials as any).codexCliPath as string | undefined;
         return !!(codexCliPath && codexCliPath.trim().length > 0);
@@ -332,13 +296,6 @@ export class CredentialsManager {
         console.log('[CredentialsManager] Soniox API Key updated');
     }
 
-    public setTavilyApiKey(key: string): void {
-        // Store undefined (not empty string) when removing, so hasKey() checks stay consistent
-        this.credentials.tavilyApiKey = key.trim() || undefined;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Tavily API Key updated');
-    }
-
     public setSttLanguage(language: string): void {
         this.credentials.sttLanguage = language;
         this.saveCredentials();
@@ -366,53 +323,6 @@ export class CredentialsManager {
         (this.credentials as any)[key] = modelId;
         this.saveCredentials();
         console.log(`[CredentialsManager] ${provider} preferred model set to: ${modelId}`);
-    }
-
-    public saveCustomProvider(provider: CustomProvider): void {
-        if (!this.credentials.customProviders) {
-            this.credentials.customProviders = [];
-        }
-        // Check if exists, update if so
-        const index = this.credentials.customProviders.findIndex(p => p.id === provider.id);
-        if (index !== -1) {
-            this.credentials.customProviders[index] = provider;
-        } else {
-            this.credentials.customProviders.push(provider);
-        }
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Custom Provider '${provider.name}' saved`);
-    }
-
-    public deleteCustomProvider(id: string): void {
-        if (!this.credentials.customProviders) return;
-        this.credentials.customProviders = this.credentials.customProviders.filter(p => p.id !== id);
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Custom Provider '${id}' deleted`);
-    }
-
-    public getCurlProviders(): CurlProvider[] {
-        return this.credentials.curlProviders || [];
-    }
-
-    public saveCurlProvider(provider: CurlProvider): void {
-        if (!this.credentials.curlProviders) {
-            this.credentials.curlProviders = [];
-        }
-        const index = this.credentials.curlProviders.findIndex(p => p.id === provider.id);
-        if (index !== -1) {
-            this.credentials.curlProviders[index] = provider;
-        } else {
-            this.credentials.curlProviders.push(provider);
-        }
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Curl Provider '${provider.name}' saved`);
-    }
-
-    public deleteCurlProvider(id: string): void {
-        if (!this.credentials.curlProviders) return;
-        this.credentials.curlProviders = this.credentials.curlProviders.filter(p => p.id !== id);
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Curl Provider '${id}' deleted`);
     }
 
     public clearAll(): void {

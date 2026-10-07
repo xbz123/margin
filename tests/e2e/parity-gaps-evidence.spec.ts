@@ -8,7 +8,7 @@
 //   3. handleStartMeeting metadata carries doNotPersist when retention === 'never'.
 //
 // Why this isn't the full "every gap" matrix: end-to-end coverage of
-// dynamic-action accept, post-call summary canary, and log-canary checks
+// post-call summary canary and log-canary checks
 // requires either fake-LLM seams or a packaged Electron binary with a
 // temp userData path. Both are outside the scope of this minimal pass —
 // see docs/engineering/NATIVELY_CLUELY_PARITY_ROADMAP.md for the next
@@ -109,7 +109,6 @@ test.describe('Cluely-parity gap E2E evidence', () => {
         setMeetingRetention: typeof api.setMeetingRetention,
         onMeetingRetentionChanged: typeof api.onMeetingRetentionChanged,
         generateWhatToSay: typeof api.generateWhatToSay,
-        acceptDynamicAction: typeof api.acceptDynamicAction,
       };
     });
 

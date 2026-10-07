@@ -7,7 +7,7 @@ import { useResolvedTheme } from '../hooks/useResolvedTheme';
 interface ModelOption {
     id: string;
     name: string;
-    type: 'cloud' | 'local' | 'custom' | 'codex-cli';
+    type: 'cloud' | 'codex-cli';
     provider?: string;
 }
 
@@ -40,10 +40,7 @@ const ModelSelectorWindow = () => {
                 // 1. Get Stored Credentials (to know which Cloud providers are active)
                 const creds = await window.electronAPI?.getStoredCredentials?.();
 
-                // 2. Custom Providers
-                const customProviders = await window.electronAPI?.getCustomProviders?.() || [];
-
-                // 3. Codex CLI
+                // 2. Codex CLI
                 const codexCliConfig = await window.electronAPI?.getCodexCliConfig?.();
 
                 // Build the list
@@ -61,11 +58,6 @@ const ModelSelectorWindow = () => {
                     }
                 }
 
-                // Custom Providers
-                customProviders.forEach((p: any) => {
-                    models.push({ id: p.id, name: p.name, type: 'custom' });
-                });
-
                 // Codex CLI
                 if (codexCliConfig?.enabled) {
                     models.push({ id: CODEX_CLI_MODEL.id, name: `${CODEX_CLI_MODEL.name} (${prettifyModelId(codexCliConfig.model)})`, type: 'codex-cli', provider: 'codex-cli' });
@@ -78,7 +70,7 @@ const ModelSelectorWindow = () => {
                 localStorage.setItem('cached-models', JSON.stringify(models));
                 setAvailableModels(models);
 
-                // 4. Get Current Active Model
+                // 3. Get Current Active Model
                 const config = await window.electronAPI?.getCurrentLlmConfig?.(); // Get runtime model
                 if (config && config.model) {
                     setCurrentModel(config.model);

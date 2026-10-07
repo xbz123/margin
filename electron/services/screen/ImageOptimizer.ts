@@ -33,7 +33,6 @@ export type ProviderHint =
   | 'gemini'
   | 'groq'
   | 'codex'
-  | 'custom'
   | 'generic';
 
 export interface OptimizeOptions {
@@ -81,7 +80,6 @@ function applyProviderTweaks(
     case 'claude':
     case 'groq':
     case 'codex':
-    case 'custom':
     case 'generic':
     default:
       return base;

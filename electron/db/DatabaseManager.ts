@@ -20,7 +20,6 @@ export interface Meeting {
         sections?: Array<{ title: string; bullets: string[] }>;
         schemaVersion?: number;
         actionItemsStructured?: Array<{ id: string; text: string; owner?: string; deadline?: string; sourceTimestamp?: number }>;
-        followUpDraft?: string;
         coachingInsights?: Array<{ id: string; type: string; title: string; detail: string; severity: 'info' | 'opportunity' | 'warning'; evidence?: string }>;
     };
     transcript?: Array<{
@@ -35,6 +34,8 @@ export interface Meeting {
         answer?: string;
         items?: string[];
     }>;
+    // Calendar was removed (PLAN.md AG-10/AG-16). The column and the 'calendar'
+    // source stay so meetings saved by older builds still load.
     calendarEventId?: string;
     source?: 'manual' | 'calendar';
     isProcessed?: boolean;

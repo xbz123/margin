@@ -27,7 +27,7 @@ export interface VisionProviderBuildInputs {
 
 /**
  * Produce the ordered list of vision providers. Order is:
- *   OpenAI → Gemini Flash → Claude → Gemini Pro → Groq Scout → Codex → Custom
+ *   OpenAI → Gemini Flash → Claude → Gemini Pro → Groq Scout → Codex
  */
 export function buildVisionProviders(inputs: VisionProviderBuildInputs): VisionProviderConfig[] {
   const credentials = CredentialsManager.getInstance();
@@ -39,7 +39,6 @@ export function buildVisionProviders(inputs: VisionProviderBuildInputs): VisionP
   providers.push(geminiPro(credentials, inputs));
   providers.push(groqScout(credentials, inputs));
   providers.push(codex(credentials, inputs));
-  providers.push(custom(credentials, inputs));
 
   return providers.filter(p => p !== null) as VisionProviderConfig[];
 }
@@ -136,67 +135,6 @@ function codex(creds: CredentialsManager, _inputs: VisionProviderBuildInputs): V
     hint: 'codex',
     invoke: async () => { throw new Error('Codex CLI vision unverified — capability disabled'); },
   };
-}
-
-function custom(creds: CredentialsManager, inputs: VisionProviderBuildInputs): VisionProviderConfig {
-  // The active custom provider lives on the live LLMHelper instance (set via
-  // switchToCustom in main.ts). CredentialsManager stores all configured custom
-  // providers; we only show the active one as a vision target so the chain
-  // never silently calls a provider the user didn't pick.
-  const customProviders = creds.getCustomProviders();
-  // Prefer the explicitly-set active provider if any; fall back to the first
-  // configured entry so the registry remains useful when LLMHelper hasn't been
-  // initialized yet (e.g. during unit tests).
-  const fromHelper = readActiveCustomProviderSync();
-  const active = fromHelper || customProviders[0];
-
-  const multimodal = (active as any)?.multimodal === true;
-  // Treat a provider as local if explicitly flagged OR if its URL targets a
-  // loopback host.
-  const localOnly = isLocalOnlyCustomProvider(active);
-
-  return {
-    id: 'custom',
-    displayName: active?.name || 'Custom Provider',
-    modelId: (active as any)?.model,
-    isLocal: localOnly,
-    isConfigured: !!active,
-    supportsVision: multimodal,
-    scopeAllowsScreenshots: inputs.scopeAllowsScreenshots,
-    hint: 'custom',
-    invoke: async (p) => callLLMHelperVision('custom', p),
-  };
-}
-
-function readActiveCustomProviderSync(): any | null {
-  try {
-    const g = global as any;
-    if (typeof g.__nativelyGetLLMHelper === 'function') {
-      const helper = g.__nativelyGetLLMHelper();
-      if (helper && typeof helper.getActiveCustomProvider === 'function') {
-        return helper.getActiveCustomProvider() || null;
-      }
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function isLocalOnlyCustomProvider(provider: any | undefined | null): boolean {
-  if (!provider) return false;
-  if (provider.localOnly === true) return true;
-  // Inspect the cURL command for a localhost / 127.0.0.1 / 0.0.0.0 / ::1 target.
-  const curl: string | undefined = provider.curlCommand;
-  if (!curl) return false;
-  try {
-    const urlMatch = curl.match(/https?:\/\/([^\s'"`]+)/i);
-    if (!urlMatch) return false;
-    const host = new URL(urlMatch[0]).hostname.toLowerCase();
-    return host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' || host === '::1' || host.endsWith('.local');
-  } catch {
-    return false;
-  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────

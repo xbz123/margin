@@ -1,0 +1,3 @@
+invoked 143, handled 148, invoked-without-handler 2
+  native-audio-connect  (src/components/NativelyInterface.tsx)
+  toggle-advanced-settings  (electron/preload.ts)

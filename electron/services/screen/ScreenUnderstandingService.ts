@@ -12,8 +12,7 @@
 //   → classify result into a ScreenUnderstandingResult
 //
 // What this service NO LONGER does (legacy OCR pivot, 2026-05-17):
-//   - Tesseract OCR. Removed from the default path. The old OcrProviderManager
-//     still exists for tests but is not invoked here.
+//   - Tesseract OCR. Removed entirely with OCR (PLAN.md AG-16).
 //   - "OCR-first, vision when warranted" branching. Vision is always the path.
 //   - Modes 'auto' / 'ocr_only' / 'private' (with local OCR). Replaced by
 //     vision_first / vision_only (see SettingsManager).
@@ -24,7 +23,7 @@
 //     production wiring uses LLMHelper-backed adapters.
 
 import { app } from 'electron';
-import { validateImagePath } from '../../utils/curlUtils';
+import { validateImagePath } from '../../utils/imagePathValidation';
 import { ImageHashService } from './ImageHashService';
 import {
   runVisionFallback,
@@ -38,7 +37,6 @@ import { buildVisionProviders, VisionProviderBuildInputs } from './VisionProvide
 
 export type UserAction =
   | 'manual_use_screen'
-  | 'dynamic_action'
   | 'shortcut'
   | 'code_hint'
   | 'brainstorm'

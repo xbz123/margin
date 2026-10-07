@@ -1,0 +1,20 @@
+▶ validateImagePath — macOS userData ordering (obs 2631)
+  ✔ allows screenshot path inside userData even though it starts with /Users/ (1.235667ms)
+  ✔ allows extra_screenshots path inside userData (0.131125ms)
+  ✔ blocks /Users/ path outside userData (0.114625ms)
+  ✔ blocks /etc/ regardless of userData (0.13425ms)
+  ✔ blocks path traversal even when prefix matches userData (0.057084ms)
+  ✔ blocks Windows drive paths (0.050125ms)
+  ✔ rejects empty / non-string input (0.056041ms)
+  ✔ blocks /etc/passwd via realpath resolution (0.103958ms)
+  ✔ blocks Unix home paths via realpath resolution (30.857833ms)
+  ✔ blocks /tmp arbitrary paths via realpath resolution (0.406084ms)
+✔ validateImagePath — macOS userData ordering (obs 2631) (34.048ms)
+ℹ tests 10
+ℹ suites 1
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145.194458

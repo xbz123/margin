@@ -34,7 +34,6 @@ export class WhatToAnswerLLM {
         intentResult?: IntentResult,
         imagePaths?: string[],
         screenContext?: ScreenContext,
-        promptInstruction?: string,
         // When set, the skill's promptBlock REPLACES the default answer suffix —
         // the skill defines the entire intent.
         activeSkill?: { id: string; name: string; promptBlock: string }
@@ -59,21 +58,12 @@ export class WhatToAnswerLLM {
                 // If local-only mode is active, the chain skips cloud providers.
             }
 
-            const instructionContext = promptInstruction?.trim()
-                ? `<dynamic_action_instruction>
-${promptInstruction.trim()}
-</dynamic_action_instruction>`
-                : undefined;
-
             const intentContextParts = [];
             if (intentResult) {
                 intentContextParts.push(`<intent_and_shape>
 DETECTED INTENT: ${intentResult.intent}
 ANSWER SHAPE: ${intentResult.answerShape}
 </intent_and_shape>`);
-            }
-            if (instructionContext) {
-                intentContextParts.push(instructionContext);
             }
             if (hasAttachedImages) {
                 intentContextParts.push(SCREEN_DIRECT_VISION_INSTRUCTION);

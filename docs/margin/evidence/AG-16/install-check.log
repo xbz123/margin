@@ -1,0 +1,30 @@
+# AG-16 install check 2026-10-07T17:27:27Z at 6c2d048e + working tree
+$ npm ci
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+exit=0
+$ npm ls tesseract.js @tavily/core qrcode @types/qrcode @bany/curl-to-json
+natively@2.7.0 /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration
+`-- (empty)
+
+exit=1
+$ ls node_modules (removed packages)
+absent tesseract.js
+absent tesseract.js-core
+absent @tavily/core
+absent qrcode
+absent @types/qrcode
+absent @bany/curl-to-json
+$ git ls-files eng.traineddata tests/fixtures/screen
+       0
+$ npm run setup:native
+[patch-electron-plist] Added NSAudioCaptureUsageDescription.
+[patch-electron-plist] Updated NSMicrophoneUsageDescription text.
+[patch-electron-plist] Info.plist patched successfully.
+
+[setup:native] done
+exit=0

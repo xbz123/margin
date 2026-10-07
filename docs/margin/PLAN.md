@@ -631,9 +631,10 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | 证据方法 | 已更正 | 见 AG-13 提交 | 门禁统一由 `scripts/margin/run-gates.mjs` 运行，原始输出和退出码存于 `docs/margin/evidence/`。发现并修正了两处会让测试结果失真的问题（构建不清理旧产物；`--test-force-exit` 漏报测试），详见下文 AG-13 记录 |
 | AG-13 | 完成 | 见 AG-13 提交 | 见下文 AG-13 记录。证据：`docs/margin/evidence/AG-13/summary.json`，对照 `pre-AG-13/`。**待用户决定**：是否保留默认回答提示词（见记录中的决定 1） |
 | AG-14 | 完成 | `93fa62fe` 及 AG-14 (2/2) 提交 | 见下文 AG-14 记录。证据：`docs/margin/evidence/AG-14/summary.json`，对照 `AG-13/`；守卫记录到对 `11434` 端口零请求 |
-| CI 门禁 | 完成 | `516815f4` | `.github/workflows/margin-gates.yml`，见下文 CI 门禁记录。首次运行（对照 AG-14）只有来源检查多出 1 处命中，已解释。只作干净安装的参考，**不算 D5 已通过** |
+| CI 门禁 | 完成 | `516815f4` | `.github/workflows/margin-gates.yml`，见下文 CI 门禁记录。首次运行（对照 AG-14）只有来源检查多出 1 处命中，已解释；AG-15 收尾运行的回归失败是时序差异，不是新增失败，已在 AG-16 中加大余量。只作干净安装的参考，**不算 D5 已通过** |
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
-| AG-16–17 | 待开始 | | AG-16 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
+| AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
+| AG-17 | 待开始 | | 下一张；集成后重跑 AG-09 回归和会议存储测试 |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
@@ -908,6 +909,19 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
 
   - **结论**：在装有 Xcode 的干净 macOS 上，`npm ci` → `setup:native` → 全部门禁可以跑通，结果与本机一致；差异只来自上游分支更新和本机装有 codex。这仍不算 D5 通过。
   - **之后的做法**：本机不重新拉取上游（引用与原工作区共享），所以 CI 的来源检查覆盖面更大。每张 ticket 收尾时以 CI 的来源检查结果为准补充解释，本机证据照常保留。
+- **AG-15 收尾运行**（运行 `37642210048`，提交 `6c2d048e`，对照本机 `AG-15/`；运行产物 `margin-gates-6c2d048e…`，保留到 2026-11-06）：
+  - **耗时**：作业 6 分 12 秒，门禁约 4 分 8 秒。
+  - **结果**：运行器退出 1，唯一未通过的是 AG-09 回答回归（4/5）。其余与本机 AG-15 一致：
+    - 构建、`tsc`（Electron 9 类诊断全部继承）、G2（更大的受限池下零命中，首次运行的那 1 处已在白名单）、G3、契约、守卫自测、会议存储、`diff-check` 都相同。
+    - 测试 621 个，580 通过，11 失败，30 跳过；失败条目 19 个，全部继承，新增 0。比本机少的一个仍是 `CodexCliService` 的"自动探测"用例（原因同首次运行）。
+    - `OpenAIRealtimeGAProtocol` 在 180 秒时被终止，与本机 AG-14、AG-15 和首次 CI 运行相同，属于继承问题。
+  - **失败的用例**：`cancelChatStream stops the stream and late tokens are not shown`。界面显示到 `Cancel test LATE-1 LATE-2 LATE-3`，断言要求不出现 `LATE-3`。
+  - **判断：环境时序差异，不是新增失败。** 依据：
+    1. 同一提交在本机通过（AG-15 证据，3.72 秒），首次 CI 运行（AG-14 代码）也通过（3.78 秒）。
+    2. 取消确实生效了：脚本共 6 段，最后一段 `LATE-4.` 没有出现。
+    3. 时间对不上的只有这一段。mock 每 400 毫秒发一段，"Cancel test"出现后约 1.2 秒才发 `LATE-3`。用例总时长减去取消后固定等待的 3 秒，即"提问到发出取消"的时间：本机三次和首次 CI 约 0.72–0.78 秒，这次 1.96 秒，超过了余量。同一次运行里其余 4 个回归用例的耗时与首次 CI 相当（3.28/0.47/1.56 秒对 3.34/0.48/1.60 秒），机器整体并不慢，是这一段偶发的停顿。
+    4. AG-15 的改动没有碰取消路径：preload 的 `cancelChatStream` 只发 `gemini-chat-stream-stop`；`LLMHelper`、`NativelyInterface.tsx`、`preload.ts` 中与流和取消相关的行在该提交里都没有变化。
+  - **处理**（在 AG-16 中提交）：把这个用例的 mock 段间隔从 400 毫秒改为 800 毫秒，余量从约 1.2 秒增加到约 2.4 秒；取消后的等待从 3 秒改为 4.5 秒，仍长于剩余脚本。断言不变（仍要求不出现 `LATE-3`/`LATE-4`，且客户端中止了 HTTP 流）。改动后的效果以 AG-16 的本机和 CI 结果为准。
 
 ### AG-15 记录（2026-10-07）
 
@@ -953,6 +967,115 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
 - **安装检查**（`install-check.log`）：在本工作树运行 `npm ci`（退出 0）后，`resources/` 不存在，仓库中没有 `.onnx`、`.gguf`、`.bin` 文件；`npm ls onnxruntime-node @huggingface/transformers` 输出 `(empty)`（找不到包时 npm 退出 1）；随后 `npm run setup:native` 退出 0，门禁在这套依赖上运行。
 - **未验证**：意图分类去掉模型后的回答质量（见第 2 条）；阶段 1 出口第 1 条（干净安装）仍等待 D5。
 
+### AG-16 记录（2026-10-07）
+
+**1. 删除**
+
+- **手机镜像**：`PhoneMirrorService.ts`、`phoneMirrorClient.ts`、`PhoneMirrorSettings.tsx`。另外删除：
+  - `ipcHandlers` 中各处向手机推送的代码块，以及 8 个 `phone-mirror:*` IPC 和事件；
+  - `main.ts` 中的自动启动和退出清理；
+  - 设置项 `phoneMirrorEnabled`、`phoneMirrorExposeOnLan`，preload 的 8 个成员和类型，`NativelyInterface` 中接收手机消息的监听；
+  - 设置页的"手机镜像"标签；依赖 `qrcode`、`@types/qrcode`。
+- **动态动作**：`electron/services/dynamic-actions/`、`src/components/dynamic-actions/`。另外删除：
+  - `IntelligenceEngine` 中的引擎状态、接口和事件，`IntelligenceManager` 的转发；
+  - `main.ts` 中会议开始时的 `setDynamicActionContext` 和事件转发；
+  - 3 个 `dynamic-action:*` IPC、`intelligence-dynamic-action` 事件、preload 成员和类型；
+  - 整条 `promptInstruction` 参数链：`WhatToAnswerLLM` → `IntelligenceEngine`/`Manager` → `generate-what-to-say` 的第三个参数 → preload 和类型 → `NativelyInterface`。
+  - 按背景说明，`IntelligenceEngine` 本身保留。
+  - Recap/Brainstorm 快捷键的 id `dynamicAction4` 和"Dynamic Action Button Mode"（Recap 与 Brainstorm 切换）是另一个功能，保留。
+- **联网搜索（Tavily）**：`CredentialsManager` 的 `tavilyApiKey`、`set-tavily-api-key` IPC、`hasTavilyKey`、preload 和类型成员、设置页中未使用的删除按钮处理函数；依赖 `@tavily/core`。服务代码在更早的票里已经不存在，这里删的是剩下的存储和接口。
+- **OCR**：
+  - 删除 `eng.traineddata`、`tests/fixtures/screen/`、`OcrProvider.ts`、`OcrProviderManager.ts`；依赖 `tesseract.js`。
+  - `ScreenContextService.ts` 只保留 `ScreenContext` 接口，回答链仍在用；其中 `ocrText` 现在由视觉识别填写。
+  - 截图、`ImageOptimizer` 和视觉回答保留。
+- **cURL / 自定义提供方**：
+  - 删除 `curlUtils.ts`、`src/lib/curl-validator.ts`、`visionCapability.ts`；依赖 `@bany/curl-to-json`。
+  - `LLMHelper` 中的 `chatWithCurl`、`executeCustomProvider`、`streamWithCustom`、`switchToCurl`、`switchToCustom` 等，以及聊天、流式、视觉回退、会议摘要中的全部自定义分支。`setModel()` 不再接收自定义列表，`getCurrentProvider()` 只返回 `gemini` 或 `codex-cli`。
+  - `prompts.ts` 中 7 个 `CUSTOM_*` 提示词；`VisionProviderRegistry` 的 `custom()`。
+  - `CredentialsManager` 的两类存储（`customProviders`、`curlProviders`）和增删查方法。
+  - 8 个 IPC（`get/save/delete/switch-to-custom-provider`、`get/save/delete/switch-to-curl-provider`），preload 的 3 个成员和类型。
+  - 设置页的"Custom Providers"一节，模型选择器和默认模型下拉中的自定义项，帮助页中的对应一节。
+  - `ProcessingHelper`、`main.ts`（结束会议时恢复默认模型）中合并自定义列表的代码。
+  - `validateImagePath` 原放在 `curlUtils.ts`，截图 IPC 和 `ScreenUnderstandingService` 仍在用，原样移到 `electron/utils/imagePathValidation.ts`。
+- **跟进邮件**：
+  - 删除 `FollowUpEmailModal.tsx`（没有任何地方引用）、`emailUtils.ts`；3 个 IPC（`generate-followup-email`、`extract-emails-from-transcript`、`open-mailto`）及 preload 和类型成员；`FOLLOWUP_EMAIL_PROMPT`、`GROQ_FOLLOWUP_EMAIL_PROMPT`、`TINY_FOLLOWUP_EMAIL_PROMPT`。
+  - 会后流程里按模板拼出的邮件草稿（`buildFollowUpDraft`、`followUpDraft` 字段和会议详情页的"Follow-up Draft"一节）也是跟进邮件，一并删除。结构化的下一步事项（`actionItemsStructured`）保留。
+  - 旧会议在数据库 JSON 里存的 `followUpDraft` 不迁移，只是不再显示。
+- **日历残留**（主体已在 AG-10 删除）：`SessionTracker`/`MeetingPersistence` 的会议元数据只剩 `title`，保存时 `source` 固定为 `manual`。数据库的 `calendar_event_id` 列和 `Meeting` 类型中的两个字段保留，以便读取旧版本保存的会议，代码中有注释说明。
+- **画像残留**：AG-10 已删除画像本身。这次只改了 `LLMHelper` 中提到它的一处注释。
+  - `prompts.ts` 中仍有一段描述简历注入块（`<candidate_experience>` 等）的提示词。改提示词会改变回答行为，与决定 1 同属提示词范围，这次不动，留到阶段 2/3 重写提示词时处理。
+  - 自定义备注和 persona（`profile_custom_notes`、`profile_persona`）以及数据范围 `profile_history` 是保留的功能。
+
+**2. 随功能删除或修改的测试**
+
+- **删除的测试文件**（10 个，共 77 个用例）：
+  - `DynamicActionEngine`（15）、`DynamicActionPromptInstructionWiring`（3）、`IntelligenceEngineDynamicActions`（8）；
+  - `VisionCapability`（15）、`CurlProviderPayloadValidation`（1）、`SsrfProtection`（5，见下文）；
+  - `OcrRealFixtures`（6）、`ScreenContextService`（7）、`ScreenUnderstandingMode`（13）、`ScreenUnderstandingService`（4）。最后四个在基线上就整体跳过（共 30 个），所以跳过数从 30 降到 0。
+- **修改的测试**（删除 6 个用例，其余断言不变）：
+  - `suggestionPromptAssembly` 的动态动作用例；
+  - `IntelligenceEngineScreenContext` 的 `promptInstruction` 用例；
+  - `IdentityGuard` 的 `CUSTOM_ANSWER_PROMPT` 用例；
+  - `PostCallWorkflow` 的 `buildFollowUpDraft` 用例，另有两处 `followUpDraft` 断言；
+  - `GlobalShortcutTargeting` 的手机镜像用例（它检查的代码已删除）；
+  - `VisionProviderFallbackChain` 的"OCR 模块未被导入"用例。这项检查由 G3 接替：两个 OCR 文件的路径规则、符号 `OcrProvider`/`OcrProviderManager`、依赖 `tesseract.js`，范围是全仓库而不只三个文件。
+  - 只删断言、不删用例的：`ScopeLocalFallback` 中 `chatWithCurl` 和自定义分支省略上下文的两条；`ProviderGatewayPolicy` 中 `custom_curl`、`custom_provider` 两个守卫点；`SensitiveLogRedaction` 中 5 条 Custom Provider 日志断言；`E2EParityEvidence` 中的动态动作断言。
+- **SSRF 与 URL 校验**：`SsrfProtection` 只检查 `chatWithCurl` 在请求前是否校验地址。cURL 提供方删除后，没有任何代码再向用户填写的地址发请求，所以整文件删除。这会影响后面两项：
+  - **AG-24** 原计划的 SSRF 检查；
+  - **AG-31** 的 URL 校验。
+  - 阶段 3 加回兼容地址时，需要重新写这类测试（行为测试，不再查源码字符串）。
+- **AG-09 回归**：`cancelChatStream` 用例的 mock 间隔从 400 毫秒改为 800 毫秒，原因见上文 CI 门禁记录中的"AG-15 收尾运行"。本机改后耗时 5.6 秒，通过。
+
+**3. 界面文字更正**
+
+- 删除自定义提供方后，已经没有任何本地模型。设置页"Cloud provider data scopes"原来写的是"Disabled types are handled locally"和"falls back to the best available local model"，与实际行为不符。
+- 实际行为见 `LLMHelper` 的 `[ScopeFallback]` 日志：被禁用的数据类型直接从请求中省略。两句已改为如实描述。
+
+**4. G3 盘点**
+
+新增 90 条 AG-16 规则，加上原有 12 条，共 102 条，零命中。AG-16 已列入已完成的 ticket，现在共启用 239 条（137 + 102）。新增规则覆盖：
+- 上述删除文件的路径；
+- 全部删除的 IPC 名、preload 成员、设置字段（含 Tavily 的 `tavilyApiKey`、`hasTavilyKey`、`set-tavily-api-key`）；
+- `chatWithCurl` 等方法名、`CUSTOM_*` 和跟进邮件提示词名、`promptInstruction`、`followUpDraft`；
+- 主机 `api.tavily.com`。
+
+`ScreenContextService` 文件保留，所以没有为它设符号规则。
+
+**5. 检查结果**
+
+命令：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-16 --ref docs/margin/evidence/AG-15`。
+
+第一次运行中，测试多出 1 个新失败：`ScopeLocalFallback` 的 `shouldOmitContext ? "" : context` 断言，它只对应已删除的自定义分支。删掉这条断言后整套重跑，证据为重跑结果。
+
+运行器退出码 0。
+
+| 步骤 | 退出码 | 结果 | 原始输出 |
+| --- | --- | --- | --- |
+| 清空构建目录、`build-electron`、`vite build` | 0、0、0 | 通过 | `clean-dist.log`、`build-electron.log`、`vite-build.log` |
+| 渲染层 `tsc` | 0 | 0 个错误 | `tsc-renderer.log` |
+| Electron `tsc` | 2 | 剩 8 类诊断，全部继承，没有新增；减少的 1 类是 `ipcHandlers.ts` 中 cURL 校验函数返回值的 `error` 属性错误（×2），随代码删除 | `tsc-electron.log`、`tsc-electron.diagnostics.txt` |
+| G2 来源检查 | 0 | 零命中，没有新增白名单 | `provenance.log` |
+| G3 | 0 | 239 条规则零命中 | `retired.log` |
+| preload 契约 / IPC 通道 | 1 / 1 | 各 4 个、2 个缺口，全部继承，没有新增 | `*.gaps.txt` |
+| 守卫自测 | 0 | 通过 | `guard-selftest.log` |
+| 测试（96 个文件） | 1 | 538 个测试，526 通过，12 失败，0 跳过。失败条目 20 个，**全部继承，新增 0**，与 AG-15 相同 | `tests.tap`、`tests.files.json`、`test-failures.txt` |
+| AG-09 回答回归 | 0 | 5/5 通过 | `regression.log` |
+| 会议存储 | 0 | 1/1 通过 | `storage.log` |
+| `git diff HEAD --check` | 0 | 无问题 | `diff-check.log` |
+
+- **测试数**：621 − 77（删除的文件）− 6（删除的用例）= 538。
+- **安装检查**（`install-check.log`）：
+  - `npm ci` 退出 0；
+  - `npm ls` 查 5 个已删依赖，输出 `(empty)`（npm 找不到包时退出 1）；
+  - `node_modules` 中没有 `tesseract.js`、`tesseract.js-core`、`@tavily/core`、`qrcode`、`@types/qrcode`、`@bany/curl-to-json`；
+  - 仓库中不再有 `eng.traineddata` 和 OCR 图片；
+  - `setup:native` 退出 0。
+- **lockfile**：用 `npm install --package-lock-only --ignore-scripts` 同步，只删除条目（共 29 个包），其余几行只是 `optional`/`devOptional` 标记变化。
+- **`electron/utils` 测试**：`validateImagePath.test.mjs` 不在门禁的测试范围内。手动在守卫下运行，10/10 通过，见 `validateImagePath.log`；AG-17 会把 `utils` 测试纳入门禁。
+- **未验证**：
+  - 实际界面：设置页去掉两节，模型选择器只剩云端模型和 Codex CLI；只做了构建和类型检查，没有截图核对；
+  - 用户的旧凭据文件中已有的 `customProviders`/`curlProviders`/`tavilyApiKey` 字段：代码不再读取，但下次保存时仍会原样写回（加密存储），没有主动清除。
+
 ### 事件记录（2026-10-07）
 
 1. **X2 第一版自测写入了真实目录。**
@@ -975,7 +1098,7 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
    - **修复**：守卫改为通过 `-r` 参数传入（与 Playwright 自己的加载方式相同）；测试启动后先确认主进程里 `MARGIN_ISOLATION_ACTIVE === '1'`，否则立即中止。
    - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 
-**下一步**：AG-16（移除外围功能），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
+**下一步**：AG-17（依赖、类型和测试收口），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
 
 ## 9. 评审记录
 

@@ -20,8 +20,6 @@ export interface AppSettings {
     codexCliServiceTier?: 'default' | 'fast' | 'flex';
     codexCliModelReasoningEffort?: 'low' | 'medium' | 'high' | 'xhigh';
     knowledgeMode?: boolean;
-    phoneMirrorEnabled?: boolean;
-    phoneMirrorExposeOnLan?: boolean;
     // Phase 9 — privacy/retention controls. Foundation only. Encryption is
     // documented in docs/engineering/LOCAL_DB_ENCRYPTION_DESIGN.md.
     // 'forever' (default), '7d', '30d', or 'never' (do not store transcripts).

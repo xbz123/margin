@@ -11,8 +11,6 @@ import {
   HARD_SYSTEM_PROMPT, GROQ_SYSTEM_PROMPT, OPENAI_SYSTEM_PROMPT, CLAUDE_SYSTEM_PROMPT,
   UNIVERSAL_SYSTEM_PROMPT, UNIVERSAL_ANSWER_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT,
   UNIVERSAL_RECAP_PROMPT, UNIVERSAL_FOLLOWUP_PROMPT, UNIVERSAL_FOLLOW_UP_QUESTIONS_PROMPT, UNIVERSAL_ASSIST_PROMPT,
-  CUSTOM_SYSTEM_PROMPT, CUSTOM_ANSWER_PROMPT, CUSTOM_WHAT_TO_ANSWER_PROMPT,
-  CUSTOM_RECAP_PROMPT, CUSTOM_FOLLOWUP_PROMPT, CUSTOM_FOLLOW_UP_QUESTIONS_PROMPT, CUSTOM_ASSIST_PROMPT,
   CHAT_MODE_PROMPT, CORE_IDENTITY, DEFAULT_ANSWER_PROMPT_SUFFIX
 } from "./llm/prompts"
 import {
@@ -30,16 +28,8 @@ import {
   type VisionStreamProvider,
   type VisionHealthEntry,
 } from "./llm/visionStreamFallback"
-import {
-  customProviderSupportsVision,
-  customProviderIsLocal,
-} from "./llm/visionCapability"
 import { assertProviderDataScopes, getDeniedDataScopes, routeWithScopeFallback, ProviderRouter, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
 import type { TranscriptTurn } from "./llm/transcriptCleaner"
-import { deepVariableReplacer, getByPath, injectImageIntoMessages } from './utils/curlUtils';
-import curl2Json from "@bany/curl-to-json";
-import { CustomProvider, CurlProvider } from './services/CredentialsManager';
-import axios from 'axios';
 import { createProviderRateLimiters, RateLimiter } from './services/RateLimiter';
 import { CodexCliConfig, CodexCliService, DEFAULT_CODEX_CLI_CONFIG } from './services/CodexCliService';
 
@@ -72,8 +62,6 @@ export class LLMHelper {
   private claudeApiKey: string | null = null
   private deepseekApiKey: string | null = null
   private geminiModel: string = GEMINI_FLASH_MODEL
-  private customProvider: CustomProvider | null = null;
-  private activeCurlProvider: CurlProvider | null = null;
   private groqFastTextMode: boolean = false;
   private codexCliConfig: CodexCliConfig = DEFAULT_CODEX_CLI_CONFIG;
   private customNotes: string = '';
@@ -281,7 +269,7 @@ export class LLMHelper {
   // these named entry points so the surface stays auditable.
 
   public async runVisionRequest(
-    providerId: 'openai' | 'claude' | 'gemini_flash' | 'gemini_pro' | 'groq_scout' | 'custom',
+    providerId: 'openai' | 'claude' | 'gemini_flash' | 'gemini_pro' | 'groq_scout',
     userPrompt: string,
     systemPrompt: string,
     imagePath: string,
@@ -306,30 +294,9 @@ export class LLMHelper {
           : 'gemini-3.1-pro-preview';
         return this.generateContent(contents, modelId);
       }
-      case 'custom': {
-        if (!this.customProvider) {
-          throw new Error('No custom provider configured');
-        }
-        return this.executeCustomProvider(
-          this.customProvider.curlCommand,
-          `${systemPrompt}\n\n${userPrompt}`,
-          systemPrompt,
-          userPrompt,
-          '',
-          imagePath,
-        );
-      }
       default:
         throw new Error(`runVisionRequest: unknown providerId ${providerId}`);
     }
-  }
-
-  /**
-   * Read-only accessor for the active custom provider — used by VisionProviderRegistry
-   * to decide whether the provider is configured and whether multimodal is enabled.
-   */
-  public getActiveCustomProvider(): CustomProvider | null {
-    return this.customProvider;
   }
 
   /**
@@ -453,7 +420,7 @@ export class LLMHelper {
   // via setGroqApiKey().
   private _groqLocalDisabled: boolean = false;
 
-  public setModel(modelId: string, customProviders: (CustomProvider | CurlProvider)[] = []) {
+  public setModel(modelId: string) {
     // Map UI short codes to internal Model IDs
     let targetModelId = modelId;
     if (modelId === 'gemini') targetModelId = GEMINI_FLASH_MODEL;
@@ -462,17 +429,6 @@ export class LLMHelper {
     if (modelId === 'llama') targetModelId = GROQ_MODEL;
     if (modelId === 'deepseek') targetModelId = DEEPSEEK_MODEL;
 
-    const custom = customProviders.find(p => p.id === targetModelId);
-    if (custom) {
-      this.customProvider = custom;
-      this.activeCurlProvider = null;
-      console.log(`[LLMHelper] Switched to Custom Provider: ${custom.name}`);
-      return;
-    }
-
-    // Standard Cloud Models
-    this.customProvider = null;
-    this.activeCurlProvider = null;
     this.currentModelId = targetModelId;
 
     // Update specific model props if needed
@@ -522,12 +478,6 @@ export class LLMHelper {
       modelReasoningEffort: this.codexCliConfig.modelReasoningEffort,
       signal,
     });
-  }
-
-  public switchToCurl(provider: CurlProvider) {
-    this.customProvider = null;
-    this.activeCurlProvider = provider;
-    console.log(`[LLMHelper] Switched to cURL provider: ${provider.name}`);
   }
 
   // Trim a context blob to fit within the active model's prompt budget.
@@ -947,13 +897,7 @@ ANSWER DIRECTLY:`;
           console.warn(`[LLMHelper] Codex CLI suggestion failed: ${e.message}. Falling back.`);
         }
       }
-      if (this.customProvider || this.activeCurlProvider) {
-        let fullResponse = '';
-        for await (const chunk of this.streamChat(promptMessage, undefined, suggestionContext, basePrompt, true)) {
-          fullResponse += chunk;
-        }
-        return this.processResponse(fullResponse);
-      } else if (this.client) {
+      if (this.client) {
         let fullResponse = '';
         for await (const chunk of this.streamChat(promptMessage, undefined, suggestionContext, basePrompt, true)) {
           fullResponse += chunk;
@@ -1033,7 +977,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   /**
    * Single-string assembly used by providers that take a flat string system prompt
-   * (Gemini concat path, custom providers).
+   * (Gemini concat path).
    *
    * STATIC = base prompt body (cacheable across turns by Groq/OpenAI prefix match)
    * DYNAMIC = language instruction suffix (changes when the user toggles language)
@@ -1201,25 +1145,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
       if (this.isCodexCliModel(this.currentModelId) && this.codexCliConfig.enabled) {
         return await this.generateWithCodexCli(cloudUserContent, openaiSystemPrompt, false, cloudImagePaths);
-      }
-
-      if (this.activeCurlProvider) {
-        return await this.chatWithCurl(cloudUserContent, skipSystemPrompt ? undefined : this.injectLanguageInstruction(CUSTOM_SYSTEM_PROMPT), cloudImagePaths?.[0]);
-      }
-
-      if (this.customProvider) {
-        console.log(`[LLMHelper] Using Custom Provider: ${this.customProvider.name}`);
-        // For non-streaming call — use rich CUSTOM prompts since custom providers can be cloud models
-        const customSystemPrompt = skipSystemPrompt ? "" : this.injectLanguageInstruction(CUSTOM_SYSTEM_PROMPT);
-        const response = await this.executeCustomProvider(
-          this.customProvider.curlCommand,
-          cloudCombinedMessages.gemini,
-          customSystemPrompt,
-          message,
-          shouldOmitContext ? "" : context || "",
-          cloudImagePaths?.[0]
-        );
-        return this.processResponse(response);
       }
 
       // --- Direct Routing based on Selected Model ---
@@ -1458,35 +1383,16 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       providers.push({ name: `Groq (${GROQ_MODEL}) fallback`, execute: () => this.generateWithGroq(message) }); // intentional: structured-gen last-resort uses stable baseline model, not user selection
     }
 
-    // Priority 7: Custom / cURL providers (OpenRouter etc.)
-    if (this.customProvider) {
-      providers.push({
-        name: `Custom Provider (${this.customProvider.name})`,
-        execute: () => this.executeCustomProvider(
-          this.customProvider!.curlCommand,
-          message,
-          '',
-          message,
-          ''
-        )
-      });
-    } else if (this.activeCurlProvider) {
-      providers.push({
-        name: `cURL Provider (${this.activeCurlProvider.name})`,
-        execute: () => this.chatWithCurl(message)
-      });
-    }
-
     if (providers.length === 0) {
-      throw new Error('No reasoning model available. Please configure an API key (OpenAI, Claude, Gemini, Groq) or a custom provider.');
+      throw new Error('No reasoning model available. Please configure an API key (OpenAI, Claude, Gemini, Groq).');
     }
 
     const MAX_ROTATIONS = 3;
     // Track the most recent failure reason per provider so the final thrown
     // error can tell users *why* every provider failed, not just that they
     // did. Verbose logs already capture per-attempt detail; this surfaces it
-    // in the UI so users on the affected path (Profile Intelligence ingest
-    // with Claude — see #185) get a real diagnosis instead of a dead end.
+    // in the UI so users on the affected path (structured generation with
+    // Claude — see #185) get a real diagnosis instead of a dead end.
     const lastFailureByProvider = new Map<string, string>();
     for (let rotation = 0; rotation < MAX_ROTATIONS; rotation++) {
       if (rotation > 0) {
@@ -1639,81 +1545,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     return response.choices[0]?.message?.content || "";
   }
 
-  // The handler for cURL requests
-  public async chatWithCurl(userMessage: string, systemPrompt?: string, imagePath?: string): Promise<string> {
-    if (!this.activeCurlProvider) throw new Error("No cURL provider active");
-    this.assertOutboundScopes('custom_curl', userMessage, imagePath ? [imagePath] : undefined);
-
-    const { curlCommand, responsePath } = this.activeCurlProvider;
-
-    // 1. Parse cURL to config object
-    // @ts-ignore
-    const curlConfig = curl2Json(curlCommand);
-
-    // 2. Prepare Image (if any)
-    let base64Image = "";
-    if (imagePath) {
-      try {
-        const imageData = await fs.promises.readFile(imagePath);
-        base64Image = imageData.toString("base64");
-      } catch (e) {
-        console.warn("[LLMHelper] chatWithCurl: failed to read image:", e);
-      }
-    }
-
-    // 3. Prepare Variables
-    // We combine System Prompt + User Message into {{TEXT}} for simplicity in raw mode.
-    const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${userMessage}` : userMessage;
-
-    const variables = {
-      // JSON-string-encode without the wrapping quotes — handles backslashes,
-      // control chars, and U+2028/U+2029 that the previous regex pair missed.
-      TEXT: JSON.stringify(fullPrompt).slice(1, -1),
-      IMAGE_BASE64: base64Image,
-    };
-
-    // 4. Inject Variables into URL, Headers, and Body
-    const url = deepVariableReplacer(curlConfig.url, variables);
-    const headers = deepVariableReplacer(curlConfig.header || {}, variables);
-    let data = deepVariableReplacer(curlConfig.data || {}, variables);
-
-    // 4a. Auto-upgrade last user message to multimodal content array when an image is present.
-    if (base64Image && imagePath) {
-      data = injectImageIntoMessages(data, base64Image, imagePath);
-    }
-
-    // 4b. SECURITY (P1): Validate URL against SSRF before making the request
-    const { validateUrlForSsrf } = require('./utils/curlUtils');
-    const urlValidation = validateUrlForSsrf(url);
-    if (!urlValidation.isValid) {
-      console.error(`[LLMHelper] SSRF blocked: ${urlValidation.reason}`);
-      return `Error: SSRF protection blocked URL (${urlValidation.reason})`;
-    }
-
-    // 5. Execute
-    try {
-      const response = await axios({
-        method: curlConfig.method || 'POST',
-        url: url,
-        headers: headers,
-        data: data
-      });
-
-      // 6. Extract Answer
-      // If user didn't specify a path, try to guess or dump string
-      if (!responsePath) return JSON.stringify(response.data);
-
-      const answer = getByPath(response.data, responsePath);
-
-      if (typeof answer === 'string') return answer;
-      return JSON.stringify(answer); // Fallback if they pointed to an object
-
-    } catch (error: any) {
-      console.error("[LLMHelper] cURL Execution Error:", error.message);
-      return `Error: ${error.message}`;
-    }
-  }
-
   /**
    * Non-streaming Claude generation with proper system/user separation
    */
@@ -1780,152 +1611,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     const textBlock = response.content.find((block: any) => block.type === 'text') as any;
     return textBlock?.text || "";
-  }
-
-  /**
-   * Executes a custom cURL provider defined by the user
-   */
-  public async executeCustomProvider(
-    curlCommand: string,
-    combinedMessage: string,
-    systemPrompt: string,
-    rawUserMessage: string,
-    context: string,
-    imagePath?: string
-  ): Promise<string> {
-    this.assertOutboundScopes('custom_provider', combinedMessage, imagePath ? [imagePath] : undefined);
-
-    // 1. Parse cURL to JSON object
-    const requestConfig = curl2Json(curlCommand);
-
-    // 2. Prepare Image (if any)
-    let base64Image = "";
-    if (imagePath) {
-      try {
-        const imageData = await fs.promises.readFile(imagePath);
-        base64Image = imageData.toString("base64");
-      } catch (e) {
-        console.warn("Failed to read image for Custom Provider:", e);
-      }
-    }
-
-    // 3. Prepare Variables
-    const variables = {
-      TEXT: combinedMessage,             // Deprecated but kept for compat: System + Context + User
-      PROMPT: combinedMessage,           // Alias for TEXT
-      SYSTEM_PROMPT: systemPrompt,       // Raw System Prompt
-      USER_MESSAGE: rawUserMessage,      // Raw User Message
-      CONTEXT: context,                  // Raw Context
-      IMAGE_BASE64: base64Image,         // Base64 encoded image string
-    };
-
-    // 4. Inject Variables into URL, Headers, and Body
-    const url = deepVariableReplacer(requestConfig.url, variables);
-    const headers = deepVariableReplacer(requestConfig.header || {}, variables);
-    let body = deepVariableReplacer(requestConfig.data || {}, variables);
-
-    // 4a. Auto-upgrade last user message to multimodal content array when an image
-    //     is present and the body follows the OpenAI messages format.
-    //     This is a no-op for non-OpenAI formats and for templates that already
-    //     include a proper image_url part, so it is fully backward-compatible.
-    if (base64Image && imagePath) {
-      body = injectImageIntoMessages(body, base64Image, imagePath);
-    }
-
-    // 5. Execute Fetch (30s timeout — same as RestSTT uploads)
-    const customAbort = new AbortController();
-    const customTimeout = setTimeout(() => customAbort.abort(), 30_000);
-    try {
-      const response = await fetch(url, {
-        method: requestConfig.method || 'POST',
-        headers: headers,
-        body: JSON.stringify(body),
-        signal: customAbort.signal,
-      });
-      clearTimeout(customTimeout);
-
-      const data = await response.json();
-      console.log(`[LLMHelper] Custom Provider response received`, { status: response.status, ok: response.ok });
-
-      if (!response.ok) {
-        throw new Error(`Custom Provider HTTP ${response.status}`);
-      }
-
-      // 6. Extract Answer - try common response formats
-      const extracted = this.extractFromCommonFormats(data);
-      console.log(`[LLMHelper] Custom Provider extracted text length: ${extracted.length}`);
-      return extracted;
-    } catch (error) {
-      clearTimeout(customTimeout);
-      console.error("Custom Provider Error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Try to extract text content from common LLM API response formats.
-   * Supports: Ollama, OpenAI, Anthropic, and generic formats.
-   */
-  private extractFromCommonFormats(data: any): string {
-    if (!data || typeof data === 'string') return data || "";
-
-    // Ollama format: { response: "..." }
-    if (typeof data.response === 'string') return data.response;
-
-    // OpenAI format: { choices: [{ message: { content: "..." } }] }
-    if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
-
-    // OpenAI delta/streaming format: { choices: [{ delta: { content: "..." } }] }
-    if (data.choices?.[0]?.delta?.content) return data.choices[0].delta.content;
-
-    // NOTE: reasoning_content (model's thinking process) is intentionally NOT extracted
-    // to avoid showing internal reasoning to users. Only final content is returned.
-
-    // Anthropic format: { content: [{ text: "..." }] }
-    if (Array.isArray(data.content) && data.content[0]?.text) return data.content[0].text;
-
-    // Generic text field
-    if (typeof data.text === 'string') return data.text;
-
-    // Generic output field
-    if (typeof data.output === 'string') return data.output;
-
-    // Generic result field
-    if (typeof data.result === 'string') return data.result;
-
-    // For streaming responses: return empty string instead of raw JSON
-    // This prevents JSON artifacts from appearing in the output
-    if (data.choices?.[0]?.delta !== undefined) {
-      // It's a streaming delta chunk with no extractable content
-      return "";
-    }
-
-    // For streaming responses with empty choices array (e.g., final usage chunk)
-    // This handles: { "choices": [], "usage": { ... } }
-    if (Array.isArray(data.choices) && data.choices.length === 0) {
-      return "";
-    }
-
-    // Fallback: stringify the whole response (only for non-streaming responses)
-    console.warn("[LLMHelper] Could not extract text from custom provider response, returning raw JSON");
-    return JSON.stringify(data);
-  }
-
-  /**
-   * Map UNIVERSAL (local model) prompts to richer CUSTOM prompts.
-   * Custom providers can be any cloud model, so they get detailed prompts.
-   */
-  private mapToCustomPrompt(prompt: string): string {
-    // Map from concise UNIVERSAL to rich CUSTOM equivalents
-    if (prompt === UNIVERSAL_SYSTEM_PROMPT || prompt === HARD_SYSTEM_PROMPT) return CUSTOM_SYSTEM_PROMPT;
-    if (prompt === UNIVERSAL_ANSWER_PROMPT) return CUSTOM_ANSWER_PROMPT;
-    if (prompt === UNIVERSAL_WHAT_TO_ANSWER_PROMPT) return CUSTOM_WHAT_TO_ANSWER_PROMPT;
-    if (prompt === UNIVERSAL_RECAP_PROMPT) return CUSTOM_RECAP_PROMPT;
-    if (prompt === UNIVERSAL_FOLLOWUP_PROMPT) return CUSTOM_FOLLOWUP_PROMPT;
-    if (prompt === UNIVERSAL_FOLLOW_UP_QUESTIONS_PROMPT) return CUSTOM_FOLLOW_UP_QUESTIONS_PROMPT;
-    if (prompt === UNIVERSAL_ASSIST_PROMPT) return CUSTOM_ASSIST_PROMPT;
-    // If it's already a different override (e.g. user-supplied), pass through
-    return prompt;
   }
 
   private async tryGenerateResponse(fullMessage: string, imagePaths?: string[], modelIdOverride?: string): Promise<string> {
@@ -2008,7 +1693,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    *   Tier 3: Same as Tier 2 — 2nd retry (with backoff between tiers)
    *
    * Provider order per tier: OpenAI -> Gemini Flash -> Claude -> Gemini Pro -> Groq Scout
-   * After all cloud tiers: Custom Provider -> cURL Provider
    */
   private async generateWithVisionFallback(systemPrompt: string, userPrompt: string, imagePaths: string[] = []): Promise<string> {
     type ProviderAttempt = { name: string; execute: () => Promise<string> };
@@ -2139,45 +1823,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
 
     // ──────────────────────────────────────────────────────────────────
-    // Local fallback providers (appended after all cloud tiers)
-    // ──────────────────────────────────────────────────────────────────
-    const localProviders: ProviderAttempt[] = [];
-
-    if (this.customProvider) {
-      if (isMultimodal) {
-        localProviders.push({
-          name: `Custom Provider (${this.customProvider.name})`,
-          execute: () => this.executeCustomProvider(
-            this.customProvider!.curlCommand,
-            `${systemPrompt}\n\n${userPrompt}`,
-            systemPrompt,
-            userPrompt,
-            "",
-            imagePaths[0]
-          )
-        });
-      } else {
-        localProviders.push({
-          name: `Custom Provider (${this.customProvider.name})`,
-          execute: () => this.executeCustomProvider(
-            this.customProvider!.curlCommand,
-            `${systemPrompt}\n\n${userPrompt}`,
-            systemPrompt,
-            userPrompt,
-            ""
-          )
-        });
-      }
-    }
-
-    if (this.activeCurlProvider && !this.customProvider) {
-      localProviders.push({
-        name: `cURL Provider (${this.activeCurlProvider.name})`,
-        execute: () => this.chatWithCurl(userPrompt, systemPrompt, isMultimodal ? imagePaths[0] : undefined)
-      });
-    }
-
-    // ──────────────────────────────────────────────────────────────────
     // Codex CLI runs FIRST when enabled — same priority as in chat() so
     // every AI feature that flows through generateWithVisionFallback
     // (analyzeImageFiles, generateRollingScript, debugSolutionWithImages,
@@ -2211,7 +1856,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       ...tier3Providers, // Same as tier2 — pure retry
     ];
 
-    if (allProviders.length === 0 && localProviders.length === 0) {
+    if (allProviders.length === 0) {
       throw new Error("All AI providers failed: no vision-capable providers configured.");
     }
 
@@ -2287,23 +1932,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
     }
 
-    // ──────────────────────────────────────────────────────────────────
-    // Local fallback — absolute last resort after all cloud tiers exhausted
-    // ──────────────────────────────────────────────────────────────────
-    for (const provider of localProviders) {
-      try {
-        console.log(`[LLMHelper] 🏠 [Local Fallback] Attempting ${provider.name}...`);
-        const result = await provider.execute();
-        if (result && result.trim().length > 0) {
-          console.log(`[LLMHelper] ✅ [Local Fallback] ${provider.name} succeeded.`);
-          return result;
-        }
-      } catch (err: any) {
-        console.warn(`[LLMHelper] ⚠️ [Local Fallback] ${provider.name} failed: ${err.message}`);
-      }
-    }
-
-    throw new Error("All AI providers failed across all 3 tiers and local fallbacks.");
+    throw new Error("All AI providers failed across all 3 tiers.");
   }
 
 
@@ -2530,9 +2159,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   //      would duplicate output) — we end the stream gracefully.
   //
   // Priority order (user-specified): OpenAI → Claude → Gemini Flash → Gemini Pro
-  //   → Groq Scout → Custom. Healthy providers are
+  //   → Groq Scout. Healthy providers are
   //   then re-ordered fastest-first by measured TTFT EWMA ("rearrange the queue
-  //   in the speed"). An explicitly selected custom provider is honored first.
+  //   in the speed").
   //
   // Per provider: up to VISION_MAX_ATTEMPTS attempts (model tier1→tier2→tier3 on
   //   cloud families, so a deprecated/404 model self-heals). Exponential backoff
@@ -2579,26 +2208,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         open: (sig) => this.streamWithGroqMultimodal(userContent, imagePaths, systemPrompt, sig) });
     }
 
-    const local: VisionStreamProvider[] = [];
-    // Custom provider (after the cloud providers unless it is the active selection):
-    // only include for vision when it can actually carry an
-    // image (explicit multimodal flag, an {{IMAGE_BASE64}} placeholder, or an
-    // OpenAI-compatible messages body). Otherwise it would "succeed" while
-    // silently dropping the screenshot — worse than skipping it.
-    if (this.customProvider && customProviderSupportsVision(this.customProvider)) {
-      const customIsLocal = customProviderIsLocal(this.customProvider);
-      local.push({ id: 'custom', name: `Custom (${this.customProvider.name})`, isLocal: customIsLocal, priority: 100,
-        open: (sig) => this.streamWithCustom(message, context, imagePaths, systemPrompt, sig) });
-    }
-
-    // ── Assemble the ordered chain ─────────────────────────────────────────
-    // An explicitly selected custom provider goes first, then health/speed-sorted
-    // cloud providers, then any remaining custom provider as a final fallback.
+    // ── Assemble the ordered chain: health/speed-sorted cloud providers ────
     const nowMs = Date.now();
-    const front: VisionStreamProvider[] = [];
-    if (this.customProvider) { const c = local.find(p => p.id === 'custom'); if (c) front.push(c); }
-    const backLocal = local.filter(p => !front.includes(p));
-    const ordered: VisionStreamProvider[] = [...front, ...orderVisionByHealth(cloud, this.visionHealth, nowMs), ...backLocal];
+    const ordered: VisionStreamProvider[] = orderVisionByHealth(cloud, this.visionHealth, nowMs);
 
     if (ordered.length === 0) {
       throw new Error('No vision-capable provider configured. Add an API key (OpenAI, Claude, Gemini, or Groq) in Settings.');
@@ -2784,26 +2396,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (this.isCodexCliModel(this.currentModelId) && this.codexCliConfig.enabled) {
       yield* this.streamWithCodexCli(userContent, finalSystemPrompt, false, imagePaths, abortSignal);
-      return;
-    }
-
-    // 2a. CustomProvider (switchToCustom path) — full SSE-capable streaming
-    if (this.customProvider) {
-      yield* this.streamWithCustom(message, context, imagePaths, finalSystemPrompt, abortSignal);
-      return;
-    }
-
-    // 2b. Custom Provider Streaming (via cURL - Non-streaming fallback for now)
-    if (this.activeCurlProvider) {
-      const response = await this.executeCustomProvider(
-        this.activeCurlProvider.curlCommand,
-        userContent,
-        finalSystemPrompt,
-        message,
-        context || "",
-        imagePaths?.[0]
-      );
-      yield response;
       return;
     }
 
@@ -3423,174 +3015,17 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     return response.text || "";
   }
 
-  // --- CUSTOM PROVIDER STREAMING ---
-  private async * streamWithCustom(message: string, context?: string, imagePaths?: string[], systemPrompt: string = UNIVERSAL_SYSTEM_PROMPT, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (!this.customProvider) return;
-    // We reuse the executeCustomProvider logic but we need it to stream.
-    // If the user provided a curl command, it might support streaming (SSE) or not.
-    // If we execute it via Child Process, we can read stdout stream.
-
-    // 1. Prepare command with variables
-    // Re-use logic from executeCustomProvider to replace variables
-    // But we can't easily reuse the function since it awaits the whole fetch.
-    // So we'll implement a simplified streaming version using our existing variable replacer and node-fetch.
-
-    this.assertOutboundScopes('custom_provider', message, imagePaths);
-
-    const curlCommand = this.customProvider.curlCommand;
-    const requestConfig = curl2Json(curlCommand);
-
-    let base64Image = "";
-    if (imagePaths?.length) {
-      try {
-        // Use the first image for custom providers (they typically only support one)
-        const data = await fs.promises.readFile(imagePaths[0]);
-        base64Image = data.toString("base64");
-      } catch (e) { }
-    }
-
-    const combinedMessage = context ? `${context}\n\n${message}` : message;
-
-    const variables = {
-      TEXT: combinedMessage,
-      PROMPT: combinedMessage,
-      SYSTEM_PROMPT: systemPrompt,
-      USER_MESSAGE: message,
-      CONTEXT: context || "",
-      IMAGE_BASE64: base64Image,
-    };
-
-    const url = deepVariableReplacer(requestConfig.url, variables);
-    const headers = deepVariableReplacer(requestConfig.header || {}, variables);
-    let body = deepVariableReplacer(requestConfig.data || {}, variables);
-
-    // Auto-upgrade last user message to multimodal content array when an image is present.
-    // No-op for non-OpenAI formats and templates already containing a proper image_url part.
-    if (base64Image && imagePaths?.[0]) {
-      body = injectImageIntoMessages(body, base64Image, imagePaths[0]);
-    }
-
-    const streamAbort = new AbortController();
-    const streamTimeout = setTimeout(() => streamAbort.abort(), 30_000);
-    // Forward the caller's user-cancel signal into the same controller so
-    // the fetch socket closes immediately on supersession, freeing the
-    // custom provider's quota and any rate-limiter slot.
-    const onCallerAbort = () => {
-      try { streamAbort.abort(abortSignal?.reason); } catch { /* already aborted */ }
-    };
-    abortSignal?.addEventListener('abort', onCallerAbort, { once: true });
-    if (abortSignal?.aborted) {
-      clearTimeout(streamTimeout);
-      return;
-    }
-    try {
-      const response = await fetch(url, {
-        method: requestConfig.method || 'POST',
-        headers: headers,
-        body: JSON.stringify(body),
-        signal: streamAbort.signal,
-      });
-      clearTimeout(streamTimeout);
-
-      if (!response.ok) {
-        console.error('[LLMHelper] Custom Provider stream HTTP error', { status: response.status });
-        yield `Error: Custom Provider returned HTTP ${response.status}`;
-        return;
-      }
-
-      if (!response.body) return;
-
-      // Collect all chunks to handle both SSE streaming and non-SSE JSON responses
-      let fullBody = "";
-      let yieldedAny = false;
-
-      // @ts-ignore
-      for await (const chunk of response.body) {
-        // Per-chunk caller-cancel check (the abort above already closed the
-        // socket, but a buffered chunk could still be in the iterator).
-        if (abortSignal?.aborted) return;
-        const text = new TextDecoder().decode(chunk);
-        fullBody += text;
-
-        const lines = text.split('\n');
-        for (const line of lines) {
-          if (line.trim().length === 0) continue;
-
-          const items = this.parseStreamLine(line);
-          if (items) {
-            yield items;
-            yieldedAny = true;
-          }
-        }
-      }
-
-      // If no SSE content was yielded, try parsing the full body as JSON
-      // This handles non-streaming responses (e.g. Ollama with stream: false)
-      // But skip if it looks like SSE data (starts with "data: ")
-      if (!yieldedAny && fullBody.trim().length > 0 && !fullBody.trim().startsWith("data: ")) {
-        try {
-          const data = JSON.parse(fullBody);
-          const extracted = this.extractFromCommonFormats(data);
-          if (extracted) yield extracted;
-        } catch {
-          // Not JSON, yield raw text if it's not looking like garbage
-          if (fullBody.length < 5000) yield fullBody.trim();
-        }
-      }
-
-    } catch (e) {
-      clearTimeout(streamTimeout);
-      console.error("Custom streaming failed", e);
-      yield "Error streaming from custom provider.";
-    } finally {
-      // Always drop the listener so we don't leak a subscription on a
-      // long-lived AbortSignal shared across many calls.
-      abortSignal?.removeEventListener('abort', onCallerAbort);
-    }
-  }
-
-  private parseStreamLine(line: string): string | null {
-    const trimmed = line.trim();
-    if (!trimmed) return null;
-
-    // 1. Handle SSE (data: ...)
-    if (trimmed.startsWith("data: ")) {
-      if (trimmed === "data: [DONE]") return null;
-      try {
-        const json = JSON.parse(trimmed.substring(6));
-        return this.extractFromCommonFormats(json);
-      } catch {
-        return null;
-      }
-    }
-
-    // 2. Handle raw JSON chunks (Ollama/Generic)
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      try {
-        const json = JSON.parse(trimmed);
-        return this.extractFromCommonFormats(json);
-      } catch {
-        return null;
-      }
-    }
-
-    return null;
-  }
-
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 
-  public getCurrentProvider(): "gemini" | "custom" | "codex-cli" {
-    if (this.customProvider) return "custom";
+  public getCurrentProvider(): "gemini" | "codex-cli" {
     if (this.isCodexCliModel(this.currentModelId)) return "codex-cli";
     return "gemini";
   }
 
   public getCurrentModel(): string {
-    if (this.customProvider) return this.customProvider.name;
-    if (this.activeCurlProvider) return this.activeCurlProvider.id;
     return this.currentModelId;
   }
 
@@ -3856,10 +3291,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   /**
    * Robust Meeting Summary Generation
    * Strategy:
-   * 0. Custom / cURL Provider (if user selected one — always takes priority)
-   * 2. Groq (if context text < 100k tokens approx)
-   * 3. Gemini Flash (Retry 2x)
-   * 4. Gemini Pro (Retry 5x)
+   * 1. Groq (if context text < 100k tokens approx)
+   * 2. Gemini Flash (Retry 2x)
+   * 3. Gemini Pro (Retry 5x)
    */
   public async generateMeetingSummary(systemPrompt: string, context: string, groqSystemPrompt?: string): Promise<string> {
     console.log(`[LLMHelper] generateMeetingSummary called. Context length: ${context.length}`);
@@ -3884,30 +3318,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const estimateTokens = (text: string) => Math.ceil(text.length / 4);
     const tokenCount = estimateTokens(context);
     console.log(`[LLMHelper] Estimated tokens: ${tokenCount}`);
-
-    // ATTEMPT 0: Custom Provider (highest priority — user explicitly chose this)
-    if (this.customProvider || this.activeCurlProvider) {
-      try {
-        console.log(`[LLMHelper] Attempting custom provider for summary...`);
-        // Collect the async generator into a Promise so withTimeout works.
-        // ignoreKnowledgeMode=true: meeting summaries must never go through the
-        // profile/knowledge intercept — it would corrupt the output.
-        const collectChunks = async (): Promise<string> => {
-          let result = '';
-          for await (const chunk of this.streamChat(`Context:\n${context}`, undefined, undefined, systemPrompt, true)) {
-            result += chunk;
-          }
-          return result;
-        };
-        const text = await this.withTimeout(collectChunks(), 60000, 'Custom Provider Summary');
-        if (text.trim().length > 0) {
-          console.log(`[LLMHelper] ✅ Custom provider summary generated successfully.`);
-          return this.processResponse(text);
-        }
-      } catch (e: any) {
-        console.warn(`[LLMHelper] ⚠️ Custom provider summary failed: ${e.message}. Falling back...`);
-      }
-    }
 
     // ATTEMPT 2: Codex CLI (if user has it enabled — text-only path)
     if (this.codexCliConfig.enabled) {
@@ -4041,17 +3451,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       throw new Error("No Gemini API key provided and no existing client");
     }
 
-    this.customProvider = null;
     // console.log(`[LLMHelper] Switched to Gemini: ${this.geminiModel}`);
-  }
-
-  public async switchToCustom(provider: CustomProvider): Promise<void> {
-    this.customProvider = provider;
-    this.client = null;
-    this.groqClient = null;
-    this.openaiClient = null;
-    this.claudeClient = null;
-    console.log(`[LLMHelper] Switched to Custom Provider: ${provider.name}`);
   }
 
   public async testConnection(): Promise<{ success: boolean; error?: string }> {

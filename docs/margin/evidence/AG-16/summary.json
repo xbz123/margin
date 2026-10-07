@@ -1,0 +1,192 @@
+{
+  "startedAt": "2026-10-07T17:32:37.988Z",
+  "head": "6c2d048e822b9eefdd4e9a9e5acf49d754cb0b56",
+  "uncommittedPaths": 82,
+  "reference": "docs/margin/evidence/AG-15",
+  "note": "AG-16 working tree before commit, compared with AG-15 (second run after fixing ScopeLocalFallback)",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 95,
+      "log": "docs/margin/evidence/AG-16/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1282,
+      "log": "docs/margin/evidence/AG-16/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4977,
+      "log": "docs/margin/evidence/AG-16/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3101,
+      "log": "docs/margin/evidence/AG-16/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 2,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1942,
+      "log": "docs/margin/evidence/AG-16/tsc-electron.log",
+      "diagnostics": {
+        "total": 8,
+        "inherited": 8,
+        "new": [],
+        "resolved": [
+          "electron/ipcHandlers.ts error TS2339: Property 'error' does not exist on type '{ ok: true; } | { ok: false; error: string; }'. ×2"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1685,
+      "log": "docs/margin/evidence/AG-16/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1638,
+      "log": "docs/margin/evidence/AG-16/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 81,
+      "log": "docs/margin/evidence/AG-16/preload-contract.log",
+      "gaps": {
+        "total": 4,
+        "inherited": 4,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 130,
+      "log": "docs/margin/evidence/AG-16/ipc-channels.log",
+      "gaps": {
+        "total": 2,
+        "inherited": 2,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 705,
+      "log": "docs/margin/evidence/AG-16/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 186229,
+      "log": "docs/margin/evidence/AG-16/tests.log",
+      "tap": "docs/margin/evidence/AG-16/tests.tap",
+      "perFile": "docs/margin/evidence/AG-16/tests.files.json",
+      "files": 96,
+      "filesNotFinished": [
+        "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs"
+      ],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 538,
+        "pass": 526,
+        "fail": 12,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "failures": {
+        "total": 20,
+        "inherited": 20,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 14219,
+      "log": "docs/margin/evidence/AG-16/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5235,
+      "log": "docs/margin/evidence/AG-16/storage.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 146,
+      "log": "docs/margin/evidence/AG-16/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-07T17:36:19.465Z",
+  "allPassed": true
+}

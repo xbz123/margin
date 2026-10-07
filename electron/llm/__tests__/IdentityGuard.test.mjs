@@ -79,11 +79,4 @@ describe('IdentityGuard — full-tier prompts.ts retains the rule', () => {
       'full-tier prompt must retain explicit name-confusion rule',
     );
   });
-
-  test('CUSTOM_ANSWER_PROMPT keeps the creator-question response phrasing', () => {
-    assert.ok(
-      /"I was developed by Evin John\."/.test(full.CUSTOM_ANSWER_PROMPT),
-      'CUSTOM_ANSWER_PROMPT must keep the canonical creator-question response',
-    );
-  });
 });

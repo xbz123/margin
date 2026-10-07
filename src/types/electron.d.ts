@@ -1,37 +1,3 @@
-// Phase 3 — DynamicActionPayload mirrors electron/services/dynamic-actions/DynamicAction.ts.
-// Kept as a structural interface (not a class import) to preserve the strict main↔renderer
-// type boundary — the renderer never imports from electron/* directly.
-export interface DynamicActionEvidenceRef {
-  source: 'transcript' | 'screen' | 'reference' | 'meeting_history'
-  text: string
-  timestamp?: number
-  speaker?: string
-  fileId?: string
-  chunkId?: string
-}
-
-export interface DynamicActionPayload {
-  id: string
-  sessionId: string
-  modeId: string
-  modeTemplateType: string
-  type: string
-  label: string
-  description?: string
-  confidence: number
-  priority: number
-  evidenceRefs: DynamicActionEvidenceRef[]
-  status: 'candidate' | 'shown' | 'accepted' | 'dismissed' | 'completed' | 'expired'
-  createdAt: number
-  expiresAt?: number
-  promptInstruction: string
-  answerStyle?: {
-    maxWords: number
-    format: 'bullets' | 'short_script' | 'code' | 'checklist' | 'summary'
-    tone: string
-  }
-}
-
 export interface ElectronAPI {
   updateContentDimensions: (dimensions: {
     width: number
@@ -115,7 +81,7 @@ export interface ElectronAPI {
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void
 
   // LLM Model Management
-  getCurrentLlmConfig: () => Promise<{ provider: "gemini" | "custom" | "codex-cli"; model: string }>
+  getCurrentLlmConfig: () => Promise<{ provider: "gemini" | "codex-cli"; model: string }>
   switchToGemini: (apiKey?: string, modelId?: string) => Promise<{ success: boolean; error?: string }>
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string) => Promise<{ success: boolean; error?: string }>
   selectServiceAccount: () => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>
@@ -126,7 +92,7 @@ export interface ElectronAPI {
   setOpenaiApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
   setClaudeApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
   setDeepseekApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  getStoredCredentials: () => Promise<{ hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; googleServiceAccountPath: string | null; sttProvider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; hasDeepgramKey: boolean; hasElevenLabsKey: boolean; hasAzureKey: boolean; azureRegion: string; hasIbmWatsonKey: boolean; ibmWatsonRegion: string; groqSttModel?: string; hasSonioxKey?: boolean; hasTavilyKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttDeepgramKey?: string; sttElevenLabsKey?: string; sttAzureKey?: string; sttIbmKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
+  getStoredCredentials: () => Promise<{ hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; googleServiceAccountPath: string | null; sttProvider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; hasDeepgramKey: boolean; hasElevenLabsKey: boolean; hasAzureKey: boolean; azureRegion: string; hasIbmWatsonKey: boolean; ibmWatsonRegion: string; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttDeepgramKey?: string; sttElevenLabsKey?: string; sttAzureKey?: string; sttIbmKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>
   requestMicPermission: () => Promise<boolean>
@@ -179,7 +145,7 @@ export interface ElectronAPI {
 
   // Intelligence Mode IPC
   generateAssist: () => Promise<{ insight: string | null }>
-  generateWhatToSay: (question?: string, imagePaths?: string[], options?: { promptInstruction?: string }) => Promise<{
+  generateWhatToSay: (question?: string, imagePaths?: string[]) => Promise<{
     answer: string | null;
     question?: string;
     error?: string;
@@ -220,12 +186,6 @@ export interface ElectronAPI {
   setWindowMode: (mode: 'launcher' | 'overlay', inactive?: boolean) => Promise<void>
   setMeetingInterfaceTheme: (theme: string) => void
   onMeetingInterfaceThemeChanged: (callback: (theme: string) => void) => () => void
-
-  // Phase 3 — Cluely-style dynamic action cards.
-  onIntelligenceDynamicAction: (callback: (data: { action: DynamicActionPayload }) => void) => () => void
-  acceptDynamicAction: (actionId: string) => Promise<{ success: boolean; action?: DynamicActionPayload; error?: string }>
-  dismissDynamicAction: (actionId: string) => Promise<{ success: boolean; error?: string }>
-  listDynamicActions: () => Promise<{ success: boolean; actions: DynamicActionPayload[]; error?: string }>
 
   // Intelligence Mode Events
   onIntelligenceAssistUpdate: (callback: (data: { insight: string }) => void) => () => void
@@ -274,16 +234,6 @@ export interface ElectronAPI {
 
   // Demo
   seedDemo: () => Promise<{ success: boolean }>;
-
-  // Custom Providers
-  saveCustomProvider: (provider: any) => Promise<{ success: boolean; id?: string; error?: string }>;
-  getCustomProviders: () => Promise<any[]>;
-  deleteCustomProvider: (id: string) => Promise<{ success: boolean; error?: string }>;
-
-  // Follow-up Email
-  generateFollowupEmail: (input: any) => Promise<string>;
-  extractEmailsFromTranscript: (transcript: Array<{ text: string }>) => Promise<string[]>;
-  openMailto: (params: { to: string; subject: string; body: string }) => Promise<{ success: boolean; error?: string }>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;
@@ -335,9 +285,6 @@ export interface ElectronAPI {
 
   // JD & Research API
 
-  // Tavily Search API
-  setTavilyApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-
   // Dynamic Model Discovery
   fetchProviderModels: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) => Promise<{ success: boolean; models?: {id: string, label: string}[]; error?: string }>
   setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<void>
@@ -385,17 +332,6 @@ export interface ElectronAPI {
   // Skills
   skillsRefresh: () => Promise<SkillSummary[]>;
   skillsOpenFolder: () => Promise<{ success: boolean; path: string; error?: string }>;
-
-  // Phone Mirror
-  phoneMirrorGetInfo: () => Promise<PhoneMirrorInfo>;
-  phoneMirrorEnable: (exposeOnLan: boolean) => Promise<PhoneMirrorInfo | { error: string }>;
-  phoneMirrorDisable: () => Promise<{ success: true }>;
-  phoneMirrorSetLan: (exposeOnLan: boolean) => Promise<PhoneMirrorInfo | { error: string }>;
-  phoneMirrorRotateToken: () => Promise<PhoneMirrorInfo | { error: string }>;
-  onPhoneMirrorStatus: (callback: (info: PhoneMirrorInfo) => void) => () => void;
-  onPhoneMirrorIncomingChat: (
-    callback: (data: { message: string; streamId: string }) => void,
-  ) => () => void;
 }
 
 export interface SkillSummary {
@@ -403,19 +339,6 @@ export interface SkillSummary {
   name: string;
   description: string;
   source: 'builtin' | 'userData';
-}
-
-export interface PhoneMirrorInfo {
-  running: boolean;
-  enabled: boolean;
-  exposeOnLan: boolean;
-  port: number;
-  loopbackUrl: string | null;
-  primaryUrl: string | null;
-  lanUrls: string[];
-  token: string | null;
-  qrDataUrl: string | null;
-  clients: number;
 }
 
 declare global {

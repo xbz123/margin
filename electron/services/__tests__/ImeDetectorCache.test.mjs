@@ -18,7 +18,7 @@
 //       composition the next time the tap auto-engages.
 //
 // We load the compiled CommonJS output from dist-electron, matching the
-// pattern used by DynamicActionEngine.test.mjs and friends. The
+// pattern used by the other dist-electron service tests. The
 // `process.platform` read happens at call time (line 68 of the source), so
 // per-test mutation works without module-level mocking.
 

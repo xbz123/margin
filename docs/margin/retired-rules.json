@@ -5,7 +5,8 @@
     "AG-12",
     "AG-13",
     "AG-14",
-    "AG-15"
+    "AG-15",
+    "AG-16"
   ],
   "scanRoots": [
     "electron",
@@ -789,6 +790,456 @@
       "ticket": "AG-17",
       "kind": "dep",
       "value": "@google/stitch-sdk"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/services/PhoneMirrorService.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/services/phoneMirrorClient.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "src/components/settings/PhoneMirrorSettings.tsx"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/services/dynamic-actions"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "src/components/dynamic-actions"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/services/screen/OcrProvider.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/services/screen/OcrProviderManager.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "tests/fixtures/screen"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/utils/curlUtils.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "src/lib/curl-validator.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/llm/visionCapability.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "electron/utils/emailUtils.ts"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "path",
+      "value": "src/components/FollowUpEmailModal.tsx"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:get-info"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:enable"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:disable"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:set-lan"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:rotate-token"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:push-screenshot"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:status"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phone-mirror:incoming-chat"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorGetInfo"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorEnable"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorDisable"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorSetLan"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorRotateToken"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorPushScreenshot"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "onPhoneMirrorStatus"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "onPhoneMirrorIncomingChat"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorEnabled"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "phoneMirrorExposeOnLan"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "PhoneMirrorSettings"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "PhoneMirrorInfo"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "dynamic-action:list"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "dynamic-action:accept"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "dynamic-action:dismiss"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "intelligence-dynamic-action"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "dynamic_action_emitted"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "listDynamicActions"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "acceptDynamicAction"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "dismissDynamicAction"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "onIntelligenceDynamicAction"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "setDynamicActionContext"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "DynamicActionBar"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "DynamicActionPayload"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "promptInstruction"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "set-tavily-api-key"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "setTavilyApiKey"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "tavilyApiKey"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "hasTavilyKey"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "OcrProvider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "get-custom-providers"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "save-custom-provider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "delete-custom-provider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "switch-to-custom-provider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "get-curl-providers"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "save-curl-provider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "delete-curl-provider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "switch-to-curl-provider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "getCustomProviders"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "saveCustomProvider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "deleteCustomProvider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "getCurlProviders"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "saveCurlProvider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "deleteCurlProvider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "chatWithCurl"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "switchToCurl"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "switchToCustom"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "executeCustomProvider"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "streamWithCustom"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "validateCurl"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "validateCurlProviderPayload"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "customProviderSupportsVision"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "CUSTOM_SYSTEM_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "CUSTOM_ANSWER_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "CUSTOM_WHAT_TO_ANSWER_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "CUSTOM_ASSIST_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "generate-followup-email"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "extract-emails-from-transcript"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "open-mailto"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "generateFollowupEmail"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "extractEmailsFromTranscript"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "openMailto"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "FOLLOWUP_EMAIL_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "GROQ_FOLLOWUP_EMAIL_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "TINY_FOLLOWUP_EMAIL_PROMPT"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "FollowUpEmailModal"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "buildFollowUpDraft"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "followUpDraft"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "host",
+      "value": "api.tavily.com"
     }
   ]
 }

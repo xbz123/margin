@@ -8,7 +8,6 @@ const workflowPath = path.resolve(__dirname, '../../../dist-electron/electron/se
 const {
   buildPostCallEnhancements,
   extractStructuredActionItems,
-  buildFollowUpDraft,
 } = await import(pathToFileURL(workflowPath).href);
 
 // Ids switched from `action_<N>` (length-derived; collided across reruns /
@@ -41,16 +40,6 @@ test('extractStructuredActionItems merges summary action items without duplicate
   assert.deepEqual(items.map(item => item.text), ['send the recap', 'share the deck']);
 });
 
-test('buildFollowUpDraft includes overview and structured next steps', () => {
-  const draft = buildFollowUpDraft([
-    { id: 'action_1', text: 'send the proposal', owner: 'Me', deadline: 'Friday' },
-  ], { overview: 'We aligned on a pilot scope.' });
-
-  assert.match(draft, /Thanks for the conversation today/);
-  assert.match(draft, /We aligned on a pilot scope/);
-  assert.match(draft, /- Me: send the proposal by Friday/);
-});
-
 test('buildPostCallEnhancements returns schema v2 payload', () => {
   const result = buildPostCallEnhancements({
     transcript: [{ speaker: 'interviewer', text: 'Read chapter 4 before Friday.', timestamp: 10 }],
@@ -59,8 +48,6 @@ test('buildPostCallEnhancements returns schema v2 payload', () => {
 
   assert.equal(result.schemaVersion, 2);
   assert.ok(Array.isArray(result.actionItemsStructured));
-  assert.ok(result.followUpDraft.includes('Lecture covered graph traversal'));
-  assert.ok(result.followUpDraft.startsWith('Hi team,'));
 });
 
 test('post-call schema remains JSON-safe and excludes raw transcript fields', () => {
@@ -74,7 +61,6 @@ test('post-call schema remains JSON-safe and excludes raw transcript fields', ()
 
   assert.deepEqual(Object.keys(result).sort(), [
     'actionItemsStructured',
-    'followUpDraft',
     'schemaVersion',
   ]);
   assert.equal(result.schemaVersion, 2);

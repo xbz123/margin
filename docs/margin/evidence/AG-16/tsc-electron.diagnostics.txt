@@ -1,0 +1,8 @@
+electron/IntelligenceEngine.ts error TS2345: Argument of type 'SessionTracker' is not assignable to parameter of type 'PreparedContextSession'. ×1
+electron/LLMHelper.ts error TS7011: Function expression, which lacks return-type annotation, implicitly has an 'any' return type. ×1
+electron/ipcHandlers.ts error TS2339: Property 'sendModelChanged' does not exist on type 'AppState'. ×2
+electron/main.ts error TS2339: Property 'setIgnoreBlur' does not exist on type 'ModelSelectorWindowHelper'. ×2
+electron/test/erp-1hour-real.test.ts error TS2367: This comparison appears to be unintentional because the types 'PromptTier' and '"error"' have no overlap. ×1
+electron/test/input-fuzzing.test.ts error TS2345: Argument of type '{ pass: boolean; error?: string; handler: string; label: string; }' is not assignable to parameter of type '{ handler: string; label: string; pass: boolean; error?: string; sqlInjection: boolean; }'. ×1
+electron/utils/preparedTranscriptContext.ts error TS2345: Argument of type 'PreparedContextItem[]' is not assignable to parameter of type 'ContextItem[]'. ×1
+electron/utils/preparedTranscriptContext.ts error TS2345: Argument of type '{ role: string; text: string; timestamp: number; }[]' is not assignable to parameter of type 'TranscriptTurn[]'. ×1

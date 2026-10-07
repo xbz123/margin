@@ -301,20 +301,3 @@ test('telemetry callback fires for attempt, success, fallback, failed, skipped',
   }
   await optimizer.cleanupAll();
 });
-
-test('OCR modules are not imported by the vision fallback chain source', async () => {
-  // ESM has no require.cache; verify at the source-import level instead — the
-  // chain file must not statically import any OCR module.
-  const chainSource = await fs.readFile(path.join(screenDir, 'VisionProviderFallbackChain.js'), 'utf8');
-  assert.ok(!/OcrProvider/.test(chainSource), 'VisionProviderFallbackChain.js must not reference OcrProvider');
-  assert.ok(!/OcrProviderManager/.test(chainSource), 'VisionProviderFallbackChain.js must not reference OcrProviderManager');
-  assert.ok(!/tesseract/i.test(chainSource), 'VisionProviderFallbackChain.js must not reference tesseract');
-
-  const registrySource = await fs.readFile(path.join(screenDir, 'VisionProviderRegistry.js'), 'utf8');
-  assert.ok(!/OcrProvider/.test(registrySource), 'VisionProviderRegistry.js must not reference OcrProvider');
-  assert.ok(!/tesseract/i.test(registrySource), 'VisionProviderRegistry.js must not reference tesseract');
-
-  const susSource = await fs.readFile(path.join(screenDir, 'ScreenUnderstandingService.js'), 'utf8');
-  assert.ok(!/OcrProvider/.test(susSource), 'ScreenUnderstandingService.js must not reference OcrProvider');
-  assert.ok(!/tesseract/i.test(susSource), 'ScreenUnderstandingService.js must not reference tesseract');
-});

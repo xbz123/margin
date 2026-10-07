@@ -26,7 +26,6 @@ test('parity-gaps spec exercises the real IPC contracts via window.electronAPI',
   assert.match(spec, /electronAPI\.getMeetingRetention/);
   assert.match(spec, /electronAPI\.setMeetingRetention/);
   assert.match(spec, /generateWhatToSay: typeof api\.generateWhatToSay/);
-  assert.match(spec, /acceptDynamicAction: typeof api\.acceptDynamicAction/);
 });
 
 test('package.json exposes opt-in test:e2e:parity script gated by ELECTRON_E2E env', () => {

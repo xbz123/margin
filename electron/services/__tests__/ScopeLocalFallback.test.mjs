@@ -21,8 +21,6 @@ test('transcript scope denial omits transcript from cloud calls', () => {
   assert.match(src, /const cloudCombinedMessages = \{/);
   assert.match(src, /return await this\.generateWithCodexCli\(cloudUserContent/);
   assert.match(src, /return await this\.generateWithGroq\(cloudUserContent/);
-  assert.match(src, /return await this\.chatWithCurl\(cloudUserContent/);
-  assert.match(src, /shouldOmitContext \? "" : context \|\| ""/);
 });
 
 test('LLMHelper infers auxiliary context scopes before cloud routing', () => {

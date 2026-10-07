@@ -388,7 +388,6 @@ interface ScreenshotCaptureSession {
 
 import { CredentialsManager } from "./services/CredentialsManager"
 import { SettingsManager } from "./services/SettingsManager"
-import { PhoneMirrorService } from "./services/PhoneMirrorService"
 import { setVerboseLoggingFlag } from "./verboseLog"
 import { decideToggle } from './services/toggleStateReducer'
 
@@ -2743,20 +2742,6 @@ export class AppState {
       this.intelligenceManager.setMeetingMetadata(metadata);
     }
 
-    // Phase 3 — bind dynamic action engine to this meeting. Action store is
-    // per-(sessionId, modeId), so a fresh sessionId gives per-meeting isolation.
-    // The trigger pack is the one the default General mode used (the mode system
-    // is gone, PLAN.md AG-13; the engine itself is removed in AG-16).
-    try {
-      this.intelligenceManager.setDynamicActionContext({
-        sessionId: `session_${crypto.randomUUID()}`,
-        modeId: 'mode_general_default',
-        modeTemplateType: 'general',
-      });
-    } catch (err) {
-      // Auxiliary feature — never block meeting start.
-      console.warn('[Main] failed to bind dynamic action context at meeting start:', (err as Error)?.message);
-    }
 
 
     // Emit session reset to clear UI state immediately
@@ -2979,8 +2964,8 @@ export class AppState {
     // session on the (still-shared) STT instances.
     this._pendingTeardown = (async () => {
       try {
-        // 0. Revert to Default Model. Moved into BG: getDefaultModel() and the
-        //    provider list reads touch disk, and the 'model-changed' broadcast
+        // 0. Revert to Default Model. Moved into BG: getDefaultModel() touches
+        //    disk, and the 'model-changed' broadcast
         //    re-renders all open windows — both block the main thread/renderer
         //    during the Stop-click critical path. Doing it here means the
         //    revert lands ~250 ms after Stop, by which point the launcher is
@@ -2990,9 +2975,8 @@ export class AppState {
           const { CredentialsManager } = require('./services/CredentialsManager');
           const cm = CredentialsManager.getInstance();
           const defaultModel = cm.getDefaultModel();
-          const all = [...(cm.getCurlProviders() || []), ...(cm.getCustomProviders() || [])];
           console.log(`[Main] Reverting model to default: ${defaultModel}`);
-          this.processingHelper.getLLMHelper().setModel(defaultModel, all);
+          this.processingHelper.getLLMHelper().setModel(defaultModel);
           BrowserWindow.getAllWindows().forEach(win => {
             if (!win.isDestroyed()) win.webContents.send('model-changed', defaultModel);
           });
@@ -3081,14 +3065,6 @@ export class AppState {
       const helper = this.getWindowHelper();
       helper.getLauncherWindow()?.webContents.send('intelligence-assist-update', { insight });
       helper.getOverlayWindow()?.webContents.send('intelligence-assist-update', { insight });
-    })
-
-    // Phase 3 — Cluely-style dynamic action card. Forward to all open windows
-    // (launcher + overlay) so whichever surface the user has up shows the card.
-    this.intelligenceManager.on('dynamic_action_emitted', (action: any) => {
-      const helper = this.getWindowHelper();
-      helper.getLauncherWindow()?.webContents.send('intelligence-dynamic-action', { action });
-      helper.getOverlayWindow()?.webContents.send('intelligence-dynamic-action', { action });
     })
 
     this.intelligenceManager.on('suggested_answer', (answer: string, question: string, confidence: number) => {
@@ -4122,14 +4098,6 @@ async function initializeApp() {
   appState.settingsWindowHelper.preloadWindow()
   appState.modelSelectorWindowHelper.preloadWindow()
 
-  // Restore Phone Mirror service if it was enabled in a previous session.
-  // Failure here is non-fatal — the user can re-enable from Settings.
-  if (SettingsManager.getInstance().get('phoneMirrorEnabled')) {
-    PhoneMirrorService.getInstance()
-      .start({ exposeOnLan: !!SettingsManager.getInstance().get('phoneMirrorExposeOnLan'), persist: false })
-      .catch((err) => console.error('[Init] PhoneMirror auto-start failed:', err));
-  }
-
   // One-time macOS screen recording permission prompt.
   //
   // We must fire this AFTER createWindow() so that:
@@ -4288,9 +4256,9 @@ async function initializeApp() {
     // remain by the time we return.
     //
     // ORDERING NOTE: this MUST happen before any subsequent napi-touching
-    // cleanup (cropper.dispose, phoneMirror.dispose). Those
-    // can spawn their own native threads or release napi resources, which
-    // would race with our worker if it's still alive.
+    // cleanup (cropper.dispose). That can spawn its own native threads or
+    // release napi resources, which would race with our worker if it's
+    // still alive.
     if (process.platform === 'darwin') {
       try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -4306,11 +4274,6 @@ async function initializeApp() {
     if (appState?.cropperWindowHelper) {
       appState.cropperWindowHelper.dispose();
     }
-
-    // Tear down the Phone Mirror service so the OS port is freed cleanly.
-    PhoneMirrorService.getInstance().dispose().catch((err) =>
-      console.error('[Main] PhoneMirror dispose failed:', err)
-    );
 
     try {
       const { CredentialsManager } = require('./services/CredentialsManager');

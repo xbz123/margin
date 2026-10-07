@@ -11,8 +11,6 @@ import {
     prepareTranscriptForWhatToAnswer, buildTemporalContext,
     AssistantResponse as LLMAssistantResponse, classifyIntent, planNextAssistantAction, PlannerDecision
 } from './llm';
-import { DynamicActionEngine } from './services/dynamic-actions/DynamicActionEngine';
-import { DynamicAction } from './services/dynamic-actions/DynamicAction';
 import { ScreenContext } from './services/screen/ScreenContextService';
 import { buildPreparedTranscriptContext as assemblePreparedTranscriptContext } from './utils/preparedTranscriptContext';
 
@@ -58,10 +56,6 @@ export interface IntelligenceModeEvents {
     'manual_answer_result': (answer: string, question: string) => void;
     'mode_changed': (mode: IntelligenceMode) => void;
     'error': (error: Error, mode: IntelligenceMode) => void;
-    // Phase 3: Cluely-style auto-detected action card. Engine emits one per
-    // newly created candidate action (post-dedupe). Renderer subscribes via
-    // window.electronAPI.onIntelligenceDynamicAction and renders cards.
-    'dynamic_action_emitted': (action: DynamicAction) => void;
 }
 
 export class IntelligenceEngine extends EventEmitter {
@@ -103,14 +97,6 @@ export class IntelligenceEngine extends EventEmitter {
     private readonly SPECULATIVE_MIN_WORDS = 7;
     private readonly SPECULATIVE_MIN_CONFIDENCE = 0.75;
     private readonly SPECULATIVE_SIMILARITY_THRESHOLD = 0.75;
-
-    // Phase 3 dynamic actions — engine state. Created lazily on first
-    // setSessionContext call (or per-test injection). Null while engine has no
-    // active meeting, so detectAndEmitDynamicActions becomes a no-op safely.
-    private dynamicActionEngine: DynamicActionEngine | null = null;
-    private currentSessionId: string | null = null;
-    private currentDynamicActionModeId: string | null = null;
-    private currentDynamicActionTemplateType: string | null = null;
 
     private static isNonAnswerSentinel(answer: string): boolean {
         const normalized = answer.trim().toLowerCase().replace(/[.!?]+$/g, '');
@@ -239,101 +225,12 @@ export class IntelligenceEngine extends EventEmitter {
             }
         }
 
-        // Phase 3: detect dynamic action triggers on every final segment.
-        // Wrapped in try/catch so a regex bug or store fault never breaks the
-        // primary transcript path. No-op when engine has no active session
-        // or when current mode has no trigger pack registered.
-        if (segment.final) {
-            try {
-                this.detectAndEmitDynamicActions(segment);
-            } catch (err) {
-                // Intentionally swallow — dynamic actions are auxiliary and
-                // must never break the answer pipeline.
-                console.warn('[IntelligenceEngine] detectAndEmitDynamicActions failed', (err as Error)?.message);
-            }
-        }
-
         // Check for follow-up intent if user is speaking
         if (result && !skipRefinementCheck && result.role === 'user' && this.session.getLastAssistantMessage()) {
             const { isRefinement, intent } = detectRefinementIntent(segment.text.trim());
             if (isRefinement) {
                 this.runFollowUp(intent, segment.text.trim());
             }
-        }
-    }
-
-    // Phase 3 dynamic actions — public API ===========================================================
-
-    /**
-     * Bind the engine to the active meeting/mode. Called by IntelligenceManager
-     * at meeting start and on every mode switch. Re-binding clears the per-session
-     * action store (see ModeBleeding tests) so old-mode candidates do not leak.
-     */
-    setDynamicActionContext(params: {
-        sessionId: string;
-        modeId: string;
-        modeTemplateType: string;
-    }): void {
-        const { sessionId, modeId, modeTemplateType } = params;
-        if (!this.dynamicActionEngine) {
-            this.dynamicActionEngine = new DynamicActionEngine();
-        }
-        // If session changed, drop store so we don't bleed actions across meetings.
-        if (this.currentSessionId && this.currentSessionId !== sessionId) {
-            this.dynamicActionEngine = new DynamicActionEngine();
-        }
-        this.currentSessionId = sessionId;
-        this.currentDynamicActionModeId = modeId;
-        this.currentDynamicActionTemplateType = modeTemplateType;
-    }
-
-    clearDynamicActionContext(): void {
-        this.currentSessionId = null;
-        this.currentDynamicActionModeId = null;
-        this.currentDynamicActionTemplateType = null;
-        this.dynamicActionEngine = null;
-    }
-
-    acceptDynamicAction(actionId: string): DynamicAction | null {
-        if (!this.dynamicActionEngine) return null;
-        return this.dynamicActionEngine.acceptAction(actionId);
-    }
-
-    dismissDynamicAction(actionId: string): void {
-        if (!this.dynamicActionEngine) return;
-        this.dynamicActionEngine.dismissAction(actionId);
-    }
-
-    getActiveDynamicActions(): DynamicAction[] {
-        if (!this.dynamicActionEngine || !this.currentSessionId) return [];
-        return this.dynamicActionEngine.getTopActions(this.currentSessionId);
-    }
-
-    // For tests — injection seam.
-    _setDynamicActionEngineForTest(engine: DynamicActionEngine | null): void {
-        this.dynamicActionEngine = engine;
-    }
-
-    private detectAndEmitDynamicActions(segment: TranscriptSegment): void {
-        if (!this.dynamicActionEngine || !this.currentSessionId
-            || !this.currentDynamicActionModeId || !this.currentDynamicActionTemplateType) {
-            return;
-        }
-        const text = (segment.text || '').trim();
-        if (!text) return;
-
-        const newActions = this.dynamicActionEngine.detectActions({
-            transcript: text,
-            speaker: segment.speaker,
-            modeTemplateType: this.currentDynamicActionTemplateType,
-            modeId: this.currentDynamicActionModeId,
-            sessionId: this.currentSessionId,
-        });
-
-        // The store dedupes within the per-session store, so each emitted action
-        // is a *new* candidate — safe to forward to renderer for rendering.
-        for (const action of newActions) {
-            this.emit('dynamic_action_emitted', action);
         }
     }
 
@@ -498,7 +395,7 @@ export class IntelligenceEngine extends EventEmitter {
      * Manual trigger - uses clean transcript pipeline for question inference
      * NEVER returns null - always provides a usable response
      */
-    async runWhatShouldISay(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { speculative?: boolean; skipCooldown?: boolean; screenContext?: ScreenContext; promptInstruction?: string; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
+    async runWhatShouldISay(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { speculative?: boolean; skipCooldown?: boolean; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
         const now = Date.now();
         const isSpeculative = options?.speculative === true;
         const skipCooldown = options?.skipCooldown === true;
@@ -606,7 +503,7 @@ export class IntelligenceEngine extends EventEmitter {
             let fullAnswer = "";
             // RC-03 fix: hold a reference to the generator so we can call .return()
             // to properly terminate the network request when a new generation starts.
-            const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext, options?.promptInstruction, options?.activeSkill);
+            const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext, options?.activeSkill);
             let streamAborted = false;
 
             for await (const token of stream) {

@@ -93,46 +93,6 @@ test('WhatToAnswerLLM sends the default answer prompt as system prompt and the t
   assert.deepEqual(scopes, []);
 });
 
-test('WhatToAnswerLLM sends dynamic action prompt instruction as user content', async () => {
-  const { WhatToAnswerLLM } = require(distWhatToAnswerPath);
-  const calls = [];
-
-  const llmHelper = {
-    getCapabilities: () => ({ outputBudgetTokens: 2000 }),
-    getPromptTier: () => 'full',
-    fitContextForCurrentModel: text => text,
-    async *streamChat(...args) {
-      calls.push(args);
-      yield 'ok';
-    },
-  };
-
-  const answerer = new WhatToAnswerLLM(llmHelper);
-  const chunks = [];
-  for await (const chunk of answerer.generateStream(
-    'CURRENT_TRANSCRIPT_SENTINEL',
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    'DYNAMIC_ACTION_PROMPT_INSTRUCTION_SENTINEL'
-  )) {
-    chunks.push(chunk);
-  }
-
-  assert.deepEqual(chunks, ['ok']);
-  assert.equal(calls.length, 1);
-
-  const [message, _imagePaths, context, systemPromptOverride, ignoreKnowledgeMode, skipModeInjection] = calls[0];
-  assert.equal(context, undefined);
-  assert.equal(ignoreKnowledgeMode, true);
-  assert.equal(skipModeInjection, true);
-  assert.match(message, /dynamic_action_instruction/);
-  assert.match(message, /DYNAMIC_ACTION_PROMPT_INSTRUCTION_SENTINEL/);
-  assert.match(message, /CURRENT_TRANSCRIPT_SENTINEL/);
-  assert.doesNotMatch(systemPromptOverride, /DYNAMIC_ACTION_PROMPT_INSTRUCTION_SENTINEL/);
-});
-
 test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content', async () => {
   const { WhatToAnswerLLM } = require(distWhatToAnswerPath);
   const calls = [];

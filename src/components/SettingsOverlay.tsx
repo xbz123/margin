@@ -6,12 +6,11 @@ import {
     Camera, RotateCcw, Eye, Layout, MessageSquare, Crop,
     ChevronDown, ChevronUp, Check, BadgeCheck, Power, Palette, Ghost, Sun, Moon, RefreshCw, Info, Globe, FlaskConical, Terminal, Settings, Activity, ExternalLink, Trash2,
     Sparkles, Pencil, Briefcase, Building2, Search, MapPin, CheckCircle, HelpCircle, Zap, SlidersHorizontal, PointerOff,
-    Star, AlertCircle, Gift, Smartphone, Shield
+    Star, AlertCircle, Gift, Shield
 } from 'lucide-react';
 import { AboutSection } from './AboutSection';
 import { HelpSettings } from './settings/HelpSettings';
 import { AIProvidersSettings } from './settings/AIProvidersSettings';
-import { PhoneMirrorSettings } from './settings/PhoneMirrorSettings';
 import { SkillsSettings } from './settings/SkillsSettings';
 import { NativelyLogoMark } from './NativelyLogoMark';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1053,18 +1052,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         }
     };
 
-    const handleRemoveTavilyKey = async () => {
-        if (!confirm('Are you sure you want to remove the Tavily API Key?')) return;
-
-        try {
-            await window.electronAPI?.setTavilyApiKey?.('');
-
-
-        } catch (e) {
-            console.error('Failed to remove Tavily API key:', e);
-        }
-    };
-
     const handleTestSttConnection = async () => {
         if (sttProvider === 'none' || sttProvider === 'google') return;
         const keyMap: Record<string, string> = {
@@ -1290,13 +1277,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                         className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-3 ${activeTab === 'keybinds' ? 'bg-bg-item-active text-text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-item-active/50'}`}
                                     >
                                         <Keyboard size={16} /> Keybinds
-                                    </button>
-
-                                    <button
-                                        onClick={() => setActiveTab('phone-mirror')}
-                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-3 ${activeTab === 'phone-mirror' ? 'bg-bg-item-active text-text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-item-active/50'}`}
-                                    >
-                                        <Smartphone size={16} /> Phone Mirror
                                     </button>
 
                                     <button
@@ -2578,10 +2558,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                 </div>
                             )}
 
-
-                            {activeTab === 'phone-mirror' && (
-                                <PhoneMirrorSettings />
-                            )}
 
                             {activeTab === 'help' && (
                                 <HelpSettings />

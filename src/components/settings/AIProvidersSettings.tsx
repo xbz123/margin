@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, AlertCircle, CheckCircle, Save, ChevronDown, Check, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, ChevronDown, Check, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
 import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, STANDARD_CLOUD_MODELS, prettifyModelId } from '../../utils/modelUtils';
-import { validateCurl } from '../../lib/curl-validator';
 import { ProviderCard } from './ProviderCard';
 
 const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
 const CODEX_MODEL_REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
-
-interface CustomProvider {
-    id: string;
-    name: string;
-    curlCommand: string;
-    responsePath: string;
-    /** Whether this provider accepts screenshots. undefined = auto-detect from the cURL template. */
-    multimodal?: boolean;
-}
 
 interface ModelOption {
     id: string;
@@ -134,18 +124,6 @@ export const AIProvidersSettings: React.FC = () => {
     const [testStatus, setTestStatus] = useState<Record<string, 'idle' | 'testing' | 'success' | 'error'>>({});
     const [testError, setTestError] = useState<Record<string, string>>({});
 
-    // --- Custom Providers ---
-    const [customProviders, setCustomProviders] = useState<CustomProvider[]>([]);
-    const [isEditingCustom, setIsEditingCustom] = useState(false);
-    const [editingProvider, setEditingProvider] = useState<CustomProvider | null>(null);
-    const [customName, setCustomName] = useState('');
-    const [customCurl, setCustomCurl] = useState('');
-    const [customResponsePath, setCustomResponsePath] = useState('');
-    // 'auto' = detect vision support from the template; 'on'/'off' = explicit override.
-    const [customVision, setCustomVision] = useState<'auto' | 'on' | 'off'>('auto');
-    const [curlError, setCurlError] = useState<string | null>(null);
-
-
     // --- Local (Codex CLI) ---
     const [codexCliConfig, setCodexCliConfig] = useState({ enabled: false, path: 'codex', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', timeoutMs: 60000, sandboxMode: 'read-only' as string, serviceTier: 'default' as string | undefined, modelReasoningEffort: undefined as string | undefined });
     const [codexCliStatus, setCodexCliStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
@@ -206,12 +184,6 @@ export const AIProvidersSettings: React.FC = () => {
 
                 // Mark credentials as fully loaded so the enforcement effect can fire
                 setCredentialsLoaded(true);
-
-                // @ts-ignore
-                const custom = await window.electronAPI?.getCustomProviders();
-                if (custom) {
-                    setCustomProviders(custom);
-                }
 
                 // Load persisted default model
                 // @ts-ignore
@@ -412,82 +384,6 @@ export const AIProvidersSettings: React.FC = () => {
     };
 
 
-    // --- Custom Provider Handlers ---
-
-    const handleEditProvider = (provider: CustomProvider) => {
-        setEditingProvider(provider);
-        setCustomName(provider.name);
-        setCustomCurl(provider.curlCommand);
-        setCustomResponsePath(provider.responsePath || '');
-        setCustomVision(provider.multimodal === true ? 'on' : provider.multimodal === false ? 'off' : 'auto');
-        setIsEditingCustom(true);
-        setCurlError(null);
-    };
-
-    const handleNewProvider = () => {
-        setEditingProvider(null);
-        setCustomName('');
-        setCustomCurl('');
-        setCustomResponsePath('');
-        setCustomVision('auto');
-        setIsEditingCustom(true);
-        setCurlError(null);
-    };
-
-    const handleSaveCustom = async () => {
-        setCurlError(null);
-        if (!customName.trim()) {
-            setCurlError("Provider Name is required.");
-            return;
-        }
-
-        const validation = validateCurl(customCurl);
-        if (!validation.isValid) {
-            setCurlError(validation.message || "Invalid cURL command.");
-            return;
-        }
-
-        const newProvider: CustomProvider = {
-            id: editingProvider ? editingProvider.id : crypto.randomUUID(),
-            name: customName,
-            curlCommand: customCurl,
-            responsePath: customResponsePath,
-            // 'auto' → omit the flag so the backend auto-detects from the template.
-            ...(customVision === 'on' ? { multimodal: true } : customVision === 'off' ? { multimodal: false } : {}),
-        };
-
-        try {
-            // @ts-ignore
-            const result = await window.electronAPI.saveCustomProvider(newProvider);
-            if (result.success) {
-                // Refresh list
-                // @ts-ignore
-                const updated = await window.electronAPI.getCustomProviders();
-                setCustomProviders(updated);
-                setIsEditingCustom(false);
-            } else {
-                setCurlError(result.error ?? null);
-            }
-        } catch (e: any) {
-            setCurlError(e.message);
-        }
-    };
-
-    const handleDeleteCustom = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this provider?")) return;
-        try {
-            // @ts-ignore
-            const result = await window.electronAPI.deleteCustomProvider(id);
-            if (result.success) {
-                // @ts-ignore
-                const updated = await window.electronAPI.getCustomProviders();
-                setCustomProviders(updated);
-            }
-        } catch (e) {
-            console.error("Failed to delete provider:", e);
-        }
-    };
-
     return (
         <div className="space-y-5 animated fadeIn pb-10">
             {/* Default Model for Chat */}
@@ -524,7 +420,6 @@ export const AIProvidersSettings: React.FC = () => {
                                     }
                                 });
                             }
-                            customProviders.forEach(p => opts.push({ id: p.id, name: p.name }));
 
                             if (defaultModel && !opts.find(o => o.id === defaultModel)) {
                                 opts.unshift({ id: defaultModel, name: prettifyModelId(defaultModel) });
@@ -804,207 +699,6 @@ export const AIProvidersSettings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Custom Providers */}
-            <div className="space-y-5">
-                <div className="flex items-center justify-between mb-2">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-sm font-bold text-text-primary">Custom Providers</h3>
-                            <span className="px-1.5 py-0 rounded-full text-[7px] font-bold bg-yellow-500/10 text-yellow-500 uppercase tracking-widest border border-yellow-500/20 leading-loose mt-0.5">Experimental</span>
-                        </div>
-                        <p className="text-xs text-text-secondary">Add your own AI endpoints via cURL.</p>
-                    </div>
-                    {!isEditingCustom && (
-                        <button
-                            onClick={handleNewProvider}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-bg-input hover:bg-bg-elevated border border-border-subtle rounded-lg text-xs font-medium text-text-primary transition-colors"
-                        >
-                            <Plus size={14} /> Add Provider
-                        </button>
-                    )}
-                </div>
-
-                {isEditingCustom ? (
-                    <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle animated fadeIn">
-                        <h4 className="text-sm font-bold text-text-primary mb-4">{editingProvider ? 'Edit Provider' : 'New Provider'}</h4>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-1">Provider Name</label>
-                                <input
-                                    type="text"
-                                    value={customName}
-                                    onChange={(e) => setCustomName(e.target.value)}
-                                    placeholder="My Custom LLM"
-                                    className="w-full bg-bg-input border border-border-subtle rounded-lg px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-1">cURL Command</label>
-                                <div className="relative">
-                                    <textarea
-                                        value={customCurl}
-                                        onChange={(e) => setCustomCurl(e.target.value)}
-                                        placeholder={`curl https://api.openai.com/v1/chat/completions ... "content": "{{TEXT}}"`}
-                                        className="w-full h-32 bg-bg-input border border-border-subtle rounded-lg p-4 text-xs font-mono text-text-primary focus:outline-none focus:border-accent-primary transition-colors resize-none leading-relaxed"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-1">
-                                    Response JSON Path <span className="text-text-tertiary normal-case font-normal">(Optional)</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={customResponsePath}
-                                    onChange={(e) => setCustomResponsePath(e.target.value)}
-                                    placeholder="e.g. choices[0].message.content"
-                                    className="w-full bg-bg-input border border-border-subtle rounded-lg px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary transition-colors font-mono"
-                                />
-                                <p className="text-[10px] text-text-secondary mt-1">
-                                    Dot notation path to the answer text in the JSON response. If empty, the full JSON is returned.
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-1">
-                                    Screenshot / Vision Support
-                                </label>
-                                <select
-                                    value={customVision}
-                                    onChange={(e) => setCustomVision(e.target.value as 'auto' | 'on' | 'off')}
-                                    className="w-full bg-bg-input border border-border-subtle rounded-lg px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
-                                >
-                                    <option value="auto">Auto-detect (recommended)</option>
-                                    <option value="on">Always send screenshots</option>
-                                    <option value="off">Never send screenshots (text only)</option>
-                                </select>
-                                <p className="text-[10px] text-text-secondary mt-1">
-                                    Auto-detect enables vision when your cURL uses <code className="font-mono">{"{{IMAGE_BASE64}}"}</code> or an OpenAI-style <code className="font-mono">messages</code> body. Choose “Always” only if your endpoint accepts images another way; “Never” keeps this provider out of screenshot analysis.
-                                </p>
-                            </div>
-
-                            <div className="bg-bg-elevated/30 rounded-lg overflow-hidden border border-border-subtle mt-4">
-                                <div className="px-4 py-3 bg-bg-elevated/50 border-b border-border-subtle flex items-center justify-between">
-                                    <h5 className="block text-xs font-medium text-text-primary uppercase tracking-wide">
-                                        Configuration Guide
-                                    </h5>
-                                </div>
-
-                                <div className="p-4 space-y-4">
-                                    <div>
-                                        <p className="text-xs text-text-secondary mb-2 font-medium">Available Variables</p>
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <div className="flex items-center gap-2 text-xs">
-                                                <code className="bg-bg-input px-1.5 py-0.5 rounded text-text-primary font-mono border border-border-subtle">{"{{TEXT}}"}</code>
-                                                <span className="text-text-tertiary">Combined System + Context + Message (Recommended)</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs">
-                                                <code className="bg-bg-input px-1.5 py-0.5 rounded text-text-primary font-mono border border-border-subtle">{"{{IMAGE_BASE64}}"}</code>
-                                                <span className="text-text-tertiary">Screenshot data (if available)</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs text-text-secondary mb-2 font-medium">Examples</p>
-                                        <div className="space-y-3">
-                                            {/* OpenAI Example */}
-                                            <div>
-                                                <div className="text-[10px] uppercase tracking-wider text-text-tertiary mb-1.5">OpenAI Compatible</div>
-                                                <div className="bg-bg-input p-2.5 rounded-lg border border-border-subtle overflow-x-auto">
-                                                    <code className="font-mono text-[10px] text-text-primary whitespace-pre block">
-                                                        {`curl https://api.openai.com/v1/chat/completions \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "model": "gpt-4o-mini",
-    "messages": [
-      {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": "{{TEXT}}"}
-    ],
-    "temperature": 0.7
-  }'`}
-                                                    </code>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {curlError && (
-                                <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">
-                                    <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                                    <span>{curlError}</span>
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    onClick={() => setIsEditingCustom(false)}
-                                    className="px-4 py-2 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-input transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSaveCustom}
-                                    className="px-4 py-2 rounded-lg text-xs font-medium bg-accent-primary text-white hover:bg-accent-secondary transition-colors flex items-center gap-2"
-                                >
-                                    <Save size={14} /> Save Provider
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        {customProviders.length === 0 ? (
-                            <div className="text-center py-8 bg-bg-item-surface rounded-xl border border-border-subtle border-dashed">
-                                <p className="text-xs text-text-tertiary">No custom providers added yet.</p>
-                            </div>
-                        ) : (
-                            customProviders.map((provider) => (
-                                <div key={provider.id} className="bg-bg-item-surface rounded-xl p-4 border border-border-subtle flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-bg-input flex items-center justify-center text-text-secondary font-mono text-xs font-bold">
-                                            {provider.name.substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-medium text-text-primary">{provider.name}</h4>
-                                            <p className="text-[10px] text-text-tertiary font-mono truncate max-w-[200px] opacity-60">
-                                                {provider.curlCommand.substring(0, 30)}...
-                                            </p>
-                                            {provider.responsePath && (
-                                                <p className="text-[9px] text-text-tertiary font-mono opacity-40 mt-0.5">
-                                                    path: {provider.responsePath}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => handleEditProvider(provider)}
-                                            className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
-                                            title="Edit"
-                                        >
-                                            <Edit2 size={14} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteCustom(provider.id)}
-                                            className="p-1.5 rounded-lg text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
-
             {/* Screen Understanding — vision-first routing */}
             <div className="space-y-5">
                 <div>
@@ -1076,7 +770,7 @@ export const AIProvidersSettings: React.FC = () => {
             <div className="space-y-5">
                 <div>
                     <h3 className="text-sm font-bold text-text-primary mb-1">Cloud provider data scopes</h3>
-                    <p className="text-xs text-text-secondary mb-2">Control what data cloud AI providers can access. Disabled types are handled locally for privacy.</p>
+                    <p className="text-xs text-text-secondary mb-2">Control what data cloud AI providers can access. Disabled types are left out of requests.</p>
                 </div>
                 <div className="bg-bg-item-surface rounded-xl p-4 border border-border-subtle flex flex-col gap-2">
                     {([
@@ -1107,10 +801,9 @@ export const AIProvidersSettings: React.FC = () => {
                     })}
                     <div className="flex items-start gap-2 mt-1 pt-3 border-t border-border-subtle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-tertiary shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                        <p className="text-[11px] text-text-tertiary leading-relaxed">When a data type is disabled, Natively falls back to the best available local model to keep that data on-device.</p>
+                        <p className="text-[11px] text-text-tertiary leading-relaxed">When a data type is disabled, it is left out of every request to a cloud provider. There is no local model to fall back to.</p>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     );

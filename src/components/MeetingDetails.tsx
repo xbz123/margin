@@ -51,7 +51,6 @@ interface Meeting {
             deadline?: string;
             sourceTimestamp?: number;
         }>;
-        followUpDraft?: string;
     };
     transcript?: Array<{
         speaker: string;
@@ -427,25 +426,6 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                                 </li>
                                             ))}
                                         </ul>
-                                    </section>
-                                )}
-
-                                {/* Phase 7 — Follow-up email draft. Selectable + copy-friendly. */}
-                                {meeting.detailedSummary?.followUpDraft && meeting.detailedSummary.followUpDraft.trim() && (
-                                    <section className="mb-8">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h2 className="text-lg font-semibold text-text-primary">Follow-up Draft</h2>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    navigator.clipboard?.writeText(meeting.detailedSummary?.followUpDraft || '').catch(() => { /* swallow */ });
-                                                }}
-                                                className="text-[11px] px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 text-text-secondary border border-white/10 transition-colors"
-                                            >
-                                                Copy
-                                            </button>
-                                        </div>
-                                        <pre className="text-[12.5px] text-text-secondary leading-relaxed whitespace-pre-wrap font-sans select-text cursor-text p-3 rounded-[10px] border border-white/10 bg-white/[0.02]">{meeting.detailedSummary.followUpDraft}</pre>
                                     </section>
                                 )}
 
