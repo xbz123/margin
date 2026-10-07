@@ -3,13 +3,22 @@
 # message, or by hand. It reads the upstream repository (public, read-only) so the
 # provenance check sees the same restricted pool as a local run, uses no secrets,
 # and keeps the raw gate output as a run artifact. A green run is a reference for a
-# clean install; it does not settle D5 (building without Xcode on the local Mac).
+# clean install. With no_cache (manual runs only) it skips the Electron and cargo
+# caches, so the native module is compiled from scratch; that run is the evidence for
+# phase 1 exit item 1 under D5 (PLAN.md section 3). Every run also keeps the native
+# module it built as a workflow artifact (not a release), which local development uses
+# instead of the old cargo cache.
 name: Margin gates
 
 on:
   push:
     branches: [codex/margin-agpl-migration]
   workflow_dispatch:
+    inputs:
+      no_cache:
+        description: Skip the Electron and cargo caches and build everything from scratch
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -45,13 +54,15 @@ jobs:
           node -v; npm -v; rustc -V; cargo -V; xcodebuild -version
           echo "rustc=$(rustc -V | tr ' ' '-')" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v6
+      - if: ${{ !inputs.no_cache }}
+        uses: actions/cache@v6
         with:
           path: ~/Library/Caches/electron
           key: electron-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
           restore-keys: electron-${{ runner.os }}-${{ runner.arch }}-
 
-      - uses: actions/cache@v6
+      - if: ${{ !inputs.no_cache }}
+        uses: actions/cache@v6
         with:
           path: native-module/target
           key: cargo-target-${{ runner.os }}-${{ runner.arch }}-${{ steps.tools.outputs.rustc }}-${{ hashFiles('native-module/Cargo.lock') }}
@@ -59,7 +70,38 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run setup:native
+      - name: Native setup
+        run: |
+          set -o pipefail
+          mkdir -p native-artifact
+          npm run setup:native 2>&1 | tee native-artifact/setup-native.log
+
+      - name: Collect the native module
+        env:
+          NO_CACHE: ${{ inputs.no_cache && 'true' || 'false' }}
+        run: |
+          if [ "$NO_CACHE" = true ]; then
+            # From scratch means cargo compiled cidre in this run.
+            grep -E '^\s*Compiling cidre v' native-artifact/setup-native.log
+          fi
+          cp native-module/index.darwin-arm64.node native-artifact/
+          {
+            echo "commit: $GITHUB_SHA"
+            echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"
+            echo "no_cache: $NO_CACHE"
+            echo "rustc: $(rustc -V)"
+            echo "xcode: $(xcodebuild -version | tr '\n' ' ')"
+            echo "cidre compiled in this run: $(grep -cE '^\s*Compiling cidre v' native-artifact/setup-native.log || true)"
+            shasum -a 256 native-artifact/index.darwin-arm64.node
+            file native-artifact/index.darwin-arm64.node
+          } > native-artifact/BUILD-INFO.txt
+          cat native-artifact/BUILD-INFO.txt
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: margin-native-${{ github.sha }}
+          path: native-artifact/
+          retention-days: 30
 
       - name: Run gates against the newest local ticket evidence
         run: |
@@ -71,7 +113,7 @@ jobs:
           ")
           echo "reference: $ref"
           node scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \
-            --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, compared with $ref"
+            --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, no_cache=${{ inputs.no_cache && 'true' || 'false' }}, compared with $ref"
 
       - if: always()
         uses: actions/upload-artifact@v7
