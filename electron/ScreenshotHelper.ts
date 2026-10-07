@@ -1,6 +1,7 @@
 // ScreenshotHelper.ts
 
 import path from "node:path"
+import { devScreenshotFixture } from './margin/devOverrides'
 import fs from "node:fs"
 import { app, desktopCapturer, screen, systemPreferences } from "electron"
 import { v4 as uuidv4 } from "uuid"
@@ -609,6 +610,24 @@ export class ScreenshotHelper {
     throw new Error(`Unsupported platform for screenshots: ${platform}`);
   }
 
+  // Full-screen capture for takeScreenshot(). In an unpackaged build with
+  // MARGIN_DEV_SCREENSHOT_FIXTURE set (regression harness, PLAN.md X4), the fixture
+  // image is copied instead, so tests never touch the real screen.
+  private async captureFullScreen(screenshotPath: string, preferredDisplay?: Electron.Display): Promise<void> {
+    const fixture = devScreenshotFixture()
+    if (fixture) {
+      await fs.promises.copyFile(fixture, screenshotPath)
+      return
+    }
+    if (process.platform === 'darwin') {
+      await this.captureWithDesktopCapturer(screenshotPath, undefined, preferredDisplay);
+    } else if (process.platform === 'win32') {
+      await this.captureWithDesktopCapturer(screenshotPath);
+    } else {
+      await shellExecAsync(this.getScreenshotCommand(screenshotPath, false))
+    }
+  }
+
   public async takeScreenshot(preferredDisplay?: Electron.Display): Promise<string> {
     try {
       console.log('[ScreenshotHelper] Taking screenshot...');
@@ -618,13 +637,7 @@ export class ScreenshotHelper {
       if (this.view === "queue") {
         screenshotPath = path.join(this.screenshotDir, `${uuidv4()}.png`)
         console.log(`[ScreenshotHelper] Using queue directory: ${screenshotPath}`);
-        if (process.platform === 'darwin') {
-          await this.captureWithDesktopCapturer(screenshotPath, undefined, preferredDisplay);
-        } else if (process.platform === 'win32') {
-          await this.captureWithDesktopCapturer(screenshotPath);
-        } else {
-          await shellExecAsync(this.getScreenshotCommand(screenshotPath, false))
-        }
+        await this.captureFullScreen(screenshotPath, preferredDisplay)
 
         this.screenshotQueue.push(screenshotPath)
         if (this.screenshotQueue.length > this.MAX_SCREENSHOTS) {
@@ -641,13 +654,7 @@ export class ScreenshotHelper {
       } else {
         screenshotPath = path.join(this.extraScreenshotDir, `${uuidv4()}.png`)
         console.log(`[ScreenshotHelper] Using extra screenshots directory: ${screenshotPath}`);
-        if (process.platform === 'darwin') {
-          await this.captureWithDesktopCapturer(screenshotPath, undefined, preferredDisplay);
-        } else if (process.platform === 'win32') {
-          await this.captureWithDesktopCapturer(screenshotPath);
-        } else {
-          await shellExecAsync(this.getScreenshotCommand(screenshotPath, false))
-        }
+        await this.captureFullScreen(screenshotPath, preferredDisplay)
 
         this.extraScreenshotQueue.push(screenshotPath)
         if (this.extraScreenshotQueue.length > this.MAX_SCREENSHOTS) {

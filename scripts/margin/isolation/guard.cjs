@@ -201,9 +201,15 @@ Module._load = function guardedLoad(request, parent, isMain) {
   if (TRACE_REQUIRES && !request.startsWith('node:') && !Module.builtinModules.includes(request)) {
     try { process.stderr.write(`[isolation] require ${request}\n`); } catch { /* closed */ }
   }
-  if (NATIVE_AUDIO_RE.test(String(request)) && process.env.MARGIN_ISOLATION_REAL_DEVICES !== '1') {
-    record('device', `native audio module wrapped (${path.basename(String(request))})`);
-    return deviceDouble(origLoad.call(this, request, parent, isMain));
+  if (process.env.MARGIN_ISOLATION_REAL_DEVICES !== '1' && /native-module|index\.[\w-]+\.node$/.test(String(request))) {
+    // Match on the resolved file, not the request string: the module may be loaded
+    // by absolute path or as './index.<platform>.node' from native-module/index.js.
+    let resolved = String(request);
+    try { resolved = Module._resolveFilename(request, parent, isMain); } catch { /* let load fail normally */ }
+    if (NATIVE_AUDIO_RE.test(resolved)) {
+      record('device', `native audio module wrapped (${path.basename(resolved)})`);
+      return deviceDouble(origLoad.call(this, request, parent, isMain));
+    }
   }
   const mod = origLoad.call(this, request, parent, isMain);
   if (request === 'electron' && !electronGuarded && mod && mod.app && process.type === 'browser') {

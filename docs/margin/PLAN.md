@@ -618,7 +618,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | 阶段 0 | 完成 | `e0dc5b40` | BASELINE、PROVENANCE、ADAPTATION |
 | 计划评审 | 完成 | `f76fba39` | Astra 只读评审，见第 9 节 |
 | 计划修订 | 完成 | `02b3d9fd` | 按用户 2026-10-07 的要求修订：<br>(1) 加入启动闸门 L0，解开 AG-09、AG-10 与 X2 之间的循环；<br>(2) G3 规则逐步启用；<br>(3) 新增 AG-08；<br>(4) BASELINE.md 改为明确写出证据的不确定性，基线不变 |
-| 事件记录 | 已处理 | — | 两次运行超出了隔离边界，现已修复，详见下文 |
+| 事件记录 | 已处理 | — | 三次运行超出了隔离边界，现已修复，详见下文 |
 | X1 来源检查 | 完成 | `8acc530d` | 结果见第 4 节 X1 |
 | X2 隔离 | 完成 | `f6b3f2a1` | 结果见第 4 节 X2。<br>**未覆盖**：原生插件自己发起的网络连接、Chromium 的 WebRTC/UDP |
 | X3 运行时 | 完成 | `43781a21`、`5c871699` | 构建、加载、启动三方面都已对比；D1 定为升级到 43（AG-17 执行）。详见第 4 节 X3 |
@@ -627,8 +627,8 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-10 | 完成 | 见 AG-10 提交 | 见下文 AG-10 记录 |
 | AG-11、AG-12 | 完成 | 见 AG-11/12 提交 | 见下文 AG-11、AG-12 记录。两张 ticket 改了同一批热点文件，并且在同一工作区内交替进行，无法干净地拆成两个提交，因此合为一个提交，提交说明里分别列出 |
 | L0 | 已满足（2026-10-07） | `88f206e8` 起 | 首次启动见 X3 启动部分 |
-| AG-09 | 进行中 | | |
-| AG-13–17 | 待开始 | | |
+| AG-09 | 完成 | 见 AG-09 提交 | 见下文 AG-09 记录。5 项回归在守卫下连续 3 次全部通过 |
+| AG-13–17 | 待开始 | | AG-13 为下一张；每张集成后重跑 AG-09 回归 |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
@@ -696,6 +696,37 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 - **契约检查**：preload 只剩 4 个基线原有的不一致；IPC 零缺口。
 - **G6**：全量测试结果见第 8 节。
 
+### AG-09 记录（2026-10-07）
+
+- **实现**（按第 4 节 X4 契约，做法甲）：
+  - `electron/margin/devOverrides.ts`：`devOpenAIBaseUrl()`、`devScreenshotFixture()`。判断打包状态时"失败即关闭"：拿不到 `electron.app` 时按已打包处理，开关无效。
+  - `electron/LLMHelper.ts` 两处创建 OpenAI 客户端时传入 `baseURL: devOpenAIBaseUrl()`；未设置时为 `undefined`，与原行为相同。
+  - `electron/ScreenshotHelper.ts` 把全屏截图的两处重复分支合成 `captureFullScreen()`，开关有效时复制夹具图片，不调用系统截图。
+  - `tests/margin/mock-openai.mjs`：只监听 127.0.0.1 的 OpenAI 兼容流式 mock，记录每个请求、是否被客户端提前断开、已发送的分块数；可设置分块间延迟和注入 HTTP 错误。
+  - `tests/margin/answer-regression.test.mjs`：用 Playwright 启动真实应用，经 renderer、preload、IPC、`LLMHelper` 打到 mock。
+  - 守卫：原生模块匹配改为先解析成真实文件名再判断，避免相对路径加载时漏掉音频设备替身；`run-node.mjs` 新增 `--allow-exec`，只放行测试需要启动的 Electron。
+- **覆盖的行为**（5 项）：
+  1. 输入问题后逐段显示回答（先看到部分文本，再看到完整文本）；每个问题恰好一次请求，模型、`stream: true` 和问题内容正确。
+  2. `cancelChatStream` 后迟到的分块不进界面，HTTP 流被客户端断开。
+  3. 流式回答进行中，界面不接受第二个输入的问题（基线行为）；主进程收到同一窗口的新 `gemini-chat-stream` 时中止旧流，旧流后续分块不进界面。
+  4. 走真实快捷键路径（主进程发 `global-shortcut` → 渲染层经 IPC 截图并附加）发出的截图问题，请求中带有夹具图片。
+  5. 提供方返回 400 时，界面显示错误，没有重试；下一个问题正常回答。
+- **证明开关在打包构建里无效**：单元测试 `electron/margin/__tests__/devOverrides.test.mjs`（`isPackaged: true` 时忽略、非回环地址忽略、夹具文件不存在时忽略、在 Electron 之外失败即关闭）。打包产物本身的验证留到 AG-25。
+- **检查结果**：
+  - 回归：守卫下连续 3 次 5/5 通过；结束后守卫日志中除本地替身（权限、设备、`defaults`、`lsof`）外没有拦截记录。
+  - **G1**：渲染层 `tsc` 0 个错误；Electron `tsc` 31 个，全部是基线原有的（基线 33 个，没有新增）；`build-electron` 成功。
+  - **G2**：零命中。新增 22 条白名单，都是本分支自写的通用写法（计时、循环、HTTP 响应、SSE 分帧等）。其中 `env.mjs` 和 `guard.cjs` 的两条在 `5c871699` 已提交，当时没有跑 G2，这次补上。
+  - **G3**：56 条规则零命中。
+  - **契约检查**：preload 仍是 4 个基线原有的不一致；IPC 仍是 2 个基线缺口。
+  - **G6**：调用 `LLMHelper` 或 `ScreenshotHelper` 的 10 个测试文件共 122 个测试，119 个通过；失败的 3 个都是基线原有的模式上下文测试（交给 AG-13）。`devOverrides` 6 个、守卫自测 10 个全部通过。
+- **观察到的基线问题**（不在本票修，记给后续 ticket）：
+  - `set-model` 报错 `appState.sendModelChanged is not a function`，模型实际已切换（`getCurrentLlmConfig` 返回 gpt-5.4），但悬浮窗的模型标签仍显示 Gemini 3.1 Flash。交给 AG-17。
+  - 启动时 `LLMHelper` 会用 `lsof -i:11434` 尝试重启 Ollama，并尝试启动 `ollama` 进程（隔离环境里找不到，`ENOENT`）。交给 AG-14。
+  - Playwright 的第一次主进程 `evaluate` 偶尔与应用启动竞争（"Execution context was destroyed"），测试在进程仍存活时重试；进程退出时打印它的输出后失败。
+- **使用方法**：先 `node scripts/build-electron.js` 和 `npx vite build`，再运行
+  `node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs`。
+  AG-17 会把 `electron/margin` 和 `tests/margin` 加进 `npm test`。
+
 ### 事件记录（2026-10-07）
 
 1. **X2 第一版自测写入了真实目录。**
@@ -708,8 +739,17 @@ X1 → G2（AG-10 起每张 ticket 都要过）
    - **核查**：输出里没有外网错误。`~/.codex/auth.json` 的修改时间仍是 10 月 6 日，没有被改动。
    - **未能证明**：这不能证明这段时间内没有发生外连。
    - **之后**：所有测试只在守卫下运行。
+3. **AG-09 开发中，有几次应用启动没有加载守卫。**
+   - **经过**：Playwright 启动 Electron 时会删掉 `NODE_OPTIONS`，换成自己的 `-r loader.js`，所以通过 `NODE_OPTIONS` 注入的守卫没有生效。这几次运行的 `HOME` 和 Electron 路径仍是沙盒，但 Electron 自己的路径重定向、网络拦截和设备替身都不在。
+   - **影响**：
+     - Chromium 配置写进了真实的 `~/Library/Application Support/Electron`（修改时间 04:38:56），与事件 1 是同一个共用开发目录，没有 Margin 或 Natively 的用户数据，未删除；
+     - 应用卡在音频设备枚举上，没有到就绪阶段：真实的 `~/Documents/natively_debug.log` 在这段时间没有新行，真实的 `natively` 应用数据目录不存在；
+     - 枚举音频设备时，系统**可能**为 Electron 弹出过麦克风权限请求。
+   - **未能证明**：无法证明这几次运行没有发起外连；但应用没有到就绪阶段，也没有配置任何 key。
+   - **修复**：守卫改为通过 `-r` 参数传入（与 Playwright 自己的加载方式相同）；测试启动后先确认主进程里 `MARGIN_ISOLATION_ACTIVE === '1'`，否则立即中止。
+   - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 
-**下一步**：完成 X2 的测试对比和 X3 的构建部分，然后提交；接着按依赖图从 AG-08 开始执行阶段 1。
+**下一步**：AG-13（移除模式系统，重接回答和摘要），每张 ticket 集成后重跑 AG-09 回归。
 
 ## 9. 评审记录
 

@@ -11,11 +11,15 @@ import { makeSandbox, isolatedEnv, readBlocked, REPO } from './env.mjs';
 let args = process.argv.slice(2);
 const allowBlocked = args[0] === '--allow-blocked';
 if (allowBlocked) args = args.slice(1);
+// --allow-exec <basename[:basename]> lets the test process start named programs (the
+// regression harness starts Electron, which then runs under its own isolated env).
+let allowExec = '';
+if (args[0] === '--allow-exec') { allowExec = args[1]; args = args.slice(2); }
 
 const sandbox = makeSandbox('node');
 const res = spawnSync(process.execPath, args, {
   cwd: REPO,
-  env: isolatedEnv(sandbox),
+  env: isolatedEnv(sandbox, { MARGIN_ISOLATION_ALLOW_EXEC: allowExec }),
   stdio: 'inherit',
 });
 const blocked = readBlocked(sandbox);

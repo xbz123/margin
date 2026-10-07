@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai"
 import Groq from "groq-sdk"
 import OpenAI from "openai"
+import { devOpenAIBaseUrl } from './margin/devOverrides';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
 import { createHash } from "crypto"
@@ -199,7 +200,7 @@ export class LLMHelper {
     // Initialize OpenAI client if API key provided
     if (openaiApiKey) {
       this.openaiApiKey = openaiApiKey
-      this.openaiClient = new OpenAI({ apiKey: openaiApiKey })
+      this.openaiClient = new OpenAI({ apiKey: openaiApiKey, baseURL: devOpenAIBaseUrl() })
       console.log(`[LLMHelper] OpenAI client initialized with model: ${OPENAI_MODEL}`)
     }
 
@@ -271,7 +272,7 @@ export class LLMHelper {
 
   public setOpenaiApiKey(apiKey: string) {
     this.openaiApiKey = apiKey;
-    this.openaiClient = new OpenAI({ apiKey });
+    this.openaiClient = new OpenAI({ apiKey, baseURL: devOpenAIBaseUrl() });
     this.visionHealth.delete('openai'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] OpenAI API Key updated.");
   }
