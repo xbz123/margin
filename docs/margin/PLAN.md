@@ -34,6 +34,7 @@
 | S7 | 应用身份为 `Margin` / `io.github.xbz123.margin`，数据目录 `~/Library/Application Support/Margin`；不读取旧 Natively 或 ai assistant 的数据 | 旧 Margin 计划第 2 节 |
 | S8 | 测试不得读写真实用户数据或真实密钥，不得调用付费服务，不得采集真实会议 | 用户初始任务 |
 | S9 | 阶段 1–2 不做实机验收：不授予屏幕录制或麦克风权限，不用真实 key，不访问真实钥匙串 | 由 S8 推出 |
+| S10 | D2–D4 按第 3 节的建议执行；D1 由 X3 的结果决定 | 用户，2026-10-07 |
 
 ## 3. 待定决策
 
@@ -72,17 +73,34 @@
 - **定位**：这个脚本只是审计辅助，不能证明有使用权。G2 还要求逐项来源审查，资产另行人工核对。
 - **预算**：半天。
 - **解锁**：G2。
+- **结果（2026-10-07）：完成。**
+  - **实现**：`scripts/margin/provenance-check.mjs`，配置在 `docs/margin/provenance-config.json`。
+    - 批准池：`a786910e` 及其祖先中所有文本 blob 的有效行，共 128,299 个行键。
+    - 受限池：所有 `refs/remotes/upstream/*` 和 `f326de04` 可达、但基线不可达的 blob 中的有效行，再减去批准池，共 587,141 个行键。
+    - 缓存放在 `.margin-cache/`（不提交）。首次运行约 28 秒，之后使用缓存。
+  - **校准**（以旧 Margin `b8ade3f7` 作为被检目标）：
+    - 全部命中 157,496 行。其中非测试源码 68,443 行，与此前统计的约 6.9 万行"6 月后上游独有行"一致。
+    - 已知的后期上游文件能稳定命中，例如 `turn-classifier.ts` 命中 1,542 行。
+    - Margin 自写的文件命中很少：图标生成脚本 1 行，豆包 STT 23 行，基本都是通用写法。
+    - 例外：`src/i18n.zh.ts` 有 94 行与受限上游相同，包括部分界面译文和提示词示例。迁移这个文件前必须逐行复核。
+  - **误报**：以本分支新写的 704 行有效代码为样本，最初命中 32 行（每千行 46 行）。
+    - 改为把通用写法单独归类：Node 内置模块或包的 import/require（不含相对路径）、`'use strict'`、空初始化、`process.argv.slice(2)`。这类命中单独列出，不再判为失败。
+    - 剩余 7 行，逐条审查后加入白名单并写明理由。
+    - 结果：每千行约 10 行误报。对旧 Margin，通用写法这一类只吸收了 0.8% 的命中，不影响检出能力。
+  - **漏报边界**：
+    - 查不出改写过的代码、12 个字符以下的行、二进制和图片资产（改动的二进制文件会单独列出，交人工核对）；
+    - 查不出受限池之外的来源，比如不在本地对象库里的上游分支。
 
 ### X2 测试与启动的隔离
 
-X2 必须在 X3 的应用启动部分之前完成，也必须在任何启动冒烟之前完成。
+X2 只交付隔离工具和它们自己的自测程序（`scripts/margin/isolation/selftest/`），**不启动应用本身**。应用的首次启动由启动闸门 L0 控制，见下文。
 
 - **要回答的问题**：能否让自动测试和启动冒烟在不外连、不读真实数据的条件下运行？不能完全覆盖的地方，承诺应缩小到什么程度？
 - **要覆盖的层面**：
   - **Node 主进程**：拦截 `net`、`tls`、`http`、`https`、`fetch` 和 `ws` 的非回环连接。
   - **Chromium 渲染层**：用 `session.webRequest` 拦截非回环请求。基线里有一处证据：`src/lib/analytics/analytics.service.ts:123` 会动态加载 GA 脚本。
   - **子进程**：Codex CLI 在 `electron/services/CodexCliService.ts:198` 被拉起。测试时用替身可执行文件，并设一个临时的 `CODEX_HOME`。
-  - **原生模块的 HTTP**：`native-module/src/license.rs:33` 在 AG-10 中删除。删除之前，不启动应用。
+  - **原生模块的 HTTP**：守卫覆盖不到 `native-module/src/license.rs:33`。这一层由启动闸门 L0 处理：在 AG-10 把它删掉之前，不启动应用。
 - **要覆盖的环境**：
   - `HOME` 和 `--user-data-dir` 都指向临时目录。
   - 测试时禁用 dotenv：`electron/main.ts:6` 在非打包状态下会读 `.env`。
@@ -98,7 +116,18 @@ X2 必须在 X3 的应用启动部分之前完成，也必须在任何启动冒�
   - 基线保留的测试在加守卫前后结果一致；
   - 覆盖不了的层面明确列出，相应地收窄 G4 的承诺。
 - **预算**：一天。
-- **解锁**：G4、X3 的启动部分、AG-09。
+- **解锁**：G4，以及启动闸门 L0 的第一个条件。
+
+### 启动闸门 L0（应用首次启动的前提）
+
+应用本身（`electron .`）在以下条件全部满足后才能第一次启动，包括 X3 的启动部分、AG-09 和任何启动冒烟：
+
+1. X2 完成：隔离工具的自测全部通过。
+2. AG-10 已合入：原生模块里的许可证网络代码已删除，这一层守卫覆盖不到。
+3. AG-11、AG-12 已合入：启动时会发出的统计上报和更新检查已删除。否则这些请求会被守卫拦下、记作外连，冒烟无法判定通过与否。
+4. 第 3 项中三张 ticket 的非启动检查都已通过。
+
+这三张 ticket 不依赖启动来验收，见各自的"验证"项，所以不会形成循环依赖。L0 满足后，第一次启动就作为 X3 的启动部分执行，并记录在第 8 节。
 
 ### X3 运行时与工具链
 
@@ -110,6 +139,7 @@ X2 必须在 X3 的应用启动部分之前完成，也必须在任何启动冒�
   - 构建原生模块，重建原生依赖；
   - 在 X2 的启动脚本下分别启动 Electron 33 和 43，记录：就绪信号、观察时长、是否受控退出、主进程有无异常；
   - 升级在一次性的 worktree 里试，不合入。
+- **分两部分做**：构建部分（原生模块的构建和加载，不启动应用）现在就可以做；启动部分要等 L0。
 - **成功标准**：两个版本各自的构建、加载和启动结论都附命令与输出。
 - **预算**：半天。
 - **解锁**：D1、AG-17。
@@ -124,6 +154,17 @@ X2 必须在 X3 的应用启动部分之前完成，也必须在任何启动冒�
 - **成功标准**：选定一种做法，写成 AG-09 的接口契约。
 - **预算**：半天。
 - **解锁**：AG-09。
+- **结论（2026-10-07）：选甲。**
+  - **现状**：OpenAI 客户端在 `electron/LLMHelper.ts:206` 和 `:278` 两处创建，都不带 `baseURL`。DeepSeek（`:220`）已经在用 OpenAI SDK 加固定 `baseURL`，说明加一个 `baseURL` 参数的改动很小。
+  - **甲的改动**：只有一个新函数加两处调用，约 15 行。
+  - **乙的问题**：要新做设置界面、持久化、校验和 IPC，和阶段 3 的 AG-31（厂商预设加兼容地址）设计重叠，容易返工。
+  - **契约**：
+    - 新建 `electron/margin/devOverrides.ts`，导出 `devOpenAIBaseUrl(): string | undefined`。它读取环境变量 `MARGIN_DEV_OPENAI_BASE_URL`，只有同时满足两个条件才返回值，否则返回 `undefined`：
+      1. `app.isPackaged === false`；
+      2. 地址是 `http://127.0.0.1`、`http://localhost` 或 `http://[::1]` 开头。
+    - 同一文件导出 `devScreenshotFixture(): string | undefined`。它读取 `MARGIN_DEV_SCREENSHOT_FIXTURE`，条件同上，并且文件必须真实存在。截图流程看到这个值时，直接返回该图片，不调用系统截图。
+    - 单元测试覆盖：打包状态被忽略、非回环地址被忽略、正常情况生效。
+    - AG-31 实现用户可配置的兼容地址后，再决定这些开关保留为测试专用还是删除。
 
 ### X5 重写量校准（阶段 3 开始时做）
 
@@ -137,7 +178,7 @@ AG-30 完成后，对比旧 Margin 中对应模块的行数和用时，用来重
 | --- | --- | --- |
 | G1 | 构建与类型 | 先清空 `dist` 和 `dist-electron`，再运行 `npm run build:electron` 和 `npx vite build`，都要退出 0。原因：`scripts/build-electron.js` 不会清空输出目录，残留的旧文件会被打包。类型检查记录**诊断差异**：本 ticket 不得引入新的诊断。AG-17 之后，Electron 和渲染层的 `tsc` 都必须退出 0 |
 | G2 | 来源 | X1 脚本对本 ticket 新增行的命中都已解释；引入的旧 Margin 代码或资源已在 PROVENANCE.md 登记（提交、路径、审查方式），并经过逐项审查 |
-| G3 | 退役清单 | `scripts/margin/retired-check.mjs`（新建）按精确的路径、符号、主机和依赖规则检查，零命中。范围是源码、构建配置和依赖树，不扫 `docs/margin`。不用宽泛的子串去查（如 `Pro`、`premium`） |
+| G3 | 退役清单 | `scripts/margin/retired-check.mjs`（新建）按精确的路径、符号、主机和依赖规则检查。**规则逐步启用**：规则表 `docs/margin/retired-rules.json` 中每条规则都标明所属 ticket，只有已完成 ticket 的规则才参与检查，要求零命中。阶段出口用 `--all` 跑全部规则。检查范围是源码、构建配置和依赖树，不扫 `docs/margin`。不用宽泛的子串去查（如 `Pro`、`premium`） |
 | G4 | 隔离 | 所有自动测试和启动冒烟都在 X2 的守卫下运行。覆盖不了的层面按 X2 结论写明 |
 | G5 | 格式 | 提交前 `git diff --check` 无输出 |
 | G6 | 测试 | 列出实际执行的测试清单、跳过项及原因。改动范围内留下的测试和新增测试都要通过；删掉的测试只能是随退役功能一起删的。注意：现在的 `npm test` 只跑 `electron/{services,llm,audio}/__tests__`（`package.json:25`），渲染层和工具函数的测试要单独列出 |
@@ -145,7 +186,16 @@ AG-30 完成后，对比旧 Margin 中对应模块的行数和用时，用来重
 
 **行为证据优先**。基线里的 `MeetingPersistenceRace.test.mjs:18`、`CredentialStorage.test.mjs:14` 和 `ProviderGatewayPolicy.test.mjs:64` 只检查源码里的字符串，不能证明运行行为。它们保留，但不单独作为验收依据。各 ticket 要补上对应的行为检查。
 
-G3 的初始规则（随 ticket 补充）：
+G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归属：
+
+- AG-10：许可证与付费类的符号和主机，premium、natively-api 相关路径，许可证专属的 Rust 依赖。
+- AG-11：遥测和捐赠类。
+- AG-12：`electron-updater`、`ReleaseNotesManager`、`electron/update`。
+- AG-13：模式类符号。
+- AG-14：RAG、`sqlite-vec`、Ollama 和端口 `11434`。
+- AG-15：本地 STT 和模型类。
+- AG-16：外围功能类。
+- AG-17：仅剩余依赖。
 
 - **依赖**：`electron-updater`、`sqlite-vec`、`sqlite-vec-darwin-arm64`、`sqlite-vec-darwin-x64`、`onnxruntime-node`、`@huggingface/transformers`、`tesseract.js`、`@tavily/core`、`three`、`@types/three`、`@google/stitch-sdk`、`qrcode`、`@types/qrcode`、`@bany/curl-to-json`。原生模块里只供许可证代码使用的 Rust 依赖，从 `native-module/Cargo.toml:19` 起核对。
 - **主机**：`natively.software`、`api.natively.software`、`natively-api-production.up.railway.app`、`divine-sun-927d.natively.workers.dev`、`checkout.dodopayments.com`、`live.dodopayments.com`、`customer.dodopayments.com`、`api.gumroad.com`、`www.googletagmanager.com`、`buymeacoffee.com`、`ollama.com`、`app.tavily.com`，以及端口 `11434`。
@@ -161,9 +211,9 @@ G3 的初始规则（随 ticket 补充）：
 
 阶段 1 的 ticket 全部完成，并满足以下各项：
 
-1. **干净安装**：全新克隆后运行 `npm ci`，install 脚本执行完不出现模型文件，原生模块重建成功。
+1. **干净安装**：全新克隆后，依次运行 `npm ci` 和 AG-08 中审查过的 `npm run setup:native`。结束后没有模型文件，原生模块重建成功。同时确认 `package.json` 里已经没有模型下载脚本：这时可以评估是否撤掉 AG-08 的 `ignore-scripts`，结论记入 AG-17。
 2. **构建与类型**：G1 全部满足，两个 `tsc` 都退出 0。
-3. **退役清理**：G3 全部规则零命中。`git ls-tree HEAD` 里没有 `premium`、`natively-api` 和 `.gitmodules`。
+3. **退役清理**：G3 用 `--all` 跑全部规则，零命中。`git ls-tree HEAD` 里没有 `premium`、`natively-api` 和 `.gitmodules`。
 4. **测试**：G6 列出的测试在 X2 守卫下全部通过。
 5. **启动冒烟**（X2 环境）：
    - 主窗口和设置窗口打开，记录就绪状态和观察时长；
@@ -223,8 +273,25 @@ G3 的初始规则（随 ticket 补充）：
 
 ### 阶段 1
 
+**AG-08 禁止安装脚本自动执行**
+
+- **结果**：普通的 `npm ci` / `npm install` 不再自动执行任何安装脚本，包括本仓库的 `postinstall`（含 `download-models.js`）和所有依赖包的 install 脚本。真正需要的原生准备步骤收进一个审查过的命令 `npm run setup:native`，由人显式调用。
+- **范围**：
+  - 新建仓库根目录 `.npmrc`，写入 `ignore-scripts=true`；
+  - 新建 `scripts/margin/setup-native.mjs`，只做三件事：下载 Electron 二进制、重建 Electron 用的原生依赖、构建 `native-module`。不下载模型，也不执行 `postinstall` 里的其他步骤；
+  - 在 `package.json` 中加入 `setup:native` 脚本；
+  - CI 的 `build-smoke.yml` 不用改：它只构建、不加载原生模块。它的 API smoke 任务由 AG-10 删除。
+- **验证**：
+  - 在临时克隆里运行 `npm ci`：没有任何 install 脚本执行；`resources/models` 下没有新增文件；Electron 二进制不存在。
+  - 运行 `npm run setup:native`：成功，原生模块能够加载；仍然没有模型文件。
+- **说明**：
+  - `npm run <脚本>` 不受 `ignore-scripts` 影响，`npm test` 照常可用；但脚本的 pre/post 钩子不会执行。
+  - 模型下载链路本身由 AG-15 删除。
+  - AG-17 评估是否保留 `.npmrc`。
+
 **AG-09 最小回答回归基座**
 
+- **依赖**：X2、X4 和启动闸门 L0。也就是说，AG-09 排在 AG-10、AG-11、AG-12 之后。
 - **结果**：在 X2 隔离下，从真实的 renderer 经 preload、IPC 到 mock 服务，跑通一个可重复的回归，覆盖：文字流式显示、取消、迟到事件、截图替身。
 - **范围**：
   - 新建 `tests/margin/`；
@@ -234,7 +301,7 @@ G3 的初始规则（随 ticket 补充）：
 - **接口**：
   - mock 服务：本地回环端口，模拟一个兼容接口；能记录收到的请求次数和请求内容；能注入延迟和错误。
   - 测试开关的形式按 X4 结论定，并要证明它在打包构建里无效。
-- **验证**：在基线上运行一次，得到"修改前"的结果。之后每张退役 ticket 都重跑。
+- **验证**：在 AG-12 之后的代码上首次运行，结果作为对照。AG-13 起的每张退役 ticket 都重跑这个回归。
 - **停止条件**：如果 X4 的两种做法都不可行，交回决定。
 
 **AG-10 移除 premium、natively-api 和许可证代码**
@@ -251,14 +318,22 @@ G3 的初始规则（随 ticket 补充）：
   1. 删除各模块；
   2. 按构建和类型错误逐处去掉调用点；
   3. 凡是依赖许可证判断的地方，一律保留免费版行为，不把 Pro 功能变成默认开启。
-- **验证**：G3 的许可证与付费部分；原生模块重建成功；AG-09 回归通过。
+- **验证**：不需要启动应用。
+  - G1：构建通过，没有新增的类型诊断；
+  - G3：启用 AG-10 的规则，零命中；
+  - 原生模块重新构建成功，并能在 X2 守卫下的 Node 进程中加载；
+  - 涉及的单元测试在 X2 守卫下通过。
 - **停止条件**：某项要保留的功能只有 Pro 分支的实现。
 
 **AG-11 移除遥测、安装统计和捐赠提示**
 
 - **结果**：主进程和渲染层都没有统计上报，没有捐赠提示和支持提示。
 - **范围**：`electron/services/telemetry/`、`InstallPingManager`、`DonationManager`、`src/lib/analytics/`、`SupportToaster`，以及它们在热点文件中的调用点。
-- **验证**：G3 的统计和捐赠部分；启动冒烟时，守卫记录到零统计请求。
+- **验证**：不需要启动应用。
+  - G1；
+  - G3：启用 AG-11 的规则，零命中；
+  - 把应用源码里出现的主机地址列出来，确认不含统计类主机。
+  - L0 之后的首次启动冒烟时，再确认守卫没有记录到统计请求。
 
 **AG-12 移除自动更新与上游发布**
 
@@ -274,7 +349,11 @@ G3 的初始规则（随 ticket 补充）：
   - `electron-builder.signed.cjs`、`scripts/notarize.js`、`staple-with-retry.js`、`afterAllArtifactBuild.cjs`；
   - `docs/RELEASE.md`。
   - `ad-hoc-sign.js` 保留。
-- **验证**：G3；`publish` 检查。
+- **验证**：不需要启动应用。
+  - G1；
+  - G3：启用 AG-12 的规则，零命中；
+  - 确认 `build.publish` 为 `null`；
+  - 确认 `.github/workflows` 下不再有发布步骤。
 
 **AG-13 去除模式系统，接好保留路径**
 
@@ -429,18 +508,30 @@ G3 的初始规则（随 ticket 补充）：
 
 | 现在可开始 | 可以并行 | 等待什么 |
 | --- | --- | --- |
-| X1、X2、X4 | 三者写入的文件不重叠：X1 写 `scripts/margin/provenance-check.mjs`；X2 写 `scripts/margin/` 下的守卫和启动脚本；X4 只做比较和记录 | — |
-| X3 的构建部分（不启动应用） | 可与上面三项并行，只在一次性 worktree 里操作 | 启动部分要等 X2 |
+| X1、X2、X4 | 三者写入的文件不重叠：X1 写 `scripts/margin/provenance-check.mjs`；X2 写 `scripts/margin/isolation/`；X4 只做比较和记录 | — |
+| AG-08 | 只改 `.npmrc`、`package.json` 的 scripts、`scripts/margin/setup-native.mjs` 和 CI，和 X1、X2、X4 不冲突 | — |
+| X3 的构建部分（不启动应用） | 在 AG-08 的 `setup:native` 上执行；升级 Electron 的尝试只在一次性 worktree 里做 | 启动部分要等 L0 |
+
+**依赖图**（不存在循环）：
+
+```
+X2 ─────────────┐
+AG-08 → AG-10 → AG-11 → AG-12 ─┴→ L0 → X3 启动部分
+                                   L0 + X4 → AG-09 → AG-13 → AG-14 → AG-15 → AG-16 → AG-17 → 阶段 1 出口 → Astra 复核 → 阶段 2
+X1 → G2（AG-10 起每张 ticket 都要过）
+```
 
 **阶段 1**：
 
-- 链条：AG-09 → AG-10 → AG-11 → AG-12 → AG-13 → AG-14 → AG-15 → AG-16 → AG-17，严格串行，因为都要改热点文件和 lockfile。
-- AG-09 的实现要等 X2 和 X4。
-- AG-11 和 AG-12 可以排在 AG-10 之前，但不能和它同时做。
+- AG-08 → AG-10 → AG-11 → AG-12 → AG-09 → AG-13 → AG-14 → AG-15 → AG-16 → AG-17，严格串行，因为都要改热点文件和 lockfile。
+- AG-10、AG-11、AG-12 的验收不需要启动应用，所以它们不依赖 AG-09。
+- AG-09 依赖 L0 和 X4。
 - AG-13 必须排在 AG-14 之前，因为模式代码依赖 RAG。
-- AG-17 中版本处理一步要等 X3 和 D1。
+- AG-17 中处理 Electron 版本的那一步要等 X3 和 D1。
 
-**阶段 2**：AG-17 通过阶段 1 出口验收后开始。
+**阶段 2**：阶段 1 的出口验收通过、Astra 只读复核完成后才开始。
+
+阶段 2 内部的顺序：
 
 - AG-20 先做。
 - AG-21 和 AG-26 只改图标资源和文档，可以和 AG-20 并行。两者都会改 `package.json`，留给 AG-25 合并。
@@ -453,7 +544,7 @@ G3 的初始规则（随 ticket 补充）：
 | 谁 | 做什么 |
 | --- | --- |
 | 实现者 | 跑 G1–G7 和本 ticket 的检查 |
-| 主线程（Claude） | 每张 ticket 集成后跑 AG-09 回归；阶段末跑出口验收 |
+| 主线程（Claude） | AG-09 就绪后，每张 ticket 集成后跑 AG-09 回归；阶段末跑出口验收 |
 | Codex（gpt-6-astra） | 阶段出口时只读复核：读 diff，逐条核对出口验收，只报告不改代码；对来源有疑问的引入项做抽查 |
 
 真实服务和实机验收要等 D2 授权。
@@ -463,12 +554,27 @@ G3 的初始规则（随 ticket 补充）：
 | ID | 状态 | 提交 | 证据与未验证项 |
 | --- | --- | --- | --- |
 | 阶段 0 | 完成 | `e0dc5b40` | BASELINE、PROVENANCE、ADAPTATION |
-| 计划评审 | 完成 | — | Astra 只读评审，见第 9 节 |
+| 计划评审 | 完成 | `f76fba39` | Astra 只读评审，见第 9 节 |
+| 计划修订 | 完成 | — | 按用户 2026-10-07 的要求修订：<br>(1) 加入启动闸门 L0，解开 AG-09、AG-10 与 X2 之间的循环；<br>(2) G3 规则逐步启用；<br>(3) 新增 AG-08；<br>(4) BASELINE.md 改为明确写出证据的不确定性，基线不变 |
+| 事件记录 | 已处理 | — | 两次运行超出了隔离边界，现已修复，详见下文 |
 | X1–X4 | 待开始 | | |
 | AG-09–17 | 待开始 | | |
 | AG-20–26 | 待开始 | | |
 
-**下一步**：用户确认后，并行开始 X1、X2、X4 和 X3 的构建部分。
+### 事件记录（2026-10-07）
+
+1. **X2 第一版自测写入了真实目录。**
+   - **经过**：macOS 版 Electron 从系统账户而不是 `$HOME` 解析 `appData`，所以只改 `HOME` 拦不住。X2 第一版的 Electron 自测（`selftest/electron-main.cjs`，不是应用本身）把 Chromium 的缓存、Cookie 和会话存储写进了真实的 `~/Library/Application Support/Electron`，修改时间为 01:57:49。
+   - **影响**：这个目录 9 月 27 日就已存在，是本机 Electron 开发运行共用的默认配置目录，里面没有 Margin 或 Natively 的用户数据。目录未删除，保持原样。
+   - **修复**：守卫在应用第一次加载 `electron` 模块时，就把 `appData`、`userData`、`documents` 等全部路径改到沙盒内。启动脚本在运行前后检查一组真实目录的快照，任何变化都判为失败。
+   - **复验**：再次运行后，真实目录的修改时间没有变化，配置文件落在沙盒内。
+2. **基线测试曾在未加守卫的状态下运行了一部分。**
+   - **经过**：在修订指令到达前，启动了一次未加守卫的基线测试运行，用的是真实 `HOME`。共产出 397 个测试结果后被手动停止。
+   - **核查**：输出里没有外网错误。`~/.codex/auth.json` 的修改时间仍是 10 月 6 日，没有被改动。
+   - **未能证明**：这不能证明这段时间内没有发生外连。
+   - **之后**：所有测试只在守卫下运行。
+
+**下一步**：完成 X2 的测试对比和 X3 的构建部分，然后提交；接着按依赖图从 AG-08 开始执行阶段 1。
 
 ## 9. 评审记录
 
