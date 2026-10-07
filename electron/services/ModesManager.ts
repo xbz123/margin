@@ -427,14 +427,6 @@ export class ModesManager {
         let usedHybrid = false;
         let usedFallback = false;
         let chunkCount = 0;
-        try {
-            const { telemetryService } = require('./telemetry/TelemetryService');
-            telemetryService.track({
-                name: 'rag_query',
-                modeId: mode.id,
-                properties: { modeTemplateType: mode.templateType, fileCount: files.length, hasTranscript: Boolean(transcript) },
-            });
-        } catch { /* non-fatal */ }
 
         try {
             const result = await this.modeContextRetriever.retrieveHybrid(mode, files, {
@@ -446,14 +438,6 @@ export class ModesManager {
             usedFallback = result.usedFallback;
             chunkCount = result.chunks?.length ?? 0;
             if (result.formattedContext) {
-                try {
-                    const { telemetryService } = require('./telemetry/TelemetryService');
-                    telemetryService.track({
-                        name: usedHybrid ? 'rag_hit' : 'rag_lexical_fallback',
-                        modeId: mode.id,
-                        properties: { chunkCount, modeTemplateType: mode.templateType },
-                    });
-                } catch { /* non-fatal */ }
                 return result.formattedContext;
             }
             // Empty hybrid result — fall through to lexical so we still try.
@@ -462,14 +446,6 @@ export class ModesManager {
         }
 
         const lexical = this.buildRetrievedActiveModeContextBlock(query, transcript, tokenBudget);
-        try {
-            const { telemetryService } = require('./telemetry/TelemetryService');
-            telemetryService.track({
-                name: lexical ? 'rag_lexical_fallback' : 'rag_miss',
-                modeId: mode.id,
-                properties: { modeTemplateType: mode.templateType, fileCount: files.length },
-            });
-        } catch { /* non-fatal */ }
         return lexical;
     }
 

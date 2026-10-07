@@ -77,7 +77,6 @@ import remarkMath from 'remark-math';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { genMessageId } from '../utils/messageId';
 import { useShortcuts } from '../hooks/useShortcuts';
-import { analytics, detectProviderType } from '../lib/analytics/analytics.service';
 import type { MeetingInterfaceTheme } from '../lib/meetingInterfaceTheme';
 import {
   getGlassOverlayAppearance,
@@ -1359,7 +1358,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       // Track new conversation/session if applicable?
       // Actually 'app_opened' is global, 'assistant_started' is overlay.
       // Maybe 'conversation_started' event?
-      analytics.trackConversationStarted();
     });
     return () => unsubscribe();
   }, []);
@@ -2025,7 +2023,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   // memo comparator would never match and the bailout would not fire.
   const handleCopy = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
-    analytics.trackCopyAnswer();
     // Optional: Trigger a small toast or state change for visual feedback
   }, []);
 
@@ -2036,7 +2033,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
-    analytics.trackCommandExecuted('what_to_say');
 
     // Capture and clear attached image context.
     // Also merge in any screenshot from the capture-and-process shortcut that
@@ -2129,7 +2125,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder(intent);
-    analytics.trackCommandExecuted('follow_up_' + intent);
 
     try {
       await window.electronAPI.generateFollowUp(intent);
@@ -2153,7 +2148,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('recap');
-    analytics.trackCommandExecuted('recap');
 
     try {
       await window.electronAPI.generateRecap();
@@ -2177,7 +2171,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('follow_up_questions');
-    analytics.trackCommandExecuted('suggest_questions');
 
     try {
       await window.electronAPI.generateFollowUpQuestions();
@@ -2201,7 +2194,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('clarify');
-    analytics.trackCommandExecuted('clarify');
 
     try {
       await window.electronAPI.generateClarify();
@@ -2268,7 +2260,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
-    analytics.trackCommandExecuted('brainstorm');
 
     const currentAttachments = attachedContext;
     if (currentAttachments.length > 0) {
@@ -2332,13 +2323,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           latency = Date.now() - requestStartTimeRef.current;
           requestStartTimeRef.current = null;
         }
-
-        // Track Usage
-        analytics.trackModelUsed({
-          model_name: currentModel,
-          provider_type: detectProviderType(currentModel),
-          latency_ms: latency,
-        });
 
         setMessages((prev) => {
           const idx =

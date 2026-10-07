@@ -8,7 +8,6 @@ import {
     Sparkles, Pencil, Briefcase, Building2, Search, MapPin, CheckCircle, HelpCircle, Zap, SlidersHorizontal, PointerOff,
     Star, AlertCircle, Gift, Smartphone, Cpu, Shield
 } from 'lucide-react';
-import { analytics } from '../lib/analytics/analytics.service';
 import { AboutSection } from './AboutSection';
 import { HelpSettings } from './settings/HelpSettings';
 import { AIProvidersSettings } from './settings/AIProvidersSettings';
@@ -371,7 +370,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('system');
     const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
     const [isAiLangDropdownOpen, setIsAiLangDropdownOpen] = useState(false);
-    const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'uptodate' | 'error'>('idle');
     const themeDropdownRef = React.useRef<HTMLDivElement>(null);
     const aiLangDropdownRef = React.useRef<HTMLDivElement>(null);
     const [meetingInterfaceTheme, setMeetingInterfaceThemeState] = useState<MeetingInterfaceTheme>(getMeetingInterfaceTheme);
@@ -1112,42 +1110,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
 
 
-    const handleCheckForUpdates = async () => {
-        if (updateStatus === 'checking') return;
-        setUpdateStatus('checking');
-        try {
-            await window.electronAPI.checkForUpdates();
-        } catch (error) {
-            console.error("Failed to check for updates:", error);
-            setUpdateStatus('error');
-            setTimeout(() => setUpdateStatus('idle'), 3000);
-        }
-    };
-
-    useEffect(() => {
-        if (!isOpen) return;
-
-        const unsubs = [
-            window.electronAPI.onUpdateChecking(() => {
-                setUpdateStatus('checking');
-            }),
-            window.electronAPI.onUpdateAvailable(() => {
-                setUpdateStatus('available');
-                // Don't close settings - let user see the button change to "Update Available"
-            }),
-            window.electronAPI.onUpdateNotAvailable(() => {
-                setUpdateStatus('uptodate');
-                setTimeout(() => setUpdateStatus('idle'), 3000);
-            }),
-            window.electronAPI.onUpdateError((err) => {
-                console.error('[Settings] Update error:', err);
-                setUpdateStatus('error');
-                setTimeout(() => setUpdateStatus('idle'), 3000);
-            })
-        ];
-
-        return () => unsubs.forEach(unsub => unsub());
-    }, [isOpen, onClose]);
 
 
 
@@ -1407,7 +1369,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                     setIsUndetectable(newState);
                                                     window.electronAPI?.setUndetectable(newState);
                                                     // Analytics: Undetectable Mode Toggle
-                                                    analytics.trackModeSelected(newState ? 'undetectable' : 'overlay');
                                                 }}
                                                 className={`w-11 h-6 rounded-full relative transition-colors ${isUndetectable ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
                                             >
@@ -1827,60 +1788,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (updateStatus === 'available') {
-                                                                try {
-                                                                    // @ts-ignore
-                                                                    await window.electronAPI.downloadUpdate();
-                                                                    onClose(); // Close settings to show the banner
-                                                                } catch (err) {
-                                                                    console.error("Failed to start download:", err);
-                                                                }
-                                                            } else {
-                                                                handleCheckForUpdates();
-                                                            }
-                                                        }}
-                                                        disabled={updateStatus === 'checking'}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex items-center justify-center gap-2 shrink-0 min-w-[110px] ${
-                                                            updateStatus === 'checking'
-                                                                ? 'bg-bg-input text-text-tertiary border-border-subtle cursor-wait'
-                                                                : updateStatus === 'available'
-                                                                    ? 'bg-accent-primary text-white border-accent-primary hover:bg-accent-secondary shadow-lg shadow-blue-500/20'
-                                                                    : updateStatus === 'uptodate'
-                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                                        : updateStatus === 'error'
-                                                                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                                                                            : 'bg-bg-component hover:bg-bg-elevated text-text-primary border-border-subtle'
-                                                        }`}
-                                                    >
-                                                        {updateStatus === 'checking' ? (
-                                                            <>
-                                                                <RefreshCw size={14} className="animate-spin" />
-                                                                Checking
-                                                            </>
-                                                        ) : updateStatus === 'available' ? (
-                                                            <>
-                                                                <ArrowDown size={14} />
-                                                                Update
-                                                            </>
-                                                        ) : updateStatus === 'uptodate' ? (
-                                                            <>
-                                                                <Check size={14} />
-                                                                Up to date
-                                                            </>
-                                                        ) : updateStatus === 'error' ? (
-                                                            <>
-                                                                <X size={14} />
-                                                                Error
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <RefreshCw size={14} />
-                                                                Check
-                                                            </>
-                                                        )}
-                                                    </button>
                                                 </div>
                                             </div>
                                             </div>
@@ -1986,7 +1893,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                         // @ts-ignore
                                                         window.electronAPI?.setDisguise(option.id);
                                                         // Analytics
-                                                        analytics.trackModeSelected(`disguise_${option.id}`);
                                                     }}
                                                     className={`p-3 rounded-lg border text-left flex items-center gap-3 transition-all ${disguiseMode === option.id
                                                         ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-blue-500/20'

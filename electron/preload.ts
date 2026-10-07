@@ -423,18 +423,6 @@ interface ElectronAPI {
   ) => () => void;
 
 
-  // Auto-Update
-  onUpdateAvailable: (callback: (info: any) => void) => () => void;
-  onUpdateDownloaded: (callback: (info: any) => void) => () => void;
-  onUpdateChecking: (callback: () => void) => () => void;
-  onUpdateNotAvailable: (callback: (info: any) => void) => () => void;
-  onUpdateError: (callback: (err: string) => void) => () => void;
-  onDownloadProgress: (callback: (progressObj: any) => void) => () => void;
-  restartAndInstall: () => Promise<void>;
-  checkForUpdates: () => Promise<void>;
-  downloadUpdate: () => Promise<void>;
-  getCanAutoUpdate: () => Promise<{ canAutoUpdate: boolean }>;
-  testReleaseFetch: () => Promise<{ success: boolean; error?: string }>;
 
   // RAG (Retrieval-Augmented Generation) API
   ragQueryMeeting: (
@@ -511,14 +499,6 @@ interface ElectronAPI {
     cb: (ev: { keyCode: number; chars: string; flags: number; isKeyDown: boolean }) => void,
   ) => () => void;
 
-  // Donation API
-  getDonationStatus: () => Promise<{
-    shouldShow: boolean;
-    hasDonated: boolean;
-    lifetimeShows: number;
-  }>;
-  markDonationToastShown: () => Promise<{ success: boolean }>;
-  setDonationComplete: () => Promise<{ success: boolean }>;
 
 
 
@@ -1537,54 +1517,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
 
-  // Auto-Update
-  onUpdateAvailable: (callback: (info: any) => void) => {
-    const subscription = (_: any, info: any) => callback(info);
-    ipcRenderer.on('update-available', subscription);
-    return () => {
-      ipcRenderer.removeListener('update-available', subscription);
-    };
-  },
-  onUpdateDownloaded: (callback: (info: any) => void) => {
-    const subscription = (_: any, info: any) => callback(info);
-    ipcRenderer.on('update-downloaded', subscription);
-    return () => {
-      ipcRenderer.removeListener('update-downloaded', subscription);
-    };
-  },
-  onUpdateChecking: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('update-checking', subscription);
-    return () => {
-      ipcRenderer.removeListener('update-checking', subscription);
-    };
-  },
-  onUpdateNotAvailable: (callback: (info: any) => void) => {
-    const subscription = (_: any, info: any) => callback(info);
-    ipcRenderer.on('update-not-available', subscription);
-    return () => {
-      ipcRenderer.removeListener('update-not-available', subscription);
-    };
-  },
-  onUpdateError: (callback: (err: string) => void) => {
-    const subscription = (_: any, err: string) => callback(err);
-    ipcRenderer.on('update-error', subscription);
-    return () => {
-      ipcRenderer.removeListener('update-error', subscription);
-    };
-  },
-  onDownloadProgress: (callback: (progressObj: any) => void) => {
-    const subscription = (_: any, progressObj: any) => callback(progressObj);
-    ipcRenderer.on('download-progress', subscription);
-    return () => {
-      ipcRenderer.removeListener('download-progress', subscription);
-    };
-  },
-  restartAndInstall: () => ipcRenderer.invoke('quit-and-install-update'),
-  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
-  downloadUpdate: () => ipcRenderer.invoke('download-update'),
-  getCanAutoUpdate: () => ipcRenderer.invoke('get-can-auto-update'),
-  testReleaseFetch: () => ipcRenderer.invoke('test-release-fetch'),
 
   // RAG API
   ragQueryMeeting: (meetingId: string, query: string) =>
@@ -1692,10 +1624,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
 
-  // Donation API
-  getDonationStatus: () => ipcRenderer.invoke('get-donation-status'),
-  markDonationToastShown: () => ipcRenderer.invoke('mark-donation-toast-shown'),
-  setDonationComplete: () => ipcRenderer.invoke('set-donation-complete'),
 
 
 

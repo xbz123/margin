@@ -38,35 +38,6 @@ export function initializeIpcHandlers(appState: AppState): void {
   // are retired in AG-13.
   const isProOrTrialActive = (): boolean => false;
 
-  // --- NEW Test Helper ---
-  safeHandle('test-release-fetch', async () => {
-    try {
-      console.log('[IPC] Manual Test Fetch triggered (forcing refresh)...');
-      const { ReleaseNotesManager } = require('./update/ReleaseNotesManager');
-      const notes = await ReleaseNotesManager.getInstance().fetchReleaseNotes('latest', true);
-
-      if (notes) {
-        console.log('[IPC] Notes fetched for:', notes.version);
-        const info = {
-          version: notes.version || 'latest',
-          files: [] as any[],
-          path: '',
-          sha512: '',
-          releaseName: notes.summary,
-          releaseNotes: notes.fullBody,
-          parsedNotes: notes,
-        };
-        // Send to renderer
-        appState.getMainWindow()?.webContents.send('update-available', info);
-        return { success: true };
-      }
-      return { success: false, error: 'No notes returned' };
-    } catch (err: any) {
-      console.error('[IPC] test-release-fetch failed:', err);
-      return { success: false, error: err.message };
-    }
-  });
-
   safeHandle('get-recognition-languages', async () => {
     return RECOGNITION_LANGUAGES;
   });
@@ -264,29 +235,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       // console.error("Error resetting queues:", error)
       return { success: false, error: error.message };
     }
-  });
-
-  // Donation IPC Handlers
-  safeHandle('get-donation-status', async () => {
-    const { DonationManager } = require('./DonationManager');
-    const manager = DonationManager.getInstance();
-    return {
-      shouldShow: manager.shouldShowToaster(),
-      hasDonated: manager.getDonationState().hasDonated,
-      lifetimeShows: manager.getDonationState().lifetimeShows,
-    };
-  });
-
-  safeHandle('mark-donation-toast-shown', async () => {
-    const { DonationManager } = require('./DonationManager');
-    DonationManager.getInstance().markAsShown();
-    return { success: true };
-  });
-
-  safeHandle('set-donation-complete', async () => {
-    const { DonationManager } = require('./DonationManager');
-    DonationManager.getInstance().setHasDonated(true);
-    return { success: true };
   });
 
   // Generate suggestion from transcript - Natively-style text-only reasoning
@@ -608,53 +556,8 @@ export function initializeIpcHandlers(appState: AppState): void {
     app.quit();
   });
 
-  safeHandle('quit-and-install-update', async () => {
-    try {
-      console.log('[IPC] Quit and install update requested');
-      await appState.quitAndInstallUpdate();
-      return { success: true };
-    } catch (err: any) {
-      console.error('[IPC] quit-and-install-update failed:', err);
-      return { success: false, error: err.message };
-    }
-  });
-
   safeHandle('delete-meeting', async (_, id: string) => {
     return DatabaseManager.getInstance().deleteMeeting(id);
-  });
-
-  safeHandle('check-for-updates', async () => {
-    try {
-      console.log('[IPC] Manual update check requested');
-      await appState.checkForUpdates();
-      return { success: true };
-    } catch (err: any) {
-      console.error('[IPC] check-for-updates failed:', err);
-      return { success: false, error: err.message };
-    }
-  });
-
-  safeHandle('download-update', async () => {
-    try {
-      console.log('[IPC] Download update requested');
-      appState.downloadUpdate();
-      return { success: true };
-    } catch (err: any) {
-      console.error('[IPC] download-update failed:', err);
-      return { success: false, error: err.message };
-    }
-  });
-
-  // Whether this build can perform a real in-place auto-install + relaunch
-  // (signed macOS build, or any packaged Windows/Linux build). The renderer
-  // uses this to choose the in-app update flow vs. the manual download fallback.
-  safeHandle('get-can-auto-update', async () => {
-    try {
-      return { canAutoUpdate: appState.canAutoUpdate() };
-    } catch (err: any) {
-      console.error('[IPC] get-can-auto-update failed:', err);
-      return { canAutoUpdate: false };
-    }
   });
 
   // Window movement handlers
@@ -3076,22 +2979,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       const intelligenceManager = appState.getIntelligenceManager();
       const action = intelligenceManager.acceptDynamicAction(actionId);
       if (!action) return { success: false, error: 'not_found' };
-      // Phase 6 — telemetry on accept (no transcript, no evidence body).
-      try {
-        const { telemetryService } = require('./services/telemetry/TelemetryService');
-        telemetryService.track({
-          name: 'dynamic_action_accepted',
-          sessionId: action.sessionId,
-          modeId: action.modeId,
-          properties: {
-            actionId: action.id,
-            actionType: action.type,
-            modeTemplateType: action.modeTemplateType,
-          },
-        });
-      } catch {
-        /* non-fatal */
-      }
       // Caller (renderer) is expected to follow up with a normal Ask-AI call
       // using action.promptInstruction. We return the action so the renderer
       // can populate the answer prompt without a second round-trip.
@@ -3108,13 +2995,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       }
       const intelligenceManager = appState.getIntelligenceManager();
       intelligenceManager.dismissDynamicAction(actionId);
-      // Phase 6 — telemetry on dismiss.
-      try {
-        const { telemetryService } = require('./services/telemetry/TelemetryService');
-        telemetryService.track({ name: 'dynamic_action_dismissed', properties: { actionId } });
-      } catch {
-        /* non-fatal */
-      }
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error?.message ?? 'internal_error' };
@@ -3714,17 +3594,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         } else if (appStateIntMgr && !id) {
           appStateIntMgr.clearDynamicActionContext();
         }
-      } catch {
-        /* non-fatal */
-      }
-      // Phase 6 — mode_switched telemetry (no PII).
-      try {
-        const { telemetryService } = require('./services/telemetry/TelemetryService');
-        telemetryService.track({
-          name: 'mode_switched',
-          modeId: activeMode?.id,
-          properties: { modeTemplateType: activeMode?.templateType, cleared: !id },
-        });
       } catch {
         /* non-fatal */
       }

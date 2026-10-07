@@ -9,7 +9,8 @@
 //   path    - the tracked path (file or directory prefix) must not exist
 //   symbol  - identifier must not appear as a whole word in scanned source files
 //   host    - host name (or ":port") must not appear in scanned source files
-//   dep     - npm package must not be in package.json or package-lock.json
+//   dep     - npm package must not be a direct dependency (package.json, or a
+//             top-level package-lock.json entry)
 //   cargo   - Rust crate must not be in native-module/Cargo.toml
 //
 // Usage: node scripts/margin/retired-check.mjs [--all] [--ticket AG-10] [--json]
@@ -67,7 +68,9 @@ for (const r of active) {
   } else if (r.kind === 'dep') {
     const declared = ['dependencies', 'devDependencies', 'optionalDependencies', 'overrides']
       .filter((k) => pkg[k] && r.value in pkg[k]).map((k) => `package.json ${k}`);
-    const locked = Object.keys(lock.packages || {}).filter((p) => p === `node_modules/${r.value}` || p.endsWith(`/node_modules/${r.value}`));
+    // Only direct installs count: a nested copy inside another package (for
+    // example electron-builder's own @electron/notarize) is that package's business.
+    const locked = Object.keys(lock.packages || {}).filter((p) => p === `node_modules/${r.value}`);
     hits = [...declared, ...locked.map((p) => `package-lock.json ${p}`)];
   } else if (r.kind === 'cargo') {
     hits = cargo.split('\n').filter((l) => new RegExp(`^\\s*${escape(r.value)}\\s*=`).test(l)).map((l) => `Cargo.toml: ${l.trim()}`);

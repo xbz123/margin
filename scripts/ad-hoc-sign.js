@@ -79,7 +79,7 @@ exports.default = async function (context) {
     // Running `codesign --sign -` here would clobber that real signature with an ad-hoc one,
     // which can never be notarized — so we skip the ad-hoc step entirely in that case.
     const hasRealIdentity = !!(
-        process.env.NATIVELY_PRODUCTION_SIGN === '1' || // set by electron-builder.signed.cjs
+        process.env.NATIVELY_PRODUCTION_SIGN === '1' || // legacy signed-release flag
         process.env.CSC_LINK ||
         process.env.CSC_NAME ||
         process.env.NATIVELY_SIGN_IDENTITY

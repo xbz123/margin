@@ -281,111 +281,6 @@ export class ModeHybridRetriever {
     }
 
     /**
-     * Per-(modeId, reason) emission timestamps for throttling. An embedding-
-     * provider outage during a 1-hour meeting can trigger fallback on every
-     * transcript-final + every typed input; without throttling that's
-     * hundreds of identical events into the JSONL. We emit at most once per
-     * THROTTLE_MS per (modeId, reason).
-     */
-    private static fallbackEmittedAtByKey = new Map<string, number>();
-    private static readonly FALLBACK_THROTTLE_MS = 60_000;
-
-    /**
-     * Emit a telemetry event when the retriever falls back to lexical-only.
-     * Support and product need this signal in production logs — the previous
-     * console.warn vanished into Electron stderr where nobody noticed when
-     * the embedding provider quietly broke. See FINDING-007.
-     *
-     * Loaded lazily via require so this file can still be unit-tested via
-     * compiled `dist-electron` without dragging the telemetry log path into
-     * the test working directory.
-     */
-    private emitFallbackTelemetry(props: {
-        reason: 'embedding_unavailable' | 'hybrid_threw' | 'db_unavailable';
-        candidateCount: number;
-        queryTokenCount: number;
-        modeId?: string;
-        errorClass?: string;
-    }): void {
-        try {
-            const now = Date.now();
-            const key = `${props.modeId ?? '_'}::${props.reason}`;
-            const last = ModeHybridRetriever.fallbackEmittedAtByKey.get(key) ?? 0;
-            if (now - last < ModeHybridRetriever.FALLBACK_THROTTLE_MS) return;
-            ModeHybridRetriever.fallbackEmittedAtByKey.set(key, now);
-
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { telemetryService } = require('../telemetry/TelemetryService');
-            telemetryService.track({
-                name: 'rag_lexical_fallback',
-                modeId: props.modeId,
-                properties: {
-                    reason: props.reason,
-                    candidateCount: props.candidateCount,
-                    queryTokenCount: props.queryTokenCount,
-                    errorClass: props.errorClass,
-                    // Optional test-run marker. Tests set NATIVELY_TELEMETRY_TEST_RUN_ID
-                    // to filter events emitted by their specific run, isolating
-                    // from any parallel test or stale JSONL line. Production
-                    // leaves this unset.
-                    testRunId: process.env.NATIVELY_TELEMETRY_TEST_RUN_ID || undefined,
-                },
-            });
-        } catch {
-            // Telemetry must never block retrieval. Failures here are
-            // intentionally swallowed; the console.warn at the callsite is
-            // still the human-facing breadcrumb.
-        }
-    }
-
-    /**
-     * Reset the throttle cache. Test-only hook — production retains the
-     * default 60-second debounce.
-     */
-    public static __resetFallbackThrottleForTests(): void {
-        ModeHybridRetriever.fallbackEmittedAtByKey.clear();
-    }
-
-    /**
-     * Static emitter for callers outside this class (e.g.
-     * ModeContextRetriever's db-unavailable branch) that still need to
-     * share the (modeId, reason) throttle. Always goes through the same
-     * 60-second debounce so a sticky outage cannot spam thousands of
-     * events from a per-turn caller.
-     */
-    public static emitFallbackTelemetryStatic(props: {
-        reason: 'embedding_unavailable' | 'hybrid_threw' | 'db_unavailable';
-        candidateCount?: number;
-        queryTokenCount?: number;
-        modeId?: string;
-        errorClass?: string;
-    }): void {
-        try {
-            const now = Date.now();
-            const key = `${props.modeId ?? '_'}::${props.reason}`;
-            const last = ModeHybridRetriever.fallbackEmittedAtByKey.get(key) ?? 0;
-            if (now - last < ModeHybridRetriever.FALLBACK_THROTTLE_MS) return;
-            ModeHybridRetriever.fallbackEmittedAtByKey.set(key, now);
-
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { telemetryService } = require('../telemetry/TelemetryService');
-            telemetryService.track({
-                name: 'rag_lexical_fallback',
-                modeId: props.modeId,
-                properties: {
-                    reason: props.reason,
-                    candidateCount: props.candidateCount,
-                    queryTokenCount: props.queryTokenCount,
-                    errorClass: props.errorClass,
-                    testRunId: process.env.NATIVELY_TELEMETRY_TEST_RUN_ID || undefined,
-                },
-            });
-        } catch {
-            // Never block retrieval.
-        }
-    }
-
-    /**
      * Main retrieval entry point - hybrid FTS + vector search
      */
     async retrieve(params: {
@@ -466,23 +361,10 @@ export class ModeHybridRetriever {
                 candidates = await this.performHybridRetrieval(allCandidates, queryWords, queryText, adaptiveThreshold);
             } catch (error) {
                 console.warn('[ModeHybridRetriever] Hybrid retrieval failed, falling back to lexical:', error);
-                this.emitFallbackTelemetry({
-                    reason: 'hybrid_threw',
-                    candidateCount: allCandidates.length,
-                    queryTokenCount: queryWords.size,
-                    modeId: params.modeId,
-                    errorClass: error instanceof Error ? error.constructor.name : typeof error,
-                });
                 candidates = this.performLexicalRetrieval(allCandidates, queryWords, adaptiveThreshold);
             }
         } else {
             console.warn('[ModeHybridRetriever] Embedding provider unavailable, using lexical fallback');
-            this.emitFallbackTelemetry({
-                reason: 'embedding_unavailable',
-                candidateCount: allCandidates.length,
-                queryTokenCount: queryWords.size,
-                modeId: params.modeId,
-            });
             candidates = this.performLexicalRetrieval(allCandidates, queryWords, adaptiveThreshold);
         }
 

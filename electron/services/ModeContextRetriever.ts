@@ -216,14 +216,6 @@ export class ModeContextRetriever {
             const dbPath = DatabaseManager.getInstance().getDbPath();
             if (!db) {
                 console.warn('[ModeContextRetriever] Database not available for hybrid retrieval');
-                // Route through the same throttle the hybrid retriever uses
-                // so a sticky DB outage during a 1-hour meeting can't spam
-                // hundreds of identical events (the retriever is called per
-                // transcript turn). See FINDING-007 in BUGFIX_LOG.
-                ModeHybridRetriever.emitFallbackTelemetryStatic({
-                    reason: 'db_unavailable',
-                    modeId: mode.id,
-                });
                 return { chunks: [], formattedContext: '', usedFallback: true, usedHybrid: false };
             }
             // VectorStore needs db, dbPath, and extPath - create minimal instance for mode retrieval

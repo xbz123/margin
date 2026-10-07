@@ -605,7 +605,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | X4 mock 通道 | 完成（决策） | `02b3d9fd` | 选甲；接口契约见第 4 节 X4。实现放在 AG-09 |
 | AG-08 | 完成 | `5ae76a18` | 在全新克隆里运行 `npm ci`：零安装脚本、没有模型文件。<br>**受阻**：没有 Xcode 时，干净机器上 `setup:native` 无法构建 Rust 模块，验收等 D5 |
 | AG-10 | 完成 | 见 AG-10 提交 | 见下文 AG-10 记录 |
-| AG-11、AG-12 | 待开始 | | 下一步 |
+| AG-11、AG-12 | 完成 | 见 AG-11/12 提交 | 见下文 AG-11、AG-12 记录。两张 ticket 改了同一批热点文件，并且在同一工作区内交替进行，无法干净地拆成两个提交，因此合为一个提交，提交说明里分别列出 |
 | L0 / AG-09 | 待开始 | | 等 AG-11、AG-12 完成 |
 | AG-13–17 | 待开始 | | |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
@@ -639,6 +639,41 @@ X1 → G2（AG-10 起每张 ticket 都要过）
     - `scripts/margin/ipc-channel-check.mjs`：检查被调用的 IPC 通道是否都有主进程处理函数。结果为零缺口；另有 2 个基线原有的缺口记在 `docs/margin/ipc-baseline-gaps.txt`，也放到 AG-17。
   - **原生模块**：在守卫下的 Node 进程中加载正常，不再有许可证导出（`native-exports.node.test.mjs`）。
 - **未验证**：应用启动（等 L0）；渲染层改动后的实际界面（等 L0 和 AG-09）。
+
+### AG-11 记录（2026-10-07）
+
+- **删除内容**：
+  - `TelemetryService`：用量事件写入本地 JSONL，并预留了 PostHog/Axiom/Sentry 的接收端配置。这些是用量统计，不是诊断日志，因此整体删除，同时删掉全部埋点和 `telemetryEnabled` 设置；
+  - `InstallPingManager`：首启时向 `divine-sun-927d.natively.workers.dev` 发送安装计数；
+  - `DonationManager` 及其 IPC；
+  - 渲染层 GA4（`src/lib/analytics`），共删掉 20 处调用；
+  - 捐赠和支持入口：`SupportToaster`、`FeatureSpotlight`（Launcher 顶部的"捐赠 + 即将推出"卡片），以及 About 页的捐赠卡片；
+  - `.github/FUNDING.yml`；
+  - `index.html` 的 CSP 中删掉 GA、GTM，以及 premium 远程广告服务器 `campaign-sand.vercel.app`。G3 新增了这个广告主机和 FUNDING 文件的规则。
+- **保留**：
+  - `ErrorBoundary` 写本地主进程日志；
+  - `VisionProviderFallbackChain` 内部的事件回调，它不联网。
+- **转给 AG-24**：渲染层仍会加载 Google Fonts 和 `cdn.simpleicons.org` 的提供方图标，这是第三方运行时请求。
+
+### AG-12 记录（2026-10-07）
+
+- **删除内容**：
+  - `electron-updater` 及全部自动更新代码：签名构建判断、安装后重启、手动版本检查、GitHub release notes 拉取（`electron/update/`）；
+  - 更新相关的 IPC、preload 和类型；`UpdateBanner`、`UpdateModal`；设置页的"检查更新"按钮。版本号显示保留；
+  - Developer ID 签名和公证链路：`electron-builder.signed.cjs`、`notarize.js`、`staple-with-retry.js`、`afterAllArtifactBuild.cjs`、`@electron/notarize`、`app:build:signed`、`dist:signed`；
+  - CI：删除 `release-macos.yml`；`build-smoke.yml` 去掉 Natively API 测试任务；
+  - `docs/RELEASE.md`。
+- **修改**：`build.publish` 改为 `null`；删除 `generateUpdatesFilesForAllChannels`；lockfile 同步（`--package-lock-only --ignore-scripts`）。
+- **G3 规则调整**：依赖规则只检查直接依赖。`@electron/notarize` 仍作为 electron-builder 自身的嵌套依赖留在 lockfile 中，不属于本项目引入的依赖。
+- **说明**：`ad-hoc-sign.js` 中按环境变量跳过 ad hoc 签名的保护逻辑原样保留，由 AG-25 统一处理打包。
+
+### AG-11、AG-12 联合检查（不启动应用）
+
+- **G1**：两个 `tsc`，渲染层 0 个错误；Electron 与基线相比没有新增诊断，而且随更新代码一起少了 1 个基线原有错误（`UpdateDownloadedEvent.filePath`）。构建见下面全量测试那一行。
+- **G2**：零命中。
+- **G3**：AG-10 到 AG-12 共 56 条规则，零命中。
+- **契约检查**：preload 只剩 4 个基线原有的不一致；IPC 零缺口。
+- **G6**：全量测试结果见第 8 节。
 
 ### 事件记录（2026-10-07）
 

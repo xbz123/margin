@@ -7,8 +7,6 @@ import MeetingDetails from './MeetingDetails';
 import TopSearchPill from './TopSearchPill';
 import GlobalChatOverlay from './GlobalChatOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FeatureSpotlight } from './FeatureSpotlight';
-import { analytics } from '../lib/analytics/analytics.service'; // Added analytics import
 import { useShortcuts } from '../hooks/useShortcuts';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { isMac } from '../utils/platformUtils';
@@ -205,7 +203,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
         const newState = !isDetectable;
         setIsDetectable(newState);
         window.electronAPI?.setUndetectable(!newState); // Note: setUndetectable takes the *undetectable* state, which is inverse of *detectable*
-        analytics.trackModeSelected(newState ? 'launcher' : 'undetectable'); // If visible (detectable), mode is normal/launcher. If not detectable, mode is undetectable.
     };
 
     // Group meetings
@@ -254,7 +251,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
     const handleOpenMeeting = async (meeting: Meeting) => {
         setForwardMeeting(null); // Clear forward history on new navigation
         console.log("[Launcher] Opening meeting:", meeting.id);
-        analytics.trackCommandExecuted('open_meeting_details');
 
         // Fetch full meeting details including transcript and usage
         if (window.electronAPI && window.electronAPI.getMeetingDetails) {
@@ -354,14 +350,12 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                 <TopSearchPill
                     meetings={meetings}
                     onAIQuery={(query) => {
-                        analytics.trackCommandExecuted('ai_query_search');
                         setSubmittedGlobalQuery(query);
                         setIsGlobalChatOpen(true);
                     }}
                     onLiteralSearch={(query) => {
                         // For now, also use AI query for literal search
                         // Could be enhanced to do fuzzy filtering in the UI
-                        analytics.trackCommandExecuted('literal_search');
                         setSubmittedGlobalQuery(query);
                         setIsGlobalChatOpen(true);
                     }}
@@ -369,7 +363,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                         const meeting = meetings.find(m => m.id === meetingId);
                         if (meeting) {
                             handleOpenMeeting(meeting);
-                            analytics.trackCommandExecuted('open_meeting_from_search');
                         }
                     }}
                 />
@@ -537,10 +530,8 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                     // logo-click set currentWindowMode='launcher', so showWindow()
                                                     // would re-show the launcher rather than switch to overlay.
                                                     window.electronAPI?.setWindowMode?.('overlay', true);
-                                                    analytics.trackCommandExecuted('resume_meeting_from_launcher');
                                                 } else {
                                                     onStartMeeting();
-                                                    analytics.trackCommandExecuted('start_natively_cta');
                                                 }
                                             }}
                                             whileHover={{ scale: 1.01, filter: 'brightness(1.1)' }}
@@ -605,16 +596,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                 </AnimatePresence>
                                             </div>
                                         </motion.button>
-                                    </div>
-
-                                    {/* 2. Hero Section Cards */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 h-[198px]">
-                                        <div className="md:col-span-3 h-full">
-                                            <FeatureSpotlight />
-                                        </div>
-
-
-
                                     </div>
                                 </div>
                             </section>
@@ -694,7 +675,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                                                 className={`w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-text-primary rounded-lg transition-colors text-left ${isLight ? 'hover:bg-bg-item-surface' : 'hover:bg-white/10'}`}
                                                                                 onClick={async () => {
                                                                                     setActiveMenuId(null);
-                                                                                    analytics.trackPdfExported();
                                                                                     // Fetch full details if needed
                                                                                     if (window.electronAPI && window.electronAPI.getMeetingDetails) {
                                                                                         try {
