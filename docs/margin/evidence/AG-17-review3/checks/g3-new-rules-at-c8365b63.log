@@ -1,0 +1,4 @@
+c8365b63:src/components/NativelyInterface.tsx:568:        config.provider === 'codex-cli' ? 'Local/private route' : null,
+c8365b63:src/components/settings/AIProvidersSettings.tsx:586:                    <h3 className="text-sm font-bold text-text-primary mb-1">Local Provider (Codex CLI)</h3>
+c8365b63:src/components/settings/AIProvidersSettings.tsx:587:                    <p className="text-xs text-text-secondary">Route text and screenshot responses through a locally authenticated Codex CLI.</p>
+c8365b63:src/components/settings/AIProvidersSettings.tsx:594:                            <p className="text-[10px] text-text-secondary">Adds Codex CLI as a selectable local backend and fallback.</p>

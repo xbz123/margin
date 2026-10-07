@@ -1,0 +1,5 @@
+ok - record from the started test process []
+ok - record only from a grandchild ["<no guard-loaded record>"]
+ok - record without ppid (old guard) ["<no guard-loaded record>"]
+ok - blocked attempt plus a matching record ["dns x.invalid"]
+ok - missing log ["<no guard-loaded record>"]

@@ -1,0 +1,27 @@
+// Copy of isolationRecords() from scripts/margin/run-gates.mjs, run against made-up logs.
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+function isolationRecords(log, runNodePid) {
+  const records = fs.existsSync(log)
+    ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { kind: 'unreadable', detail: l }; } })
+    : [];
+  const blocked = [...new Set(records.filter((r) => r.kind !== 'guard-loaded').map((r) => `${r.kind} ${r.detail}`))];
+  if (!records.some((r) => r.kind === 'guard-loaded' && r.ppid === runNodePid)) blocked.push('<no guard-loaded record>');
+  return blocked;
+}
+
+const dir = process.argv[2];
+const write = (name, recs) => { const p = path.join(dir, name); fs.writeFileSync(p, recs.map((r) => JSON.stringify(r)).join('\n') + '\n'); return p; };
+const load = (pid, ppid) => ({ pid, ...(ppid === undefined ? {} : { ppid }), kind: 'guard-loaded', detail: 'node' });
+const cases = [
+  ['record from the started test process', write('a.jsonl', [load(201, 100)]), 100, []],
+  ['record only from a grandchild', write('b.jsonl', [load(301, 201)]), 100, ['<no guard-loaded record>']],
+  ['record without ppid (old guard)', write('c.jsonl', [load(201)]), 100, ['<no guard-loaded record>']],
+  ['blocked attempt plus a matching record', write('d.jsonl', [load(201, 100), { pid: 201, kind: 'dns', detail: 'x.invalid' }]), 100, ['dns x.invalid']],
+  ['missing log', path.join(dir, 'none.jsonl'), 100, ['<no guard-loaded record>']],
+];
+for (const [name, log, pid, expected] of cases) {
+  assert.deepEqual(isolationRecords(log, pid), expected, name);
+  console.log('ok -', name, JSON.stringify(isolationRecords(log, pid)));
+}

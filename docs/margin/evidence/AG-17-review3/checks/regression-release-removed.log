@@ -1,0 +1,23 @@
+✔ a typed question streams the mock answer into the overlay (1681.838417ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (8056.529334ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3282.403ms)
+✔ a screenshot question sends the fixture image to the model (396.917708ms)
+✔ a provider error is shown and the next question still works (1549.922666ms)
+✖ after a chat request fails before streaming, the next answer is shown once and kept (20619.29425ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36229.087084
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:292:1
+✖ after a chat request fails before streaming, the next answer is shown once and kept (20619.29425ms)
+  page.waitForFunction: Timeout 20000ms exceeded.
+      at TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:312:18) {
+    name: 'TimeoutError'
+  }

@@ -1,0 +1,38 @@
+✖ every cloud send in LLMHelper.ts is preceded by a scope check in its method (13.655917ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 126.33
+
+✖ failing tests:
+
+test at ../../../../../../../private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/sweep/sweep-mutant.test.mjs:8:1
+✖ every cloud send in LLMHelper.ts is preceded by a scope check in its method (13.655917ms)
+  AssertionError [ERR_ASSERTION]: sends without a scope check
+  + actual - expected
+  
+  + [
+  +   {
+  +     checked: false,
+  +     line: 1599,
+  +     method: 'private async generateWithClaude(userMessage: string, system'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/sweep/sweep-mutant.test.mjs:22:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { line: 1599, method: 'private async generateWithClaude(userMessage: string, system', checked: false } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

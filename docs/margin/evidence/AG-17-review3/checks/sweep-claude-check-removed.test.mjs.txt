@@ -1,0 +1,23 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+// Copy of the static sweep in ScopeLocalFallback.test.mjs, reading a copy of
+// LLMHelper.ts with the scope check of generateWithClaude removed.
+// Static sweep: every call in LLMHelper.ts that sends to a cloud provider must have a
+// scope check earlier in the same method. A new send without one fails here.
+test('every cloud send in LLMHelper.ts is preceded by a scope check in its method', () => {
+  const lines = fs.readFileSync(process.argv[2] ?? '/private/tmp/claude-501/-Users-mac-code-Natively/9d4dc2ab-eb42-43c2-ab59-04e8fddb2ec8/scratchpad/sweep/LLMHelper.mutant.ts', 'utf8').split('\n');
+  const SEND = /\.chat\.completions\.create\(|\.models\.generateContent(?:Stream)?\(|\.messages\.(?:create|stream)\(|CodexCliService\.(?:run|stream)\(/;
+  const METHOD = /^ {2}(?:public |private |protected )?(?:static )?(?:async )?(?:\* ?)?[A-Za-z_]\w*\s*\(/;
+  const CHECK = /assertOutboundScopes\(|assertGeminiContents\(|getDeniedDataScopes\(\[/;
+  const sends = [];
+  lines.forEach((line, i) => {
+    if (!SEND.test(line) || /^\s*(?:\/\/|\*)/.test(line)) return;
+    let start = i;
+    while (start > 0 && !METHOD.test(lines[start])) start--;
+    const checked = lines.slice(start, i).some((l) => CHECK.test(l));
+    sends.push({ line: i + 1, method: lines[start].trim().slice(0, 60), checked });
+  });
+  assert.ok(sends.length >= 20, `found only ${sends.length} sends; the pattern no longer matches the code`);
+  assert.deepEqual(sends.filter((s) => !s.checked), [], 'sends without a scope check');
+});
