@@ -814,6 +814,9 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     const [selectedInput, setSelectedInput] = useState('');
     const [selectedOutput, setSelectedOutput] = useState('');
     const [micLevel, setMicLevel] = useState(0);
+    // System audio probe that the main process runs next to the mic test.
+    const [systemAudioLevel, setSystemAudioLevel] = useState(0);
+    const [systemAudioTestError, setSystemAudioTestError] = useState<string | null>(null);
     const [useExperimentalSck, setUseExperimentalSck] = useState(false);
     // Most-recent device fallback notice. Populated by main process via
     // 'device-selection-applied' IPC when the saved device couldn't be opened
@@ -1193,6 +1196,14 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             const unsubscribe = window.electronAPI?.onAudioTestLevel?.((level) => {
                 setMicLevel(Math.max(0, Math.min(100, level * 100)));
             });
+            const unsubscribeSystemLevel = window.electronAPI?.onAudioTestSystemLevel?.((level) => {
+                setSystemAudioLevel(Math.max(0, Math.min(100, level * 100)));
+            });
+            const unsubscribeSystemError = window.electronAPI?.onAudioTestSystemError?.((message) => {
+                setSystemAudioLevel(0);
+                setSystemAudioTestError(message);
+            });
+            setSystemAudioTestError(null);
 
             window.electronAPI?.startAudioTest(selectedInput || undefined).catch((error) => {
                 console.error("Error starting native microphone test:", error);
@@ -1201,13 +1212,17 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
             return () => {
                 unsubscribe?.();
+                unsubscribeSystemLevel?.();
+                unsubscribeSystemError?.();
                 window.electronAPI?.stopAudioTest?.().catch((error) => {
                     console.error("Error stopping native microphone test:", error);
                 });
                 setMicLevel(0);
+                setSystemAudioLevel(0);
             };
         } else {
             setMicLevel(0);
+            setSystemAudioLevel(0);
             window.electronAPI?.stopAudioTest?.().catch((error) => {
                 console.error("Error stopping native microphone test:", error);
             });
@@ -2466,6 +2481,21 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 }}
                                                 placeholder="Default Speakers"
                                             />
+
+                                            <div>
+                                                <div className="flex justify-between text-xs text-text-secondary mb-2 px-1">
+                                                    <span>System Audio Level</span>
+                                                </div>
+                                                <div className="h-1.5 bg-bg-input rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-green-500 transition-all duration-100 ease-out"
+                                                        style={{ width: `${systemAudioLevel}%` }}
+                                                    />
+                                                </div>
+                                                {systemAudioTestError && (
+                                                    <p className="text-[11px] text-yellow-600 dark:text-yellow-500 mt-2 px-1">{systemAudioTestError}</p>
+                                                )}
+                                            </div>
 
                                             <div className="flex justify-end">
                                                 <button

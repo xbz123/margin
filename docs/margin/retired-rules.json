@@ -6,7 +6,8 @@
     "AG-13",
     "AG-14",
     "AG-15",
-    "AG-16"
+    "AG-16",
+    "AG-17"
   ],
   "scanRoots": [
     "electron",

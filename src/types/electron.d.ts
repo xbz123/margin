@@ -6,9 +6,7 @@ export interface ElectronAPI {
   onToggleExpand: (callback: () => void) => () => void
   getRecognitionLanguages: () => Promise<Record<string, any>>
   getScreenshots: () => Promise<Array<{ path: string; preview: string }>>
-  deleteScreenshot: (
-    path: string
-  ) => Promise<{ success: boolean; error?: string }>
+  deleteScreenshot: (path: string) => Promise<{ success: boolean; error?: string }>
   onScreenshotTaken: (
     callback: (data: { path: string; preview: string }) => void
   ) => () => void
@@ -74,9 +72,6 @@ export interface ElectronAPI {
   getOpenAtLogin: () => Promise<boolean>
   onSettingsVisibilityChange: (callback: (isVisible: boolean) => void) => () => void
   toggleSettingsWindow: (coords?: { x: number; y: number }) => Promise<void>
-  closeSettingsWindow: () => Promise<void>
-  toggleAdvancedSettings: () => Promise<void>
-  closeAdvancedSettings: () => Promise<void>
   openSettingsTab: (tab: string) => Promise<void>
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void
 

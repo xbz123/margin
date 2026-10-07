@@ -203,16 +203,25 @@ test('validateExecutable: returns resolvedPath on success', async () => {
 });
 
 test('validateExecutable: bare unfound name falls back to auto-detection if available', async () => {
-  // Use a fake bare name that won't exist; if autoDetectPath finds a real
-  // codex on this machine, we should get success. Otherwise, expect failure.
-  const r = await CodexCliService.validateExecutable('definitely-not-a-real-binary-xyz', 5000);
-  const detected = CodexCliService.autoDetectPath();
-  if (detected) {
-    assert.equal(r.success, true);
-    assert.equal(r.resolvedPath, detected);
-  } else {
-    assert.equal(r.success, false);
-    assert.ok(typeof r.error === 'string');
+  // The candidate list is stubbed so the result does not depend on whether this
+  // machine has a real codex installed (the isolation guard blocks running one;
+  // PLAN.md AG-17). A mock binary stands in for a detected install.
+  const mockCodex = path.join(os.tmpdir(), `codex-mock-version-${process.pid}.sh`);
+  fs.writeFileSync(mockCodex, '#!/bin/sh\necho codex-cli 0.0.0\n', { mode: 0o755 });
+  const original = CodexCliService.getCandidatePaths;
+  try {
+    CodexCliService.getCandidatePaths = () => [path.join(os.tmpdir(), 'no-such-codex'), mockCodex];
+    const found = await CodexCliService.validateExecutable('definitely-not-a-real-binary-xyz', 5000);
+    assert.equal(found.success, true);
+    assert.equal(found.resolvedPath, mockCodex);
+
+    CodexCliService.getCandidatePaths = () => [path.join(os.tmpdir(), 'no-such-codex')];
+    const missing = await CodexCliService.validateExecutable('definitely-not-a-real-binary-xyz', 5000);
+    assert.equal(missing.success, false);
+    assert.ok(typeof missing.error === 'string');
+  } finally {
+    CodexCliService.getCandidatePaths = original;
+    fs.rmSync(mockCodex, { force: true });
   }
 });
 

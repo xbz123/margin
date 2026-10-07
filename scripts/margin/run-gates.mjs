@@ -38,6 +38,10 @@ const TEST_GLOBS = [
   'electron/llm/__tests__/**/*.test.mjs',
   'electron/audio/__tests__/**/*.test.mjs',
   'electron/margin/__tests__/**/*.test.mjs',
+  // Added in PLAN.md AG-17 (they were outside `npm test` before).
+  'electron/utils/__tests__/**/*.test.mjs',
+  'electron/test/__tests__/**/*.test.mjs',
+  'src/lib/__tests__/**/*.test.mjs',
 ];
 
 const steps = [
@@ -61,6 +65,8 @@ const steps = [
     '--test-timeout=180000', 'tests/margin/answer-regression.test.mjs'], timeoutMs: 600_000 },
   { id: 'storage', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
     '--test-timeout=240000', 'tests/margin/meeting-storage.test.mjs'], timeoutMs: 600_000 },
+  { id: 'startup', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
+    '--test-timeout=180000', 'tests/margin/startup-smoke.test.mjs'], timeoutMs: 300_000 },
   { id: 'diff-check', cmd: 'git', args: ['diff', 'HEAD', '--check'] },
 ];
 

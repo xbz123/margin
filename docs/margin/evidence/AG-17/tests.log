@@ -1,0 +1,4 @@
+===== electron/services/__tests__/ImeDetectorCache.test.mjs
+[isolation] 2 blocked attempt(s); log: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-jxtT08/isolation.jsonl
+[isolation]   local-exec execFileSync defaults
+[isolation]   local-exec execFileSync defaults

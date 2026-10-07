@@ -335,7 +335,6 @@ interface ElectronAPI {
   onWindowMaximizedChanged: (callback: (isMaximized: boolean) => void) => () => void;
   onEnsureExpanded: (callback: () => void) => () => void;
   onToggleExpand: (callback: () => void) => () => void;
-  toggleAdvancedSettings: () => Promise<void>;
   openSettingsTab: (tab: string) => Promise<void>;
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void;
   setOverlayMousePassthrough: (enabled: boolean) => Promise<{ success: boolean }>;
@@ -404,6 +403,7 @@ interface ElectronAPI {
    *  enabled — the tap captures below the IME and breaks composition, so
    *  the renderer falls back to plain DOM focus on click. */
   stealthTapShouldAutoEngage: () => Promise<boolean>;
+  stealthTapRefreshIme: () => Promise<boolean>;
   onStealthTapState: (cb: (state: { active: boolean; reason?: string }) => void) => () => void;
   onStealthKeyCaptured: (
     cb: (ev: { keyCode: number; chars: string; flags: number; isKeyDown: boolean }) => void,
@@ -668,7 +668,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('ensure-expanded', subscription);
     };
   },
-  toggleAdvancedSettings: () => ipcRenderer.invoke('toggle-advanced-settings'),
   openSettingsTab: (tab: string) => ipcRenderer.invoke('settings:open-tab', tab),
   onOpenSettingsTab: (callback: (tab: string) => void) => {
     const subscription = (_: any, tab: string) => callback(tab);
@@ -1291,6 +1290,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stealthTapStop: () => ipcRenderer.invoke('stealth-tap:stop'),
   stealthTapStart: () => ipcRenderer.invoke('stealth-tap:start'),
   stealthTapShouldAutoEngage: () => ipcRenderer.invoke('stealth-tap:should-auto-engage'),
+  stealthTapRefreshIme: () => ipcRenderer.invoke('stealth-tap:refresh-ime'),
   onStealthTapState: (cb: (state: { active: boolean; reason?: string }) => void) => {
     const sub = (_: any, state: { active: boolean; reason?: string }) => cb(state);
     ipcRenderer.on('stealth-tap-state', sub);

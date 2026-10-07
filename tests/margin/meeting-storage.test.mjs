@@ -5,8 +5,8 @@
 //   start -> transcript (test-inject-transcript) -> end -> title and structured
 //   summary from a loopback mock -> read back -> restart -> read again -> delete ->
 //   restart -> still deleted.
-// The summary chain in this baseline never calls OpenAI (custom -> Codex -> Groq ->
-// Gemini), so the mock serves the Groq client through the SDK's own GROQ_BASE_URL.
+// The summary chain never calls OpenAI (Codex -> Groq -> Gemini), so the mock
+// serves the Groq client through the SDK's own GROQ_BASE_URL.
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:

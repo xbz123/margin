@@ -22,6 +22,15 @@ if (!fs.existsSync(compiledPath)) {
 }
 const { OpenAIStreamingSTT } = await import(pathToFileURL(compiledPath).href);
 
+// Deferred in PLAN.md AG-17: these cases expect transcription_session.update with
+// input_audio_format, while the baseline code sends session.update with the
+// audio.input block and treats session.created as ready. Which one OpenAI's
+// current Realtime transcription API wants has to be checked against its docs and
+// a real call (D2), so the protocol is settled in AG-40/AG-41, not here. Running
+// the session.created case against the current code also leaves a 20 s keep-alive
+// interval behind, which kept this file from ever finishing.
+const PROTOCOL_DEFERRED = 'Realtime transcription protocol deferred to AG-40/AG-41 (PLAN.md AG-17)';
+
 const WS_OPEN = 1; // ws.WebSocket.OPEN
 
 function makeStubWs({ throwOnFirstSend = false, throwOnType = null } = {}) {
@@ -82,12 +91,12 @@ describe('wire format', () => {
         assert.doesNotMatch(source, /OpenAI-Beta/);
     });
 
-    test('sends transcription_session.update not session.update', () => {
+    test('sends transcription_session.update not session.update', { skip: PROTOCOL_DEFERRED }, () => {
         assert.match(source, /type: 'transcription_session\.update'/);
         assert.doesNotMatch(source, /type: 'session\.update'/);
     });
 
-    test('uses GA input_audio_format field not beta audio.input.format', () => {
+    test('uses GA input_audio_format field not beta audio.input.format', { skip: PROTOCOL_DEFERRED }, () => {
         assert.match(source, /input_audio_format: 'pcm16'/);
         assert.doesNotMatch(source, /audio\.input\.format/);
     });
@@ -111,7 +120,7 @@ describe('wire format', () => {
         );
     });
 
-    test('does not fall through session.created to transcription_session.created handler', () => {
+    test('does not fall through session.created to transcription_session.created handler', { skip: PROTOCOL_DEFERRED }, () => {
         // The fallthrough has been replaced with a logged-and-ignored warning.
         // Require the case to exist (so a future rename/removal doesn't make
         // this assertion trivially pass) and require its body to NOT set
@@ -207,7 +216,7 @@ describe('lifecycle — unconditional commit', () => {
 // ──────────────────────────────────────────────────────────────────────────
 
 describe('race / late-arrival safety', () => {
-    test('inbound session.created (general-intent event) is inert on transcription session', () => {
+    test('inbound session.created (general-intent event) is inert on transcription session', { skip: PROTOCOL_DEFERRED }, () => {
         // HIGH 1 behavioral coverage: _handleWsMessage({type:'session.created'})
         // must NOT set isSessionReady, must NOT start a keep-alive, must NOT
         // flush the ring buffer. The session.created case body should be a

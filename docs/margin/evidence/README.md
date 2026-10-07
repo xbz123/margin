@@ -51,9 +51,10 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `AG-14/` | AG-14 on the worktree, compared with `AG-13/` |
 | `AG-15/` | AG-15 on the worktree, compared with `AG-14/`; also `install-check.log` (models and model dependencies after `npm ci`) |
 | `AG-16/` | AG-16 on the worktree, compared with `AG-15/`; also `install-check.log` (removed packages after `npm ci`) and `validateImagePath.log` (an `electron/utils` test, which the `tests` step does not cover, run by hand under the guard) |
+| `AG-17/` | AG-17 on the worktree (Electron 43.1.0), compared with `AG-16/`; also `install-check.log` (`npm ci` and `setup:native` with Electron 43). From AG-17 the `tests` step also covers `electron/utils`, `electron/test` and `src/lib` tests, and a `startup` step runs `tests/margin/startup-smoke.test.mjs` |
 
 Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
-The `regression` and `storage` steps need a display session (they launch the app
+The `regression`, `storage` and `startup` steps need a display session (they launch the app
 under the isolation guard); everything runs offline.
 
 CI (`.github/workflows/margin-gates.yml`) runs the same command on a clean macOS runner

@@ -2115,7 +2115,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       if (rotation > 0) {
         const backoffMs = 1000 * rotation;
         console.log(`[LLMHelper] 🔄 Starting rotation ${rotation + 1}/${MAX_FULL_ROTATIONS} after ${backoffMs}ms backoff...`);
-        await delayWithAbort(backoffMs).catch(() => undefined);
+        await delayWithAbort(backoffMs).catch((): void => undefined);
         if (abortSignal?.aborted) return;
       }
 

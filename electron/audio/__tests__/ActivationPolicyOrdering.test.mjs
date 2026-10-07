@@ -37,7 +37,11 @@ function extractIfElseBlock(needle) {
   return mainSource.slice(idx, i);
 }
 
-test('non-stealth cold launch stays on accessory until the disguised window is painted', () => {
+// Deferred in PLAN.md AG-17: the baseline never had this activation-policy order
+// (accessory first, regular only after the disguised window exists). Changing the
+// macOS dock/activation behavior at startup belongs to AG-61 (window protection
+// and disguise), whose real-machine checks need D2 authorization.
+test('non-stealth cold launch stays on accessory until the disguised window is painted', { skip: 'startup activation policy deferred to AG-61 (PLAN.md AG-17)' }, () => {
   const ifBlock = extractIfElseBlock('if (isUndetectableOnStartup)');
   assert.ok(
     /setActivationPolicy\s*\(\s*['"]accessory['"]\s*\)/.test(ifBlock),

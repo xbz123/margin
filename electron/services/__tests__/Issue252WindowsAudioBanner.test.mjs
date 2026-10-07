@@ -88,11 +88,18 @@ test('issue #252: Open Settings button does not unconditionally fire x-apple.sys
   // The macOS-only URL is correct ONLY for kind=screen-recording-permission.
   // For kind=audio-capture-failure the action must open Natively's own
   // settings (toggleSettingsWindow / openSettingsTab) — not an OS URL.
+  // The banner deep-links to one macOS pane per permission (Screen Recording,
+  // and Microphone for a mic capture failure). Each URL appears once, and the
+  // choice is gated on isMac so Windows never gets an x-apple URL (PLAN.md AG-17).
   const stripped = ui.replace(/\s+/g, ' ');
-  const xAppleCount = (stripped.match(/x-apple\.systempreferences:/g) || []).length;
-  assert.ok(
-    xAppleCount <= 1,
-    'x-apple.systempreferences should appear at most once (only in the screen-recording branch)'
+  for (const pane of ['Privacy_ScreenCapture', 'Privacy_Microphone']) {
+    const count = stripped.split(`x-apple.systempreferences:com.apple.preference.security?${pane}`).length - 1;
+    assert.ok(count <= 1, `x-apple.systempreferences ${pane} should appear at most once in the banner`);
+  }
+  assert.match(
+    stripped,
+    /const deepLinkUrl = !isMac \? null/,
+    'the banner deep link must be null off macOS',
   );
 
   // The banner JSX must include a JSX-level conditional keyed on the

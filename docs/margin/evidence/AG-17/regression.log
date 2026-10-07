@@ -1,0 +1,13 @@
+✔ a typed question streams the mock answer into the overlay (2217.445375ms)
+✔ cancelChatStream stops the stream and late tokens are not shown (5594.794292ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3289.076375ms)
+✔ a screenshot question sends the fixture image to the model (403.24525ms)
+✔ a provider error is shown and the next question still works (1557.471583ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13610.678875

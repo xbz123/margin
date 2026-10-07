@@ -1,0 +1,236 @@
+{
+  "startedAt": "2026-10-07T17:55:41.447Z",
+  "head": "7bcc0ed0c1abea94b3f8bb944c6bae75d456b4cc",
+  "uncommittedPaths": 28,
+  "reference": "docs/margin/evidence/AG-16",
+  "note": "AG-17 working tree before commit (Electron 43.1.0), compared with AG-16 (second run, after explaining the provenance hits)",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 92,
+      "log": "docs/margin/evidence/AG-17/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1209,
+      "log": "docs/margin/evidence/AG-17/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4809,
+      "log": "docs/margin/evidence/AG-17/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2780,
+      "log": "docs/margin/evidence/AG-17/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1729,
+      "log": "docs/margin/evidence/AG-17/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": [
+          "electron/IntelligenceEngine.ts error TS2345: Argument of type 'SessionTracker' is not assignable to parameter of type 'PreparedContextSession'. ×1",
+          "electron/LLMHelper.ts error TS7011: Function expression, which lacks return-type annotation, implicitly has an 'any' return type. ×1",
+          "electron/ipcHandlers.ts error TS2339: Property 'sendModelChanged' does not exist on type 'AppState'. ×2",
+          "electron/main.ts error TS2339: Property 'setIgnoreBlur' does not exist on type 'ModelSelectorWindowHelper'. ×2",
+          "electron/test/erp-1hour-real.test.ts error TS2367: This comparison appears to be unintentional because the types 'PromptTier' and '\"error\"' have no overlap. ×1",
+          "electron/test/input-fuzzing.test.ts error TS2345: Argument of type '{ pass: boolean; error?: string; handler: string; label: string; }' is not assignable to parameter of type '{ handler: string; label: string; pass: boolean; error?: string; sqlInjection: boolean; }'. ×1",
+          "electron/utils/preparedTranscriptContext.ts error TS2345: Argument of type 'PreparedContextItem[]' is not assignable to parameter of type 'ContextItem[]'. ×1",
+          "electron/utils/preparedTranscriptContext.ts error TS2345: Argument of type '{ role: string; text: string; timestamp: number; }[]' is not assignable to parameter of type 'TranscriptTurn[]'. ×1"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1244,
+      "log": "docs/margin/evidence/AG-17/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1635,
+      "log": "docs/margin/evidence/AG-17/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 89,
+      "log": "docs/margin/evidence/AG-17/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": [
+          "closeAdvancedSettings",
+          "closeSettingsWindow",
+          "path",
+          "stealthTapRefreshIme"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 130,
+      "log": "docs/margin/evidence/AG-17/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": [
+          "native-audio-connect  (src/components/NativelyInterface.tsx)",
+          "toggle-advanced-settings  (electron/preload.ts)"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 783,
+      "log": "docs/margin/evidence/AG-17/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 8578,
+      "log": "docs/margin/evidence/AG-17/tests.log",
+      "tap": "docs/margin/evidence/AG-17/tests.tap",
+      "perFile": "docs/margin/evidence/AG-17/tests.files.json",
+      "files": 104,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 716,
+        "pass": 711,
+        "fail": 0,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": [
+          "electron/audio/__tests__/ActivationPolicyOrdering.test.mjs :: non-stealth cold launch stays on accessory until the disguised window is painted",
+          "electron/audio/__tests__/ModelChangedTargeting.test.mjs :: AppState sends model-changed only to current model listeners",
+          "electron/audio/__tests__/ModelChangedTargeting.test.mjs :: model-changed call sites use the targeted helper",
+          "electron/audio/__tests__/NativeAbiGuardStartupOrder.test.mjs :: initializeApp does not request a second single-instance lock",
+          "electron/audio/__tests__/NativeAbiGuardStartupOrder.test.mjs :: main acquires the single-instance lock before native ABI recovery can rebuild or relaunch",
+          "electron/audio/__tests__/TokenBatchFlushNoTrailing.test.mjs :: intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer",
+          "electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: generateSuggestion sends custom notes and mode context as user message content",
+          "electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 10. SettingsOverlay.tsx binds the level bar width to `systemAudioLevel`",
+          "electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 8. SettingsOverlay.tsx subscribes to onAudioTestSystemLevel AND onAudioTestSystemError",
+          "electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 9. SettingsOverlay.tsx renders the literal \"System Audio Level\" label",
+          "electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: UX4: audio test probes system audio in parallel with the mic",
+          "electron/services/__tests__/CodexCliService.test.mjs :: validateExecutable: bare unfound name falls back to auto-detection if available",
+          "electron/services/__tests__/Issue252WindowsAudioBanner.test.mjs :: issue #252: Open Settings button does not unconditionally fire x-apple.systempreferences",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: <did not finish>",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: does not fall through session.created to transcription_session.created handler",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: inbound session.created (general-intent event) is inert on transcription session",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: race / late-arrival safety",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: sends transcription_session.update not session.update",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: uses GA input_audio_format field not beta audio.input.format",
+          "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: wire format"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13764,
+      "log": "docs/margin/evidence/AG-17/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4992,
+      "log": "docs/margin/evidence/AG-17/storage.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 36557,
+      "log": "docs/margin/evidence/AG-17/startup.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 74,
+      "log": "docs/margin/evidence/AG-17/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-07T17:56:59.930Z",
+  "allPassed": true
+}

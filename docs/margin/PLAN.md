@@ -634,8 +634,8 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | CI 门禁 | 完成 | `516815f4` | `.github/workflows/margin-gates.yml`，见下文 CI 门禁记录。首次运行（对照 AG-14）只有来源检查多出 1 处命中，已解释；AG-15 收尾运行的回归失败是时序差异，不是新增失败，已在 AG-16 中加大余量。只作干净安装的参考，**不算 D5 已通过** |
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
 | AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
-| AG-17 | 待开始 | | 下一张；集成后重跑 AG-09 回归和会议存储测试 |
-| 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
+| AG-17 | 完成 | 见 AG-17 提交 | 见下文 AG-17 记录。Electron 43.1.0；两个 `tsc` 退出 0；基线遗留的 20 条测试失败全部处理（5 个用例跳过并写明原因）；证据：`docs/margin/evidence/AG-17/summary.json`，对照 `AG-16/` |
+| 阶段 1 出口 / Astra 复核 | 出口已验收，复核待做 | 见 AG-17 提交 | 见下文阶段 1 出口验收：第 2–7 条通过，第 1 条因 D5 受阻。Astra 只读复核在 AG-17 提交之后进行 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
 ### AG-10 记录（2026-10-07）
@@ -922,6 +922,14 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
     3. 时间对不上的只有这一段。mock 每 400 毫秒发一段，"Cancel test"出现后约 1.2 秒才发 `LATE-3`。用例总时长减去取消后固定等待的 3 秒，即"提问到发出取消"的时间：本机三次和首次 CI 约 0.72–0.78 秒，这次 1.96 秒，超过了余量。同一次运行里其余 4 个回归用例的耗时与首次 CI 相当（3.28/0.47/1.56 秒对 3.34/0.48/1.60 秒），机器整体并不慢，是这一段偶发的停顿。
     4. AG-15 的改动没有碰取消路径：preload 的 `cancelChatStream` 只发 `gemini-chat-stream-stop`；`LLMHelper`、`NativelyInterface.tsx`、`preload.ts` 中与流和取消相关的行在该提交里都没有变化。
   - **处理**（在 AG-16 中提交）：把这个用例的 mock 段间隔从 400 毫秒改为 800 毫秒，余量从约 1.2 秒增加到约 2.4 秒；取消后的等待从 3 秒改为 4.5 秒，仍长于剩余脚本。断言不变（仍要求不出现 `LATE-3`/`LATE-4`，且客户端中止了 HTTP 流）。改动后的效果以 AG-16 的本机和 CI 结果为准。
+- **AG-16 收尾运行**（运行 `37660438244`，提交 `7bcc0ed0`，对照本机 `AG-16/`；运行产物 `margin-gates-7bcc0ed0…`，保留到 2026-11-06）：
+  - **耗时**：作业 5 分 45 秒，门禁约 4 分钟。
+  - **结果**：运行器退出 0，全部步骤通过。
+  - **与本机对比**：
+    - 构建、两个 `tsc`（`tsc-electron.diagnostics.txt` 逐行相同）、G2（更大的受限池下零命中）、G3、契约、守卫自测、`diff-check` 都相同。
+    - 测试 538 个，527 通过，11 失败，0 跳过；失败条目 19 个，全部继承。与本机的唯一差别仍是 `CodexCliService` 的"自动探测"用例（原因同首次运行），AG-17 已把它改为不依赖本机环境。
+    - AG-09 回归 5/5，`cancelChatStream` 用例 5.97 秒通过；会议存储 1/1。
+  - **结论**：放宽时序后，AG-15 收尾运行中的回归失败没有再出现；CI 与本机结果一致。
 
 ### AG-15 记录（2026-10-07）
 
@@ -1076,6 +1084,137 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
   - 实际界面：设置页去掉两节，模型选择器只剩云端模型和 Codex CLI；只做了构建和类型检查，没有截图核对；
   - 用户的旧凭据文件中已有的 `customProviders`/`curlProviders`/`tavilyApiKey` 字段：代码不再读取，但下次保存时仍会原样写回（加密存储），没有主动清除。
 
+### AG-17 记录（2026-10-07）
+
+**1. 类型错误（两个 `tsc` 都退出 0）**
+
+AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
+
+- `sendModelChanged` 不存在（×2）：这是运行时错误，AG-09 已记录（`set-model` 报 `appState.sendModelChanged is not a function`，悬浮窗的模型标签不更新）。在 `AppState` 中新增 `sendModelChanged()`，写法与同文件的 `sendToMeetingSurfaces` 一致，只发给悬浮窗和模型选择窗口；结束会议时恢复默认模型也改用它，不再广播给所有窗口。
+- `ModelSelectorWindowHelper.setIgnoreBlur` 不存在（×2）：切换隐身模式且模型选择窗口可见时，这两处调用会抛出 TypeError。模型选择窗口本身没有失焦关闭的处理，这两处调用删除。
+- `preparedTranscriptContext.ts`（×2）和 `IntelligenceEngine.ts`（×1）：接口把 `role` 写成 `string`、把回答历史写成 `string[]`，实际传入的是 `ContextItem` 和 `AssistantResponse[]`，`buildTemporalContext` 也按后者使用。改为引用这两个类型；运行时行为不变。
+- `LLMHelper.ts` 的隐式 `any`：给 `.catch(() => undefined)` 加上返回类型。
+- `electron/test/` 下两个手动脚本：`erp-1hour-real.test.ts` 比较了不可能相等的值，改为按是否有 key 判断；`input-fuzzing.test.ts` 补上缺少的 `sqlInjection` 字段。这两个脚本不在任何测试命令里，其中前者需要真实 key，不运行。
+
+**2. Electron 43（D1）**
+
+- `electron` 固定为 43.1.0（X3 测试过的版本），`better-sqlite3` 升到 12.11.1。lockfile 中其余变化是 Electron 自身的依赖，以及删除 `three`、`@types/three`、`@google/stitch-sdk` 后去掉的包。
+- `better-sqlite3` 没有适配 Electron 43 的预编译包，`setup:native` 第 3 步会在本机编译。X3 发现的两个问题现在由脚本处理（`nativeCompileEnv()`）：
+  - 把 `/usr/bin` 放到 `PATH` 前面，避开 anaconda 的 GNU libtool；
+  - 先试编译一行 `#include <cstdio>`；只有失败时（只装了 CommandLineTools），才把 `CXXFLAGS` 指向 SDK 的 libc++ 头文件。装有完整 Xcode 的机器（如 CI）编译成功，不加任何参数。
+- 本机结果见 `AG-17/install-check.log`：`npm ci` 退出 0，`setup:native` 退出 0，日志显示走了 libc++ 头文件的分支，`Rebuild Complete`。之后整套门禁（含三个启动应用的测试）都在 Electron 43 上运行。
+- 启动时间：新增的启动冒烟测试中，`setup:native` 之后的第一次启动约 5.6 秒，与 X3 中 43.1.0 的 5.5 秒相近；门禁中的那次约 1.1 秒（缓存已热）。两次都是从启动到启动器窗口有内容，不是严格的性能测量。
+
+**3. 剩余依赖（G3 中 AG-17 的规则）**
+
+删除没有任何引用的 `three`、`@types/three`、`@google/stitch-sdk`。AG-17 列入已完成的 ticket，G3 现在启用 242 条规则；`--all` 同样是 242 条、零命中。
+
+**4. 基线遗留的测试失败（20 条，全部处理）**
+
+分三类处理：修代码、改测试，或标为跳过并写明原因和负责的 ticket。
+
+- **修代码**：
+  - `ModelChangedTargeting`（2）：见第 1 条。
+  - `TokenBatchFlushNoTrailing`（1）：令牌批量发送改为保存 `setImmediate` 句柄。在最终答案之前同步发送时取消排队中的那次，保证排队的令牌不会晚于最终答案到达。
+  - `AudioTestSystemAudioLevelMeter`（4）：主进程、preload 和类型早已在音频测试时探测系统音频并发送电平，只差设置页的显示。设置页现在订阅这两个事件，在输出设备下面显示"System Audio Level"电平条；探测失败时显示主进程给出的提示。
+- **改测试**（断言与基线代码本身不符，或依赖本机环境）：
+  - `Issue252WindowsAudioBanner`（1）：基线横幅在 macOS 上分别深链到"屏幕录制"和"麦克风"两个面板，非 macOS 时回到应用内设置，这正是 #252 要求的行为。原断言"整个文件最多出现一次 `x-apple.systempreferences`"写在麦克风分支加入之前。改为：每个面板的地址最多出现一次，且非 macOS 时深链为 `null`。
+  - `suggestionPromptAssembly`（1）：原用例断言的调用形式（`streamChat(..., undefined, undefined, ...)` 两次，`generateWithCodexCli(...)`）基线代码里从来没有。改为行为测试：用替身运行构建后的 `generateSuggestion`，确认自定义备注和会议上下文作为 `context` 进入用户消息（`streamChat` 把 `context` 放进用户内容）、系统提示词等于固定的回答提示词；Codex CLI 路径同样检查。用例改名为 `generateSuggestion sends custom notes and the transcript as user content, not in the system prompt`。
+  - `CodexCliService`（1）：结果取决于本机是否装有 codex，本机的守卫又会拦下真实的 codex。改为替换候选路径列表，一次指向临时的 mock 程序（应当找到并通过），一次只有不存在的路径（应当失败）。
+  - `NativeAbiGuardStartupOrder`（2）：要求有 `ensureNativeModuleAbi()`，即运行时发现原生模块 ABI 不符时自动重建或重启。基线没有这个功能，Margin 也不打算加（原生模块只由审查过的 `setup:native` 构建，见 AG-08）。文件改写并改名为 `SingleInstanceLockStartup.test.mjs`，检查剩下的有意义部分：单实例锁只申请一次，在启动的第一个 `await` 之前申请，失败的实例立即 `app.exit(0)`。
+- **跳过并写明原因**（G6 允许，原因写在测试里）：
+  - `ActivationPolicyOrdering`（1）：要求非隐身启动时先设为 `accessory`，窗口创建后再设为 `regular`。基线没有这个顺序。改动 macOS 程序坞和激活策略属于 AG-61（窗口保护与伪装），实机检查需要 D2 授权，所以交给 AG-61。
+  - `OpenAIRealtimeGAProtocol` 中 4 个用例（另有 1 条 `<did not finish>` 和 2 个父项随之消失）：
+    - 这些用例要求发送 `transcription_session.update` 和 `input_audio_format`。基线代码发送的是 `session.update` 加 `audio.input`，并把 `session.created` 当作就绪。
+    - 哪一种符合 OpenAI 现在的 Realtime 转写接口，要查官方文档并做一次真实调用（D2），所以由 AG-40/AG-41 决定。
+    - 这个文件此前始终"未完成"的原因也查清了：`session.created` 用例在现有代码上会启动一个 20 秒的保活定时器，没有清理，进程无法退出（用定时器追踪定位到 `_startKeepAlive`）。跳过后整个文件 38 个用例正常结束，其余 34 个通过。
+
+**5. 测试脚本和覆盖范围**
+
+- `npm test` 改为在守卫下运行，范围加上 `electron/margin`、`electron/utils`、`electron/test` 和 `src/lib` 的测试；门禁的 `tests` 步骤范围相同（新增 8 个文件，140 个用例）。
+- 新增 `npm run test:margin`（构建后在守卫下运行回答回归、会议存储和启动冒烟三个启动应用的测试），以及 `npm run gates`。
+- 删除引用已删除 `natively-api` 的 `test:e2e:screen-understanding`。`tests/e2e` 的 Playwright 脚本（对着 Vite 开发服务器）保留不动，不属于 G6。
+
+**6. 启动冒烟（出口第 5 条）**
+
+新增 `tests/margin/startup-smoke.test.mjs`，并作为门禁的 `startup` 步骤。在守卫和全新沙盒中启动构建后的应用，检查：
+- 启动器窗口和设置窗口打开并可见（记录就绪时间）；
+- 观察 15 秒，主进程仍在运行；
+- `app.quit()` 后主进程以退出码 0 结束；
+- 沙盒中 `natively_debug.log` 和主进程输出里没有 `[CRITICAL]`、未捕获异常或未处理的 rejection（`main.ts` 把这两类都写进该日志）；
+- 守卫记录的外连为零。
+
+**7. 契约检查清零**
+
+- preload 契约原有 4 个缺口：
+  - `stealthTapRefreshIme`：主进程已有 `stealth-tap:refresh-ime` 处理函数，渲染层在窗口获得焦点时调用，只是 preload 没有提供，补上桥接；
+  - `closeSettingsWindow`、`closeAdvancedSettings`：类型中声明，但没有任何地方提供或使用，删除；
+  - `path`：检查脚本的误报，原因是 `deleteScreenshot` 的参数分行书写，改为一行。
+- IPC 通道原有 2 个缺口：`toggle-advanced-settings` 从来没有处理函数，渲染层也不用，删除对应的 preload 成员；`native-audio-connect` 只出现在一行注释掉的代码里，连同空的 `try` 一起删除。
+- 两项检查现在都是零缺口。`docs/margin/ipc-baseline-gaps.txt` 已清空，故删除；`SkillsIpcWiring` 中"已知无处理函数"的名单也清空。
+
+**8. `.npmrc`（出口第 1 条要求评估）**
+
+- 保留 `ignore-scripts=true`。`package.json` 已经没有任何安装生命周期脚本，但依赖中仍有 13 个包带安装脚本：`@google/genai`、`better-sqlite3`、`core-js`、`electron-winstaller`、`esbuild`、`fsevents`（两份）、`keytar`、`lzma-native`、`msgpackr-extract`、`protobufjs`、`sharp`、`sqlite3`。
+- 撤掉这一行，`npm ci` 就会执行这些未经审查的脚本，包括下载二进制和本机编译。保留它，原生部分只经过 `setup:native` 这一条审查过的路径。
+
+**9. 来源检查**
+
+第一次运行门禁时 G2 命中 15 行（13 种不同的行），全部来自本票新写的代码：
+- 设置页电平条的 10 行。标识符 `onAudioTestSystemLevel`、`onAudioTestSystemError`、`systemAudioLevel` 和 `width: `${systemAudioLevel}%`` 都是基线测试逐字要求的，每行写法照搬旁边基线的麦克风电平条；
+- `public sendModelChanged(modelId: string): void {` 和 `this.sendModelChanged(defaultModel);`。名称由基线 `ipcHandlers.ts` 的调用和基线测试决定；
+- `let pendingFlushHandle: NodeJS.Immediate | null = null;`。这正是基线测试的正则；
+- preload 的 `stealthTapRefreshIme: () => Promise<boolean>;`。即基线类型声明；
+- `const KNOWN_STALE = new Set([]);`。通用写法。
+
+这些行与受限的上游池一致，原因是名称和形状由基线测试和基线代码决定。实现是按基线测试描述的行为为本分支写的，没有参照上游实现。13 行逐条加入白名单并写明理由，重跑后零命中。
+
+**10. 检查结果**
+
+命令：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-17 --ref docs/margin/evidence/AG-16`。
+
+第一次运行只有 G2 未通过（见第 9 条）。补上白名单后整套重跑，证据为重跑结果。
+
+运行器退出码 0。
+
+| 步骤 | 退出码 | 结果 | 原始输出 |
+| --- | --- | --- | --- |
+| 清空构建目录、`build-electron`、`vite build` | 0、0、0 | 通过 | `clean-dist.log`、`build-electron.log`、`vite-build.log` |
+| 渲染层 `tsc` | 0 | 0 个错误 | `tsc-renderer.log` |
+| Electron `tsc` | **0** | 0 个诊断；AG-16 的 8 类全部消除 | `tsc-electron.log` |
+| G2 来源检查 | 0 | 零命中；新增 13 条白名单（见第 9 条） | `provenance.log` |
+| G3 | 0 | 242 条规则零命中 | `retired.log` |
+| preload 契约 / IPC 通道 | **0 / 0** | 零缺口；原有 4 个、2 个全部消除 | `*.log`、`*.gaps.txt` |
+| 守卫自测 | 0 | 通过，12/12（含在 Node 下加载 Rust 原生模块的导出检查；Electron 43 中的加载由三个启动应用的测试覆盖） | `guard-selftest.log` |
+| 测试（104 个文件） | 1 | 716 个测试，711 通过，**0 失败**，5 跳过。AG-16 的 20 条失败全部消除，新增 0。退出码 1 的原因见下 | `tests.tap`、`tests.files.json`、`test-failures.txt`（空） |
+| AG-09 回答回归 | 0 | 5/5 通过 | `regression.log` |
+| 会议存储 | 0 | 1/1 通过 | `storage.log` |
+| 启动冒烟（新增） | 0 | 1/1 通过：启动器就绪 1.1 秒，设置窗口可见，观察 15 秒，退出码 0 | `startup.log` |
+| `git diff HEAD --check` | 0 | 无问题 | `diff-check.log` |
+
+- **测试数**：538 + 140（新纳入的 8 个文件）+ 38（`OpenAIRealtimeGAProtocol` 现在能结束，38 个用例全部计入；此前没有结束，不计数）= 716。锁测试改名前后都是 2 个，不影响总数。
+- **`tests` 步骤的退出码 1**：所有测试通过，退出码 1 来自 `ImeDetectorCache.test.mjs`。守卫拦下了它的 2 次 `defaults` 本地调用（输入法检测），按守卫规则返回 1。这是本地替身，不是外连，AG-16 时同样如此；门禁按测试结果判定通过。
+- **未验证**：
+  - Electron 43 下的实际界面没有截图核对（启动冒烟只检查窗口可见、无异常、无外连）；
+  - 设置页新电平条在真实系统音频下的表现（需要屏幕录制权限，阶段 1–2 不授予）；
+  - 干净机器上的编译分支：本机只有 CommandLineTools，走的是 libc++ 头文件的分支；装有 Xcode 的分支由 CI 运行。
+
+### 阶段 1 出口验收（2026-10-07）
+
+逐条对照第 5 节。证据都在 `docs/margin/evidence/AG-17/`，除非另行注明。
+
+| # | 条目 | 结论 | 证据 |
+| --- | --- | --- | --- |
+| 1 | 干净安装 | **受阻（D5）** | 本机没有完整的 Xcode，Rust 原生模块（`cidre`）无法从零构建，本机的 `setup:native` 用的是 X3 复制来的 cargo 缓存。按用户指示，D5 不做新决定：不安装 Xcode，也不给干净构建开例外，本条如实记为受阻。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。<br>CI（装有 Xcode 的干净 macOS）上的 `npm ci` → `setup:native` → 全部门禁可作参考，**不算本条通过** |
+| 2 | 构建与类型 | 通过 | 清空构建目录后 `build-electron`、`vite build` 退出 0；两个 `tsc` 都退出 0 |
+| 3 | 退役清理 | 通过 | `retired-check.mjs --all`：242 条规则零命中；`git ls-tree -r HEAD` 中没有 `premium`、`natively-api`、`.gitmodules`，也没有 gitlink |
+| 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条） | 守卫下 104 个文件，716 个测试，711 通过，0 失败，5 跳过；`test-failures.txt` 为空 |
+| 5 | 启动冒烟 | 通过 | `startup.log`：启动器和设置窗口可见，观察 15 秒，`app.quit()` 后退出码 0，无未捕获异常，零外连 |
+| 6 | 行为回归 | 通过 | `regression.log`：5/5（流式显示、取消后迟到事件不显示、截图替身送进请求等） |
+| 7 | 会议存储 | 通过 | `storage.log`：1/1，临时 SQLite 上保存、读取、重启后读取、删除；不加载向量扩展（AG-14 已删除 `sqlite-vec`） |
+
+**结论**：第 2–7 条通过，第 1 条因 D5 受阻。按计划，阶段 1 出口还需要 Astra 只读复核；在复核通过且 D5 有结论之前，不进入阶段 2。
+
 ### 事件记录（2026-10-07）
 
 1. **X2 第一版自测写入了真实目录。**
@@ -1098,7 +1237,7 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
    - **修复**：守卫改为通过 `-r` 参数传入（与 Playwright 自己的加载方式相同）；测试启动后先确认主进程里 `MARGIN_ISOLATION_ACTIVE === '1'`，否则立即中止。
    - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 
-**下一步**：AG-17（依赖、类型和测试收口），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
+**下一步**：Astra 只读复核阶段 1 出口。复核通过且 D5 有结论之前，不进入阶段 2。
 
 ## 9. 评审记录
 

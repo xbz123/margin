@@ -774,6 +774,18 @@ export class AppState {
     sendOnce(this.windowHelper.getLauncherWindow());
   }
 
+  // 'model-changed' listeners: the overlay (NativelyInterface) and the model
+  // selector window. Other windows do not show the active model.
+  public sendModelChanged(modelId: string): void {
+    const sent = new Set<number>();
+    const sendOnce = (win: BrowserWindow | null | undefined) => {
+      if (!win || sent.has(win.id)) return;
+      if (this.sendToWindow(win, 'model-changed', modelId)) sent.add(win.id);
+    };
+    sendOnce(this.windowHelper.getOverlayWindow());
+    sendOnce(this.modelSelectorWindowHelper.getWindow());
+  }
+
   private sendSttStatus(payload: any): void {
     this.sendToMeetingSurfaces('stt-status', payload);
   }
@@ -2966,7 +2978,7 @@ export class AppState {
       try {
         // 0. Revert to Default Model. Moved into BG: getDefaultModel() touches
         //    disk, and the 'model-changed' broadcast
-        //    re-renders all open windows — both block the main thread/renderer
+        //    re-renders the overlay and model selector — both block the main thread/renderer
         //    during the Stop-click critical path. Doing it here means the
         //    revert lands ~250 ms after Stop, by which point the launcher is
         //    already painted and the overlay is hidden, so the user never
@@ -2977,9 +2989,7 @@ export class AppState {
           const defaultModel = cm.getDefaultModel();
           console.log(`[Main] Reverting model to default: ${defaultModel}`);
           this.processingHelper.getLLMHelper().setModel(defaultModel);
-          BrowserWindow.getAllWindows().forEach(win => {
-            if (!win.isDestroyed()) win.webContents.send('model-changed', defaultModel);
-          });
+          this.sendModelChanged(defaultModel);
         } catch (e) {
           console.error('[Main] Failed to revert model:', e);
         }
@@ -3029,7 +3039,15 @@ export class AppState {
     type BatchKind = 'suggested_answer' | 'refined_answer' | 'recap' | 'clarify' | 'follow_up_questions';
     const tokenBatches = new Map<BatchKind, any[]>();
     let batchFlushScheduled = false;
+    let pendingFlushHandle: NodeJS.Immediate | null = null;
     const flushBatchesNow = () => {
+      // A synchronous flush (before a final answer) cancels the queued one, so
+      // nothing queued earlier can arrive after the final answer.
+      if (pendingFlushHandle) {
+        clearImmediate(pendingFlushHandle);
+        pendingFlushHandle = null;
+      }
+      batchFlushScheduled = false;
       const win = mainWindow();
       if (!win) { tokenBatches.clear(); return; }
       for (const [kind, items] of tokenBatches.entries()) {
@@ -3042,8 +3060,8 @@ export class AppState {
     const scheduleBatchFlush = () => {
       if (batchFlushScheduled) return;
       batchFlushScheduled = true;
-      setImmediate(() => {
-        batchFlushScheduled = false;
+      pendingFlushHandle = setImmediate(() => {
+        pendingFlushHandle = null;
         flushBatchesNow();
       });
     };
@@ -3685,14 +3703,8 @@ export class AppState {
           targetFocusWindow = settingsWindow;
         }
 
-        const modelSelectorWindow = this.modelSelectorWindowHelper.getWindow();
-        const isModelSelectorVisible = modelSelectorWindow && !modelSelectorWindow.isDestroyed() && modelSelectorWindow.isVisible();
-
         if (targetFocusWindow && targetFocusWindow === settingsWindow) {
           this.settingsWindowHelper.setIgnoreBlur(true);
-        }
-        if (isModelSelectorVisible) {
-          this.modelSelectorWindowHelper.setIgnoreBlur(true);
         }
 
         if (settled) {
@@ -3725,9 +3737,6 @@ export class AppState {
 
         if (targetFocusWindow && targetFocusWindow === settingsWindow) {
           setTimeout(() => { this.settingsWindowHelper.setIgnoreBlur(false); }, 500);
-        }
-        if (isModelSelectorVisible) {
-          setTimeout(() => { this.modelSelectorWindowHelper.setIgnoreBlur(false); }, 500);
         }
       }, 150);
     }

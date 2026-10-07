@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -20,24 +21,69 @@ const intentClassifierSource = fs.readFileSync(intentClassifierPath, 'utf8');
 const distWhatToAnswerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js');
 const distPromptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');
 const require = createRequire(import.meta.url);
-const { DEFAULT_ANSWER_PROMPT_SUFFIX, UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(distPromptsPath);
+const { DEFAULT_ANSWER_PROMPT_SUFFIX, HARD_SYSTEM_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(distPromptsPath);
 
 test('generateSuggestion uses the fixed default answer suffix and no mode system', () => {
   assert.ok(generateSuggestionStart >= 0, 'generateSuggestion should exist');
   assert.match(generateSuggestionSource, /const basePrompt = `\$\{HARD_SYSTEM_PROMPT\}\\n\\n## ACTIVE MODE\\n\$\{DEFAULT_ANSWER_PROMPT_SUFFIX\}`;/);
 });
 
-// Name kept from the baseline so the evidence comparison still pairs it with its
-// inherited failure: the streamChat/Codex call-shape assertions below were
-// already failing at a786910e (AG-17). The mode part is gone (AG-13), and the
-// Ollama branch with it (AG-14).
-test('generateSuggestion sends custom notes and mode context as user message content', () => {
-  assert.match(generateSuggestionSource, /const suggestionContext = \[customNotesBlock, context\]\.filter\(Boolean\)\.join\('\\n\\n'\);/);
-  const streamChatMatches = generateSuggestionSource.match(/streamChat\(promptMessage, undefined, undefined, basePrompt, true\)/g) ?? [];
-  assert.equal(streamChatMatches.length, 2);
-  assert.match(generateSuggestionSource, /generateWithCodexCli\(promptMessage, basePrompt\)/);
-  assert.doesNotMatch(generateSuggestionSource, /generateWithFlash\(\[\{ text: `\$\{systemPrompt\}/);
-  assert.doesNotMatch(generateSuggestionSource, /\$\{systemPrompt\}\\n\\n\$\{promptMessage\}/);
+// Replaces a baseline case that asserted call shapes the baseline code never had
+// (it failed at a786910e; resolved in PLAN.md AG-17). This one runs the built
+// generateSuggestion against a stub and checks where the notes actually go:
+// streamChat puts its `context` argument into the user message.
+function loadBuiltLLMHelper() {
+  const built = path.resolve(__dirname, '../../../dist-electron/electron/LLMHelper.js');
+  const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
+  const previous = require.cache[electronId];
+  require.cache[electronId] = {
+    id: electronId, filename: electronId, loaded: true,
+    exports: { app: { getPath: () => os.tmpdir(), isPackaged: false, getVersion: () => '0.0.0' } },
+  };
+  try {
+    return require(built).LLMHelper;
+  } finally {
+    if (previous) require.cache[electronId] = previous; else delete require.cache[electronId];
+  }
+}
+
+function suggestionHarness({ codexEnabled }) {
+  const calls = { streamChat: [], chatWithGemini: [] };
+  const self = {
+    customNotes: 'NOTES_SENTINEL',
+    codexCliConfig: { enabled: codexEnabled },
+    client: {},
+    injectLanguageInstruction: (text) => text,
+    processResponse: (text) => text,
+    async *streamChat(...args) { calls.streamChat.push(args); yield 'streamed'; },
+    async chatWithGemini(...args) { calls.chatWithGemini.push(args); return 'from codex'; },
+  };
+  return { self, calls };
+}
+
+test('generateSuggestion sends custom notes and the transcript as user content, not in the system prompt', async () => {
+  const LLMHelper = loadBuiltLLMHelper();
+  const basePrompt = `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
+
+  const cloud = suggestionHarness({ codexEnabled: false });
+  assert.equal(await LLMHelper.prototype.generateSuggestion.call(cloud.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
+  assert.equal(cloud.calls.streamChat.length, 1);
+  const [message, imagePaths, context, systemPrompt, ignoreKnowledgeMode] = cloud.calls.streamChat[0];
+  assert.match(message, /QUESTION_SENTINEL/);
+  assert.equal(imagePaths, undefined);
+  assert.match(context, /<user_context>\nNOTES_SENTINEL\n<\/user_context>/);
+  assert.match(context, /CONTEXT_SENTINEL/);
+  assert.equal(systemPrompt, basePrompt);
+  assert.equal(ignoreKnowledgeMode, true);
+
+  const codex = suggestionHarness({ codexEnabled: true });
+  assert.equal(await LLMHelper.prototype.generateSuggestion.call(codex.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'from codex');
+  assert.equal(codex.calls.streamChat.length, 0, 'Codex CLI answered, so no fallback stream');
+  const [codexMessage, , codexContext] = codex.calls.chatWithGemini[0];
+  assert.match(codexMessage, /QUESTION_SENTINEL/);
+  assert.doesNotMatch(codexMessage, /NOTES_SENTINEL|CONTEXT_SENTINEL/);
+  assert.match(codexContext, /NOTES_SENTINEL/);
+  assert.match(codexContext, /CONTEXT_SENTINEL/);
 });
 
 test('generateSuggestion does not append custom notes to any system prompt branch', () => {

@@ -2,16 +2,13 @@ import {
   buildTemporalContext,
   prepareTranscriptForWhatToAnswer,
 } from '../llm';
+import type { AssistantResponse, ContextItem } from '../llm/TemporalContextBuilder';
 
-export interface PreparedContextItem {
-  role: string;
-  text: string;
-  timestamp: number;
-}
+export type PreparedContextItem = ContextItem;
 
 export interface PreparedContextSession {
   getContextWithInterim(lastSeconds: number): PreparedContextItem[];
-  getAssistantResponseHistory(): string[];
+  getAssistantResponseHistory(): AssistantResponse[];
 }
 
 /**

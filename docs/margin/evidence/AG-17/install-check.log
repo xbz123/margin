@@ -1,0 +1,27 @@
+# AG-17 install check 2026-10-07T17:50:20Z at 7bcc0ed0 + working tree
+$ npm ci
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+exit=0
+$ npm ls three @types/three @google/stitch-sdk
+natively@2.7.0 /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration
+`-- (empty)
+
+exit=1
+$ versions
+electron 43.1.0
+better-sqlite3 12.11.1
+keytar 7.9.0
+sharp 0.34.5
+$ npm run setup:native
+[setup:native] 1/5 Electron 43.1.0 binary
+[setup:native] 2/5 sharp prebuilt check
+[setup:native] clang++ cannot find libc++ headers; using /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1
+[setup:native] 3/5 rebuild better-sqlite3 and keytar for Electron
+✔ Rebuild Complete
+[setup:native] 4/5 build native-module
+[setup:native] 5/5 patch dev Electron Info.plist
+[setup:native] done
+exit=0
