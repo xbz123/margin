@@ -540,7 +540,8 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
   - `ad-hoc-sign.js`；
   - `.github/workflows/margin-gates.yml` 增加打包步骤，上传 `Margin.app` 和检查结果；
   - 新建下载脚本：用 `gh run download` 取某次运行的原生模块产物（`margin-native-<sha>`）或 `Margin.app` 产物，核对 `BUILD-INFO.txt` 中的 sha256 后再使用。本机开发的原生模块从此改用 CI 产物，不再用 X3 复制来的 cargo 缓存；
-  - workflow 产物默认保留 30 天，到期后需要重新运行。
+  - workflow 产物默认保留 30 天，到期后需要重新运行；
+  - 工作流把原生模块产物的临时目录从检出目录移到 `$RUNNER_TEMP`，让门禁的未提交路径回到 0（见 CI 门禁记录中的不使用缓存的运行）。
 - **复核**：阶段 2 出口由本票负责联合验收，再由 Astra 只读复核。
 
 **AG-26 许可证、声明和文档**
@@ -642,7 +643,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
 | AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
 | AG-17 | 完成 | 见 AG-17 提交 | 见下文 AG-17 记录。Electron 43.1.0；两个 `tsc` 退出 0；基线遗留的 20 条测试失败全部处理（5 个用例跳过并写明原因）；证据：`docs/margin/evidence/AG-17/summary.json`，对照 `AG-16/` |
-| 阶段 1 出口 / Astra 复核 | 第三轮复核修复完成，待 Astra 再次复查 | `2e71066b`、`94a10fb1`、`02d4cb2e` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"，第二轮（`2e71066b`）和第三轮（`c8365b63`）复查结论都是"仍需进一步修复"，三轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过。第 1 条按 S11 以不使用缓存的 CI 运行为准，结果见出口表。证据：`docs/margin/evidence/AG-17-review3/summary.json`（`02d4cb2e`，0 个未提交路径），对照 `AG-17-review2/` |
+| 阶段 1 出口 / Astra 复核 | 第三轮复核修复完成，待 Astra 再次复查 | `2e71066b`、`94a10fb1`、`02d4cb2e` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"，第二轮（`2e71066b`）和第三轮（`c8365b63`）复查结论都是"仍需进一步修复"，三轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过；第 1 条按 S11 以不使用缓存的 CI 运行 `37694684706` 为准，通过。证据：`docs/margin/evidence/AG-17-review3/summary.json`（`02d4cb2e`，0 个未提交路径），对照 `AG-17-review2/` |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
 ### AG-10 记录（2026-10-07）
@@ -966,6 +967,16 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
     - 每次运行都把构建出的原生模块（`index.darwin-arm64.node`）、`setup-native.log` 和 `BUILD-INFO.txt`（提交、运行号、是否跳过缓存、rustc 和 Xcode 版本、本次是否编译了 `cidre`、sha256）作为 workflow 产物 `margin-native-<sha>` 上传，保留 30 天，不建 Release；
     - 门禁的 `--note` 记下 `no_cache` 的取值。
   - **证据运行**：见下一条。
+- **不使用缓存的运行**（运行 `37694684706`，手动触发，`no_cache: true`，提交 `ac879152`；对照 `AG-17/`；运行产物 `margin-gates-ac879152…` 和 `margin-native-ac879152…`，保留到 2026-11-06）：
+  - **耗时**：作业 4 分 18 秒（22:12:45–22:17:03 UTC）。
+  - **缓存**：两个 `actions/cache` 步骤都显示为 skipped。`setup-node` 只把下载的 Node 放进它自己的工具缓存，日志里没有恢复 npm 缓存。`setup:native` 走了 `1/5 Electron 43.1.0 binary` 的下载分支。
+  - **从零编译**：`setup-native.log` 中有 `Compiling napi v3.8.3`、`Compiling cidre v0.11.10`，cargo `Finished release … in 34.09s`。按 `no_cache` 的要求核对这一行的步骤通过。
+  - **原生模块产物**：`BUILD-INFO.txt` 记录了提交 `ac879152`、`no_cache: true`、rustc 1.98.1、Xcode 16.4、本次编译了 `cidre`，以及 sha256 `33e82789…4ed4e4e`（arm64 Mach-O）。下载后重算的 sha256 与之相同。
+  - **结果**：运行器退出 0，15 个步骤全部退出 0，与本机 `AG-17-review3/` 一致：
+    - 测试 726 个，721 通过，0 失败，5 跳过；`tests.log` 为空；
+    - 回归 6/6，会议存储 2/2，启动冒烟 1/1（启动器就绪 0.9 秒）。
+  - **未提交路径为 1**：门禁开始时，工作流刚把 `setup-native.log` 写进检出目录下的 `native-artifact/`，这个目录没有被忽略。前两次运行（`37639645826`、`37691910692`）都是 0，所以这 1 个路径就是 `native-artifact/`，没有被改动的已跟踪文件。为了让这次运行与提交中的工作流一致，本次不改工作流；AG-25 改工作流时把这个目录移到 `$RUNNER_TEMP`。
+  - **结论**：满足 S11 对第 1 条的要求。
 
 ### AG-15 记录（2026-10-07）
 
@@ -1246,7 +1257,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 | # | 条目 | 结论 | 证据 |
 | --- | --- | --- | --- |
-| 1 | 干净安装 | **待 CI 证据（S11）** | D5 已定（2026-10-08，S11）：本机不装 Xcode，本条以 CI 为准。本机的 `setup:native` 仍用 X3 复制来的 cargo 缓存，不作本条证据。<br>需要当前提交上一次 `no_cache` 的 CI 运行：日志里有 `Compiling cidre`，全部门禁通过。此前的运行都命中了缓存，不能作证据（见 CI 门禁记录中"D5 定案后的修改"）。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。|
+| 1 | 干净安装 | 通过（按 S11 以 CI 为准） | D5 已定（2026-10-08，S11）：本机不装 Xcode，本条以 CI 为准。本机的 `setup:native` 仍用 X3 复制来的 cargo 缓存，不作本条证据。<br>证据：运行 `37694684706`（提交 `ac879152`，应用代码与 `02d4cb2e` 相同），跳过 Electron 和 cargo 缓存，`npm ci` → `setup:native` 从零编译 `cidre` → 15 个门禁步骤全部退出 0。此前的运行都命中了缓存，不作证据。详见 CI 门禁记录。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。|
 | 2 | 构建与类型 | 通过 | 清空构建目录后 `build-electron`、`vite build` 退出 0；两个 `tsc` 都退出 0，0 诊断 |
 | 3 | 退役清理 | 通过 | `retired-check.mjs --all`：257 条规则零命中。三轮复核共新增 15 条规则，覆盖复核找到的残留：主机 `natively.software`（整个域名）、`src/lib/featureFlags.ts` 与 `PREMIUM_ENABLED`、`Phone Mirror`、`Modes Manager`、`In-App Updates`、`entirely on-device`、`fully custom endpoints`、`Autonomous Registry Sync`，帮助页曾加载的远程图标主机 `cdn.simpleicons.org`、`groq.com/favicon.svg`，以及把 Codex 说成本地处理的 `Local/private route`、`Local Provider`、`selectable local backend`、`locally authenticated Codex`。每条规则在加入前的提交上都有命中。`git ls-tree -r HEAD` 中没有 `premium`、`natively-api`、`.gitmodules`，也没有 gitlink。G3 只能证明这些规则零命中，不能证明全部清理完毕；复核中逐页检查过设置、帮助、关于和启动页 |
 | 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条，恢复要求见 AG-41、AG-61） | 守卫下 104 个文件，726 个测试，721 通过，0 失败，5 跳过；`test-failures.txt` 为空。每个文件的隔离日志都由门禁直接读取：没有拦截记录，也都有守卫的加载记录，且加载记录来自门禁所启动的 `run-node.mjs` 的子进程（按 `ppid` 核对；`tests.log` 为空）；没有"退出码非 0 但没有失败用例"的文件 |
@@ -1254,7 +1265,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 | 6 | 行为回归 | 通过 | `regression.log`：6/6。新增用例：启动器的对话请求在开始流之前失败（在主进程注入一次 setup 异常），重试后回答恰好显示一次，完成事件之后仍在。<br>取消用例在页面里通过同一个 preload 接口记录实际送达的事件，依次检查四种情况：<br>- 取消后的空档，旧流的 token 和完成事件不送达；<br>- 立即开始新流后，旧流的 token、完成和错误事件不送达；<br>- 不带流标识的事件不送达；<br>- 新流自己的事件照常送达，新流以恰好一次完成事件正常结束。<br>流标识由主进程的发送监听取得，事件经真实的 main → preload → renderer 通道注入 |
 | 7 | 会议存储 | 通过 | `storage.log`：2/2。临时 SQLite 上保存、读取、重启后读取、删除；关闭 Transcripts 数据范围时，会议照常保存，但不为标题和摘要发出任何请求。不加载向量扩展（AG-14 已删除 `sqlite-vec`） |
 
-**结论**：第 2–7 条通过。第 1 条等不使用缓存的 CI 证据（S11）。第三轮修复和 D5 的计划修改还需要 Astra 再次只读复查。复查通过且第 1 条的 CI 证据补齐之前，不进入阶段 2。
+**结论**：第 1–7 条通过（第 1 条按 S11 以 CI 为准）。第三轮修复和 D5 的计划修改还需要 Astra 再次只读复查；复查通过之前，不进入阶段 2。
 
 ### 事件记录（2026-10-07）
 
@@ -1288,11 +1299,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
    - **原始输出**：`docs/margin/evidence/AG-17-review2/checks/` 中的 `incident5-*.log`（失败的运行、被中断的变异运行、随后的重跑）。备份恢复只核对了启动参数一行（恢复后又有 `-r`、记录器），没有保存逐行比对。
    - **未能证明**：提前退出的原因没有查明。时间上与中断吻合，可能是应用被从外部退出，但没有证据。如果再次出现，要先查明原因。
 
-**下一步**：
-1. 在当前提交上手动触发 `margin-gates.yml`（`no_cache: true`），作为出口第 1 条的证据记入出口表；
-2. Astra 只读复查第三轮修复（`02d4cb2e` 和证据提交），一并评审 D5 的计划修改（S11、AG-25、工作流）。
-
-复查通过且第 1 条的 CI 证据补齐之前，不进入阶段 2。决定 1 仍等用户。
+**下一步**：Astra 只读复查第三轮修复（`02d4cb2e` 和证据提交），一并评审 D5 的计划修改（S11、AG-25、工作流）和不使用缓存的 CI 运行 `37694684706`。复查通过之前，不进入阶段 2。决定 1 仍等用户。
 
 ## 9. 评审记录
 
