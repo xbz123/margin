@@ -4,7 +4,9 @@
 // database (the sandbox's userData) and drives a meeting through IPC:
 //   start -> transcript (test-inject-transcript) -> end -> title and structured
 //   summary from a loopback mock -> read back -> restart -> read again -> delete ->
-//   restart -> still deleted.
+//   restart -> still deleted. Also: a meeting saved with the Transcripts scope off sends
+//   nothing, and the meeting chat sends the meeting's summary only while the
+//   post_call_summary scope is allowed.
 // The summary chain never calls OpenAI (Codex -> Groq -> Gemini), so the mock
 // serves the Groq client through the SDK's own GROQ_BASE_URL.
 //
@@ -227,4 +229,99 @@ test('with the Transcripts data scope off, the meeting is saved and nothing is s
   assert.ok(!sent.some((r) => JSON.stringify(r.body).includes('SCOPE_SENTINEL')));
 
   await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({}));
+  mock.setScript({ respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
+});
+
+// PLAN.md AG-17 (fourth review): the meeting chat sends the meeting's summary, key
+// points and action items as part of its context. They are post_call_summary data: with
+// that scope off, the chat must leave them out, and a request that still declares the
+// scope is refused by the main process before anything is sent.
+test('the meeting chat sends the summary only while the post_call_summary scope is allowed', async () => {
+  let launcher = await launcherWindow();
+  const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
+  assert.equal(keyResult?.success, true, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
+  assert.equal((await launcher.evaluate(() => window.electronAPI.startMeeting()))?.success, true);
+  for (const [speaker, text] of [
+    ['interviewer', 'CHAT_TRANSCRIPT one: we review the release checklist.'],
+    ['user', 'CHAT_TRANSCRIPT two: the checklist has five steps.'],
+    ['interviewer', 'CHAT_TRANSCRIPT three: step four needs an owner.'],
+    ['user', 'CHAT_TRANSCRIPT four: I will take step four.'],
+  ]) {
+    const r = await launcher.evaluate((seg) => window.electronAPI.testInjectTranscript(seg), { speaker, text, final: true });
+    assert.equal(r?.success, true, `inject failed: ${JSON.stringify(r)}`);
+  }
+  // MeetingPersistence drops meetings shorter than one second.
+  await new Promise((r) => setTimeout(r, 1_500));
+  assert.equal((await launcher.evaluate(() => window.electronAPI.endMeeting()))?.success, true);
+  let seen = [];
+  const meeting = await waitFor(async () => {
+    const list = await launcher.evaluate(() => window.electronAPI.getRecentMeetings());
+    seen = list.map((m) => m.title);
+    return list.find((m) => m.title === TITLE);
+  }, 'the processed meeting for the chat').catch((e) => { throw new Error(`${e.message}; meetings: ${JSON.stringify(seen)}; requests: ${mock.chatRequests().length}`); });
+  const details = await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id);
+  assert.equal(details.detailedSummary.overview, SUMMARY.overview);
+
+  // A fresh profile shows the first-run startup sequence instead of the launcher.
+  await launcher.evaluate(() => localStorage.setItem('natively_seen_startup_v1', 'true'));
+  await launcher.reload();
+  await launcher.waitForLoadState('domcontentloaded');
+  // The chat uses the selected model; only the (mock) Groq key is set here. Selected
+  // after the reload, which can restore the default model.
+  await new Promise((r) => setTimeout(r, 1_000));
+  await launcher.evaluate(() => window.electronAPI.setModel('llama-3.3-70b-versatile'));
+  const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
+  assert.equal(config?.model, 'llama-3.3-70b-versatile', `active model is ${JSON.stringify(config)}`);
+  await launcher.getByText(TITLE).first().click();
+  const input = launcher.locator('input[placeholder="Ask about this meeting..."]');
+  await launcher.evaluate(() => { window.__marginStreamErrors = []; window.electronAPI.onGeminiStreamError((e) => window.__marginStreamErrors.push(e)); });
+
+  // Chat questions get their own answer, so the test can wait until it is shown.
+  mock.setScript({
+    respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY)
+      : JSON.stringify(body?.messages ?? '').includes('CHAT_QUESTION') ? 'CHAT_ANSWER shown.' : TITLE),
+  });
+  const answersShown = () => launcher.evaluate(() => document.body.innerText.split('CHAT_ANSWER shown.').length - 1);
+  const ask = async (question) => {
+    const before = mock.chatRequests().length;
+    const shown = await answersShown();
+    await input.fill(question);
+    await input.press('Enter');
+    const req = await waitFor(() => mock.chatRequests().slice(before).find((r) => JSON.stringify(r.body).includes(question)), `the chat request for "${question}"`, 20_000)
+      .catch(async (e) => {
+        const page = await launcher.evaluate(() => {
+          const t = document.body.innerText;
+          return JSON.stringify({ streamErrors: window.__marginStreamErrors, question: t.includes('CHAT_QUESTION'), wrong: /went wrong|Couldn't get/.test(t), details: t.includes('Ask about this meeting'), around: t.slice(Math.max(0, t.indexOf('CHAT_QUESTION') - 200), t.indexOf('CHAT_QUESTION') + 300) });
+        });
+        throw new Error(`${e.message}; requests since: ${JSON.stringify(mock.chatRequests().slice(before).map((r) => r.url))}; page: ${page}`);
+      });
+    await waitFor(async () => (await answersShown()) > shown, `the answer to "${question}"`, 20_000);
+    return JSON.stringify(req.body);
+  };
+
+  const allowed = await ask('CHAT_QUESTION one: what did we agree?');
+  assert.match(allowed, /CHAT_TRANSCRIPT/, 'the transcript goes with the question');
+  assert.ok(allowed.includes(SUMMARY.overview), 'with every scope allowed the summary goes too');
+
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({ post_call_summary: false }));
+  const denied = await ask('CHAT_QUESTION two: what else was said?');
+  assert.match(denied, /CHAT_TRANSCRIPT/, 'the transcript still goes with the question');
+  assert.ok(!denied.includes(SUMMARY.overview), 'the summary must be left out');
+  for (const bullets of Object.values(SUMMARY.sections)) {
+    for (const b of bullets) assert.ok(!denied.includes(b), `summary section text must be left out: ${b}`);
+  }
+
+  // A request that still declares the denied scope is refused before anything is sent.
+  const before = mock.chatRequests().length;
+  const error = await launcher.evaluate(() => new Promise((resolve) => {
+    const off = window.electronAPI.onGeminiStreamError((e) => { off(); resolve(e); });
+    window.electronAPI.streamGeminiChat('CHAT_QUESTION three', undefined, 'MEETING: x', { skipSystemPrompt: true, dataScopes: ['post_call_summary'] });
+    setTimeout(() => { off(); resolve(null); }, 10_000);
+  }));
+  assert.match(String(error), /post_call_summary/, `expected a scope refusal, got ${error}`);
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal(mock.chatRequests().length, before, 'the refused request reached no provider');
+
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({}));
+  mock.setScript({ respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
 });

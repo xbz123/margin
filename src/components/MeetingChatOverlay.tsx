@@ -247,22 +247,28 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
         onClose();
     }, [onClose]);
 
-    // Build context string for LLM
-    const buildContextString = useCallback((): string => {
+    // Build context string for LLM. The summary, key points and action items come from
+    // the post-call summary: they are included only when `includeSummary` is set, and
+    // `hasSummary` says whether any of them went in (PLAN.md AG-17 fourth review).
+    const buildContextString = useCallback((includeSummary: boolean): { text: string; hasSummary: boolean } => {
         const parts: string[] = [];
+        let hasSummary = false;
 
         parts.push(`MEETING: ${meetingContext.title}`);
 
-        if (meetingContext.summary) {
+        if (includeSummary && meetingContext.summary) {
             parts.push(`\nSUMMARY:\n${meetingContext.summary}`);
+            hasSummary = true;
         }
 
-        if (meetingContext.keyPoints?.length) {
+        if (includeSummary && meetingContext.keyPoints?.length) {
             parts.push(`\nKEY POINTS:\n${meetingContext.keyPoints.map(p => `- ${p}`).join('\n')}`);
+            hasSummary = true;
         }
 
-        if (meetingContext.actionItems?.length) {
+        if (includeSummary && meetingContext.actionItems?.length) {
             parts.push(`\nACTION ITEMS:\n${meetingContext.actionItems.map(a => `- ${a}`).join('\n')}`);
+            hasSummary = true;
         }
 
         if (meetingContext.transcript?.length) {
@@ -273,7 +279,7 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
             parts.push(`\nRECENT TRANSCRIPT:\n${transcriptText}`);
         }
 
-        return parts.join('\n');
+        return { text: parts.join('\n'), hasSummary };
     }, [meetingContext]);
 
     // Submit question with this meeting's transcript and notes as context
@@ -313,7 +319,12 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
             }]);
 
             // Answer from this meeting's own transcript and notes.
-            const contextString = buildContextString();
+            // Leave the summary parts out when the post_call_summary scope is denied, and
+            // declare the scope when they are sent: the main process refuses the request
+            // if it is denied by then. When the setting cannot be read, they are sent and
+            // declared, so the main process decides.
+            const scopes = await window.electronAPI?.getProviderDataScopes?.().catch(() => undefined);
+            const { text: contextString, hasSummary } = buildContextString(scopes?.post_call_summary !== false);
             const systemPrompt = `You are recalling a specific meeting. Answer questions ONLY about this meeting. Be concise (2-4 sentences). Sound natural, like a human recalling. If information is not present, say so briefly. Never guess.
 
 ${contextString}`;
@@ -366,7 +377,7 @@ ${contextString}`;
                 question,
                 undefined,
                 systemPrompt,
-                { skipSystemPrompt: true, ignoreKnowledgeMode: true }
+                { skipSystemPrompt: true, ignoreKnowledgeMode: true, ...(hasSummary ? { dataScopes: ['post_call_summary' as const] } : {}) }
             );
 
         } catch (error) {

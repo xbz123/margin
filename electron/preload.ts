@@ -347,7 +347,7 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; dataScopes?: Array<'profile_history' | 'post_call_summary'> },
   ) => Promise<void>;
   onGeminiStreamToken: (callback: (token: string) => void) => () => void;
   onGeminiStreamDone: (callback: () => void) => () => void;
@@ -1125,7 +1125,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; dataScopes?: Array<'profile_history' | 'post_call_summary'> },
   ) => {
     const clientStreamId = ++chatStreamSeq;
     activeChatStreamId = clientStreamId;

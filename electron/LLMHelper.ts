@@ -28,7 +28,7 @@ import {
   type VisionStreamProvider,
   type VisionHealthEntry,
 } from "./llm/visionStreamFallback"
-import { assertProviderDataScopes, getDeniedDataScopes, routeWithScopeFallback, ProviderRouter, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
+import { assertProviderDataScopes, getDeniedDataScopes, routeWithScopeFallback, ProviderRouter, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
 import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { createProviderRateLimiters, RateLimiter } from './services/RateLimiter';
 import { CodexCliConfig, CodexCliService, DEFAULT_CODEX_CLI_CONFIG } from './services/CodexCliService';
@@ -111,14 +111,17 @@ export class LLMHelper {
   private inferContextScopes(context?: string): ProviderDataScope[] {
     const scopes: ProviderDataScope[] = [];
     if (!context?.trim()) return scopes;
-    if (/<meeting_history|USER-PROVIDED PERSONA CONTEXT|<user_context/i.test(context)) scopes.push('profile_history');
+    if (/<meeting_history|USER-PROVIDED PERSONA CONTEXT|<user_context|\[RECENT ASSISTANT RESPONSES\]/i.test(context)) scopes.push('profile_history');
     if (/<post_call_summary|meeting summary|silent meeting summarizer|silent meeting note-taker/i.test(context)) scopes.push('post_call_summary');
     return scopes;
   }
 
+  // Any text counts as transcript, also when other scopes are declared for it: a
+  // declared scope adds to the transcript, it does not replace it (PLAN.md AG-17
+  // fourth review).
   private scopesForPayload(text: string, imagePaths?: string[], extraScopes: ProviderDataScope[] = []): ProviderDataScope[] {
     const scopes = new Set<ProviderDataScope>(extraScopes);
-    if (text.trim().length > 0 && extraScopes.length === 0) scopes.add('transcript');
+    if (text.trim().length > 0) scopes.add('transcript');
     if (imagePaths?.length) scopes.add('screenshots');
     return [...scopes];
   }
@@ -132,6 +135,12 @@ export class LLMHelper {
   private assertGeminiContents(contents: unknown): void {
     const payload = JSON.stringify(contents ?? '');
     this.assertOutboundScopes('gemini', payload, /"inlineData"\s*:/.test(payload) ? ['inline-image'] : undefined);
+  }
+
+  // For callers that build a request: which of these scopes the user has denied, so
+  // they can leave that content out before sending.
+  public deniedDataScopes(scopes: ProviderDataScope[]): ProviderDataScope[] {
+    return getDeniedDataScopes(scopes, this.getProviderScopePolicy());
   }
 
   private getDeniedOutboundScopes(text: string, imagePaths?: string[], extraScopes: ProviderDataScope[] = []): ProviderDataScope[] {
@@ -2315,6 +2324,14 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const initialOutboundText = [context, message].filter(Boolean).join('\n\n');
     const contextScopes = [...extraDataScopes, ...this.inferContextScopes(context)];
     const deniedOutboundScopes = this.getDeniedOutboundScopes(message, imagePaths, contextScopes);
+    // extraDataScopes are the scopes the caller declared for this request. That data
+    // may sit in `message` itself, which cannot be cut out here, so a denied declared
+    // scope refuses the whole request before anything is sent. Callers leave such
+    // content out themselves (PLAN.md AG-17 fourth review).
+    const deniedDeclaredScopes = extraDataScopes.filter((scope) => deniedOutboundScopes.includes(scope));
+    if (deniedDeclaredScopes.length > 0) {
+      throw new ProviderScopeError('chat', deniedDeclaredScopes);
+    }
     if (deniedOutboundScopes.length > 0) {
       for (const scope of deniedOutboundScopes) {
         this.logScopeFallback(scope);

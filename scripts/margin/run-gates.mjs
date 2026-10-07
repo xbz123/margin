@@ -140,9 +140,10 @@ async function runTestFiles() {
     // kind counts, local ones included: an expected local call needs an explicit
     // stand-in in the test. A log without a guard-loaded record is no evidence that
     // the guard ran, and counts too (PLAN.md AG-17 review). The record must come from
-    // the test process this run-node.mjs started, which also holds when the file was
-    // ended by a kill and run-node.mjs never checked it (third review).
-    const isolationBlocked = isolationRecords(r.isolationLog, r.runNodePid);
+    // the process that ran the file, below the run-node.mjs this run started, which also
+    // holds when the file was ended by a kill and run-node.mjs never checked it (third
+    // and fourth reviews).
+    const isolationBlocked = isolationRecords(r.isolationLog, r.runNodePid, r.file);
     isolation.push(...isolationBlocked.map((b) => `${r.file} :: ${b}`));
     // A non-zero exit must be explained by a failing test in the TAP report.
     const exitOk = r.exitCode === 0 || (r.endedAfterFooter && footer(r.tap, 'fail') === 0);
@@ -160,14 +161,21 @@ async function runTestFiles() {
 }
 
 // The blocked attempts in one isolation log, as unique "<kind> <detail>" lines, plus
-// "<no guard-loaded record>" when the guard left no evidence that it ran in the test
-// process started by run-node.mjs (pid `runNodePid`).
-function isolationRecords(log, runNodePid) {
+// "<no guard-loaded record>" when the guard left no evidence that it ran in the process
+// that executed `file`. With `node --test` that is a chain: run-node.mjs (pid
+// `runNodePid`) starts the test runner, and the runner starts a child process per file
+// whose script is the file itself. Both are guarded; the record must come from that
+// child (PLAN.md AG-17 fourth review).
+function isolationRecords(log, runNodePid, file) {
   const records = fs.existsSync(log)
     ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { kind: 'unreadable', detail: l }; } })
     : [];
   const blocked = [...new Set(records.filter((r) => r.kind !== 'guard-loaded').map((r) => `${r.kind} ${r.detail}`))];
-  if (!records.some((r) => r.kind === 'guard-loaded' && r.ppid === runNodePid)) blocked.push('<no guard-loaded record>');
+  const loads = records.filter((r) => r.kind === 'guard-loaded');
+  const runners = new Set(loads.filter((r) => r.ppid === runNodePid).map((r) => r.pid));
+  const target = path.resolve(REPO, file);
+  const ranFile = loads.some((r) => runners.has(r.ppid) && typeof r.script === 'string' && path.resolve(REPO, r.script) === target);
+  if (!ranFile) blocked.push('<no guard-loaded record>');
   return blocked;
 }
 
@@ -214,7 +222,9 @@ function readList(file) {
 fs.mkdirSync(out, { recursive: true });
 const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout.trim();
 const dirty = spawnSync('git', ['status', '--porcelain'], { cwd: REPO, encoding: 'utf8' }).stdout.trim().split('\n').filter(Boolean);
-const summary = { startedAt: new Date().toISOString(), head, uncommittedPaths: dirty.length, reference: ref ? path.relative(REPO, ref) : null,
+// The paths themselves are kept too, so a non-zero count can be checked (PLAN.md AG-17
+// fourth review).
+const summary = { startedAt: new Date().toISOString(), head, uncommittedPaths: dirty.length, uncommittedPathList: dirty.slice(0, 200), reference: ref ? path.relative(REPO, ref) : null,
   ...(arg('--note') ? { note: arg('--note') } : {}), steps: [] };
 
 for (const step of steps) {

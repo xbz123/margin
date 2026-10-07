@@ -229,3 +229,78 @@ test('every cloud send in LLMHelper.ts is preceded by a scope check in its metho
   assert.ok(sends.length >= 20, `found only ${sends.length} sends; the pattern no longer matches the code`);
   assert.deepEqual(sends.filter((s) => !s.checked), [], 'sends without a scope check');
 });
+
+// Fourth review (PLAN.md AG-17): the static sweep only shows that a check comes
+// before each send in the same method, not that every branch is guarded. These cases
+// call each remaining send branch with the transcript scope denied and count requests,
+// so deleting the check of any one branch fails here.
+const geminiOnly = (send) => ({ client: { models: { generateContent: send } }, geminiModel: 'gemini-test', delay: async () => {} });
+const groqThenNothing = (send) => ({ groqClient: { chat: { completions: { create: send } } } });
+const branchSends = [
+  // Two Gemini branches, each tried in every rotation: 2 x 3 requests when allowed.
+  ['generateContentStructured (Gemini Pro and Flash branches)', geminiOnly, (self) => self.generateContentStructured('TRANSCRIPT_SENTINEL said hello'), 6],
+  ['generateWithPro', geminiOnly, (self) => self.generateWithPro([{ text: 'TRANSCRIPT_SENTINEL said hello' }]), 1],
+  ['generateWithFlash', geminiOnly, (self) => self.generateWithFlash([{ text: 'TRANSCRIPT_SENTINEL said hello' }]), 1],
+  ['generateWithFallback (robust Gemini client)', geminiOnly, (self) => self.generateWithFallback(self.client, { model: 'gemini-test', contents: [{ text: 'TRANSCRIPT_SENTINEL said hello' }] }), null],
+  ['streamWithGroqOrGemini (Groq branch)', groqThenNothing, async (self) => { for await (const _ of self.streamWithGroqOrGemini('TRANSCRIPT_SENTINEL said hello', 'TRANSCRIPT_SENTINEL said hello')) { /* drain */ } }, 1],
+];
+
+for (const [name, makeClient, call, allowedRequests] of branchSends) {
+  test(`${name} sends nothing when the transcript scope is denied`, async () => {
+    const allowed = await sendWith({}, makeClient, call);
+    if (allowedRequests === null) assert.ok(allowed.requests.length >= 1, 'with every scope allowed the call reaches the send');
+    else assert.equal(allowed.requests.length, allowedRequests, 'with every scope allowed every branch reaches the send');
+
+    const denied = await sendWith({ transcript: false }, makeClient, call);
+    assert.equal(denied.requests.length, 0, 'nothing may be sent');
+    assert.match(`${denied.error?.name} ${denied.error?.message}`, /ProviderScopeError|blocked by data scope policy: transcript/, `unexpected error: ${denied.error}`);
+  });
+}
+
+// Fourth review, finding 1: scopes the caller declares for a request describe data
+// that may sit in the message itself. streamChat must refuse the request when one of
+// them is denied, even with the transcript allowed.
+const openaiClient = (send) => ({ openaiClient: { chat: { completions: { create: send } } }, currentModelId: 'gpt-5.4', personaPrompt: '' });
+
+test('streamChat refuses a request whose declared scope is denied, before anything is sent', async () => {
+  const run = (self) => (async () => {
+    for await (const _ of self.streamChat('PRIOR_ANSWER_SENTINEL in the message', undefined, undefined, undefined, true, true, ['profile_history'])) { /* drain */ }
+  })();
+  const allowed = await sendWith({}, openaiClient, run);
+  assert.equal(allowed.requests.length, 1, 'with every scope allowed the request is sent');
+
+  for (const policy of [{ profile_history: false }, { transcript: false }]) {
+    const denied = await sendWith(policy, openaiClient, run);
+    assert.equal(denied.error?.name, 'ProviderScopeError', `${JSON.stringify(policy)}: expected a scope error, got ${denied.error}`);
+    assert.equal(denied.requests.length, 0, `${JSON.stringify(policy)}: nothing may be sent`);
+  }
+});
+
+// WhatToAnswer leaves earlier answers out of the request when profile_history is
+// denied, so the answer still works without them.
+async function whatToAnswerWith(deniedScopes) {
+  const { WhatToAnswerLLM } = createRequire(import.meta.url)(path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js'));
+  const calls = [];
+  const helper = {
+    getCapabilities: () => ({ outputBudgetTokens: 2000 }),
+    fitContextForCurrentModel: (text) => text,
+    getPromptTier: () => 'standard',
+    deniedDataScopes: (scopes) => scopes.filter((s) => deniedScopes.includes(s)),
+    streamChat: async function* (...args) { calls.push(args); yield 'ok'; },
+  };
+  const temporal = { hasRecentResponses: true, previousResponses: ['PRIOR_ANSWER_SENTINEL from before'], recentTranscript: '', roleContext: '' };
+  for await (const _ of new WhatToAnswerLLM(helper).generateStream('Interviewer: TRANSCRIPT_SENTINEL what next?', temporal)) { /* drain */ }
+  assert.equal(calls.length, 1);
+  return { message: calls[0][0], scopes: calls[0][6] };
+}
+
+test('WhatToAnswer sends earlier answers only while profile_history is allowed', async () => {
+  const allowed = await whatToAnswerWith([]);
+  assert.match(allowed.message, /PRIOR_ANSWER_SENTINEL/);
+  assert.deepEqual(allowed.scopes, ['profile_history']);
+
+  const denied = await whatToAnswerWith(['profile_history']);
+  assert.doesNotMatch(denied.message, /PRIOR_ANSWER_SENTINEL/);
+  assert.match(denied.message, /TRANSCRIPT_SENTINEL/, 'the transcript still goes');
+  assert.deepEqual(denied.scopes, []);
+});

@@ -341,9 +341,15 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; dataScopes?: unknown },
     ) => {
       let myController: AbortController | null = null;
+      // Data scopes the window declares for its message and context, beyond the
+      // transcript (for example a meeting chat that includes the meeting's summary).
+      // streamChat refuses the request when one of them is denied (PLAN.md AG-17
+      // fourth review). Unknown values are dropped.
+      const declaredScopes = (Array.isArray(options?.dataScopes) ? options.dataScopes : [])
+        .filter((scope): scope is 'profile_history' | 'post_call_summary' => scope === 'profile_history' || scope === 'post_call_summary');
       // The preload's id for this request, sent back with every event so the window
       // can drop events of a cancelled or superseded stream (PLAN.md AG-17 review).
       const clientStreamId = options?.clientStreamId;
@@ -447,7 +453,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             systemPromptOverride,
             options?.ignoreKnowledgeMode,
             false, // skipModeInjection
-            [],    // extraDataScopes
+            declaredScopes, // extraDataScopes
             myController.signal,
           );
 

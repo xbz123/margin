@@ -73,18 +73,20 @@ jobs:
       - name: Native setup
         run: |
           set -o pipefail
-          mkdir -p native-artifact
-          npm run setup:native 2>&1 | tee native-artifact/setup-native.log
+          # Outside the checkout, so the gates see a clean tree.
+          mkdir -p "$RUNNER_TEMP/native-artifact"
+          npm run setup:native 2>&1 | tee "$RUNNER_TEMP/native-artifact/setup-native.log"
 
       - name: Collect the native module
         env:
           NO_CACHE: ${{ inputs.no_cache && 'true' || 'false' }}
         run: |
+          cd "$RUNNER_TEMP"
           if [ "$NO_CACHE" = true ]; then
             # From scratch means cargo compiled cidre in this run.
             grep -E '^\s*Compiling cidre v' native-artifact/setup-native.log
           fi
-          cp native-module/index.darwin-arm64.node native-artifact/
+          cp "$GITHUB_WORKSPACE/native-module/index.darwin-arm64.node" native-artifact/
           {
             echo "commit: $GITHUB_SHA"
             echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"
@@ -100,7 +102,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: margin-native-${{ github.sha }}
-          path: native-artifact/
+          path: ${{ runner.temp }}/native-artifact/
           retention-days: 30
 
       - name: Run gates against the newest local ticket evidence

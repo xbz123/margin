@@ -13,11 +13,14 @@ export interface PreparedContextSession {
 
 /**
  * Build transcript context aligned with What-to-Answer: cleaned turns,
- * interim interviewer speech, and recent assistant responses.
+ * interim interviewer speech, and recent assistant responses. The responses are
+ * profile_history data; callers pass `includeAssistantResponses: false` when that
+ * scope is denied (PLAN.md AG-17 fourth review).
  */
 export function buildPreparedTranscriptContext(
   session: PreparedContextSession,
   lastSeconds: number = 180,
+  includeAssistantResponses: boolean = true,
 ): string {
   const contextItems = session.getContextWithInterim(lastSeconds);
   if (contextItems.length === 0) return '';
@@ -36,7 +39,7 @@ export function buildPreparedTranscriptContext(
   );
 
   const parts: string[] = [preparedTranscript];
-  if (temporalContext.hasRecentResponses && temporalContext.previousResponses.length > 0) {
+  if (includeAssistantResponses && temporalContext.hasRecentResponses && temporalContext.previousResponses.length > 0) {
     parts.push(
       '[RECENT ASSISTANT RESPONSES]\n' +
         temporalContext.previousResponses.map((r) => `- ${r}`).join('\n'),

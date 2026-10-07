@@ -102,11 +102,16 @@ ANSWER SHAPE: ${intentResult.answerShape}
                 ? `${basePrompt}\n\n## ACTIVE SKILL\n${activeSkill.promptBlock}`
                 : `${basePrompt}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
 
+            // Earlier answers are profile_history data: leave them out when the user has
+            // denied that scope (PLAN.md AG-17 fourth review).
+            const includePriorResponses = !!temporalContext?.hasRecentResponses
+                && temporalContext.previousResponses.length > 0
+                && this.llmHelper.deniedDataScopes(['profile_history']).length === 0;
             const assembler = new PromptAssembler();
             const packet = assembler.assemble({
                 transcript: workingTranscript,
                 screenContext,
-                priorResponses: temporalContext?.hasRecentResponses ? temporalContext.previousResponses : undefined,
+                priorResponses: includePriorResponses ? temporalContext!.previousResponses : undefined,
                 intentContext,
                 tokenBudget: Math.max(1000, assemblerBudget),
                 systemPrompt: finalPromptOverride,
@@ -123,7 +128,7 @@ ANSWER SHAPE: ${intentResult.answerShape}
             // still yield every token as it arrives; the buffer is just appended.
             const streamedBuffer: string[] = [];
             const packetScopes: ProviderDataScope[] = [];
-            if (temporalContext?.hasRecentResponses && temporalContext.previousResponses.length > 0) packetScopes.push('profile_history');
+            if (includePriorResponses) packetScopes.push('profile_history');
             for await (const token of this.llmHelper.streamChat(packet.userMessage, imagePaths, undefined, finalPromptOverride, true, true, packetScopes)) {
                 if (MEASURE) {
                     const now = performance.now();

@@ -334,10 +334,12 @@ export class IntelligenceEngine extends EventEmitter {
 
     /**
      * Build transcript context aligned with What-to-Answer: cleaned turns,
-     * interim interviewer speech, and recent assistant responses.
+     * interim interviewer speech, and recent assistant responses. The responses are
+     * left out when the profile_history scope is denied (PLAN.md AG-17 fourth review).
      */
     private buildPreparedTranscriptContext(lastSeconds: number = 180): string {
-        return assemblePreparedTranscriptContext(this.session, lastSeconds);
+        const historyAllowed = this.llmHelper.deniedDataScopes(['profile_history']).length === 0;
+        return assemblePreparedTranscriptContext(this.session, lastSeconds, historyAllowed);
     }
 
     /**
