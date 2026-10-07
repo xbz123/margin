@@ -11,6 +11,7 @@
     { "line": "const i = args.indexOf(name);", "reason": "Generic argument parsing; written for this branch (X1), 2026-10-07" },
     { "line": "for (const raw of text.split('\\n')) {", "reason": "Generic line iteration; written for this branch (X1), 2026-10-07" },
     { "line": "const u = new URL(url);", "reason": "Generic URL parsing; written for this branch (X2), 2026-10-07" },
-    { "line": "child.on('exit', (code, signal) => {", "reason": "Standard child_process exit handler; written for this branch (X2), 2026-10-07" }
+    { "line": "child.on('exit', (code, signal) => {", "reason": "Standard child_process exit handler; written for this branch (X2), 2026-10-07" },
+    { "line": "const Database = req('better-sqlite3');", "reason": "Generic module load; written for this branch (X3 native-load check), 2026-10-07" }
   ]
 }

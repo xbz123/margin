@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sourcePath = path.resolve(__dirname, '../../LLMHelper.ts');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const generateSuggestionStart = source.indexOf('public async generateSuggestion');
-const generateSuggestionEnd = source.indexOf('public setKnowledgeOrchestrator', generateSuggestionStart);
+const generateSuggestionEnd = source.indexOf('public setCustomNotes', generateSuggestionStart);
 const generateSuggestionSource = source.slice(generateSuggestionStart, generateSuggestionEnd);
 
 const whatToAnswerPath = path.resolve(__dirname, '../WhatToAnswerLLM.ts');

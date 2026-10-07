@@ -1,9 +1,8 @@
 // tests/utils/profileIntelligenceSeeder.mjs
 // Seeds the synthetic user profiles + resume + JD + custom context per
 // scenario. These are passed into the ModesManager mode's `customContext`
-// field rather than into the premium KnowledgeOrchestrator (which requires
-// Pro / trial). When premium becomes available in a test environment, a
-// separate seeder routes through KnowledgeOrchestrator.ingestDocument.
+// field. (Margin removed the premium knowledge pipeline in AG-10; this seeder
+// goes away with the modes tests in AG-13.)
 
 import fs from 'node:fs';
 import path from 'node:path';

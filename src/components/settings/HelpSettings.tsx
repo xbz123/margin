@@ -600,7 +600,6 @@ const MockProviderSelectionAnim = () => {
     }, []);
 
     const options = [
-        { id: 'natively', label: 'Natively API', badge: '', recommended: true, desc: 'Ultra-fast low latency transcription', color: 'indigo', icon: <img src={nativelyIcon} className={`w-[14px] h-[14px] object-contain opacity-80 ${isLight ? '' : 'filter brightness-0 invert'}`} alt="Natively" /> },
         { id: 'deepgram', label: 'Deepgram Nova-3', badge: 'Saved', recommended: false, desc: 'High-accuracy REST transcription', color: 'purple', icon: <Mic size={14} /> },
         { id: 'google', label: 'Google Cloud', badge: 'Saved', recommended: false, desc: 'gRPC streaming via Service Account', color: 'blue', icon: <Mic size={14} /> },
         { id: 'groq', label: 'Groq Whisper', badge: '', recommended: false, desc: 'Fast LPU whisper transcription', color: 'orange', icon: <Mic size={14} /> },
@@ -817,7 +816,7 @@ const SetupGuide = () => {
         },
         {
             title: 'Set Up Audio',
-            desc: 'Open Settings → Audio and select Natively API, or paste a Deepgram or Google key.',
+            desc: 'Open Settings → Audio and paste a key for a cloud transcription provider such as Deepgram, Soniox or Google.',
         },
         {
             title: 'Connect an AI Model',
@@ -825,7 +824,7 @@ const SetupGuide = () => {
         },
         {
             title: 'Personalize (Optional)',
-            desc: 'Drop your resume + JD in Profile Intelligence, link your Google Calendar, or pick a Mode tailored to your session.',
+            desc: 'Add your own Skills in Settings → Skills.',
         },
         {
             title: "You're all set.",
@@ -888,7 +887,7 @@ const SetupGuide = () => {
         </div>
     );
 };
-export const HelpSettings: React.FC<{ onNavigate?: (tab: string) => void }> = ({ onNavigate }) => {
+export const HelpSettings: React.FC = () => {
     const { shortcuts } = useShortcuts();
     const isLight = useResolvedTheme() === 'light';
 
@@ -909,27 +908,6 @@ export const HelpSettings: React.FC<{ onNavigate?: (tab: string) => void }> = ({
 
             <div className="flex-1 space-y-2">
 
-                {onNavigate && (
-                    <div
-                        onClick={() => onNavigate('natively-api')}
-                        className="mb-8 group cursor-pointer bg-bg-card hover:bg-bg-item-surface border border-border-subtle hover:border-white transition-all rounded-2xl flex items-center justify-between p-4 px-5 shadow-sm hover:shadow-md"
-                    >
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-1">
-                            <div className="w-10 h-10 shrink-0 rounded-xl bg-bg-item-surface border border-border-subtle flex items-center justify-center group-hover:bg-bg-elevated transition-colors">
-                                <Zap className="w-5 h-5 text-text-primary group-hover:text-white transition-colors" fill="currentColor" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-[14px] font-bold text-text-primary mb-0.5">Want to skip the manual setup?</h4>
-                                <p className="text-[13px] text-text-secondary">
-                                    Use the <span className="font-semibold text-text-primary">Natively API</span> for an out-of-the-box experience. One-click zero-configuration usage.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="hidden sm:flex self-center ml-4 px-3 py-1.5 rounded-lg bg-text-primary text-bg-main text-[11px] font-bold items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity whitespace-nowrap shrink-0">
-                            Enable Now <ArrowRight size={12} />
-                        </div>
-                    </div>
-                )}
 
                 <SetupGuide />
 
@@ -1485,232 +1463,10 @@ export const HelpSettings: React.FC<{ onNavigate?: (tab: string) => void }> = ({
 
 
 
-                <AccordionSection title="7. Pro Intelligence" icon={<Star className="w-4 h-4" />}>
+
+
+                <AccordionSection title="7. Miscellaneous" icon={<Settings className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        {/* Profile */}
-                        <div>
-                            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-4">
-                                <h4 className="text-[13px] font-semibold text-amber-500 flex items-center gap-2 mb-1">
-                                    <User size={14} /> Profile Intelligence System
-                                </h4>
-                                <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                    Instead of telling the AI who you are during every prompt, Profile Intelligence parses your background and universally injects it into all queries so it responds securely customized to your job role.
-                                </p>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-3">
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <Globe className="w-4 h-4 text-blue-500" /> Core Benefits
-                                    </h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li><strong>Zero Context Prep:</strong> Model inherits your coding stack, experience, etc.</li>
-                                        <li><strong>Resume Parsing:</strong> Upload your PDF Resume for local extraction.</li>
-                                        <li><strong>Global Toggle:</strong> Enable <span className="text-amber-500 font-semibold">Profile Mode</span> via the Star button.</li>
-                                    </ul>
-                                </div>
-
-                                <div className="p-4 rounded-xl border bg-accent-primary/5 border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <CreditCard className="w-4 h-4 text-accent-primary" /> Pro Requirement
-                                    </h4>
-                                    <p className="text-[11px] text-text-secondary mb-2">
-                                        This is a Natively Pro feature.
-                                    </p>
-                                    <ol className="text-[11px] text-text-secondary space-y-1 list-decimal pl-4 mb-0">
-                                        <li>Get a License at <button onClick={() => { (window as any).electronAPI?.openExternal('https://natively.software/') }} className="text-accent-primary hover:underline font-semibold">natively.software</button></li>
-                                        <li>Drop your Resume PDF in the UI to activate injection.</li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-border-subtle pt-5 mt-2">
-                            <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl mb-4">
-                                <h4 className="text-[13px] font-semibold text-purple-400 flex items-center gap-2 mb-1">
-                                    <Briefcase size={14} /> Job Description Targeting
-                                </h4>
-                                <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                    Drop a target <strong>JD PDF</strong> alongside your resume. Natively extracts the role title, level, company, and required technologies, then biases every prompt to align your responses with that exact spec — perfect for staying on-message during a final loop.
-                                </p>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-3 mb-5">
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <Building2 className="w-4 h-4 text-purple-400" /> Company Intelligence
-                                    </h4>
-                                    <p className="text-[11px] text-text-secondary leading-relaxed">
-                                        After uploading a JD, hit <strong>Research Now</strong> to compile a live dossier on the company — recent news, product surface area, culture signals — cached and injected into every reply so you sound briefed without prep.
-                                    </p>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <DollarSign className="w-4 h-4 text-emerald-500" /> Negotiation Script
-                                    </h4>
-                                    <p className="text-[11px] text-text-secondary leading-relaxed">
-                                        Generate a <strong>tailored salary script</strong> calibrated against the active JD's level and your background. Live coaching shows up inline during compensation conversations.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-4">
-                                <h4 className="text-[13px] font-semibold text-emerald-500 flex items-center gap-2 mb-1">
-                                    <FileText size={14} /> Custom Context Notes
-                                </h4>
-                                <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                    In addition to your Resume and JD, type any free-form context into the <strong>Custom Context</strong> textarea — sales stats, product details, LeetCode solutions, personal preferences. Injected as a <code className="bg-bg-elevated px-1 rounded text-[10px]">&lt;user_context&gt;</code> block into every AI call, across all modes and providers.
-                                </p>
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-3">
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <Upload className="w-4 h-4 text-emerald-500" /> How to Use
-                                    </h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Open <strong>Settings → Profile Intelligence</strong></li>
-                                        <li>Scroll to the <strong>Custom Context</strong> textarea</li>
-                                        <li>Type anything — auto-saved after 800 ms</li>
-                                        <li>Up to 4,000 characters with a live counter</li>
-                                    </ul>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <Sparkles className="w-4 h-4 text-amber-500" /> What to Put Here
-                                    </h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Your company's product details or pricing</li>
-                                        <li>Candidate pipeline notes for recruiting</li>
-                                        <li>LeetCode / DSA patterns you prefer</li>
-                                        <li>Personal formatting or style preferences</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </AccordionSection>
-
-                <AccordionSection title="8. Modes Manager" icon={<LayoutGrid className="w-4 h-4" />}>
-                    <div className="space-y-6">
-                        <p className="text-[13px]">Modes let you assign a specialized AI persona to your session. Each mode has a tailored system prompt, a personal context area, reference files, and smart note template sections — so Natively behaves differently depending on whether you're in a sales call, a coding interview, or a team standup.</p>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            {([
-                                { name: 'Interview', desc: 'STAR-format answers, behavioral stories, step-by-step coding hints.' },
-                                { name: 'Sales', desc: 'Objection handling, discovery questions, product pitch frameworks.' },
-                                { name: 'Recruiting', desc: 'Candidate assessment, JD cross-referencing, structured evaluation.' },
-                                { name: 'Team Meet', desc: 'Action items, announcements, blockers, decisions — auto-extracted.' },
-                                { name: 'Lecture', desc: 'Concept breakdowns, intuition-first explanations, formula notes.' },
-                                { name: 'Technical', desc: 'DSA / system design reasoning, edge cases, complexity analysis.' },
-                            ] as Array<{ name: string; desc: string }>).map(({ name, desc }) => (
-                                <div key={name} className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h5 className="font-semibold text-sm text-text-primary mb-1">{name}</h5>
-                                    <p className="text-[11px] text-text-secondary leading-relaxed">{desc}</p>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="space-y-3 pt-2 border-t border-border-subtle">
-                            <h4 className="font-bold text-sm text-text-primary pt-4">How to Use Modes</h4>
-                            <div className="grid md:grid-cols-2 gap-3">
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary">Opening the Manager</h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Click the <strong>grid icon</strong> in the Launcher header</li>
-                                        <li>Or click the grid icon in the main interface toolbar</li>
-                                        <li>Requires a Natively Pro license</li>
-                                    </ul>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary">Activating a Mode</h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Select any mode in the left sidebar</li>
-                                        <li>Click <strong>Set active</strong> to apply it</li>
-                                        <li>The toolbar icon shows the active mode name live</li>
-                                        <li>Click <strong>Deactivate</strong> to return to General</li>
-                                    </ul>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary">Reference Files</h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Upload PDF, DOCX, or TXT files per mode</li>
-                                        <li>File contents are injected as real-time context</li>
-                                        <li>Great for: resumes, product sheets, job descriptions</li>
-                                        <li>Per-file cap: 12 k chars · total cap: 40 k chars</li>
-                                    </ul>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary">Custom Modes & Templates</h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Click <strong>+ New Mode</strong> for a blank slate</li>
-                                        <li>Browse the <strong>Templates Gallery</strong> for ready-made personas</li>
-                                        <li>Edit the <strong>Real-time Prompt</strong> with the inline Save action</li>
-                                        <li>Define <strong>Note Section Templates</strong> per mode for capture format</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                            <h4 className="text-[13px] font-semibold text-indigo-400 flex items-center gap-2 mb-1">
-                                <Star size={14} /> Pro Feature
-                            </h4>
-                            <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                Modes are locked behind Natively Pro. Free and trial users see only the General mode. Activate a license via <strong>Settings → Natively API</strong> to unlock all seven modes.
-                            </p>
-                        </div>
-                    </div>
-                </AccordionSection>
-
-                <AccordionSection title="9. Miscellaneous" icon={<Settings className="w-4 h-4" />}>
-                    <div className="space-y-6">
-                        {/* Calendar */}
-                        <div>
-                            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-4">
-                                <h4 className="text-[13px] font-semibold text-blue-500 flex items-center gap-2 mb-1">
-                                    <Calendar size={14} /> What is Calendar Intelligence?
-                                </h4>
-                                <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                    By connecting your Google Calendar directly to Natively, the AI automatically gains context on your upcoming meetings, syncs the event data, and reads attendee lists to hyper-personalize your interactions.
-                                </p>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-3">
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary">How to Set it Up</h4>
-                                    <ul className="text-[11px] text-text-secondary space-y-1 list-disc pl-4">
-                                        <li>Navigate to the <strong>Calendar</strong> tab in settings.</li>
-                                        <li>Click <strong>Connect Google Calendar</strong> and authenticate securely.</li>
-                                        <li>Natively will quietly background-sync your schedule.</li>
-                                    </ul>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary">Follow-Up System</h4>
-                                    <p className="text-[11px] text-text-secondary">
-                                        When tracking live meetings, Natively uses the connected calendar context to instantly figure out <strong>who you are talking to</strong>. This powers the Follow-Up Email system, letting you auto-draft post-meeting notes to confirmed attendees.
-                                    </p>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <LayoutGrid className="w-4 h-4 text-blue-500" /> Launcher Peek Stack
-                                    </h4>
-                                    <p className="text-[11px] text-text-secondary">
-                                        The Launcher's Calendar card now displays your <strong>next real meeting</strong> with a stacked-card visual hinting at what comes after it — no need to switch tabs to see what's queued.
-                                    </p>
-                                </div>
-                                <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle">
-                                    <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                        <ExternalLink className="w-4 h-4 text-emerald-500" /> One-Click Join
-                                    </h4>
-                                    <p className="text-[11px] text-text-secondary">
-                                        Each upcoming event shows a <strong>Join Now</strong> button that opens the meeting link in your <strong>system default browser</strong> (so it lands in the right Chrome/Safari profile), not an in-app webview.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-border-subtle my-5"></div>
-
                         {/* Fast Mode */}
                         <div className="space-y-4">
                             <h4 className="font-bold text-sm text-text-primary flex items-center gap-2">
@@ -1729,7 +1485,7 @@ export const HelpSettings: React.FC<{ onNavigate?: (tab: string) => void }> = ({
                     </div>
                 </AccordionSection>
 
-                <AccordionSection title="10. Phone Mirror" icon={<Smartphone className="w-4 h-4" />}>
+                <AccordionSection title="8. Phone Mirror" icon={<Smartphone className="w-4 h-4" />}>
                     <div className="space-y-4">
                         <div className="p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl mb-2">
                             <h4 className="text-[13px] font-semibold text-sky-400 flex items-center gap-2 mb-1">
@@ -1769,7 +1525,7 @@ export const HelpSettings: React.FC<{ onNavigate?: (tab: string) => void }> = ({
                     </div>
                 </AccordionSection>
 
-                <AccordionSection title="11. Stealth & Window Control" icon={<Ghost className="w-4 h-4" />}>
+                <AccordionSection title="9. Stealth & Window Control" icon={<Ghost className="w-4 h-4" />}>
                     <div className="space-y-4">
                         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl mb-4">
                             <h4 className="text-[13px] font-semibold text-indigo-400 flex items-center gap-2 mb-1">

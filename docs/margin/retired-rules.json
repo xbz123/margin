@@ -1,5 +1,5 @@
 {
-  "completedTickets": [],
+  "completedTickets": ["AG-10"],
   "scanRoots": ["electron", "src", "native-module", "scripts", "renderer", "worker-script", "tests", ".github", "package.json", "vite.config.mts", "tsconfig.json", "tsconfig.node.json", "electron-builder.signed.cjs", "index.html", "playwright.config.ts"],
   "scanExclude": ["scripts/margin", "native-module/target", "native-module/package-lock.json"],
   "rules": [

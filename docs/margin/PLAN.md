@@ -597,11 +597,48 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | --- | --- | --- | --- |
 | 阶段 0 | 完成 | `e0dc5b40` | BASELINE、PROVENANCE、ADAPTATION |
 | 计划评审 | 完成 | `f76fba39` | Astra 只读评审，见第 9 节 |
-| 计划修订 | 完成 | — | 按用户 2026-10-07 的要求修订：<br>(1) 加入启动闸门 L0，解开 AG-09、AG-10 与 X2 之间的循环；<br>(2) G3 规则逐步启用；<br>(3) 新增 AG-08；<br>(4) BASELINE.md 改为明确写出证据的不确定性，基线不变 |
+| 计划修订 | 完成 | `02b3d9fd` | 按用户 2026-10-07 的要求修订：<br>(1) 加入启动闸门 L0，解开 AG-09、AG-10 与 X2 之间的循环；<br>(2) G3 规则逐步启用；<br>(3) 新增 AG-08；<br>(4) BASELINE.md 改为明确写出证据的不确定性，基线不变 |
 | 事件记录 | 已处理 | — | 两次运行超出了隔离边界，现已修复，详见下文 |
-| X1–X4 | 待开始 | | |
-| AG-09–17 | 待开始 | | |
-| AG-20–26 | 待开始 | | |
+| X1 来源检查 | 完成 | `8acc530d` | 结果见第 4 节 X1 |
+| X2 隔离 | 完成 | `f6b3f2a1` | 结果见第 4 节 X2。<br>**未覆盖**：原生插件自己发起的网络连接、Chromium 的 WebRTC/UDP |
+| X3 运行时 | 构建部分完成；启动部分未开始（等 L0） | `43781a21` | Electron 33 和 43 的原生模块都能加载。<br>**未验证**：两个版本的应用启动对比，以及 D1 的结论 |
+| X4 mock 通道 | 完成（决策） | `02b3d9fd` | 选甲；接口契约见第 4 节 X4。实现放在 AG-09 |
+| AG-08 | 完成 | `5ae76a18` | 在全新克隆里运行 `npm ci`：零安装脚本、没有模型文件。<br>**受阻**：没有 Xcode 时，干净机器上 `setup:native` 无法构建 Rust 模块，验收等 D5 |
+| AG-10 | 完成 | 见 AG-10 提交 | 见下文 AG-10 记录 |
+| AG-11、AG-12 | 待开始 | | 下一步 |
+| L0 / AG-09 | 待开始 | | 等 AG-11、AG-12 完成 |
+| AG-13–17 | 待开始 | | |
+| 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
+| AG-20–26 | 待开始 | | 等阶段 1 出口 |
+
+### AG-10 记录（2026-10-07）
+
+- **范围调整**：以下三项原本归在 AG-16 或未单列，因为全部依赖 premium 或 natively-api，提前到本票删除：
+  - **画像（Profile Intelligence）**：handler、界面和 Launcher 入口。它只能运行在 premium 的 `KnowledgeOrchestrator` 上。
+  - **日历**：OAuth 令牌通过 natively-api 代理（`api.natively.software`）交换。
+  - **谈判辅导**：数据只来自 premium 编排器，卡片组件也来自 premium。
+  - 另外，Launcher 的模式入口按钮也已删除：它打开的 premium 模式设置在免费构建里是空组件。模式系统的后端仍按原计划由 AG-13 删除。
+- **删除内容**：
+  - **原生模块**：`license.rs` 及其专属依赖 reqwest、machine-uid、sha2、serde_json，并重新生成导出；
+  - **子模块**：两个 gitlink 和 `.gitmodules`；
+  - **主进程**：许可证、试用、Natively API、画像、日历的 IPC 和 preload；`LLMHelper` 中的 Natively 提供方和知识拦截；`CredentialsManager` 中的 Natively key 和试用字段；NativelyProSTT；
+  - **渲染层**：试用、广告和升级入口；Natively API 和 Pro 两个设置页；帮助页中的 Pro 和 Modes Manager 两节；约 2,900 行只服务于 premium 定价的 CSS；
+  - **测试**：14 个只测已删模块的测试文件。另外修改了 10 个测试中引用已删内容的部分。
+- **检查结果**（不启动应用）：
+  - **G1**：渲染层 `tsc` 0 个错误；Electron `tsc` 与基线相比没有新增诊断；`build-electron` 和 `vite build` 都成功。
+  - **G2**：来源检查对新增行零命中。新增一条白名单，内容为本分支自写的 `native-load.cjs` 中的一行。
+  - **G3**：AG-10 的 30 条规则零命中。
+  - **G6**：
+    - 相关测试在守卫下运行，74 个中 69 个通过。失败的 5 个在基线上本来就失败：两个检查 `sendModelChanged`（上游并不存在这个函数），三个是模式相关测试，交给 AG-13 和 AG-17 处理。
+    - 全量测试（`electron/{services,llm,audio}/__tests__`，守卫下，每个测试限时 60 秒）：929 个，通过 881，失败 18，跳过 30。
+    - 与基线对比只多出一个失败：`ProfileIntelligenceClickGate`，它测试的组件已被删除，所以这个测试一并删除。其余失败都是基线原有的。
+    - 守卫拦截了 3 次，与基线相同：本机真实 Codex CLI 一次、`defaults` 两次。
+    - `OpenAIRealtimeGAProtocol` 依旧挂起（基线原有问题），已手动停止。
+  - **新增的两个契约检查**：
+    - `scripts/margin/preload-contract-check.mjs`：检查渲染层类型里声明的成员，preload 是否都真正提供。结果只剩 4 个基线原有的不一致（`closeAdvancedSettings`、`closeSettingsWindow`、`stealthTapRefreshIme`、`path`），放到 AG-17 处理。正是这个检查发现了日历在渲染层的残留，已一并删除。
+    - `scripts/margin/ipc-channel-check.mjs`：检查被调用的 IPC 通道是否都有主进程处理函数。结果为零缺口；另有 2 个基线原有的缺口记在 `docs/margin/ipc-baseline-gaps.txt`，也放到 AG-17。
+  - **原生模块**：在守卫下的 Node 进程中加载正常，不再有许可证导出（`native-exports.node.test.mjs`）。
+- **未验证**：应用启动（等 L0）；渲染层改动后的实际界面（等 L0 和 AG-09）。
 
 ### 事件记录（2026-10-07）
 
