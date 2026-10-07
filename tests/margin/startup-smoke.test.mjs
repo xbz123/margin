@@ -4,9 +4,14 @@
 //   - the launcher window and the settings window open (load time is recorded);
 //   - the app stays up for an observation window;
 //   - app.quit() ends the main process with exit code 0;
-//   - the main process logged no uncaught exception or unhandled rejection
-//     (main.ts writes both to natively_debug.log in the sandbox's Documents);
+//   - the main process had no uncaught exception or unhandled rejection, checked in
+//     two places: record-main-errors.cjs (loaded with -r before the app code) and the
+//     app's own natively_debug.log in the sandbox's Documents;
 //   - the guard recorded no outbound attempt.
+// Missing evidence fails the test: the recorder's file, the debug log and the guard
+// log must all exist. As a positive control, one probe exception and one probe
+// rejection are raised in the main process just before quitting; both must show up
+// in the recorder and in the debug log (PLAN.md AG-17 review).
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:
@@ -16,16 +21,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { launchApp, windowWithQuery } from './launch-app.mjs';
-import { makeSandbox, readBlocked } from '../../scripts/margin/isolation/env.mjs';
+import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
+import { makeSandbox, readBlocked, readGuardLog } from '../../scripts/margin/isolation/env.mjs';
 
 const OBSERVE_MS = 15_000;
+const PROBE = 'MARGIN-SMOKE-PROBE';
 
 test('the app starts, opens the launcher and settings, stays up, and quits cleanly', async (t) => {
   const sandbox = makeSandbox('startup-smoke');
   const started = Date.now();
-  const { app, output } = await launchApp(sandbox, { NODE_ENV: 'production' });
+  const { app, output, mainErrorsLog } = await launchApp(sandbox, { NODE_ENV: 'production' });
   const mainProcess = app.process();
+  const mainPid = mainProcess.pid;
   const exited = new Promise((resolve) => mainProcess.once('exit', (code, signal) => resolve({ code, signal })));
 
   try {
@@ -53,6 +60,13 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
       process.getBuiltinModule('path').join(electronApp.getPath('documents'), 'natively_debug.log'));
     assert.ok(logFile.startsWith(sandbox.root), `debug log must live in the sandbox, got ${logFile}`);
 
+    // Positive control for both error channels (see the header).
+    await app.evaluate((_, probe) => {
+      setTimeout(() => { throw new Error(`${probe} uncaught`); }, 0);
+      setTimeout(() => { Promise.reject(new Error(`${probe} rejection`)); }, 0);
+    }, PROBE);
+    await new Promise((r) => setTimeout(r, 1_000));
+
     await app.evaluate(({ app: electronApp }) => { setTimeout(() => electronApp.quit(), 0); });
     const { code, signal } = await Promise.race([
       exited,
@@ -61,10 +75,22 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
     assert.equal(signal, null, `main process ended by signal ${signal}`);
     assert.equal(code, 0, `main process exit code ${code}`);
 
-    const logText = fs.existsSync(logFile) ? fs.readFileSync(logFile, 'utf8') : '';
-    const critical = [...logText.split('\n'), ...output.join('').split('\n')].filter((l) => /\[CRITICAL\]|Uncaught Exception|Unhandled Rejection/.test(l));
-    assert.deepEqual(critical, [], 'no uncaught exception or unhandled rejection in the main process');
+    const mainErrors = readMainErrors(mainErrorsLog, mainPid);
+    const isProbe = (text) => text.includes(PROBE);
+    assert.deepEqual(mainErrors.filter((e) => isProbe(e.detail)).map((e) => e.kind).sort(), ['uncaughtException', 'unhandledRejection'],
+      `the recorder missed the probe: ${JSON.stringify(mainErrors)}`);
+    assert.deepEqual(mainErrors.filter((e) => !isProbe(e.detail)).map((e) => `${e.kind}: ${e.detail.split('\n')[0]}`), [],
+      'no uncaught exception or unhandled rejection in the main process (recorder)');
 
+    assert.ok(fs.existsSync(logFile), `the app's debug log was not written: ${logFile}`);
+    const logText = fs.readFileSync(logFile, 'utf8');
+    const critical = [...logText.split('\n'), ...output.join('').split('\n')].filter((l) => /\[CRITICAL\]|Uncaught Exception|Unhandled Rejection/.test(l));
+    assert.equal(critical.filter((l) => /\[CRITICAL\] Uncaught Exception/.test(l) && isProbe(l)).length, 1, `the debug log missed the probe exception:\n${critical.join('\n')}`);
+    assert.equal(critical.filter((l) => /\[CRITICAL\] Unhandled Rejection/.test(l) && isProbe(l)).length, 1, `the debug log missed the probe rejection:\n${critical.join('\n')}`);
+    assert.deepEqual(critical.filter((l) => !isProbe(l)), [], 'no uncaught exception or unhandled rejection in the main process (debug log)');
+
+    const guardLog = readGuardLog(sandbox); // throws if the guard log is missing
+    assert.ok(guardLog.some((e) => e.kind === 'guard-loaded' && e.pid === mainPid), `no guard-loaded record from the main process (pid ${mainPid})`);
     const blocked = readBlocked(sandbox).filter((b) => !['permission', 'device', 'local-exec'].includes(b.kind));
     assert.deepEqual(blocked.map((b) => `${b.kind} ${b.detail}`), [], 'no outbound attempts during start-up');
 

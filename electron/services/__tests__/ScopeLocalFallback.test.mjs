@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
+import os from 'node:os';
+import { createRequire } from 'node:module';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
@@ -48,9 +50,50 @@ test('routeLLMProviders marks cloud providers unavailable when a scope is denied
   assert.deepEqual(routeWithScopeFallback(options), attempts);
 });
 
-test('post_call_summary denial omits the meeting context from the summary request', () => {
-  const llmHelper = read('electron/LLMHelper.ts');
+// Behavior check (rewritten in PLAN.md AG-17 after the Astra review): runs the built
+// generateMeetingSummary against a stub Groq client and inspects the request body.
+// The meeting context is the transcript, so denying either `transcript` or
+// `post_call_summary` must keep it from being sent at all.
+function loadBuiltLLMHelper() {
+  const require = createRequire(import.meta.url);
+  const built = path.resolve(__dirname, '../../../dist-electron/electron/LLMHelper.js');
+  const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
+  const previous = require.cache[electronId];
+  require.cache[electronId] = {
+    id: electronId, filename: electronId, loaded: true,
+    exports: { app: { getPath: () => os.tmpdir(), isPackaged: false, getVersion: () => '0.0.0' } },
+  };
+  try {
+    return require(built).LLMHelper;
+  } finally {
+    if (previous) require.cache[electronId] = previous; else delete require.cache[electronId];
+  }
+}
 
-  assert.match(llmHelper, /getDeniedDataScopes\(\['post_call_summary'\], this\.getProviderScopePolicy\(\)\)/);
-  assert.match(llmHelper, /this\.logScopeFallback\('post_call_summary'\);\s*context = '';/);
+async function summarizeWith(policy) {
+  const LLMHelper = loadBuiltLLMHelper();
+  const requests = [];
+  const self = {
+    codexCliConfig: { enabled: false },
+    groqClient: { chat: { completions: { create: async (body) => { requests.push(body); return { choices: [{ message: { content: 'SUMMARY' } }] }; } } } },
+    getProviderScopePolicy: () => policy,
+    logScopeFallback: () => {},
+    withTimeout: (promise) => promise,
+    processResponse: (text) => text,
+  };
+  const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM');
+  return { result, requests };
+}
+
+test('meeting summaries send the transcript only when both transcript and post_call_summary are allowed', async () => {
+  const allowed = await summarizeWith({});
+  assert.equal(allowed.result, 'SUMMARY');
+  assert.equal(allowed.requests.length, 1);
+  assert.match(JSON.stringify(allowed.requests[0].messages), /TRANSCRIPT_SENTINEL/);
+
+  for (const policy of [{ transcript: false }, { post_call_summary: false }, { transcript: false, post_call_summary: false }]) {
+    const denied = await summarizeWith(policy);
+    assert.equal(denied.result, '', `no summary when ${JSON.stringify(policy)}`);
+    assert.equal(denied.requests.length, 0, `no request at all when ${JSON.stringify(policy)}`);
+  }
 });

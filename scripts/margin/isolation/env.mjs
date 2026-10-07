@@ -46,9 +46,16 @@ export function isolatedEnv(sandbox, extra = {}) {
   return env;
 }
 
-export function readBlocked(sandbox) {
-  if (!fs.existsSync(sandbox.log)) return [];
+// Every guarded process writes a "guard-loaded" record when the guard starts, so a
+// missing log means the guard never ran or could not write: there is no evidence,
+// which is an error, not "nothing blocked" (PLAN.md AG-17 review).
+export function readGuardLog(sandbox) {
+  if (!fs.existsSync(sandbox.log)) throw new Error(`isolation log missing: ${sandbox.log} (the guard did not load or could not write)`);
   return fs.readFileSync(sandbox.log, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+}
+
+export function readBlocked(sandbox) {
+  return readGuardLog(sandbox).filter((e) => e.kind !== 'guard-loaded');
 }
 
 // Real-account locations an isolated run must never touch. Snapshot them before and

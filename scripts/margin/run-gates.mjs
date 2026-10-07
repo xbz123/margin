@@ -122,6 +122,8 @@ async function runTestFiles() {
   const footer = (tap, key) => Number((tap.match(new RegExp(`^# ${key} (\\d+)`, 'm')) ?? [])[1] ?? NaN);
   const counts = { tests: 0, pass: 0, fail: 0, skipped: 0, cancelled: 0, todo: 0 };
   const failures = [];
+  const isolation = [];
+  const unexplainedExits = [];
   const perFile = [];
   for (const r of results) {
     const finished = Number.isFinite(footer(r.tap, 'tests'));
@@ -129,15 +131,24 @@ async function runTestFiles() {
     const fileFailures = tapFailures(r.tap).map((f) => f.replace(/^\? :: /, `${r.file} :: `));
     if (!finished) fileFailures.push(`${r.file} :: <did not finish>`);
     failures.push(...fileFailures);
+    // Attempts the isolation guard blocked, as run-node.mjs lists them
+    // ("[isolation]   <kind> <detail>"). Every kind counts, local ones included: an
+    // expected local call needs an explicit stand-in in the test (PLAN.md AG-17 review).
+    const isolationBlocked = [...new Set(r.stderr.split('\n')
+      .map((l) => l.match(/^\[isolation\] {3}(\S+ .*)$/)).filter(Boolean).map((m) => m[1]))];
+    isolation.push(...isolationBlocked.map((b) => `${r.file} :: ${b}`));
+    // A non-zero exit must be explained by a failing test in the TAP report.
+    const exitOk = r.exitCode === 0 || (r.endedAfterFooter && footer(r.tap, 'fail') === 0);
+    if (finished && !exitOk && fileFailures.length === 0) unexplainedExits.push(`${r.file} :: exit ${r.exitCode}${r.signal ? ` signal ${r.signal}` : ''} with no failing test`);
     perFile.push({ file: r.file, exitCode: r.exitCode, signal: r.signal, timedOut: r.timedOut, endedAfterFooter: r.endedAfterFooter, durationMs: r.durationMs,
-      tests: footer(r.tap, 'tests'), pass: footer(r.tap, 'pass'), fail: footer(r.tap, 'fail'), finished });
+      tests: footer(r.tap, 'tests'), pass: footer(r.tap, 'pass'), fail: footer(r.tap, 'fail'), finished, isolationBlocked });
   }
   const tap = results.map((r) => `# ===== ${r.file}\n${r.tap}`).join('\n');
   const log = results.filter((r) => r.stderr.trim() || r.timedOut)
     .map((r) => `===== ${r.file}${r.timedOut ? ` (killed after ${TEST_FILE_TIMEOUT_MS} ms)` : ''}\n${r.stderr}`).join('\n');
   // A file passes when it exited 0, or was ended after its footer with no failures.
   const status = perFile.every((f) => f.finished && (f.exitCode === 0 || (f.endedAfterFooter && f.fail === 0))) ? 0 : 1;
-  return { status, tap, log, counts, failures: [...new Set(failures)].sort(), perFile };
+  return { status, tap, log, counts, failures: [...new Set(failures)].sort(), isolation: isolation.sort(), unexplainedExits: unexplainedExits.sort(), perFile };
 }
 
 // "file(line,col): error TS1234: message" -> "file error TS1234: message ×count"
@@ -245,12 +256,17 @@ for (const step of steps) {
     entry.filesNotFinished = testRun.perFile.filter((f) => !f.finished).map((f) => f.file);
     entry.filesEndedAfterFooter = testRun.perFile.filter((f) => f.endedAfterFooter).map((f) => f.file);
     entry.counts = testRun.counts;
+    entry.isolationBlocked = testRun.isolation;
+    entry.unexplainedExits = testRun.unexplainedExits;
     const before = ref && readList(path.join(ref, 'test-failures.txt'));
     if (before) {
       const s = split(now, before);
       entry.failures = { total: now.length, inherited: s.inherited.length, new: s.new, resolved: s.resolved };
       passed = res.status === 0 || s.new.length === 0;
     }
+    // Not compared with the reference: any blocked attempt, or a non-zero exit that no
+    // failing test explains, fails the step on its own (PLAN.md AG-17 review).
+    if (testRun.isolation.length || testRun.unexplainedExits.length) passed = false;
   }
   entry.passed = passed;
   summary.steps.push(entry);

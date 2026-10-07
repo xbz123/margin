@@ -1241,6 +1241,36 @@
       "ticket": "AG-16",
       "kind": "host",
       "value": "api.tavily.com"
+    },
+    {
+      "ticket": "AG-10",
+      "kind": "host",
+      "value": "natively.software"
+    },
+    {
+      "ticket": "AG-10",
+      "kind": "path",
+      "value": "src/lib/featureFlags.ts"
+    },
+    {
+      "ticket": "AG-10",
+      "kind": "symbol",
+      "value": "PREMIUM_ENABLED"
+    },
+    {
+      "ticket": "AG-12",
+      "kind": "symbol",
+      "value": "In-App Updates"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "Modes Manager"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "Phone Mirror"
     }
   ]
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
     Github, Twitter, Shield, Cpu,
-    Heart, Linkedin, Instagram, Mail, MicOff, Star, Bug, Globe, Sparkles, Zap, Camera, LayoutGrid, User, Volume2, Activity, MessageSquare, Link, Smartphone, Calendar, ListTodo, Users, WifiOff, Send
+    Heart, Linkedin, Instagram, Mail, MicOff, Star, Bug, Sparkles, Camera, LayoutGrid, User, Volume2, MessageSquare, Link, Smartphone, Calendar, ListTodo, Users, WifiOff, Send
 } from 'lucide-react';
 import evinProfile from '../assets/evin.png';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
@@ -65,7 +65,7 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                     </div>
 
                     {/* 3. Audio & TCC Resolved */}
-                    <div className="p-3 border-b border-border-subtle bg-bg-card/50">
+                    <div className="p-3 bg-bg-card/50">
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400 shrink-0">
                                 <Volume2 size={20} />
@@ -79,35 +79,6 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                         </div>
                     </div>
 
-                    {/* 4. Optimized Modes Manager */}
-                    <div className="p-3 border-b border-border-subtle bg-bg-card/50">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
-                                <Activity size={20} />
-                            </div>
-                            <div>
-                                <h5 className="text-sm font-bold text-text-primary mb-1">Optimized Modes Manager</h5>
-                                <p className="text-xs text-text-secondary leading-relaxed">
-                                    The Profile Intelligence matrix and Modes Manager have been optimized like crazy for responsive, ultra-low latency context processing.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 5. In-App Updates */}
-                    <div className="p-3 bg-bg-card/50">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 shrink-0">
-                                <Zap size={20} />
-                            </div>
-                            <div>
-                                <h5 className="text-sm font-bold text-text-primary mb-1">In-App Updates</h5>
-                                <p className="text-xs text-text-secondary leading-relaxed">
-                                    Enjoy seamless, single-click updates directly inside the desktop app with zero manual installation loops.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -161,26 +132,6 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
             <div>
                 <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2 px-1">Community</h4>
                 <div className="space-y-4">
-                    {/* 0. Official Website */}
-                    <div className="bg-bg-item-surface rounded-xl border border-border-subtle p-5 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500 shadow-sm shadow-indigo-500/5">
-                                <Globe size={18} className="opacity-80" />
-                            </div>
-                            <div>
-                                <h5 className="text-sm font-bold text-text-primary">Official Website</h5>
-                            </div>
-                        </div>
-                        <a
-                            href="https://natively.software"
-                            onClick={(e) => handleOpenLink(e, "https://natively.software")}
-                            className="whitespace-nowrap px-4 py-2 bg-text-primary hover:bg-white/90 text-bg-main text-xs font-bold rounded-lg transition-all shadow hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
-                        >
-                            <Globe size={14} />
-                            Visit Website
-                        </a>
-                    </div>
-
                     {/* 0.5. Telegram Community */}
                     <div className="bg-bg-item-surface rounded-xl border border-border-subtle p-5 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-4">

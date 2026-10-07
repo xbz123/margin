@@ -24,8 +24,11 @@ Each run directory holds:
 ## How the steps are judged
 
 A step passes when it exits 0. `tsc-electron`, `tests`, `preload-contract` and
-`ipc-channels` still exit non-zero because of inherited problems (until AG-17), so
-for them the step passes when nothing is new compared with the reference run.
+`ipc-channels` exited non-zero because of inherited problems until AG-17, so for
+them the step passes when nothing is new compared with the reference run. Two
+things fail the `tests` step regardless of the reference: an attempt the isolation
+guard blocked in any test file (`isolationBlocked` in `summary.json`), and a file
+that exited non-zero with no failing test in its TAP (`unexplainedExits`).
 "Inherited" therefore means "already present in the reference run"; whether a
 reference item comes from upstream is shown by comparing with `baseline-a786910e/`.
 
@@ -52,6 +55,7 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `AG-15/` | AG-15 on the worktree, compared with `AG-14/`; also `install-check.log` (models and model dependencies after `npm ci`) |
 | `AG-16/` | AG-16 on the worktree, compared with `AG-15/`; also `install-check.log` (removed packages after `npm ci`) and `validateImagePath.log` (an `electron/utils` test, which the `tests` step does not cover, run by hand under the guard) |
 | `AG-17/` | AG-17 on the worktree (Electron 43.1.0), compared with `AG-16/`; also `install-check.log` (`npm ci` and `setup:native` with Electron 43). From AG-17 the `tests` step also covers `electron/utils`, `electron/test` and `src/lib` tests, and a `startup` step runs `tests/margin/startup-smoke.test.mjs` |
+| `AG-17-review/` | The fixes for the Astra review of the phase 1 exit (PLAN.md section 9), on the uncommitted tree over `e9b25ec3`, compared with `AG-17/`. From this run, any blocked isolation attempt or a non-zero exit without a failing test fails the `tests` step on its own |
 
 Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
 The `regression`, `storage` and `startup` steps need a display session (they launch the app

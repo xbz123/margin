@@ -16,7 +16,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { startMockOpenAI } from './mock-openai.mjs';
-import { launchApp, windowWithQuery } from './launch-app.mjs';
+import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
 const FAKE_GROQ_KEY = 'gsk-margin-regression-not-a-real-key';
@@ -35,6 +35,14 @@ let mock;
 let sandbox;
 let app;
 let env;
+let mainErrorsLog;
+let mainPid;
+
+// Launches the app and keeps the recorder file and main pid for the after hook.
+async function launch() {
+  ({ app, mainErrorsLog } = await launchApp(sandbox, env));
+  mainPid = app.process().pid;
+}
 
 const isSummaryRequest = (body) => JSON.stringify(body?.messages ?? '').includes('silent meeting note-taker');
 
@@ -46,7 +54,7 @@ async function launcherWindow() {
 
 async function restart() {
   await app.close();
-  ({ app } = await launchApp(sandbox, env));
+  await launch();
   return launcherWindow();
 }
 
@@ -71,7 +79,7 @@ test.before(async () => {
     MARGIN_ISOLATION_MIC: 'granted', // permission double, no OS prompt (guard.cjs)
     GROQ_BASE_URL: mock.baseURL.replace(/\/v1$/, ''),
   };
-  ({ app } = await launchApp(sandbox, env));
+  await launch();
 });
 
 test.after(async () => {
@@ -83,6 +91,10 @@ test.after(async () => {
   // connection would also show up above as kind "watched-port").
   const ollama = sandbox ? readBlocked(sandbox).filter((b) => /11434|ollama|lsof/i.test(`${b.kind} ${b.detail}`)) : [];
   assert.deepEqual(ollama.map((b) => `${b.kind} ${b.detail}`), [], 'no Ollama probe or port 11434 traffic during the storage run');
+  // Every launch loaded record-main-errors.cjs (launchApp checks); none of them may
+  // have had an uncaught exception or unhandled rejection in the main process.
+  const mainErrors = mainErrorsLog ? readMainErrors(mainErrorsLog, mainPid) : [];
+  assert.deepEqual(mainErrors.map((e) => `${e.kind}: ${e.detail.split('\n')[0]}`), [], 'no main-process exception during the storage run');
 });
 
 test('a meeting is saved with a mock summary, survives a restart, and stays deleted', async () => {
@@ -178,4 +190,41 @@ test('a meeting is saved with a mock summary, survives a restart, and stays dele
   }
   assert.deepEqual(schema.tables.filter((t) => t.startsWith('vec_')), [], 'no vector tables');
   assert.deepEqual(schema.loadedVecModules, [], 'sqlite-vec must not be loaded in the main process');
+});
+
+// PLAN.md AG-17 (Astra review): with the Transcripts data scope off, a meeting is
+// still saved locally, but no title or summary request carrying its transcript may
+// leave the app.
+test('with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary', async () => {
+  const launcher = await launcherWindow();
+  const scoped = await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({ transcript: false }));
+  assert.ok(scoped === undefined || scoped === true || scoped?.success !== false, `setProviderDataScopes: ${JSON.stringify(scoped)}`);
+  const requestsBefore = mock.chatRequests().length;
+  const known = new Set((await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).map((m) => m.id));
+
+  assert.equal((await launcher.evaluate(() => window.electronAPI.startMeeting()))?.success, true);
+  for (const [speaker, text] of [
+    ['interviewer', 'SCOPE_SENTINEL one: we discuss the private roadmap.'],
+    ['user', 'SCOPE_SENTINEL two: the roadmap stays internal.'],
+    ['interviewer', 'SCOPE_SENTINEL three: agreed, nothing leaves the room.'],
+    ['user', 'SCOPE_SENTINEL four: then we are done.'],
+  ]) {
+    const r = await launcher.evaluate((seg) => window.electronAPI.testInjectTranscript(seg), { speaker, text, final: true });
+    assert.equal(r?.success, true, `inject failed: ${JSON.stringify(r)}`);
+  }
+  assert.equal((await launcher.evaluate(() => window.electronAPI.endMeeting()))?.success, true);
+
+  const meeting = await waitFor(async () => {
+    const list = await launcher.evaluate(() => window.electronAPI.getRecentMeetings());
+    return list.find((m) => !known.has(m.id) && m.title !== 'Processing...');
+  }, 'the meeting with transcripts kept local');
+  const details = await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id);
+  assert.equal(details.transcript.length, 4, 'the transcript is still stored locally');
+  assert.equal(details.title, 'Untitled Session', 'no generated title');
+
+  const sent = mock.chatRequests().slice(requestsBefore);
+  assert.deepEqual(sent.map((r) => r.url), [], 'no chat request may leave the app for this meeting');
+  assert.ok(!sent.some((r) => JSON.stringify(r.body).includes('SCOPE_SENTINEL')));
+
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({}));
 });

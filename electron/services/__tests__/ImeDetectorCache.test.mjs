@@ -27,6 +27,24 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+
+// Local stand-in for `defaults read com.apple.HIToolbox` (PLAN.md AG-17 review). The
+// isolation guard blocks child processes, and the real output depends on the host's
+// input sources, so the darwin branch is tested against fixed outputs. The compiled
+// module reads `execFileSync` from the shared child_process object at call time.
+const childProcess = createRequire(import.meta.url)('node:child_process');
+const realExecFileSync = childProcess.execFileSync;
+const defaultsCalls = [];
+let defaultsResult = '';
+childProcess.execFileSync = (cmd, args, opts) => {
+  if (cmd !== 'defaults') return realExecFileSync(cmd, args, opts);
+  defaultsCalls.push(args);
+  if (defaultsResult instanceof Error) throw defaultsResult;
+  return defaultsResult;
+};
+const ASCII_ONLY = '{\n    AppleEnabledInputSources = (\n        {\n            InputSourceKind = "Keyboard Layout";\n            "KeyboardLayout Name" = "U.S.";\n        }\n    );\n}\n';
+const WITH_PINYIN = '{\n    AppleEnabledInputSources = (\n        {\n            "Bundle ID" = "com.apple.inputmethod.SCIM";\n            InputSourceKind = "Keyboard Input Method";\n        }\n    );\n}\n';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../../..');
@@ -101,29 +119,46 @@ describe('shouldAutoEngageStealthTap: platform branching', () => {
   });
 
   test('non-darwin path does NOT shell out to `defaults` (would 100ms-stall on every call)', () => {
-    // The non-darwin branch must short-circuit BEFORE probeOnce(). We confirm
-    // by timing: even a child_process spawn on Linux/Windows takes >5ms.
+    // The non-darwin branch must short-circuit BEFORE probeOnce().
     setPlatform('linux');
-    const start = process.hrtime.bigint();
+    defaultsCalls.length = 0;
     shouldAutoEngageStealthTap();
-    const elapsedMs = Number(process.hrtime.bigint() - start) / 1e6;
-    assert.ok(
-      elapsedMs < 5,
-      `non-darwin path took ${elapsedMs.toFixed(2)}ms — it should be a constant-time branch with no shell-out`,
-    );
+    setPlatform('win32');
+    shouldAutoEngageStealthTap();
+    assert.deepEqual(defaultsCalls, [], 'non-darwin path must not run `defaults`');
   });
 
-  test('returns boolean on darwin (real probe; we do not assert the value because it depends on the host)', () => {
-    // We can't mock execFileSync from here without a more involved loader
-    // shim, so on macOS we only assert the contract (boolean result, no
-    // throw) — the actual IME state of the test host is incidental.
+  test('darwin with only keyboard layouts: probes `defaults` once and allows auto-engage', () => {
     setPlatform('darwin');
-    const result = shouldAutoEngageStealthTap();
-    assert.equal(
-      typeof result,
-      'boolean',
-      'darwin path must always return a boolean (probe failure should fail-open via the try/catch, not return undefined)',
-    );
+    defaultsResult = ASCII_ONLY;
+    defaultsCalls.length = 0;
+    assert.equal(shouldAutoEngageStealthTap(), true);
+    assert.deepEqual(defaultsCalls, [['read', 'com.apple.HIToolbox']]);
+  });
+
+  test('darwin with an input method enabled: does not auto-engage', () => {
+    setPlatform('darwin');
+    defaultsResult = WITH_PINYIN;
+    assert.equal(shouldAutoEngageStealthTap(), false);
+  });
+
+  test('darwin probe failure fails open (auto-engage allowed)', () => {
+    setPlatform('darwin');
+    defaultsResult = new Error('defaults: domain does not exist');
+    assert.equal(shouldAutoEngageStealthTap(), true);
+  });
+
+  test('darwin result is cached until refreshImeDetection(), then re-probed (M3)', () => {
+    setPlatform('darwin');
+    defaultsResult = ASCII_ONLY;
+    defaultsCalls.length = 0;
+    assert.equal(shouldAutoEngageStealthTap(), true);
+    defaultsResult = WITH_PINYIN; // the user adds Pinyin mid-session
+    assert.equal(shouldAutoEngageStealthTap(), true, 'cached value is used until a refresh');
+    assert.equal(defaultsCalls.length, 1);
+    refreshImeDetection();
+    assert.equal(shouldAutoEngageStealthTap(), false, 'refresh must re-probe and see the new input method');
+    assert.equal(defaultsCalls.length, 2);
   });
 });
 

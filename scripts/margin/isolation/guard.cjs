@@ -305,3 +305,11 @@ function installChromiumGuard(electron) {
 }
 
 process.env.MARGIN_ISOLATION_ACTIVE = '1';
+
+// Load record: every guarded process writes one, so a log that is missing has no
+// evidence that the guard ran, and env.mjs readGuardLog() fails on it (PLAN.md AG-17
+// review). Not a blocked attempt, so it is not printed.
+if (LOG) {
+  const entry = { t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind: 'guard-loaded', detail: process.type || 'node' };
+  try { fs.appendFileSync(LOG, JSON.stringify(entry) + '\n'); } catch { /* readGuardLog reports the missing log */ }
+}

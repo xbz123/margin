@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { startMockOpenAI } from './mock-openai.mjs';
-import { launchApp, windowWithQuery } from './launch-app.mjs';
+import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
 import { makeSandbox, readBlocked } from '../../scripts/margin/isolation/env.mjs';
 
 const require = createRequire(import.meta.url);
@@ -29,6 +29,8 @@ let mock;
 let app;
 let sandbox;
 let overlay;
+let mainErrorsLog;
+let mainPid;
 
 // Visible transcript text of the overlay's message list.
 const overlayText = () => overlay.evaluate(() => document.body.innerText);
@@ -59,17 +61,28 @@ async function pressScreenshotShortcut() {
   });
 }
 
+// Sends a chat stream event to the overlay over the real main -> preload -> renderer
+// IPC path, as the main process would for a provider chunk.
+async function sendOverlayStreamEvent(channel, payload) {
+  await app.evaluate(({ BrowserWindow }, [ch, p]) => {
+    for (const w of BrowserWindow.getAllWindows()) {
+      if (w.webContents.getURL().includes('window=overlay')) w.webContents.send(ch, ...(p === undefined ? [] : [p]));
+    }
+  }, [channel, payload]);
+}
+
 test.before(async () => {
   mock = await startMockOpenAI();
   sandbox = makeSandbox('regression');
   const fixture = path.join(sandbox.tmp, 'fixture-screen.png');
   await sharp({ create: { width: 64, height: 48, channels: 3, background: '#2050a0' } }).png().toFile(fixture);
 
-  ({ app } = await launchApp(sandbox, {
+  ({ app, mainErrorsLog } = await launchApp(sandbox, {
     NODE_ENV: 'production',
     MARGIN_DEV_OPENAI_BASE_URL: mock.baseURL,
     MARGIN_DEV_SCREENSHOT_FIXTURE: fixture,
   }));
+  mainPid = app.process().pid;
   const launcher = await windowWithQuery(app, 'window=launcher');
   await launcher.waitForLoadState('domcontentloaded');
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_KEY);
@@ -91,6 +104,9 @@ test.after(async () => {
   // connection would also show up above as kind "watched-port").
   const ollama = sandbox ? readBlocked(sandbox).filter((b) => /11434|ollama|lsof/i.test(`${b.kind} ${b.detail}`)) : [];
   assert.deepEqual(ollama.map((b) => `${b.kind} ${b.detail}`), [], 'no Ollama probe or port 11434 traffic during the regression run');
+  // The launch loaded record-main-errors.cjs (launchApp checks); it may not have had an uncaught exception or unhandled rejection in the main process.
+  const mainErrors = mainErrorsLog ? readMainErrors(mainErrorsLog, mainPid) : [];
+  assert.deepEqual(mainErrors.map((e) => `${e.kind}: ${e.detail.split('\n')[0]}`), [], 'no main-process exception during the regression run');
 });
 
 test('a typed question streams the mock answer into the overlay', async () => {
@@ -117,11 +133,23 @@ test('cancelChatStream stops the stream and late tokens are not shown', async ()
   mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800 });
   await ask('Please give a long answer.');
   await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000 });
+
+  // Positive control: while the stream is live, an injected token is shown, so the
+  // injection path below really reaches the overlay.
+  await sendOverlayStreamEvent('gemini-stream-token', 'LIVE-INJECTED ');
+  await overlay.waitForFunction(() => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000 });
+
   await overlay.evaluate(() => window.electronAPI.cancelChatStream());
+
+  // A late token and a late done event delivered after the cancel (PLAN.md AG-17,
+  // Astra review): the renderer must not show them.
+  await sendOverlayStreamEvent('gemini-stream-token', 'LATE-INJECTED');
+  await sendOverlayStreamEvent('gemini-stream-done');
 
   const req = mock.chatRequests().at(-1);
   await new Promise((r) => setTimeout(r, 4_500)); // longer than the remaining script
   const text = await overlayText();
+  assert.ok(!text.includes('LATE-INJECTED'), `a stream event delivered after cancel was shown:\n${text.slice(-400)}`);
   assert.ok(!text.includes('LATE-3') && !text.includes('LATE-4'), `late tokens leaked into the UI:\n${text.slice(-400)}`);
   assert.ok(req.closedEarly || req.chunksSent < 6, 'the client should abort the HTTP stream');
 });

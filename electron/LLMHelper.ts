@@ -3308,10 +3308,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       console.log('[LLMHelper] Empty context — skipping summary generation.');
       return '';
     }
-    const summaryDeniedScopes = getDeniedDataScopes(['post_call_summary'], this.getProviderScopePolicy());
-    if (summaryDeniedScopes.includes('post_call_summary')) {
-      this.logScopeFallback('post_call_summary');
-      context = '';
+    // The context is the meeting transcript and the result is a post-call summary, so
+    // both data scopes apply. With either one denied nothing is sent: every provider
+    // below is a cloud provider (PLAN.md AG-17).
+    const summaryDeniedScopes = getDeniedDataScopes(['transcript', 'post_call_summary'], this.getProviderScopePolicy());
+    if (summaryDeniedScopes.length > 0) {
+      for (const scope of summaryDeniedScopes) this.logScopeFallback(scope);
+      return '';
     }
 
     // Helper: Estimate tokens (crude approximation: 4 chars = 1 token)
