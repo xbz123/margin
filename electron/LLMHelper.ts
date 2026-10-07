@@ -3335,7 +3335,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * 2. Gemini Flash (Retry 2x)
    * 3. Gemini Pro (Retry 5x)
    */
-  public async generateMeetingSummary(systemPrompt: string, context: string, groqSystemPrompt?: string): Promise<string> {
+  public async generateMeetingSummary(systemPrompt: string, context: string, groqSystemPrompt?: string, extraDataScopes: ProviderDataScope[] = []): Promise<string> {
     console.log(`[LLMHelper] generateMeetingSummary called. Context length: ${context.length}`);
     // Short-circuit on empty/whitespace context. With no transcript content to
     // summarise, the provider fallback chain (Codex → Groq → Gemini
@@ -3350,8 +3350,10 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
     // The context is the meeting transcript and the result is a post-call summary, so
     // both data scopes apply. With either one denied nothing is sent: every provider
-    // below is a cloud provider (PLAN.md AG-17).
-    const summaryDeniedScopes = getDeniedDataScopes(['transcript', 'post_call_summary'], this.getProviderScopePolicy());
+    // below is a cloud provider (PLAN.md AG-17). `extraDataScopes` adds what the caller
+    // knows about the context: a meeting recovered from an earlier run is saved history,
+    // so recovery adds profile_history (AG-17 sixth review).
+    const summaryDeniedScopes = getDeniedDataScopes(['transcript', 'post_call_summary', ...extraDataScopes], this.getProviderScopePolicy());
     if (summaryDeniedScopes.length > 0) {
       for (const scope of summaryDeniedScopes) this.logScopeFallback(scope);
       return '';

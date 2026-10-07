@@ -349,6 +349,10 @@ export function initializeIpcHandlers(appState: AppState): void {
       // the request when one of them is denied. Set only here in the main process, from
       // data it reads itself (PLAN.md AG-17 fourth and fifth reviews).
       let declaredScopes: Array<'profile_history' | 'post_call_summary'> = [];
+      // A question about a saved meeting, and its answer, are not part of the current
+      // conversation: they are not added to the live session, which would carry them into
+      // the next meeting's transcript, usage and summary (PLAN.md AG-17 sixth review).
+      const recordInSession = options?.meetingId === undefined;
       // The preload's id for this request, sent back with every event so the window
       // can drop events of a cancelled or superseded stream (PLAN.md AG-17 review).
       const clientStreamId = options?.clientStreamId;
@@ -392,7 +396,7 @@ export function initializeIpcHandlers(appState: AppState): void {
               ? "I'm Natively, an AI assistant."
               : null;
           if (identityHit) {
-            intelligenceManager.addTranscript(
+            if (recordInSession) intelligenceManager.addTranscript(
               { text: message, speaker: 'user', timestamp: Date.now(), final: true },
               true,
             );
@@ -407,8 +411,10 @@ export function initializeIpcHandlers(appState: AppState): void {
             }
             event.sender.send('gemini-stream-token', identityHit, clientStreamId);
             event.sender.send('gemini-stream-done', clientStreamId);
-            intelligenceManager.addAssistantMessage(identityHit);
-            intelligenceManager.logUsage('chat', message, identityHit);
+            if (recordInSession) {
+              intelligenceManager.addAssistantMessage(identityHit);
+              intelligenceManager.logUsage('chat', message, identityHit);
+            }
             return null;
           }
         }
@@ -427,7 +433,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         }
 
         // Now add USER message to IntelligenceManager (after context snapshot)
-        intelligenceManager.addTranscript(
+        if (recordInSession) intelligenceManager.addTranscript(
           {
             text: message,
             speaker: 'user',
@@ -488,7 +494,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             event.sender.send('gemini-stream-done', clientStreamId);
 
             // Update IntelligenceManager with ASSISTANT message after completion
-            if (fullResponse.trim().length > 0) {
+            if (recordInSession && fullResponse.trim().length > 0) {
               intelligenceManager.addAssistantMessage(fullResponse);
               // Log Usage for streaming chat
               intelligenceManager.logUsage('chat', message, fullResponse);

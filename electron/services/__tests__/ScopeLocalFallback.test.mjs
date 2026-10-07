@@ -70,7 +70,7 @@ function loadBuiltLLMHelper() {
   }
 }
 
-async function summarizeWith(policy) {
+async function summarizeWith(policy, extraDataScopes) {
   const LLMHelper = loadBuiltLLMHelper();
   const requests = [];
   const self = {
@@ -81,7 +81,7 @@ async function summarizeWith(policy) {
     withTimeout: (promise) => promise,
     processResponse: (text) => text,
   };
-  const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM');
+  const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', extraDataScopes);
   return { result, requests };
 }
 
@@ -96,6 +96,22 @@ test('meeting summaries send the transcript only when both transcript and post_c
     assert.equal(denied.result, '', `no summary when ${JSON.stringify(policy)}`);
     assert.equal(denied.requests.length, 0, `no request at all when ${JSON.stringify(policy)}`);
   }
+});
+
+// Startup recovery (PLAN.md AG-17 sixth review): a meeting left over from an earlier
+// run is saved history, so recovery declares profile_history as well. With it denied
+// nothing is sent; the current meeting (no extra scope) is unaffected by it.
+test('meeting summaries with a declared profile_history scope are not sent while it is denied', async () => {
+  const recovered = await summarizeWith({ profile_history: false }, ['profile_history']);
+  assert.equal(recovered.result, '');
+  assert.equal(recovered.requests.length, 0);
+
+  const allowed = await summarizeWith({}, ['profile_history']);
+  assert.equal(allowed.requests.length, 1);
+  assert.match(JSON.stringify(allowed.requests[0].messages), /TRANSCRIPT_SENTINEL/);
+
+  const current = await summarizeWith({ profile_history: false });
+  assert.equal(current.requests.length, 1, 'the current meeting does not carry profile_history');
 });
 
 // Codex CLI is a cloud provider too (PLAN.md AG-17 review): both Codex entry points,

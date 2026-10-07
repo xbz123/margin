@@ -6,7 +6,9 @@
 //   summary from a loopback mock -> read back -> restart -> read again -> delete ->
 //   restart -> still deleted. Also: a meeting saved with the Transcripts scope off sends
 //   nothing; the meeting chat sends a past meeting only while profile_history is
-//   allowed, and its summary only while post_call_summary is allowed too.
+//   allowed, and its summary only while post_call_summary is allowed too; startup
+//   recovery of an unprocessed meeting sends it only while profile_history is allowed;
+//   an edit that fails to save is rolled back and reported.
 // The summary chain never calls OpenAI (Codex -> Groq -> Gemini), so the mock
 // serves the Groq client through the SDK's own GROQ_BASE_URL.
 //
@@ -338,4 +340,124 @@ test('the meeting chat follows the post_call_summary and profile_history scopes'
 
   await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({}));
   mock.setScript({ respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
+});
+
+// PLAN.md AG-17 (sixth review): an edit whose save fails must not stay on screen as if
+// it were stored. The update handler is made to return false once (Electron keeps
+// invoke handlers in ipcMain._invokeHandlers); the page then shows a notice and the
+// stored title again. The next edit saves normally and clears the notice.
+test('a meeting edit that fails to save is rolled back and reported', async () => {
+  const launcher = await launcherWindow();
+  await launcher.reload();
+  await launcher.waitForLoadState('domcontentloaded');
+  await launcher.getByText(TITLE).first().click();
+  const title = launcher.locator('h1').filter({ hasText: TITLE }).first();
+  await title.waitFor();
+  const meeting = (await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).find((m) => m.title === TITLE);
+  assert.ok(meeting, 'the meeting from the chat test is listed');
+
+  await app.evaluate(({ ipcMain }) => {
+    const handlers = ipcMain._invokeHandlers;
+    const real = handlers?.get('update-meeting-title');
+    if (!real) throw new Error('update-meeting-title handler not found');
+    handlers.set('update-meeting-title', async () => {
+      handlers.set('update-meeting-title', real);
+      return false;
+    });
+  });
+  const rename = async (text) => {
+    await title.click();
+    await launcher.keyboard.press('Meta+A');
+    await launcher.keyboard.type(text);
+    await launcher.keyboard.press('Enter');
+  };
+  const alert = launcher.getByRole('alert');
+
+  await rename('RENAMED_NOT_SAVED');
+  await alert.filter({ hasText: 'This change could not be saved.' }).waitFor({ timeout: 10_000 });
+  await waitFor(async () => (await launcher.locator('h1').first().innerText()).trim() === TITLE, 'the stored title shown again', 10_000);
+  assert.equal((await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id)).title, TITLE);
+
+  // Saving works again; the notice goes away. The title is set back afterwards.
+  await rename('RENAMED_SAVED');
+  await waitFor(async () => (await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id)).title === 'RENAMED_SAVED', 'the saved title', 10_000);
+  await waitFor(async () => (await alert.count()) === 0, 'the notice cleared', 10_000);
+  assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: meeting.id, t: TITLE }), true);
+});
+
+// PLAN.md AG-17 (sixth review): a meeting the app could not finish processing is
+// recovered on the next start. It is saved history by then, so recovery declares
+// profile_history: with that scope off nothing of it is sent and it is saved without a
+// generated title; with the scope on, recovery sends it as before.
+test('startup recovery of an unprocessed meeting follows the profile_history scope', async () => {
+  let launcher = await launcherWindow();
+  const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
+  assert.equal(keyResult?.success, true, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
+
+  // Leaves one meeting unprocessed: the mock holds its title request, and the app is
+  // closed while it waits.
+  const leaveUnprocessed = async (marker) => {
+    const known = new Set((await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).map((m) => m.id));
+    mock.setScript({ hold: true });
+    const before = mock.chatRequests().length;
+    assert.equal((await launcher.evaluate(() => window.electronAPI.startMeeting()))?.success, true);
+    for (const [speaker, text] of [
+      ['interviewer', `${marker} one: we plan the offsite.`],
+      ['user', `${marker} two: the offsite is in May.`],
+      ['interviewer', `${marker} three: the budget is fixed.`],
+      ['user', `${marker} four: I will book the venue.`],
+    ]) {
+      const r = await launcher.evaluate((seg) => window.electronAPI.testInjectTranscript(seg), { speaker, text, final: true });
+      assert.equal(r?.success, true, `inject failed: ${JSON.stringify(r)}`);
+    }
+    await new Promise((r) => setTimeout(r, 1_500)); // MeetingPersistence's one-second minimum
+    assert.equal((await launcher.evaluate(() => window.electronAPI.endMeeting()))?.success, true);
+    await waitFor(() => mock.chatRequests().slice(before).some((r) => JSON.stringify(r.body).includes(marker)), `the held title request for ${marker}`, 20_000);
+    const list = await launcher.evaluate(() => window.electronAPI.getRecentMeetings());
+    const placeholder = list.find((m) => !known.has(m.id));
+    assert.equal(placeholder?.title, 'Processing...', `the meeting is still unprocessed: ${JSON.stringify(placeholder)}`);
+    return placeholder.id;
+  };
+  const respondNormally = () => mock.setScript({ hold: false, respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
+  const recovered = async (id) => waitFor(async () => {
+    const d = await launcher.evaluate((mid) => window.electronAPI.getMeetingDetails(mid), id);
+    return d && d.title !== 'Processing...' ? d : null;
+  }, `the recovered meeting ${id}`);
+
+  // 1. profile_history off: recovery sends nothing.
+  const deniedId = await leaveUnprocessed('RECOVER_DENIED');
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({ profile_history: false }));
+  respondNormally();
+  await app.close();
+  let before = mock.chatRequests().length;
+  await launch();
+  launcher = await launcherWindow();
+  const deniedMeeting = await recovered(deniedId);
+  await new Promise((r) => setTimeout(r, 1_000));
+  assert.deepEqual(mock.chatRequests().slice(before).map((r) => r.url), [], 'no request for a recovered meeting with profile_history off');
+  assert.equal(deniedMeeting.title, 'Untitled Session', 'no generated title');
+  const storedTexts = deniedMeeting.transcript.map((t) => t.text);
+  for (const n of ['one', 'two', 'three', 'four']) {
+    assert.ok(storedTexts.some((t) => t.startsWith(`RECOVER_DENIED ${n}:`)), `the transcript is still stored locally: ${JSON.stringify(storedTexts)}`);
+  }
+  // The meeting chat of the previous test asked about a saved meeting; those questions
+  // and answers are not part of this meeting (sixth review). (`CHAT_QUESTION four` went
+  // through the launcher chat without a meeting id, which belongs to the session.)
+  assert.ok(!storedTexts.some((t) => /CHAT_QUESTION (one|two|three)/.test(t)), `meeting chat turns must not enter the next meeting: ${JSON.stringify(storedTexts)}`);
+  assert.equal(storedTexts.filter((t) => t === 'CHAT_ANSWER shown.').length, 1, `only the launcher chat answer is in the session: ${JSON.stringify(storedTexts)}`);
+
+  // 2. profile_history on: recovery sends the recovered meeting (the check above is
+  // not passing only because recovery sends nothing at all).
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({}));
+  const allowedId = await leaveUnprocessed('RECOVER_ALLOWED');
+  respondNormally();
+  await app.close();
+  before = mock.chatRequests().length;
+  await launch();
+  launcher = await launcherWindow();
+  const allowedMeeting = await recovered(allowedId);
+  const sent = mock.chatRequests().slice(before).map((r) => JSON.stringify(r.body));
+  assert.ok(sent.some((b) => b.includes('RECOVER_ALLOWED')), 'recovery sends the meeting with profile_history on');
+  assert.ok(!sent.some((b) => b.includes('RECOVER_DENIED')), 'the meeting recovered earlier is not sent again');
+  assert.equal(allowedMeeting.title, TITLE);
 });

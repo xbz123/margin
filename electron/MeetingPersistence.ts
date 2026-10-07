@@ -7,7 +7,7 @@ import { LLMHelper } from './LLMHelper';
 import { DatabaseManager, Meeting } from './db/DatabaseManager';
 import { GROQ_TITLE_PROMPT, GROQ_SUMMARY_JSON_PROMPT } from './llm';
 import { buildPostCallEnhancements } from './services/post-call/PostCallWorkflow';
-import type { ProviderDataScopePolicy } from './llm/ProviderRouter';
+import type { ProviderDataScope, ProviderDataScopePolicy } from './llm/ProviderRouter';
 
 // Sections of the structured meeting notes. Same titles, descriptions and order
 // as the baseline's default General mode (DatabaseManager migration v12).
@@ -123,7 +123,10 @@ export class MeetingPersistence {
         data: { transcript: TranscriptSegment[], usage: any[], startTime: number, durationMs: number, context: string },
         meetingId: string,
         // BUG-04 fix: accept metadata snapshot so the title is not lost after session.reset()
-        metadata?: { title?: string } | null
+        metadata?: { title?: string } | null,
+        // Scopes the context carries beyond transcript and post_call_summary (recovery
+        // adds profile_history).
+        extraDataScopes: ProviderDataScope[] = []
     ): Promise<void> {
         let title = "Untitled Session";
         let summaryData: { overview?: string; actionItems: string[], keyPoints: string[], sections?: Array<{ title: string; bullets: string[] }> } = { actionItems: [], keyPoints: [] };
@@ -137,7 +140,7 @@ export class MeetingPersistence {
                 const titlePrompt = `Generate a concise 3-6 word title for this meeting context. Output ONLY the title text. Do not use quotes or conversational filler.`;
                 const groqTitlePrompt = GROQ_TITLE_PROMPT;
 
-                const generatedTitle = await this.llmHelper.generateMeetingSummary(titlePrompt, data.context.substring(0, 5000), groqTitlePrompt);
+                const generatedTitle = await this.llmHelper.generateMeetingSummary(titlePrompt, data.context.substring(0, 5000), groqTitlePrompt, extraDataScopes);
                 if (generatedTitle) title = generatedTitle.replace(/["*]/g, '').trim();
             }
 
@@ -204,7 +207,7 @@ Return ONLY valid JSON (no markdown code blocks):
                     groqSummaryPrompt = GROQ_SUMMARY_JSON_PROMPT;
                 }
 
-                const generatedSummary = await this.llmHelper.generateMeetingSummary(summaryPrompt, data.context.substring(0, 10000), groqSummaryPrompt);
+                const generatedSummary = await this.llmHelper.generateMeetingSummary(summaryPrompt, data.context.substring(0, 10000), groqSummaryPrompt, extraDataScopes);
 
                 if (generatedSummary) {
                     // Strip markdown fences if present
@@ -329,7 +332,11 @@ Return ONLY valid JSON (no markdown code blocks):
                     context: context
                 };
 
-                await this.processAndSaveMeeting(snapshot, m.id);
+                // A meeting left over from an earlier run is saved history, not the
+                // current meeting: with profile_history denied, nothing of it is sent
+                // and it is saved without a generated title or summary (PLAN.md AG-17
+                // sixth review).
+                await this.processAndSaveMeeting(snapshot, m.id, null, ['profile_history']);
                 console.log(`[MeetingPersistence] Recovered meeting ${m.id}`);
 
             } catch (e) {

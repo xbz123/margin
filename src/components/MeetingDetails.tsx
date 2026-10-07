@@ -81,6 +81,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
     const [isCopied, setIsCopied] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [submittedQuery, setSubmittedQuery] = useState('');
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     // Stable client-side keys for the action-item and key-point lists. The
     // persisted shape is string[], so React keyed the rows by index, but the
@@ -149,11 +150,37 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
     };
 
     // UPDATE HANDLERS
+    // Edits show at once and are saved in the background. A save that fails (the update
+    // rejects or returns false, e.g. the meeting is gone) must not stay on screen as if it
+    // were stored: the meeting is reloaded from the database and a notice is shown
+    // (PLAN.md AG-17 sixth review).
+    const persistEdit = async (save: () => Promise<boolean> | undefined) => {
+        let saved = false;
+        try {
+            saved = (await save()) === true;
+        } catch (err) {
+            console.error('[MeetingDetails] Failed to save the edit:', err);
+        }
+        if (saved) {
+            setSaveError(null);
+            return;
+        }
+        setSaveError('This change could not be saved.');
+        try {
+            const stored = await window.electronAPI?.getMeetingDetails?.(meeting.id);
+            if (stored) {
+                setMeeting(stored as Meeting);
+                setActionItemKeys((stored.detailedSummary?.actionItems ?? []).map(() => genMessageId()));
+                setKeyPointKeys((stored.detailedSummary?.keyPoints ?? []).map(() => genMessageId()));
+            }
+        } catch (err) {
+            console.error('[MeetingDetails] Failed to reload the meeting after a failed save:', err);
+        }
+    };
+
     const handleTitleSave = async (newTitle: string) => {
         setMeeting(prev => ({ ...prev, title: newTitle }));
-        if (window.electronAPI?.updateMeetingTitle) {
-            await window.electronAPI.updateMeetingTitle(meeting.id, newTitle);
-        }
+        await persistEdit(() => window.electronAPI?.updateMeetingTitle?.(meeting.id, newTitle));
     };
 
     const handleOverviewSave = async (newOverview: string) => {
@@ -164,9 +191,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                 overview: newOverview
             }
         }));
-        if (window.electronAPI?.updateMeetingSummary) {
-            await window.electronAPI.updateMeetingSummary(meeting.id, { overview: newOverview });
-        }
+        await persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { overview: newOverview }));
     };
 
     const handleActionItemSave = async (index: number, newVal: string) => {
@@ -184,9 +209,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
             }
         }));
 
-        if (window.electronAPI?.updateMeetingSummary) {
-            await window.electronAPI.updateMeetingSummary(meeting.id, { actionItems: newItems });
-        }
+        await persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { actionItems: newItems }));
     };
 
     const handleKeyPointSave = async (index: number, newVal: string) => {
@@ -201,9 +224,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
             }
         }));
 
-        if (window.electronAPI?.updateMeetingSummary) {
-            await window.electronAPI.updateMeetingSummary(meeting.id, { keyPoints: newItems });
-        }
+        await persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { keyPoints: newItems }));
     };
 
 
@@ -233,6 +254,9 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                 className="text-3xl font-bold text-text-primary tracking-tight -ml-2 px-2 py-1 rounded-md transition-colors"
                                 multiline={false}
                             />
+                            {saveError && (
+                                <div role="alert" className="mt-1 text-xs text-red-500">{saveError}</div>
+                            )}
                         </div>
 
                         {/* Moved Actions: Follow-up & Share (REMOVED per user request) */}
@@ -313,7 +337,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                                         ...prev,
                                                         detailedSummary: { ...prev.detailedSummary!, actionItemsTitle: val }
                                                     }));
-                                                    window.electronAPI?.updateMeetingSummary(meeting.id, { actionItemsTitle: val });
+                                                    void persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { actionItemsTitle: val }));
                                                 }}
                                                 tagName="h2"
                                                 className="text-lg font-semibold text-text-primary -ml-2 px-2 py-1 rounded-sm transition-colors"
@@ -363,7 +387,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                                         ...prev,
                                                         detailedSummary: { ...prev.detailedSummary!, keyPointsTitle: val }
                                                     }));
-                                                    window.electronAPI?.updateMeetingSummary(meeting.id, { keyPointsTitle: val });
+                                                    void persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { keyPointsTitle: val }));
                                                 }}
                                                 tagName="h2"
                                                 className="text-lg font-semibold text-text-primary -ml-2 px-2 py-1 rounded-sm transition-colors"
