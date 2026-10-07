@@ -1,0 +1,31 @@
+not ok 7 - WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content
+  ---
+  duration_ms: 2.520958
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/llm/__tests__/suggestionPromptAssembly.test.mjs:142:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'Could you repeat that? I want to make sure I address your question properly.'
+    -   'ok'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'ok'
+  actual:
+    0: 'Could you repeat that? I want to make sure I address your question properly.'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/llm/__tests__/suggestionPromptAssembly.test.mjs:187:10)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection)
+ok 8 - WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection)
+  ---
+  duration_ms: 0.289375

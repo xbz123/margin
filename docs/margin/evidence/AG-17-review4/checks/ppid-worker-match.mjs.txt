@@ -1,0 +1,40 @@
+// Copy of isolationRecords() from scripts/margin/run-gates.mjs, run against made-up
+// isolation logs and against the real log of one guarded test run (real.jsonl).
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const REPO = process.cwd();
+function isolationRecords(log, runNodePid, file) {
+  const records = fs.existsSync(log)
+    ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { kind: 'unreadable', detail: l }; } })
+    : [];
+  const blocked = [...new Set(records.filter((r) => r.kind !== 'guard-loaded').map((r) => `${r.kind} ${r.detail}`))];
+  const loads = records.filter((r) => r.kind === 'guard-loaded');
+  const runners = new Set(loads.filter((r) => r.ppid === runNodePid).map((r) => r.pid));
+  const target = path.resolve(REPO, file);
+  const ranFile = loads.some((r) => runners.has(r.ppid) && typeof r.script === 'string' && path.resolve(REPO, r.script) === target);
+  if (!ranFile) blocked.push('<no guard-loaded record>');
+  return blocked;
+}
+
+const dir = process.argv[2];
+const FILE = 'electron/llm/__tests__/ProviderRouter.test.mjs';
+const ABS = path.resolve(REPO, FILE);
+const write = (name, recs) => { const p = path.join(dir, name); fs.writeFileSync(p, recs.map((r) => JSON.stringify(r)).join('\n') + '\n'); return p; };
+const load = (pid, ppid, script) => ({ pid, ...(ppid === undefined ? {} : { ppid }), script, kind: 'guard-loaded', detail: 'node' });
+const real = fs.readFileSync(path.join(dir, 'real.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+const realRunNode = real.find((r) => r.script === FILE).ppid;
+const cases = [
+  ['real log of a guarded run', path.join(dir, 'real.jsonl'), realRunNode, FILE, []],
+  ['runner and worker for the file', write('a.jsonl', [load(201, 100, FILE), load(202, 201, ABS)]), 100, FILE, []],
+  ['runner only, no worker record', write('b.jsonl', [load(201, 100, FILE)]), 100, FILE, ['<no guard-loaded record>']],
+  ['worker for another file', write('c.jsonl', [load(201, 100, FILE), load(202, 201, path.resolve(REPO, 'other.test.mjs'))]), 100, FILE, ['<no guard-loaded record>']],
+  ['worker whose parent is not the runner', write('d.jsonl', [load(201, 100, FILE), load(302, 301, ABS)]), 100, FILE, ['<no guard-loaded record>']],
+  ['records without ppid (old guard)', write('e.jsonl', [load(201, undefined, FILE), load(202, undefined, ABS)]), 100, FILE, ['<no guard-loaded record>']],
+  ['blocked attempt plus a matching chain', write('f.jsonl', [load(201, 100, FILE), load(202, 201, ABS), { pid: 202, kind: 'dns', detail: 'x.invalid' }]), 100, FILE, ['dns x.invalid']],
+  ['missing log', path.join(dir, 'none.jsonl'), 100, FILE, ['<no guard-loaded record>']],
+];
+for (const [name, log, pid, file, expected] of cases) {
+  assert.deepEqual(isolationRecords(log, pid, file), expected, name);
+  console.log('ok -', name, JSON.stringify(isolationRecords(log, pid, file)));
+}

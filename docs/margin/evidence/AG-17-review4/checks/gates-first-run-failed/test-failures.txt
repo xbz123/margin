@@ -1,0 +1,1 @@
+electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content

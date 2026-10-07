@@ -1,0 +1,21 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4409.659834ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (577.417792ms)
+✖ the meeting chat sends the summary only while the post_call_summary scope is allowed (60120.269166ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65607.617625
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:239:1
+✖ the meeting chat sends the summary only while the post_call_summary scope is allowed (60120.269166ms)
+  Error: timed out waiting for the processed meeting for the chat; meetings: ["Untitled Session"]; requests: 2
+      at file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:259:65
+      at async TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:255:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

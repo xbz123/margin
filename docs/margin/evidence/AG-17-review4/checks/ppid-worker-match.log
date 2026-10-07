@@ -1,0 +1,8 @@
+ok - real log of a guarded run []
+ok - runner and worker for the file []
+ok - runner only, no worker record ["<no guard-loaded record>"]
+ok - worker for another file ["<no guard-loaded record>"]
+ok - worker whose parent is not the runner ["<no guard-loaded record>"]
+ok - records without ppid (old guard) ["<no guard-loaded record>"]
+ok - blocked attempt plus a matching chain ["dns x.invalid"]
+ok - missing log ["<no guard-loaded record>"]

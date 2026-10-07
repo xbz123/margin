@@ -35,7 +35,7 @@
 | S8 | 测试不得读写真实用户数据或真实密钥，不得调用付费服务，不得采集真实会议 | 用户初始任务 |
 | S9 | 阶段 1–2 不做实机验收：不授予屏幕录制或麦克风权限，不用真实 key，不访问真实钥匙串 | 由 S8 推出 |
 | S10 | D2–D4 按第 3 节的建议执行；D1 由 X3 的结果决定 | 用户，2026-10-07 |
-| S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 仍等用户 | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
+| S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 仍等用户。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256 | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
 
 ## 3. 待定决策
 
@@ -540,8 +540,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
   - `ad-hoc-sign.js`；
   - `.github/workflows/margin-gates.yml` 增加打包步骤，上传 `Margin.app` 和检查结果；
   - 新建下载脚本：用 `gh run download` 取某次运行的原生模块产物（`margin-native-<sha>`）或 `Margin.app` 产物，核对 `BUILD-INFO.txt` 中的 sha256 后再使用。本机开发的原生模块从此改用 CI 产物，不再用 X3 复制来的 cargo 缓存；
-  - workflow 产物默认保留 30 天，到期后需要重新运行；
-  - 工作流把原生模块产物的临时目录从检出目录移到 `$RUNNER_TEMP`，让门禁的未提交路径回到 0（见 CI 门禁记录中的不使用缓存的运行）。
+  - workflow 产物默认保留 30 天，到期后需要重新运行。
 - **复核**：阶段 2 出口由本票负责联合验收，再由 Astra 只读复核。
 
 **AG-26 许可证、声明和文档**
@@ -643,7 +642,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
 | AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
 | AG-17 | 完成 | 见 AG-17 提交 | 见下文 AG-17 记录。Electron 43.1.0；两个 `tsc` 退出 0；基线遗留的 20 条测试失败全部处理（5 个用例跳过并写明原因）；证据：`docs/margin/evidence/AG-17/summary.json`，对照 `AG-16/` |
-| 阶段 1 出口 / Astra 复核 | 第三轮复核修复完成，待 Astra 再次复查 | `2e71066b`、`94a10fb1`、`02d4cb2e` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"，第二轮（`2e71066b`）和第三轮（`c8365b63`）复查结论都是"仍需进一步修复"，三轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过；第 1 条按 S11 以不使用缓存的 CI 运行 `37694684706` 为准，通过。证据：`docs/margin/evidence/AG-17-review3/summary.json`（`02d4cb2e`，0 个未提交路径），对照 `AG-17-review2/` |
+| 阶段 1 出口 / Astra 复核 | 第四轮复核修复完成，待不使用缓存的 CI 运行和 Astra 再次复查 | `2e71066b`、`94a10fb1`、`02d4cb2e`、`4523c762`、`4bd2eb00` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"；第二轮（`2e71066b`）、第三轮（`c8365b63`）、第四轮（`8f7ceda2`）复查结论都是"仍需进一步修复"。四轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过。第 1 条按 S11 需要在当前代码上重跑一次不使用缓存的 CI。证据：`docs/margin/evidence/AG-17-review4/summary.json`（`4bd2eb00`，0 个未提交路径），对照 `AG-17-review3/` |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
 ### AG-10 记录（2026-10-07）
@@ -975,8 +974,11 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
   - **结果**：运行器退出 0，15 个步骤全部退出 0，与本机 `AG-17-review3/` 一致：
     - 测试 726 个，721 通过，0 失败，5 跳过；`tests.log` 为空；
     - 回归 6/6，会议存储 2/2，启动冒烟 1/1（启动器就绪 0.9 秒）。
-  - **未提交路径为 1**：门禁开始时，工作流刚把 `setup-native.log` 写进检出目录下的 `native-artifact/`，这个目录没有被忽略。前两次运行（`37639645826`、`37691910692`）都是 0，所以这 1 个路径就是 `native-artifact/`，没有被改动的已跟踪文件。为了让这次运行与提交中的工作流一致，本次不改工作流；AG-25 改工作流时把这个目录移到 `$RUNNER_TEMP`。
-  - **结论**：满足 S11 对第 1 条的要求。
+  - **未提交路径为 1**：门禁开始时，工作流刚把 `setup-native.log` 写进检出目录下的 `native-artifact/`，这个目录没有被忽略；前两次运行（`37639645826`、`37691910692`）都是 0。所以这 1 个路径**推断**是 `native-artifact/`。当时的 `summary.json` 只记数量，不记清单，无法直接证实，也无法完全排除已跟踪文件的改动（第四轮复查第 5 条）。之后的修改：门禁在 `summary.json` 中记下未提交路径的清单（`uncommittedPathList`），工作流把这个目录移到 `$RUNNER_TEMP`。
+  - **原始证据**：已存入仓库 `docs/margin/evidence/CI-37694684706/`，包括完整作业日志、步骤结论、门禁产物，以及原生模块产物中除二进制以外的文件。
+  - **结论**：当时满足 S11 对第 1 条的要求。第四轮修复改了应用代码，所以要在新代码上重跑，见下一条。
+
+- **第四轮修复后的不使用缓存的运行**：待运行（当前代码 `4bd2eb00`）。
 
 ### AG-15 记录（2026-10-07）
 
@@ -1249,23 +1251,24 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 ### 阶段 1 出口验收（2026-10-07）
 
-逐条对照第 5 节。验收经过四轮：
+逐条对照第 5 节。验收经过五轮：
 - **第一次**（`AG-17/`，提交 `e9b25ec3`）：结论"第 2–7 条通过"。Astra 第一轮复核指出第 3、5、6 条证据不足，还有一个隐私范围缺陷，结论作废。
 - **第二次**（`AG-17-review/`，`e9b25ec3` 上未提交的修复）：Astra 第二轮复查指出，隐私修复漏了 Codex 路径，取消后立即开始新流仍可能显示旧流的事件，帮助页仍有本地运行的说法，守卫日志写入失败和提前结束的文件仍能让检查漏报。结论再次作废。
 - **第三次**（`AG-17-review2/`，提交 `94a10fb1`，干净的工作树）：Astra 第三轮复查指出，Claude 和 Groq 多模态的非流式发送仍没有范围检查，Codex 仍被标为本地／私有处理，请求在开始流之前失败会留下旧的事件监听。结论再次作废。
-- **本次**（`AG-17-review3/`，提交 `02d4cb2e`，干净的工作树）：下表的证据都在这个目录，除非另行注明；一次性检查和变异检查的原始输出在其中的 `checks/`。15 个步骤全部退出 0，没有任何步骤依赖"与参照相比没有新增"才算通过。
+- **第四次**（`AG-17-review3/`，提交 `02d4cb2e`，干净的工作树）：Astra 第四轮复查指出，拒绝 `profile_history` 时历史回答仍会随 `message` 发出，会议对话的摘要没有被识别为 `post_call_summary`。结论再次作废。
+- **本次**（`AG-17-review4/`，提交 `4bd2eb00`，干净的工作树）：下表的证据都在这个目录，除非另行注明；一次性检查和变异检查的原始输出在其中的 `checks/`。15 个步骤全部退出 0，没有任何步骤依赖"与参照相比没有新增"才算通过。本次门禁第一次在 `4523c762` 上运行时，`tests` 步骤失败，修复后重跑，见第 9 节第四轮复查记录。
 
 | # | 条目 | 结论 | 证据 |
 | --- | --- | --- | --- |
-| 1 | 干净安装 | 通过（按 S11 以 CI 为准） | D5 已定（2026-10-08，S11）：本机不装 Xcode，本条以 CI 为准。本机的 `setup:native` 仍用 X3 复制来的 cargo 缓存，不作本条证据。<br>证据：运行 `37694684706`（提交 `ac879152`，应用代码与 `02d4cb2e` 相同），跳过 Electron 和 cargo 缓存，`npm ci` → `setup:native` 从零编译 `cidre` → 15 个门禁步骤全部退出 0。此前的运行都命中了缓存，不作证据。详见 CI 门禁记录。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。|
+| 1 | 干净安装 | **待 CI 证据（S11）** | D5 已定（2026-10-08，S11）：本机不装 Xcode，本条以 CI 为准。本机的 `setup:native` 仍用 X3 复制来的 cargo 缓存，不作本条证据。<br>运行 `37694684706`（提交 `ac879152`，应用代码与 `02d4cb2e` 相同）跳过了缓存、从零编译了 `cidre`、门禁全部通过，但第四轮修复之后应用代码变了，需要在当前代码上重跑一次。详见 CI 门禁记录。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。|
 | 2 | 构建与类型 | 通过 | 清空构建目录后 `build-electron`、`vite build` 退出 0；两个 `tsc` 都退出 0，0 诊断 |
 | 3 | 退役清理 | 通过 | `retired-check.mjs --all`：257 条规则零命中。三轮复核共新增 15 条规则，覆盖复核找到的残留：主机 `natively.software`（整个域名）、`src/lib/featureFlags.ts` 与 `PREMIUM_ENABLED`、`Phone Mirror`、`Modes Manager`、`In-App Updates`、`entirely on-device`、`fully custom endpoints`、`Autonomous Registry Sync`，帮助页曾加载的远程图标主机 `cdn.simpleicons.org`、`groq.com/favicon.svg`，以及把 Codex 说成本地处理的 `Local/private route`、`Local Provider`、`selectable local backend`、`locally authenticated Codex`。每条规则在加入前的提交上都有命中。`git ls-tree -r HEAD` 中没有 `premium`、`natively-api`、`.gitmodules`，也没有 gitlink。G3 只能证明这些规则零命中，不能证明全部清理完毕；复核中逐页检查过设置、帮助、关于和启动页 |
-| 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条，恢复要求见 AG-41、AG-61） | 守卫下 104 个文件，726 个测试，721 通过，0 失败，5 跳过；`test-failures.txt` 为空。每个文件的隔离日志都由门禁直接读取：没有拦截记录，也都有守卫的加载记录，且加载记录来自门禁所启动的 `run-node.mjs` 的子进程（按 `ppid` 核对；`tests.log` 为空）；没有"退出码非 0 但没有失败用例"的文件 |
+| 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条，恢复要求见 AG-41、AG-61） | 守卫下 104 个文件，734 个测试，729 通过，0 失败，5 跳过；`test-failures.txt` 为空。每个文件的隔离日志都由门禁直接读取：没有拦截记录；守卫的加载记录来自实际执行该文件的进程，它的父进程是门禁所启动的 `run-node.mjs` 下的 `node --test` 运行器（按 `ppid` 和脚本路径核对；`tests.log` 为空）；没有"退出码非 0 但没有失败用例"的文件 |
 | 5 | 启动冒烟 | 通过 | `startup.log`：启动器和设置窗口可见，观察 15 秒，`app.quit()` 后退出码 0。<br>异常检查有两条独立通道：一是在应用代码之前用 `-r` 加载的 `record-main-errors.cjs`，二是应用自己的 `natively_debug.log`。两份文件都必须存在。退出前在主进程里故意抛出一个异常和一个未处理的 rejection，两条通道都必须记到；除此之外不能有任何其他异常记录。<br>守卫日志必须有主进程 PID 的加载记录；守卫写不进记录时会结束进程。外连为零 |
 | 6 | 行为回归 | 通过 | `regression.log`：6/6。新增用例：启动器的对话请求在开始流之前失败（在主进程注入一次 setup 异常），重试后回答恰好显示一次，完成事件之后仍在。<br>取消用例在页面里通过同一个 preload 接口记录实际送达的事件，依次检查四种情况：<br>- 取消后的空档，旧流的 token 和完成事件不送达；<br>- 立即开始新流后，旧流的 token、完成和错误事件不送达；<br>- 不带流标识的事件不送达；<br>- 新流自己的事件照常送达，新流以恰好一次完成事件正常结束。<br>流标识由主进程的发送监听取得，事件经真实的 main → preload → renderer 通道注入 |
-| 7 | 会议存储 | 通过 | `storage.log`：2/2。临时 SQLite 上保存、读取、重启后读取、删除；关闭 Transcripts 数据范围时，会议照常保存，但不为标题和摘要发出任何请求。不加载向量扩展（AG-14 已删除 `sqlite-vec`） |
+| 7 | 会议存储 | 通过 | `storage.log`：3/3。临时 SQLite 上保存、读取、重启后读取、删除；关闭 Transcripts 数据范围时，会议照常保存，但不为标题和摘要发出任何请求。会议对话只在 `post_call_summary` 允许时带上摘要、要点和行动项；仍声明这个范围的请求被主进程拒绝。不加载向量扩展（AG-14 已删除 `sqlite-vec`） |
 
-**结论**：第 1–7 条通过（第 1 条按 S11 以 CI 为准）。第三轮修复和 D5 的计划修改还需要 Astra 再次只读复查；复查通过之前，不进入阶段 2。
+**结论**：第 2–7 条通过。第 1 条等当前代码上不使用缓存的 CI 运行（S11）。第四轮修复还需要 Astra 再次只读复查。复查通过且第 1 条的 CI 证据补齐之前，不进入阶段 2。
 
 ### 事件记录（2026-10-07）
 
@@ -1298,8 +1301,15 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
    - **复验**：之后单独重跑一次，以及两次完整门禁中的 `startup` 步骤，都通过。
    - **原始输出**：`docs/margin/evidence/AG-17-review2/checks/` 中的 `incident5-*.log`（失败的运行、被中断的变异运行、随后的重跑）。备份恢复只核对了启动参数一行（恢复后又有 `-r`、记录器），没有保存逐行比对。
    - **未能证明**：提前退出的原因没有查明。时间上与中断吻合，可能是应用被从外部退出，但没有证据。如果再次出现，要先查明原因。
+6. **用户提供了真实的服务商 key（2026-10-08）。**
+   - **经过**：第四轮修复期间，用户在对话里贴出 Groq 和 Gemini 的 key，说明是测试用、之后会撤销，并同意用它们测试。
+   - **处理**：没有使用。这些 key 会把请求发往外部服务商，不符合 S8、S9（阶段 1–2 不用真实 key）和本会话的操作规则。key 没有写入任何文件、提交或记忆；本记录也不含 key 的值。已建议用户立即撤销。真实服务的验收按 D2 在阶段 3 起单独安排，由用户自己在应用设置里填写 key。
 
-**下一步**：Astra 只读复查第三轮修复（`02d4cb2e` 和证据提交），一并评审 D5 的计划修改（S11、AG-25、工作流）和不使用缓存的 CI 运行 `37694684706`。复查通过之前，不进入阶段 2。决定 1 仍等用户。
+**下一步**：
+1. 在当前代码上手动触发 `margin-gates.yml`（`no_cache: true`），记入 CI 门禁记录和出口表第 1 条；
+2. Astra 只读复查第四轮修复（`4523c762`、`4bd2eb00` 和证据提交）以及这次 CI 运行。
+
+复查通过且第 1 条的 CI 证据补齐之前，不进入阶段 2。决定 1 仍等用户。
 
 ## 9. 评审记录
 
@@ -1422,3 +1432,43 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 - `this.assertOutboundScopes('gemini', message);`：基线已有的调用写法（`a786910e` `LLMHelper.ts:4105`）配上 `generateContentStructured` 的参数名；
 - `let releaseStream = () => {};` 和 `releaseStream();`：通用写法；
 - 测试替身里的 `groqFastTextMode: false,`：基线 `LLMHelper` 的字段（`a786910e` `LLMHelper.ts:100`）。
+
+**2026-10-08，Codex gpt-6-astra，只读模式，复查第三轮修复和 D5 的计划修改（提交 `8f7ceda2`）**。命令：`codex exec -m gpt-6-astra -s read-only`。结论：**仍需进一步修复后才可接受**，暂不能进入阶段 2。复查确认：
+- Claude、Groq 多模态的非流式检查，Gemini 内联图片按 screenshots 判断，及其变异证据成立；
+- Codex 的本地／私有文案已删除，没有发现同类的用户可见说法；
+- 两个对话框的 catch 都释放监听，启动器重试用例和删除释放调用的变异成立（只覆盖 invoke 被拒绝，不是 setup 内部的真实故障；会议对话没有单独用例，PLAN 已注明）；
+- `ppid` 核对排除了无关记录；
+- 仓库内的原始证据与记录一致（104 个文件、726 个测试、721 通过、0 失败、5 跳过；回归 6/6、存储 2/2）；
+- D5 的方案本身可接受，`ac879152 → 8f7ceda2` 只改了 PLAN，不需要为记录提交重跑。
+
+以下发现全部采纳并已处理（`4523c762`、`4bd2eb00`），一次性检查和变异检查的原始输出在 `docs/margin/evidence/AG-17-review4/checks/`：
+
+1. **阻塞：拒绝 `profile_history` 后，历史回答仍会发送。** WhatToAnswer 把之前的回答拼进 `message`，并声明 `profile_history`；`streamChat` 拒绝这个范围时只清掉 `context`。另外，`scopesForPayload` 在有声明范围时不再把文本算作 transcript，下游只按 transcript 检查。
+   - **修复**：
+     - 调用方声明的范围（`extraDataScopes`）表示这些数据可能就在 `message` 里，无法在这里剔除，所以只要其中有被拒绝的，`streamChat` 就在发送前抛出 `ProviderScopeError`；
+     - 文本总是算作 transcript，声明的范围是附加的，不替代 transcript；
+     - 由调用方事先剔除：WhatToAnswer 在 `profile_history` 被拒绝时不带之前的回答，也不声明这个范围。
+   - **同类问题**：`buildPreparedTranscriptContext` 会附上 `[RECENT ASSISTANT RESPONSES]` 区块，追问、澄清和后续问题三条路径都用它，其中有的把它作为 `message` 发送。现在 `profile_history` 被拒绝时不附这个区块，`inferContextScopes` 也能识别这个标题。
+   - **范围的划分**：沿用基线的声明，单独附上的"之前的回答"区块、persona、历史会议属于 `profile_history`。本场会话里助手的回答作为 `[ASSISTANT]` 轮次出现在对话中，按转写（transcript）处理，不随 `profile_history` 剔除。请复查评估这个划分。
+   - **测试**：`streamChat` 在声明的范围被拒绝时（`profile_history` 或 transcript）不发请求；WhatToAnswer 和预备上下文在拒绝时不带之前的回答。
+   - **变异检查**：删掉 `streamChat` 的拒绝（`checks/m1-*`）、让 WhatToAnswer 忽略拒绝（`m2-*`）、让预备上下文忽略参数（`m3-*`），对应用例都失败。
+2. **阻塞：会议对话的摘要没有被识别为 `post_call_summary`。** 会议对话用 `SUMMARY:` 等标题把摘要、要点和行动项放进 `context`，关键词识别不匹配。
+   - **修复**：
+     - 由调用方明确声明，而不靠关键词。`streamGeminiChat` 的选项增加 `dataScopes`，主进程只接受 `profile_history` 和 `post_call_summary`，并作为声明的范围传给 `streamChat`；
+     - 会议对话先读取数据范围设置：`post_call_summary` 被拒绝时不带摘要、要点和行动项；带上时声明这个范围。设置读不到时照常带上并声明，由主进程决定。
+   - **测试**：存储基座新增用例：真实界面里打开会议、提问，允许时请求里有摘要；拒绝后请求里有转写但没有摘要的任何内容；在拒绝状态下直接用 IPC 发出声明 `post_call_summary` 的请求，被拒绝且没有请求到达 mock。
+   - **变异检查**：主进程不再拒绝时，IPC 那一步失败（`m1-*.storage.log`）；会议对话总是带上摘要时，主进程按声明拒绝，用例失败（`m4-*`）。
+3. **应修：静态检查不能保证每个发送分支都受保护。** 它只检查同一方法里发送之前是否出现过检查，不看控制流和参数。
+   - **修复**：对剩下的每个发送分支补行为用例，拒绝 transcript 时数请求数：`generateContentStructured` 的两个 Gemini 分支（允许时 2 × 3 次请求）、`generateWithPro`、`generateWithFlash`、`generateWithFallback`、`streamWithGroqOrGemini` 的 Groq 分支。
+   - **说法收窄**：静态检查只能发现"某个方法里有发送却完全没有检查"，不证明每个分支都有检查，也不覆盖别名调用。`GeminiPromptCache` 的 `caches.create` 只上传固定的系统提示词，不含用户内容，不在检查范围内。
+   - **变异检查**：删掉 `generateContentStructured` 第二个 Gemini 分支的检查后，静态检查仍通过，分支用例失败（`m5-*`）。
+4. **说明：`ppid` 核对只绑定到直接子进程。** 直接子进程是 `node --test` 运行器，不是执行测试文件的进程。
+   - **修复**：门禁要求一条完整的链：`run-node.mjs` 启动的运行器（`ppid` 等于 run-node 的 pid）下，有一个加载了守卫、脚本路径就是该测试文件的子进程。
+   - **验证**：`checks/ppid-worker-match.*`，用构造的日志和一次真实运行的日志检查 8 种情况；正式运行中 104 个文件都满足。
+5. **应修："唯一路径就是 native-artifact"超过了证据。**
+   - **修复**：PLAN 改为推断的说法；门禁在 `summary.json` 中记下未提交路径的清单；工作流把产物目录移到 `$RUNNER_TEMP`；运行 `37694684706` 的原始证据存入 `docs/margin/evidence/CI-37694684706/`。
+6. **说明：D5 一致，但本机的过渡办法没有写明。** 已写进 S11 第 5 点：AG-25 的下载脚本完成之前，本机继续用现有的原生模块，不为原生模块运行 `setup:native`。
+
+**门禁第一次运行失败。** 在 `4523c762` 上第一次跑全部门禁时，`tests` 步骤失败：`suggestionPromptAssembly.test.mjs` 中 WhatToAnswer 的替身没有新增的 `deniedDataScopes()`，回答走进了兜底文本。这是本轮引入的新失败。原因是提交前只运行了受影响的几个测试文件，没有运行全部测试。替身补上这个方法后（`4bd2eb00`），在干净的树上重跑，15 个步骤全部退出 0。失败那次的汇总和失败用例在 `checks/gates-first-run-failed/`。
+
+修复后的全部门禁：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-17-review4 --ref docs/margin/evidence/AG-17-review3`，在 `4bd2eb00` 上 15 个步骤全部退出 0：734 个测试，729 通过，0 失败，5 跳过；回归 6/6，存储 3/3，启动 1/1；`uncommittedPathList` 为空。G2 新增 4 条白名单：测试替身里基线的两个方法名（`fitContextForCurrentModel`、`getPromptTier`），以及两条通用写法。

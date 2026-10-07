@@ -1,0 +1,11 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4250.903709ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (552.811875ms)
+✔ the meeting chat sends the summary only while the post_call_summary scope is allowed (4809.757042ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10153.030875
