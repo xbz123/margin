@@ -26,3 +26,7 @@
 *.ttf binary
 *.eot binary
 *.node binary
+
+# Raw gate output kept unedited as evidence (docs/margin/evidence/README.md)
+docs/margin/evidence/** -whitespace
+docs/margin/evidence/README.md whitespace

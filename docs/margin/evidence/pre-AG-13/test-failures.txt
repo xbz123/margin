@@ -1,0 +1,21 @@
+electron/audio/__tests__/ActivationPolicyOrdering.test.mjs :: non-stealth cold launch stays on accessory until the disguised window is painted
+electron/audio/__tests__/ModelChangedTargeting.test.mjs :: AppState sends model-changed only to current model listeners
+electron/audio/__tests__/ModelChangedTargeting.test.mjs :: model-changed call sites use the targeted helper
+electron/audio/__tests__/NativeAbiGuardStartupOrder.test.mjs :: initializeApp does not request a second single-instance lock
+electron/audio/__tests__/NativeAbiGuardStartupOrder.test.mjs :: main acquires the single-instance lock before native ABI recovery can rebuild or relaunch
+electron/audio/__tests__/TokenBatchFlushNoTrailing.test.mjs :: intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer
+electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: WhatToAnswerLLM does not append active mode context to system prompt override
+electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: WhatToAnswerLLM sends mode context only through user content at runtime
+electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: generateSuggestion sends custom notes and mode context as user message content
+electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 10. SettingsOverlay.tsx binds the level bar width to `systemAudioLevel`
+electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 8. SettingsOverlay.tsx subscribes to onAudioTestSystemLevel AND onAudioTestSystemError
+electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 9. SettingsOverlay.tsx renders the literal "System Audio Level" label
+electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: UX4: audio test probes system audio in parallel with the mic
+electron/services/__tests__/CodexCliService.test.mjs :: validateExecutable: bare unfound name falls back to auto-detection if available
+electron/services/__tests__/Issue252WindowsAudioBanner.test.mjs :: issue #252: Open Settings button does not unconditionally fire x-apple.systempreferences
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: does not fall through session.created to transcription_session.created handler
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: inbound session.created (general-intent event) is inert on transcription session
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: race / late-arrival safety
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: sends transcription_session.update not session.update
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: uses GA input_audio_format field not beta audio.input.format
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: wire format

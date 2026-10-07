@@ -25,6 +25,7 @@ const res = spawnSync(process.execPath, args, {
 const blocked = readBlocked(sandbox);
 if (blocked.length) {
   console.error(`[isolation] ${blocked.length} blocked attempt(s); log: ${sandbox.log}`);
+  for (const b of blocked) console.error(`[isolation]   ${b.kind} ${b.detail}`);
   if (!allowBlocked) process.exit(1);
 }
 process.exit(res.status ?? 1);

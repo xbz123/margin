@@ -34,6 +34,12 @@
     { "line": "res.write('data: [DONE]\\n\\n');", "reason": "OpenAI streaming terminator from the public API format; written for this branch (AG-09 mock server), 2026-10-07" },
     { "line": "return value;", "reason": "Generic return; written for this branch (AG-09 devOverrides), 2026-10-07" },
     { "line": "return wrapped;", "reason": "Generic return; written for this branch (X2 audio-device double), 2026-10-07" },
-    { "line": "NATIVELY_DEV_BYPASS_SCREEN_TCC: '1',", "reason": "Sets a switch the baseline itself reads (electron/main.ts at a786910e); written for this branch (X2 env), 2026-10-07" }
+    { "line": "NATIVELY_DEV_BYPASS_SCREEN_TCC: '1',", "reason": "Sets a switch the baseline itself reads (electron/main.ts at a786910e); written for this branch (X2 env), 2026-10-07" },
+    { "line": "const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
+    { "line": "if (!m) continue;", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
+    { "line": "for (const step of steps) {", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
+    { "line": "const entry = {", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
+    { "line": "if (before) {", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
+    { "line": "counts.set(key, (counts.get(key) ?? 0) + 1);", "reason": "Generic counter idiom; written for this branch (gate runner), 2026-10-07" }
   ]
 }
