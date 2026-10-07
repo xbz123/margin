@@ -304,3 +304,30 @@ test('WhatToAnswer sends earlier answers only while profile_history is allowed',
   assert.match(denied.message, /TRANSCRIPT_SENTINEL/, 'the transcript still goes');
   assert.deepEqual(denied.scopes, []);
 });
+
+// Fifth review (PLAN.md AG-17): the meeting chat's context is built in the main process
+// from the saved meeting. A saved meeting is profile_history data; its summary parts
+// are post_call_summary data too and are left out on request.
+test('the meeting chat context carries the scopes of what it contains', () => {
+  const { buildMeetingChatContext } = createRequire(import.meta.url)(path.resolve(__dirname, '../../../dist-electron/electron/services/meetingChatContext.js'));
+  const meeting = {
+    title: 'TITLE_SENTINEL',
+    detailedSummary: { overview: 'OVERVIEW_SENTINEL', keyPoints: ['KEYPOINT_SENTINEL'], actionItems: ['ACTION_SENTINEL'] },
+    transcript: [{ speaker: 'user', text: 'TRANSCRIPT_SENTINEL one' }, { speaker: 'interviewer', text: 'TRANSCRIPT_SENTINEL two' }],
+  };
+  const full = buildMeetingChatContext(meeting, true);
+  for (const s of ['TITLE_SENTINEL', 'OVERVIEW_SENTINEL', 'KEYPOINT_SENTINEL', 'ACTION_SENTINEL', 'TRANSCRIPT_SENTINEL']) assert.match(full.context, new RegExp(s));
+  assert.deepEqual(full.scopes, ['profile_history', 'post_call_summary']);
+
+  const noSummary = buildMeetingChatContext(meeting, false);
+  assert.doesNotMatch(noSummary.context, /OVERVIEW_SENTINEL|KEYPOINT_SENTINEL|ACTION_SENTINEL/);
+  assert.match(noSummary.context, /TRANSCRIPT_SENTINEL/);
+  assert.deepEqual(noSummary.scopes, ['profile_history']);
+});
+
+test('the keyword fallback recognizes the meeting chat headings in a window-built context', () => {
+  const self = helperWith({}, () => ({}));
+  assert.deepEqual(self.inferContextScopes('MEETING: x\n\nSUMMARY:\ny'), ['profile_history', 'post_call_summary']);
+  assert.deepEqual(self.inferContextScopes('notes\nKEY POINTS:\n- a'), ['post_call_summary']);
+  assert.deepEqual(self.inferContextScopes('plain conversation about a summary of nothing'), []);
+});

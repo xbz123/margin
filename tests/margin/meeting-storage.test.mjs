@@ -5,8 +5,8 @@
 //   start -> transcript (test-inject-transcript) -> end -> title and structured
 //   summary from a loopback mock -> read back -> restart -> read again -> delete ->
 //   restart -> still deleted. Also: a meeting saved with the Transcripts scope off sends
-//   nothing, and the meeting chat sends the meeting's summary only while the
-//   post_call_summary scope is allowed.
+//   nothing; the meeting chat sends a past meeting only while profile_history is
+//   allowed, and its summary only while post_call_summary is allowed too.
 // The summary chain never calls OpenAI (Codex -> Groq -> Gemini), so the mock
 // serves the Groq client through the SDK's own GROQ_BASE_URL.
 //
@@ -232,11 +232,11 @@ test('with the Transcripts data scope off, the meeting is saved and nothing is s
   mock.setScript({ respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
 });
 
-// PLAN.md AG-17 (fourth review): the meeting chat sends the meeting's summary, key
-// points and action items as part of its context. They are post_call_summary data: with
-// that scope off, the chat must leave them out, and a request that still declares the
-// scope is refused by the main process before anything is sent.
-test('the meeting chat sends the summary only while the post_call_summary scope is allowed', async () => {
+// PLAN.md AG-17 (fourth and fifth reviews): the meeting chat sends only the meeting id;
+// the main process builds the context from the saved meeting. Its summary, key points
+// and action items are post_call_summary data and are left out with that scope off; the
+// whole meeting is profile_history data, so with that scope off nothing is sent.
+test('the meeting chat follows the post_call_summary and profile_history scopes', async () => {
   let launcher = await launcherWindow();
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
   assert.equal(keyResult?.success, true, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
@@ -311,16 +311,30 @@ test('the meeting chat sends the summary only while the post_call_summary scope 
     for (const b of bullets) assert.ok(!denied.includes(b), `summary section text must be left out: ${b}`);
   }
 
-  // A request that still declares the denied scope is refused before anything is sent.
-  const before = mock.chatRequests().length;
-  const error = await launcher.evaluate(() => new Promise((resolve) => {
-    const off = window.electronAPI.onGeminiStreamError((e) => { off(); resolve(e); });
-    window.electronAPI.streamGeminiChat('CHAT_QUESTION three', undefined, 'MEETING: x', { skipSystemPrompt: true, dataScopes: ['post_call_summary'] });
-    setTimeout(() => { off(); resolve(null); }, 10_000);
-  }));
-  assert.match(String(error), /post_call_summary/, `expected a scope refusal, got ${error}`);
+  // A saved meeting is profile_history data (fifth review): with that scope off,
+  // asking about the meeting sends nothing at all, and the chat shows an error.
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({ profile_history: false }));
+  let before = mock.chatRequests().length;
+  await input.fill('CHAT_QUESTION three: who owns step four?');
+  await input.press('Enter');
+  await waitFor(async () => (await launcher.evaluate(() => (window.__marginStreamErrors ?? []).some((e) => /profile_history/.test(e)))), 'the profile_history refusal', 20_000);
   await new Promise((r) => setTimeout(r, 500));
-  assert.equal(mock.chatRequests().length, before, 'the refused request reached no provider');
+  assert.deepEqual(mock.chatRequests().slice(before).map((r) => r.url), [], 'no request for a past meeting with profile_history off');
+
+  // The window cannot get meeting data past the scopes by building the context itself:
+  // the main process recognizes the meeting headings and leaves that context out.
+  await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({ post_call_summary: false }));
+  before = mock.chatRequests().length;
+  await launcher.evaluate((overview) => window.electronAPI.streamGeminiChat('CHAT_QUESTION four', undefined,
+    `MEETING: x\n\nSUMMARY:\n${overview}`, { skipSystemPrompt: true }), SUMMARY.overview);
+  const selfBuilt = await waitFor(() => mock.chatRequests().slice(before).find((r) => JSON.stringify(r.body).includes('CHAT_QUESTION four')), 'the request with a window-built context', 20_000);
+  assert.ok(!JSON.stringify(selfBuilt.body).includes(SUMMARY.overview), 'a summary in a window-built context must be left out');
+
+  // An unknown meeting id is rejected before anything is sent.
+  before = mock.chatRequests().length;
+  const rejected = await launcher.evaluate(() => window.electronAPI.streamGeminiChat('CHAT_QUESTION five', undefined, undefined, { meetingId: 'no-such-meeting' }).then(() => 'resolved', (e) => String(e)));
+  assert.match(rejected, /Meeting not found/);
+  assert.equal(mock.chatRequests().length, before);
 
   await launcher.evaluate(() => window.electronAPI.setProviderDataScopes({}));
   mock.setScript({ respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });

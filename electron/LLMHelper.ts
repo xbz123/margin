@@ -111,8 +111,11 @@ export class LLMHelper {
   private inferContextScopes(context?: string): ProviderDataScope[] {
     const scopes: ProviderDataScope[] = [];
     if (!context?.trim()) return scopes;
-    if (/<meeting_history|USER-PROVIDED PERSONA CONTEXT|<user_context|\[RECENT ASSISTANT RESPONSES\]/i.test(context)) scopes.push('profile_history');
-    if (/<post_call_summary|meeting summary|silent meeting summarizer|silent meeting note-taker/i.test(context)) scopes.push('post_call_summary');
+    // Keyword fallback for context a window sends itself. The meeting chat's context is
+    // built in the main process with explicit scopes (meetingChatContext.ts); its
+    // headings are recognized here too (PLAN.md AG-17 fifth review).
+    if (/<meeting_history|USER-PROVIDED PERSONA CONTEXT|<user_context|\[RECENT ASSISTANT RESPONSES\]|^MEETING: /im.test(context)) scopes.push('profile_history');
+    if (/<post_call_summary|meeting summary|silent meeting summarizer|silent meeting note-taker|^(?:SUMMARY|KEY POINTS|ACTION ITEMS):/im.test(context)) scopes.push('post_call_summary');
     return scopes;
   }
 

@@ -14,6 +14,7 @@ import { SkillsManager } from './services/SkillsManager';
 
 import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages';
 import { CHAT_MODE_PROMPT } from './llm/prompts';
+import { buildMeetingChatContext } from './services/meetingChatContext';
 
 export function initializeIpcHandlers(appState: AppState): void {
   const safeHandle = (
@@ -341,21 +342,34 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; dataScopes?: unknown },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; meetingId?: unknown },
     ) => {
       let myController: AbortController | null = null;
-      // Data scopes the window declares for its message and context, beyond the
-      // transcript (for example a meeting chat that includes the meeting's summary).
-      // streamChat refuses the request when one of them is denied (PLAN.md AG-17
-      // fourth review). Unknown values are dropped.
-      const declaredScopes = (Array.isArray(options?.dataScopes) ? options.dataScopes : [])
-        .filter((scope): scope is 'profile_history' | 'post_call_summary' => scope === 'profile_history' || scope === 'post_call_summary');
+      // Scopes of the data in this request beyond the transcript; streamChat refuses
+      // the request when one of them is denied. Set only here in the main process, from
+      // data it reads itself (PLAN.md AG-17 fourth and fifth reviews).
+      let declaredScopes: Array<'profile_history' | 'post_call_summary'> = [];
       // The preload's id for this request, sent back with every event so the window
       // can drop events of a cancelled or superseded stream (PLAN.md AG-17 review).
       const clientStreamId = options?.clientStreamId;
       try {
         console.log('[IPC] gemini-chat-stream started using LLMHelper.streamChat');
         const llmHelper = appState.processingHelper.getLLMHelper();
+
+        // Meeting chat: the window sends only the meeting id. The context comes from the
+        // saved meeting, with the summary left out when post_call_summary is denied; a
+        // context sent by the window is ignored. A saved meeting is profile_history data,
+        // so with that scope denied streamChat refuses the request.
+        if (options?.meetingId !== undefined) {
+          const meeting = typeof options.meetingId === 'string'
+            ? DatabaseManager.getInstance().getMeetingDetails(options.meetingId)
+            : null;
+          if (!meeting) throw new Error('Meeting not found for chat');
+          const includeSummary = llmHelper.deniedDataScopes(['post_call_summary']).length === 0;
+          const built = buildMeetingChatContext(meeting, includeSummary);
+          context = built.context;
+          declaredScopes = built.scopes as Array<'profile_history' | 'post_call_summary'>;
+        }
 
         const senderId = event.sender.id;
         const myStreamId = ++_chatStreamId;

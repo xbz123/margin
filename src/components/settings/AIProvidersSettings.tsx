@@ -771,6 +771,7 @@ export const AIProvidersSettings: React.FC = () => {
                 <div>
                     <h3 className="text-sm font-bold text-text-primary mb-1">Cloud provider data scopes</h3>
                     <p className="text-xs text-text-secondary mb-2">Control what data cloud AI providers can access. Disabled types are left out of requests.</p>
+                    <p className="text-[10px] text-text-secondary mb-2">Profile history covers your persona and notes, saved meetings (including asking about a past meeting), and the separate list of earlier answers. Answers within the current conversation are part of its transcript.</p>
                 </div>
                 <div className="bg-bg-item-surface rounded-xl p-4 border border-border-subtle flex flex-col gap-2">
                     {([
