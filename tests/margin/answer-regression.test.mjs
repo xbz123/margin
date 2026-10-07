@@ -14,18 +14,14 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { startMockOpenAI } from './mock-openai.mjs';
-import { makeSandbox, isolatedEnv, CHROMIUM_SWITCHES, REPO, readBlocked, GUARD } from '../../scripts/margin/isolation/env.mjs';
+import { launchApp, windowWithQuery } from './launch-app.mjs';
+import { makeSandbox, readBlocked } from '../../scripts/margin/isolation/env.mjs';
 
 const require = createRequire(import.meta.url);
-const { _electron } = require('playwright');
 const sharp = require('sharp');
-
-const ELECTRON = path.join(REPO, 'node_modules/electron/dist',
-  fs.readFileSync(path.join(REPO, 'node_modules/electron/path.txt'), 'utf8').trim());
 const FAKE_KEY = 'sk-margin-regression-not-a-real-key';
 const MODEL = 'gpt-5.4';
 
@@ -33,16 +29,6 @@ let mock;
 let app;
 let sandbox;
 let overlay;
-
-async function windowWithQuery(appInstance, query, timeoutMs = 20_000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    const w = appInstance.windows().find((p) => p.url().includes(query));
-    if (w) return w;
-    await new Promise((r) => setTimeout(r, 200));
-  }
-  throw new Error(`window ${query} did not appear`);
-}
 
 // Visible transcript text of the overlay's message list.
 const overlayText = () => overlay.evaluate(() => document.body.innerText);
@@ -79,45 +65,11 @@ test.before(async () => {
   const fixture = path.join(sandbox.tmp, 'fixture-screen.png');
   await sharp({ create: { width: 64, height: 48, channels: 3, background: '#2050a0' } }).png().toFile(fixture);
 
-  app = await _electron.launch({
-    executablePath: ELECTRON,
-    // Playwright deletes NODE_OPTIONS and preloads its own loader with -r, so the
-    // isolation guard must be passed the same way or it would not load at all.
-    args: ['-r', GUARD, REPO, ...CHROMIUM_SWITCHES],
-    cwd: sandbox.work,
-    env: isolatedEnv(sandbox, {
-      NODE_ENV: 'production',
-      MARGIN_DEV_OPENAI_BASE_URL: mock.baseURL,
-      MARGIN_DEV_SCREENSHOT_FIXTURE: fixture,
-    }),
-    timeout: 60_000,
-  });
-  const output = [];
-  app.process().stdout.on('data', (d) => output.push(String(d)));
-  app.process().stderr.on('data', (d) => output.push(String(d)));
-  app.process().on('exit', (code, signal) => output.push(`[harness] main process exited code=${code} signal=${signal}`));
-  // The first main-process evaluate can race start-up ("Execution context was
-  // destroyed"); retry while the process is alive, and show its output if it died.
-  let guardActive;
-  for (let attempt = 1; ; attempt++) {
-    try {
-      guardActive = await app.evaluate(() => process.env.MARGIN_ISOLATION_ACTIVE);
-      break;
-    } catch (e) {
-      const alive = app.process().exitCode === null && app.process().signalCode === null;
-      if (alive && attempt < 10 && /context was destroyed/.test(e.message)) {
-        await new Promise((r) => setTimeout(r, 500));
-        continue;
-      }
-      await new Promise((r) => setTimeout(r, 1_000));
-      console.error(output.join('').split('\n').filter((l) => !l.includes('isolation-debug')).slice(-40).join('\n'));
-      throw e;
-    }
-  }
-  if (guardActive !== '1') {
-    await app.close().catch(() => {});
-    throw new Error('isolation guard is not active in the Electron main process; aborting');
-  }
+  ({ app } = await launchApp(sandbox, {
+    NODE_ENV: 'production',
+    MARGIN_DEV_OPENAI_BASE_URL: mock.baseURL,
+    MARGIN_DEV_SCREENSHOT_FIXTURE: fixture,
+  }));
   const launcher = await windowWithQuery(app, 'window=launcher');
   await launcher.waitForLoadState('domcontentloaded');
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_KEY);

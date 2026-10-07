@@ -24,7 +24,6 @@ class StubLLMHelper {
   getClaudeClient() { return null; }
   getGroqClient() { return null; }
   getOllamaClient() { return null; }
-  getModesManager() { return { getActiveMode: () => null, getActiveModeSystemPromptSuffix: () => '' }; }
   getSettingsManager() { return { get: () => null, set: () => {} }; }
 }
 

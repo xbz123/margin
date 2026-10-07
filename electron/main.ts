@@ -2882,21 +2882,16 @@ export class AppState {
       this.intelligenceManager.setMeetingMetadata(metadata);
     }
 
-    // Phase 3 — bind dynamic action engine to this meeting + active mode.
-    // Action store is per-(sessionId, modeId), so a fresh sessionId here gives
-    // us per-meeting isolation. Re-binding on mode switch is handled in the
-    // modes:set-active IPC handler.
+    // Phase 3 — bind dynamic action engine to this meeting. Action store is
+    // per-(sessionId, modeId), so a fresh sessionId gives per-meeting isolation.
+    // The trigger pack is the one the default General mode used (the mode system
+    // is gone, PLAN.md AG-13; the engine itself is removed in AG-16).
     try {
-      const { ModesManager } = require('./services/ModesManager');
-      const activeMode = ModesManager.getInstance().getActiveMode();
-      if (activeMode) {
-        const sessionId = `session_${crypto.randomUUID()}`;
-        this.intelligenceManager.setDynamicActionContext({
-          sessionId,
-          modeId: activeMode.id,
-          modeTemplateType: activeMode.templateType,
-        });
-      }
+      this.intelligenceManager.setDynamicActionContext({
+        sessionId: `session_${crypto.randomUUID()}`,
+        modeId: 'mode_general_default',
+        modeTemplateType: 'general',
+      });
     } catch (err) {
       // Auxiliary feature — never block meeting start.
       console.warn('[Main] failed to bind dynamic action context at meeting start:', (err as Error)?.message);
@@ -4301,14 +4296,6 @@ async function initializeApp() {
 
   // Explicitly load credentials into helpers
   appState.processingHelper.loadStoredCredentials();
-
-  // Seed the un-deletable General mode once at startup. Idempotent.
-  try {
-    const { ModesManager } = require('./services/ModesManager');
-    ModesManager.getInstance().ensureSeeded();
-  } catch (err) {
-    console.warn('[Init] ModesManager.ensureSeeded threw (non-fatal):', err);
-  }
 
   // Initialize IPC handlers before window creation
   initializeIpcHandlers(appState)

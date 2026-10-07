@@ -208,23 +208,7 @@ export interface ElectronAPI {
   getActionButtonMode: () => Promise<'recap' | 'brainstorm'>
   setActionButtonMode: (mode: 'recap' | 'brainstorm') => Promise<{ success: boolean }>
   onActionButtonModeChanged: (callback: (mode: 'recap' | 'brainstorm') => void) => () => void
-  onModeChanged: (callback: (data: { id: string | null; name: string | null }) => void) => () => void
 
-  // Modes
-  modesGetAll: () => Promise<Array<{ id: string; name: string; templateType: string; customContext: string; isActive: boolean; createdAt: string; referenceFileCount: number }>>
-  modesGetActive: () => Promise<{ id: string; name: string; templateType: string; customContext: string; isActive: boolean; createdAt: string } | null>
-  modesCreate: (params: { name: string; templateType: string }) => Promise<{ success: boolean; mode?: any; error?: string }>
-  modesUpdate: (id: string, updates: { name?: string; templateType?: string; customContext?: string }) => Promise<{ success: boolean; error?: string }>
-  modesDelete: (id: string) => Promise<{ success: boolean; error?: string }>
-  modesSetActive: (id: string | null) => Promise<{ success: boolean; error?: string }>
-  modesGetReferenceFiles: (modeId: string) => Promise<Array<{ id: string; modeId: string; fileName: string; content: string; createdAt: string }>>
-  modesUploadReferenceFile: (modeId: string) => Promise<{ success: boolean; file?: any; cancelled?: boolean; error?: string }>
-  modesDeleteReferenceFile: (id: string) => Promise<{ success: boolean; error?: string }>
-  modesGetNoteSections: (modeId: string) => Promise<Array<{ id: string; modeId: string; title: string; description: string; sortOrder: number }>>
-  modesAddNoteSection: (modeId: string, title: string, description: string) => Promise<{ success: boolean; section?: any; error?: string }>
-  modesUpdateNoteSection: (id: string, updates: { title?: string; description?: string }) => Promise<{ success: boolean; error?: string }>
-  modesDeleteNoteSection: (id: string) => Promise<{ success: boolean; error?: string }>
-  modesRemoveAllNoteSections: (modeId: string) => Promise<{ success: boolean; error?: string }>
 
   // Meeting Lifecycle
   startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string }>
@@ -391,9 +375,9 @@ export interface ElectronAPI {
   getMeetingRetention: () => Promise<'forever' | '7d' | '30d' | 'never'>;
   setMeetingRetention: (retention: 'forever' | '7d' | '30d' | 'never') => Promise<{ success: boolean; error?: string }>;
   onMeetingRetentionChanged: (callback: (retention: 'forever' | '7d' | '30d' | 'never') => void) => () => void;
-  getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; reference_files?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }>;
-  setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; reference_files?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }) => Promise<{ success: boolean; error?: string }>;
-  onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; reference_files?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }) => void) => () => void;
+  getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }>;
+  setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }) => void) => () => void;
   getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only' | 'private_vision'>;
   setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only' | 'private_vision') => Promise<{ success: boolean; error?: string }>;
   onScreenUnderstandingModeChanged: (callback: (mode: 'vision_first' | 'vision_only' | 'private_vision') => void) => () => void;

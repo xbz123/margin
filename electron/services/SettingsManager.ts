@@ -38,7 +38,6 @@ export interface AppSettings {
     providerDataScopes?: {
         transcript?: boolean;
         screenshots?: boolean;
-        reference_files?: boolean;
         profile_history?: boolean;
         embeddings?: boolean;
         post_call_summary?: boolean;

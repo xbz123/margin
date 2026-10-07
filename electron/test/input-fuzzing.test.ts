@@ -57,38 +57,6 @@ const FUZZ_CASES: Array<{
       { label: 'empty strings', value: { speaker: '', text: '' }, expectedSafe: true },
     ],
   },
-  {
-    handler: 'modes:create (params)',
-    field: 'params object',
-    inputs: [
-      { label: 'empty name', value: { name: '', templateType: 'general' }, expectedSafe: true },
-      { label: '20KB name', value: { name: 'A'.repeat(20_000), templateType: 'general' }, expectedSafe: true },
-      { label: 'SQL injection name', value: { name: "'; DROP TABLE modes; --", templateType: 'general' }, expectedSafe: true },
-      { label: 'XSS name', value: { name: "<script>alert('xss')</script>", templateType: 'general' }, expectedSafe: true },
-      { label: 'null name', value: { name: null, templateType: 'general' }, expectedSafe: true },
-      { label: 'undefined name', value: { name: undefined, templateType: 'general' }, expectedSafe: true },
-      { label: 'templateType=number', value: { name: 'valid', templateType: 123 }, expectedSafe: true },
-      { label: 'templateType=SQL', value: { name: 'valid', templateType: "'; UPDATE modes SET admin=1; --" }, expectedSafe: true },
-      { label: 'empty object', value: {}, expectedSafe: true },
-      { label: 'only templateType', value: { templateType: 'general' }, expectedSafe: true },
-    ],
-  },
-  {
-    handler: 'modes:update (updates)',
-    field: 'updates object',
-    inputs: [
-      { label: '200KB customContext', value: { customContext: 'A'.repeat(200_000) }, expectedSafe: true },
-      { label: 'null bytes in context', value: { customContext: '\x00null\x00byte' }, expectedSafe: true },
-      { label: 'control chars', value: { customContext: '\x1f\x1e\x1f' }, expectedSafe: true },
-      { label: 'empty customContext', value: { customContext: '' }, expectedSafe: true },
-      { label: 'SQL injection context', value: { customContext: "'; DROP TABLE modes; --" }, expectedSafe: true },
-      { label: 'XSS context', value: { customContext: "<script>alert('xss')</script>" }, expectedSafe: true },
-      { label: 'only name update', value: { name: 'updated' }, expectedSafe: true },
-      { label: 'null name', value: { name: null }, expectedSafe: true },
-      { label: 'empty update', value: {}, expectedSafe: true },
-      { label: 'unicode context', value: { customContext: '你好こんにちは🎤' }, expectedSafe: true },
-    ],
-  },
 ];
 
 // ── Test logic for each handler ────────────────────────────────────────────
@@ -141,40 +109,6 @@ function testSegmentInput(label: string, value: any): { pass: boolean; error?: s
   }
 }
 
-function testModesParamsInput(label: string, value: any): { pass: boolean; error?: string } {
-  // simulate how modes:create handler processes params
-  try {
-    const name = value?.name ?? '';
-    const templateType = value?.templateType ?? 'general';
-    // String coercion — numbers become strings
-    void String(name);
-    void String(templateType);
-    // name can be empty — handler doesn't validate this
-    // templateType cast to 'any' — no type enforcement
-    return { pass: true };
-  } catch (err) {
-    return { pass: false, error: (err as Error).message.slice(0, 80) };
-  }
-}
-
-function testModesUpdateInput(label: string, value: any): { pass: boolean; error?: string } {
-  // simulate how modes:update handler processes updates
-  try {
-    const customContext = value?.customContext;
-    const name = value?.name;
-    // customContext is just a string — no validation at IPC layer
-    if (customContext !== undefined) {
-      void String(customContext); // can be any string including ''
-    }
-    if (name !== undefined) {
-      void String(name);
-    }
-    return { pass: true };
-  } catch (err) {
-    return { pass: false, error: (err as Error).message.slice(0, 80) };
-  }
-}
-
 // ── SQL injection check ────────────────────────────────────────────────────
 function wouldCauseSQLInjection(value: string): boolean {
   // Check for SQL injection patterns that could break out of a query
@@ -221,30 +155,6 @@ async function main() {
     const result = testSegmentInput(input.label, input.value);
     allResults.push({ handler: 'test-inject-transcript', label: input.label, ...result });
     console.log(`  ${result.pass ? '✅' : '❌'} ${input.label}${result.error ? ` (${result.error})` : ''}`);
-  }
-
-  // ── modes:create ─────────────────────────────────────────────────────────
-  console.log();
-  console.log('─'.repeat(60));
-  console.log('Handler: modes:create (params)');
-  console.log('─'.repeat(60));
-  for (const input of FUZZ_CASES.find(c => c.handler.includes('modes:create'))!.inputs) {
-    const result = testModesParamsInput(input.label, input.value);
-    const sql = typeof input.value?.name === 'string' && wouldCauseSQLInjection(input.value.name);
-    allResults.push({ handler: 'modes:create', label: input.label, ...result, sqlInjection: sql });
-    console.log(`  ${result.pass ? '✅' : '❌'} ${input.label}${result.error ? ` (${result.error})` : ''}${sql ? ' [SQL patt]' : ''}`);
-  }
-
-  // ── modes:update ─────────────────────────────────────────────────────────
-  console.log();
-  console.log('─'.repeat(60));
-  console.log('Handler: modes:update (updates)');
-  console.log('─'.repeat(60));
-  for (const input of FUZZ_CASES.find(c => c.handler.includes('modes:update'))!.inputs) {
-    const result = testModesUpdateInput(input.label, input.value);
-    const sql = typeof input.value?.customContext === 'string' && wouldCauseSQLInjection(input.value.customContext);
-    allResults.push({ handler: 'modes:update', label: input.label, ...result, sqlInjection: sql });
-    console.log(`  ${result.pass ? '✅' : '❌'} ${input.label}${result.error ? ` (${result.error})` : ''}${sql ? ' [SQL patt]' : ''}`);
   }
 
   // ── Summary ──────────────────────────────────────────────────────────────

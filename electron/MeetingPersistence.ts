@@ -8,6 +8,14 @@ import { DatabaseManager, Meeting } from './db/DatabaseManager';
 import { GROQ_TITLE_PROMPT, GROQ_SUMMARY_JSON_PROMPT } from './llm';
 import { buildPostCallEnhancements } from './services/post-call/PostCallWorkflow';
 import type { ProviderDataScopePolicy } from './llm/ProviderRouter';
+
+// Sections of the structured meeting notes. Same titles, descriptions and order
+// as the baseline's default General mode (DatabaseManager migration v12).
+export const DEFAULT_SUMMARY_SECTIONS: ReadonlyArray<{ title: string; description: string }> = [
+    { title: 'Summary',      description: 'High-level summary of the conversation.' },
+    { title: 'Action items', description: 'Tasks and follow-ups identified.' },
+    { title: 'Key points',   description: 'Important points discussed.' },
+];
 const crypto = require('crypto');
 
 export class MeetingPersistence {
@@ -70,21 +78,6 @@ export class MeetingPersistence {
         // background processAndSaveMeeting worker receives the calendar info.
         const metadataSnapshot = this.session.getMeetingMetadata();
 
-        // BUG-MODE-BLEEDING fix: snapshot the active mode BEFORE reset() so the
-        // background processAndSaveMeeting worker uses the correct mode's note
-        // sections even if the user switches modes before async processing completes.
-        let modeSnapshot: { id: string; name: string; templateType: string } | null = null;
-        try {
-            const { ModesManager } = require('./services/ModesManager');
-            const activeMode = ModesManager.getInstance().getActiveMode();
-            if (activeMode) {
-                modeSnapshot = { id: activeMode.id, name: activeMode.name, templateType: activeMode.templateType };
-                console.log(`[MeetingPersistence] Mode snapshot captured: "${activeMode.name}" (${activeMode.templateType})`);
-            }
-        } catch (modeErr: any) {
-            console.warn('[MeetingPersistence] Failed to capture mode snapshot:', modeErr?.message);
-        }
-
         // 2. Reset state immediately so new meeting can start or UI is clean
         this.session.reset();
 
@@ -116,7 +109,7 @@ export class MeetingPersistence {
             console.error("Failed to save placeholder", e);
         }
 
-        this.processAndSaveMeeting(snapshot, meetingId, metadataSnapshot, modeSnapshot).catch(err => {
+        this.processAndSaveMeeting(snapshot, meetingId, metadataSnapshot).catch(err => {
             console.error('[MeetingPersistence] Background processing failed:', err);
         });
 
@@ -130,10 +123,7 @@ export class MeetingPersistence {
         data: { transcript: TranscriptSegment[], usage: any[], startTime: number, durationMs: number, context: string },
         meetingId: string,
         // BUG-04 fix: accept metadata snapshot so calendar info is not lost after session.reset()
-        metadata?: { title?: string; calendarEventId?: string; source?: 'manual' | 'calendar' } | null,
-        // BUG-MODE-BLEEDING fix: accept mode snapshot so async summary uses the mode that was
-        // active when meeting stopped, not whatever mode is active when async processing runs.
-        modeSnapshot?: { id: string; name: string; templateType: string } | null
+        metadata?: { title?: string; calendarEventId?: string; source?: 'manual' | 'calendar' } | null
     ): Promise<void> {
         let title = "Untitled Session";
         let summaryData: { overview?: string; actionItems: string[], keyPoints: string[], sections?: Array<{ title: string; bullets: string[] }> } = { actionItems: [], keyPoints: [] };
@@ -158,64 +148,9 @@ export class MeetingPersistence {
                 if (generatedTitle) title = generatedTitle.replace(/["*]/g, '').trim();
             }
 
-            // Load template note sections for the mode that was active when meeting stopped.
-            // BUG-MODE-BLEEDING fix: use the snapshotted mode, not getActiveMode() which may
-            // return a different mode if the user switched modes before async processing completed.
-            let modeNoteSections: Array<{ title: string; description: string }> = [];
-            let modeContextBlock = '';
-            try {
-                const { ModesManager, TEMPLATE_NOTE_SECTIONS } = require('./services/ModesManager');
-                const modesMgr = ModesManager.getInstance();
-
-                // Use snapshot mode if available, otherwise fall back to current active mode (for recovery scenarios)
-                const targetModeId = modeSnapshot?.id ?? modesMgr.getActiveMode()?.id;
-                if (!targetModeId) {
-                    console.log('[MeetingPersistence] No mode active — using generic summary.');
-                } else {
-                    // Get the mode's templateType from snapshot or look it up
-                    const templateType = modeSnapshot?.templateType ?? modesMgr.getModes().find((m: { id: string; templateType?: string }) => m.id === targetModeId)?.templateType;
-                    const modeName = modeSnapshot?.name ?? modesMgr.getModes().find((m: { id: string; name?: string }) => m.id === targetModeId)?.name ?? 'Unknown';
-
-                    // Prefer user's customized DB sections; fall back to canonical template
-                    const dbSections: Array<{ title: string; description: string }> = modesMgr.getNoteSections(targetModeId);
-                    modeNoteSections = dbSections.length > 0
-                        ? dbSections
-                        : (templateType ? (TEMPLATE_NOTE_SECTIONS[templateType as keyof typeof TEMPLATE_NOTE_SECTIONS] ?? []) : []);
-                    console.log(`[MeetingPersistence] Summary mode: "${modeName}" (${templateType}), sections: ${modeNoteSections.length} (${dbSections.length > 0 ? 'custom DB' : 'canonical template'})`);
-
-                    // Build the summary-safe mode context block.
-                    // Phase 6 — never inject raw reference-file bodies into post-call summary
-                    // prompts. Use ModesManager.buildSummarySafeModeContextBlock(), which keeps
-                    // the mode's customContext (trusted, low-token) and only adds retrieved
-                    // reference snippets. Honors the providerDataScopes policy:
-                    //   - `post_call_summary === false` → no mode context at all
-                    //   - `reference_files === false`   → customContext only, no retrieved snippets
-                    if (modeSnapshot) {
-                        let scopePolicy: ProviderDataScopePolicy | undefined = undefined;
-                        try {
-                            const { SettingsManager } = require('./services/SettingsManager');
-                            scopePolicy = SettingsManager.getInstance().get('providerDataScopes');
-                        } catch { /* non-fatal */ }
-                        const summaryAllowed = scopePolicy?.post_call_summary !== false;
-                        const referenceSnippetsAllowed = scopePolicy?.reference_files !== false;
-
-                        if (summaryAllowed) {
-                            const transcriptHint = data.context.substring(0, 4000);
-                            modeContextBlock = modesMgr.buildSummarySafeModeContextBlock(modeSnapshot.id, {
-                                query: 'meeting summary',
-                                transcript: transcriptHint,
-                                tokenBudget: 1200,
-                                includeReferenceSnippets: referenceSnippetsAllowed,
-                            }) || '';
-                        } else {
-                            console.warn('[ScopeFallback] post_call_summary denied for cloud; routing to Ollama');
-                            modeContextBlock = '';
-                        }
-                    }
-                }
-            } catch (modeErr: any) {
-                console.warn('[MeetingPersistence] Failed to load mode sections:', modeErr?.message);
-            }
+            // Fixed note sections (PLAN.md AG-13). These are the sections a fresh
+            // install seeded for its default, always-active General mode.
+            const noteSections = DEFAULT_SUMMARY_SECTIONS;
 
             // Generate Structured Summary
             if (data.transcript.length > 2) {
@@ -233,19 +168,19 @@ STYLE: Calm, neutral, professional, skim-friendly. Short bullets, no sub-bullets
                 let summaryPrompt: string;
                 let groqSummaryPrompt: string;
 
-                if (modeNoteSections.length > 0) {
-                    // Mode-specific structured notes — sections as object with title keys
-                    const sectionList = modeNoteSections
+                if (noteSections.length > 0) {
+                    // Structured notes — sections as object with title keys
+                    const sectionList = noteSections
                         .map(s => s.description?.trim()
                             ? `- "${s.title}": ${s.description}`
                             : `- "${s.title}"`)
                         .join('\n');
-                    const sectionKeys = modeNoteSections
+                    const sectionKeys = noteSections
                         .map(s => `    "${s.title}": []`)
                         .join(',\n');
 
                     summaryPrompt = `You are a silent meeting note-taker. Extract structured notes from the conversation transcript below.
-${modeContextBlock}
+
 ${baseRules}
 
 SECTIONS TO FILL (extract only what is present in the transcript):
@@ -259,7 +194,7 @@ Return ONLY valid JSON — no markdown fences, no comments, no extra keys. Each 
 ${sectionKeys}
   }
 }`;
-                    console.log('[MeetingPersistence] Using mode-specific prompt with sections:', modeNoteSections.map(s => s.title));
+                    console.log('[MeetingPersistence] Using structured prompt with sections:', noteSections.map(s => s.title));
                     groqSummaryPrompt = summaryPrompt;
                 } else {
                     // Default generic notes
@@ -285,14 +220,14 @@ Return ONLY valid JSON (no markdown code blocks):
                     console.log('[MeetingPersistence] LLM summary response received', { length: jsonStr.length });
                     try {
                         const parsed = JSON.parse(jsonStr);
-                        if (modeNoteSections.length > 0 && parsed.sections && typeof parsed.sections === 'object') {
+                        if (noteSections.length > 0 && parsed.sections && typeof parsed.sections === 'object') {
                             // Convert sections object into typed array preserving template order
-                            const sectionsArr: Array<{ title: string; bullets: string[] }> = modeNoteSections
+                            const sectionsArr: Array<{ title: string; bullets: string[] }> = noteSections
                                 .map(s => ({
                                     title: s.title,
                                     bullets: Array.isArray(parsed.sections[s.title]) ? parsed.sections[s.title] as string[] : [],
                                 }));
-                            console.log('[MeetingPersistence] Parsed mode sections:', sectionsArr.map(s => `${s.title}(${s.bullets.length})`));
+                            console.log('[MeetingPersistence] Parsed sections:', sectionsArr.map(s => `${s.title}(${s.bullets.length})`));
                             summaryData = {
                                 overview: parsed.overview,
                                 actionItems: [],
@@ -300,8 +235,8 @@ Return ONLY valid JSON (no markdown code blocks):
                                 sections: sectionsArr,
                             };
                         } else {
-                            if (modeNoteSections.length > 0) {
-                                console.warn('[MeetingPersistence] Mode sections expected but LLM did not return "sections" key. Falling back to generic.');
+                            if (noteSections.length > 0) {
+                                console.warn('[MeetingPersistence] Sections expected but LLM did not return "sections" key. Falling back to generic.');
                             }
                             summaryData = parsed;
                         }
@@ -317,7 +252,6 @@ Return ONLY valid JSON (no markdown code blocks):
                 ...summaryData,
                 ...buildPostCallEnhancements({
                     transcript: data.transcript,
-                    modeTemplateType: modeSnapshot?.templateType,
                     summaryData,
                 }),
             };

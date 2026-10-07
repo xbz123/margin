@@ -52,14 +52,6 @@ interface Meeting {
             sourceTimestamp?: number;
         }>;
         followUpDraft?: string;
-        coachingInsights?: Array<{
-            id: string;
-            type: string;
-            title: string;
-            detail: string;
-            severity: 'info' | 'opportunity' | 'warning';
-            evidence?: string;
-        }>;
     };
     transcript?: Array<{
         speaker: string;
@@ -434,31 +426,6 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                                     </div>
                                                 </li>
                                             ))}
-                                        </ul>
-                                    </section>
-                                )}
-
-                                {/* Phase 7 — Coaching insights (mode-specific opportunities). */}
-                                {meeting.detailedSummary?.coachingInsights && meeting.detailedSummary.coachingInsights.length > 0 && (
-                                    <section className="mb-8">
-                                        <h2 className="text-lg font-semibold text-text-primary mb-4">Coaching</h2>
-                                        <ul className="space-y-3">
-                                            {meeting.detailedSummary.coachingInsights.map(insight => {
-                                                const tone = insight.severity === 'warning'
-                                                    ? 'border-amber-400/40 bg-amber-500/5'
-                                                    : insight.severity === 'opportunity'
-                                                        ? 'border-blue-400/40 bg-blue-500/5'
-                                                        : 'border-text-tertiary/30 bg-transparent';
-                                                return (
-                                                    <li key={insight.id} className={`p-3 rounded-[10px] border ${tone}`}>
-                                                        <p className="text-sm font-semibold text-text-primary">{insight.title}</p>
-                                                        <p className="text-[12.5px] text-text-secondary mt-1 leading-relaxed">{insight.detail}</p>
-                                                        {insight.evidence && (
-                                                            <p className="text-[11px] text-text-tertiary mt-1.5 italic">"{insight.evidence}"</p>
-                                                        )}
-                                                    </li>
-                                                );
-                                            })}
                                         </ul>
                                     </section>
                                 )}

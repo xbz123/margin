@@ -9,7 +9,6 @@ const {
   buildPostCallEnhancements,
   extractStructuredActionItems,
   buildFollowUpDraft,
-  generateCoachingInsights,
 } = await import(pathToFileURL(workflowPath).href);
 
 // Ids switched from `action_<N>` (length-derived; collided across reruns /
@@ -43,7 +42,7 @@ test('extractStructuredActionItems merges summary action items without duplicate
 });
 
 test('buildFollowUpDraft includes overview and structured next steps', () => {
-  const draft = buildFollowUpDraft('sales', [
+  const draft = buildFollowUpDraft([
     { id: 'action_1', text: 'send the proposal', owner: 'Me', deadline: 'Friday' },
   ], { overview: 'We aligned on a pilot scope.' });
 
@@ -52,31 +51,8 @@ test('buildFollowUpDraft includes overview and structured next steps', () => {
   assert.match(draft, /- Me: send the proposal by Friday/);
 });
 
-test('generateCoachingInsights flags sales objection with no captured objection section', () => {
-  const insights = generateCoachingInsights([
-    { speaker: 'interviewer', text: 'The pricing is too expensive compared with our current vendor.', timestamp: 1 },
-    { speaker: 'user', text: 'I can follow up later.', timestamp: 2 },
-  ], 'sales', { sections: [{ title: 'Objections', bullets: [] }] });
-
-  assert.ok(insights.some(insight => insight.type === 'missed_objection'));
-  assert.ok(insights.some(insight => insight.evidence?.includes('pricing is too expensive')));
-});
-
-test('generateCoachingInsights uses mode-specific coaching rules', () => {
-  const recruiting = generateCoachingInsights([
-    { speaker: 'interviewer', text: 'Tell me about your backend work.', timestamp: 1 },
-  ], 'recruiting');
-  const team = generateCoachingInsights([
-    { speaker: 'interviewer', text: 'We agreed to change the launch plan.', timestamp: 1 },
-  ], 'team-meet');
-
-  assert.ok(recruiting.some(insight => insight.type === 'missing_logistics'));
-  assert.ok(team.some(insight => insight.type === 'missing_ownership'));
-});
-
 test('buildPostCallEnhancements returns schema v2 payload', () => {
   const result = buildPostCallEnhancements({
-    modeTemplateType: 'lecture',
     transcript: [{ speaker: 'interviewer', text: 'Read chapter 4 before Friday.', timestamp: 10 }],
     summaryData: { overview: 'Lecture covered graph traversal.', actionItems: [] },
   });
@@ -84,12 +60,11 @@ test('buildPostCallEnhancements returns schema v2 payload', () => {
   assert.equal(result.schemaVersion, 2);
   assert.ok(Array.isArray(result.actionItemsStructured));
   assert.ok(result.followUpDraft.includes('Lecture covered graph traversal'));
-  assert.ok(result.coachingInsights.some(insight => insight.type === 'study_follow_up'));
+  assert.ok(result.followUpDraft.startsWith('Hi team,'));
 });
 
 test('post-call schema remains JSON-safe and excludes raw transcript fields', () => {
   const result = buildPostCallEnhancements({
-    modeTemplateType: 'sales',
     transcript: [
       { speaker: 'prospect', text: 'The pricing is too expensive for ACME secret budget.', timestamp: 10 },
       { speaker: 'user', text: 'I will send the proposal by Friday.', timestamp: 20 },
@@ -99,7 +74,6 @@ test('post-call schema remains JSON-safe and excludes raw transcript fields', ()
 
   assert.deepEqual(Object.keys(result).sort(), [
     'actionItemsStructured',
-    'coachingInsights',
     'followUpDraft',
     'schemaVersion',
   ]);

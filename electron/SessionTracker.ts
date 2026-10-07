@@ -161,24 +161,6 @@ export class SessionTracker {
     }
 
     /**
-     * Clear all mode-specific transient context.
-     * Called when the user switches modes mid-meeting to prevent the old mode's
-     * context (Interviewer Q's, JD context, assistant responses, etc.) from
-     * bleeding into the new mode's responses.
-     */
-    clearSessionContext(): void {
-        this.contextItems = [];
-        this.detectedCodingQuestion = null;
-        this.codingQuestionSource = null;
-        this.codingQuestionSetAt = null;
-        this.recentInterviewerBuffer = [];
-        this.lastAssistantMessage = null;
-        this.assistantResponseHistory = [];
-        this.lastInterimInterviewer = null;
-        console.log('[SessionTracker] Mode-specific session context cleared');
-    }
-
-    /**
      * Heuristic to decide if an interviewer statement looks like a coding question.
      * Requires ≥2 of the signal patterns and minimum length to avoid false positives
      * on casual conversation ("can you implement X?" → yes, "sounds good!" → no).

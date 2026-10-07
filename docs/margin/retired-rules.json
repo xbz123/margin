@@ -2,7 +2,8 @@
   "completedTickets": [
     "AG-10",
     "AG-11",
-    "AG-12"
+    "AG-12",
+    "AG-13"
   ],
   "scanRoots": [
     "electron",
@@ -331,6 +332,106 @@
       "ticket": "AG-13",
       "kind": "path",
       "value": "src/components/settings/ModesSettings.tsx"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "TEMPLATE_NOTE_SECTIONS"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "getActiveModeSystemPromptSuffix"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "buildRetrievedActiveModeContextBlock"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "buildSummarySafeModeContextBlock"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "modes:set-active"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "modes:get-active"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "modes:upload-reference-file"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "modesGetAll"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "modesSetActive"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "onModeChanged"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "onModesActiveCleared"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "reference_files"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "MODE_SALES_PROMPT"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "MODE_TECHNICAL_INTERVIEW_PROMPT"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "TINY_MODE_GENERAL_PROMPT"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "isProOrTrialActive"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "test-get-mode-context"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "symbol",
+      "value": "generateCoachingInsights"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "path",
+      "value": "tests/fixtures/modes"
+    },
+    {
+      "ticket": "AG-13",
+      "kind": "path",
+      "value": "tests/utils/scenarioRunner.mjs"
     },
     {
       "ticket": "AG-14",

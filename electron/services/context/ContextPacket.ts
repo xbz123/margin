@@ -6,8 +6,6 @@ import { TrustLevel, ContextBlock } from './TrustLevels';
      developerPrompt?: string; // For any developer-role instructions
      userMessage: string;
      metadata: {
-         modeTemplateType: string;
-         activeModeId?: string;
          screenContextAvailable: boolean;
          tokenBudget: number;
          totalTokensUsed: number;

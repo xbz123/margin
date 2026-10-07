@@ -83,7 +83,6 @@ interface ElectronAPI {
     ibmWatsonRegion: string;
     hasSonioxKey: boolean;
   }>;
-  onModesActiveCleared: (cb: () => void) => () => void;
 
   // STT Provider Management
   setSttProvider: (
@@ -235,12 +234,6 @@ interface ElectronAPI {
     timestamp?: number;
     final?: boolean;
   }) => Promise<{ success: boolean; error?: string }>;
-  testGetModeContext: () => Promise<{
-    success: boolean;
-    block?: string;
-    suffix?: string;
-    error?: string;
-  }>;
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>;
 
   // Meeting Lifecycle
@@ -522,7 +515,6 @@ interface ElectronAPI {
   getProviderDataScopes: () => Promise<{
     transcript?: boolean;
     screenshots?: boolean;
-    reference_files?: boolean;
     profile_history?: boolean;
     embeddings?: boolean;
     post_call_summary?: boolean;
@@ -530,7 +522,6 @@ interface ElectronAPI {
   setProviderDataScopes: (scopes: {
     transcript?: boolean;
     screenshots?: boolean;
-    reference_files?: boolean;
     profile_history?: boolean;
     embeddings?: boolean;
     post_call_summary?: boolean;
@@ -539,7 +530,6 @@ interface ElectronAPI {
     callback: (scopes: {
       transcript?: boolean;
       screenshots?: boolean;
-      reference_files?: boolean;
       profile_history?: boolean;
       embeddings?: boolean;
       post_call_summary?: boolean;
@@ -581,67 +571,6 @@ interface ElectronAPI {
 
   // Platform
   platform: NodeJS.Platform;
-
-  // Modes API
-  modesGetAll: () => Promise<
-    Array<{
-      id: string;
-      name: string;
-      templateType: string;
-      customContext: string;
-      isActive: boolean;
-      createdAt: string;
-      referenceFileCount: number;
-    }>
-  >;
-  modesGetActive: () => Promise<{
-    id: string;
-    name: string;
-    templateType: string;
-    customContext: string;
-    isActive: boolean;
-    createdAt: string;
-  } | null>;
-  modesCreate: (params: {
-    name: string;
-    templateType: string;
-  }) => Promise<{ success: boolean; mode?: any; error?: string }>;
-  modesUpdate: (
-    id: string,
-    updates: { name?: string; templateType?: string; customContext?: string },
-  ) => Promise<{ success: boolean; error?: string }>;
-  modesDelete: (id: string) => Promise<{ success: boolean; error?: string }>;
-  modesSetActive: (id: string | null) => Promise<{ success: boolean; error?: string }>;
-  modesGetReferenceFiles: (
-    modeId: string,
-  ) => Promise<
-    Array<{ id: string; modeId: string; fileName: string; content: string; createdAt: string }>
-  >;
-  modesUploadReferenceFile: (
-    modeId: string,
-  ) => Promise<{ success: boolean; cancelled?: boolean; file?: any; error?: string }>;
-  modesDeleteReferenceFile: (id: string) => Promise<{ success: boolean; error?: string }>;
-  modesGetNoteSections: (modeId: string) => Promise<
-    Array<{
-      id: string;
-      modeId: string;
-      title: string;
-      description: string;
-      sortOrder: number;
-      createdAt: string;
-    }>
-  >;
-  modesAddNoteSection: (
-    modeId: string,
-    title: string,
-    description: string,
-  ) => Promise<{ success: boolean; section?: any; error?: string }>;
-  modesUpdateNoteSection: (
-    id: string,
-    updates: { title?: string; description?: string },
-  ) => Promise<{ success: boolean; error?: string }>;
-  modesDeleteNoteSection: (id: string) => Promise<{ success: boolean; error?: string }>;
-  modesRemoveAllNoteSections: (modeId: string) => Promise<{ success: boolean; error?: string }>;
 
   // Meeting interface theme — cross-window propagation. The settings window
   // writes the new theme to localStorage and calls `setMeetingInterfaceTheme`,
@@ -1157,7 +1086,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     timestamp?: number;
     final?: boolean;
   }) => ipcRenderer.invoke('test-inject-transcript', segment),
-  testGetModeContext: () => ipcRenderer.invoke('test-get-mode-context'),
   resetIntelligence: () => ipcRenderer.invoke('reset-intelligence'),
 
   // Action Button Mode (Dynamic Recap / Brainstorm toggle)
@@ -1169,15 +1097,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('action-button-mode-changed', subscription);
     return () => {
       ipcRenderer.removeListener('action-button-mode-changed', subscription);
-    };
-  },
-
-  onModeChanged: (callback: (data: { id: string | null; name: string | null }) => void) => {
-    const subscription = (_: any, data: { id: string | null; name: string | null }) =>
-      callback(data);
-    ipcRenderer.on('mode-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('mode-changed', subscription);
     };
   },
 
@@ -1637,14 +1556,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('set-provider-preferred-model', provider, modelId),
 
 
-  onModesActiveCleared: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('modes-active-cleared', subscription);
-    return () => {
-      ipcRenderer.removeListener('modes-active-cleared', subscription);
-    };
-  },
-
   // Overlay Opacity (Stealth Mode)
   setOverlayOpacity: (opacity: number) => ipcRenderer.invoke('set-overlay-opacity', opacity),
   onOverlayOpacityChanged: (callback: (opacity: number) => void) => {
@@ -1739,31 +1650,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Platform
   platform: process.platform,
-
-  // Modes API
-  modesGetAll: () => ipcRenderer.invoke('modes:get-all'),
-  modesGetActive: () => ipcRenderer.invoke('modes:get-active'),
-  modesCreate: (params: { name: string; templateType: string }) =>
-    ipcRenderer.invoke('modes:create', params),
-  modesUpdate: (
-    id: string,
-    updates: { name?: string; templateType?: string; customContext?: string },
-  ) => ipcRenderer.invoke('modes:update', id, updates),
-  modesDelete: (id: string) => ipcRenderer.invoke('modes:delete', id),
-  modesSetActive: (id: string | null) => ipcRenderer.invoke('modes:set-active', id),
-  modesGetReferenceFiles: (modeId: string) =>
-    ipcRenderer.invoke('modes:get-reference-files', modeId),
-  modesUploadReferenceFile: (modeId: string) =>
-    ipcRenderer.invoke('modes:upload-reference-file', modeId),
-  modesDeleteReferenceFile: (id: string) => ipcRenderer.invoke('modes:delete-reference-file', id),
-  modesGetNoteSections: (modeId: string) => ipcRenderer.invoke('modes:get-note-sections', modeId),
-  modesAddNoteSection: (modeId: string, title: string, description: string) =>
-    ipcRenderer.invoke('modes:add-note-section', modeId, title, description),
-  modesUpdateNoteSection: (id: string, updates: { title?: string; description?: string }) =>
-    ipcRenderer.invoke('modes:update-note-section', id, updates),
-  modesDeleteNoteSection: (id: string) => ipcRenderer.invoke('modes:delete-note-section', id),
-  modesRemoveAllNoteSections: (modeId: string) =>
-    ipcRenderer.invoke('modes:remove-all-note-sections', modeId),
 
   // Meeting interface theme — see ElectronAPI interface for rationale.
   setMeetingInterfaceTheme: (theme: string) => {

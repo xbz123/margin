@@ -2,7 +2,7 @@ export type LLMProviderId = 'groq' | 'codex' | 'gemini_flash' | 'gemini_pro' | '
 export type ProviderCapability = 'chat' | 'stream_chat' | 'structured' | 'vision';
 export type ProviderAttemptStatus = 'available' | 'unavailable';
 export type ProviderUnavailableReason = 'missing_api_key' | 'missing_config' | 'unsupported_capability' | 'disabled';
-export type ProviderDataScope = 'transcript' | 'screenshots' | 'reference_files' | 'profile_history' | 'embeddings' | 'post_call_summary';
+export type ProviderDataScope = 'transcript' | 'screenshots' | 'profile_history' | 'embeddings' | 'post_call_summary';
 export type ProviderDataScopePolicy = Partial<Record<ProviderDataScope, boolean>>;
 
 export class ProviderScopeError extends Error {

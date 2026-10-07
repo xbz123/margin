@@ -13,6 +13,7 @@ electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: 9. Settin
 electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs :: UX4: audio test probes system audio in parallel with the mic
 electron/services/__tests__/CodexCliService.test.mjs :: validateExecutable: bare unfound name falls back to auto-detection if available
 electron/services/__tests__/Issue252WindowsAudioBanner.test.mjs :: issue #252: Open Settings button does not unconditionally fire x-apple.systempreferences
+electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: <did not finish>
 electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: does not fall through session.created to transcription_session.created handler
 electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: inbound session.created (general-intent event) is inert on transcription session
 electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs :: race / late-arrival safety

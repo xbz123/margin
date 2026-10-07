@@ -40,6 +40,18 @@
     { "line": "for (const step of steps) {", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
     { "line": "const entry = {", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
     { "line": "if (before) {", "reason": "Generic control flow / module path; written for this branch (gate runner), 2026-10-07" },
-    { "line": "counts.set(key, (counts.get(key) ?? 0) + 1);", "reason": "Generic counter idiom; written for this branch (gate runner), 2026-10-07" }
+    { "line": "counts.set(key, (counts.get(key) ?? 0) + 1);", "reason": "Generic counter idiom; written for this branch (gate runner), 2026-10-07" },
+    { "line": "async function worker() {", "reason": "Generic worker-pool / stream idiom; written for this branch (gate runner), 2026-10-07" },
+    { "line": "const i = next++;", "reason": "Generic worker-pool / stream idiom; written for this branch (gate runner), 2026-10-07" },
+    { "line": "child.stdout.on('data', (d) => { stdout += d; });", "reason": "Generic worker-pool / stream idiom; written for this branch (gate runner), 2026-10-07" },
+    { "line": "child.stderr.on('data', (d) => { stderr += d; });", "reason": "Generic worker-pool / stream idiom; written for this branch (gate runner), 2026-10-07" },
+    { "line": "for (const r of results) {", "reason": "Generic worker-pool / stream idiom; written for this branch (gate runner), 2026-10-07" },
+    { "line": "const SUMMARY = {", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
+    { "line": "const value = await fn();", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
+    { "line": "if (value) return value;", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
+    { "line": "const lines = [", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
+    { "line": "version: db.pragma('user_version', { simple: true }),", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
+    { "line": "if (version < 16) {", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-13 v16 drops the mode tables), 2026-10-07" },
+    { "line": "this.db.pragma('user_version = 16');", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-13 v16 drops the mode tables), 2026-10-07" }
   ]
 }

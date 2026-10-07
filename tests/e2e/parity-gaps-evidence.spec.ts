@@ -51,7 +51,6 @@ test.describe('Cluely-parity gap E2E evidence', () => {
       return await (window as any).electronAPI.setProviderDataScopes({
         transcript: false,
         screenshots: false,
-        reference_files: true,
         profile_history: true,
         embeddings: false,
         post_call_summary: true,
@@ -64,7 +63,6 @@ test.describe('Cluely-parity gap E2E evidence', () => {
     });
     expect(after.transcript).toBe(false);
     expect(after.screenshots).toBe(false);
-    expect(after.reference_files).toBe(true);
     expect(after.embeddings).toBe(false);
 
     // Reset for the next run so the dev userData isn't left in a denied state.

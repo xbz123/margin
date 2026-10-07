@@ -1,0 +1,2 @@
+native-audio-connect  (src/components/NativelyInterface.tsx)
+toggle-advanced-settings  (electron/preload.ts)

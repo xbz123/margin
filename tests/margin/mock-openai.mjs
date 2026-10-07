@@ -2,7 +2,10 @@
 // regression harness (PLAN.md AG-09). Listens on 127.0.0.1 only, records every
 // request, and streams a scripted reply as server-sent events with a delay between
 // chunks so tests can observe streaming and cancellation. `setScript({ errorStatus })`
-// makes chat requests fail with that HTTP status instead.
+// makes chat requests fail with that HTTP status instead, and `setScript({ respond })`
+// (a function of the request body returning the reply text, or undefined to use
+// `chunks`) answers each request on its own. Also serves the Groq SDK's path
+// (/openai/v1/chat/completions), so a Groq client can be pointed here too.
 
 import http from 'node:http';
 
@@ -24,12 +27,15 @@ export async function startMockOpenAI() {
       res.end(JSON.stringify({ object: 'list', data: [{ id: 'gpt-5.4', object: 'model' }] }));
       return;
     }
-    if (req.method !== 'POST' || !req.url.startsWith('/v1/chat/completions')) {
+    const isChat = req.url.startsWith('/v1/chat/completions') || req.url.startsWith('/openai/v1/chat/completions');
+    if (req.method !== 'POST' || !isChat) {
       res.writeHead(404, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: { message: `mock: no route ${req.method} ${req.url}` } }));
       return;
     }
-    const { chunks, delayMs, errorStatus } = script;
+    const { delayMs, errorStatus, respond } = script;
+    const reply = typeof respond === 'function' ? respond(json) : undefined;
+    const chunks = typeof reply === 'string' ? [reply] : script.chunks;
     if (errorStatus) {
       res.writeHead(errorStatus, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: { message: 'mock: injected error', type: 'invalid_request_error', code: 'mock_error' } }));
@@ -68,8 +74,8 @@ export async function startMockOpenAI() {
   return {
     baseURL: `http://127.0.0.1:${port}/v1`,
     requests,
-    chatRequests: () => requests.filter((r) => r.url.startsWith('/v1/chat/completions')),
-    setScript(next) { script = { errorStatus: 0, ...script, ...next }; },
+    chatRequests: () => requests.filter((r) => /^\/(openai\/)?v1\/chat\/completions/.test(r.url)),
+    setScript(next) { script = { errorStatus: 0, respond: undefined, ...script, ...next }; },
     async close() {
       for (const s of openStreams) s.destroy();
       await new Promise((r) => server.close(r));

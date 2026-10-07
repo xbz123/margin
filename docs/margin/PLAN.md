@@ -628,7 +628,9 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-11、AG-12 | 完成 | 见 AG-11/12 提交 | 见下文 AG-11、AG-12 记录。两张 ticket 改了同一批热点文件，并且在同一工作区内交替进行，无法干净地拆成两个提交，因此合为一个提交，提交说明里分别列出 |
 | L0 | 已满足（2026-10-07） | `88f206e8` 起 | 首次启动见 X3 启动部分 |
 | AG-09 | 完成 | 见 AG-09 提交 | 见下文 AG-09 记录。5 项回归在守卫下连续 3 次全部通过 |
-| AG-13–17 | 待开始 | | AG-13 为下一张；每张集成后重跑 AG-09 回归 |
+| 证据方法 | 已更正 | 见 AG-13 提交 | 门禁统一由 `scripts/margin/run-gates.mjs` 运行，原始输出和退出码存于 `docs/margin/evidence/`。发现并修正了两处会让测试结果失真的问题（构建不清理旧产物；`--test-force-exit` 漏报测试），详见下文 AG-13 记录 |
+| AG-13 | 完成 | 见 AG-13 提交 | 见下文 AG-13 记录。证据：`docs/margin/evidence/AG-13/summary.json`，对照 `pre-AG-13/`。**待用户决定**：是否保留默认回答提示词（见记录中的决定 1） |
+| AG-14–17 | 待开始 | | AG-14 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
@@ -727,6 +729,97 @@ X1 → G2（AG-10 起每张 ticket 都要过）
   `node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs`。
   AG-17 会把 `electron/margin` 和 `tests/margin` 加进 `npm test`。
 
+### AG-13 记录（2026-10-07）
+
+**1. 先追踪：模式如何影响普通回答和会议摘要**
+
+- **基线的默认状态**：数据库迁移 v11 新建 `General` 模式并设为激活，v12 给它写入三个摘要小节。其余模式（以及创建模式、上传参考文件、切换到非 General 模式）都要求 Pro；Pro 判断在 AG-10 之后恒为假，渲染层也没有任何编辑模式的界面。所以在 Margin 上能到达的状态只有一种：**General 激活，自定义内容为空，没有参考文件**。
+- **受影响的路径**（按 General 激活的默认状态）：
+
+  | 路径 | 默认时注入的内容 |
+  | --- | --- |
+  | 输入框提问（`gemini-chat-stream`，`CHAT_MODE_PROMPT`） | 无（这类提示词本来就跳过注入） |
+  | 回答、回顾、追问、追问建议（`UNIVERSAL_*`、`TINY_*`） | 无（同上） |
+  | 实时"该怎么答"（`WhatToAnswerLLM`）、头脑风暴、澄清、代码提示、`generateSuggestion`、`chat()` 的其他调用 | 在系统提示词后追加 `## ACTIVE MODE` 和 General 提示词去掉共享前缀后的部分（7,139 字符） |
+  | 会议摘要（`MeetingPersistence`） | 使用 General 的三个小节（Summary / Action items / Key points）；模式上下文块为空 |
+  | 后续建议（`PostCallWorkflow`） | 模板类型为 `general`：不产生教练建议，邮件草稿以 "Hi team," 开头 |
+
+  参考上下文块在默认状态下始终为空：检索器在没有自定义内容和文件时返回空字符串。
+- **停止条件的判断**：实时回答等路径确实依赖 General 的提示词。如果直接删掉，默认回答会改变，这正是计划中"需要由用户决定是否保留默认提示词"的情形。为了不在等待决定期间阻塞后续 ticket，本票**保留默认行为不变**：把 General 的提示词固定为默认回答提示词，摘要固定为那三个小节。这样默认请求与改动前逐字节相同，以后无论保留还是删除，都只需改一处。
+
+**2. 决定（待用户确认）**
+
+- **决定 1：是否保留默认回答提示词**。当前做法：保留，作为 `DEFAULT_ANSWER_PROMPT_SUFFIX`（`electron/llm/prompts.ts`）。另一种做法：删除，让上述路径只用各自的基础提示词，回答风格会变化，需要用真实模型评估。本票没有调用真实模型，所以无法评估质量差异。
+
+**3. 改动**
+
+- **固定默认值**：
+  - `DEFAULT_ANSWER_PROMPT_SUFFIX` 由 `MODE_GENERAL_PROMPT` 用与原 `ModesManager` 相同的规则去掉共享前缀得到。改动前后的 sha256 都是 `8e6a8da97ab03adedb7b940de1a05e89353491d7f20790340721ac50bf8e1122`，并有单元测试锁定推导规则（`electron/llm/__tests__/defaultAnswerPrompt.test.mjs`）。
+  - `LLMHelper.streamChat`、`generateSuggestion` 和 `WhatToAnswerLLM` 改为直接追加这个后缀，标题沿用 `## ACTIVE MODE` 以保持请求不变。
+  - `MeetingPersistence` 使用 `DEFAULT_SUMMARY_SECTIONS`；摘要提示词中原模式块所在的位置保留一个空行，与改动前相同。
+  - `PostCallWorkflow` 去掉模板类型参数，只保留 `general` 的行为；教练建议生成器只服务于付费模式，连同详情页的"Coaching"区块一起删除。
+- **删除**：
+  - `ModesManager`、`ModeContextRetriever`、`ModeHybridRetriever`；
+  - 6 个只供模式使用的提示词模板和 7 个 `TINY_MODE_*` 提示词；
+  - 15 个 `modes:*` IPC 和测试专用的 `test-get-mode-context`；preload 和渲染层类型中的对应成员（含 `onModeChanged`、`onModesActiveCleared`、`testGetModeContext`）；
+  - 悬浮窗的"Mode: General"标签；启动时的 `ensureSeeded`；AG-10 留下的 `isProOrTrialActive` 桩；
+  - 只在切换模式时使用的 `clearSessionContext`；
+  - `reference_files` 数据范围（只保护模式参考文件，已无数据来源），包括设置项、IPC 白名单和设置界面开关；
+  - `PromptAssembler` 中的模式参数、参考文件块，以及随之不再使用的 `escapePromptInjection`；
+  - `package.json` 中的 5 个 `test:modes*` 脚本。
+- **数据表**：迁移 v11–v13 保留版本号但不再建表；新增 v16，删除 `modes`、`mode_reference_files`、`mode_note_sections`、`mode_reference_index_state`（早期构建创建过的数据库会被清理）。
+- **会议开始时的动态动作绑定**：沿用 General 的触发包（`modeId: 'mode_general_default'`、`modeTemplateType: 'general'`），引擎本身在 AG-16 删除。
+- **测试**：
+  - 删除 15 个只测模式的测试文件，以及 `tests/utils` 下 5 个模式测试工具和 `tests/fixtures/modes`；
+  - 删除 `electron/test` 下 3 个模式压力和评估脚本，以及 `input-fuzzing`、`evalHarnessPatterns` 中的模式部分；
+  - 改写 7 个测试文件中涉及模式的用例，其余用例不变。`suggestionPromptAssembly` 中有一个用例在基线上就失败（断言的调用形式与代码不符，与模式无关），保留其原名，使对照仍能把它识别为继承失败，交给 AG-17。
+- **G3**：AG-13 规则从 5 条增加到 25 条（模式的 IPC 名、preload 名、表名、提示词常量、`reference_files`、`isProOrTrialActive` 等），零命中。
+
+**4. 新增的验证**
+
+- `tests/margin/meeting-storage.test.mjs`：在守卫下启动真实应用，使用沙盒中全新的临时 SQLite。流程：开始会议 → 通过 `test-inject-transcript` 写入转写 → 结束会议 → 后台生成标题和结构化摘要（由 mock 返回）→ 读取 → 重启应用后再读取，内容一致 → 删除 → 再次重启后仍不存在 → 检查数据库版本为 16，且没有任何模式表。同时断言摘要请求使用固定的三个小节、不含模式上下文。这也覆盖了阶段 1 出口第 7 条中保存、读取、重启和删除的部分；"不加载向量扩展"由 AG-14 完成后补上。
+- 支撑改动：
+  - `tests/margin/launch-app.mjs`：两个应用级测试共用的守卫启动函数；
+  - mock 增加按请求作答（`respond`），并支持 Groq SDK 的路径；
+  - 守卫新增可选的麦克风权限替身 `MARGIN_ISOLATION_MIC=granted`：权限状态和请求都返回"已授权"，不触碰系统；实际采集仍被音频设备替身拦截。默认行为不变。
+- **基线问题（记给后续 ticket）**：
+  - `generateMeetingSummary` 的回退链是 自定义/cURL → Codex → Groq → Gemini，**从不使用 OpenAI**。只配置 OpenAI 的用户没有会议摘要。这与 Margin 面向 OpenAI 兼容接口的方向直接相关，交给阶段 3（AG-31）。测试中通过 Groq SDK 自带的 `GROQ_BASE_URL` 环境变量把摘要请求指向 mock，应用代码没有为此改动。
+  - OpenAI 和 Groq 的 SDK 在打包后的应用里同样会读取 `OPENAI_BASE_URL`、`GROQ_BASE_URL` 环境变量，可以把带着用户 key 的请求转到别处。能设置应用环境变量的本机进程本来就能做更多事，风险低，但打包时应决定是否屏蔽，交给 AG-25。
+
+**5. 证据方法的两处更正**
+
+AG-13 对照时发现，之前的测试结果有两处会失真，已修正，并用修正后的方法重做了对照基准：
+
+1. **构建不清理旧产物**：`build-electron` 不删除 `dist-electron`，在源码中删掉的模块仍留在构建目录，导入它们的测试照常运行。AG-10 到 AG-12 的测试数字是在这种状态下得到的。门禁现在每次先清空 `dist-electron`。
+2. **`--test-force-exit` 漏报**：为绕过 `OpenAIRealtimeGAProtocol` 挂起而加的这个参数，会让整套测试提前结束；同一份代码先后报告了 907 和 892 个测试。门禁现在每个测试文件单独起一个守卫进程（4 个并行，180 秒上限），计数来自每个文件自己的 TAP 汇总。没有汇总的文件记为 `<did not finish>`，计入失败；所有进程按进程组结束。同一份代码连续两次运行，结果完全一致（869 个测试，825 通过，14 失败，30 跳过）。
+
+**对 AG-10 到 AG-12 结论的影响**：用修正后的方法，在 `fdf9cd7c`（即 AG-12 之后的代码加门禁脚本）的干净导出上重做了基准（`docs/margin/evidence/pre-AG-13/`）。其中 22 个失败条目，有 21 个与基线 `a786910e` 的失败相同；另 1 个是 `OpenAIRealtimeGAProtocol` 的 `<did not finish>`，是基线已知的挂起，在新方法下才单独列出。所以 AG-10 到 AG-12 没有引入新的失败测试。基线失败列表本身来自 X2 时的运行（当时构建目录与源码一致），没有用新方法重跑。
+
+**6. 检查结果**
+
+命令：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-13 --ref docs/margin/evidence/pre-AG-13`，运行器退出码 0。每一步的命令、退出码和原始输出都在 `docs/margin/evidence/AG-13/` 中。
+
+| 步骤 | 退出码 | 结果 | 原始输出 |
+| --- | --- | --- | --- |
+| 清空构建目录、`build-electron`、`vite build` | 0、0、0 | 通过 | `clean-dist.log`、`build-electron.log`、`vite-build.log` |
+| 渲染层 `tsc` | 0 | 0 个错误 | `tsc-renderer.log` |
+| Electron `tsc` | 2 | 9 类诊断全部继承，没有新增；随删除的评估脚本少了 4 类 | `tsc-electron.log`、`tsc-electron.diagnostics.txt` |
+| G2 来源检查 | 0 | 零命中。新增 12 条白名单：门禁脚本和存储测试中的通用写法 10 条；v16 迁移的两行，是基线 v1–v15 迁移写法的下一步 | `provenance.log` |
+| G3 | 0 | 81 条规则零命中 | `retired.log` |
+| preload 契约 / IPC 通道 | 1 / 1 | 各 4 个、2 个缺口，全部继承，没有新增 | `*.gaps.txt` |
+| 守卫自测 | 0 | 通过 | `guard-selftest.log` |
+| 测试（109 个文件） | 1 | 666 个测试，624 通过，12 失败，30 跳过。失败条目 20 个，**全部继承，新增 0**；2 个继承失败随所测的模式代码一起消失 | `tests.tap`、`tests.files.json`、`test-failures.txt` |
+| AG-09 回答回归 | 0 | 5/5 通过 | `regression.log` |
+| 会议存储（新增） | 0 | 1/1 通过 | `storage.log` |
+| `git diff HEAD --check` | 0 | 无问题 | `diff-check.log` |
+
+- **测试数从 869 降到 666 的来源**：删除的 15 个模式测试文件共 176 个用例；改写的 7 个文件共减少 27 个模式用例。869 − 176 − 27 = 666。
+- **继承失败的来源**：全部 20 个失败条目，除 `OpenAIRealtimeGAProtocol` 的 `<did not finish>` 外，都出现在 `baseline-a786910e/test-failures.txt` 中。
+- **稳定性**：AG-09 回归和会议存储测试在这次门禁后又各单独运行两次，共三次全部通过。
+- **未验证**：
+  - 默认回答提示词对回答质量的影响（需要真实模型，未获授权，见决定 1）；
+  - 阶段 1 出口第 1 条（干净安装）仍等待 D5。
+
 ### 事件记录（2026-10-07）
 
 1. **X2 第一版自测写入了真实目录。**
@@ -749,7 +842,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
    - **修复**：守卫改为通过 `-r` 参数传入（与 Playwright 自己的加载方式相同）；测试启动后先确认主进程里 `MARGIN_ISOLATION_ACTIVE === '1'`，否则立即中止。
    - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 
-**下一步**：AG-13（移除模式系统，重接回答和摘要），每张 ticket 集成后重跑 AG-09 回归。
+**下一步**：AG-14（移除 RAG、向量库和 Ollama），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
 
 ## 9. 评审记录
 

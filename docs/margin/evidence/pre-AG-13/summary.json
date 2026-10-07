@@ -1,17 +1,28 @@
 {
-  "startedAt": "2026-10-07T07:16:17.144Z",
-  "head": "31a86aa662035d83de1ec09aa59e9f825f5e4cd3",
-  "uncommittedPaths": 3,
+  "startedAt": "2026-10-07T08:27:25.521Z",
+  "head": "2100479091bfa513383c18b2494f6297f0571356",
+  "uncommittedPaths": 1,
   "reference": null,
+  "note": "Reference for AG-13: the tree of fdf9cd7c (git archive into a throwaway local repo so git ls-files works), with the runner from the AG-13 commit (clean dist, one process per test file, path normalization) and node_modules linked from the worktree. provenance and diff-check need the real history and were 0 hits / clean on fdf9cd7c itself; storage is new in AG-13.",
   "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 114,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/clean-dist.log",
+      "passed": true
+    },
     {
       "id": "build-electron",
       "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 1651,
-      "log": "docs/margin/evidence/pre-AG-13/build-electron.log",
+      "durationMs": 2414,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/build-electron.log",
       "passed": true
     },
     {
@@ -20,8 +31,8 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 5913,
-      "log": "docs/margin/evidence/pre-AG-13/vite-build.log",
+      "durationMs": 6275,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/vite-build.log",
       "passed": true
     },
     {
@@ -30,8 +41,8 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 3710,
-      "log": "docs/margin/evidence/pre-AG-13/tsc-renderer.log",
+      "durationMs": 5086,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/tsc-renderer.log",
       "passed": true
     },
     {
@@ -40,22 +51,12 @@
       "exitCode": 2,
       "signal": null,
       "timedOut": false,
-      "durationMs": 2178,
-      "log": "docs/margin/evidence/pre-AG-13/tsc-electron.log",
+      "durationMs": 2702,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/tsc-electron.log",
       "diagnostics": {
         "total": 13
       },
       "passed": false
-    },
-    {
-      "id": "provenance",
-      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
-      "exitCode": 0,
-      "signal": null,
-      "timedOut": false,
-      "durationMs": 621,
-      "log": "docs/margin/evidence/pre-AG-13/provenance.log",
-      "passed": true
     },
     {
       "id": "retired",
@@ -63,8 +64,8 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 592,
-      "log": "docs/margin/evidence/pre-AG-13/retired.log",
+      "durationMs": 734,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/retired.log",
       "passed": true
     },
     {
@@ -73,8 +74,8 @@
       "exitCode": 1,
       "signal": null,
       "timedOut": false,
-      "durationMs": 77,
-      "log": "docs/margin/evidence/pre-AG-13/preload-contract.log",
+      "durationMs": 79,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/preload-contract.log",
       "gaps": {
         "total": 4
       },
@@ -86,8 +87,8 @@
       "exitCode": 1,
       "signal": null,
       "timedOut": false,
-      "durationMs": 128,
-      "log": "docs/margin/evidence/pre-AG-13/ipc-channels.log",
+      "durationMs": 139,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/ipc-channels.log",
       "gaps": {
         "total": 2
       },
@@ -99,23 +100,29 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 777,
-      "log": "docs/margin/evidence/pre-AG-13/guard-selftest.log",
+      "durationMs": 916,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/guard-selftest.log",
       "passed": true
     },
     {
       "id": "tests",
-      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-force-exit --test-timeout=60000 --test-reporter=tap --test-reporter-destination=docs/margin/evidence/pre-AG-13/tests.tap electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs",
       "exitCode": 1,
       "signal": null,
       "timedOut": false,
-      "durationMs": 3266,
-      "log": "docs/margin/evidence/pre-AG-13/tests.log",
-      "tap": "docs/margin/evidence/pre-AG-13/tests.tap",
+      "durationMs": 187781,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/tests.log",
+      "tap": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/tests.tap",
+      "perFile": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/tests.files.json",
+      "files": 124,
+      "filesNotFinished": [
+        "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs"
+      ],
+      "filesEndedAfterFooter": [],
       "counts": {
-        "tests": 907,
-        "pass": 859,
-        "fail": 18,
+        "tests": 869,
+        "pass": 825,
+        "fail": 14,
         "skipped": 30,
         "cancelled": 0,
         "todo": 0
@@ -128,21 +135,11 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 12279,
-      "log": "docs/margin/evidence/pre-AG-13/regression.log",
-      "passed": true
-    },
-    {
-      "id": "diff-check",
-      "command": "git diff HEAD --check",
-      "exitCode": 0,
-      "signal": null,
-      "timedOut": false,
-      "durationMs": 37,
-      "log": "docs/margin/evidence/pre-AG-13/diff-check.log",
+      "durationMs": 15900,
+      "log": "../../../../../../../Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/docs/margin/evidence/pre-AG-13/regression.log",
       "passed": true
     }
   ],
-  "finishedAt": "2026-10-07T07:16:48.397Z",
+  "finishedAt": "2026-10-07T08:31:07.666Z",
   "allPassed": false
 }

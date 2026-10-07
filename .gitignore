@@ -19,6 +19,8 @@ natively/pro_licenses.json
 env
 /env
 *.log
+# Raw gate output is committed as evidence (docs/margin/evidence/README.md)
+!docs/margin/evidence/**/*.log
 /Users/evin/natively-cluely-ai-assistant/natively
 natively
 npm-debug.log*

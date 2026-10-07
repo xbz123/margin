@@ -6,7 +6,6 @@ import {
   Copy,
   HelpCircle,
   Image,
-  LayoutGrid,
   Lightbulb,
   MessageSquare,
   Mic,
@@ -546,8 +545,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     return stored ? stored === 'true' : true;
   });
 
-  // Active mode name (shown as a badge near the Modes button)
-  const [activeModeLabel, setActiveModeLabel] = useState<string | null>(null);
   const [llmProviderLabel, setLlmProviderLabel] = useState<string>('unknown');
   const [llmPrivacyLabel, setLlmPrivacyLabel] = useState<string | null>(null);
   const [screenContextStatus, setScreenContextStatus] = useState<
@@ -562,21 +559,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const [latestVisionFailureReason, setLatestVisionFailureReason] = useState<string | undefined>(
     undefined,
   );
-
-  useEffect(() => {
-    // Load initial active mode name
-    window.electronAPI
-      ?.modesGetActive?.()
-      .then((mode: { name: string } | null) => setActiveModeLabel(mode?.name ?? null))
-      .catch(() => {});
-    // Live-update whenever mode is activated/deactivated
-    const unsub = window.electronAPI?.onModeChanged?.(
-      (data: { id: string | null; name: string | null }) => {
-        setActiveModeLabel(data.name);
-      },
-    );
-    return () => unsub?.();
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -3944,7 +3926,7 @@ Provide only the answer, nothing else.`;
   // empty row still reserved pt-3+pb-1, leaving a visible gap above the rolling
   // transcript on launch (no mode yet, STT pill suppressed, no vision/llm).
   const hasStatusPill =
-    !!activeModeLabel || shouldShowSttSummaryPill || showVisionPill || !!llmPrivacyLabel;
+    shouldShowSttSummaryPill || showVisionPill || !!llmPrivacyLabel;
   const statusPillBaseClass = `flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium shadow-sm backdrop-blur-xl ${isLightTheme ? 'bg-white/55 border-black/10' : 'bg-black/20 border-white/10'}`;
 
   const copyDiagnostics = async () => {
@@ -4026,15 +4008,6 @@ Provide only the answer, nothing else.`;
 
               {hasStatusPill && (
               <div className="relative no-drag flex flex-wrap items-center justify-center gap-1.5 px-4 pt-3 pb-1">
-                {activeModeLabel && (
-                  <div
-                    className={`${statusPillBaseClass} overlay-text-primary`}
-                    title={`Active mode: ${activeModeLabel}`}
-                  >
-                    <LayoutGrid className="h-3 w-3 opacity-70" />
-                    <span>Mode: {activeModeLabel}</span>
-                  </div>
-                )}
                 {shouldShowSttSummaryPill && (
                   <div
                     className={`${statusPillBaseClass} ${getStatusToneClass(sttSummary.tone)}`}

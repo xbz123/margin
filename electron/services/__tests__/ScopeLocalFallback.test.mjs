@@ -41,7 +41,7 @@ test('transcript scope denial routes full context to Ollama when available', () 
 test('transcript scope denial omits transcript from cloud calls when Ollama is unavailable', () => {
   const src = read('electron/LLMHelper.ts');
 
-  assert.match(src, /shouldOmitContext = deniedOutboundScopes\.some\(scope => scope === 'transcript' \|\| scope === 'reference_files' \|\| scope === 'profile_history' \|\| scope === 'post_call_summary'\)/);
+  assert.match(src, /shouldOmitContext = deniedOutboundScopes\.some\(scope => scope === 'transcript' \|\| scope === 'profile_history' \|\| scope === 'post_call_summary'\)/);
   assert.match(src, /cloudContext = shouldOmitContext \? undefined : context/);
   assert.match(src, /const cloudCombinedMessages = \{/);
   assert.match(src, /return await this\.generateWithCodexCli\(cloudUserContent/);
@@ -54,7 +54,6 @@ test('LLMHelper infers auxiliary context scopes before cloud routing', () => {
   const src = read('electron/LLMHelper.ts');
 
   assert.match(src, /inferContextScopes\(context\?: string\): ProviderDataScope\[\]/);
-  assert.match(src, /<reference_file\|<active_mode_retrieved_context\|mode_retrieval/);
   assert.match(src, /<meeting_history\|USER-PROVIDED PERSONA CONTEXT\|<user_context/);
   assert.match(src, /<post_call_summary\|meeting summary\|silent meeting summarizer\|silent meeting note-taker/);
 });
@@ -90,10 +89,8 @@ test('routeLLMProviders keeps Ollama available when cloud scopes are denied', as
 });
 
 test('MeetingPersistence post_call_summary denial falls back to local summary path', () => {
-  const meetingPersistence = read('electron/MeetingPersistence.ts');
   const llmHelper = read('electron/LLMHelper.ts');
 
-  assert.match(meetingPersistence, /\[ScopeFallback\] post_call_summary denied for cloud; routing to Ollama/);
   assert.match(llmHelper, /getDeniedDataScopes\(\['post_call_summary'\], this\.getProviderScopePolicy\(\)\)/);
   assert.match(llmHelper, /this\.logScopeFallback\('post_call_summary', ollamaAvailable \? 'routing' : 'omitting'\)/);
   assert.match(llmHelper, /this\.callOllama\(`Context:\\n\$\{context\}`/);

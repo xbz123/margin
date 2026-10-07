@@ -239,12 +239,26 @@ function installChromiumGuard(electron) {
   }
   // Never let a test or smoke launch raise an OS permission dialog (microphone,
   // camera, screen recording). Answer "not granted" and record the attempt instead.
+  // A harness that needs a meeting to start can set MARGIN_ISOLATION_MIC=granted:
+  // the microphone then reads as granted (status and request) without asking the OS;
+  // capture itself still hits the audio-device double below and fails.
+  const micGranted = process.env.MARGIN_ISOLATION_MIC === 'granted';
   try {
     electron.systemPreferences.askForMediaAccess = async (mediaType) => {
       record('permission', `askForMediaAccess ${mediaType}`);
-      return false;
+      return micGranted && mediaType === 'microphone';
     };
   } catch (e) { record('permission', `cannot stub askForMediaAccess: ${e.message}`); }
+  if (micGranted) {
+    try {
+      const realStatus = electron.systemPreferences.getMediaAccessStatus.bind(electron.systemPreferences);
+      electron.systemPreferences.getMediaAccessStatus = (mediaType) => {
+        if (mediaType !== 'microphone') return realStatus(mediaType);
+        record('permission', 'getMediaAccessStatus microphone (double: granted)');
+        return 'granted';
+      };
+    } catch (e) { record('permission', `cannot stub getMediaAccessStatus: ${e.message}`); }
+  }
   try {
     electron.desktopCapturer.getSources = async (opts) => {
       record('permission', `desktopCapturer.getSources ${JSON.stringify(opts && opts.types)}`);

@@ -13,7 +13,7 @@ import {
   UNIVERSAL_RECAP_PROMPT, UNIVERSAL_FOLLOWUP_PROMPT, UNIVERSAL_FOLLOW_UP_QUESTIONS_PROMPT, UNIVERSAL_ASSIST_PROMPT,
   CUSTOM_SYSTEM_PROMPT, CUSTOM_ANSWER_PROMPT, CUSTOM_WHAT_TO_ANSWER_PROMPT,
   CUSTOM_RECAP_PROMPT, CUSTOM_FOLLOWUP_PROMPT, CUSTOM_FOLLOW_UP_QUESTIONS_PROMPT, CUSTOM_ASSIST_PROMPT,
-  CHAT_MODE_PROMPT, CORE_IDENTITY
+  CHAT_MODE_PROMPT, CORE_IDENTITY, DEFAULT_ANSWER_PROMPT_SUFFIX
 } from "./llm/prompts"
 import {
   TINY_SYSTEM_PROMPT, TINY_ANSWER_PROMPT, TINY_WHAT_TO_ANSWER_PROMPT,
@@ -149,7 +149,6 @@ export class LLMHelper {
   private inferContextScopes(context?: string): ProviderDataScope[] {
     const scopes: ProviderDataScope[] = [];
     if (!context?.trim()) return scopes;
-    if (/<reference_file|<active_mode_retrieved_context|mode_retrieval/i.test(context)) scopes.push('reference_files');
     if (/<meeting_history|USER-PROVIDED PERSONA CONTEXT|<user_context/i.test(context)) scopes.push('profile_history');
     if (/<post_call_summary|meeting summary|silent meeting summarizer|silent meeting note-taker/i.test(context)) scopes.push('post_call_summary');
     return scopes;
@@ -1154,41 +1153,13 @@ CRITICAL RULES:
    * @returns Suggested response for the user
    */
   public async generateSuggestion(context: string, lastQuestion: string): Promise<string> {
-    // Load active mode system prompt and context block (reference files + custom context)
-    let activeModePrompt = '';
-    let modeContextBlock = '';
-    try {
-      const { ModesManager } = require('./services/ModesManager');
-      const modesMgr = ModesManager.getInstance();
-      activeModePrompt = modesMgr.getActiveModeSystemPromptSuffix() ?? '';
-      modeContextBlock = modesMgr.buildRetrievedActiveModeContextBlock(lastQuestion, context, 1800) || '';
-    } catch (_modeErr: any) {
-      console.warn('[LLMHelper] ModesManager load failed in generateSuggestion (non-fatal):', _modeErr?.message);
-    }
-
-    // Prepend mode context block (reference files, custom context) to the transcript context
-    const enrichedContext = modeContextBlock
-      ? `${modeContextBlock}\n\n${context}`
-      : context;
-
     const customNotesBlock = this.customNotes?.trim()
       ? `<user_context>\n${this.customNotes.trim()}\n</user_context>\nUse this context naturally if relevant. Never quote it verbatim.`
       : '';
 
-    const suggestionContext = [customNotesBlock, enrichedContext].filter(Boolean).join('\n\n');
+    const suggestionContext = [customNotesBlock, context].filter(Boolean).join('\n\n');
 
-    const basePrompt = activeModePrompt
-      ? `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${activeModePrompt}`
-      : `You are an expert conversation coach. Based on the transcript, provide a concise, natural response the user could say.
-
-RULES:
-- Be direct and conversational
-- Keep responses under 3 sentences unless complexity requires more
-- Focus on answering the specific question asked
-- If it's a technical question, provide a clear, structured answer
-- Do NOT preface with "You could say" or similar - just give the answer directly
-- If unsure, answer briefly and confidently anyway.
-- Never hedge. Never say "it depends".`;
+    const basePrompt = `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
 
     const promptMessage = `LATEST QUESTION:
 ${lastQuestion}
@@ -1400,7 +1371,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       const outboundScopes = this.scopesForPayload(message, imagePaths, contextScopes);
       const scopePolicy = this.getProviderScopePolicy();
       const deniedOutboundScopes = this.getDeniedOutboundScopes(message, imagePaths, contextScopes);
-      const shouldOmitContext = deniedOutboundScopes.some(scope => scope === 'transcript' || scope === 'reference_files' || scope === 'profile_history' || scope === 'post_call_summary');
+      const shouldOmitContext = deniedOutboundScopes.some(scope => scope === 'transcript' || scope === 'profile_history' || scope === 'post_call_summary');
       const cloudContext = shouldOmitContext ? undefined : context;
       const buildCloudMessage = (systemPrompt: string) => {
         if (skipSystemPrompt) {
@@ -2633,7 +2604,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         yield await this.callOllama(localCombined, imagePaths, skipSystemPrompt ? undefined : this.injectLanguageInstruction(HARD_SYSTEM_PROMPT));
         return;
       }
-      if (deniedOutboundScopes.some(scope => scope === 'transcript' || scope === 'reference_files' || scope === 'profile_history' || scope === 'post_call_summary')) context = undefined;
+      if (deniedOutboundScopes.some(scope => scope === 'transcript' || scope === 'profile_history' || scope === 'post_call_summary')) context = undefined;
       if (deniedOutboundScopes.includes('screenshots')) imagePaths = undefined;
       isMultimodal = !!(imagePaths?.length);
     }
@@ -2994,11 +2965,11 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   ): AsyncGenerator<string, void, unknown> {
 
     // ============================================================
-    // ACTIVE MODE INJECTION (Context + System Prompt Suffix)
+    // DEFAULT ANSWER PROMPT (was the active "General" mode, PLAN.md AG-13)
     // Skipped for UNIVERSAL_* callers — those prompts have their own
     // CORE_IDENTITY/EXECUTION_CONTRACT and context-handling rules; appending
-    // mode prompt + 40KB ref-block on top duplicates the contract and pushes
-    // the latest interviewer turn out of recency.
+    // the suffix on top duplicates the contract and pushes the latest
+    // interviewer turn out of recency.
     // ============================================================
     const isUniversalOverride = !!systemPromptOverride && (
       systemPromptOverride === UNIVERSAL_SYSTEM_PROMPT ||
@@ -3011,35 +2982,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       systemPromptOverride === CHAT_MODE_PROMPT ||
       TINY_PROMPTS_SET.has(systemPromptOverride)
     );
-    const shouldSkipModeInjection = skipModeInjection || isUniversalOverride;
-
-    if (!shouldSkipModeInjection) {
-      try {
-        const { ModesManager } = require('./services/ModesManager');
-        const modesMgr = ModesManager.getInstance();
-        const modePromptSuffix = modesMgr.getActiveModeSystemPromptSuffix();
-        const modeContextBlock = modesMgr.buildRetrievedActiveModeContextBlock(message, context, 1800);
-
-        if (modePromptSuffix) {
-          const baseForMode = systemPromptOverride || HARD_SYSTEM_PROMPT;
-          systemPromptOverride = `${baseForMode}\n\n## ACTIVE MODE\n${modePromptSuffix}`;
-        }
-
-        if (modeContextBlock) {
-          const existingLen = context?.length ?? 0;
-          const COMBINED_CTX_CAP = 60_000;
-          if (existingLen + modeContextBlock.length > COMBINED_CTX_CAP) {
-            const available = Math.max(0, COMBINED_CTX_CAP - existingLen);
-            const trimmed = available > 0 ? modeContextBlock.slice(0, available) + '\n[...mode context truncated]' : '';
-            console.warn(`[LLMHelper] Combined context exceeded ${COMBINED_CTX_CAP} chars — mode context trimmed`);
-            if (trimmed) context = context ? `${trimmed}\n\n${context}` : trimmed;
-          } else {
-            context = context ? `${modeContextBlock}\n\n${context}` : modeContextBlock;
-          }
-        }
-      } catch (_modeErr: any) {
-        console.warn('[LLMHelper] ModesManager injection failed (non-fatal):', _modeErr?.message);
-      }
+    if (!skipModeInjection && !isUniversalOverride) {
+      const baseForDefault = systemPromptOverride || HARD_SYSTEM_PROMPT;
+      systemPromptOverride = `${baseForDefault}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
     }
 
     // Preparation
@@ -3057,7 +3002,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         return;
       }
       if (deniedOutboundScopes.includes('transcript')) context = undefined;
-      if (deniedOutboundScopes.includes('reference_files')) context = undefined;
       if (deniedOutboundScopes.includes('profile_history')) context = undefined;
       if (deniedOutboundScopes.includes('post_call_summary')) context = undefined;
       if (deniedOutboundScopes.includes('screenshots')) imagePaths = undefined;

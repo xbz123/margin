@@ -2,7 +2,7 @@
 // Central context assembly with typed blocks and explicit trust levels.
 // Replaces raw string concatenation for context building.
 
-import { TrustLevel, ContextBlock, EvidenceRef, containsPromptInjection, TRUST_LEVEL_ORDER } from './TrustLevels';
+import { TrustLevel, ContextBlock, TRUST_LEVEL_ORDER } from './TrustLevels';
 import { ContextPacket } from './ContextPacket';
 
 // Screen context delivered to PromptAssembler.
@@ -33,22 +33,6 @@ export interface ScreenContext {
     modelUsed?: string;
 }
 
-export interface ModeReferenceFile {
-    id: string;
-    modeId: string;
-    fileName: string;
-    content: string;
-    createdAt: string;
-}
-
-export interface ModeContextSource {
-    customContext?: string;
-    referenceFiles?: ModeReferenceFile[];
-    modeName?: string;
-    modeId?: string;
-    templateType: string;
-}
-
 export class PromptAssembler {
     private estimateTokens(text: string): number {
         return Math.ceil(text.length / 4);
@@ -60,15 +44,11 @@ export class PromptAssembler {
      */
     assemble(params: {
         transcript: string;
-        modeTemplateType: string;
-        modeId?: string;
         screenContext?: ScreenContext;
-        modeContext?: ModeContextSource;
         customContext?: string;
         meetingHistory?: string[];
         priorResponses?: string[];
         intentContext?: string;
-        retrievedModeContext?: string;
         tokenBudget: number;
         systemPrompt: string;
         developerPrompt?: string;
@@ -79,8 +59,6 @@ export class PromptAssembler {
             developerPrompt: params.developerPrompt,
             userMessage: '',
             metadata: {
-                modeTemplateType: params.modeTemplateType,
-                activeModeId: params.modeId,
                 screenContextAvailable: Boolean(
                     params.screenContext?.extractedText ||
                     params.screenContext?.visibleSummary ||
@@ -114,14 +92,6 @@ export class PromptAssembler {
         // 4. TRANSCRIPT — untrusted conversation
         if (params.transcript) {
             this.addBlock(packet, this.buildTranscriptBlock(params.transcript));
-        }
-
-        // 5. MODE CONTEXT — custom instructions + reference files
-        if (params.modeContext) {
-            this.addModeContextBlocks(packet, params.modeContext);
-        }
-        if (params.retrievedModeContext) {
-            this.addBlock(packet, this.buildRetrievedModeContextBlock(params.retrievedModeContext));
         }
 
         // 6. MEETING HISTORY — untrusted past meetings
@@ -167,27 +137,6 @@ export class PromptAssembler {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&apos;');
-    }
-
-    /**
-     * Escape dangerous prompt injection patterns in user-controlled content.
-     * The content is still included (user may have legitimate content matching patterns)
-     * but the dangerous patterns are neutralized.
-     */
-    private escapePromptInjection(text: string): string {
-        const patterns = [
-            { regex: /ignore\s*(previous|all)\s*instructions/gi, replacement: 'IGNORE [REDACTED] instructions' },
-            { regex: /disregard\s*(previous|all)\s*(instructions|prompts)/gi, replacement: 'DISREGARD [REDACTED] prompts' },
-            { regex: /you\s*(are\s*now|should)\s*act\s+as/gi, replacement: 'you should ACT AS [REDACTED]' },
-            { regex: /system\s*prompt:/gi, replacement: 'SYSTEM PROMPT: [REDACTED]' },
-            { regex: /\[INST\]\[INST\]/gi, replacement: '[INST][REDACTED][INST]' },
-        ];
-
-        let result = text;
-        for (const { regex, replacement } of patterns) {
-            result = result.replace(regex, replacement);
-        }
-        return result;
     }
 
     /**
@@ -343,16 +292,6 @@ ${this.escapeUserContent(transcript)}
         };
     }
 
-    private buildRetrievedModeContextBlock(retrievedModeContext: string): ContextBlock {
-        return {
-            type: 'active_mode_retrieved_context',
-            trustLevel: TrustLevel.UNTRUSTED_REFERENCE,
-            source: 'mode_retrieval',
-            tokenBudget: 1800,
-            content: retrievedModeContext,
-        };
-    }
-
     private buildMeetingHistoryBlock(meetings: string[]): ContextBlock {
         const content = meetings
             .map((m, i) => `<meeting index="${i + 1}">${this.escapeUserContent(m)}</meeting>`)
@@ -367,85 +306,6 @@ ${this.escapeUserContent(transcript)}
 ${content}
 </meeting_history>`,
         };
-    }
-
-    private addModeContextBlocks(packet: ContextPacket, modeContext: ModeContextSource): void {
-        // Custom instructions — treated as mode policy, not user instructions
-        if (modeContext.customContext?.trim()) {
-            const content = modeContext.customContext.trim();
-
-            // Check for prompt injection
-            if (containsPromptInjection(content)) {
-                console.warn('[PromptAssembler] Custom context contains prompt injection pattern — escaping');
-            }
-
-            this.addBlock(packet, {
-                type: 'active_mode_custom_instructions',
-                trustLevel: TrustLevel.MODE_POLICY,
-                source: modeContext.modeId ? `mode:${modeContext.modeId}` : 'mode',
-                tokenBudget: 1500,
-                content: `<active_mode_custom_instructions format="json">
-${JSON.stringify({ content: this.escapePromptInjection(content) })}
-</active_mode_custom_instructions>`,
-            });
-        }
-
-        // Reference files — untrusted evidence, never treated as instructions
-        if (modeContext.referenceFiles && modeContext.referenceFiles.length > 0) {
-            const MAX_FILE_CHARS = 12_000;
-            const MAX_TOTAL_CHARS = 40_000;
-            let totalChars = 0;
-
-            for (const file of modeContext.referenceFiles) {
-                const raw = file.content.trim();
-                if (!raw) continue;
-
-                const remaining = MAX_TOTAL_CHARS - totalChars;
-                if (remaining <= 0) break;
-
-                // Cap per-file
-                let capped: string;
-                if (raw.length > MAX_FILE_CHARS) {
-                    capped = raw.slice(0, MAX_FILE_CHARS - 12) + '\n[...truncated]';
-                } else {
-                    capped = raw;
-                }
-
-                // Cross-file budget
-                if (capped.length > remaining) {
-                    capped = capped.slice(0, remaining - 12) + '\n[...truncated]';
-                }
-
-                // Check for prompt injection in file content and filename
-                const hasInjection = containsPromptInjection(capped) || containsPromptInjection(file.fileName);
-                if (hasInjection) {
-                    console.warn('[PromptAssembler] Reference file contains prompt injection pattern — escaping content');
-                }
-
-                const escapedContent = this.escapePromptInjection(this.escapeUserContent(capped));
-                const escapedFileName = this.escapePromptInjection(this.escapeUserContent(file.fileName));
-
-                const payload = JSON.stringify({ fileName: escapedFileName, content: escapedContent });
-
-                this.addBlock(packet, {
-                    type: 'reference_file',
-                    trustLevel: TrustLevel.UNTRUSTED_REFERENCE,
-                    source: file.id,
-                    tokenBudget: 3000,
-                    content: `<reference_file format="json">
-${payload}
-</reference_file>`,
-                    evidenceRefs: [{
-                        source: 'reference',
-                        text: capped.substring(0, 100),
-                        fileId: file.id,
-                        chunkId: 'file_content',
-                    }],
-                });
-
-                totalChars += capped.length;
-            }
-        }
     }
 
     /**

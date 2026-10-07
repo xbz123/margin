@@ -1,6 +1,5 @@
-// Phase 4 + Phase 9 — source-level wiring tests.
-// Phase 4: WhatToAnswerLLM should prefer the new async hybrid retriever
-//          when ModesManager exposes it. Lexical sync remains as fallback.
+// Phase 9 — source-level wiring tests. (The Phase 4 hybrid mode-retrieval
+// checks were removed with the mode system, PLAN.md AG-13.)
 // Phase 9: stopMeeting must early-return when meetingRetention is 'never'
 //          OR when meeting metadata has doNotPersist === true.
 
@@ -12,28 +11,6 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const read = (rel) => fs.readFileSync(path.join(repoRoot, rel), 'utf8');
-
-describe('Phase 4 — Hybrid RAG default in WhatToAnswerLLM', () => {
-  test('ModesManager exposes async buildRetrievedActiveModeContextBlockHybrid', () => {
-    const src = read('electron/services/ModesManager.ts');
-    assert.match(src, /async buildRetrievedActiveModeContextBlockHybrid\(/, 'must declare async hybrid method');
-    assert.match(src, /retrieveHybrid\(/, 'hybrid method must call into ModeContextRetriever.retrieveHybrid');
-    // Falls back to sync lexical when hybrid yields nothing.
-    assert.match(src, /buildRetrievedActiveModeContextBlock\(/, 'hybrid path must call lexical fallback if empty');
-  });
-
-
-  test('WhatToAnswerLLM prefers async hybrid when method exists, falls back to sync', () => {
-    const src = read('electron/llm/WhatToAnswerLLM.ts');
-    // Type slot for the new method (so callers can detect it).
-    assert.match(src, /buildRetrievedActiveModeContextBlockHybrid\?:/, 'type alias must declare optional hybrid method');
-    // Runtime branch: prefer hybrid, await it.
-    assert.match(src, /typeof this\.modesManager\.buildRetrievedActiveModeContextBlockHybrid\s*===\s*['"]function['"]/);
-    assert.match(src, /await this\.modesManager\.buildRetrievedActiveModeContextBlockHybrid\(/);
-    // Lexical fallback path remains.
-    assert.match(src, /this\.modesManager\.buildRetrievedActiveModeContextBlock\(/);
-  });
-});
 
 describe('Phase 9 — Retention & doNotPersist gate in MeetingPersistence', () => {
   test('SettingsManager exposes meetingRetention setting', () => {

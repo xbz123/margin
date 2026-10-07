@@ -1,0 +1,198 @@
+{
+  "startedAt": "2026-10-07T08:35:28.117Z",
+  "head": "fdf9cd7cb74f368abb8a7f6ad7dd1090b6fce100",
+  "uncommittedPaths": 154,
+  "reference": "docs/margin/evidence/pre-AG-13",
+  "note": "AG-13 on the worktree (uncommitted changes on top of fdf9cd7c), compared with pre-AG-13",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 119,
+      "log": "docs/margin/evidence/AG-13/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1508,
+      "log": "docs/margin/evidence/AG-13/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5157,
+      "log": "docs/margin/evidence/AG-13/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4186,
+      "log": "docs/margin/evidence/AG-13/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 2,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2641,
+      "log": "docs/margin/evidence/AG-13/tsc-electron.log",
+      "diagnostics": {
+        "total": 9,
+        "inherited": 9,
+        "new": [],
+        "resolved": [
+          "electron/test/erp-3hour-stress.test.ts error TS2322: Type 'boolean' is not assignable to type 'string | number'. ×5",
+          "electron/test/erp-3hour-stress.test.ts error TS2741: Property 'description' is missing in type '{ id: string; name: string; run: () => Promise<TestResult>; }' but required in type 'TestCase'. ×12",
+          "electron/test/modes-live-response-eval.ts error TS2352: Conversion of type 'typeof import(\"<repo>/electron/llm/prompts\")' to type 'PromptModule' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first. ×1",
+          "electron/test/modes-live-response-eval.ts error TS2352: Conversion of type 'typeof import(\"<repo>/electron/llm/tinyPrompts\")' to type 'Record<string, string>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first. ×1"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 650,
+      "log": "docs/margin/evidence/AG-13/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 936,
+      "log": "docs/margin/evidence/AG-13/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 81,
+      "log": "docs/margin/evidence/AG-13/preload-contract.log",
+      "gaps": {
+        "total": 4,
+        "inherited": 4,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 142,
+      "log": "docs/margin/evidence/AG-13/ipc-channels.log",
+      "gaps": {
+        "total": 2,
+        "inherited": 2,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 865,
+      "log": "docs/margin/evidence/AG-13/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 186231,
+      "log": "docs/margin/evidence/AG-13/tests.log",
+      "tap": "docs/margin/evidence/AG-13/tests.tap",
+      "perFile": "docs/margin/evidence/AG-13/tests.files.json",
+      "files": 109,
+      "filesNotFinished": [
+        "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs"
+      ],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 666,
+        "pass": 624,
+        "fail": 12,
+        "skipped": 30,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "failures": {
+        "total": 20,
+        "inherited": 20,
+        "new": [],
+        "resolved": [
+          "electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: WhatToAnswerLLM does not append active mode context to system prompt override",
+          "electron/llm/__tests__/suggestionPromptAssembly.test.mjs :: WhatToAnswerLLM sends mode context only through user content at runtime"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13946,
+      "log": "docs/margin/evidence/AG-13/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 7453,
+      "log": "docs/margin/evidence/AG-13/storage.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 544,
+      "log": "docs/margin/evidence/AG-13/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-07T08:39:12.593Z",
+  "allPassed": true
+}

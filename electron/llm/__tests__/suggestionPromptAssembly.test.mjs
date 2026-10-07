@@ -18,27 +18,20 @@ const intentClassifierPath = path.resolve(__dirname, '../IntentClassifier.ts');
 const intentClassifierSource = fs.readFileSync(intentClassifierPath, 'utf8');
 
 const distWhatToAnswerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js');
+const distPromptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');
 const require = createRequire(import.meta.url);
+const { DEFAULT_ANSWER_PROMPT_SUFFIX, UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(distPromptsPath);
 
-test('generateSuggestion loads active mode prompt suffix and retrieved active mode context only', () => {
+test('generateSuggestion uses the fixed default answer suffix and no mode system', () => {
   assert.ok(generateSuggestionStart >= 0, 'generateSuggestion should exist');
-  assert.match(generateSuggestionSource, /require\('\.\/services\/ModesManager'\)/);
-  assert.match(generateSuggestionSource, /getActiveModeSystemPromptSuffix\(\)/);
-  assert.match(generateSuggestionSource, /buildRetrievedActiveModeContextBlock\(lastQuestion, context, 1800\)/);
-  assert.doesNotMatch(generateSuggestionSource, /\|\| modesMgr\.buildActiveModeContextBlock\(\)/);
+  assert.match(generateSuggestionSource, /const basePrompt = `\$\{HARD_SYSTEM_PROMPT\}\\n\\n## ACTIVE MODE\\n\$\{DEFAULT_ANSWER_PROMPT_SUFFIX\}`;/);
 });
 
-test('generateSuggestion prepends mode context before transcript context', () => {
-  assert.match(generateSuggestionSource, /const enrichedContext = modeContextBlock[\s\S]*\? `\$\{modeContextBlock\}\\n\\n\$\{context\}`[\s\S]*: context;/);
-});
-
-test('generateSuggestion keeps active mode suffix in system prompt without user context', () => {
-  assert.match(generateSuggestionSource, /const basePrompt = activeModePrompt[\s\S]*\? `\$\{HARD_SYSTEM_PROMPT\}\\n\\n## ACTIVE MODE\\n\$\{activeModePrompt\}`/);
-  assert.doesNotMatch(generateSuggestionSource, /\$\{activeModePrompt\}\$\{customNotesBlock\}/);
-});
-
+// Name kept from the baseline so the evidence comparison still pairs it with its
+// inherited failure: the streamChat/Codex/Ollama call-shape assertions below were
+// already failing at a786910e (AG-17). The mode part is gone (AG-13).
 test('generateSuggestion sends custom notes and mode context as user message content', () => {
-  assert.match(generateSuggestionSource, /const suggestionContext = \[customNotesBlock, enrichedContext\]\.filter\(Boolean\)\.join\('\\n\\n'\);/);
+  assert.match(generateSuggestionSource, /const suggestionContext = \[customNotesBlock, context\]\.filter\(Boolean\)\.join\('\\n\\n'\);/);
   const streamChatMatches = generateSuggestionSource.match(/streamChat\(promptMessage, undefined, undefined, basePrompt, true\)/g) ?? [];
   assert.equal(streamChatMatches.length, 2);
   assert.match(generateSuggestionSource, /generateWithCodexCli\(promptMessage, basePrompt\)/);
@@ -52,10 +45,9 @@ test('generateSuggestion does not append custom notes to any system prompt branc
   assert.doesNotMatch(generateSuggestionSource, /Never hedge\. Never say "it depends"\.\$\{customNotesBlock\}/);
 });
 
-test('WhatToAnswerLLM does not append active mode context to system prompt override', () => {
-  assert.match(whatToAnswerSource, /const finalPromptOverride = modePromptSuffix[\s\S]*## ACTIVE MODE\\n\$\{modePromptSuffix\}/);
-  assert.doesNotMatch(whatToAnswerSource, /activeModePromptParts = \[modePromptSuffix, modeContextBlock\]/);
-  assert.doesNotMatch(whatToAnswerSource, /modeContextBlock\]\.filter\(Boolean\)/);
+test('WhatToAnswerLLM layers the default answer suffix and no mode system', () => {
+  assert.doesNotMatch(whatToAnswerSource, /modeContextBlock|modePromptSuffix/);
+  assert.match(whatToAnswerSource, /: `\$\{basePrompt\}\\n\\n## ACTIVE MODE\\n\$\{DEFAULT_ANSWER_PROMPT_SUFFIX\}`;/);
 });
 
 test('intent answer shapes require grounding for examples and behavioral stories', () => {
@@ -67,12 +59,9 @@ test('intent answer shapes require grounding for examples and behavioral stories
   assert.doesNotMatch(intentClassifierSource, /Make it realistic and specific\./);
 });
 
-test('WhatToAnswerLLM sends mode context only through user content at runtime', async () => {
+test('WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content', async () => {
   const { WhatToAnswerLLM } = require(distWhatToAnswerPath);
-  const trustedSuffix = 'TRUSTED_MODE_SUFFIX_SENTINEL';
-  const untrustedContext = 'UNTRUSTED_REFERENCE_CONTEXT_SENTINEL';
   const calls = [];
-  let rawFallbackCalled = false;
 
   const llmHelper = {
     getCapabilities: () => ({ outputBudgetTokens: 2000 }),
@@ -83,16 +72,8 @@ test('WhatToAnswerLLM sends mode context only through user content at runtime', 
       yield 'ok';
     },
   };
-  const modesManager = {
-    getActiveModeSystemPromptSuffix: () => trustedSuffix,
-    buildRetrievedActiveModeContextBlock: () => untrustedContext,
-    buildActiveModeContextBlock: () => {
-      rawFallbackCalled = true;
-      return 'RAW_CONTEXT_SHOULD_NOT_BE_USED';
-    },
-  };
 
-  const answerer = new WhatToAnswerLLM(llmHelper, modesManager);
+  const answerer = new WhatToAnswerLLM(llmHelper);
   const chunks = [];
   for await (const chunk of answerer.generateStream('CURRENT_TRANSCRIPT_SENTINEL')) {
     chunks.push(chunk);
@@ -100,53 +81,16 @@ test('WhatToAnswerLLM sends mode context only through user content at runtime', 
 
   assert.deepEqual(chunks, ['ok']);
   assert.equal(calls.length, 1);
-  assert.equal(rawFallbackCalled, false);
 
-  const [message, _imagePaths, context, systemPromptOverride, ignoreKnowledgeMode, skipModeInjection] = calls[0];
+  const [message, _imagePaths, context, systemPromptOverride, ignoreKnowledgeMode, skipModeInjection, scopes] = calls[0];
   assert.equal(context, undefined);
   assert.equal(ignoreKnowledgeMode, true);
   assert.equal(skipModeInjection, true);
-  assert.match(message, /UNTRUSTED_REFERENCE_CONTEXT_SENTINEL/);
   assert.match(message, /CURRENT_TRANSCRIPT_SENTINEL/);
   assert.match(message, /<transcript trust_level="untrusted">/);
-  assert.match(systemPromptOverride, /TRUSTED_MODE_SUFFIX_SENTINEL/);
-  assert.doesNotMatch(systemPromptOverride, /UNTRUSTED_REFERENCE_CONTEXT_SENTINEL/);
-});
-
-test('WhatToAnswerLLM does not dump raw active mode context when retrieval misses', async () => {
-  const { WhatToAnswerLLM } = require(distWhatToAnswerPath);
-  const calls = [];
-  let rawFallbackCalled = false;
-
-  const llmHelper = {
-    getCapabilities: () => ({ outputBudgetTokens: 2000 }),
-    getPromptTier: () => 'full',
-    fitContextForCurrentModel: text => text,
-    async *streamChat(...args) {
-      calls.push(args);
-      yield 'ok';
-    },
-  };
-  const modesManager = {
-    getActiveModeSystemPromptSuffix: () => '',
-    buildRetrievedActiveModeContextBlock: () => '',
-    buildActiveModeContextBlock: () => {
-      rawFallbackCalled = true;
-      return 'RAW_REFERENCE_DUMP_SHOULD_NOT_APPEAR';
-    },
-  };
-
-  const answerer = new WhatToAnswerLLM(llmHelper, modesManager);
-  const chunks = [];
-  for await (const chunk of answerer.generateStream('CURRENT_TRANSCRIPT_SENTINEL')) {
-    chunks.push(chunk);
-  }
-
-  assert.deepEqual(chunks, ['ok']);
-  assert.equal(rawFallbackCalled, false);
-  assert.equal(calls.length, 1);
-  assert.doesNotMatch(calls[0][0], /RAW_REFERENCE_DUMP_SHOULD_NOT_APPEAR/);
-  assert.match(calls[0][0], /CURRENT_TRANSCRIPT_SENTINEL/);
+  assert.equal(systemPromptOverride, `${UNIVERSAL_WHAT_TO_ANSWER_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`);
+  assert.doesNotMatch(systemPromptOverride, /CURRENT_TRANSCRIPT_SENTINEL/);
+  assert.deepEqual(scopes, []);
 });
 
 test('WhatToAnswerLLM sends dynamic action prompt instruction as user content', async () => {
@@ -162,13 +106,8 @@ test('WhatToAnswerLLM sends dynamic action prompt instruction as user content', 
       yield 'ok';
     },
   };
-  const modesManager = {
-    getActiveModeSystemPromptSuffix: () => 'TRUSTED_MODE_SUFFIX_SENTINEL',
-    buildRetrievedActiveModeContextBlock: () => '',
-    buildActiveModeContextBlock: () => '',
-  };
 
-  const answerer = new WhatToAnswerLLM(llmHelper, modesManager);
+  const answerer = new WhatToAnswerLLM(llmHelper);
   const chunks = [];
   for await (const chunk of answerer.generateStream(
     'CURRENT_TRANSCRIPT_SENTINEL',
@@ -211,11 +150,6 @@ test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen cont
       yield 'ok';
     },
   };
-  const modesManager = {
-    getActiveModeSystemPromptSuffix: () => '',
-    buildRetrievedActiveModeContextBlock: () => '',
-    buildActiveModeContextBlock: () => '',
-  };
 
   const temporalContext = {
     hasRecentResponses: true,
@@ -232,7 +166,7 @@ test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen cont
     hash: 'screen-hash',
   };
 
-  const answerer = new WhatToAnswerLLM(llmHelper, modesManager);
+  const answerer = new WhatToAnswerLLM(llmHelper);
   const chunks = [];
   for await (const chunk of answerer.generateStream(
     'CURRENT_TRANSCRIPT_SENTINEL',
@@ -286,13 +220,8 @@ test('WhatToAnswerLLM delegates attached images to streamChat (vision fallback o
       yield 'vision-answer';
     },
   };
-  const modesManager = {
-    getActiveModeSystemPromptSuffix: () => '',
-    buildRetrievedActiveModeContextBlock: () => '',
-    buildActiveModeContextBlock: () => '',
-  };
 
-  const answerer = new WhatToAnswerLLM(llmHelper, modesManager);
+  const answerer = new WhatToAnswerLLM(llmHelper);
   const chunks = [];
   for await (const chunk of answerer.generateStream('CURRENT_TRANSCRIPT_SENTINEL', undefined, undefined, ['/tmp/screen.png'])) {
     chunks.push(chunk);

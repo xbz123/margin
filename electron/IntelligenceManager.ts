@@ -217,23 +217,14 @@ export class IntelligenceManager extends EventEmitter {
     // Mode Context Management
     // ============================================
 
-    /**
-     * Clear mode-specific transient context without resetting the full session.
-     * Called when user switches modes to prevent old mode's context (Interviewer
-     * Q's, JD context, assistant response history) from bleeding into the new mode.
-     */
-    clearSessionContext(): void {
-        this.session.clearSessionContext();
-    }
 
     // ============================================
     // Phase 3 — Dynamic Actions facade
     // ============================================
 
     /**
-     * Bind dynamic-action engine to the active meeting/mode.
-     * Caller is the IPC handler that starts a meeting (with sessionId) or
-     * the modes:set-active handler that switches the active mode mid-meeting.
+     * Bind dynamic-action engine to the active meeting.
+     * Caller is the IPC handler that starts a meeting (with sessionId).
      */
     setDynamicActionContext(params: { sessionId: string; modeId: string; modeTemplateType: string }): void {
         this.engine.setDynamicActionContext(params);
