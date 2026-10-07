@@ -44,6 +44,7 @@
 | D2 | 真实服务和实机验收由谁做、何时授权：真实 API 调用、屏幕录制权限、系统截图对照 | 阶段 3 起的实机项 | 每项实机验收前单独请求授权 |
 | D3 | Windows 的范围 | 平台分支代码 | 保留平台分支并保证能编译，不做 Windows 构建验收 |
 | D4 | `package.json` 的 `license` 字段写 `AGPL-3.0-only` 还是 `AGPL-3.0-or-later` | AG-26 | 设计建议：`AGPL-3.0-only`。上游没有声明 "or later"，选 `-only` 不会扩大授权范围 |
+| D5 | 本机没有完整的 Xcode，Rust 原生模块无法从零构建（X3）。是安装 Xcode，还是接受"使用已有 cargo 缓存"作为阶段 1 出口第 1 条的例外 | 阶段 1 出口第 1 条、AG-25 打包 | 建议安装 Xcode。安装是本机系统操作，需要用户自己执行；不影响阶段 1 其他工作 |
 
 ## 4. 实验
 
@@ -167,6 +168,20 @@ X2 只交付隔离工具和它们自己的自测程序（`scripts/margin/isolati
   - 在 X2 的启动脚本下分别启动 Electron 33 和 43，记录：就绪信号、观察时长、是否受控退出、主进程有无异常；
   - 升级在一次性的 worktree 里试，不合入。
 - **分两部分做**：构建部分（原生模块的构建和加载，不启动应用）现在就可以做；启动部分要等 L0。
+- **构建部分结果（2026-10-07）：完成。**
+  - **Electron 33.4.11**（工作区实际使用的版本）：
+    - `npm run setup:native` 成功。`better-sqlite3` 12.6.2 用的是官方预编译包，不需要本机编译器。
+    - 在隔离的 Electron 主进程里，`better-sqlite3`（SQLite 3.51.2）、`sharp`（libvips 8.17.3）和 Rust 原生模块都能加载，并通过了最简单的调用。拦截记录为零，真实目录没有变化（`selftest/native-load.cjs`）。
+  - **Rust 原生模块需要完整的 Xcode**：
+    - 原因：第三方依赖 `cidre`（MIT 许可）的构建脚本会调用 `xcodebuild`。本机只装了 CommandLineTools，没有 Xcode，所以从零构建会失败。
+    - 本次的做法：把旧 Margin 工作区 `native-module/target` 里的 cargo 构建缓存复制过来，cidre 在 9 月 23 日已用 Xcode 构建过。之后本分支的 `natively-audio` 用本分支自己的源码编译成功。
+    - 缓存只含第三方 crate 的编译产物，不引入任何代码，也不提交。
+    - **后果**：在没有 Xcode 的干净机器上，阶段 1 出口验收第 1 条无法满足。需要安装 Xcode，或者把这一限制记为验收例外，由用户决定（见第 3 节 D5）。
+  - **Electron 43.1.0**（一次性副本，没有合入）：
+    - 类型检查仍是基线原有的 33 个错误，没有新增。
+    - `better-sqlite3` 12.6.2 和 12.11.1 都没有适配 Electron 43 的预编译包，必须在本机编译。本机直接编译失败：`PATH` 里 anaconda 的 GNU libtool 排在 Apple libtool 前面，而且 CommandLineTools 默认找不到 libc++ 头文件。
+    - 解决办法：把 `/usr/bin` 排到 `PATH` 前面，并把 `CXXFLAGS` 指向 SDK 里的 `c++/v1` 头文件，配合 `better-sqlite3` 12.11.1 即可编译成功。之后在隔离的 Electron 43 中，三个原生模块全部能加载。
+  - **对 D1 的初步看法**：33 现在就能用，而 43 需要升级 `better-sqlite3`，`setup:native` 也要处理本机编译环境。但 33 是较旧的大版本，长期使用需要升级。最终结论等 L0 之后比较两个版本的启动结果再定。
 - **成功标准**：两个版本各自的构建、加载和启动结论都附命令与输出。
 - **预算**：半天。
 - **解锁**：D1、AG-17。
