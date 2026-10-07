@@ -117,6 +117,33 @@ X2 只交付隔离工具和它们自己的自测程序（`scripts/margin/isolati
   - 覆盖不了的层面明确列出，相应地收窄 G4 的承诺。
 - **预算**：一天。
 - **解锁**：G4，以及启动闸门 L0 的第一个条件。
+- **结果（2026-10-07）：完成。**
+  - **实现**：全部在 `scripts/margin/isolation/` 下。
+    - `guard.cjs`：通过 `--require` 或 `NODE_OPTIONS` 加载。
+    - `env.mjs`：构造干净的环境变量和临时 HOME。
+    - `run-node.mjs`、`run-electron.mjs`：在隔离环境中运行 Node 测试或 Electron，后者还会在运行前后对比真实目录的快照。
+    - 两份自测：`__tests__/guard.node.test.mjs` 和 `selftest/electron-main.cjs`。
+  - **Node 层**：自测 10/10 通过。
+    - 拦截范围：`fetch`、`https`、原始 TCP、DNS、`ws`、UDP，以及不在白名单内的子进程。白名单只放行本机的 node、`echo` 一类无害程序，以及沙盒内的测试替身。`sh -c`、`shell:true` 和带 shell 语法的命令行一律拦截。
+    - 找不到的命令照常因 ENOENT 失败。
+    - `keytar` 被替换为内存替身。
+    - 回环地址正常可用。
+  - **Electron 层**：自测通过。
+    - 被拦截的请求：主进程的 Node `fetch` 和 `net.fetch`、子进程、渲染层的 `fetch`、图片、WebSocket。
+    - 回环正常；`safeStorage` 使用 mock 钥匙串，可以正常加解密。
+    - 自测程序的 `appData`、`documents` 等全部路径都落在沙盒内；运行前后，真实目录的快照没有变化。
+  - **基线测试对比**（`electron/{services,llm,audio}/__tests__`，加守卫，每个测试限时 120 秒）：
+    - 总计 991，通过 928，失败 33，跳过 30。
+    - 拦截日志里只有两个测试文件触发过守卫。修正规则后再跑：
+      - `ImeDetectorCache` 全部通过（它调用的 `defaults` 会读取真实系统偏好，仍被拦截）；
+      - `CodexCliService` 还剩 1 个失败：自动探测找到了本机真实的 `/opt/homebrew/bin/codex` 并尝试执行。这一拦截是有意的，因为它会用到真实的登录凭据。
+    - 其余失败所在的测试文件，守卫一次都没有触发，属于基线原有的失败：许可证校验 `LicenseVerifyPolicy` 及 premium 缺失、`KnowledgeOrchestrator`、模式上下文、只查源码字符串的测试等。
+    - `OpenAIRealtimeGAProtocol.test.mjs` 本来就会挂起：它留下了 100 秒的定时器和重连逻辑，守卫没有记录到它的任何外连，已手动停止。
+  - **没有覆盖的部分**（G4 的承诺相应收窄）：
+    - 原生插件自己开的网络连接，由 L0 处理；
+    - Chromium 的 WebRTC/UDP。基线不用 WebRTC，DNS 由 `--host-resolver-rules` 限制；
+    - 原生代码直接读取系统偏好。
+    - 因此 G4 只承诺：在 Node 和 Chromium 这两层，无法连接到外部主机；并且应用自己声明的数据路径都在沙盒内。
 
 ### 启动闸门 L0（应用首次启动的前提）
 
