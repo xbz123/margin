@@ -151,6 +151,9 @@ test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen cont
     isLocalOnly: () => false,
     getPromptTier: () => 'tiny',
     fitContextForCurrentModel: text => text,
+    // No data scope denied (PLAN.md AG-17 fourth review: WhatToAnswer asks before
+    // including prior responses).
+    deniedDataScopes: () => [],
     async *streamChat(...args) {
       calls.push(args);
       yield 'ok';
