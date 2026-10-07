@@ -1337,19 +1337,19 @@ export const HelpSettings: React.FC = () => {
 
                         <div className="border-t border-border-subtle pt-6">
                             <h4 className="font-bold text-sm text-text-primary flex items-center gap-2 mb-4">
-                                <MessageSquare className="w-4 h-4 text-accent-primary" /> In-Meeting Semantic Search
+                                <MessageSquare className="w-4 h-4 text-accent-primary" /> Ask About a Meeting
                             </h4>
-                            <p className="text-[13px] mb-6">Instead of re-reading the entire transcript to find what happened, use the attached RAG interface pinned to the bottom of the Meeting details window.</p>
+                            <p className="text-[13px] mb-6">Instead of re-reading the entire transcript to find what happened, ask in the chat box pinned to the bottom of the Meeting details window.</p>
 
                             <MockMeetingChatAnim />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
                                 <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
                                     <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                        <Search className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" /> Contextual Semantic Search
+                                        <Search className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" /> Answers From the Meeting
                                     </h4>
                                     <p className="text-[12px] text-text-secondary leading-relaxed">
-                                        You don't need to craft long AI prompts. Simply ask, "What API dependencies did they list?" and the system injects the localized transcript from that specific timeline to provide highly-accurate responses dynamically.
+                                        You don't need to craft long AI prompts. Simply ask, "What API dependencies did they list?" and the meeting's transcript and notes are sent along with your question.
                                     </p>
                                 </div>
 

@@ -417,39 +417,6 @@ interface ElectronAPI {
 
 
 
-  // RAG (Retrieval-Augmented Generation) API
-  ragQueryMeeting: (
-    meetingId: string,
-    query: string,
-  ) => Promise<{ success?: boolean; fallback?: boolean; error?: string }>;
-  ragQueryLive: (
-    query: string,
-  ) => Promise<{ success?: boolean; fallback?: boolean; error?: string }>;
-  ragQueryGlobal: (
-    query: string,
-  ) => Promise<{ success?: boolean; fallback?: boolean; error?: string }>;
-  ragCancelQuery: (options: {
-    meetingId?: string;
-    global?: boolean;
-  }) => Promise<{ success: boolean }>;
-  ragIsMeetingProcessed: (meetingId: string) => Promise<boolean>;
-  ragGetQueueStatus: () => Promise<{
-    pending: number;
-    processing: number;
-    completed: number;
-    failed: number;
-  }>;
-  ragRetryEmbeddings: () => Promise<{ success: boolean }>;
-  onRAGStreamChunk: (
-    callback: (data: { meetingId?: string; global?: boolean; chunk: string }) => void,
-  ) => () => void;
-  onRAGStreamComplete: (
-    callback: (data: { meetingId?: string; global?: boolean }) => void,
-  ) => () => void;
-  onRAGStreamError: (
-    callback: (data: { meetingId?: string; global?: boolean; error: string }) => void,
-  ) => () => void;
-
   // Keybind Management
   getKeybinds: () => Promise<
     Array<{
@@ -516,14 +483,12 @@ interface ElectronAPI {
     transcript?: boolean;
     screenshots?: boolean;
     profile_history?: boolean;
-    embeddings?: boolean;
     post_call_summary?: boolean;
   }>;
   setProviderDataScopes: (scopes: {
     transcript?: boolean;
     screenshots?: boolean;
     profile_history?: boolean;
-    embeddings?: boolean;
     post_call_summary?: boolean;
   }) => Promise<{ success: boolean; error?: string }>;
   onProviderDataScopesChanged: (
@@ -531,7 +496,6 @@ interface ElectronAPI {
       transcript?: boolean;
       screenshots?: boolean;
       profile_history?: boolean;
-      embeddings?: boolean;
       post_call_summary?: boolean;
     }) => void,
   ) => () => void;
@@ -1436,55 +1400,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
 
-
-  // RAG API
-  ragQueryMeeting: (meetingId: string, query: string) =>
-    ipcRenderer.invoke('rag:query-meeting', { meetingId, query }),
-  ragQueryLive: (query: string) => ipcRenderer.invoke('rag:query-live', { query }),
-  ragQueryGlobal: (query: string) => ipcRenderer.invoke('rag:query-global', { query }),
-  ragCancelQuery: (options: { meetingId?: string; global?: boolean }) =>
-    ipcRenderer.invoke('rag:cancel-query', options),
-  ragIsMeetingProcessed: (meetingId: string) =>
-    ipcRenderer.invoke('rag:is-meeting-processed', meetingId),
-  ragGetQueueStatus: () => ipcRenderer.invoke('rag:get-queue-status'),
-  ragRetryEmbeddings: () => ipcRenderer.invoke('rag:retry-embeddings'),
-
-  onIncompatibleProviderWarning: (
-    callback: (data: { count: number; oldProvider: string; newProvider: string }) => void,
-  ) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('embedding:incompatible-provider-warning', subscription);
-    return () => {
-      ipcRenderer.removeListener('embedding:incompatible-provider-warning', subscription);
-    };
-  },
-  reindexIncompatibleMeetings: () => ipcRenderer.invoke('rag:reindex-incompatible-meetings'),
-
-  onRAGStreamChunk: (
-    callback: (data: { meetingId?: string; global?: boolean; chunk: string }) => void,
-  ) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('rag:stream-chunk', subscription);
-    return () => {
-      ipcRenderer.removeListener('rag:stream-chunk', subscription);
-    };
-  },
-  onRAGStreamComplete: (callback: (data: { meetingId?: string; global?: boolean }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('rag:stream-complete', subscription);
-    return () => {
-      ipcRenderer.removeListener('rag:stream-complete', subscription);
-    };
-  },
-  onRAGStreamError: (
-    callback: (data: { meetingId?: string; global?: boolean; error: string }) => void,
-  ) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('rag:stream-error', subscription);
-    return () => {
-      ipcRenderer.removeListener('rag:stream-error', subscription);
-    };
-  },
 
   // Keybind Management
   getKeybinds: () => ipcRenderer.invoke('keybinds:get-all'),

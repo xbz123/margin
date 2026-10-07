@@ -11,10 +11,10 @@ const source = fs.readFileSync(mainPath, 'utf8');
 // ── Function isolation ──────────────────────────────────────────────────────
 const startMeetingStart = source.indexOf('public async startMeeting');
 const endMeetingStart = source.indexOf('public async endMeeting', startMeetingStart);
-const ragStart = source.indexOf('private async processCompletedMeetingForRAG', endMeetingStart);
+const endMeetingEnd = source.indexOf('private setupIntelligenceEvents', endMeetingStart);
 
 const startMeetingSource = source.slice(startMeetingStart, endMeetingStart);
-const endMeetingSource = source.slice(endMeetingStart, ragStart);
+const endMeetingSource = source.slice(endMeetingStart, endMeetingEnd);
 
 // ── Balanced-brace body extractor ───────────────────────────────────────────
 // Given a source string and an index that points at a '{', return the
@@ -137,7 +137,7 @@ test('B9 negative regression: stale "intentionally do NOT clear" rationale must 
 
 test('endMeeting either awaits in-flight init or relies on IIFE finally clear', () => {
   assert.ok(endMeetingStart >= 0, 'endMeeting should exist');
-  assert.ok(ragStart > endMeetingStart, 'endMeeting source should be isolated');
+  assert.ok(endMeetingEnd > endMeetingStart, 'endMeeting source should be isolated');
   // Two valid patterns:
   //   (a) endMeeting explicitly awaits the in-flight init and clears the slot
   //       as defense-in-depth: `await this._audioInitPromise; this._audioInitPromise = null;`

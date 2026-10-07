@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const mainPath = path.resolve(__dirname, '../../main.ts');
 const source = fs.readFileSync(mainPath, 'utf8');
 const endMeetingStart = source.indexOf('public async endMeeting');
-const endMeetingEnd = source.indexOf('private async processCompletedMeetingForRAG', endMeetingStart);
+const endMeetingEnd = source.indexOf('private setupIntelligenceEvents', endMeetingStart);
 const endMeetingSource = source.slice(endMeetingStart, endMeetingEnd);
 
 test('endMeeting always clears draining state after background teardown', () => {

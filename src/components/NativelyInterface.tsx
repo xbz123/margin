@@ -2392,70 +2392,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       }),
     );
 
-    // JIT RAG Stream listeners (for live meeting RAG responses)
-    if (window.electronAPI.onRAGStreamChunk) {
-      cleanups.push(
-        window.electronAPI.onRAGStreamChunk((data: { chunk: string }) => {
-          setMessages((prev) => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg && lastMsg.isStreaming && lastMsg.role === 'system') {
-              const updated = [...prev];
-              updated[prev.length - 1] = {
-                ...lastMsg,
-                text: lastMsg.text + data.chunk,
-                isCode: (lastMsg.text + data.chunk).includes('```'),
-              };
-              return updated;
-            }
-            return prev;
-          });
-        }),
-      );
-    }
-
-    if (window.electronAPI.onRAGStreamComplete) {
-      cleanups.push(
-        window.electronAPI.onRAGStreamComplete(() => {
-          setIsProcessing(false);
-          requestStartTimeRef.current = null;
-          setMessages((prev) => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg && lastMsg.isStreaming && lastMsg.role === 'system') {
-              return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }];
-            }
-            if (lastMsg && lastMsg.isStreaming) {
-              const updated = [...prev];
-              updated[prev.length - 1] = { ...lastMsg, isStreaming: false };
-              return updated;
-            }
-            return prev;
-          });
-        }),
-      );
-    }
-
-    if (window.electronAPI.onRAGStreamError) {
-      cleanups.push(
-        window.electronAPI.onRAGStreamError((data: { error: string }) => {
-          setIsProcessing(false);
-          requestStartTimeRef.current = null;
-          setMessages((prev) => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg && lastMsg.isStreaming) {
-              const updated = [...prev];
-              updated[prev.length - 1] = {
-                ...lastMsg,
-                isStreaming: false,
-                text: lastMsg.text + `\n\n[RAG Error: ${data.error}]`,
-              };
-              return updated;
-            }
-            return prev;
-          });
-        }),
-      );
-    }
-
     return () => cleanups.forEach((fn) => fn());
   }, [currentModel, queueToken, flushToken]); // Ensure tracking captures correct model
 
@@ -2566,11 +2502,6 @@ Instructions:
 2. Provide a direct, helpful answer.
 3. Be concise.`;
           } else {
-            const ragResult = await window.electronAPI.ragQueryLive?.(question);
-            if (ragResult?.success) {
-              return;
-            }
-
             prompt = `You are a real-time interview assistant. The user just repeated or paraphrased a question from their interviewer.
 Instructions:
 1. Extract the core question being asked
@@ -2720,15 +2651,6 @@ Provide only the answer, nothing else.`;
     pinAnswerPanel();
 
     try {
-      // JIT RAG pre-flight: try to use indexed meeting context first
-      if (currentAttachments.length === 0) {
-        const ragResult = await window.electronAPI.ragQueryLive?.(userText || '');
-        if (ragResult?.success) {
-          // JIT RAG handled it — response streamed via rag:stream-chunk events
-          return;
-        }
-      }
-
       // Pass imagePath if attached, AND conversation context
       requestStartTimeRef.current = Date.now();
       await window.electronAPI.streamGeminiChat(

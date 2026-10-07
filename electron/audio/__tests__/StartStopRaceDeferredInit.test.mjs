@@ -69,21 +69,18 @@ test('deferred audio init aborts and destroys stale captures after awaited setup
   );
   assert.ok(
     /let\s+systemSttStartedByInit\s*=\s*false/.test(deferredInit) &&
-      /let\s+userSttStartedByInit\s*=\s*false/.test(deferredInit) &&
-      /let\s+liveIndexingStartedByInit\s*=\s*false/.test(deferredInit),
-    'BUG: deferred audio init must track whether this init path started STT/RAG work.',
+      /let\s+userSttStartedByInit\s*=\s*false/.test(deferredInit),
+    'BUG: deferred audio init must track whether this init path started STT work.',
   );
   assert.ok(
     /if\s*\(\s*systemSttStartedByInit\s*\)\s*\{[\s\S]*this\.googleSTT\?\.stop\s*\(\s*\)/.test(deferredInit) &&
-      /if\s*\(\s*userSttStartedByInit\s*\)\s*\{[\s\S]*this\.googleSTT_User\?\.stop\s*\(\s*\)/.test(deferredInit) &&
-      /if\s*\(\s*liveIndexingStartedByInit\s*\)\s*\{[\s\S]*this\.ragManager\?\.stopLiveIndexing\?\.\(\s*\)/.test(deferredInit),
-    'BUG: stale deferred audio init must not stop STT/RAG work unless this stale init started it.',
+      /if\s*\(\s*userSttStartedByInit\s*\)\s*\{[\s\S]*this\.googleSTT_User\?\.stop\s*\(\s*\)/.test(deferredInit),
+    'BUG: stale deferred audio init must not stop STT work unless this stale init started it.',
   );
   assert.ok(
     /this\.googleSTT\?\.start\s*\(\s*\);[\s\S]*systemSttStartedByInit\s*=\s*true/.test(deferredInit) &&
-      /this\.googleSTT_User\?\.start\s*\(\s*\);[\s\S]*userSttStartedByInit\s*=\s*true/.test(deferredInit) &&
-      /this\.ragManager\.startLiveIndexing\s*\([^)]*\);[\s\S]*liveIndexingStartedByInit\s*=\s*true/.test(deferredInit),
-    'BUG: deferred audio init must set STT/RAG ownership flags immediately after starting those resources.',
+      /this\.googleSTT_User\?\.start\s*\(\s*\);[\s\S]*userSttStartedByInit\s*=\s*true/.test(deferredInit),
+    'BUG: deferred audio init must set STT ownership flags immediately after starting those resources.',
   );
   assert.ok(
     /await\s+this\.reconfigureAudio\s*\([^)]*\);[\s\S]*systemCaptureOwnedByInit\s*=\s*this\.systemAudioCapture;[\s\S]*microphoneCaptureOwnedByInit\s*=\s*this\.microphoneCapture;[\s\S]*if\s*\(\s*!isCurrentMeeting\s*\(\s*\)\s*\)\s*\{[\s\S]*abortStaleAudioInit\s*\(\s*\);[\s\S]*return;[\s\S]*\}/.test(deferredInit),

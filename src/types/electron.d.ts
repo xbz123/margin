@@ -309,29 +309,12 @@ export interface ElectronAPI {
 
   onMeetingsUpdated: (callback: () => void) => () => void
 
-  // Provider Compatibility
-  onIncompatibleProviderWarning: (callback: (data: { count: number, oldProvider: string, newProvider: string }) => void) => () => void;
-  reindexIncompatibleMeetings: () => Promise<void>;
-
   // Theme API
   getThemeMode: () => Promise<{ mode: 'system' | 'light' | 'dark', resolved: 'light' | 'dark' }>
   setThemeMode: (mode: 'system' | 'light' | 'dark') => Promise<void>
   onThemeChanged: (callback: (data: { mode: 'system' | 'light' | 'dark', resolved: 'light' | 'dark' }) => void) => () => void
 
   // Auto-Update
-
-  // RAG (Retrieval-Augmented Generation) API
-  ragQueryMeeting: (meetingId: string, query: string) => Promise<{ success?: boolean; fallback?: boolean; error?: string }>
-  ragQueryLive: (query: string) => Promise<{ success?: boolean; fallback?: boolean; error?: string }>
-  ragQueryGlobal: (query: string) => Promise<{ success?: boolean; fallback?: boolean; error?: string }>
-  ragCancelQuery: (options: { meetingId?: string; global?: boolean }) => Promise<{ success: boolean }>
-  ragIsMeetingProcessed: (meetingId: string) => Promise<boolean>
-  ragGetQueueStatus: () => Promise<{ pending: number; processing: number; completed: number; failed: number }>
-  ragRetryEmbeddings: () => Promise<{ success: boolean }>
-  onRAGStreamChunk: (callback: (data: { meetingId?: string; global?: boolean; chunk: string }) => void) => () => void
-  onRAGStreamComplete: (callback: (data: { meetingId?: string; global?: boolean }) => void) => () => void
-  onRAGStreamError: (callback: (data: { meetingId?: string; global?: boolean; error: string }) => void) => () => void
-
 
   // Keybind Management
   getKeybinds: () => Promise<Array<{ id: string; label: string; accelerator: string; isGlobal: boolean; defaultAccelerator: string }>>
@@ -375,9 +358,9 @@ export interface ElectronAPI {
   getMeetingRetention: () => Promise<'forever' | '7d' | '30d' | 'never'>;
   setMeetingRetention: (retention: 'forever' | '7d' | '30d' | 'never') => Promise<{ success: boolean; error?: string }>;
   onMeetingRetentionChanged: (callback: (retention: 'forever' | '7d' | '30d' | 'never') => void) => () => void;
-  getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }>;
-  setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }) => Promise<{ success: boolean; error?: string }>;
-  onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }) => void) => () => void;
+  getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }>;
+  setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }) => void) => () => void;
   getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only' | 'private_vision'>;
   setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only' | 'private_vision') => Promise<{ success: boolean; error?: string }>;
   onScreenUnderstandingModeChanged: (callback: (mode: 'vision_first' | 'vision_only' | 'private_vision') => void) => () => void;

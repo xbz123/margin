@@ -1,4 +1,4 @@
-// Margin meeting storage and summary test (PLAN.md AG-13; phase 1 exit item 7).
+// Margin meeting storage and summary test (PLAN.md AG-13, AG-14; phase 1 exit item 7).
 //
 // Runs the real app under the X2 isolation guard on a fresh, temporary SQLite
 // database (the sandbox's userData) and drives a meeting through IPC:
@@ -149,7 +149,8 @@ test('a meeting is saved with a mock summary, survives a restart, and stays dele
   assert.equal((await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).some((m) => m.id === meeting.id), false);
   assert.equal(await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id), null);
 
-  // 5. Schema: migrated to v16 and no mode tables.
+  // 5. Schema: fully migrated, no mode or RAG tables, and the vector extension was
+  //    never loaded (AG-13, AG-14; phase 1 exit item 7).
   const schema = await app.evaluate((_electron, { file, repo }) => {
     // Playwright's main-process evaluate has no `require`; build one at the repo root.
     const req = process.getBuiltinModule('module').createRequire(`${repo}/package.json`);
@@ -159,14 +160,18 @@ test('a meeting is saved with a mock summary, survives a restart, and stays dele
       return {
         version: db.pragma('user_version', { simple: true }),
         tables: db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((r) => r.name),
+        loadedVecModules: Object.keys(process.getBuiltinModule('module')._cache).filter((k) => /sqlite-vec/.test(k)),
       };
     } finally {
       db.close();
     }
   }, { file: dbPath, repo: REPO });
-  assert.equal(schema.version, 16);
+  assert.equal(schema.version, 17);
   assert.ok(schema.tables.includes('meetings'), `tables: ${schema.tables}`);
-  for (const t of ['modes', 'mode_reference_files', 'mode_note_sections', 'mode_reference_index_state']) {
+  for (const t of ['modes', 'mode_reference_files', 'mode_note_sections', 'mode_reference_index_state',
+    'chunks', 'chunk_summaries', 'embedding_queue']) {
     assert.equal(schema.tables.includes(t), false, `${t} should not exist`);
   }
+  assert.deepEqual(schema.tables.filter((t) => t.startsWith('vec_')), [], 'no vector tables');
+  assert.deepEqual(schema.loadedVecModules, [], 'sqlite-vec must not be loaded in the main process');
 });

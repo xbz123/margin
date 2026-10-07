@@ -90,30 +90,6 @@ export class ProcessingHelper {
     // This fixes the issue where buttons don't work in production because of late key loading
     this.appState.getIntelligenceManager().initializeLLMs();
 
-    // CRITICAL: Initialize RAGManager (Embeddings) with loaded keys
-    // This fixes "RAG unavailable" in production where process.env is empty
-    const ragManager = this.appState.getRAGManager();
-    if (ragManager) {
-      console.log("[ProcessingHelper] Initializing RAGManager embeddings with available keys");
-      ragManager.initializeEmbeddings({
-          openaiKey: openaiKey || undefined,
-          geminiKey: geminiKey || undefined,
-          // ollamaUrl is not fetched in CredentialsManager yet by default, but we pass these keys
-          providerDataScopes: (() => { try { const { SettingsManager } = require('./services/SettingsManager'); return SettingsManager.getInstance().get('providerDataScopes'); } catch { return undefined; } })()
-      });
-
-      // CRITICAL: Retry pending embeddings now that we have a key
-      // This ensures any meetings that failed or were queued during startup get processed
-      console.log("[ProcessingHelper] Retrying pending embeddings...");
-      ragManager.retryPendingEmbeddings().catch(console.error);
-
-      // CRITICAL: Ensure demo meeting has chunks
-      ragManager.ensureDemoMeetingProcessed().catch(console.error);
-
-      // CRITICAL: Cleanup stale queue items to prevent "Chunk not found" errors
-      ragManager.cleanupStaleQueueItems();
-    }
-
     // Initialize self-improving model version manager (background, non-blocking)
     this.llmHelper.initModelVersionManager().catch(err => {
       console.warn('[ProcessingHelper] ModelVersionManager initialization failed (non-critical):', err.message);

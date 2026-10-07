@@ -350,7 +350,6 @@ import { SonioxStreamingSTT } from "./audio/SonioxStreamingSTT"
 import { ElevenLabsStreamingSTT } from "./audio/ElevenLabsStreamingSTT"
 import { OpenAIStreamingSTT } from "./audio/OpenAIStreamingSTT"
 import { ThemeManager } from "./ThemeManager"
-import { RAGManager } from "./rag/RAGManager"
 import { DatabaseManager } from "./db/DatabaseManager"
 import { warmupIntentClassifier } from "./llm"
 
@@ -407,7 +406,6 @@ export class AppState {
 
   private intelligenceManager: IntelligenceManager
   private themeManager: ThemeManager
-  private ragManager: RAGManager | null = null
   private tray: Tray | null = null
   private disguiseMode: 'terminal' | 'settings' | 'activity' | 'none' = 'none'
 
@@ -447,16 +445,10 @@ export class AppState {
   // Mirrors the existing _lastRequestedInputDeviceId for the input side.
   private _lastRequestedOutputDeviceId: string | undefined = undefined;
   // Promise representing in-flight endMeeting background teardown (STT.stop +
-  // intelligenceManager.stopMeeting + RAG cleanup). startMeeting() awaits this
+  // intelligenceManager.stopMeeting). startMeeting() awaits this
   // before booting a new session so the shared STT instances are not torn down
   // mid-meeting by a stale teardown task.
   private _pendingTeardown: Promise<void> | null = null;
-  // Tracks meeting IDs currently being processed by processCompletedMeetingForRAG.
-  // Without this guard, a rapid stop→start→stop cycle could enqueue the same
-  // meeting for RAG twice (e.g. recovery retry + normal completion), duplicating
-  // embedding work, slowing the meeting-end perceived latency, and racing the
-  // SQLite INSERT OR IGNORE that protects against duplicates.
-  private _ragProcessingInFlight: Set<string> = new Set();
   private _isQuitting: boolean = false;
   private _verboseLogging: boolean = false;
   // Tracks whether STT sample-rate has been applied for the current capture
@@ -467,7 +459,6 @@ export class AppState {
   private _disguiseTimers: NodeJS.Timeout[] = []; // Track forceUpdate timeouts
   private _dockDebounceTimer: NodeJS.Timeout | null = null; // Debounce dock state changes
   private _dockReassertTimers: NodeJS.Timeout[] = []; // Re-assert dock-hidden state after show+focus
-  private _ollamaBootstrapPromise: Promise<void> | null = null;
   private screenshotCaptureInProgress: boolean = false;
 
 
@@ -745,8 +736,7 @@ export class AppState {
     this.themeManager = ThemeManager.getInstance()
 
     // Restore toggle states that live in LLMHelper memory.
-    // This MUST happen here — not inside initializeRAGManager() — so that
-    // it runs unconditionally.
+    // This MUST happen here so that it runs unconditionally.
     {
       const llmHelper = this.processingHelper.getLLMHelper();
       if (settingsManager.get('groqFastTextMode')) {
@@ -771,12 +761,6 @@ export class AppState {
         }
       } catch (_) {}
     }
-
-    // Initialize RAGManager (requires database to be ready)
-    this.initializeRAGManager()
-
-    // Check and prep Ollama embedding model
-    this.bootstrapOllamaEmbeddings()
 
 
     this.setupIntelligenceEvents()
@@ -858,69 +842,6 @@ export class AppState {
   private broadcastMeetingState(): void {
     this.broadcast('meeting-state-changed', { isActive: this.isMeetingActive });
   }
-
-  private async bootstrapOllamaEmbeddings() {
-    this._ollamaBootstrapPromise = (async () => {
-      try {
-        const { OllamaBootstrap } = require('./rag/OllamaBootstrap');
-        const bootstrap = new OllamaBootstrap();
-
-        // Fire and forget — don't await this before showing the window
-        const result = await bootstrap.bootstrap('nomic-embed-text', (status: string, percent: number) => {
-          // Send progress to renderer via IPC
-          this.broadcast('ollama:pull-progress', { status, percent });
-        });
-
-        if (result === 'pulled' || result === 'already_pulled') {
-          this.broadcast('ollama:pull-complete');
-          // Re-resolve the embedding provider given that Ollama might now be available
-          if (this.ragManager) {
-             console.log('[AppState] Ollama model ready, re-evaluating RAG pipeline provider');
-             const { CredentialsManager } = require('./services/CredentialsManager');
-             const cm = CredentialsManager.getInstance();
-             this.ragManager.initializeEmbeddings({
-                openaiKey: cm.getOpenaiApiKey() || process.env.OPENAI_API_KEY || undefined,
-                geminiKey: cm.getGeminiApiKey() || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || undefined,
-                ollamaUrl: process.env.OLLAMA_URL || "http://localhost:11434",
-                providerDataScopes: (() => { try { const { SettingsManager } = require('./services/SettingsManager'); return SettingsManager.getInstance().get('providerDataScopes'); } catch { return undefined; } })()
-             });
-          }
-        }
-      } catch (err) {
-         console.error('[AppState] Failed to bootstrap Ollama:', err);
-      }
-    })();
-  }
-
-  private initializeRAGManager(): void {
-    try {
-      const db = DatabaseManager.getInstance();
-      const sqliteDb = db.getDb();
-
-      if (sqliteDb) {
-        const { CredentialsManager } = require('./services/CredentialsManager');
-        const cm = CredentialsManager.getInstance();
-        const openaiKey = cm.getOpenaiApiKey() || process.env.OPENAI_API_KEY;
-        const geminiKey = cm.getGeminiApiKey() || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-
-        const providerDataScopes = (() => { try { const { SettingsManager } = require('./services/SettingsManager'); return SettingsManager.getInstance().get('providerDataScopes'); } catch { return undefined; } })();
-        this.ragManager = new RAGManager({
-            db: sqliteDb,
-            dbPath: db.getDbPath(),
-            extPath: db.getExtPath(),
-            openaiKey,
-            geminiKey,
-            ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
-            providerDataScopes
-        });
-        this.ragManager.setLLMHelper(this.processingHelper.getLLMHelper());
-        console.log('[AppState] RAGManager initialized');
-      }
-    } catch (error) {
-      console.error('[AppState] Failed to initialize RAGManager:', error);
-    }
-  }
-
 
   // New Property for System Audio & Microphone
   private systemAudioCapture: SystemAudioCapture | null = null;
@@ -1050,15 +971,6 @@ export class AppState {
         final: segment.isFinal,
         confidence: segment.confidence
       });
-
-      // Feed final transcript to JIT RAG indexer
-      if (segment.isFinal && this.ragManager) {
-        this.ragManager.feedLiveTranscript([{
-          speaker: speaker,
-          text: segment.text,
-          timestamp: Date.now()
-        }]);
-      }
 
       const helper = this.getWindowHelper();
       const payload = {
@@ -2915,10 +2827,8 @@ export class AppState {
       let microphoneCaptureOwnedByInit = this.microphoneCapture;
       let systemSttOwnedByInit = this.googleSTT;
       let userSttOwnedByInit = this.googleSTT_User;
-      let ragManagerOwnedByInit = this.ragManager;
       let systemSttStartedByInit = false;
       let userSttStartedByInit = false;
-      let liveIndexingStartedByInit = false;
       const abortStaleAudioInit = () => {
         if (this.systemAudioCapture === systemCaptureOwnedByInit) {
           (this.systemAudioCapture as any)?.__disarmStuckWatchdog?.();
@@ -2935,9 +2845,6 @@ export class AppState {
         }
         if (userSttStartedByInit) {
           if (this.googleSTT_User === userSttOwnedByInit) this.googleSTT_User?.stop();
-        }
-        if (liveIndexingStartedByInit) {
-          if (this.ragManager === ragManagerOwnedByInit) this.ragManager?.stopLiveIndexing?.();
         }
       };
 
@@ -2957,7 +2864,6 @@ export class AppState {
           microphoneCaptureOwnedByInit = this.microphoneCapture;
           systemSttOwnedByInit = this.googleSTT;
           userSttOwnedByInit = this.googleSTT_User;
-          ragManagerOwnedByInit = this.ragManager;
         }
 
         // LAZY INIT: Ensure pipeline is ready (if not reconfigured above)
@@ -2970,7 +2876,6 @@ export class AppState {
         microphoneCaptureOwnedByInit = this.microphoneCapture;
         systemSttOwnedByInit = this.googleSTT;
         userSttOwnedByInit = this.googleSTT_User;
-        ragManagerOwnedByInit = this.ragManager;
 
         // Start System Audio
         this.systemAudioCapture?.start();
@@ -2981,12 +2886,6 @@ export class AppState {
         this.microphoneCapture?.start();
         this.googleSTT_User?.start();
         userSttStartedByInit = true;
-
-        // Start JIT RAG live indexing
-        if (this.ragManager) {
-          this.ragManager.startLiveIndexing('live-meeting-current');
-          liveIndexingStartedByInit = true;
-        }
 
         if (!isCurrentMeeting()) {
           abortStaleAudioInit();
@@ -3121,7 +3020,7 @@ export class AppState {
     this.googleSTT?.finalize?.();
     this.googleSTT_User?.finalize?.();
 
-    // ─── BACKGROUND: STT drain + meeting save + RAG embed ────────────────
+    // ─── BACKGROUND: STT drain + meeting save ────────────────
     // Note: `isMeetingActive` was already flipped to false synchronously above
     // (so the launcher UI updates instantly). `_isDraining` is true during the
     // 250 ms grace window so the transcript handler keeps accepting trailing
@@ -3129,7 +3028,6 @@ export class AppState {
     // in-flight teardown as `_pendingTeardown` so a fast start→stop→start
     // sequence awaits this completion in startMeeting() before booting a new
     // session on the (still-shared) STT instances.
-    const ragManager = this.ragManager;
     this._pendingTeardown = (async () => {
       try {
         // 0. Revert to Default Model. Moved into BG: getDefaultModel() and the
@@ -3163,27 +3061,7 @@ export class AppState {
 
         // 3. Snapshot transcript + persist placeholder + queue title/summary LLM.
         //    intelligenceManager.stopMeeting itself runs LLM in background.
-        const meetingId = await this.intelligenceManager.stopMeeting();
-
-        // 5. RAG cleanup — same logic as before, just inside the BG IIFE.
-        if (meetingId) {
-          if (ragManager) {
-            await ragManager.stopLiveIndexing();
-            console.log('[Main] Live RAG indexing stopped.');
-          }
-          await this.processCompletedMeetingForRAG(meetingId);
-          if (ragManager && !this.isMeetingActive) {
-            ragManager.deleteMeetingData('live-meeting-current');
-            console.log('[Main] JIT RAG provisional chunks cleaned up.');
-          } else if (this.isMeetingActive) {
-            console.log('[Main] New meeting started during cleanup — skipping live-meeting-current deletion.');
-          }
-        } else {
-          if (ragManager) {
-            await ragManager.stopLiveIndexing().catch(() => {});
-            if (!this.isMeetingActive) ragManager.deleteMeetingData('live-meeting-current');
-          }
-        }
+        await this.intelligenceManager.stopMeeting();
       } catch (err) {
         console.error('[Main] Background meeting teardown failed:', err);
       } finally {
@@ -3193,52 +3071,6 @@ export class AppState {
     // endMeeting returns NOW — the IPC handler resolves and the renderer's
     // "Stop" button transitions instantly. Total endMeeting wall-clock time
     // is now bounded by the synchronous block above (~1–5ms typical).
-  }
-
-  private async processCompletedMeetingForRAG(meetingId: string): Promise<void> {
-    if (!this.ragManager) return;
-
-    // In-flight guard: rapid teardown paths (recovery retry + normal completion,
-    // or back-to-back endMeeting calls) can enqueue the same meeting twice
-    // before the first completes. Each invocation re-reads the transcript,
-    // re-chunks, and re-queues embeddings — duplicating ~100ms-2s of work and
-    // racing the SQLite INSERT-OR-IGNORE. Short-circuit if already in flight.
-    if (this._ragProcessingInFlight.has(meetingId)) {
-      console.log(`[AppState] RAG processing for ${meetingId} already in flight — skipping duplicate.`);
-      return;
-    }
-    this._ragProcessingInFlight.add(meetingId);
-
-    try {
-      // Use the explicit meetingId passed from endMeeting() — deterministic, never
-      // picks up a concurrently started meeting the way getRecentMeetings(1) could.
-      const meeting = DatabaseManager.getInstance().getMeetingDetails(meetingId);
-      if (!meeting || !meeting.transcript || meeting.transcript.length === 0) return;
-
-      // Convert transcript to RAG format
-      const segments = meeting.transcript.map(t => ({
-        speaker: t.speaker,
-        text: t.text,
-        timestamp: t.timestamp
-      }));
-
-      // Generate summary from detailedSummary if available
-      let summary: string | undefined;
-      if (meeting.detailedSummary) {
-        summary = [
-          ...(meeting.detailedSummary.keyPoints || []),
-          ...(meeting.detailedSummary.actionItems || []).map(a => `Action: ${a}`)
-        ].join('. ');
-      }
-
-      const result = await this.ragManager.processMeeting(meeting.id, segments, summary);
-      console.log(`[AppState] RAG processed meeting ${meeting.id}: ${result.chunkCount} chunks`);
-
-    } catch (error) {
-      console.error('[AppState] Failed to process meeting for RAG:', error);
-    } finally {
-      this._ragProcessingInFlight.delete(meetingId);
-    }
   }
 
   private setupIntelligenceEvents(): void {
@@ -3461,10 +3293,6 @@ export class AppState {
 
   public getThemeManager(): ThemeManager {
     return this.themeManager
-  }
-
-  public getRAGManager(): RAGManager | null {
-    return this.ragManager;
   }
 
   public getView(): "queue" | "solutions" {
@@ -4287,7 +4115,7 @@ async function initializeApp() {
 
   // 3. Initialize Managers
   // Initialize CredentialsManager and load keys explicitly
-  // This fixes the issue where keys (especially in production) aren't loaded in time for RAG/LLM
+  // This fixes the issue where keys (especially in production) aren't loaded in time for the LLM
   const { CredentialsManager } = require('./services/CredentialsManager');
   CredentialsManager.getInstance().init();
 

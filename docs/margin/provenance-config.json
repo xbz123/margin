@@ -52,6 +52,8 @@
     { "line": "const lines = [", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
     { "line": "version: db.pragma('user_version', { simple: true }),", "reason": "Generic test helper / better-sqlite3 pragma idiom; written for this branch (AG-13 storage test), 2026-10-07" },
     { "line": "if (version < 16) {", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-13 v16 drops the mode tables), 2026-10-07" },
-    { "line": "this.db.pragma('user_version = 16');", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-13 v16 drops the mode tables), 2026-10-07" }
+    { "line": "this.db.pragma('user_version = 16');", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-13 v16 drops the mode tables), 2026-10-07" },
+    { "line": "if (version < 17) {", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-14 v17 drops the RAG tables), 2026-10-07" },
+    { "line": "this.db.pragma('user_version = 17');", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-14 v17 drops the RAG tables), 2026-10-07" }
   ]
 }

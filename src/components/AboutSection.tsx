@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
-    Github, Twitter, Shield, Cpu, Database,
+    Github, Twitter, Shield, Cpu,
     Heart, Linkedin, Instagram, Mail, MicOff, Star, Bug, Globe, Sparkles, Zap, Camera, LayoutGrid, User, Volume2, Activity, MessageSquare, Link, Smartphone, Calendar, ListTodo, Users, WifiOff, Send
 } from 'lucide-react';
 import evinProfile from '../assets/evin.png';
@@ -129,19 +129,6 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                         </div>
                     </div>
 
-                    <div className="p-3 bg-bg-card/50">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 shrink-0">
-                                <Database size={20} />
-                            </div>
-                            <div>
-                                <h5 className="text-sm font-bold text-text-primary mb-1">Local RAG & Memory</h5>
-                                <p className="text-xs text-text-secondary leading-relaxed">
-                                    A purely local vector memory system allows Natively to recall details from past meetings. Embeddings and retrieval happen on-device via SQLite for maximum privacy.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

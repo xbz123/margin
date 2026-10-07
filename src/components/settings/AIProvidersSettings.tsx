@@ -170,7 +170,7 @@ export const AIProvidersSettings: React.FC = () => {
     const [technicalInterviewVisionFirst, setTechnicalInterviewVisionFirst] = useState<boolean>(true);
 
     // --- Cloud Provider Data Scopes (fail-closed cloud share controls) ---
-    const [providerDataScopes, setProviderDataScopes] = useState<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; embeddings?: boolean; post_call_summary?: boolean }>({});
+    const [providerDataScopes, setProviderDataScopes] = useState<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }>({});
 
     // Load Initial Data
     useEffect(() => {
@@ -1259,7 +1259,6 @@ export const AIProvidersSettings: React.FC = () => {
                         { key: 'transcript', label: 'Transcripts' },
                         { key: 'screenshots', label: 'Screenshots' },
                         { key: 'profile_history', label: 'Profile history' },
-                        { key: 'embeddings', label: 'Cloud embeddings' },
                         { key: 'post_call_summary', label: 'Post-call summaries' },
                     ] as const).map(({ key, label }) => {
                         const allowed = providerDataScopes[key] !== false;

@@ -52,7 +52,6 @@ test.describe('Cluely-parity gap E2E evidence', () => {
         transcript: false,
         screenshots: false,
         profile_history: true,
-        embeddings: false,
         post_call_summary: true,
       });
     });
@@ -63,7 +62,6 @@ test.describe('Cluely-parity gap E2E evidence', () => {
     });
     expect(after.transcript).toBe(false);
     expect(after.screenshots).toBe(false);
-    expect(after.embeddings).toBe(false);
 
     // Reset for the next run so the dev userData isn't left in a denied state.
     const reset = await page.evaluate(async () => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ToggleLeft, ToggleRight, Search, Calendar, ArrowRight, ArrowLeft, MoreHorizontal, Globe, Clock, ChevronRight, Settings, LayoutGrid, RefreshCw, Eye, EyeOff, Ghost, Plus, Mail, Link as LinkIcon, ChevronDown, Trash2, Bell, Check, Download, DownloadCloud, CheckCircle, AlertCircle, User, Sparkles, ArrowUpRight } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Search, Calendar, ArrowRight, ArrowLeft, MoreHorizontal, Globe, Clock, ChevronRight, Settings, LayoutGrid, RefreshCw, Eye, EyeOff, Ghost, Plus, Mail, Link as LinkIcon, ChevronDown, Trash2, Bell, Check, Download, User, Sparkles, ArrowUpRight } from 'lucide-react';
 import { generateMeetingPDF } from '../utils/pdfGenerator';
 import icon from "./icon.png";
 import mainui from "../UI_comp/mainui.png";
@@ -42,9 +42,6 @@ interface LauncherProps {
     onStartMeeting: () => void;
     onOpenSettings: (tab?: string) => void;
     onPageChange?: (isMain: boolean) => void;
-    ollamaPullStatus?: 'idle' | 'downloading' | 'complete' | 'failed';
-    ollamaPullPercent?: number;
-    ollamaPullMessage?: string;
 }
 
 // Helper to format date groups
@@ -72,7 +69,7 @@ const formatTime = (dateStr: string) => {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
 };
 
-const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onPageChange, ollamaPullStatus = 'idle', ollamaPullPercent = 0, ollamaPullMessage = '' }) => {
+const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onPageChange }) => {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [isDetectable, setIsDetectable] = useState(false);
     const [isMeetingActive, setIsMeetingActive] = useState(false);
@@ -484,41 +481,8 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                  </button>
                                              )}
                                          </div>
-                                         {/* Center: Ollama Pull Status Pill (flex-1 to center evenly) */}
-                                        <div className="flex-1 flex justify-center mx-4">
-                                            <AnimatePresence>
-                                                {ollamaPullStatus !== 'idle' && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                                                        className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-xl ${isLight ? 'bg-bg-elevated border border-border-muted shadow-[0_4px_16px_rgba(0,0,0,0.1)]' : 'bg-bg-elevated/80 border border-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.3)]'}`}
-                                                    >
-                                                        {ollamaPullStatus === 'downloading' ? (
-                                                            <DownloadCloud size={14} className="text-blue-400 animate-pulse shrink-0" />
-                                                        ) : ollamaPullStatus === 'complete' ? (
-                                                            <CheckCircle size={14} className="text-emerald-400 shrink-0" />
-                                                        ) : (
-                                                            <AlertCircle size={14} className="text-red-400 shrink-0" />
-                                                        )}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[11px] font-medium text-text-secondary whitespace-nowrap">
-                                                                {ollamaPullStatus === 'downloading' ? `Setting up AI memory... ${ollamaPullPercent}%` : ollamaPullMessage}
-                                                            </span>
-                                                            {ollamaPullStatus === 'downloading' && (
-                                                                <div className="w-full h-[3px] bg-white/10 rounded-full mt-1 overflow-hidden">
-                                                                    <div
-                                                                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                                                                        style={{ width: `${ollamaPullPercent}%` }}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
+                                        {/* Center spacer (flex-1 keeps the CTA pill centred) */}
+                                        <div className="flex-1 flex justify-center mx-4" />
 
                                         {/* Unified CTA pill — same jelly shape, morphs between idle and active-meeting state */}
                                         <motion.button

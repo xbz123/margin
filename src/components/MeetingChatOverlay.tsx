@@ -25,7 +25,7 @@ interface Message {
 }
 
 interface MeetingContext {
-    id?: string;  // Required for RAG queries
+    id?: string;
     title: string;
     summary?: string;
     keyPoints?: string[];
@@ -276,7 +276,7 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
         return parts.join('\n');
     }, [meetingContext]);
 
-    // Submit question using RAG streaming
+    // Submit question with this meeting's transcript and notes as context
     const submitQuestion = useCallback(async (question: string) => {
         if (!question.trim() || chatState === 'waiting_for_llm' || chatState === 'streaming_response') return;
 
@@ -308,11 +308,17 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
                 isStreaming: true
             }]);
 
-            // Set up RAG streaming listeners (RAF-batched to avoid per-token re-renders)
+            // Answer from this meeting's own transcript and notes.
+            const contextString = buildContextString();
+            const systemPrompt = `You are recalling a specific meeting. Answer questions ONLY about this meeting. Be concise (2-4 sentences). Sound natural, like a human recalling. If information is not present, say so briefly. Never guess.
+
+${contextString}`;
+
+            // Switch to Gemini streaming (RAF-batched)
             streamBuffer.reset();
-            const tokenCleanup = window.electronAPI?.onRAGStreamChunk((data: { chunk: string }) => {
+            const tokenCleanup = window.electronAPI?.onGeminiStreamToken((token: string) => {
                 setChatState('streaming_response');
-                streamBuffer.appendToken(data.chunk, (content) => {
+                streamBuffer.appendToken(token, (content) => {
                     setMessages(prev => prev.map(msg =>
                         msg.id === assistantMessageId
                             ? { ...msg, content }
@@ -321,8 +327,7 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
                 });
             });
 
-            const doneCleanup = window.electronAPI?.onRAGStreamComplete(() => {
-                // Final commit — flush any remaining buffered content
+            const doneCleanup = window.electronAPI?.onGeminiStreamDone(() => {
                 const finalContent = streamBuffer.getBufferedContent();
                 setMessages(prev => prev.map(msg =>
                     msg.id === assistantMessageId
@@ -336,10 +341,10 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
                 errorCleanup?.();
             });
 
-            const errorCleanup = window.electronAPI?.onRAGStreamError((data: { error: string }) => {
-                console.error('[MeetingChat] RAG stream error:', data.error);
+            const errorCleanup = window.electronAPI?.onGeminiStreamError((error: string) => {
+                console.error('[MeetingChat] Gemini stream error:', error);
                 setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
-                setErrorMessage("Couldn't get a response. Please try again.");
+                setErrorMessage("Couldn't get a response. Please check your settings.");
                 setChatState('error');
                 streamBuffer.reset();
                 tokenCleanup?.();
@@ -347,122 +352,12 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
                 errorCleanup?.();
             });
 
-            // Get meeting ID from context for RAG queries
-            const meetingId = meetingContext.id;
-
-            if (meetingId) {
-                // Use RAG-powered meeting query
-                const result = await window.electronAPI?.ragQueryMeeting(meetingId, question);
-
-                // If RAG not available (or failed), fall back to context-window chat
-                if (result?.fallback) {
-                    console.log("[MeetingChat] RAG unavailable, using context window fallback");
-                    // Cleanup RAG listeners since we won't use them
-                    tokenCleanup?.();
-                    doneCleanup?.();
-                    errorCleanup?.();
-
-                    // FALLBACK LOGIC
-                    const contextString = buildContextString();
-                    const systemPrompt = `You are recalling a specific meeting. Answer questions ONLY about this meeting. Be concise (2-4 sentences). Sound natural, like a human recalling. If information is not present, say so briefly. Never guess.
-
-${contextString}`;
-
-                    streamBuffer.reset();
-                    const oldTokenCleanup = window.electronAPI?.onGeminiStreamToken((token: string) => {
-                        setChatState('streaming_response');
-                        streamBuffer.appendToken(token, (content) => {
-                            setMessages(prev => prev.map(msg =>
-                                msg.id === assistantMessageId
-                                    ? { ...msg, content }
-                                    : msg
-                            ));
-                        });
-                    });
-
-                    const oldDoneCleanup = window.electronAPI?.onGeminiStreamDone(() => {
-                        const finalContent = streamBuffer.getBufferedContent();
-                        setMessages(prev => prev.map(msg =>
-                            msg.id === assistantMessageId
-                                ? { ...msg, content: finalContent, isStreaming: false }
-                                : msg
-                        ));
-                        streamBuffer.reset();
-                        oldTokenCleanup?.();
-                        oldDoneCleanup?.();
-                        oldErrorCleanup?.();
-                    });
-
-                    const oldErrorCleanup = window.electronAPI?.onGeminiStreamError((error: string) => {
-                        console.error('[MeetingChat] Gemini stream error (fallback):', error);
-                        setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
-                        setErrorMessage("Couldn't get a response. Please check your settings.");
-                        setChatState('error');
-                        streamBuffer.reset();
-                        oldTokenCleanup?.();
-                        oldDoneCleanup?.();
-                        oldErrorCleanup?.();
-                    });
-
-                    await window.electronAPI?.streamGeminiChat(
-                        question,
-                        undefined,
-                        systemPrompt,
-                        { skipSystemPrompt: true, ignoreKnowledgeMode: true }
-                    );
-                }
-            } else {
-                // No meeting ID, standard fallback
-                const contextString = buildContextString();
-                const systemPrompt = `You are recalling a specific meeting. Answer questions ONLY about this meeting. Be concise (2-4 sentences). Sound natural, like a human recalling. If information is not present, say so briefly. Never guess.
-
-${contextString}`;
-
-                // Switch to Gemini streaming (RAF-batched)
-                streamBuffer.reset();
-                const oldTokenCleanup = window.electronAPI?.onGeminiStreamToken((token: string) => {
-                    setChatState('streaming_response');
-                    streamBuffer.appendToken(token, (content) => {
-                        setMessages(prev => prev.map(msg =>
-                            msg.id === assistantMessageId
-                                ? { ...msg, content }
-                                : msg
-                        ));
-                    });
-                });
-
-                const oldDoneCleanup = window.electronAPI?.onGeminiStreamDone(() => {
-                    const finalContent = streamBuffer.getBufferedContent();
-                    setMessages(prev => prev.map(msg =>
-                        msg.id === assistantMessageId
-                            ? { ...msg, content: finalContent, isStreaming: false }
-                            : msg
-                    ));
-                    setChatState('idle');
-                    streamBuffer.reset();
-                    oldTokenCleanup?.();
-                    oldDoneCleanup?.();
-                    oldErrorCleanup?.();
-                });
-
-                const oldErrorCleanup = window.electronAPI?.onGeminiStreamError((error: string) => {
-                    console.error('[MeetingChat] Gemini stream error:', error);
-                    setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
-                    setErrorMessage("Couldn't get a response. Please check your settings.");
-                    setChatState('error');
-                    streamBuffer.reset();
-                    oldTokenCleanup?.();
-                    oldDoneCleanup?.();
-                    oldErrorCleanup?.();
-                });
-
-                await window.electronAPI?.streamGeminiChat(
-                    question,
-                    undefined,
-                    systemPrompt,
-                    { skipSystemPrompt: true, ignoreKnowledgeMode: true }
-                );
-            }
+            await window.electronAPI?.streamGeminiChat(
+                question,
+                undefined,
+                systemPrompt,
+                { skipSystemPrompt: true, ignoreKnowledgeMode: true }
+            );
 
         } catch (error) {
             console.error('[MeetingChat] Error:', error);

@@ -39,7 +39,6 @@ export interface AppSettings {
         transcript?: boolean;
         screenshots?: boolean;
         profile_history?: boolean;
-        embeddings?: boolean;
         post_call_summary?: boolean;
     };
     // Screen-understanding routing — VISION-ONLY architecture (legacy OCR removed from runtime).

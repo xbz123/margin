@@ -629,7 +629,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                     setSubmittedQuery('');
                 }}
                 meetingContext={{
-                    id: meeting.id,  // Required for RAG queries
+                    id: meeting.id,
                     title: meeting.title,
                     summary: meeting.detailedSummary?.overview,
                     keyPoints: meeting.detailedSummary?.keyPoints,
