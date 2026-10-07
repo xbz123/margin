@@ -320,4 +320,5 @@ process.env.MARGIN_ISOLATION_ACTIVE = '1';
 // expected process has no evidence that the guard ran there, and env.mjs
 // readGuardLog() fails on it (PLAN.md AG-17 review). Not a blocked attempt, so it is
 // not printed.
-writeLog({ t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind: 'guard-loaded', detail: process.type || 'node' });
+// ppid lets run-gates.mjs match the record to the run-node.mjs process it started.
+writeLog({ t: new Date().toISOString(), pid: process.pid, ppid: process.ppid, script: process.argv[1], kind: 'guard-loaded', detail: process.type || 'node' });

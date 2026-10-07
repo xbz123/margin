@@ -124,7 +124,7 @@ export const AIProvidersSettings: React.FC = () => {
     const [testStatus, setTestStatus] = useState<Record<string, 'idle' | 'testing' | 'success' | 'error'>>({});
     const [testError, setTestError] = useState<Record<string, string>>({});
 
-    // --- Local (Codex CLI) ---
+    // --- Codex CLI ---
     const [codexCliConfig, setCodexCliConfig] = useState({ enabled: false, path: 'codex', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', timeoutMs: 60000, sandboxMode: 'read-only' as string, serviceTier: 'default' as string | undefined, modelReasoningEffort: undefined as string | undefined });
     const [codexCliStatus, setCodexCliStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
     const [codexCliError, setCodexCliError] = useState('');
@@ -580,18 +580,18 @@ export const AIProvidersSettings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Local (Codex CLI) Provider */}
+            {/* Codex CLI Provider: the CLI runs on this Mac, the model runs at OpenAI */}
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Local Provider (Codex CLI)</h3>
-                    <p className="text-xs text-text-secondary">Route text and screenshot responses through a locally authenticated Codex CLI.</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">Codex CLI</h3>
+                    <p className="text-xs text-text-secondary">Route text and screenshot responses through the Codex CLI signed in on this Mac. The CLI sends your prompts, transcript context and screenshots to OpenAI for processing.</p>
                 </div>
 
                 <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
                             <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Enable Codex CLI</label>
-                            <p className="text-[10px] text-text-secondary">Adds Codex CLI as a selectable local backend and fallback.</p>
+                            <p className="text-[10px] text-text-secondary">Adds Codex CLI as a selectable cloud backend and fallback.</p>
                         </div>
                         <button
                             type="button"

@@ -295,6 +295,10 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
         }, 50);
 
         const assistantMessageId = genMessageId();
+        // Set once the stream listeners are registered. The catch below calls it too, so
+        // a request that fails before streaming (the invoke rejects and no stream event
+        // follows) leaves no listener behind for the next request (PLAN.md AG-17 review).
+        let releaseStream = () => {};
 
         try {
             // Add typing indicator delay (200ms) - makes the AI feel "thoughtful"
@@ -352,6 +356,12 @@ ${contextString}`;
                 errorCleanup?.();
             });
 
+            releaseStream = () => {
+                tokenCleanup?.();
+                doneCleanup?.();
+                errorCleanup?.();
+            };
+
             await window.electronAPI?.streamGeminiChat(
                 question,
                 undefined,
@@ -361,6 +371,8 @@ ${contextString}`;
 
         } catch (error) {
             console.error('[MeetingChat] Error:', error);
+            releaseStream();
+            streamBuffer.reset();
             setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
             setErrorMessage("Something went wrong. Please try again.");
             setChatState('error');

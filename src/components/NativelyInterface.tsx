@@ -13,7 +13,6 @@ import {
   Pencil,
   PointerOff,
   RefreshCw,
-  ShieldCheck,
   SlidersHorizontal,
   X,
   Zap,
@@ -543,8 +542,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     return stored ? stored === 'true' : true;
   });
 
-  const [llmProviderLabel, setLlmProviderLabel] = useState<string>('unknown');
-  const [llmPrivacyLabel, setLlmPrivacyLabel] = useState<string | null>(null);
   const [screenContextStatus, setScreenContextStatus] = useState<
     'not_available' | 'available' | 'failed'
   >('not_available');
@@ -557,26 +554,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const [latestVisionFailureReason, setLatestVisionFailureReason] = useState<string | undefined>(
     undefined,
   );
-
-  useEffect(() => {
-    let mounted = true;
-    const loadLlmRoute = async () => {
-      const config = await window.electronAPI?.getCurrentLlmConfig?.().catch(() => null);
-      if (!mounted || !config) return;
-      setLlmProviderLabel(formatProviderLabel(config.provider));
-      setLlmPrivacyLabel(
-        config.provider === 'codex-cli' ? 'Local/private route' : null,
-      );
-    };
-    loadLlmRoute();
-    const unsub = window.electronAPI?.onModelChanged?.(() => {
-      loadLlmRoute();
-    });
-    return () => {
-      mounted = false;
-      unsub?.();
-    };
-  }, []);
 
   // Model Selection State
   const [currentModel, setCurrentModel] = useState<string>('gemini-3-flash-preview');
@@ -3797,9 +3774,8 @@ Provide only the answer, nothing else.`;
     attachedContext.length > 0 || visionPillFailed || visionPillSucceeded;
   // Gate the whole status-pill row on having at least one pill. Otherwise the
   // empty row still reserved pt-3+pb-1, leaving a visible gap above the rolling
-  // transcript on launch (no mode yet, STT pill suppressed, no vision/llm).
-  const hasStatusPill =
-    shouldShowSttSummaryPill || showVisionPill || !!llmPrivacyLabel;
+  // transcript on launch (no mode yet, STT pill suppressed, no vision).
+  const hasStatusPill = shouldShowSttSummaryPill || showVisionPill;
   const statusPillBaseClass = `flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium shadow-sm backdrop-blur-xl ${isLightTheme ? 'bg-white/55 border-black/10' : 'bg-black/20 border-white/10'}`;
 
   const copyDiagnostics = async () => {
@@ -3955,15 +3931,6 @@ Provide only the answer, nothing else.`;
                     </div>
                   );
                 })()}
-                {llmPrivacyLabel && (
-                  <div
-                    className={`${statusPillBaseClass} overlay-text-primary`}
-                    title={`${llmPrivacyLabel}: ${llmProviderLabel}`}
-                  >
-                    <ShieldCheck className="h-3 w-3 opacity-70" />
-                    <span>{llmPrivacyLabel}</span>
-                  </div>
-                )}
               </div>
               )}
 

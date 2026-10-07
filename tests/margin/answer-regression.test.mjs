@@ -5,7 +5,8 @@
 // network, no audio devices, no permission prompts). Uses the dev-only hooks from
 // electron/margin/devOverrides.ts. Covers: streamed text answers, cancellation (events
 // of the old stream ignored, also once a new stream has started), a superseding question, a screenshot question that sends
-// the fixture image, and recovery after a provider error.
+// the fixture image, recovery after a provider error, and a retry in the launcher's chat
+// after a request that failed before streaming.
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:
@@ -268,4 +269,49 @@ test('a provider error is shown and the next question still works', async () => 
   mock.setScript({ errorStatus: 0, chunks: ['Recovered ', 'answer.'], delayMs: 50 });
   await ask('And this one?');
   await overlay.waitForFunction(() => document.body.innerText.includes('Recovered answer.'), null, { timeout: 20_000 });
+});
+
+// Makes the next gemini-chat-stream request fail in its setup, before any stream event,
+// as an exception there does: the renderer's invoke rejects. Later requests go to the
+// real handler again. Electron keeps invoke handlers in ipcMain._invokeHandlers.
+async function failNextChatStreamSetup() {
+  await app.evaluate(({ ipcMain }) => {
+    const handlers = ipcMain._invokeHandlers;
+    const real = handlers?.get('gemini-chat-stream');
+    if (!real) throw new Error('gemini-chat-stream handler not found');
+    handlers.set('gemini-chat-stream', async () => {
+      handlers.set('gemini-chat-stream', real);
+      throw new Error('margin: injected setup failure');
+    });
+  });
+}
+
+// Third review (PLAN.md AG-17): the launcher's chat registered its stream listeners and
+// kept them when the request failed before streaming, so the next answer was received
+// twice into one buffer, and the old done handler cleared it.
+test('after a chat request fails before streaming, the next answer is shown once and kept', async () => {
+  const launcher = await windowWithQuery(app, 'window=launcher');
+  // A fresh profile shows the first-run startup sequence instead of the launcher.
+  await launcher.evaluate(() => localStorage.setItem('natively_seen_startup_v1', 'true'));
+  await launcher.reload();
+  await launcher.waitForLoadState('domcontentloaded');
+  await failNextChatStreamSetup();
+  const before = mock.chatRequests().length;
+  const search = launcher.locator('input[placeholder="Search or ask anything..."]');
+  await search.click();
+  await search.fill('Launcher question that fails');
+  await search.press('ArrowDown');
+  await search.press('Enter');
+  await launcher.waitForFunction(() => document.body.innerText.includes('Something went wrong'), null, { timeout: 15_000 });
+  assert.equal(mock.chatRequests().length, before, 'the failed request reached no provider');
+
+  mock.setScript({ errorStatus: 0, chunks: ['Retry ', 'answer ', 'kept.'], delayMs: 100 });
+  const chat = launcher.locator('input[placeholder="Ask me anything..."]');
+  await chat.fill('Launcher retry question');
+  await chat.press('Enter');
+  await launcher.waitForFunction(() => document.body.innerText.includes('Retry answer kept.'), null, { timeout: 20_000 });
+  await new Promise((r) => setTimeout(r, 1_000)); // past the stream's done event
+  const text = await launcher.evaluate(() => document.body.innerText);
+  assert.equal(text.split('Retry answer kept.').length - 1, 1, 'the answer is shown exactly once and survives done');
+  assert.equal(mock.chatRequests().length, before + 1);
 });

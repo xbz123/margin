@@ -188,6 +188,10 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
         }, 50);
 
         const assistantMessageId = genMessageId();
+        // Set once the stream listeners are registered. The catch below calls it too, so
+        // a request that fails before streaming (the invoke rejects and no stream event
+        // follows) leaves no listener behind for the next request (PLAN.md AG-17 review).
+        let releaseStream = () => {};
 
         try {
             // Add typing indicator delay (200ms) - makes the AI feel "thoughtful"
@@ -239,11 +243,19 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
                 errorCleanup?.();
             });
 
+            releaseStream = () => {
+                tokenCleanup?.();
+                doneCleanup?.();
+                errorCleanup?.();
+            };
+
             // Call standard chat
             await window.electronAPI?.streamGeminiChat(question, undefined, undefined, { skipSystemPrompt: false, ignoreKnowledgeMode: true });
 
         } catch (error) {
             console.error('[GlobalChat] Error:', error);
+            releaseStream();
+            streamBuffer.reset();
             setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
             setErrorMessage("Something went wrong. Please try again.");
             setChatState('error');

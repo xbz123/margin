@@ -128,7 +128,7 @@ function codex(creds: CredentialsManager, _inputs: VisionProviderBuildInputs): V
     id: 'codex_cli',
     displayName: 'Codex CLI',
     modelId: (creds.getAllCredentials() as any)?.codexCliModel,
-    isLocal: true,
+    isLocal: false, // the CLI runs here, but it sends the request to OpenAI
     isConfigured: !!cliPath,
     supportsVision: false, // unverified; flip to true when CLI vision is confirmed end-to-end
     scopeAllowsScreenshots: true,

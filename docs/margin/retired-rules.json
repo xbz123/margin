@@ -1289,6 +1289,26 @@
     },
     {
       "ticket": "AG-17",
+      "kind": "symbol",
+      "value": "Local/private route"
+    },
+    {
+      "ticket": "AG-17",
+      "kind": "symbol",
+      "value": "Local Provider"
+    },
+    {
+      "ticket": "AG-17",
+      "kind": "symbol",
+      "value": "selectable local backend"
+    },
+    {
+      "ticket": "AG-17",
+      "kind": "symbol",
+      "value": "locally authenticated Codex"
+    },
+    {
+      "ticket": "AG-17",
       "kind": "host",
       "value": "cdn.simpleicons.org"
     },

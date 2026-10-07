@@ -127,6 +127,13 @@ export class LLMHelper {
     assertProviderDataScopes(provider, this.scopesForPayload(text, imagePaths, extraScopes), this.getProviderScopePolicy());
   }
 
+  // Gemini requests carry screenshots inline rather than as paths, so the screenshot
+  // scope is read from the request contents themselves (PLAN.md AG-17 third review).
+  private assertGeminiContents(contents: unknown): void {
+    const payload = JSON.stringify(contents ?? '');
+    this.assertOutboundScopes('gemini', payload, /"inlineData"\s*:/.test(payload) ? ['inline-image'] : undefined);
+  }
+
   private getDeniedOutboundScopes(text: string, imagePaths?: string[], extraScopes: ProviderDataScope[] = []): ProviderDataScope[] {
     return getDeniedDataScopes(this.scopesForPayload(text, imagePaths, extraScopes), this.getProviderScopePolicy());
   }
@@ -523,6 +530,7 @@ export class LLMHelper {
    */
   public async generateWithPro(contents: any[]): Promise<string> {
     if (!this.client) throw new Error("Gemini client not initialized")
+    this.assertGeminiContents(contents);
 
     await this.rateLimiters.gemini.acquire();
     // console.log(`[LLMHelper] Calling ${GEMINI_FLASH_MODEL}...`)
@@ -543,6 +551,7 @@ export class LLMHelper {
    */
   public async generateWithFlash(contents: any[]): Promise<string> {
     if (!this.client) throw new Error("Gemini client not initialized")
+    this.assertGeminiContents(contents);
 
     await this.rateLimiters.gemini.acquire();
     // console.log(`[LLMHelper] Calling ${GEMINI_FLASH_MODEL}...`)
@@ -614,7 +623,7 @@ export class LLMHelper {
    */
   private async generateContent(contents: any[], modelIdOverride?: string): Promise<string> {
     if (!this.client) throw new Error("Gemini client not initialized")
-    this.assertOutboundScopes('gemini', JSON.stringify(contents));
+    this.assertGeminiContents(contents);
 
     const targetModel = modelIdOverride || this.geminiModel;
     console.log(`[LLMHelper] Calling ${targetModel}...`)
@@ -1344,6 +1353,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           await this.rateLimiters.gemini.acquire();
           const response = await this.withRetry(async () => {
             // @ts-ignore
+            this.assertOutboundScopes('gemini', message);
             const res = await this.client!.models.generateContent({
               model: GEMINI_PRO_MODEL,
               contents: [{ role: 'user', parts: [{ text: message }] }],
@@ -1366,6 +1376,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           await this.rateLimiters.gemini.acquire();
           const response = await this.withRetry(async () => {
             // @ts-ignore
+            this.assertOutboundScopes('gemini', message);
             const res = await this.client!.models.generateContent({
               model: GEMINI_FLASH_MODEL,
               contents: [{ role: 'user', parts: [{ text: message }] }],
@@ -1554,6 +1565,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    */
   private async generateWithClaude(userMessage: string, systemPrompt?: string, imagePaths?: string[], modelId?: string): Promise<string> {
     if (!this.claudeClient) throw new Error("Claude client not initialized");
+    this.assertOutboundScopes('claude', userMessage, imagePaths);
 
     await this.rateLimiters.claude.acquire();
 
@@ -1658,6 +1670,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    */
   private async generateWithGroqMultimodal(userMessage: string, imagePaths: string[], systemPrompt?: string): Promise<string> {
     if (!this.groqClient) throw new Error("Groq client not initialized");
+    this.assertOutboundScopes('groq', userMessage, imagePaths);
 
     await this.rateLimiters.groq.acquire();
 
@@ -3122,8 +3135,10 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const temperature = config?.temperature ?? 0.3;
     const maxTokens = config?.maxTokens ?? 8192;
 
-    // Try Groq first if available
+    // Try Groq first if available. The scope check stays outside the try so a denial
+    // is not treated as a Groq failure.
     if (this.groqClient) {
+      this.assertOutboundScopes('groq', groqMessage);
       try {
         console.log(`[LLMHelper] 🚀 Mode-specific Groq stream starting...`);
         await this.rateLimiters.groq.acquire();
@@ -3197,6 +3212,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * 5. If that fails, throw error.
    */
   private async generateWithFallback(client: GoogleGenAI, args: any): Promise<any> {
+    this.assertGeminiContents(args?.contents);
     const originalModel = args.model;
 
     // Helper to check for valid content

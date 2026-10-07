@@ -117,7 +117,7 @@ async function runTestFiles() {
         child.on('close', (code, signal) => {
           clearTimeout(timer);
           if (graceTimer) clearTimeout(graceTimer);
-          resolve({ file, exitCode: code, signal, timedOut, endedAfterFooter, durationMs: Date.now() - t0, tap: stdout, stderr, isolationLog });
+          resolve({ file, exitCode: code, signal, timedOut, endedAfterFooter, durationMs: Date.now() - t0, tap: stdout, stderr, isolationLog, runNodePid: child.pid });
         });
       });
     }
@@ -139,8 +139,10 @@ async function runTestFiles() {
     // Attempts the isolation guard blocked, read from the file's isolation log. Every
     // kind counts, local ones included: an expected local call needs an explicit
     // stand-in in the test. A log without a guard-loaded record is no evidence that
-    // the guard ran, and counts too (PLAN.md AG-17 review).
-    const isolationBlocked = isolationRecords(r.isolationLog);
+    // the guard ran, and counts too (PLAN.md AG-17 review). The record must come from
+    // the test process this run-node.mjs started, which also holds when the file was
+    // ended by a kill and run-node.mjs never checked it (third review).
+    const isolationBlocked = isolationRecords(r.isolationLog, r.runNodePid);
     isolation.push(...isolationBlocked.map((b) => `${r.file} :: ${b}`));
     // A non-zero exit must be explained by a failing test in the TAP report.
     const exitOk = r.exitCode === 0 || (r.endedAfterFooter && footer(r.tap, 'fail') === 0);
@@ -158,13 +160,14 @@ async function runTestFiles() {
 }
 
 // The blocked attempts in one isolation log, as unique "<kind> <detail>" lines, plus
-// "<no guard-loaded record>" when the guard left no evidence that it ran.
-function isolationRecords(log) {
+// "<no guard-loaded record>" when the guard left no evidence that it ran in the test
+// process started by run-node.mjs (pid `runNodePid`).
+function isolationRecords(log, runNodePid) {
   const records = fs.existsSync(log)
     ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { kind: 'unreadable', detail: l }; } })
     : [];
   const blocked = [...new Set(records.filter((r) => r.kind !== 'guard-loaded').map((r) => `${r.kind} ${r.detail}`))];
-  if (!records.some((r) => r.kind === 'guard-loaded')) blocked.push('<no guard-loaded record>');
+  if (!records.some((r) => r.kind === 'guard-loaded' && r.ppid === runNodePid)) blocked.push('<no guard-loaded record>');
   return blocked;
 }
 

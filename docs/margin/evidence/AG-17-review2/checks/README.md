@@ -1,8 +1,12 @@
 # Checks for the second Astra review (PLAN.md section 9)
 
 Raw outputs of the one-off checks behind the second round of review fixes. All were
-run under the isolation guard. The mutation checks changed only the build output in
-`dist-electron` (never the source), and each was followed by a fresh build.
+run under the isolation guard. The Codex and preload mutation checks changed only the
+build output in `dist-electron` (never the source), and each was followed by a fresh
+build. The `launchapp-no-recorder` check changed nothing on disk: it blanked the
+recorder's log path through the environment. Separately, incident 5 in PLAN.md records
+that `tests/margin/launch-app.mjs` itself was once left mutated by an interrupted
+command and was restored from a copy. (Corrected after the third review.)
 
 | File | What it shows |
 | --- | --- |

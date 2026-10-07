@@ -78,7 +78,7 @@ export interface VisionProviderConfig {
   id: string;                                     // unique provider id, used in telemetry
   displayName: string;                            // e.g. "Natively API"
   modelId?: string;                               // resolved model id for telemetry
-  isLocal: boolean;                               // true for codex local / approved-local-custom
+  isLocal: boolean;                               // true only if the data stays on this Mac; none does now
   isConfigured: boolean;                          // API key / runtime available
   supportsVision: boolean;                        // selected model is vision-capable
   scopeAllowsScreenshots: boolean;                // per-provider data scope check

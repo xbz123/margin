@@ -140,3 +140,92 @@ for (const entry of ['generate', 'stream']) {
     assert.deepEqual(denied.spawned, [], 'the CLI must not be started');
   });
 }
+
+// Third review (PLAN.md AG-17): the non-streaming Claude and Groq multimodal sends had
+// no scope check of their own, and Gemini requests with inline images were not seen as
+// screenshots. Each send below is replaced by a stub that records the request and
+// throws, so an allowed call proves the check sits in front of the send.
+const SEND_STUB = 'send-stub-reached';
+
+function helperWith(policy, fields) {
+  const LLMHelper = loadBuiltLLMHelper();
+  const noLimit = { acquire: async () => {} };
+  return Object.assign(Object.create(LLMHelper.prototype), {
+    codexCliConfig: { enabled: false },
+    groqFastTextMode: false,
+    rateLimiters: { claude: noLimit, groq: noLimit, gemini: noLimit, openai: noLimit, deepseek: noLimit },
+    withRetry: (fn) => fn(),
+    withTimeout: (promise) => promise,
+    getProviderScopePolicy: () => policy,
+    logScopeFallback: () => {},
+  }, fields);
+}
+
+async function sendWith(policy, makeClient, call) {
+  const requests = [];
+  const self = helperWith(policy, makeClient((body) => { requests.push(body); throw new Error(SEND_STUB); }));
+  try {
+    return { result: await call(self), error: null, requests };
+  } catch (error) {
+    return { result: null, error, requests };
+  }
+}
+
+const claudeClient = (send) => ({ claudeClient: { messages: { stream: send } }, currentModelId: 'claude-sonnet-4-6' });
+const groqClient = (send) => ({ groqClient: { chat: { completions: { create: send } } } });
+const geminiClient = (send) => ({ client: { models: { generateContent: send } }, geminiModel: 'gemini-test' });
+// A path that does not exist: the image is skipped when reading, but the call still
+// counts as one carrying screenshots, as in the app.
+const NO_IMAGE = ['/margin-test/screenshot-not-present.png'];
+
+const directSends = [
+  ['Claude', claudeClient, (self, images) => self.generateWithClaude('TRANSCRIPT_SENTINEL said hello', 'SYSTEM', images)],
+  ['Groq multimodal', groqClient, (self, images) => self.generateWithGroqMultimodal('TRANSCRIPT_SENTINEL said hello', images ?? [], 'SYSTEM')],
+  ['Gemini contents', geminiClient, (self, images) => self.generateContent([{ text: 'TRANSCRIPT_SENTINEL said hello' }, ...(images ? [{ inlineData: { mimeType: 'image/png', data: 'AAAA' } }] : [])])],
+];
+
+for (const [name, makeClient, call] of directSends) {
+  test(`${name} sends nothing when the transcript or screenshot scope is denied`, async () => {
+    const allowed = await sendWith({}, makeClient, (self) => call(self, NO_IMAGE));
+    assert.match(String(allowed.error?.message), new RegExp(SEND_STUB), 'with every scope allowed the call reaches the send');
+    assert.equal(allowed.requests.length, 1);
+    assert.match(JSON.stringify(allowed.requests[0]), /TRANSCRIPT_SENTINEL/);
+
+    for (const [policy, images] of [[{ transcript: false }, undefined], [{ screenshots: false }, NO_IMAGE]]) {
+      const denied = await sendWith(policy, makeClient, (self) => call(self, images));
+      assert.equal(denied.error?.name, 'ProviderScopeError', `${JSON.stringify(policy)}: expected a scope error, got ${denied.error}`);
+      assert.equal(denied.requests.length, 0, `${JSON.stringify(policy)}: nothing may be sent`);
+    }
+  });
+}
+
+// The path the review named: Claude selected, the transcript in the message itself
+// (as generateSuggestion builds it), the Transcripts scope denied.
+test('chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied', async () => {
+  const ask = (self) => self.chatWithGemini('Question from the transcript: TRANSCRIPT_SENTINEL said hello', undefined, 'TRANSCRIPT_SENTINEL context');
+  const allowed = await sendWith({}, claudeClient, ask);
+  assert.equal(allowed.requests.length, 1, 'with every scope allowed Claude is asked');
+
+  const denied = await sendWith({ transcript: false }, claudeClient, ask);
+  assert.equal(denied.requests.length, 0, 'Claude must not be asked');
+  assert.doesNotMatch(String(denied.result), /TRANSCRIPT_SENTINEL/);
+});
+
+// Static sweep: every call in LLMHelper.ts that sends to a cloud provider must have a
+// scope check earlier in the same method. A new send without one fails here.
+test('every cloud send in LLMHelper.ts is preceded by a scope check in its method', () => {
+  const lines = read('electron/LLMHelper.ts').split('\n');
+  const SEND = /\.chat\.completions\.create\(|\.models\.generateContent(?:Stream)?\(|\.messages\.(?:create|stream)\(|CodexCliService\.(?:run|stream)\(/;
+  const METHOD = /^ {2}(?:public |private |protected )?(?:static )?(?:async )?(?:\* ?)?[A-Za-z_]\w*\s*\(/;
+  const CHECK = /assertOutboundScopes\(|assertGeminiContents\(|getDeniedDataScopes\(\[/;
+  const sends = [];
+  lines.forEach((line, i) => {
+    if (!SEND.test(line) || /^\s*(?:\/\/|\*)/.test(line)) return;
+    let start = i;
+    while (start > 0 && !METHOD.test(lines[start])) start--;
+    const checked = lines.slice(start, i).some((l) => CHECK.test(l));
+    sends.push({ line: i + 1, method: lines[start].trim().slice(0, 60), checked });
+  });
+  assert.ok(sends.length >= 20, `found only ${sends.length} sends; the pattern no longer matches the code`);
+  assert.deepEqual(sends.filter((s) => !s.checked), [], 'sends without a scope check');
+});
