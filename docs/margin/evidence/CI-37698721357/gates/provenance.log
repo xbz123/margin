@@ -1,0 +1,13 @@
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128299,
+  "restrictedLineKeys": 606682,
+  "addedSubstantiveLines": 4337,
+  "hits": 0,
+  "genericIdiomHits": 52,
+  "allowlistedHits": 107,
+  "filesWithHits": 0,
+  "binariesToReviewByHand": []
+}

@@ -1,0 +1,8 @@
+commit: 5e2dac0745250a50ae79fdeac16775ffa62dfdb1
+run: 37698721357 (attempt 1)
+no_cache: true
+rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+xcode: Xcode 16.4 Build version 16F6 
+cidre compiled in this run: 1
+33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e  native-artifact/index.darwin-arm64.node
+native-artifact/index.darwin-arm64.node: Mach-O 64-bit dynamically linked shared library arm64

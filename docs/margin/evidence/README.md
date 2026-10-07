@@ -60,6 +60,7 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `AG-17-review3/` | The fixes for the third Astra review, on the committed, clean tree of `02d4cb2e`, compared with `AG-17-review2/`. From this run the `tests` step accepts only a guard-loaded record whose `ppid` is the run-node.mjs process it started. `checks/` holds the raw outputs of the one-off and mutation checks (see its README) |
 | `AG-17-review4/` | The fixes for the fourth Astra review, on the committed, clean tree of `4bd2eb00`, compared with `AG-17-review3/`. From this run the `tests` step accepts only a guard-loaded record from the process that ran the file (below the `node --test` runner that run-node.mjs started), and `summary.json` lists uncommitted paths (`uncommittedPathList`). `checks/` holds the one-off and mutation check outputs and the first, failed gate run on `4523c762` (see its README) |
 | `CI-37694684706/` | Raw evidence of the uncached GitHub Actions run on `ac879152` (job log, step conclusions, gate artifact, native artifact without the binary); see its README |
+| `CI-37698721357/` | Raw evidence of the uncached GitHub Actions run on `5e2dac07` (code of `4bd2eb00`): the evidence for phase 1 exit item 1 under S11; see its README |
 
 Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
 The `regression`, `storage` and `startup` steps need a display session (they launch the app
