@@ -31,8 +31,6 @@ import {
   type VisionHealthEntry,
 } from "./llm/visionStreamFallback"
 import {
-  ollamaVisionFromShow,
-  resolveOllamaVision,
   customProviderSupportsVision,
   customProviderIsLocal,
 } from "./llm/visionCapability"
@@ -41,17 +39,9 @@ import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { deepVariableReplacer, getByPath, injectImageIntoMessages } from './utils/curlUtils';
 import curl2Json from "@bany/curl-to-json";
 import { CustomProvider, CurlProvider } from './services/CredentialsManager';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import axios from 'axios';
 import { createProviderRateLimiters, RateLimiter } from './services/RateLimiter';
 import { CodexCliConfig, CodexCliService, DEFAULT_CODEX_CLI_CONFIG } from './services/CodexCliService';
-const execAsync = promisify(exec);
-
-interface OllamaResponse {
-  response: string
-  done: boolean
-}
 
 // Model constant for Gemini 3 Flash
 const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview"
@@ -81,19 +71,6 @@ export class LLMHelper {
   private openaiApiKey: string | null = null
   private claudeApiKey: string | null = null
   private deepseekApiKey: string | null = null
-  private useOllama: boolean = false
-  private ollamaModel: string = ""
-  private ollamaUrl: string = "http://127.0.0.1:11434"
-  // Best vision-capable Ollama model found among installed models (authoritative
-  // via /api/show capabilities, name-heuristic fallback). null = none found yet
-  // or not probed. Used so a screenshot uses a vision model even when the
-  // user's primary/auto-selected Ollama model is text-only.
-  private ollamaVisionModel: string | null = null;
-  // Cache: model id → vision support (avoids re-probing /api/show every request).
-  private ollamaVisionCache: Map<string, boolean> = new Map();
-  // Dedupe concurrent refreshOllamaVisionModel() calls (init + switch + lazy).
-  private ollamaVisionRefreshInFlight: Promise<string | null> | null = null;
-  private ollamaStartedByApp: boolean = false;
   private geminiModel: string = GEMINI_FLASH_MODEL
   private customProvider: CustomProvider | null = null;
   private activeCurlProvider: CurlProvider | null = null;
@@ -109,9 +86,6 @@ export class LLMHelper {
 
   // Policy-aware provider router with circuit breaker
   private providerRouter: ProviderRouter;
-
-  // Local-only mode: when enabled, cloud providers are blocked
-  private isLocalOnlyMode: boolean = false;
 
   // Self-improving model version manager for vision analysis
   private modelVersionManager: ModelVersionManager;
@@ -169,16 +143,11 @@ export class LLMHelper {
     return getDeniedDataScopes(this.scopesForPayload(text, imagePaths, extraScopes), this.getProviderScopePolicy());
   }
 
-  private logScopeFallback(scope: ProviderDataScope, action: 'routing' | 'omitting'): void {
-    if (action === 'routing') {
-      console.warn(`[ScopeFallback] ${scope} denied for cloud; routing to Ollama`);
-      return;
-    }
-    console.warn(`[ScopeFallback] ${scope} denied; Ollama unavailable, omitting from context`);
+  private logScopeFallback(scope: ProviderDataScope): void {
+    console.warn(`[ScopeFallback] ${scope} denied for cloud providers; omitting from context`);
   }
 
-  constructor(apiKey?: string, useOllama: boolean = false, ollamaModel?: string, ollamaUrl?: string, groqApiKey?: string, openaiApiKey?: string, claudeApiKey?: string, deepseekApiKey?: string) {
-    this.useOllama = useOllama
+  constructor(apiKey?: string, groqApiKey?: string, openaiApiKey?: string, claudeApiKey?: string, deepseekApiKey?: string) {
 
     // Initialize rate limiters
     this.rateLimiters = createProviderRateLimiters();
@@ -217,14 +186,7 @@ export class LLMHelper {
       console.log(`[LLMHelper] DeepSeek client initialized with model: ${DEEPSEEK_MODEL}`)
     }
 
-    if (useOllama) {
-      this.ollamaUrl = ollamaUrl || "http://127.0.0.1:11434"
-      this.ollamaModel = ollamaModel || ""
-      console.log(`[LLMHelper] Using Ollama with model: ${this.ollamaModel || '(auto-detect)'}`)
-
-      // Auto-detect first installed model when none specified.
-      this.initializeOllamaModel()
-    } else if (apiKey) {
+    if (apiKey) {
       this.apiKey = apiKey
       // Initialize with v1alpha API version for Gemini 3 support
       this.client = new GoogleGenAI({
@@ -251,15 +213,6 @@ export class LLMHelper {
     this.visionHealth.delete('gemini_flash');
     this.visionHealth.delete('gemini_pro');
     console.log("[LLMHelper] Gemini API Key updated.");
-  }
-
-  // Thinking-mode models burn num_predict in <think> blocks unless `think:false` is sent.
-  private isThinkingModel(modelId: string): boolean {
-    if (!modelId) return false;
-    return /^qwen3/i.test(modelId)
-      || /qwq/i.test(modelId)
-      || /deepseek-r1/i.test(modelId)
-      || /(^|[^a-z])o1([^a-z]|$)/i.test(modelId);
   }
 
   public setGroqApiKey(apiKey: string) {
@@ -294,20 +247,6 @@ export class LLMHelper {
     this.deepseekApiKey = trimmed;
     this.deepseekClient = new OpenAI({ apiKey: trimmed, baseURL: DEEPSEEK_BASE_URL });
     console.log("[LLMHelper] DeepSeek API Key updated.");
-  }
-
-  /**
-   * Enable or disable local-only mode.
-   * When enabled, cloud providers (Gemini, OpenAI, Claude, Groq) will be blocked.
-   * Only local providers (Ollama, custom) can be used.
-   */
-  public setLocalOnlyMode(enabled: boolean): void {
-    this.isLocalOnlyMode = enabled;
-    console.log(`[LLMHelper] Local-only mode ${enabled ? 'enabled' : 'disabled'}`);
-  }
-
-  public isLocalOnly(): boolean {
-    return this.isLocalOnlyMode;
   }
 
   /**
@@ -523,18 +462,8 @@ export class LLMHelper {
     if (modelId === 'llama') targetModelId = GROQ_MODEL;
     if (modelId === 'deepseek') targetModelId = DEEPSEEK_MODEL;
 
-    if (targetModelId.startsWith('ollama-')) {
-      this.useOllama = true;
-      this.ollamaModel = targetModelId.replace('ollama-', '');
-      this.customProvider = null;
-      this.activeCurlProvider = null;
-      console.log(`[LLMHelper] Switched to Ollama: ${this.ollamaModel}`);
-      return;
-    }
-
     const custom = customProviders.find(p => p.id === targetModelId);
     if (custom) {
-      this.useOllama = false;
       this.customProvider = custom;
       this.activeCurlProvider = null;
       console.log(`[LLMHelper] Switched to Custom Provider: ${custom.name}`);
@@ -542,7 +471,6 @@ export class LLMHelper {
     }
 
     // Standard Cloud Models
-    this.useOllama = false;
     this.customProvider = null;
     this.activeCurlProvider = null;
     this.currentModelId = targetModelId;
@@ -597,7 +525,6 @@ export class LLMHelper {
   }
 
   public switchToCurl(provider: CurlProvider) {
-    this.useOllama = false;
     this.customProvider = null;
     this.activeCurlProvider = provider;
     console.log(`[LLMHelper] Switched to cURL provider: ${provider.name}`);
@@ -607,8 +534,7 @@ export class LLMHelper {
   // Cloud tier always returns text unchanged. Local tiers drop oldest lines first.
   public fitContextForCurrentModel(text: string, reservedOutputTokens?: number): string {
     if (!text) return text;
-    const modelId = this.useOllama ? this.ollamaModel : this.currentModelId;
-    const caps = getModelCapabilities(modelId, this.useOllama);
+    const caps = getModelCapabilities(this.currentModelId);
     if (caps.maxContextTokens >= 100_000) return text;
     const reserved = reservedOutputTokens ?? 2000;
     const cap = Math.floor(caps.maxContextTokens * 0.8);
@@ -623,8 +549,7 @@ export class LLMHelper {
 
   // Trim a transcript array to fit within the active model's prompt budget.
   public fitTranscriptForCurrentModel(turns: TranscriptTurn[]): TranscriptTurn[] {
-    const modelId = this.useOllama ? this.ollamaModel : this.currentModelId;
-    const caps = getModelCapabilities(modelId, this.useOllama);
+    const caps = getModelCapabilities(this.currentModelId);
     const budget = Math.max(0, Math.floor(caps.maxContextTokens * 0.8) - caps.promptBudgetTokens - caps.outputBudgetTokens);
     return truncateTranscriptToFit(turns, budget);
   }
@@ -637,169 +562,12 @@ export class LLMHelper {
     return text;
   }
 
-  private async callOllama(prompt: string, imagePath?: string | string[], systemPrompt?: string): Promise<string> {
-    try {
-      let images: string[] | undefined;
-      const imagePaths = Array.isArray(imagePath) ? imagePath : imagePath ? [imagePath] : [];
-      if (imagePaths.length > 0) {
-        const encoded: string[] = [];
-        for (const path of imagePaths) {
-          try {
-            const imageData = await fs.promises.readFile(path);
-            encoded.push(imageData.toString("base64"));
-          } catch (e) {
-            console.warn("[LLMHelper] callOllama: failed to read image, skipping:", path, e);
-          }
-        }
-        if (encoded.length > 0) images = encoded;
-      }
-
-      const sys = systemPrompt ?? TINY_SYSTEM_PROMPT;
-      // Per-request hard guard: trim userContent (never sys) until total fits the model's max ctx.
-      let userContent = prompt;
-      const maxCtx = getModelCapabilities(this.ollamaModel, true).maxContextTokens;
-      let total = estimateTokens(sys) + estimateTokens(userContent) + 2000;
-      if (total > maxCtx) {
-        console.warn('[Ollama] context overflow', { model: this.ollamaModel, total, max: maxCtx });
-        const lines = userContent.split('\n');
-        while (lines.length > 1 && (estimateTokens(sys) + estimateTokens(lines.join('\n')) + 2000) > maxCtx) {
-          lines.shift();
-        }
-        userContent = lines.join('\n');
-      }
-      const userMessage: any = { role: 'user', content: userContent };
-      if (images) userMessage.images = images;
-      const messages = [
-        { role: 'system', content: sys },
-        userMessage,
-      ];
-
-      console.log(`[LLMHelper] Ollama call → model=${this.ollamaModel} sysLen=${sys.length} userLen=${userContent.length} images=${images?.length ?? 0}`);
-
-      const ollamaBody: any = {
-        model: this.ollamaModel,
-        messages,
-        stream: false,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
-        }
-      };
-      if (this.isThinkingModel(this.ollamaModel)) ollamaBody.think = false;
-      const response = await fetch(`${this.ollamaUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ollamaBody),
-        signal: AbortSignal.timeout(120_000),
-      });
-
-      if (!response.ok) {
-        const body = await response.text().catch(() => '');
-        throw new Error(`Ollama API error: ${response.status} ${response.statusText} ${body.slice(0, 200)}`);
-      }
-
-      const data: any = await response.json();
-      const out = data?.message?.content ?? data?.response ?? '';
-      return out;
-    } catch (error: any) {
-      console.error("[LLMHelper] Error calling Ollama:", error?.message || error);
-      throw new Error(`Failed to connect to Ollama: ${error.message}. Make sure Ollama is running on ${this.ollamaUrl}`);
-    }
-  }
-
-  public async canUseLocalFallback(needsVision = false): Promise<boolean> {
-    return this.checkOllamaAvailable(needsVision);
-  }
-
-  private async checkOllamaAvailable(needsVision = false): Promise<boolean> {
-    try {
-      const availableModels = await this.getOllamaModels();
-      if (availableModels.length === 0) return false;
-      if (!this.ollamaModel || !availableModels.includes(this.ollamaModel)) {
-        this.ollamaModel = availableModels[0];
-      }
-      const capabilities = getModelCapabilities(this.ollamaModel, true);
-      if (needsVision && !capabilities.supportsImages) return false;
-      const response = await fetch(`${this.ollamaUrl}/api/show`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: this.ollamaModel }),
-        signal: AbortSignal.timeout(10_000),
-      });
-      return response.ok;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn('[ScopeFallback] Ollama availability check failed:', message);
-      return false;
-    }
-  }
-
-  private async initializeOllamaModel(): Promise<void> {
-    try {
-      const availableModels = await this.getOllamaModels()
-      if (availableModels.length === 0) {
-        const msg = `No Ollama models installed. Run "ollama pull <model>" (e.g. ollama pull qwen2.5:4b) and restart.`;
-        console.warn(`[LLMHelper] ${msg}`);
-        this.notifyRendererOllamaError(msg);
-        return
-      }
-
-      if (!this.ollamaModel || !availableModels.includes(this.ollamaModel)) {
-        this.ollamaModel = availableModels[0]
-        console.log(`[LLMHelper] Auto-selected Ollama model: ${this.ollamaModel}`)
-      }
-
-      // /api/show validates the model is loadable without spending tokens.
-      const showResp = await fetch(`${this.ollamaUrl}/api/show`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: this.ollamaModel }),
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!showResp.ok) {
-        throw new Error(`/api/show failed: ${showResp.status}`);
-      }
-      console.log(`[LLMHelper] Ollama model ready: ${this.ollamaModel}`);
-      // Resolve the best vision-capable installed model (may differ from the
-      // primary text model) so screenshots can be answered locally. Fire-and-
-      // forget — never block init on it.
-      this.refreshOllamaVisionModel().catch(() => { });
-    } catch (error: any) {
-      console.error(`[LLMHelper] Failed to initialize Ollama model: ${error?.message}`);
-      try {
-        const models = await this.getOllamaModels()
-        if (models.length > 0) {
-          this.ollamaModel = models[0]
-          console.log(`[LLMHelper] Fallback to first installed model: ${this.ollamaModel}`)
-        } else {
-          this.notifyRendererOllamaError(`Ollama is reachable but no models are installed.`);
-        }
-      } catch (fallbackError: any) {
-        console.error(`[LLMHelper] Fallback also failed: ${fallbackError?.message}`);
-        this.notifyRendererOllamaError(`Ollama unreachable at ${this.ollamaUrl}.`);
-      }
-    }
-  }
-
-  private notifyRendererOllamaError(message: string): void {
-    try {
-      const { BrowserWindow } = require('electron');
-      const wins = BrowserWindow.getAllWindows();
-      for (const w of wins) {
-        try { w.webContents.send('ollama-error', { message }); } catch { /* noop */ }
-      }
-    } catch {
-      // electron not available (test context); skip
-    }
-  }
-
   /**
    * Generate content using Gemini 3 Flash (text reasoning)
    * Used by IntelligenceManager for mode-specific prompts
    * NOTE: Migrated from Pro to Flash for consistency
    */
   public async generateWithPro(contents: any[]): Promise<string> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.client) throw new Error("Gemini client not initialized")
 
     await this.rateLimiters.gemini.acquire();
@@ -820,7 +588,6 @@ export class LLMHelper {
    * CRITICAL: Audio input MUST use this model, not Pro
    */
   public async generateWithFlash(contents: any[]): Promise<string> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.client) throw new Error("Gemini client not initialized")
 
     await this.rateLimiters.gemini.acquire();
@@ -1180,9 +947,7 @@ ANSWER DIRECTLY:`;
           console.warn(`[LLMHelper] Codex CLI suggestion failed: ${e.message}. Falling back.`);
         }
       }
-      if (this.useOllama) {
-        return await this.callOllama(promptMessage, undefined, systemPrompt);
-      } else if (this.customProvider || this.activeCurlProvider) {
+      if (this.customProvider || this.activeCurlProvider) {
         let fullResponse = '';
         for await (const chunk of this.streamChat(promptMessage, undefined, suggestionContext, basePrompt, true)) {
           fullResponse += chunk;
@@ -1268,7 +1033,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   /**
    * Single-string assembly used by providers that take a flat string system prompt
-   * (Gemini concat path, Ollama, custom providers).
+   * (Gemini concat path, custom providers).
    *
    * STATIC = base prompt body (cacheable across turns by Groq/OpenAI prefix match)
    * DYNAMIC = language instruction suffix (changes when the user toggles language)
@@ -1392,13 +1157,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       };
       const cloudImagePaths = deniedOutboundScopes.includes('screenshots') ? undefined : imagePaths;
       const cloudIsMultimodal = Boolean(cloudImagePaths?.length);
-      const ollamaAvailable = this.useOllama && await this.checkOllamaAvailable(deniedOutboundScopes.includes('screenshots'));
       if (deniedOutboundScopes.length > 0) {
         for (const scope of deniedOutboundScopes) {
-          this.logScopeFallback(scope, ollamaAvailable ? 'routing' : 'omitting');
-        }
-        if (ollamaAvailable) {
-          return await this.callOllama(combinedMessages.gemini, imagePaths, undefined);
+          this.logScopeFallback(scope);
         }
       }
 
@@ -1437,9 +1198,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         }
       }
 
-      if (ollamaAvailable) {
-        return await this.callOllama(combinedMessages.gemini, imagePaths, undefined);
-      }
 
       if (this.isCodexCliModel(this.currentModelId) && this.codexCliConfig.enabled) {
         return await this.generateWithCodexCli(cloudUserContent, openaiSystemPrompt, false, cloudImagePaths);
@@ -1515,7 +1273,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           hasOpenAI: Boolean(this.openaiClient),
           hasClaude: Boolean(this.claudeClient),
           hasDeepseek: Boolean(this.deepseekClient),
-          hasOllama: ollamaAvailable,
         },
         models: {
           groq: textGroq,
@@ -1525,7 +1282,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           openai: textOpenAI,
           claude: textClaude,
           deepseek: this.isDeepseekModel(this.currentModelId) ? this.currentModelId : DEEPSEEK_MODEL,
-          ollama: this.ollamaModel,
         },
         dataScopes: outboundScopes,
         scopePolicy,
@@ -1563,9 +1319,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
             if (!cloudIsMultimodal) {
               providers.push({ name: routedProvider.name, execute: () => this.generateWithDeepseek(cloudUserContent, openaiSystemPrompt, routedProvider.model || DEEPSEEK_MODEL) });
             }
-            break;
-          case 'ollama':
-            providers.push({ name: routedProvider.name, execute: () => this.callOllama(combinedMessages.gemini, imagePaths, undefined) });
             break;
         }
       }
@@ -1705,14 +1458,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       providers.push({ name: `Groq (${GROQ_MODEL}) fallback`, execute: () => this.generateWithGroq(message) }); // intentional: structured-gen last-resort uses stable baseline model, not user selection
     }
 
-    // Priority 6: Ollama (on-device fallback — last resort, no cloud dependency)
-    if (this.useOllama && await this.checkOllamaAvailable()) {
-      providers.push({
-        name: `Ollama (${this.ollamaModel})`,
-        execute: () => this.callOllama(message)
-      });
-    }
-
     // Priority 7: Custom / cURL providers (OpenRouter etc.)
     if (this.customProvider) {
       providers.push({
@@ -1791,7 +1536,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * two-arg form.
    */
   private async generateWithGroq(userMessage: string, modelId: string = GROQ_MODEL, systemPrompt?: string): Promise<string> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.groqClient) throw new Error("Groq client not initialized");
     this.assertOutboundScopes('groq', userMessage);
 
@@ -1823,7 +1567,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * PREFIX CACHING: see streamWithOpenai for the caching contract.
    */
   private async generateWithOpenai(userMessage: string, systemPrompt?: string, imagePaths?: string[], modelId?: string): Promise<string> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.openaiClient) throw new Error("OpenAI client not initialized");
     this.assertOutboundScopes('openai', userMessage, imagePaths);
 
@@ -1871,7 +1614,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * requests are routed away from DeepSeek by the fallback chain.
    */
   private async generateWithDeepseek(userMessage: string, systemPrompt?: string, modelId?: string): Promise<string> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.deepseekClient) throw new Error("DeepSeek client not initialized");
     // No imagePaths argument — DeepSeek is text-only here; let the scope guard see text payload only.
     this.assertOutboundScopes('deepseek', userMessage);
@@ -1976,7 +1718,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Non-streaming Claude generation with proper system/user separation
    */
   private async generateWithClaude(userMessage: string, systemPrompt?: string, imagePaths?: string[], modelId?: string): Promise<string> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.claudeClient) throw new Error("Claude client not initialized");
 
     await this.rateLimiters.claude.acquire();
@@ -2212,9 +1953,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
     } else {
       // Text-only chat
-      if (this.useOllama) {
-        rawResponse = await this.callOllama(fullMessage);
-      } else if (this.client) {
+      if (this.client) {
         rawResponse = await this.generateContent([{ text: fullMessage }], modelIdOverride);
       } else {
         throw new Error("No LLM provider configured");
@@ -2269,7 +2008,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    *   Tier 3: Same as Tier 2 — 2nd retry (with backoff between tiers)
    *
    * Provider order per tier: OpenAI -> Gemini Flash -> Claude -> Gemini Pro -> Groq Scout
-   * After all cloud tiers: Custom Provider -> cURL Provider -> Ollama
+   * After all cloud tiers: Custom Provider -> cURL Provider
    */
   private async generateWithVisionFallback(systemPrompt: string, userPrompt: string, imagePaths: string[] = []): Promise<string> {
     type ProviderAttempt = { name: string; execute: () => Promise<string> };
@@ -2438,13 +2177,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       });
     }
 
-    if (this.useOllama) {
-      localProviders.push({
-        name: `Ollama (${this.ollamaModel})`,
-        execute: () => this.callOllama(`${systemPrompt}\n\n${userPrompt}`, isMultimodal ? imagePaths[0] : undefined)
-      });
-    }
-
     // ──────────────────────────────────────────────────────────────────
     // Codex CLI runs FIRST when enabled — same priority as in chat() so
     // every AI feature that flows through generateWithVisionFallback
@@ -2595,14 +2327,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const contextScopes = context ? ['transcript' as ProviderDataScope, ...this.inferContextScopes(context)] : [];
     const deniedOutboundScopes = this.getDeniedOutboundScopes(message, imagePaths, contextScopes);
     if (deniedOutboundScopes.length > 0) {
-      const ollamaAvailable = this.useOllama && await this.checkOllamaAvailable(deniedOutboundScopes.includes('screenshots'));
       for (const scope of deniedOutboundScopes) {
-        this.logScopeFallback(scope, ollamaAvailable ? 'routing' : 'omitting');
-      }
-      if (ollamaAvailable) {
-        const localCombined = context ? `CONTEXT:\n${context}\n\nUSER QUESTION:\n${message}` : message;
-        yield await this.callOllama(localCombined, imagePaths, skipSystemPrompt ? undefined : this.injectLanguageInstruction(HARD_SYSTEM_PROMPT));
-        return;
+        this.logScopeFallback(scope);
       }
       if (deniedOutboundScopes.some(scope => scope === 'transcript' || scope === 'profile_history' || scope === 'post_call_summary')) context = undefined;
       if (deniedOutboundScopes.includes('screenshots')) imagePaths = undefined;
@@ -2636,12 +2362,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const groqSystemForCache = skipSystemPrompt ? undefined : this.injectLanguageInstruction(GROQ_SYSTEM_PROMPT);
     // CACHE: separate system for Gemini's systemInstruction channel.
     const geminiSystemForCache = skipSystemPrompt ? undefined : this.injectLanguageInstruction(HARD_SYSTEM_PROMPT);
-
-    if (this.useOllama) {
-      const response = await this.callOllama(combinedMessages.gemini, imagePaths?.[0]);
-      yield response;
-      return;
-    }
 
     // ============================================================
     // SMART DYNAMIC FALLBACK: Build provider list using auto-discovered
@@ -2810,10 +2530,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   //      would duplicate output) — we end the stream gracefully.
   //
   // Priority order (user-specified): OpenAI → Claude → Gemini Flash → Gemini Pro
-  //   → Groq Scout → (local) Custom → Ollama. Healthy providers are
+  //   → Groq Scout → Custom. Healthy providers are
   //   then re-ordered fastest-first by measured TTFT EWMA ("rearrange the queue
-  //   in the speed"). Explicitly-selected local providers (Ollama / Custom) are
-  //   honored first; local-only mode uses local providers exclusively.
+  //   in the speed"). An explicitly selected custom provider is honored first.
   //
   // Per provider: up to VISION_MAX_ATTEMPTS attempts (model tier1→tier2→tier3 on
   //   cloud families, so a deprecated/404 model self-heals). Exponential backoff
@@ -2840,74 +2559,49 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     // ── Build the candidate provider list ──────────────────────────────────
     const cloud: VisionStreamProvider[] = [];
-    const localOnly = this.isLocalOnlyMode;
     let prio = 0;
-
-    if (!localOnly) {
-      if (this.openaiClient) {
-        cloud.push({ id: 'openai', name: 'OpenAI', isLocal: false, priority: prio++,
-          open: (sig, att) => this.streamWithOpenaiMultimodal(userContent, imagePaths, systemPrompt, tierModel(ModelFamily.OPENAI, att), sig) });
-      }
-      if (this.claudeClient) {
-        cloud.push({ id: 'claude', name: 'Claude', isLocal: false, priority: prio++,
-          open: (sig, att) => this.streamWithClaudeMultimodal(userContent, imagePaths, systemPrompt, tierModel(ModelFamily.CLAUDE, att), sig) });
-      }
-      if (this.client) {
-        cloud.push({ id: 'gemini_flash', name: 'Gemini Flash', isLocal: false, priority: prio++,
-          open: (sig, att) => this.streamWithGeminiModel(userContent, tierModel(ModelFamily.GEMINI_FLASH, att) || GEMINI_FLASH_MODEL, imagePaths, systemPrompt, sig) });
-        cloud.push({ id: 'gemini_pro', name: 'Gemini Pro', isLocal: false, priority: prio++,
-          open: (sig, att) => this.streamWithGeminiModel(userContent, tierModel(ModelFamily.GEMINI_PRO, att) || GEMINI_PRO_MODEL, imagePaths, systemPrompt, sig) });
-      }
-      if (this.groqClient) {
-        cloud.push({ id: 'groq', name: 'Groq Llama-4 Scout', isLocal: false, priority: prio++,
-          open: (sig) => this.streamWithGroqMultimodal(userContent, imagePaths, systemPrompt, sig) });
-      }
+    if (this.openaiClient) {
+      cloud.push({ id: 'openai', name: 'OpenAI', isLocal: false, priority: prio++,
+        open: (sig, att) => this.streamWithOpenaiMultimodal(userContent, imagePaths, systemPrompt, tierModel(ModelFamily.OPENAI, att), sig) });
+    }
+    if (this.claudeClient) {
+      cloud.push({ id: 'claude', name: 'Claude', isLocal: false, priority: prio++,
+        open: (sig, att) => this.streamWithClaudeMultimodal(userContent, imagePaths, systemPrompt, tierModel(ModelFamily.CLAUDE, att), sig) });
+    }
+    if (this.client) {
+      cloud.push({ id: 'gemini_flash', name: 'Gemini Flash', isLocal: false, priority: prio++,
+        open: (sig, att) => this.streamWithGeminiModel(userContent, tierModel(ModelFamily.GEMINI_FLASH, att) || GEMINI_FLASH_MODEL, imagePaths, systemPrompt, sig) });
+      cloud.push({ id: 'gemini_pro', name: 'Gemini Pro', isLocal: false, priority: prio++,
+        open: (sig, att) => this.streamWithGeminiModel(userContent, tierModel(ModelFamily.GEMINI_PRO, att) || GEMINI_PRO_MODEL, imagePaths, systemPrompt, sig) });
+    }
+    if (this.groqClient) {
+      cloud.push({ id: 'groq', name: 'Groq Llama-4 Scout', isLocal: false, priority: prio++,
+        open: (sig) => this.streamWithGroqMultimodal(userContent, imagePaths, systemPrompt, sig) });
     }
 
-    // Local providers (always available, including in local-only mode).
     const local: VisionStreamProvider[] = [];
-    // Custom provider: only include for vision when it can actually carry an
+    // Custom provider (after the cloud providers unless it is the active selection):
+    // only include for vision when it can actually carry an
     // image (explicit multimodal flag, an {{IMAGE_BASE64}} placeholder, or an
     // OpenAI-compatible messages body). Otherwise it would "succeed" while
     // silently dropping the screenshot — worse than skipping it.
     if (this.customProvider && customProviderSupportsVision(this.customProvider)) {
-      // Derive local-ness from an explicit flag or a loopback/private cURL host,
-      // so a local custom vision endpoint still works in local-only mode.
       const customIsLocal = customProviderIsLocal(this.customProvider);
-      if (!localOnly || customIsLocal) {
-        local.push({ id: 'custom', name: `Custom (${this.customProvider.name})`, isLocal: customIsLocal, priority: 100,
-          open: (sig) => this.streamWithCustom(message, context, imagePaths, systemPrompt, sig) });
-      }
-    }
-    // Ollama: use the resolved vision-capable model (which may differ from the
-    // primary text model). Synchronously trust the cached resolution; kick off
-    // a refresh for next time if we haven't probed yet.
-    const ollamaVisionModel = this.useOllama ? this.ollamaVisionModel : null;
-    if (this.useOllama && !ollamaVisionModel) {
-      this.refreshOllamaVisionModel().catch(() => { }); // populate for the next request
-    }
-    if (ollamaVisionModel) {
-      local.push({ id: 'ollama', name: `Ollama (${ollamaVisionModel})`, isLocal: true, priority: 101,
-        open: (sig) => this.streamWithOllama(message, context, systemPrompt, imagePaths, sig, ollamaVisionModel) });
+      local.push({ id: 'custom', name: `Custom (${this.customProvider.name})`, isLocal: customIsLocal, priority: 100,
+        open: (sig) => this.streamWithCustom(message, context, imagePaths, systemPrompt, sig) });
     }
 
     // ── Assemble the ordered chain ─────────────────────────────────────────
-    // Honor an explicit local selection first, then health/speed-sorted cloud,
-    // then any remaining local providers as a final fallback.
+    // An explicitly selected custom provider goes first, then health/speed-sorted
+    // cloud providers, then any remaining custom provider as a final fallback.
     const nowMs = Date.now();
-    let ordered: VisionStreamProvider[];
-    if (localOnly) {
-      ordered = orderVisionByHealth(local, this.visionHealth, nowMs);
-    } else {
-      const front: VisionStreamProvider[] = [];
-      if (this.useOllama) { const o = local.find(p => p.id === 'ollama'); if (o) front.push(o); }
-      if (this.customProvider) { const c = local.find(p => p.id === 'custom'); if (c) front.push(c); }
-      const backLocal = local.filter(p => !front.includes(p));
-      ordered = [...front, ...orderVisionByHealth(cloud, this.visionHealth, nowMs), ...backLocal];
-    }
+    const front: VisionStreamProvider[] = [];
+    if (this.customProvider) { const c = local.find(p => p.id === 'custom'); if (c) front.push(c); }
+    const backLocal = local.filter(p => !front.includes(p));
+    const ordered: VisionStreamProvider[] = [...front, ...orderVisionByHealth(cloud, this.visionHealth, nowMs), ...backLocal];
 
     if (ordered.length === 0) {
-      throw new Error('No vision-capable provider configured. Add an API key (OpenAI, Claude, Gemini, or Groq) or enable a vision-capable Ollama model in Settings.');
+      throw new Error('No vision-capable provider configured. Add an API key (OpenAI, Claude, Gemini, or Groq) in Settings.');
     }
 
     // Delegate the first-token-commit + retry + circuit-breaker state machine.
@@ -2993,13 +2687,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const contextScopes = [...extraDataScopes, ...this.inferContextScopes(context)];
     const deniedOutboundScopes = this.getDeniedOutboundScopes(message, imagePaths, contextScopes);
     if (deniedOutboundScopes.length > 0) {
-      const ollamaAvailable = this.useOllama && await this.checkOllamaAvailable(deniedOutboundScopes.includes('screenshots'));
       for (const scope of deniedOutboundScopes) {
-        this.logScopeFallback(scope, ollamaAvailable ? 'routing' : 'omitting');
-      }
-      if (ollamaAvailable) {
-        yield* this.streamWithOllama(message, context, this.injectLanguageInstruction(systemPromptOverride || HARD_SYSTEM_PROMPT), imagePaths, abortSignal);
-        return;
+        this.logScopeFallback(scope);
       }
       if (deniedOutboundScopes.includes('transcript')) context = undefined;
       if (deniedOutboundScopes.includes('profile_history')) context = undefined;
@@ -3091,12 +2780,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         }
         // Local Groq failed — fall through to the normal provider chain
       }
-    }
-
-    // 1. Ollama Streaming
-    if (this.useOllama) {
-      yield* this.streamWithOllama(message, combinedContext || undefined, finalSystemPrompt, imagePaths, abortSignal);
-      return;
     }
 
     if (this.isCodexCliModel(this.currentModelId) && this.codexCliConfig.enabled) {
@@ -3206,7 +2889,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * for the full rationale. The single-arg form is retained for legacy callers.
    */
   private async * streamWithGroq(userMessage: string, modelId: string = GROQ_MODEL, systemPrompt?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.groqClient) throw new Error("Groq client not initialized");
     this.assertOutboundScopes('groq', userMessage);
 
@@ -3245,7 +2927,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Stream multimodal (image + text) response from Groq using Llama 4 Scout as a last resort
    */
   private async * streamWithGroqMultimodal(userMessage: string, imagePaths: string[], systemPrompt?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.groqClient) throw new Error("Groq client not initialized");
     this.assertOutboundScopes('groq', userMessage, imagePaths);
 
@@ -3300,7 +2981,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * string above the static body, or the cache prefix will be invalidated.
    */
   private async * streamWithOpenai(userMessage: string, systemPrompt?: string, modelId?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.openaiClient) throw new Error("OpenAI client not initialized");
     this.assertOutboundScopes('openai', userMessage);
 
@@ -3342,7 +3022,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Stream response from Claude with proper system/user message separation
    */
   private async * streamWithClaude(userMessage: string, systemPrompt?: string, modelId?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.claudeClient) throw new Error("Claude client not initialized");
     this.assertOutboundScopes('claude', userMessage);
 
@@ -3377,7 +3056,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Stream response from DeepSeek (OpenAI-compatible). Text-only by design.
    */
   private async * streamWithDeepseek(userMessage: string, systemPrompt?: string, modelId?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.deepseekClient) throw new Error("DeepSeek client not initialized");
     this.assertOutboundScopes('deepseek', userMessage);
 
@@ -3412,7 +3090,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Stream multimodal (image + text) response from OpenAI with system/user separation
    */
   private async * streamWithOpenaiMultimodal(userMessage: string, imagePaths: string[], systemPrompt?: string, modelId?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.openaiClient) throw new Error("OpenAI client not initialized");
     this.assertOutboundScopes('openai', userMessage, imagePaths);
 
@@ -3462,7 +3139,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * Stream multimodal (image + text) response from Claude with system/user separation
    */
   private async * streamWithClaudeMultimodal(userMessage: string, imagePaths: string[], systemPrompt?: string, modelId?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.claudeClient) throw new Error("Claude client not initialized");
     this.assertOutboundScopes('claude', userMessage, imagePaths);
 
@@ -3532,7 +3208,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    *    still applies.
    */
   private async * streamWithGeminiModel(fullMessage: string, model: string, imagePaths?: string[], systemInstruction?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
-    if (this.isLocalOnlyMode) throw new Error("Cloud providers disabled in local-only mode");
     if (!this.client) throw new Error("Gemini client not initialized");
     this.assertOutboundScopes('gemini', fullMessage, imagePaths);
 
@@ -3748,124 +3423,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     return response.text || "";
   }
 
-  // --- OLLAMA STREAMING (uses /api/chat with proper messages array) ---
-  private async * streamWithOllama(message: string, context?: string, systemPrompt: string = TINY_SYSTEM_PROMPT, imagePaths?: string[], abortSignal?: AbortSignal, modelOverride?: string): AsyncGenerator<string, void, unknown> {
-    // When a screenshot is attached and the primary model is text-only, the
-    // caller passes the resolved vision-capable model here so the image is
-    // actually understood instead of silently dropped.
-    const ollamaModel = modelOverride || this.ollamaModel;
-    let userContent = context ? `CONTEXT:\n${context}\n\nUSER:\n${message}` : message;
-    // Per-request hard guard: trim userContent (never systemPrompt) until total fits the model's max ctx.
-    {
-      const maxCtx = getModelCapabilities(ollamaModel, true).maxContextTokens;
-      const total = estimateTokens(systemPrompt) + estimateTokens(userContent) + 2000;
-      if (total > maxCtx) {
-        console.warn('[Ollama] context overflow', { model: ollamaModel, total, max: maxCtx });
-        const lines = userContent.split('\n');
-        while (lines.length > 1 && (estimateTokens(systemPrompt) + estimateTokens(lines.join('\n')) + 2000) > maxCtx) {
-          lines.shift();
-        }
-        userContent = lines.join('\n');
-      }
-    }
-
-    let images: string[] | undefined;
-    if (imagePaths?.length) {
-      const encoded: string[] = [];
-      for (const p of imagePaths) {
-        try {
-          const data = await fs.promises.readFile(p);
-          encoded.push(data.toString("base64"));
-        } catch (e) {
-          console.warn("[LLMHelper] streamWithOllama: failed to read image, skipping:", p, e);
-        }
-      }
-      if (encoded.length) images = encoded;
-    }
-
-    const userMessage: any = { role: 'user', content: userContent };
-    if (images) userMessage.images = images;
-
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      userMessage,
-    ];
-
-    console.log(`[LLMHelper] Ollama stream → model=${ollamaModel} sysLen=${systemPrompt.length} userLen=${userContent.length} images=${images?.length ?? 0}`);
-
-    const decoder = new TextDecoder();
-    let buffer = '';
-    try {
-      const streamBody: any = {
-        model: ollamaModel,
-        messages,
-        stream: true,
-        options: {
-          temperature: getModelCapabilities(ollamaModel, true).tier === 'local-small' ? 0.2 : 0.7,
-          top_p: getModelCapabilities(ollamaModel, true).tier === 'local-small' ? 0.8 : undefined,
-          num_predict: getModelCapabilities(ollamaModel, true).tier === 'local-small' ? 180 : undefined,
-        }
-      };
-      if (this.isThinkingModel(ollamaModel)) streamBody.think = false;
-      // Combine the 120s hard ceiling with the caller's user-cancel signal.
-      // AbortSignal.any() returns a signal aborted as soon as ANY of its
-      // inputs abort, so the caller can cancel an Ollama generation that's
-      // taking too long (or just navigate away mid-stream) without waiting
-      // for the 2-minute timeout.
-      const ollamaSignal = abortSignal
-        ? AbortSignal.any([AbortSignal.timeout(120_000), abortSignal])
-        : AbortSignal.timeout(120_000);
-      const response = await fetch(`${this.ollamaUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(streamBody),
-        signal: ollamaSignal,
-      });
-
-      if (!response.ok) {
-        const txt = await response.text().catch(() => '');
-        throw new Error(`Ollama /api/chat ${response.status}: ${txt.slice(0, 200)}`);
-      }
-      if (!response.body) throw new Error("No response body from Ollama");
-
-      // @ts-ignore
-      for await (const chunk of response.body) {
-        // Caller-cancel check between chunks. AbortSignal.any() above already
-        // closes the socket, but the for-await loop may have one buffered
-        // chunk in flight; bail here to avoid yielding tokens past the cancel.
-        if (abortSignal?.aborted) return;
-        buffer += decoder.decode(chunk, { stream: true });
-        let nl: number;
-        while ((nl = buffer.indexOf('\n')) !== -1) {
-          const line = buffer.slice(0, nl).trim();
-          buffer = buffer.slice(nl + 1);
-          if (!line) continue;
-          try {
-            const json = JSON.parse(line);
-            const piece = json?.message?.content;
-            if (piece) yield piece;
-            if (json?.done) return;
-          } catch {
-            // ignore partial json
-          }
-        }
-      }
-      const tail = (buffer + decoder.decode()).trim();
-      if (tail) {
-        try {
-          const json = JSON.parse(tail);
-          const piece = json?.message?.content;
-          if (piece) yield piece;
-        } catch {
-          // ignore
-        }
-      }
-    } catch (e: any) {
-      console.error('[LLMHelper] Ollama streaming failed:', e?.message || e);
-      yield `Error: Failed to stream from Ollama (${e?.message || 'unknown'}).`;
-    }
-  }
-
   // --- CUSTOM PROVIDER STREAMING ---
   private async * streamWithCustom(message: string, context?: string, imagePaths?: string[], systemPrompt: string = UNIVERSAL_SYSTEM_PROMPT, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
     if (!this.customProvider) return;
@@ -4025,180 +3582,24 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   }
 
 
-  public isUsingOllama(): boolean {
-    return this.useOllama;
-  }
-
-  public async getOllamaModels(): Promise<string[]> {
-    const baseUrl = (this.ollamaUrl || "http://127.0.0.1:11434").replace('localhost', '127.0.0.1');
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch(`${baseUrl}/api/tags`, {
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) return [];
-
-      const data = await response.json();
-      if (data && data.models) {
-        return data.models.map((m: any) => m.name);
-      }
-
-      return [];
-    } catch (error: any) {
-      // Connection refused/timeout — OllamaManager logs startup status.
-      return [];
-    }
-  }
-
-  /**
-   * Authoritatively probe whether a single Ollama model supports vision via
-   * /api/show `capabilities` (Ollama lists "vision" for multimodal models).
-   * Falls back to the name heuristic when capabilities are absent (older
-   * servers).
-   *
-   * Caching policy: only AUTHORITATIVE results (a real /api/show capabilities
-   * answer) are cached. A transient probe failure (server down / timeout /
-   * non-200) returns the name-heuristic guess but is NOT cached — otherwise a
-   * momentary Ollama hiccup during the first probe would make a vision-capable
-   * model with a non-standard name invisible to screenshots for the whole
-   * session.
-   */
-  private async probeOllamaVision(modelId: string): Promise<boolean> {
-    if (!modelId) return false;
-    const cached = this.ollamaVisionCache.get(modelId);
-    if (cached !== undefined) return cached;
-
-    const baseUrl = (this.ollamaUrl || "http://127.0.0.1:11434").replace('localhost', '127.0.0.1');
-    try {
-      const resp = await fetch(`${baseUrl}/api/show`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: modelId }),
-        signal: AbortSignal.timeout(5_000),
-      });
-      if (!resp.ok) return resolveOllamaVision(modelId, null); // transient — don't cache
-      const json: any = await resp.json().catch((): any => null);
-      const probed = ollamaVisionFromShow(json); // true/false (authoritative) or null
-      const result = resolveOllamaVision(modelId, probed);
-      // Cache only when the server gave us an authoritative capabilities answer.
-      if (probed !== null) this.ollamaVisionCache.set(modelId, result);
-      return result;
-    } catch {
-      // Probe failed (server down / timeout) — heuristic guess, not cached.
-      return resolveOllamaVision(modelId, null);
-    }
-  }
-
-  /**
-   * Resolve a vision-capable installed Ollama model and cache it in
-   * `this.ollamaVisionModel`. Prefers the currently-active model when it is
-   * itself vision-capable (no behavior change for users already on a vision
-   * model); otherwise picks the FIRST installed vision-capable model (in
-   * /api/tags order) so a screenshot can still be answered locally even when
-   * the primary model is text-only. Returns the chosen model id, or null when
-   * no installed model supports vision.
-   *
-   * Concurrent calls (init + switch + lazy-from-chain) share one in-flight
-   * probe to avoid redundant /api/show round-trips.
-   */
-  public async refreshOllamaVisionModel(): Promise<string | null> {
-    if (this.ollamaVisionRefreshInFlight) return this.ollamaVisionRefreshInFlight;
-    const run = (async (): Promise<string | null> => {
-      if (!this.useOllama) { this.ollamaVisionModel = null; return null; }
-      try {
-        const models = await this.getOllamaModels();
-        if (models.length === 0) { this.ollamaVisionModel = null; return null; }
-
-        // Prefer the active model if it's vision-capable.
-        if (this.ollamaModel && models.includes(this.ollamaModel) && await this.probeOllamaVision(this.ollamaModel)) {
-          this.ollamaVisionModel = this.ollamaModel;
-          return this.ollamaVisionModel;
-        }
-        // Otherwise pick the first installed vision-capable model.
-        for (const m of models) {
-          if (await this.probeOllamaVision(m)) {
-            this.ollamaVisionModel = m;
-            console.log(`[LLMHelper] Ollama vision model resolved: ${m} (primary model ${this.ollamaModel || 'n/a'} is text-only)`);
-            return m;
-          }
-        }
-        this.ollamaVisionModel = null;
-        return null;
-      } catch (e: any) {
-        console.warn('[LLMHelper] refreshOllamaVisionModel failed:', e?.message);
-        this.ollamaVisionModel = null;
-        return null;
-      }
-    })();
-    this.ollamaVisionRefreshInFlight = run;
-    try {
-      return await run;
-    } finally {
-      this.ollamaVisionRefreshInFlight = null;
-    }
-  }
-
-  public async forceRestartOllama(): Promise<boolean> {
-    try {
-      console.log("[LLMHelper] Attempting to force restart Ollama...");
-
-      // 1. Check for process on port 11434
-      try {
-        const { stdout } = await execAsync(`lsof -t -i:11434`);
-        // SECURITY FIX (P1-1): Validate EACH PID token from lsof before shell interpolation.
-        // lsof -t returns one PID per line when multiple processes are on the port.
-        const pids = stdout.trim().split(/\s+/).filter(p => /^\d+$/.test(p));
-        for (const pid of pids) {
-          console.log(`[LLMHelper] Found blocking PID: ${pid}. Killing...`);
-          await execAsync(`kill -9 ${pid}`);
-        }
-        if (pids.length === 0 && stdout.trim()) {
-          console.warn(`[LLMHelper] Unexpected lsof output (no valid PIDs): "${stdout.trim().substring(0, 50)}". Skipping kill.`);
-        }
-      } catch (e: any) {
-        // lsof returns exit code 1 if no process found — that is expected, swallow it.
-        // Only surface genuinely unexpected errors.
-        if (!e.message?.includes('exit code 1') && e.code !== 1) {
-          console.warn('[LLMHelper] lsof error (non-fatal):', e.message);
-        }
-      }
-
-      // 2. Restart Ollama through the Manager (which handles polling and background spawn)
-      // We don't want to use exec('ollama serve') here directly anymore to avoid duplicate tracking
-      const { OllamaManager } = require('./services/OllamaManager');
-      await OllamaManager.getInstance().init();
-
-      return true;
-    } catch (error) {
-      console.error("[LLMHelper] Failed to restart Ollama:", error);
-      return false;
-    }
-  }
-
-  public getCurrentProvider(): "ollama" | "gemini" | "custom" | "codex-cli" {
+  public getCurrentProvider(): "gemini" | "custom" | "codex-cli" {
     if (this.customProvider) return "custom";
     if (this.isCodexCliModel(this.currentModelId)) return "codex-cli";
-    return this.useOllama ? "ollama" : "gemini";
+    return "gemini";
   }
 
   public getCurrentModel(): string {
     if (this.customProvider) return this.customProvider.name;
     if (this.activeCurlProvider) return this.activeCurlProvider.id;
-    return this.useOllama ? this.ollamaModel : this.currentModelId;
+    return this.currentModelId;
   }
 
   public getPromptTier(): PromptTier {
-    return selectPromptTier(this.getCurrentModel(), this.useOllama);
+    return selectPromptTier(this.getCurrentModel());
   }
 
   public getCapabilities(): ModelCapabilities {
-    return getModelCapabilities(this.getCurrentModel(), this.useOllama);
+    return getModelCapabilities(this.getCurrentModel());
   }
 
   /**
@@ -4475,11 +3876,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
     const summaryDeniedScopes = getDeniedDataScopes(['post_call_summary'], this.getProviderScopePolicy());
     if (summaryDeniedScopes.includes('post_call_summary')) {
-      const ollamaAvailable = this.useOllama && await this.checkOllamaAvailable();
-      this.logScopeFallback('post_call_summary', ollamaAvailable ? 'routing' : 'omitting');
-      if (ollamaAvailable) {
-        return this.processResponse(await this.callOllama(`Context:\n${context}`, undefined, systemPrompt));
-      }
+      this.logScopeFallback('post_call_summary');
       context = '';
     }
 
@@ -4629,28 +4026,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     throw new Error("Failed to generate summary after all fallback attempts.");
   }
 
-  public async switchToOllama(model?: string, url?: string): Promise<void> {
-    this.useOllama = true;
-    if (url) this.ollamaUrl = url;
-    // URL/model change invalidates the per-model vision cache from a prior host.
-    this.ollamaVisionCache.clear();
-    this.ollamaVisionModel = null;
-
-    if (model) {
-      this.ollamaModel = model;
-    } else {
-      // Auto-detect first available model
-      await this.initializeOllamaModel();
-    }
-
-    // Resolve the best vision-capable installed model for screenshots (may
-    // differ from the primary text model). Fire-and-forget; the vision chain
-    // also refreshes lazily on first image request.
-    this.refreshOllamaVisionModel().catch(() => { });
-
-    console.log(`[LLMHelper] Switched to Ollama: ${this.ollamaModel} at ${this.ollamaUrl}`);
-  }
-
   public async switchToGemini(apiKey?: string, modelId?: string): Promise<void> {
     if (modelId) {
       this.geminiModel = modelId;
@@ -4666,14 +4041,12 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       throw new Error("No Gemini API key provided and no existing client");
     }
 
-    this.useOllama = false;
     this.customProvider = null;
     // console.log(`[LLMHelper] Switched to Gemini: ${this.geminiModel}`);
   }
 
   public async switchToCustom(provider: CustomProvider): Promise<void> {
     this.customProvider = provider;
-    this.useOllama = false;
     this.client = null;
     this.groqClient = null;
     this.openaiClient = null;
@@ -4683,25 +4056,15 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   public async testConnection(): Promise<{ success: boolean; error?: string }> {
     try {
-      if (this.useOllama) {
-        const available = await this.checkOllamaAvailable();
-        if (!available) {
-          return { success: false, error: `Ollama not available at ${this.ollamaUrl}` };
-        }
-        // Test with a simple prompt
-        await this.callOllama("Hello");
+      if (!this.client) {
+        return { success: false, error: "No Gemini client configured" };
+      }
+      // Test with a simple prompt using the selected model
+      const text = await this.generateContent([{ text: "Hello" }])
+      if (text) {
         return { success: true };
       } else {
-        if (!this.client) {
-          return { success: false, error: "No Gemini client configured" };
-        }
-        // Test with a simple prompt using the selected model
-        const text = await this.generateContent([{ text: "Hello" }])
-        if (text) {
-          return { success: true };
-        } else {
-          return { success: false, error: "Empty response from Gemini" };
-        }
+        return { success: false, error: "Empty response from Gemini" };
       }
     } catch (error: any) {
       return { success: false, error: error.message };

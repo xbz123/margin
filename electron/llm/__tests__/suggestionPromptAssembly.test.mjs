@@ -28,14 +28,14 @@ test('generateSuggestion uses the fixed default answer suffix and no mode system
 });
 
 // Name kept from the baseline so the evidence comparison still pairs it with its
-// inherited failure: the streamChat/Codex/Ollama call-shape assertions below were
-// already failing at a786910e (AG-17). The mode part is gone (AG-13).
+// inherited failure: the streamChat/Codex call-shape assertions below were
+// already failing at a786910e (AG-17). The mode part is gone (AG-13), and the
+// Ollama branch with it (AG-14).
 test('generateSuggestion sends custom notes and mode context as user message content', () => {
   assert.match(generateSuggestionSource, /const suggestionContext = \[customNotesBlock, context\]\.filter\(Boolean\)\.join\('\\n\\n'\);/);
   const streamChatMatches = generateSuggestionSource.match(/streamChat\(promptMessage, undefined, undefined, basePrompt, true\)/g) ?? [];
   assert.equal(streamChatMatches.length, 2);
   assert.match(generateSuggestionSource, /generateWithCodexCli\(promptMessage, basePrompt\)/);
-  assert.match(generateSuggestionSource, /callOllama\(promptMessage, undefined, systemPrompt\)/);
   assert.doesNotMatch(generateSuggestionSource, /generateWithFlash\(\[\{ text: `\$\{systemPrompt\}/);
   assert.doesNotMatch(generateSuggestionSource, /\$\{systemPrompt\}\\n\\n\$\{promptMessage\}/);
 });
@@ -210,7 +210,7 @@ test('WhatToAnswerLLM delegates attached images to streamChat (vision fallback o
 
   const llmHelper = {
     getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: false }),
-    getCurrentProvider: () => 'ollama',
+    getCurrentProvider: () => 'custom',
     getCurrentModel: () => 'qwen3.5:4b',
     isLocalOnly: () => true,
     getPromptTier: () => 'tiny',

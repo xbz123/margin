@@ -32,7 +32,6 @@ export type ProviderHint =
   | 'claude'
   | 'gemini'
   | 'groq'
-  | 'ollama'
   | 'codex'
   | 'custom'
   | 'generic';
@@ -77,9 +76,6 @@ function applyProviderTweaks(
   base: { maxLongEdgePx: number; quality: number; format: 'jpeg' | 'webp' | 'png' },
 ): { maxLongEdgePx: number; quality: number; format: 'jpeg' | 'webp' | 'png' } {
   switch (provider) {
-    case 'ollama':
-      // Local — keep buffer reasonable so base64 payload doesn't choke HTTP.
-      return { ...base, format: 'jpeg' };
     case 'gemini':
     case 'openai':
     case 'claude':
@@ -247,7 +243,7 @@ export class ImageOptimizer {
   }
 
   /**
-   * Read the optimized image as a `data:` URL (suitable for OpenAI/Ollama image_url).
+   * Read the optimized image as a `data:` URL (suitable for OpenAI image_url).
    */
   async getDataUrl(optimized: OptimizedImage): Promise<string> {
     const b64 = await this.getBase64(optimized);

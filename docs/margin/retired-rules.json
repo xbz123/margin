@@ -3,7 +3,8 @@
     "AG-10",
     "AG-11",
     "AG-12",
-    "AG-13"
+    "AG-13",
+    "AG-14"
   ],
   "scanRoots": [
     "electron",
@@ -497,6 +498,91 @@
       "ticket": "AG-14",
       "kind": "dep",
       "value": "sqlite-vec-darwin-x64"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "path",
+      "value": "electron/services/OllamaManager.ts"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "path",
+      "value": "src/components/ui/ModelSelector.tsx"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "switchToOllama"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "getAvailableOllamaModels"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "forceRestartOllama"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "onOllamaPullProgress"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "onOllamaPullComplete"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "callOllama"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "isUsingOllama"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "streamWithOllama"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "checkOllamaAvailable"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "setupOllamaIpcHandlers"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "isLocalOnlyMode"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "hasLocalFallbackAvailable"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "anyLocalVisionProviderConfigured"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "privacy_blocked"
+    },
+    {
+      "ticket": "AG-14",
+      "kind": "symbol",
+      "value": "USE_OLLAMA"
     },
     {
       "ticket": "AG-15",

@@ -630,7 +630,8 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-09 | 完成 | 见 AG-09 提交 | 见下文 AG-09 记录。5 项回归在守卫下连续 3 次全部通过 |
 | 证据方法 | 已更正 | 见 AG-13 提交 | 门禁统一由 `scripts/margin/run-gates.mjs` 运行，原始输出和退出码存于 `docs/margin/evidence/`。发现并修正了两处会让测试结果失真的问题（构建不清理旧产物；`--test-force-exit` 漏报测试），详见下文 AG-13 记录 |
 | AG-13 | 完成 | 见 AG-13 提交 | 见下文 AG-13 记录。证据：`docs/margin/evidence/AG-13/summary.json`，对照 `pre-AG-13/`。**待用户决定**：是否保留默认回答提示词（见记录中的决定 1） |
-| AG-14–17 | 待开始 | | AG-14 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
+| AG-14 | 完成 | `93fa62fe` 及 AG-14 (2/2) 提交 | 见下文 AG-14 记录。证据：`docs/margin/evidence/AG-14/summary.json`，对照 `AG-13/`；守卫记录到对 `11434` 端口零请求 |
+| AG-15–17 | 待开始 | | AG-15 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
@@ -820,6 +821,59 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
   - 默认回答提示词对回答质量的影响（需要真实模型，未获授权，见决定 1）；
   - 阶段 1 出口第 1 条（干净安装）仍等待 D5。
 
+### AG-14 记录（2026-10-07）
+
+分两个提交：`93fa62fe`（RAG、嵌入和 `sqlite-vec` 向量库）和本提交（Ollama、本地视觉和隐私模式中的"仅本地"）。
+
+**1. 删除 RAG 和向量库（`93fa62fe`）**
+
+- 删除 `electron/rag/`（含 `RAGManager`、实时索引、嵌入管线和各嵌入提供方、向量库及其 worker、`OllamaBootstrap`）、`scripts/VectorStoreRebuild.js`、`scripts/ensure-sqlite-vec.js`，以及 `sqlite-vec` 三个依赖（用 `npm install --package-lock-only --ignore-scripts` 同步 lockfile，不运行安装脚本）。
+- `main.ts`、`ProcessingHelper`：不再创建 RAG 管理器、实时索引、会后嵌入和嵌入模型引导；结束会议仍然保存并生成摘要。
+- IPC、preload、类型：删除 `rag:*` 通道和 API、更换提供方时的重建索引提示，以及只保护嵌入的 `embeddings` 数据范围。
+- 渲染层：输入框提问不再先尝试 RAG；会议内聊天始终用本场会议的转写和笔记回答（即基线已有的回退分支）；全局聊天用普通聊天流；启动页的模型下载状态和 `App` 的重建索引提示删除；关于页和帮助页不再描述本地 RAG。
+- `DatabaseManager`：从不加载扩展；新数据库不建 `chunks`、摘要、队列和 vec0 表（v3–v5、v8–v10 只保留版本号）；新增 v17，在旧数据库中删除这些表。vec0 表没有扩展无法删除，记录日志后保留。
+
+**2. 删除 Ollama 和"仅本地"（本提交）**
+
+- `LLMHelper`：删除 Ollama 的字段、探测、启动、保活、模型列表、视觉探测、流式调用、强制重启、切换，以及只为它们使用的 `exec`。构造函数变为 `(apiKey?, groqApiKey?, openaiApiKey?, claudeApiKey?, deepseekApiKey?)`。数据范围被拒绝时，不再"转给本地模型"，只剩"从云端请求中省略该内容"。
+- 删除 `OllamaManager`（启动时初始化、退出时停止）、`setupOllamaIpcHandlers` 及其 IPC、未使用的 `src/components/ui/ModelSelector.tsx`。
+- `ProviderRouter`、`modelCapabilities`、`visionCapability`：删除 `ollama` 提供方、本地优先规则、`parseOllamaSize` 和 Ollama 视觉判断。
+- 截图理解：删除 `private_vision` 模式和 `privacy_blocked` 结果，只剩 `vision_first` 和 `vision_only`。**设置迁移**：旧设置中的 `private` 或 `private_vision` 改为 `vision_first`，同时把 `providerDataScopes.screenshots` 设为 `false`。这样原本"截图不出本机"的用户，截图仍不会发给云端，而不是被悄悄放开。
+- 渲染层：模型选择窗口、悬浮窗、AI 提供方设置（Ollama 面板、轮询、cURL 示例中的 Ollama 例子、`private_vision` 选项）和帮助页的 Ollama 部分删除。
+- **基线问题（记给后续 ticket）**：
+  - `ScreenUnderstandingMode.test.mjs` 是基线上就被跳过的旧文件，仍提到 `ollama/llava`，随 OCR 一起交给 AG-16；
+  - `test:e2e:screen-understanding` 脚本仍引用 `natively-api`，交给 AG-17；
+  - 在视觉提供方注册表中，Codex 仍被视为"本地"，这一点在阶段 3 重新定义提供方时处理。
+
+**3. 端口 11434 零请求的证明**
+
+- 守卫新增"受监视的本地端口"（`MARGIN_ISOLATION_WATCH_PORTS`，默认 `11434`）。本地回环原本允许，现在对这个端口的连接会被拦截，并记为 `watched-port`；Chromium 中对该端口的 URL 也会被取消。
+- 守卫自测新增一个用例：`fetch` 和原始 TCP 连接到 `127.0.0.1:11434` 和 `localhost:11434` 都被拦截并记录（`guard-selftest.log`）。
+- AG-09 回归和会议存储测试在结束时断言：守卫记录中没有任何 `watched-port`、`11434`、`ollama` 或 `lsof` 条目。两项测试均通过（`regression.log`、`storage.log`）。AG-09 记录中曾观察到启动时的 `lsof -i:11434` 和 `ollama` 启动尝试，现在已不再出现。
+- **限制**：用一个不存在的命令名启动进程时，守卫不会记录（这类进程自己以 `ENOENT` 失败）。对这一点，依靠 G3 的规则保证不存在启动 `ollama` 的代码。
+
+**4. 检查结果**
+
+命令：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-14 --ref docs/margin/evidence/AG-13`，运行器退出码 0。（第一次运行因 `ProviderRouter.test.mjs` 末尾多一个空行，在 `diff-check` 失败；修正后整套重跑，证据为重跑结果。）
+
+| 步骤 | 退出码 | 结果 | 原始输出 |
+| --- | --- | --- | --- |
+| 清空构建目录、`build-electron`、`vite build` | 0、0、0 | 通过 | `clean-dist.log`、`build-electron.log`、`vite-build.log` |
+| 渲染层 `tsc` | 0 | 0 个错误 | `tsc-renderer.log` |
+| Electron `tsc` | 2 | 9 类诊断全部继承，没有新增 | `tsc-electron.log`、`tsc-electron.diagnostics.txt` |
+| G2 来源检查 | 0 | 零命中。新增 2 条白名单（`return "gemini";` 和 `const options = {`，删除 Ollama 分支后留下的通用写法） | `provenance.log` |
+| G3 | 0 | 111 条规则零命中；AG-14 已列入已完成 ticket，规则从 13 条增加到 30 条 | `retired.log` |
+| preload 契约 / IPC 通道 | 1 / 1 | 各 4 个、2 个缺口，全部继承，没有新增 | `*.gaps.txt` |
+| 守卫自测 | 0 | 通过（含新增的 11434 用例） | `guard-selftest.log` |
+| 测试（107 个文件） | 1 | 624 个测试，582 通过，12 失败，30 跳过。失败条目 20 个，**全部继承，新增 0**，与 AG-13 的列表相同 | `tests.tap`、`tests.files.json`、`test-failures.txt` |
+| AG-09 回答回归 | 0 | 5/5 通过，无 11434 或 Ollama 记录 | `regression.log` |
+| 会议存储 | 0 | 1/1 通过；数据库版本 17，没有模式、RAG 或 vec 表，`sqlite-vec` 未被加载 | `storage.log` |
+| `git diff HEAD --check` | 0 | 无问题 | `diff-check.log` |
+
+- **测试数从 666 降到 624 的来源**（按文件对照 `tests.files.json`）：删除两个 RAG 测试文件，共 7 个用例；`VisionCapability` 减少 25 个（Ollama 视觉判断）；`ProviderGatewayPolicy` 减少 3 个、`ScopeLocalFallback` 减少 3 个、`VisionProviderFallbackChain` 减少 2 个、`ProviderRouter` 和 `ProviderRouting` 各减少 1 个（RAG、Ollama 或仅本地相关）。7 + 25 + 3 + 3 + 2 + 1 + 1 = 42。
+- **继承失败**：`suggestionPromptAssembly` 中那个基线就失败的用例，删掉了对 Ollama 调用的断言；它仍然在基线就失败的 `streamChat` 调用次数断言上失败，继续交给 AG-17。`OpenAIRealtimeGAProtocol` 仍是 `<did not finish>`，属于基线已知的挂起。
+- **未验证**：阶段 1 出口第 1 条（干净安装）仍等待 D5。
+
 ### 事件记录（2026-10-07）
 
 1. **X2 第一版自测写入了真实目录。**
@@ -842,7 +896,7 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
    - **修复**：守卫改为通过 `-r` 参数传入（与 Playwright 自己的加载方式相同）；测试启动后先确认主进程里 `MARGIN_ISOLATION_ACTIVE === '1'`，否则立即中止。
    - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 
-**下一步**：AG-14（移除 RAG、向量库和 Ollama），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
+**下一步**：AG-15（移除本地 STT 和模型下载），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
 
 ## 9. 评审记录
 

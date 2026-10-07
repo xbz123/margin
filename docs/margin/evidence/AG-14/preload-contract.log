@@ -1,0 +1,5 @@
+declared 245, provided 258, declared-but-missing 4
+  closeAdvancedSettings
+  closeSettingsWindow
+  path
+  stealthTapRefreshIme

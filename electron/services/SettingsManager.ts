@@ -44,14 +44,14 @@ export interface AppSettings {
     // Screen-understanding routing — VISION-ONLY architecture (legacy OCR removed from runtime).
     //   vision_first   — Default. Send screenshot to the first available vision-capable provider; cascade through fallback chain on failure.
     //   vision_only    — Stricter: require vision-capable provider. No text-only provider fallback. No OCR fallback.
-    //   private_vision — Local vision only (Ollama image-capable / Codex local / approved local custom). Never call cloud vision. Hard error if no local vision provider available.
-    screenUnderstandingMode?: 'vision_first' | 'vision_only' | 'private_vision';
+    // (private_vision, local vision only, was removed with Ollama in PLAN.md AG-14; see migrateLegacySettings.)
+    screenUnderstandingMode?: 'vision_first' | 'vision_only';
     // When true (default) and the active mode is a technical / coding interview, prefer
     // direct vision LLM over structured-extract-then-answer for lowest latency.
     technicalInterviewVisionFirst?: boolean;
 }
 
-export const VALID_SCREEN_UNDERSTANDING_MODES = ['vision_first', 'vision_only', 'private_vision'] as const;
+export const VALID_SCREEN_UNDERSTANDING_MODES = ['vision_first', 'vision_only'] as const;
 export type ScreenUnderstandingMode = typeof VALID_SCREEN_UNDERSTANDING_MODES[number];
 
 // LEGACY values kept ONLY for migration of existing settings.json files written by older builds.
@@ -62,7 +62,6 @@ const LEGACY_SCREEN_MODE_MIGRATION: Record<string, ScreenUnderstandingMode> = {
     best: 'vision_first',
     fast: 'vision_first',
     ocr_only: 'vision_first',
-    private: 'private_vision',
 };
 
 export class SettingsManager {
@@ -148,6 +147,16 @@ export class SettingsManager {
         const raw = this.settings.screenUnderstandingMode as unknown as string | undefined;
         if (!raw) return;
         if ((VALID_SCREEN_UNDERSTANDING_MODES as readonly string[]).includes(raw)) return;
+        if (raw === 'private' || raw === 'private_vision') {
+            // The user asked never to send screenshots to cloud vision. Local vision
+            // providers are gone (AG-14), so keep that promise by denying the
+            // screenshots data scope for cloud providers.
+            console.warn(`[SettingsManager] Migrating screenUnderstandingMode "${raw}" → "vision_first" with the screenshots scope denied (local vision removed)`);
+            this.settings.screenUnderstandingMode = 'vision_first';
+            this.settings.providerDataScopes = { ...(this.settings.providerDataScopes || {}), screenshots: false };
+            this.saveSettings();
+            return;
+        }
         const migrated = LEGACY_SCREEN_MODE_MIGRATION[raw];
         if (migrated) {
             console.warn(`[SettingsManager] Migrating legacy screenUnderstandingMode "${raw}" → "${migrated}" (OCR runtime path removed)`);

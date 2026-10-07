@@ -79,6 +79,10 @@ test.after(async () => {
   await mock?.close();
   const blocked = sandbox ? readBlocked(sandbox).filter((b) => !['permission', 'device', 'local-exec'].includes(b.kind)) : [];
   assert.deepEqual(blocked.map((b) => `${b.kind} ${b.detail}`), [], 'no outbound attempts during the storage run');
+  // AG-14: nothing may probe, start or reach Ollama (port 11434 is a watched port, so a
+  // connection would also show up above as kind "watched-port").
+  const ollama = sandbox ? readBlocked(sandbox).filter((b) => /11434|ollama|lsof/i.test(`${b.kind} ${b.detail}`)) : [];
+  assert.deepEqual(ollama.map((b) => `${b.kind} ${b.detail}`), [], 'no Ollama probe or port 11434 traffic during the storage run');
 });
 
 test('a meeting is saved with a mock summary, survives a restart, and stays deleted', async () => {

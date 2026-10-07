@@ -13,16 +13,7 @@ async function loadRouter() {
   return import(pathToFileURL(routerPath).href);
 }
 
-test('transcript scope denial routes full context to Ollama when available', () => {
-  const src = read('electron/LLMHelper.ts');
-
-  assert.match(src, /deniedOutboundScopes\.includes\('transcript'\)/);
-  assert.match(src, /this\.logScopeFallback\(scope, ollamaAvailable \? 'routing' : 'omitting'\)/);
-  assert.match(src, /return await this\.callOllama\(combinedMessages\.gemini, imagePaths, undefined\)/);
-  assert.match(src, /yield\* this\.streamWithOllama\(message, context/);
-});
-
-test('transcript scope denial omits transcript from cloud calls when Ollama is unavailable', () => {
+test('transcript scope denial omits transcript from cloud calls', () => {
   const src = read('electron/LLMHelper.ts');
 
   assert.match(src, /shouldOmitContext = deniedOutboundScopes\.some\(scope => scope === 'transcript' \|\| scope === 'profile_history' \|\| scope === 'post_call_summary'\)/);
@@ -42,40 +33,26 @@ test('LLMHelper infers auxiliary context scopes before cloud routing', () => {
   assert.match(src, /<post_call_summary\|meeting summary\|silent meeting summarizer\|silent meeting note-taker/);
 });
 
-test('routeLLMProviders keeps Ollama available when cloud scopes are denied', async () => {
-  const { routeLLMProviders, routeWithScopeFallback, hasLocalFallbackAvailable } = await loadRouter();
+test('routeLLMProviders marks cloud providers unavailable when a scope is denied', async () => {
+  const { routeLLMProviders, routeWithScopeFallback } = await loadRouter();
 
-  assert.equal(hasLocalFallbackAvailable(['llama3.2']), true);
-  assert.equal(hasLocalFallbackAvailable([]), false);
-
-  const attempts = routeLLMProviders({
+  const options = {
     capability: 'chat',
-    availability: { hasOpenAI: true, hasGroq: true, hasGemini: true, hasOllama: true },
-    models: { ollama: 'llama3.2' },
+    availability: { hasOpenAI: true, hasGroq: true, hasGemini: true },
     dataScopes: ['transcript'],
     scopePolicy: { transcript: false },
-  });
+  };
+  const attempts = routeLLMProviders(options);
 
   assert.equal(attempts.find(a => a.provider === 'openai')?.status, 'unavailable');
   assert.equal(attempts.find(a => a.provider === 'openai')?.unavailableReason, 'disabled');
-  assert.equal(attempts.find(a => a.provider === 'ollama')?.status, 'available');
-  assert.deepEqual(routeWithScopeFallback({
-    capability: 'chat',
-    availability: { hasOllama: true },
-    dataScopes: ['transcript'],
-    scopePolicy: { transcript: false },
-  }), routeLLMProviders({
-    capability: 'chat',
-    availability: { hasOllama: true },
-    dataScopes: ['transcript'],
-    scopePolicy: { transcript: false },
-  }));
+  assert.equal(attempts.some(a => a.status === 'available'), false);
+  assert.deepEqual(routeWithScopeFallback(options), attempts);
 });
 
-test('MeetingPersistence post_call_summary denial falls back to local summary path', () => {
+test('post_call_summary denial omits the meeting context from the summary request', () => {
   const llmHelper = read('electron/LLMHelper.ts');
 
   assert.match(llmHelper, /getDeniedDataScopes\(\['post_call_summary'\], this\.getProviderScopePolicy\(\)\)/);
-  assert.match(llmHelper, /this\.logScopeFallback\('post_call_summary', ollamaAvailable \? 'routing' : 'omitting'\)/);
-  assert.match(llmHelper, /this\.callOllama\(`Context:\\n\$\{context\}`/);
+  assert.match(llmHelper, /this\.logScopeFallback\('post_call_summary'\);\s*context = '';/);
 });

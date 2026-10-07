@@ -1,7 +1,6 @@
 // electron/llm/__tests__/VisionCapability.test.mjs
 //
-// Tests the pure local-provider vision-capability detection:
-//   • Ollama: authoritative /api/show capabilities + name-heuristic fallback
+// Tests the pure custom-provider vision-capability detection:
 //   • Custom cURL provider: explicit flag > {{IMAGE_BASE64}} > OpenAI messages body
 //
 // Loads compiled JS from dist-electron like the other __tests__.
@@ -14,52 +13,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const modPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/visionCapability.js');
 const {
-  isOllamaVisionModelByName,
-  ollamaVisionFromShow,
-  resolveOllamaVision,
   customProviderSupportsVision,
   customProviderIsLocal,
 } = await import(pathToFileURL(modPath).href);
-
-describe('isOllamaVisionModelByName', () => {
-  for (const m of ['llava:13b', 'llava-llama3', 'bakllava', 'moondream', 'llama3.2-vision',
-                   'minicpm-v', 'qwen2.5-vl:7b', 'pixtral-12b', 'gemma3:4b', 'llama4:scout',
-                   'granite3.2-vision', 'mistral-small3.1']) {
-    test(`recognizes vision model: ${m}`, () => assert.equal(isOllamaVisionModelByName(m), true));
-  }
-  for (const m of ['llama3.3:70b', 'qwen2.5:7b', 'mistral:7b', 'phi3', 'deepseek-r1', '']) {
-    test(`text-only model not flagged: ${m || '(empty)'}`, () => assert.equal(isOllamaVisionModelByName(m), false));
-  }
-});
-
-describe('ollamaVisionFromShow', () => {
-  test('capabilities containing "vision" → true', () => {
-    assert.equal(ollamaVisionFromShow({ capabilities: ['completion', 'vision'] }), true);
-  });
-  test('capabilities without "vision" → false (authoritative)', () => {
-    assert.equal(ollamaVisionFromShow({ capabilities: ['completion', 'tools'] }), false);
-  });
-  test('no capabilities array → null (defer to heuristic)', () => {
-    assert.equal(ollamaVisionFromShow({ details: {} }), null);
-    assert.equal(ollamaVisionFromShow(null), null);
-  });
-  test('case-insensitive match', () => {
-    assert.equal(ollamaVisionFromShow({ capabilities: ['Vision'] }), true);
-  });
-});
-
-describe('resolveOllamaVision', () => {
-  test('authoritative true overrides a text-looking name', () => {
-    assert.equal(resolveOllamaVision('my-custom-model', true), true);
-  });
-  test('authoritative false overrides a vision-looking name (renamed text model)', () => {
-    assert.equal(resolveOllamaVision('llava-but-actually-text', false), false);
-  });
-  test('null probe falls back to name heuristic', () => {
-    assert.equal(resolveOllamaVision('llava:13b', null), true);
-    assert.equal(resolveOllamaVision('llama3.3:70b', null), false);
-  });
-});
 
 describe('customProviderSupportsVision', () => {
   test('null / no curl → false', () => {
@@ -118,7 +74,7 @@ describe('customProviderIsLocal', () => {
     assert.equal(customProviderIsLocal({ curlCommand: 'curl http://127.0.0.1:1234', localOnly: false }), false);
   });
   test('loopback hosts → local', () => {
-    assert.equal(customProviderIsLocal({ curlCommand: 'curl http://localhost:11434/v1/chat' }), true);
+    assert.equal(customProviderIsLocal({ curlCommand: 'curl http://localhost:8080/v1/chat' }), true);
     assert.equal(customProviderIsLocal({ curlCommand: 'curl http://127.0.0.1:8080/x' }), true);
   });
   test('RFC-1918 private hosts → local', () => {

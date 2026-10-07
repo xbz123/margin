@@ -70,7 +70,6 @@ export {
     getModelCapabilities,
     selectPromptTier,
     estimateTokens,
-    truncateTranscriptToFit,
-    parseOllamaSize
+    truncateTranscriptToFit
 } from "./modelCapabilities";
 export type { ModelCapabilities, ModelTier, PromptTier } from "./modelCapabilities";

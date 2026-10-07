@@ -263,9 +263,6 @@ async function main() {
 
   const llmHelper = new LLMHelper(
     geminiApiKey || undefined,
-    false, // useOllama
-    undefined, // ollamaModel
-    undefined, // ollamaUrl
     groqApiKey || undefined,
     openaiApiKey || undefined,
     claudeApiKey || undefined

@@ -23,6 +23,10 @@ const path = require('node:path');
 
 const LOG = process.env.MARGIN_ISOLATION_LOG || '';
 const ALLOW_EXEC = new Set((process.env.MARGIN_ISOLATION_ALLOW_EXEC || '').split(':').filter(Boolean));
+// Loopback ports that must never be contacted (for example 11434, the Ollama port
+// retired in PLAN.md AG-14). Loopback is otherwise allowed, so a watched port is
+// blocked and recorded like an outbound attempt.
+const WATCHED_PORTS = new Set((process.env.MARGIN_ISOLATION_WATCH_PORTS || '').split(',').map((p) => p.trim()).filter(Boolean));
 
 function record(kind, detail) {
   const entry = { t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind, detail };
@@ -71,6 +75,11 @@ net.Socket.prototype.connect = function guardedConnect(...args) {
     process.nextTick(() => this.destroy(err));
     return this;
   }
+  if (port !== undefined && WATCHED_PORTS.has(String(port))) {
+    const err = blockedError('watched-port', `${host || 'localhost'}:${port}`);
+    process.nextTick(() => this.destroy(err));
+    return this;
+  }
   return origConnect.apply(this, args);
 };
 
@@ -114,7 +123,7 @@ dns.promises.lookup = async function guarded(hostname, ...rest) {
 // command, so `sh -c` / `&& curl` cannot slip through.
 const SANDBOX_ROOT = process.env.MARGIN_ISOLATION_HOME ? path.dirname(process.env.MARGIN_ISOLATION_HOME) : null;
 const SAFE_BINARIES = new Set(['node', path.basename(process.execPath), 'echo', 'true', 'false', 'sleep']);
-// `defaults` (input-method detection) and `lsof` (Ollama port cleanup, removed in AG-14).
+// `defaults` (input-method detection) and `lsof` (the baseline's Ollama port cleanup; removed in AG-14).
 const LOCAL_TOOLS = new Set(['defaults', 'lsof']);
 const SYSTEM_DIRS = new Set(['/bin', '/usr/bin']);
 // A command that cannot be found would fail with ENOENT anyway; letting it through
@@ -270,7 +279,7 @@ function installChromiumGuard(electron) {
     if (/^(file|data|blob|devtools|chrome|chrome-extension|about):/i.test(url)) return true;
     try {
       const u = new URL(url);
-      return isLoopbackHost(u.hostname);
+      return isLoopbackHost(u.hostname) && !WATCHED_PORTS.has(u.port);
     } catch {
       return false;
     }

@@ -727,8 +727,8 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle(
     'set-screen-understanding-mode',
-    async (_, mode: 'vision_first' | 'vision_only' | 'private_vision') => {
-      if (!['vision_first', 'vision_only', 'private_vision'].includes(mode)) {
+    async (_, mode: 'vision_first' | 'vision_only') => {
+      if (!['vision_first', 'vision_only'].includes(mode)) {
         return { success: false, error: 'invalid_mode' };
       }
       SettingsManager.getInstance().setScreenUnderstandingMode(mode);
@@ -911,69 +911,10 @@ export function initializeIpcHandlers(appState: AppState): void {
       return {
         provider: llmHelper.getCurrentProvider(),
         model: llmHelper.getCurrentModel(),
-        isOllama: llmHelper.isUsingOllama(),
       };
     } catch (error: any) {
       // console.error("Error getting current LLM config:", error);
       throw error;
-    }
-  });
-
-  safeHandle('get-available-ollama-models', async () => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      const models = await llmHelper.getOllamaModels();
-      return models;
-    } catch (error: any) {
-      // console.error("Error getting Ollama models:", error);
-      throw error;
-    }
-  });
-
-  safeHandle('switch-to-ollama', async (_, model?: string, url?: string) => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      await llmHelper.switchToOllama(model, url);
-      return { success: true };
-    } catch (error: any) {
-      // console.error("Error switching to Ollama:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  safeHandle('force-restart-ollama', async () => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      const success = await llmHelper.forceRestartOllama();
-      return { success };
-    } catch (error: any) {
-      console.error('Error force restarting Ollama:', error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  safeHandle('restart-ollama', async () => {
-    try {
-      // First try to kill it if it's running
-      await appState.processingHelper.getLLMHelper().forceRestartOllama();
-
-      // The forceRestartOllama now calls OllamaManager.getInstance().init() internally
-      // so we don't need to do it again here.
-
-      return true;
-    } catch (error: any) {
-      console.error('[IPC restart-ollama] Failed to restart:', error);
-      return false;
-    }
-  });
-
-  safeHandle('ensure-ollama-running', async () => {
-    try {
-      const { OllamaManager } = require('./services/OllamaManager');
-      await OllamaManager.getInstance().init();
-      return { success: true };
-    } catch (error: any) {
-      return { success: false, message: error.message };
     }
   });
 
@@ -2562,13 +2503,8 @@ export function initializeIpcHandlers(appState: AppState): void {
             const settings = SettingsManager.getInstance();
             const credentials = CredentialsManager.getInstance();
             const providerScopes = settings.get('providerDataScopes') || {};
-            const localVisionAvailable = credentials.anyLocalVisionProviderConfigured?.() ?? false;
             if (providerScopes.screenshots === false) {
-              console.warn(
-                localVisionAvailable
-                  ? '[ScopeFallback] screenshots denied for cloud; routing to Ollama'
-                  : '[ScopeFallback] screenshots denied; Ollama unavailable, omitting from context',
-              );
+              console.warn('[ScopeFallback] screenshots denied for cloud providers; omitting from context');
             }
 
             const sur = await sus.understand({
@@ -2580,10 +2516,8 @@ export function initializeIpcHandlers(appState: AppState): void {
               screenUnderstandingMode: settings.getScreenUnderstandingMode(),
               technicalInterviewVisionFirst: settings.getTechnicalInterviewVisionFirst(),
               providerPolicy: {
-                localOnly: settings.getScreenUnderstandingMode() === 'private_vision',
                 allowScreenshots: providerScopes.screenshots !== false,
                 visionAvailable: credentials.anyVisionProviderConfigured?.() ?? true,
-                localVisionAvailable,
               },
             });
 

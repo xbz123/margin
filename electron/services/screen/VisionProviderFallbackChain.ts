@@ -14,12 +14,8 @@
 //   4. Claude vision (if configured)
 //   5. Gemini Pro vision (if configured)
 //   6. Groq Llama-4-Scout vision (if configured)
-//   7. Ollama local vision (if configured AND the active Ollama model is vision-capable)
-//   8. Codex CLI vision (if enabled AND CLI supports vision)
-//   9. Custom cURL provider (only if multimodal=true AND screenshots scope enabled)
-//
-// Provider order (private_vision): only steps 7–9, and step 9 only if the custom
-// provider is flagged local-only.
+//   7. Codex CLI vision (if enabled AND CLI supports vision)
+//   8. Custom cURL provider (only if multimodal=true AND screenshots scope enabled)
 //
 // Telemetry redaction:
 //   - We never log image paths, base64 payloads, or full prompts.
@@ -32,19 +28,17 @@ import { ImageOptimizer, OptimizedImage, ProviderHint, getImageOptimizer } from 
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
-export type VisionMode = 'vision_first' | 'vision_only' | 'private_vision';
+export type VisionMode = 'vision_first' | 'vision_only';
 
 export type VisionFailureReason =
   | 'no_vision_provider'
   | 'all_vision_failed'
-  | 'privacy_blocked'
   | 'scope_blocked'
   | 'provider_timeout';
 
 export type VisionSkipReason =
   | 'not_configured'
   | 'no_vision'
-  | 'privacy_blocked'
   | 'scope_blocked'
   | 'rate_limited';
 
@@ -85,7 +79,7 @@ export interface VisionProviderConfig {
   id: string;                                     // unique provider id, used in telemetry
   displayName: string;                            // e.g. "Natively API"
   modelId?: string;                               // resolved model id for telemetry
-  isLocal: boolean;                               // true for ollama / codex local / approved-local-custom
+  isLocal: boolean;                               // true for codex local / approved-local-custom
   isConfigured: boolean;                          // API key / runtime available
   supportsVision: boolean;                        // selected model is vision-capable
   scopeAllowsScreenshots: boolean;                // per-provider data scope check
@@ -137,15 +131,14 @@ const DEFAULT_PER_PROVIDER_TIMEOUT_MS = 12_000;
  * Behavior:
  *   - Optimizes the image ONCE up front (per provider hint when possible). We
  *     re-encode per provider only if the hint differs in a way that changes the
- *     payload (e.g. Ollama may want a smaller buffer than Claude).
+ *     payload.
  *   - Tries each configured + vision-capable provider in order.
  *   - Honors privacy/scope:
- *       - private_vision: skip every non-local provider with skipReason='privacy_blocked'.
  *       - scopeAllowsScreenshots=false: skip with skipReason='scope_blocked'.
  *   - Each provider attempt is wrapped in an AbortController with `perProviderTimeoutMs`.
  *   - On the first non-empty success, returns immediately.
  *   - If every provider is skipped, returns failureReason='no_vision_provider'
- *     (or 'privacy_blocked' / 'scope_blocked' when those reasons dominate).
+ *     (or 'scope_blocked' when that reason dominates).
  *   - If providers were attempted but none succeeded, returns 'all_vision_failed'.
  */
 export async function runVisionFallback(params: RunFallbackParams): Promise<VisionFallbackResult> {
@@ -169,7 +162,6 @@ export async function runVisionFallback(params: RunFallbackParams): Promise<Visi
 
   // Track skip reasons so we can pick the most specific failureReason later.
   let sawScopeBlocked = false;
-  let sawPrivacyBlocked = false;
   let sawAtLeastOneAttempt = false;
 
   for (let i = 0; i < params.providers.length; i++) {
@@ -215,21 +207,6 @@ export async function runVisionFallback(params: RunFallbackParams): Promise<Visi
       });
       params.telemetry?.({ type: 'vision_skipped', provider: provider.id, reason: 'scope_blocked' });
       sawScopeBlocked = true;
-      continue;
-    }
-
-    // 4. privacy check: private_vision forbids any non-local provider
-    if (params.mode === 'private_vision' && !provider.isLocal) {
-      attempts.push({
-        provider: provider.id,
-        model: provider.modelId,
-        ok: false,
-        skipped: true,
-        skipReason: 'privacy_blocked',
-        durationMs: 0,
-      });
-      params.telemetry?.({ type: 'vision_skipped', provider: provider.id, reason: 'privacy_blocked' });
-      sawPrivacyBlocked = true;
       continue;
     }
 
@@ -339,9 +316,7 @@ export async function runVisionFallback(params: RunFallbackParams): Promise<Visi
   let failureReason: VisionFailureReason;
   if (sawAtLeastOneAttempt) {
     failureReason = 'all_vision_failed';
-  } else if (params.mode === 'private_vision' && sawPrivacyBlocked && !sawScopeBlocked) {
-    failureReason = 'privacy_blocked';
-  } else if (sawScopeBlocked && !sawPrivacyBlocked) {
+  } else if (sawScopeBlocked) {
     failureReason = 'scope_blocked';
   } else {
     failureReason = 'no_vision_provider';

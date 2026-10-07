@@ -2,7 +2,7 @@
 //
 // Tests the unified streaming vision-fallback state machine — the core that
 // makes screenshot analysis robust across OpenAI / Claude / Gemini / Groq /
-// custom / Ollama. Loads the compiled JS from dist-electron like other __tests__.
+// custom. Loads the compiled JS from dist-electron like other __tests__.
 //
 // Focus areas:
 //   1. classifyVisionError — error → bucket mapping that drives retry vs skip.

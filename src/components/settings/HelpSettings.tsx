@@ -1163,33 +1163,13 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 mt-2 rounded-xl border border-border-subtle bg-bg-item-surface">
                                 <h5 className="font-semibold text-[13px] text-text-primary mb-1">Configuring the Active Model Engine</h5>
                                 <p className="text-[11px] text-text-secondary leading-relaxed">
-                                    Inside the Launcher UI (above the start button), you can hot-swap your <strong>Active Model</strong>. This dictation is extremely important—it determines the active core reasoning engine. If set to <strong>claude-3-5-sonnet</strong>, the intelligence agent uses Anthropic infrastructure exclusively for screen analysis. Switch to <strong>llama3:8b</strong> beneath it, and the architecture instantly reverts to generating responses via your offline GPU pipeline.
+                                    Inside the Launcher UI (above the start button), you can hot-swap your <strong>Active Model</strong>. This dictation is extremely important—it determines the active core reasoning engine. If set to <strong>claude-3-5-sonnet</strong>, the intelligence agent uses Anthropic infrastructure exclusively for screen analysis.
                                 </p>
                             </div>
                         </div>
 
                         <div className="space-y-3 pt-4">
-                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">2. Local Models (Ollama)</h4>
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-3">
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    You can run Natively completely offline with 100% data privacy using Ollama. Natively automatically scans <span className={kbdClass}>http://localhost:11434</span> for active models.
-                                </p>
-                                <ol className="list-decimal pl-4 text-xs space-y-2 opacity-90 text-text-secondary">
-                                    <li>Download Ollama locally via <button onClick={() => { (window as any).electronAPI?.openExternal('https://ollama.com/download') }} className="text-accent-primary hover:underline inline-flex items-center gap-1 font-medium">ollama.com <ExternalLink size={10} /></button></li>
-                                    <li>
-                                        Open Terminal and run our recommended 8B parameter instruction model:
-                                        <div className="mt-1 bg-bg-input p-2 rounded border border-border-subtle font-mono text-[11px]">ollama run llama3:8b</div>
-                                    </li>
-                                    <li>Alternatively, for faster generation without GPU, use Microsoft's smaller model:
-                                        <div className="mt-1 bg-bg-input p-2 rounded border border-border-subtle font-mono text-[11px]">ollama run phi3</div>
-                                    </li>
-                                    <li>Return to Natively's AI Providers overlay, and you will see your Local models ready for usage.</li>
-                                </ol>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3 pt-4">
-                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">3. Custom Providers</h4>
+                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">2. Custom Providers</h4>
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-3">
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Use Custom Providers to hook up any standard external LLM router (like OpenRouter, LMStudio, or proprietary company endpoints). Create a new provider using a cURL command template.

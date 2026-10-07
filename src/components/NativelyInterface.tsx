@@ -567,7 +567,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       if (!mounted || !config) return;
       setLlmProviderLabel(formatProviderLabel(config.provider));
       setLlmPrivacyLabel(
-        config.provider === 'ollama' || config.provider === 'codex-cli'
+        config.provider === 'codex-cli'
           ? 'Local/private route'
           : config.provider === 'custom'
             ? 'Custom endpoint route'
@@ -3953,7 +3953,6 @@ Provide only the answer, nothing else.`;
                   const failureLabelMap: Record<string, string> = {
                     no_vision_provider: 'No vision provider',
                     all_vision_failed: 'Vision failed',
-                    privacy_blocked: 'Private mode blocked vision',
                     scope_blocked: 'Screenshots disabled',
                     provider_timeout: 'Vision timed out',
                   };
@@ -3962,11 +3961,9 @@ Provide only the answer, nothing else.`;
                     : 'Vision failed';
                   const failureTitleMap: Record<string, string> = {
                     no_vision_provider:
-                      'No vision-capable provider is configured. Add a Natively, OpenAI, Claude, Gemini, or Groq key — or configure a local Ollama vision model.',
+                      'No vision-capable provider is configured. Add an OpenAI, Claude, Gemini, or Groq key.',
                     all_vision_failed:
                       'All configured vision providers failed for this turn. Check provider quotas and try again.',
-                    privacy_blocked:
-                      'Private vision mode blocked cloud vision providers; no local vision provider is configured.',
                     scope_blocked:
                       'Screenshots are disabled for the current provider. Enable the screenshots scope in Settings.',
                     provider_timeout:
@@ -4612,7 +4609,6 @@ Provide only the answer, nothing else.`;
                           const m = currentModel;
                           const codexCliName = getCodexCliModelDisplayName(m);
                           if (codexCliName) return codexCliName;
-                          if (m.startsWith('ollama-')) return m.replace('ollama-', '');
                           if (m === 'gemini-3.1-flash-lite-preview') return 'Gemini 3.1 Flash';
                           if (m === 'gemini-3.1-pro-preview') return 'Gemini 3.1 Pro';
                           if (m === 'llama-3.3-70b-versatile') return 'Groq Llama 3.3';

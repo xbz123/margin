@@ -38,12 +38,9 @@ interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{
-    provider: 'ollama' | 'gemini';
+    provider: 'gemini' | 'custom' | 'codex-cli';
     model: string;
-    isOllama: boolean;
   }>;
-  getAvailableOllamaModels: () => Promise<string[]>;
-  switchToOllama: (model?: string, url?: string) => Promise<{ success: boolean; error?: string }>;
   switchToGemini: (
     apiKey?: string,
     modelId?: string,
@@ -291,7 +288,6 @@ interface ElectronAPI {
   setDefaultModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) => Promise<void>;
   modelSelectorCloseIfOpen: () => Promise<void>;
-  forceRestartOllama: () => Promise<void>;
 
   // Settings Window
   toggleSettingsWindow: (coords?: { x: number; y: number }) => Promise<void>;
@@ -402,12 +398,6 @@ interface ElectronAPI {
   onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
   onModelChanged: (callback: (modelId: string) => void) => () => void;
 
-  // Ollama
-  onOllamaPullProgress: (
-    callback: (data: { status: string; percent: number }) => void,
-  ) => () => void;
-  onOllamaPullComplete: (callback: () => void) => () => void;
-
   // Theme API
   getThemeMode: () => Promise<{ mode: 'system' | 'light' | 'dark'; resolved: 'light' | 'dark' }>;
   setThemeMode: (mode: 'system' | 'light' | 'dark') => Promise<void>;
@@ -499,12 +489,12 @@ interface ElectronAPI {
       post_call_summary?: boolean;
     }) => void,
   ) => () => void;
-  getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only' | 'private_vision'>;
+  getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only'>;
   setScreenUnderstandingMode: (
-    mode: 'vision_first' | 'vision_only' | 'private_vision',
+    mode: 'vision_first' | 'vision_only',
   ) => Promise<{ success: boolean; error?: string }>;
   onScreenUnderstandingModeChanged: (
-    callback: (mode: 'vision_first' | 'vision_only' | 'private_vision') => void,
+    callback: (mode: 'vision_first' | 'vision_only') => void,
   ) => () => void;
   getTechnicalInterviewVisionFirst: () => Promise<boolean>;
   setTechnicalInterviewVisionFirst: (
@@ -800,9 +790,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // LLM Model Management
   getCurrentLlmConfig: () => ipcRenderer.invoke('get-current-llm-config'),
-  getAvailableOllamaModels: () => ipcRenderer.invoke('get-available-ollama-models'),
-  switchToOllama: (model?: string, url?: string) =>
-    ipcRenderer.invoke('switch-to-ollama', model, url),
   switchToGemini: (apiKey?: string, modelId?: string) =>
     ipcRenderer.invoke('switch-to-gemini', apiKey, modelId),
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) =>
@@ -1267,7 +1254,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) =>
     ipcRenderer.invoke('toggle-model-selector', coords),
   modelSelectorCloseIfOpen: () => ipcRenderer.invoke('model-selector:close-if-open'),
-  forceRestartOllama: () => ipcRenderer.invoke('force-restart-ollama'),
 
   // Settings Window
   toggleSettingsWindow: (coords?: { x: number; y: number }) =>
@@ -1367,22 +1353,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('model-changed', subscription);
     return () => {
       ipcRenderer.removeListener('model-changed', subscription);
-    };
-  },
-
-  onOllamaPullProgress: (callback: (data: { status: string; percent: number }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('ollama:pull-progress', subscription);
-    return () => {
-      ipcRenderer.removeListener('ollama:pull-progress', subscription);
-    };
-  },
-
-  onOllamaPullComplete: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('ollama:pull-complete', subscription);
-    return () => {
-      ipcRenderer.removeListener('ollama:pull-complete', subscription);
     };
   },
 
@@ -1507,12 +1477,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
   getScreenUnderstandingMode: () => ipcRenderer.invoke('get-screen-understanding-mode'),
-  setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only' | 'private_vision') =>
+  setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only') =>
     ipcRenderer.invoke('set-screen-understanding-mode', mode),
   onScreenUnderstandingModeChanged: (
-    callback: (mode: 'vision_first' | 'vision_only' | 'private_vision') => void,
+    callback: (mode: 'vision_first' | 'vision_only') => void,
   ) => {
-    const subscription = (_: any, mode: 'vision_first' | 'vision_only' | 'private_vision') =>
+    const subscription = (_: any, mode: 'vision_first' | 'vision_only') =>
       callback(mode);
     ipcRenderer.on('screen-understanding-mode-changed', subscription);
     return () => {

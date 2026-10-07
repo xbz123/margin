@@ -115,9 +115,7 @@ export interface ElectronAPI {
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void
 
   // LLM Model Management
-  getCurrentLlmConfig: () => Promise<{ provider: "ollama" | "gemini" | "custom" | "codex-cli"; model: string; isOllama: boolean }>
-  getAvailableOllamaModels: () => Promise<string[]>
-  switchToOllama: (model?: string, url?: string) => Promise<{ success: boolean; error?: string }>
+  getCurrentLlmConfig: () => Promise<{ provider: "gemini" | "custom" | "codex-cli"; model: string }>
   switchToGemini: (apiKey?: string, modelId?: string) => Promise<{ success: boolean; error?: string }>
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string) => Promise<{ success: boolean; error?: string }>
   selectServiceAccount: () => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>
@@ -190,7 +188,7 @@ export interface ElectronAPI {
     visionProviderUsed?: string;
     visionModelUsed?: string;
     visionAttempts?: number;
-    visionFailureReason?: 'no_vision_provider' | 'all_vision_failed' | 'privacy_blocked' | 'scope_blocked' | 'provider_timeout';
+    visionFailureReason?: 'no_vision_provider' | 'all_vision_failed' | 'scope_blocked' | 'provider_timeout';
     imageCount?: number;
     usedImageInput?: boolean;
   }>
@@ -263,7 +261,6 @@ export interface ElectronAPI {
   setDefaultModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) => Promise<void>;
   modelSelectorCloseIfOpen: () => Promise<void>;
-  forceRestartOllama: () => Promise<void>;
 
   // Settings Window
   toggleSettingsWindow: (coords?: { x: number; y: number }) => Promise<void>;
@@ -303,9 +300,6 @@ export interface ElectronAPI {
   onUndetectableChanged: (callback: (state: boolean) => void) => () => void;
   onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
   onModelChanged: (callback: (modelId: string) => void) => () => void;
-
-  onOllamaPullProgress: (callback: (data: { status: string; percent: number }) => void) => () => void;
-  onOllamaPullComplete: (callback: () => void) => () => void;
 
   onMeetingsUpdated: (callback: () => void) => () => void
 
@@ -361,9 +355,9 @@ export interface ElectronAPI {
   getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }>;
   setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }) => Promise<{ success: boolean; error?: string }>;
   onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }) => void) => () => void;
-  getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only' | 'private_vision'>;
-  setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only' | 'private_vision') => Promise<{ success: boolean; error?: string }>;
-  onScreenUnderstandingModeChanged: (callback: (mode: 'vision_first' | 'vision_only' | 'private_vision') => void) => () => void;
+  getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only'>;
+  setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only') => Promise<{ success: boolean; error?: string }>;
+  onScreenUnderstandingModeChanged: (callback: (mode: 'vision_first' | 'vision_only') => void) => () => void;
   getTechnicalInterviewVisionFirst: () => Promise<boolean>;
   setTechnicalInterviewVisionFirst: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
   onTechnicalInterviewVisionFirstChanged: (callback: (enabled: boolean) => void) => () => void;

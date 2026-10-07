@@ -23,29 +23,19 @@ export class ProcessingHelper {
   constructor(appState: AppState) {
     this.appState = appState
 
-    // Check if user wants to use Ollama
-    const useOllama = process.env.USE_OLLAMA === "true"
-    const ollamaModel = process.env.OLLAMA_MODEL // Don't set default here, let LLMHelper auto-detect
-    const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434"
+    // Try environment first (for development)
+    const apiKey = process.env.GEMINI_API_KEY
+    const groqApiKey = process.env.GROQ_API_KEY
+    const openaiApiKey = process.env.OPENAI_API_KEY
+    const claudeApiKey = process.env.CLAUDE_API_KEY
+    const deepseekApiKey = process.env.DEEPSEEK_API_KEY
 
-    if (useOllama) {
-      // console.log("[ProcessingHelper] Initializing with Ollama")
-      this.llmHelper = new LLMHelper(undefined, true, ollamaModel, ollamaUrl)
-    } else {
-      // Try environment first (for development)
-      let apiKey = process.env.GEMINI_API_KEY
-      let groqApiKey = process.env.GROQ_API_KEY
-      let openaiApiKey = process.env.OPENAI_API_KEY
-      let claudeApiKey = process.env.CLAUDE_API_KEY
-      let deepseekApiKey = process.env.DEEPSEEK_API_KEY
-
-      // Allow initializing without key (will be loaded in loadStoredCredentials or via Settings)
-      if (!apiKey) {
-        console.warn("[ProcessingHelper] GEMINI_API_KEY not found in env. Will try CredentialsManager after ready.")
-      }
-
-      this.llmHelper = new LLMHelper(apiKey, false, undefined, undefined, groqApiKey, openaiApiKey, claudeApiKey, deepseekApiKey)
+    // Allow initializing without key (will be loaded in loadStoredCredentials or via Settings)
+    if (!apiKey) {
+      console.warn("[ProcessingHelper] GEMINI_API_KEY not found in env. Will try CredentialsManager after ready.")
     }
+
+    this.llmHelper = new LLMHelper(apiKey, groqApiKey, openaiApiKey, claudeApiKey, deepseekApiKey)
   }
 
   /**

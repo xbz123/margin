@@ -163,55 +163,6 @@ test('no providers configured → ok=false with failureReason=no_vision_provider
   await optimizer.cleanupAll();
 });
 
-test('private_vision skips every non-local provider with privacy_blocked', async () => {
-  const runVisionFallback = await loadChain();
-  const Optimizer = await loadOptimizer();
-  const optimizer = new Optimizer();
-  const img = await ensureFixture();
-
-  const result = await runVisionFallback({
-    imagePath: img,
-    mode: 'private_vision',
-    providers: [
-      makeFakeProvider({ id: 'openai', isLocal: false, invoke: async () => 'should not run' }),
-      makeFakeProvider({ id: 'claude', isLocal: false, invoke: async () => 'should not run' }),
-      makeFakeProvider({ id: 'ollama', isLocal: true, invoke: async () => 'local answer' }),
-    ],
-    systemPrompt: 'sys',
-    userPrompt: 'user',
-    optimizer,
-  });
-
-  assert.equal(result.ok, true);
-  assert.equal(result.providerUsed, 'ollama');
-  const openaiAttempt = result.attempts.find(a => a.provider === 'openai');
-  assert.equal(openaiAttempt?.skipReason, 'privacy_blocked');
-  await optimizer.cleanupAll();
-});
-
-test('private_vision with no local provider → failureReason=privacy_blocked', async () => {
-  const runVisionFallback = await loadChain();
-  const Optimizer = await loadOptimizer();
-  const optimizer = new Optimizer();
-  const img = await ensureFixture();
-
-  const result = await runVisionFallback({
-    imagePath: img,
-    mode: 'private_vision',
-    providers: [
-      makeFakeProvider({ id: 'openai', isLocal: false }),
-      makeFakeProvider({ id: 'claude', isLocal: false }),
-    ],
-    systemPrompt: 'sys',
-    userPrompt: 'user',
-    optimizer,
-  });
-
-  assert.equal(result.ok, false);
-  assert.equal(result.failureReason, 'privacy_blocked');
-  await optimizer.cleanupAll();
-});
-
 test('custom provider with scope_blocked is skipped with scope_blocked reason', async () => {
   const runVisionFallback = await loadChain();
   const Optimizer = await loadOptimizer();

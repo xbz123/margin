@@ -39,7 +39,6 @@ class StubLLMHelper {
   getOpenAIClient() { return null; }
   getClaudeClient() { return null; }
   getGroqClient() { return null; }
-  getOllamaClient() { return null; }
   getSettingsManager() { return { get: () => null, set: () => {} }; }
 }
 

@@ -207,23 +207,9 @@ export class CredentialsManager {
         // Custom providers: only count if they have screenshots scope AND multimodal flag
         const custom = this.credentials.customProviders || [];
         if (custom.some(p => (p as any)?.multimodal === true)) return true;
-        return this.anyLocalVisionProviderConfigured();
-    }
-
-    /**
-     * True if at least one LOCAL vision provider is configured (Ollama vision model,
-     * Codex CLI with vision support, or a local-only custom provider).
-     * Used by private_vision mode to enforce no cloud-vision calls.
-     */
-    public anyLocalVisionProviderConfigured(): boolean {
-        // Ollama: caller verifies the configured model is vision-capable via modelCapabilities.
-        // Here we only assert the runtime is configured — model gating happens in the chain.
-        const ollamaBaseUrl = (this.credentials as any).ollamaBaseUrl as string | undefined;
-        if (ollamaBaseUrl && ollamaBaseUrl.trim().length > 0) return true;
-        // Codex CLI is local in normal install — capability is verified by ProviderRouter.
+        // Codex CLI is counted as configured; its vision capability is verified by ProviderRouter.
         const codexCliPath = (this.credentials as any).codexCliPath as string | undefined;
-        if (codexCliPath && codexCliPath.trim().length > 0) return true;
-        return false;
+        return !!(codexCliPath && codexCliPath.trim().length > 0);
     }
 
     // =========================================================================

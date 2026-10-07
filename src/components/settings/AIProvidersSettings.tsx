@@ -145,11 +145,6 @@ export const AIProvidersSettings: React.FC = () => {
     const [customVision, setCustomVision] = useState<'auto' | 'on' | 'off'>('auto');
     const [curlError, setCurlError] = useState<string | null>(null);
 
-    // --- Local (Ollama) ---
-    const [ollamaModels, setOllamaModels] = useState<string[]>([]);
-    const [ollamaStatus, setOllamaStatus] = useState<'checking' | 'detected' | 'not-found' | 'fixing'>('checking');
-    const [ollamaRestarted, setOllamaRestarted] = useState(false);
-    const [isRefreshingOllama, setIsRefreshingOllama] = useState(false);
 
     // --- Local (Codex CLI) ---
     const [codexCliConfig, setCodexCliConfig] = useState({ enabled: false, path: 'codex', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', timeoutMs: 60000, sandboxMode: 'read-only' as string, serviceTier: 'default' as string | undefined, modelReasoningEffort: undefined as string | undefined });
@@ -166,7 +161,7 @@ export const AIProvidersSettings: React.FC = () => {
     const [preferredModels, setPreferredModels] = useState<Record<string, string>>({});
 
     // --- Screen Understanding (vision routing) ---
-    const [screenUnderstandingMode, setScreenUnderstandingMode] = useState<'vision_first' | 'vision_only' | 'private_vision'>('vision_first');
+    const [screenUnderstandingMode, setScreenUnderstandingMode] = useState<'vision_first' | 'vision_only'>('vision_first');
     const [technicalInterviewVisionFirst, setTechnicalInterviewVisionFirst] = useState<boolean>(true);
 
     // --- Cloud Provider Data Scopes (fail-closed cloud share controls) ---
@@ -225,9 +220,6 @@ export const AIProvidersSettings: React.FC = () => {
                     setDefaultModel(result.model);
                 }
 
-                // Check Ollama
-                checkOllama();
-
             } catch (e) {
                 console.error("Failed to load settings:", e);
                 setCredentialsLoaded(true); // Unblock even on error
@@ -258,18 +250,6 @@ export const AIProvidersSettings: React.FC = () => {
             window.electronAPI?.setGroqFastTextMode(false);
         }
     }, [credentialsLoaded, canUseFastMode, fastResponseMode]);
-
-    // Poll for Ollama status every 3 seconds requesting smart start on mount
-    useEffect(() => {
-        // Immediate "Smart Start" check
-        ensureOllamaStartup();
-
-        // Background polling for maintenance
-        const interval = setInterval(() => {
-            checkOllama(false);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
 
     // Load Screen Understanding (vision routing) settings
     useEffect(() => {
@@ -311,66 +291,6 @@ export const AIProvidersSettings: React.FC = () => {
             return () => unsubscribe();
         }
     }, []);
-
-    const ensureOllamaStartup = async () => {
-        setOllamaStatus('checking');
-        try {
-            // @ts-ignore
-            const result = await window.electronAPI?.invoke?.('ensure-ollama-running');
-            if (result && result.success) {
-                // It's running (or just started), now fetch models
-                checkOllama(true);
-            } else {
-                setOllamaStatus('not-found');
-            }
-        } catch (e) {
-            console.warn("Ollama ensure startup failed:", e);
-            setOllamaStatus('not-found');
-        }
-    };
-
-    const checkOllama = async (_isInitial = true) => {
-        // Don't override 'checking' if we are already in smart-start mode
-        // if (isInitial) setOllamaStatus('checking'); 
-
-        try {
-            // @ts-ignore
-            const models = await window.electronAPI?.getAvailableOllamaModels?.();
-            if (models && models.length > 0) {
-                setOllamaModels(models);
-                setOllamaStatus('detected');
-            } else {
-                // Silent failure on background checks
-                // Only set not-found if we haven't detected it yet
-                if (ollamaStatus !== 'detected') {
-                    setOllamaStatus('not-found');
-                }
-            }
-        } catch (e) {
-            // console.warn(`Ollama check failed:`, e);
-            if (ollamaStatus !== 'detected') {
-                setOllamaStatus('not-found');
-            }
-        }
-    };
-
-    const handleFixOllama = async () => {
-        setOllamaStatus('fixing');
-        try {
-            // @ts-ignore
-            const result = await window.electronAPI?.invoke?.('force-restart-ollama');
-            if (result && result.success) {
-                setOllamaRestarted(true);
-                // Wait for server to be ready
-                setTimeout(() => checkOllama(false), 2000);
-            } else {
-                setOllamaStatus('not-found');
-            }
-        } catch (e) {
-            console.error("Fix failed", e);
-            setOllamaStatus('not-found');
-        }
-    };
 
     const saveCodexCliConfig = async (next = codexCliConfig) => {
         const normalized = { ...next, timeoutMs: Number(next.timeoutMs) || 60000 };
@@ -605,7 +525,6 @@ export const AIProvidersSettings: React.FC = () => {
                                 });
                             }
                             customProviders.forEach(p => opts.push({ id: p.id, name: p.name }));
-                            ollamaModels.forEach(m => opts.push({ id: `ollama-${m}`, name: `${m} (Local)` }));
 
                             if (defaultModel && !opts.find(o => o.id === defaultModel)) {
                                 opts.unshift({ id: defaultModel, name: prettifyModelId(defaultModel) });
@@ -885,86 +804,6 @@ export const AIProvidersSettings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Local (Ollama) Providers */}
-            <div className="space-y-5">
-                <div className="flex items-center justify-between mb-2">
-                    <div>
-                        <h3 className="text-sm font-bold text-text-primary mb-1">Local Models (Ollama)</h3>
-                        <p className="text-xs text-text-secondary">Run open-source models locally.</p>
-                    </div>
-                    <button
-                        onClick={async () => {
-                            setIsRefreshingOllama(true);
-                            await checkOllama(false);
-                            // Add a small delay for visual feedback if the check is too fast
-                            setTimeout(() => setIsRefreshingOllama(false), 500);
-                        }}
-                        className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-input transition-colors"
-                        title="Refresh Ollama"
-                        disabled={isRefreshingOllama}
-                    >
-                        <RefreshCw size={18} className={isRefreshingOllama ? "animate-spin" : ""} />
-                    </button>
-                </div>
-
-                <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle">
-                    {ollamaStatus === 'checking' && (
-                        <div className="flex items-center gap-2 text-xs text-text-secondary">
-                            <span className="animate-spin">⏳</span> Checking for Ollama...
-                        </div>
-                    )}
-
-                    {ollamaStatus === 'fixing' && (
-                        <div className="flex items-center gap-2 text-xs text-text-secondary">
-                            <span className="animate-spin">🔧</span> Attempting to auto-fix connection...
-                        </div>
-                    )}
-
-                    {ollamaStatus === 'not-found' && (
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2 text-xs text-red-400">
-                                <AlertCircle size={14} />
-                                <span>Ollama not detected</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <p className="text-xs text-text-secondary">
-                                    Ensure Ollama is running (`ollama serve`).
-                                </p>
-                                <button
-                                    onClick={handleFixOllama}
-                                    className="text-[10px] bg-bg-elevated hover:bg-bg-input px-2 py-1 rounded border border-border-subtle"
-                                >
-                                    Auto-Fix Connection
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {ollamaStatus === 'detected' && ollamaModels.length > 0 && (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs text-green-400 mb-3">
-                                <CheckCircle size={14} />
-                                <span>Ollama connected</span>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-2">
-                                {ollamaModels.map(model => (
-                                    <div key={model} className="flex items-center justify-between p-2 bg-bg-input rounded-lg border border-border-subtle">
-                                        <span className="text-xs text-text-primary font-mono">{model}</span>
-                                        <span className="text-[10px] text-bg-elevated bg-text-secondary px-1.5 py-0.5 rounded-full font-bold">LOCAL</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {ollamaStatus === 'detected' && ollamaModels.length === 0 && (
-                        <div className="text-xs text-text-secondary">
-                            Ollama is running but no models found. Run `ollama pull llama3` to get started.
-                        </div>
-                    )}
-                </div>
-            </div>
-
             {/* Custom Providers */}
             <div className="space-y-5">
                 <div className="flex items-center justify-between mb-2">
@@ -1072,16 +911,6 @@ export const AIProvidersSettings: React.FC = () => {
                                     <div>
                                         <p className="text-xs text-text-secondary mb-2 font-medium">Examples</p>
                                         <div className="space-y-3">
-                                            {/* Ollama Example */}
-                                            <div>
-                                                <div className="text-[10px] uppercase tracking-wider text-text-tertiary mb-1.5">Local (Ollama)</div>
-                                                <div className="bg-bg-input p-2.5 rounded-lg border border-border-subtle overflow-x-auto group relative">
-                                                    <code className="font-mono text-[10px] text-text-primary whitespace-pre block">
-                                                        curl http://localhost:11434/api/generate -d '{"{"}"model": "llama3", "prompt": "{`{{TEXT}}`}"{"}"}'
-                                                    </code>
-                                                </div>
-                                            </div>
-
                                             {/* OpenAI Example */}
                                             <div>
                                                 <div className="text-[10px] uppercase tracking-wider text-text-tertiary mb-1.5">OpenAI Compatible</div>
@@ -1193,11 +1022,6 @@ export const AIProvidersSettings: React.FC = () => {
                             value: 'vision_only' as const,
                             label: 'Vision only',
                             description: 'Stricter. Require a vision-capable provider; never silently drop the screenshot.',
-                        },
-                        {
-                            value: 'private_vision' as const,
-                            label: 'Private vision (local only)',
-                            description: 'Use a local vision model (Ollama) only. Never call cloud vision. Clear error if no local provider is configured.',
                         },
                     ]).map(({ value, label, description }) => {
                         const selected = screenUnderstandingMode === value;

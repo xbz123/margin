@@ -1,53 +1,14 @@
 // electron/llm/visionCapability.ts
 //
-// Pure, dependency-free helpers for deciding whether a LOCAL provider (Ollama
-// model, custom cURL endpoint) can actually accept an image. Kept free of fetch
-// / fs / Electron so the decision logic is unit-testable; the I/O (Ollama
-// /api/show probe, reading the model list) stays in LLMHelper and feeds these.
+// Pure, dependency-free helpers for deciding whether a custom cURL provider can
+// actually accept an image. Kept free of fetch / fs / Electron so the decision
+// logic is unit-testable.
 //
 // Why this exists: cloud providers (OpenAI/Claude/Gemini/Groq) have known,
-// fixed vision support. Local providers don't — an Ollama install can hold any
-// mix of text-only and vision models, and a custom cURL endpoint can be any
-// shape. Guessing wrong means either (a) skipping a capable provider, or worse
+// fixed vision support. A custom cURL endpoint can be any shape. Guessing wrong means either (a) skipping a capable provider, or worse
 // (b) "committing" to a provider that silently drops the image and answers
 // text-only. These helpers make the decision authoritative where possible and
 // conservative otherwise.
-
-// ── Ollama ──────────────────────────────────────────────────────────────────
-
-// Name heuristic (fallback only). Ollama's /api/show `capabilities` array is the
-// authoritative source; this regex is used when capabilities are absent (older
-// Ollama servers) or the probe failed.
-const OLLAMA_VISION_NAME_RE =
-  /(llava|bakllava|moondream|llama-?3\.2-vision|llama3\.2-vision|gemma3|minicpm-v|qwen2\.5-vl|qwen2-vl|pixtral|llama-?4|granite3\.2-vision|mistral-small3\.1|llama-?guard3-vision)/i;
-
-export function isOllamaVisionModelByName(modelId: string): boolean {
-  return !!modelId && OLLAMA_VISION_NAME_RE.test(modelId.toLowerCase());
-}
-
-/**
- * Decide vision support from an Ollama /api/show response.
- *   - returns true/false when the response carries a `capabilities` array
- *     (authoritative — Ollama lists "vision" for multimodal models)
- *   - returns null when capabilities are absent, so the caller falls back to
- *     the name heuristic.
- */
-export function ollamaVisionFromShow(showJson: any): boolean | null {
-  const caps = showJson?.capabilities;
-  if (Array.isArray(caps)) {
-    return caps.some((c: any) => typeof c === 'string' && c.toLowerCase() === 'vision');
-  }
-  return null;
-}
-
-/**
- * Combine the authoritative probe result with the name heuristic.
- * `probed` is the value from ollamaVisionFromShow (true/false/null).
- */
-export function resolveOllamaVision(modelId: string, probed: boolean | null): boolean {
-  if (probed !== null) return probed;
-  return isOllamaVisionModelByName(modelId);
-}
 
 // ── Custom cURL provider ──────────────────────────────────────────────────────
 

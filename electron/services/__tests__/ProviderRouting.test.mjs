@@ -173,15 +173,7 @@ describe('ProviderRouter', () => {
     assert.ok(choice.reason.includes('default'));
   });
 
-  test('local-only mode routes to ollama', () => {
-    const router = new ProviderRouter();
-    const choice = router.selectProvider({ privacySetting: 'local-only' });
-
-    assert.equal(choice.provider, 'ollama');
-    assert.ok(choice.reason.includes('local-only'));
-  });
-
-  test('needsVision prefers vision-capable provider', () => {
+    test('needsVision prefers vision-capable provider', () => {
     const router = new ProviderRouter();
     const choice = router.selectProvider({
       needsVision: true,

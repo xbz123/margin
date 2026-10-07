@@ -76,7 +76,6 @@ async function main() {
 
   const llm = new LLMHelper(
     process.env.GEMINI_API_KEY || '',
-    false, undefined, undefined,
     process.env.GROQ_API_KEY || '',
     process.env.OPENAI_API_KEY || '',
     process.env.ANTHROPIC_API_KEY || '',

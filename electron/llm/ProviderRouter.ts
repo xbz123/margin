@@ -1,4 +1,4 @@
-export type LLMProviderId = 'groq' | 'codex' | 'gemini_flash' | 'gemini_pro' | 'openai' | 'claude' | 'deepseek' | 'ollama';
+export type LLMProviderId = 'groq' | 'codex' | 'gemini_flash' | 'gemini_pro' | 'openai' | 'claude' | 'deepseek';
 export type ProviderCapability = 'chat' | 'stream_chat' | 'structured' | 'vision';
 export type ProviderAttemptStatus = 'available' | 'unavailable';
 export type ProviderUnavailableReason = 'missing_api_key' | 'missing_config' | 'unsupported_capability' | 'disabled';
@@ -34,7 +34,6 @@ export interface ProviderAvailabilityState {
     hasOpenAI?: boolean;
     hasClaude?: boolean;
     hasDeepseek?: boolean;
-    hasOllama?: boolean;
 }
 
 export interface ProviderModelState {
@@ -45,7 +44,6 @@ export interface ProviderModelState {
     openai?: string;
     claude?: string;
     deepseek?: string;
-    ollama?: string;
 }
 
 export interface ProviderRouteOptions {
@@ -84,10 +82,6 @@ function statusFor(spec: ProviderSpec, capability: ProviderCapability, deniedSco
     }
     if (spec.available) return { status: 'available' };
     return { status: 'unavailable', unavailableReason: spec.unavailableReason ?? 'missing_api_key' };
-}
-
-export function hasLocalFallbackAvailable(ollamaModels: string[]): boolean {
-    return Array.isArray(ollamaModels) && ollamaModels.some(model => typeof model === 'string' && model.trim().length > 0);
 }
 
 export function routeLLMProviders(options: ProviderRouteOptions): ProviderAttempt[] {
@@ -153,25 +147,11 @@ export function routeLLMProviders(options: ProviderRouteOptions): ProviderAttemp
         unavailableReason: 'missing_api_key',
         supports: ['chat', 'stream_chat', 'structured'],
     };
-    const ollama: ProviderSpec = {
-        provider: 'ollama',
-        name: `Ollama (${models.ollama ?? 'local'})`,
-        model: models.ollama,
-        available: Boolean(availability.hasOllama),
-        unavailableReason: 'missing_config',
-        supports: ['chat', 'stream_chat', 'structured', 'vision'],
-    };
-
-    // DeepSeek is placed after Claude in the text-only chain (between the existing
-    // cloud chat providers and the local Ollama fallback) and is omitted from the
-    // multimodal chain since no DeepSeek vision model is supported.
+    // DeepSeek is placed after Claude in the text-only chain and is omitted from
+    // the multimodal chain since no DeepSeek vision model is supported.
     const orderedSpecs: ProviderSpec[] = options.multimodal
         ? [codex, openai, geminiFlash, claude, geminiPro, groq]
         : [groq, codex, geminiFlash, geminiPro, openai, claude, deepseek];
-
-    if (availability.hasOllama) {
-        orderedSpecs.push(ollama);
-    }
 
     const deniedScopes = getDeniedDataScopes(options.dataScopes, options.scopePolicy);
 
@@ -180,7 +160,7 @@ export function routeLLMProviders(options: ProviderRouteOptions): ProviderAttemp
         name: spec.name,
         capability,
         model: spec.model,
-        ...statusFor(spec, capability, spec.provider === 'ollama' && spec.available ? [] : deniedScopes),
+        ...statusFor(spec, capability, deniedScopes),
     }));
 }
 
@@ -201,7 +181,6 @@ export interface RoutingPolicy {
     actionType?: ActionType;
     needsVision?: boolean;
     preferLowLatency?: boolean;
-    privacySetting?: 'cloud' | 'local-only';
     providerHealth?: Record<string, ProviderHealthStatus>;
 }
 
@@ -217,8 +196,6 @@ const VISION_PROVIDERS = ['gemini', 'claude', 'openai', 'groq'];
 const LOW_LATENCY_PROVIDERS = ['groq', 'gemini'];
 // Quality providers (for summary/recap tasks)
 const QUALITY_PROVIDERS = ['claude', 'openai', 'gemini_pro'];
-// Local providers (for privacy mode)
-const LOCAL_PROVIDERS = ['ollama', 'custom'];
 
 export interface CircuitBreakerConfig {
     threshold: number;        // failures before opening
@@ -302,15 +279,6 @@ export class ProviderRouter {
      */
     selectProvider(policy: RoutingPolicy): ProviderChoice {
         const health = policy.providerHealth || {};
-
-        // Rule 1: Local-only mode -> only local providers
-        if (policy.privacySetting === 'local-only') {
-            return {
-                provider: 'ollama',
-                model: 'local',
-                reason: 'local-only mode: using local provider'
-            };
-        }
 
         // Rule 2: Check circuit breakers and skip unhealthy providers
         const availableProviders = this.filterHealthyProviders(

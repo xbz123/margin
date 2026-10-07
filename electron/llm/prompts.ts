@@ -1427,9 +1427,9 @@ UNCLEAR INTENT:
   - Provide a brief specific guess: "My guess is that you might want…"`;
 
 // ==========================================
-// UNIVERSAL PROMPTS (For Ollama / Local Models ONLY)
-// Optimized for smaller local models: concise, no XML,
-// direct instructions, same quality bar as cloud prompts.
+// UNIVERSAL PROMPTS
+// Concise, no XML, direct instructions; used by the answer, recap and
+// follow-up LLMs for every provider.
 
 // ==========================================
 

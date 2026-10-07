@@ -36,6 +36,8 @@ export function isolatedEnv(sandbox, extra = {}) {
     NODE_OPTIONS: `--require=${GUARD}`,
     MARGIN_ISOLATION_LOG: sandbox.log,
     MARGIN_ISOLATION_ALLOW_EXEC: '',
+    // The retired Ollama port (AG-14): any attempt is blocked and recorded.
+    MARGIN_ISOLATION_WATCH_PORTS: '11434',
     NO_PROXY: '*',
     // The app's own dev switch: skip the startup screen-recording permission probe.
     NATIVELY_DEV_BYPASS_SCREEN_TCC: '1',

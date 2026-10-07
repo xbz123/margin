@@ -22,32 +22,22 @@ import { CredentialsManager } from '../CredentialsManager';
 
 export interface VisionProviderBuildInputs {
   mode: VisionMode;
-  localOnly: boolean;
   scopeAllowsScreenshots: boolean;
 }
 
 /**
- * Produce the ordered list of vision providers for the given mode. Order is:
- *   vision_first / vision_only: OpenAI → Gemini Flash → Claude →
- *                                Gemini Pro → Groq Scout → Ollama → Codex → Custom
- *   private_vision: Ollama → Codex → local Custom only
+ * Produce the ordered list of vision providers. Order is:
+ *   OpenAI → Gemini Flash → Claude → Gemini Pro → Groq Scout → Codex → Custom
  */
 export function buildVisionProviders(inputs: VisionProviderBuildInputs): VisionProviderConfig[] {
   const credentials = CredentialsManager.getInstance();
   const providers: VisionProviderConfig[] = [];
 
-  const cloudAllowed = inputs.mode !== 'private_vision';
-
-  if (cloudAllowed) {
-    providers.push(openai(credentials, inputs));
-    providers.push(geminiFlash(credentials, inputs));
-    providers.push(claude(credentials, inputs));
-    providers.push(geminiPro(credentials, inputs));
-    providers.push(groqScout(credentials, inputs));
-  }
-
-  // Local providers — always allowed, including in private_vision.
-  providers.push(ollama(credentials, inputs));
+  providers.push(openai(credentials, inputs));
+  providers.push(geminiFlash(credentials, inputs));
+  providers.push(claude(credentials, inputs));
+  providers.push(geminiPro(credentials, inputs));
+  providers.push(groqScout(credentials, inputs));
   providers.push(codex(credentials, inputs));
   providers.push(custom(credentials, inputs));
 
@@ -131,23 +121,6 @@ function groqScout(creds: CredentialsManager, _inputs: VisionProviderBuildInputs
   };
 }
 
-function ollama(creds: CredentialsManager, _inputs: VisionProviderBuildInputs): VisionProviderConfig {
-  const baseUrl = (creds.getAllCredentials() as any)?.ollamaBaseUrl as string | undefined;
-  const ollamaModel = (creds.getAllCredentials() as any)?.ollamaModel as string | undefined;
-  const isVisionModel = ollamaModel ? isOllamaVisionModel(ollamaModel) : false;
-  return {
-    id: 'ollama',
-    displayName: 'Ollama (local)',
-    modelId: ollamaModel,
-    isLocal: true,
-    isConfigured: !!baseUrl && !!ollamaModel,
-    supportsVision: isVisionModel,
-    scopeAllowsScreenshots: true,
-    hint: 'ollama',
-    invoke: async (p) => callOllamaVision(baseUrl!, ollamaModel!, p),
-  };
-}
-
 function codex(creds: CredentialsManager, _inputs: VisionProviderBuildInputs): VisionProviderConfig {
   const cliPath = (creds.getAllCredentials() as any)?.codexCliPath as string | undefined;
   // Codex CLI vision capability is not yet verified across builds — we configure
@@ -178,9 +151,8 @@ function custom(creds: CredentialsManager, inputs: VisionProviderBuildInputs): V
   const active = fromHelper || customProviders[0];
 
   const multimodal = (active as any)?.multimodal === true;
-  // Treat a provider as local-only if explicitly flagged OR if its URL targets
-  // a loopback host. This keeps `private_vision` mode from silently calling a
-  // public custom endpoint.
+  // Treat a provider as local if explicitly flagged OR if its URL targets a
+  // loopback host.
   const localOnly = isLocalOnlyCustomProvider(active);
 
   return {
@@ -229,11 +201,6 @@ function isLocalOnlyCustomProvider(provider: any | undefined | null): boolean {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-const OLLAMA_VISION_MODELS_RE = /(llava|bakllava|moondream|llama3\.2-vision|llama-3\.2-vision|gemma3|minicpm-v|qwen2\.5-vl|qwen2-vl|pixtral)/i;
-export function isOllamaVisionModel(modelId: string): boolean {
-  return OLLAMA_VISION_MODELS_RE.test(modelId);
-}
-
 /**
  * Call into LLMHelper to run a vision request against the chosen cloud provider.
  * We funnel everything through LLMHelper.streamChat so the auth, retries, and
@@ -243,55 +210,6 @@ async function callLLMHelperVision(providerId: string, params: VisionInvocationP
   const helper = await getActiveLLMHelper();
   if (!helper) throw new Error('LLMHelper not initialized');
   return helper.runVisionRequest(providerId, params.userPrompt, params.systemPrompt, params.optimized.path);
-}
-
-/**
- * Call a local Ollama vision model. Uses the OpenAI-compatible /v1/chat/completions
- * endpoint at `${baseUrl}/v1/` with an image_url data URL — supported by every
- * vision-capable Ollama model we care about (llava family, qwen2.5-vl, etc.).
- */
-async function callOllamaVision(baseUrl: string, model: string, params: VisionInvocationParams): Promise<string> {
-  const { optimized, systemPrompt, userPrompt, signal } = params;
-  const data = await fs.readFile(optimized.path);
-  const dataUrl = `data:${optimized.mimeType};base64,${data.toString('base64')}`;
-  const trimmedBase = baseUrl.replace(/\/+$/, '');
-  const url = `${trimmedBase}/v1/chat/completions`;
-
-  const body = {
-    model,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: userPrompt },
-          { type: 'image_url', image_url: { url: dataUrl } },
-        ],
-      },
-    ],
-    stream: false,
-  };
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal,
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    // Surface a classifiable error so VisionProviderFallbackChain can bucket it.
-    throw new Error(`Ollama ${res.status}: ${text.substring(0, 200)}`);
-  }
-
-  const json: any = await res.json();
-  const content = json?.choices?.[0]?.message?.content;
-  if (typeof content === 'string') return content;
-  if (Array.isArray(content)) {
-    return content.map((part: any) => (typeof part === 'string' ? part : part?.text || '')).join('');
-  }
-  throw new Error('Ollama returned empty content');
 }
 
 /**

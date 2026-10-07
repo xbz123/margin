@@ -94,3 +94,13 @@ test('loopback traffic still works', async () => {
     server.close();
   }
 });
+
+test('watched loopback ports (the retired Ollama port) are blocked and recorded', async () => {
+  assert.equal(process.env.MARGIN_ISOLATION_WATCH_PORTS, '11434');
+  await assert.rejects(fetch('http://127.0.0.1:11434/api/tags'), isBlocked);
+  await assert.rejects(fetch('http://localhost:11434/api/tags'), isBlocked);
+  await new Promise((resolve, reject) => {
+    const s = net.connect({ host: '127.0.0.1', port: 11434 }, () => reject(new Error('socket connected')));
+    s.on('error', (err) => (isBlocked(err) ? resolve() : reject(err)));
+  });
+});

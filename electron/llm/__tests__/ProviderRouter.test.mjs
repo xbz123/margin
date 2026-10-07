@@ -192,14 +192,3 @@ test('ProviderRouter half-open retry is limited for rate-limit recovery', async 
   assert.equal(breaker.state, 'open');
   assert.equal(breaker.canExecute(), false);
 });
-
-test('ProviderRouter honors local-only privacy before cloud routing preferences', async () => {
-  const { ProviderRouter } = await loadRouter();
-  const router = new ProviderRouter();
-
-  const choice = router.selectProvider({ privacySetting: 'local-only', needsVision: true, preferLowLatency: true });
-
-  assert.equal(choice.provider, 'ollama');
-  assert.equal(choice.model, 'local');
-  assert.match(choice.reason, /local-only/);
-});

@@ -10,7 +10,7 @@
 // Fix: a public method `stopDefaultOutputWatcherForShutdown()` was added on
 // AppState (delegating to the existing private `stopDefaultOutputWatcher()`),
 // and the `app.on('before-quit', ...)` handler now invokes it BEFORE other
-// heavyweight cleanup (notably `OllamaManager.getInstance().stop()`).
+// heavyweight native cleanup (notably `StealthKeyboardManager.getInstance().stop()`).
 //
 // Strategy: main.ts is a 5000+ line module that cannot be safely imported in
 // a unit test (it boots Electron, registers IPC handlers, spawns native
@@ -88,7 +88,7 @@ test('before-quit handler cancels the DefaultOutputWatcher interval', () => {
     );
 });
 
-test('DefaultOutputWatcher shutdown call precedes OllamaManager.stop() in before-quit', () => {
+test('DefaultOutputWatcher shutdown call precedes native teardown in before-quit', () => {
     const body = extractBeforeQuitHandlerBody(source);
 
     const watcherIdx = (() => {
@@ -99,20 +99,20 @@ test('DefaultOutputWatcher shutdown call precedes OllamaManager.stop() in before
         const candidates = [a, b].filter((n) => n !== -1);
         return candidates.length === 0 ? -1 : Math.min(...candidates);
     })();
-    const ollamaIdx = body.search(/OllamaManager\.getInstance\(\)\s*\.\s*stop\s*\(/);
+    const nativeIdx = body.search(/StealthKeyboardManager\.getInstance\(\)\s*\.\s*stop\s*\(/);
 
     assert.notStrictEqual(
         watcherIdx, -1,
         'expected a stopDefaultOutputWatcher* call inside the before-quit handler',
     );
     assert.notStrictEqual(
-        ollamaIdx, -1,
-        'expected OllamaManager.getInstance().stop() inside the before-quit handler',
+        nativeIdx, -1,
+        'expected StealthKeyboardManager.getInstance().stop() inside the before-quit handler',
     );
     assert.ok(
-        watcherIdx < ollamaIdx,
+        watcherIdx < nativeIdx,
         `BUG: stopDefaultOutputWatcher* (offset ${watcherIdx}) must run BEFORE ` +
-        `OllamaManager.getInstance().stop() (offset ${ollamaIdx}) in the before-quit ` +
+        `StealthKeyboardManager.getInstance().stop() (offset ${nativeIdx}) in the before-quit ` +
         `handler. The interval must be cancelled before native modules begin teardown, ` +
         `otherwise the next tick fires into a half-released native handle.`,
     );

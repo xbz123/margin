@@ -7,7 +7,7 @@ import { useResolvedTheme } from '../hooks/useResolvedTheme';
 interface ModelOption {
     id: string;
     name: string;
-    type: 'cloud' | 'local' | 'custom' | 'ollama' | 'codex-cli';
+    type: 'cloud' | 'local' | 'custom' | 'codex-cli';
     provider?: string;
 }
 
@@ -46,33 +46,6 @@ const ModelSelectorWindow = () => {
                 // 3. Codex CLI
                 const codexCliConfig = await window.electronAPI?.getCodexCliConfig?.();
 
-                // 4. Ollama
-                let ollamaModels: string[] = [];
-                try {
-                    let oModels = await window.electronAPI?.getAvailableOllamaModels?.();
-
-                    // If no models found, try to fix/restart Ollama (server might be down)
-                    if (!oModels || oModels.length === 0) {
-                        try {
-                            // @ts-ignore
-                            if (window.electronAPI?.forceRestartOllama) {
-                                // @ts-ignore
-                                await window.electronAPI.forceRestartOllama();
-                                // Wait a moment for server to come up
-                                await new Promise(resolve => setTimeout(resolve, 1500));
-                                // Retry fetch
-                                oModels = await window.electronAPI?.getAvailableOllamaModels?.();
-                            }
-                        } catch (e) {
-                            console.warn("Retrying Ollama failed", e);
-                        }
-                    }
-
-                    if (oModels) ollamaModels = oModels;
-                } catch (e) {
-                    // Ignore ollama errors here
-                }
-
                 // Build the list
                 const models: ModelOption[] = [];
 
@@ -101,11 +74,6 @@ const ModelSelectorWindow = () => {
                         models.push({ id, name: getCodexCliModelDisplayName(id) || model.name, type: 'codex-cli', provider: 'codex-cli' });
                     });
                 }
-
-                // Ollama
-                ollamaModels.forEach((m: string) => {
-                    models.push({ id: `ollama-${m}`, name: `${m} (Local)`, type: 'ollama' });
-                });
 
                 localStorage.setItem('cached-models', JSON.stringify(models));
                 setAvailableModels(models);

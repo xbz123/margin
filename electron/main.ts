@@ -391,7 +391,6 @@ import { CredentialsManager } from "./services/CredentialsManager"
 import { SettingsManager } from "./services/SettingsManager"
 import { PhoneMirrorService } from "./services/PhoneMirrorService"
 import { setVerboseLoggingFlag } from "./verboseLog"
-import { OllamaManager } from './services/OllamaManager'
 import { decideToggle } from './services/toggleStateReducer'
 
 export class AppState {
@@ -768,8 +767,6 @@ export class AppState {
     // Pre-warm the zero-shot intent classifier in background
     warmupIntentClassifier();
 
-    // Setup Ollama IPC
-    this.setupOllamaIpcHandlers()
 
     // --- NEW SYSTEM AUDIO PIPELINE (SOX + NODE GOOGLE STT) ---
     // LAZY INIT: Do not setup pipeline here to prevent launch volume surge.
@@ -3329,30 +3326,6 @@ export class AppState {
   }
 
   // Window management methods
-  public setupOllamaIpcHandlers(): void {
-    ipcMain.handle('get-ollama-models', async () => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout for detection
-
-        const response = await fetch('http://localhost:11434/api/tags', {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const data = await response.json();
-          // data.models is an array of objects: { name: "llama3:latest", ... }
-          return data.models.map((m: any) => m.name);
-        }
-        return [];
-      } catch (error) {
-        // console.warn("Ollama detection failed:", error);
-        return [];
-      }
-    });
-  }
-
   public createWindow(): void {
     this.windowHelper.createWindow()
   }
@@ -4131,9 +4104,6 @@ async function initializeApp() {
   // Apply the full disguise payload (names, dock icon, AUMID) early
   appState.applyInitialDisguise();
 
-  // Start the Ollama lifecycle manager
-  OllamaManager.getInstance().init().catch(console.error);
-
   // NOTE: CredentialsManager.init() and loadStoredCredentials() are already called
   // above before this block — do NOT call them again here to avoid double key-load.
 
@@ -4366,7 +4336,7 @@ async function initializeApp() {
     // remain by the time we return.
     //
     // ORDERING NOTE: this MUST happen before any subsequent napi-touching
-    // cleanup (cropper.dispose, ollama.stop, phoneMirror.dispose). Those
+    // cleanup (cropper.dispose, phoneMirror.dispose). Those
     // can spawn their own native threads or release napi resources, which
     // would race with our worker if it's still alive.
     if (process.platform === 'darwin') {
@@ -4384,9 +4354,6 @@ async function initializeApp() {
     if (appState?.cropperWindowHelper) {
       appState.cropperWindowHelper.dispose();
     }
-
-    // Kill Ollama if we started it
-    OllamaManager.getInstance().stop();
 
     // Tear down the Phone Mirror service so the OS port is freed cleanly.
     PhoneMirrorService.getInstance().dispose().catch((err) =>

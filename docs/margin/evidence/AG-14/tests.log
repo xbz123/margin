@@ -1,0 +1,10 @@
+===== electron/services/__tests__/CodexCliService.test.mjs
+[isolation] 1 blocked attempt(s); log: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-MotPoH/isolation.jsonl
+[isolation]   exec spawn /opt/homebrew/bin/codex
+
+===== electron/services/__tests__/ImeDetectorCache.test.mjs
+[isolation] 2 blocked attempt(s); log: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-30Ppcu/isolation.jsonl
+[isolation]   local-exec execFileSync defaults
+[isolation]   local-exec execFileSync defaults
+
+===== electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs (killed after 180000 ms)
