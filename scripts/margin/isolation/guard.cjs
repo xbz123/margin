@@ -114,6 +114,8 @@ dns.promises.lookup = async function guarded(hostname, ...rest) {
 // command, so `sh -c` / `&& curl` cannot slip through.
 const SANDBOX_ROOT = process.env.MARGIN_ISOLATION_HOME ? path.dirname(process.env.MARGIN_ISOLATION_HOME) : null;
 const SAFE_BINARIES = new Set(['node', path.basename(process.execPath), 'echo', 'true', 'false', 'sleep']);
+// `defaults` (input-method detection) and `lsof` (Ollama port cleanup, removed in AG-14).
+const LOCAL_TOOLS = new Set(['defaults', 'lsof']);
 const SYSTEM_DIRS = new Set(['/bin', '/usr/bin']);
 // A command that cannot be found would fail with ENOENT anyway; letting it through
 // keeps tests that expect that failure honest without running anything.
@@ -148,7 +150,12 @@ function guardExec(name, orig) {
     }
     const opts = args.find((a) => a && typeof a === 'object' && !Array.isArray(a));
     if (opts && opts.shell && !shellLine) throw blockedError('exec', `${name} with shell:true ${String(cmd)}`);
-    if (!allowedCommand(cmd)) throw blockedError('exec', `${name} ${String(cmd)}`);
+    if (!allowedCommand(cmd)) {
+      // Local read-only system tools are still refused (tests must not read the real
+      // system state) but are recorded as local stand-ins, not as egress attempts.
+      const kind = LOCAL_TOOLS.has(path.basename(String(cmd))) ? 'local-exec' : 'exec';
+      throw blockedError(kind, `${name} ${String(cmd)}`);
+    }
     return orig.apply(this, args);
   };
 }
@@ -168,8 +175,36 @@ const keytarStub = {
 // guard is installed the first time the app itself loads `electron`.
 let electronGuarded = false;
 const origLoad = Module._load;
+// Audio devices: tests and smoke launches must not touch CoreAudio. Device
+// enumeration from an unapproved process blocks on a microphone permission decision
+// (observed at the first L0 launch: main thread stuck in natively_audio
+// get_input_devices -> cpal -> HALC_ProxyObject mach_msg). The native module is
+// wrapped so device lists are empty and capture objects refuse to start.
+const NATIVE_AUDIO_RE = /native-module[\\/](index\.js|index\.[\w-]+\.node)$/;
+function deviceDouble(real) {
+  const refuse = (what) => class {
+    constructor() { throw blockedError('device', `${what} construction`); }
+  };
+  const wrapped = Object.create(null);
+  for (const k of Object.keys(real)) wrapped[k] = real[k];
+  wrapped.getInputDevices = () => [];
+  wrapped.getOutputDevices = () => [];
+  if ('getDefaultOutputDeviceId' in real) wrapped.getDefaultOutputDeviceId = () => '';
+  if ('MicrophoneCapture' in real) wrapped.MicrophoneCapture = refuse('MicrophoneCapture');
+  if ('SystemAudioCapture' in real) wrapped.SystemAudioCapture = refuse('SystemAudioCapture');
+  return wrapped;
+}
+
+const TRACE_REQUIRES = process.env.MARGIN_ISOLATION_DEBUG === '1';
 Module._load = function guardedLoad(request, parent, isMain) {
   if (request === 'keytar') return keytarStub;
+  if (TRACE_REQUIRES && !request.startsWith('node:') && !Module.builtinModules.includes(request)) {
+    try { process.stderr.write(`[isolation] require ${request}\n`); } catch { /* closed */ }
+  }
+  if (NATIVE_AUDIO_RE.test(String(request)) && process.env.MARGIN_ISOLATION_REAL_DEVICES !== '1') {
+    record('device', `native audio module wrapped (${path.basename(String(request))})`);
+    return deviceDouble(origLoad.call(this, request, parent, isMain));
+  }
   const mod = origLoad.call(this, request, parent, isMain);
   if (request === 'electron' && !electronGuarded && mod && mod.app && process.type === 'browser') {
     electronGuarded = true;
@@ -232,6 +267,11 @@ function installChromiumGuard(electron) {
   };
   electron.app.on('session-created', guardSession);
   electron.app.whenReady().then(() => guardSession(electron.session.defaultSession));
+  if (process.env.MARGIN_ISOLATION_DEBUG === '1') {
+    process.stderr.write(`[isolation] electron loaded by app (pid ${process.pid})\n`);
+    electron.app.whenReady().then(() => process.stderr.write('[isolation] app ready\n'));
+    electron.app.on('will-quit', () => process.stderr.write('[isolation] will-quit\n'));
+  }
   // Electron's own net module uses Chromium sessions, so it is covered above.
 }
 

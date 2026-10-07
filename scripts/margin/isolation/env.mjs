@@ -4,6 +4,7 @@
 // credentials, proxies or dotenv paths. HOME points at a fresh temporary directory, so
 // Electron's appData/userData, Documents logs and ~/.codex all land inside it.
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -87,6 +88,28 @@ export function snapshotRealPaths() {
 
 export function changedRealPaths(before, after) {
   return Object.keys(after).filter((p) => before[p] !== after[p]);
+}
+
+// Installed apps that legitimately write some watched paths while they run. If an
+// owner is running, a change to its path cannot be attributed to the isolated run;
+// run-electron reports it separately and checks the sandbox's own log instead.
+const OWNERS = [
+  { app: 'Natively Local.app', paths: ['Library/Application Support/natively-local', 'Documents/natively_debug.log'] },
+  { app: 'Natively.app', paths: ['Library/Application Support/Natively', 'Library/Application Support/natively', 'Library/Logs/Natively', 'Documents/natively_debug.log'] },
+  { app: 'Margin.app', paths: ['Library/Application Support/Margin', 'Library/Application Support/margin', 'Library/Logs/Margin'] },
+  { app: 'ai assistant.app', paths: ['Library/Application Support/ai assistant'] },
+];
+
+export function runningOwnersOf(paths) {
+  let ps = '';
+  try { ps = execFileSync('/bin/ps', ['-axo', 'comm'], { encoding: 'utf8' }); } catch { /* unknown */ }
+  const owned = {};
+  for (const p of paths) {
+    const rel = path.relative(REAL_HOME, p);
+    const owners = OWNERS.filter((o) => o.paths.includes(rel) && ps.includes(`/Applications/${o.app}/`)).map((o) => o.app);
+    if (owners.length) owned[p] = owners;
+  }
+  return owned;
 }
 
 // Chromium-level switches added to every isolated Electron launch.

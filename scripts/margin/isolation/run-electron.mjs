@@ -13,7 +13,7 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { makeSandbox, isolatedEnv, readBlocked, CHROMIUM_SWITCHES, REPO, snapshotRealPaths, changedRealPaths } from './env.mjs';
+import { makeSandbox, isolatedEnv, readBlocked, CHROMIUM_SWITCHES, REPO, snapshotRealPaths, changedRealPaths, runningOwnersOf } from './env.mjs';
 
 const argv = process.argv.slice(2);
 const dash = argv.indexOf('--');
@@ -38,7 +38,10 @@ const realBefore = snapshotRealPaths();
 const started = Date.now();
 const child = spawn(electronBin, args, {
   cwd: sandbox.work,
-  env: isolatedEnv(sandbox, { NODE_ENV: process.env.MARGIN_SMOKE_NODE_ENV || 'production' }),
+  env: isolatedEnv(sandbox, {
+    NODE_ENV: process.env.MARGIN_SMOKE_NODE_ENV || 'production',
+    ...(own.includes('--debug') ? { MARGIN_ISOLATION_DEBUG: '1' } : {}),
+  }),
   stdio: ['ignore', out, err],
 });
 
@@ -63,15 +66,23 @@ child.on('exit', (code, signal) => {
   const stderr = fs.readFileSync(path.join(sandbox.root, 'stderr.log'), 'utf8');
   const stdout = fs.readFileSync(path.join(sandbox.root, 'stdout.log'), 'utf8');
   if (ready && !readyAt && ready.test(stdout + stderr)) readyAt = Date.now() - started;
-  const blocked = readBlocked(sandbox);
+  // Local stand-ins (permission refusals, the audio-device double) are reported but
+  // are not outbound traffic; everything else the guard recorded was blocked egress.
+  const LOCAL_KINDS = new Set(['permission', 'device', 'local-exec']);
+  const recorded = readBlocked(sandbox);
+  const blocked = recorded.filter((b) => !LOCAL_KINDS.has(b.kind));
+  const localStandIns = [...new Set(recorded.filter((b) => LOCAL_KINDS.has(b.kind)).map((b) => `${b.kind} ${b.detail}`))];
   const uncaught = (stdout + stderr).split('\n')
     .filter((l) => /Uncaught|UnhandledPromiseRejection|unhandledRejection|uncaughtException|A JavaScript error occurred/i.test(l));
-  const realChanged = changedRealPaths(realBefore, snapshotRealPaths());
+  const realChangedAll = changedRealPaths(realBefore, snapshotRealPaths());
+  const owners = runningOwnersOf(realChangedAll);
+  const realChanged = realChangedAll.filter((p) => !owners[p]);
+  const realChangedByRunningApps = realChangedAll.filter((p) => owners[p]).map((p) => `${p} (${owners[p].join(', ')} running)`);
   const summary = {
-    app, electron: electronBin, sandbox: sandbox.root, realPathsChanged: realChanged,
+    app, electron: electronBin, sandbox: sandbox.root, realPathsChanged: realChanged, realPathsChangedByRunningApps: realChangedByRunningApps,
     observedMs: Date.now() - started, stoppedByUs, exitCode: code, signal,
     readyPattern: ready ? ready.source : null, readyAtMs: readyAt,
-    blocked: blocked.length, blockedKinds: [...new Set(blocked.map((b) => `${b.kind} ${b.detail}`))].slice(0, 50),
+    localStandIns, blocked: blocked.length, blockedKinds: [...new Set(blocked.map((b) => `${b.kind} ${b.detail}`))].slice(0, 50),
     uncaughtLines: uncaught.slice(0, 20),
   };
   console.log(JSON.stringify(summary, null, 2));
