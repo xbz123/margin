@@ -518,12 +518,16 @@ export const PROCESSING_EVENTS = {
 } as const;
 
 // Expose the Electron API to the renderer process
-// Set by cancelChatStream(), cleared by the next streamGeminiChat(). While set, chat
-// stream events for this window are dropped here, so a token, done or error that
-// arrives after the user cancelled never reaches the renderer (PLAN.md AG-17). The
-// main process also stops forwarding once the stream is cancelled; this is the
-// second guard.
-let chatStreamCancelled = false;
+// Chat stream identity for this window (PLAN.md AG-17 review). streamGeminiChat()
+// gives every request a new id, which the main process sends back with each token,
+// done and error event; cancelChatStream() clears it. Only events carrying the active
+// id reach the renderer, so nothing from a cancelled or superseded stream is shown:
+// not in the gap after a cancel, and not after a new stream has started (events the
+// old stream sent before main saw the stop can still be in flight). Events without an
+// id are dropped too.
+let chatStreamSeq = 0;
+let activeChatStreamId: number | null = null;
+const isActiveChatStream = (id: unknown) => activeChatStreamId !== null && id === activeChatStreamId;
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateContentDimensions: (dimensions: { width: number; height: number }) =>
@@ -1123,12 +1127,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     context?: string,
     options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean },
   ) => {
-    chatStreamCancelled = false;
-    return ipcRenderer.invoke('gemini-chat-stream', message, imagePaths, context, options);
+    const clientStreamId = ++chatStreamSeq;
+    activeChatStreamId = clientStreamId;
+    return ipcRenderer.invoke('gemini-chat-stream', message, imagePaths, context, { ...options, clientStreamId });
   },
 
   onGeminiStreamToken: (callback: (token: string) => void) => {
-    const subscription = (_: any, token: string) => { if (!chatStreamCancelled) callback(token); };
+    const subscription = (_: any, token: string, id?: number) => { if (isActiveChatStream(id)) callback(token); };
     ipcRenderer.on('gemini-stream-token', subscription);
     return () => {
       ipcRenderer.removeListener('gemini-stream-token', subscription);
@@ -1136,7 +1141,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   onGeminiStreamDone: (callback: () => void) => {
-    const subscription = () => { if (!chatStreamCancelled) callback(); };
+    const subscription = (_: any, id?: number) => { if (isActiveChatStream(id)) callback(); };
     ipcRenderer.on('gemini-stream-done', subscription);
     return () => {
       ipcRenderer.removeListener('gemini-stream-done', subscription);
@@ -1144,7 +1149,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   onGeminiStreamError: (callback: (error: string) => void) => {
-    const subscription = (_: any, error: string) => { if (!chatStreamCancelled) callback(error); };
+    const subscription = (_: any, error: string, id?: number) => { if (isActiveChatStream(id)) callback(error); };
     ipcRenderer.on('gemini-stream-error', subscription);
     return () => {
       ipcRenderer.removeListener('gemini-stream-error', subscription);
@@ -1440,7 +1445,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Cancel the in-flight chat stream. See ElectronAPI interface for rationale.
   cancelChatStream: () => {
-    chatStreamCancelled = true;
+    activeChatStreamId = null;
     ipcRenderer.send('gemini-chat-stream-stop');
   },
 } as ElectronAPI);

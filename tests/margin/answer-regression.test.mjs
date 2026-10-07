@@ -3,8 +3,8 @@
 // Drives the real renderer -> preload -> IPC -> LLMHelper path against a loopback
 // mock OpenAI server, inside the X2 isolation (temporary HOME, mock keychain, no
 // network, no audio devices, no permission prompts). Uses the dev-only hooks from
-// electron/margin/devOverrides.ts. Covers: streamed text answers, cancellation with
-// late tokens ignored, a superseding question, a screenshot question that sends
+// electron/margin/devOverrides.ts. Covers: streamed text answers, cancellation (events
+// of the old stream ignored, also once a new stream has started), a superseding question, a screenshot question that sends
 // the fixture image, and recovery after a provider error.
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
@@ -62,14 +62,46 @@ async function pressScreenshotShortcut() {
 }
 
 // Sends a chat stream event to the overlay over the real main -> preload -> renderer
-// IPC path, as the main process would for a provider chunk.
-async function sendOverlayStreamEvent(channel, payload) {
-  await app.evaluate(({ BrowserWindow }, [ch, p]) => {
+// IPC path, as the main process would for a provider chunk. `args` follow the channel
+// as main sends them: (token, streamId), (streamId) or (error, streamId).
+async function sendOverlayStreamEvent(channel, ...args) {
+  await app.evaluate(({ BrowserWindow }, [ch, a]) => {
     for (const w of BrowserWindow.getAllWindows()) {
-      if (w.webContents.getURL().includes('window=overlay')) w.webContents.send(ch, ...(p === undefined ? [] : [p]));
+      if (w.webContents.getURL().includes('window=overlay')) (w.webContents.__marginRealSend ?? w.webContents.send.bind(w.webContents))(ch, ...a);
     }
-  }, [channel, payload]);
+  }, [channel, args]);
 }
+
+// Main side: records the stream id of every chat token the app itself sends to the
+// overlay, so the test can address an old or the current stream.
+async function installStreamIdSpy() {
+  await app.evaluate(({ BrowserWindow }) => {
+    globalThis.__marginStreamIds = [];
+    for (const w of BrowserWindow.getAllWindows()) {
+      const wc = w.webContents;
+      if (!wc.getURL().includes('window=overlay') || wc.__marginRealSend) continue;
+      wc.__marginRealSend = wc.send.bind(wc);
+      wc.send = (ch, ...args) => {
+        if (ch === 'gemini-stream-token' && !globalThis.__marginStreamIds.includes(args[1])) globalThis.__marginStreamIds.push(args[1]);
+        return wc.__marginRealSend(ch, ...args);
+      };
+    }
+  });
+}
+const streamIds = () => app.evaluate(() => globalThis.__marginStreamIds);
+
+// Renderer side: subscribes through the same preload API the overlay uses and records
+// exactly which stream events the preload delivers.
+async function installDeliveryRecorder() {
+  await overlay.evaluate(() => {
+    window.__marginDelivered = { tokens: [], done: 0, errors: [] };
+    window.electronAPI.onGeminiStreamToken((t) => window.__marginDelivered.tokens.push(t));
+    window.electronAPI.onGeminiStreamDone(() => { window.__marginDelivered.done += 1; });
+    window.electronAPI.onGeminiStreamError((e) => window.__marginDelivered.errors.push(e));
+  });
+}
+const delivered = () => overlay.evaluate(() => JSON.parse(JSON.stringify(window.__marginDelivered)));
+const resetDelivered = () => overlay.evaluate(() => { window.__marginDelivered = { tokens: [], done: 0, errors: [] }; });
 
 test.before(async () => {
   mock = await startMockOpenAI();
@@ -127,31 +159,64 @@ test('a typed question streams the mock answer into the overlay', async () => {
   assert.ok(JSON.stringify(req.body.messages).includes('What is two plus two?'));
 });
 
-test('cancelChatStream stops the stream and late tokens are not shown', async () => {
+test('after cancel, and after a new stream has started, events of the old stream are not shown', async () => {
+  await installStreamIdSpy();
+  await installDeliveryRecorder();
+
   // 800 ms between chunks leaves ~2.4 s between "Cancel test" showing and LATE-3 being
   // sent. At 400 ms (~1.2 s) a slow CI runner once cancelled after LATE-3 (PLAN.md AG-16).
   mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800 });
   await ask('Please give a long answer.');
   await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000 });
+  const oldReq = mock.chatRequests().at(-1);
+  const [oldId] = await streamIds();
+  assert.ok(oldId !== undefined && oldId !== null, `main sent no stream id with the tokens: ${JSON.stringify(await streamIds())}`);
 
-  // Positive control: while the stream is live, an injected token is shown, so the
-  // injection path below really reaches the overlay.
-  await sendOverlayStreamEvent('gemini-stream-token', 'LIVE-INJECTED ');
+  // Positive control: while the stream is live, an injected token with its id is shown,
+  // so the injection path below really reaches the overlay.
+  await sendOverlayStreamEvent('gemini-stream-token', 'LIVE-INJECTED ', oldId);
   await overlay.waitForFunction(() => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000 });
 
   await overlay.evaluate(() => window.electronAPI.cancelChatStream());
+  await resetDelivered();
 
-  // A late token and a late done event delivered after the cancel (PLAN.md AG-17,
-  // Astra review): the renderer must not show them.
-  await sendOverlayStreamEvent('gemini-stream-token', 'LATE-INJECTED');
+  // 1. In the gap after the cancel: a late token and done of the old stream.
+  await sendOverlayStreamEvent('gemini-stream-token', 'GAP-INJECTED', oldId);
+  await sendOverlayStreamEvent('gemini-stream-done', oldId);
+  assert.deepEqual(await delivered(), { tokens: [], done: 0, errors: [] }, 'events after cancel were delivered');
+
+  // 2. A new stream starts right away; events of the old stream (which main may have
+  // sent before it saw the stop) and events without an id must still be dropped.
+  mock.setScript({ chunks: ['Fresh ', 'answer ', 'arrives ', 'intact.'], delayMs: 600 });
+  await overlay.evaluate(() => { window.electronAPI.streamGeminiChat('Fresh question'); });
+  await overlay.waitForFunction(() => window.__marginDelivered.tokens.includes('Fresh '), null, { timeout: 15_000 });
+  const newId = (await streamIds()).at(-1);
+  assert.notEqual(newId, oldId, 'the new stream must have its own id');
+  await sendOverlayStreamEvent('gemini-stream-token', 'STALE-INJECTED', oldId);
+  await sendOverlayStreamEvent('gemini-stream-done', oldId);
+  await sendOverlayStreamEvent('gemini-stream-error', 'STALE-ERROR-INJECTED', oldId);
+  await sendOverlayStreamEvent('gemini-stream-token', 'NOID-INJECTED');
   await sendOverlayStreamEvent('gemini-stream-done');
+  // Positive control for the new stream: its own id is delivered.
+  await sendOverlayStreamEvent('gemini-stream-token', 'NEW-INJECTED ', newId);
+  await overlay.waitForFunction(() => window.__marginDelivered.tokens.includes('NEW-INJECTED '), null, { timeout: 5_000 });
+  const midStream = await delivered();
+  assert.equal(midStream.done, 0, 'a done of the old stream ended the new one');
+  assert.deepEqual(midStream.errors, [], 'an error of the old stream reached the new one');
 
-  const req = mock.chatRequests().at(-1);
-  await new Promise((r) => setTimeout(r, 4_500)); // longer than the remaining script
+  // The new stream finishes normally: one done, its full text, nothing stale.
+  await overlay.waitForFunction(() => window.__marginDelivered.done === 1, null, { timeout: 15_000 });
+  await overlay.waitForFunction(() => document.body.innerText.includes('intact.'), null, { timeout: 5_000 });
+  await new Promise((r) => setTimeout(r, 4_500)); // longer than the old stream's remaining script
+  const final = await delivered();
+  assert.equal(final.done, 1);
+  assert.deepEqual(final.errors, []);
+  assert.deepEqual(final.tokens.filter((t) => /INJECTED|LATE-/.test(t)), ['NEW-INJECTED '], `stale tokens were delivered: ${JSON.stringify(final.tokens)}`);
   const text = await overlayText();
-  assert.ok(!text.includes('LATE-INJECTED'), `a stream event delivered after cancel was shown:\n${text.slice(-400)}`);
-  assert.ok(!text.includes('LATE-3') && !text.includes('LATE-4'), `late tokens leaked into the UI:\n${text.slice(-400)}`);
-  assert.ok(req.closedEarly || req.chunksSent < 6, 'the client should abort the HTTP stream');
+  for (const stale of ['GAP-INJECTED', 'STALE-INJECTED', 'STALE-ERROR-INJECTED', 'NOID-INJECTED', 'LATE-3', 'LATE-4']) {
+    assert.ok(!text.includes(stale), `${stale} was shown:\n${text.slice(-400)}`);
+  }
+  assert.ok(oldReq.closedEarly || oldReq.chunksSent < 6, 'the client should abort the old HTTP stream');
 });
 
 test('while an answer streams, a typed question is held back and a new stream request supersedes it', async () => {

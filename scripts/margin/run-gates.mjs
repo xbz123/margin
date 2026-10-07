@@ -17,6 +17,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -83,6 +84,9 @@ const TEST_CONCURRENCY = 4;
 // is then ended, which is recorded as `endedAfterFooter`.
 async function runTestFiles() {
   const files = [...new Set(TEST_GLOBS.flatMap((g) => fs.globSync(g, { cwd: REPO })))].sort();
+  // Each file's isolation log goes to a known path, read below after the process has
+  // ended, so a file that is ended after its footer cannot hide a blocked attempt.
+  const isolationDir = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-gates-isolation-'));
   const results = new Array(files.length);
   let next = 0;
   async function worker() {
@@ -91,8 +95,9 @@ async function runTestFiles() {
       const file = files[i];
       const t0 = Date.now();
       results[i] = await new Promise((resolve) => {
+        const isolationLog = path.join(isolationDir, `${i}.jsonl`);
         const child = spawn(NODE, ['scripts/margin/isolation/run-node.mjs', '--test', '--test-timeout=60000',
-          '--test-reporter=tap', file], { cwd: REPO, detached: true });
+          '--test-reporter=tap', file], { cwd: REPO, detached: true, env: { ...process.env, MARGIN_RUN_NODE_LOG: isolationLog } });
         // run-node.mjs passes its stdio to the real test process, so end the whole
         // process group; killing only run-node would leave the pipe open.
         const killGroup = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* already gone */ } };
@@ -112,7 +117,7 @@ async function runTestFiles() {
         child.on('close', (code, signal) => {
           clearTimeout(timer);
           if (graceTimer) clearTimeout(graceTimer);
-          resolve({ file, exitCode: code, signal, timedOut, endedAfterFooter, durationMs: Date.now() - t0, tap: stdout, stderr });
+          resolve({ file, exitCode: code, signal, timedOut, endedAfterFooter, durationMs: Date.now() - t0, tap: stdout, stderr, isolationLog });
         });
       });
     }
@@ -131,11 +136,11 @@ async function runTestFiles() {
     const fileFailures = tapFailures(r.tap).map((f) => f.replace(/^\? :: /, `${r.file} :: `));
     if (!finished) fileFailures.push(`${r.file} :: <did not finish>`);
     failures.push(...fileFailures);
-    // Attempts the isolation guard blocked, as run-node.mjs lists them
-    // ("[isolation]   <kind> <detail>"). Every kind counts, local ones included: an
-    // expected local call needs an explicit stand-in in the test (PLAN.md AG-17 review).
-    const isolationBlocked = [...new Set(r.stderr.split('\n')
-      .map((l) => l.match(/^\[isolation\] {3}(\S+ .*)$/)).filter(Boolean).map((m) => m[1]))];
+    // Attempts the isolation guard blocked, read from the file's isolation log. Every
+    // kind counts, local ones included: an expected local call needs an explicit
+    // stand-in in the test. A log without a guard-loaded record is no evidence that
+    // the guard ran, and counts too (PLAN.md AG-17 review).
+    const isolationBlocked = isolationRecords(r.isolationLog);
     isolation.push(...isolationBlocked.map((b) => `${r.file} :: ${b}`));
     // A non-zero exit must be explained by a failing test in the TAP report.
     const exitOk = r.exitCode === 0 || (r.endedAfterFooter && footer(r.tap, 'fail') === 0);
@@ -143,12 +148,24 @@ async function runTestFiles() {
     perFile.push({ file: r.file, exitCode: r.exitCode, signal: r.signal, timedOut: r.timedOut, endedAfterFooter: r.endedAfterFooter, durationMs: r.durationMs,
       tests: footer(r.tap, 'tests'), pass: footer(r.tap, 'pass'), fail: footer(r.tap, 'fail'), finished, isolationBlocked });
   }
+  fs.rmSync(isolationDir, { recursive: true, force: true });
   const tap = results.map((r) => `# ===== ${r.file}\n${r.tap}`).join('\n');
   const log = results.filter((r) => r.stderr.trim() || r.timedOut)
     .map((r) => `===== ${r.file}${r.timedOut ? ` (killed after ${TEST_FILE_TIMEOUT_MS} ms)` : ''}\n${r.stderr}`).join('\n');
   // A file passes when it exited 0, or was ended after its footer with no failures.
   const status = perFile.every((f) => f.finished && (f.exitCode === 0 || (f.endedAfterFooter && f.fail === 0))) ? 0 : 1;
   return { status, tap, log, counts, failures: [...new Set(failures)].sort(), isolation: isolation.sort(), unexplainedExits: unexplainedExits.sort(), perFile };
+}
+
+// The blocked attempts in one isolation log, as unique "<kind> <detail>" lines, plus
+// "<no guard-loaded record>" when the guard left no evidence that it ran.
+function isolationRecords(log) {
+  const records = fs.existsSync(log)
+    ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return { kind: 'unreadable', detail: l }; } })
+    : [];
+  const blocked = [...new Set(records.filter((r) => r.kind !== 'guard-loaded').map((r) => `${r.kind} ${r.detail}`))];
+  if (!records.some((r) => r.kind === 'guard-loaded')) blocked.push('<no guard-loaded record>');
+  return blocked;
 }
 
 // "file(line,col): error TS1234: message" -> "file error TS1234: message ×count"

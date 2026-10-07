@@ -17,12 +17,16 @@ let allowExec = '';
 if (args[0] === '--allow-exec') { allowExec = args[1]; args = args.slice(2); }
 
 const sandbox = makeSandbox('node');
+// run-gates.mjs sets MARGIN_RUN_NODE_LOG so it can read the isolation log itself even
+// when it has to end this process early (PLAN.md AG-17 review).
+if (process.env.MARGIN_RUN_NODE_LOG) sandbox.log = process.env.MARGIN_RUN_NODE_LOG;
 const res = spawnSync(process.execPath, args, {
   cwd: REPO,
   env: isolatedEnv(sandbox, { MARGIN_ISOLATION_ALLOW_EXEC: allowExec }),
   stdio: 'inherit',
 });
-const blocked = readBlocked(sandbox);
+// The test process itself must have loaded the guard (readGuardLog checks its pid).
+const blocked = readBlocked(sandbox, { pid: res.pid });
 if (blocked.length) {
   console.error(`[isolation] ${blocked.length} blocked attempt(s); log: ${sandbox.log}`);
   for (const b of blocked) console.error(`[isolation]   ${b.kind} ${b.detail}`);

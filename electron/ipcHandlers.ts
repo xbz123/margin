@@ -341,9 +341,12 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number },
     ) => {
       let myController: AbortController | null = null;
+      // The preload's id for this request, sent back with every event so the window
+      // can drop events of a cancelled or superseded stream (PLAN.md AG-17 review).
+      const clientStreamId = options?.clientStreamId;
       try {
         console.log('[IPC] gemini-chat-stream started using LLMHelper.streamChat');
         const llmHelper = appState.processingHelper.getLLMHelper();
@@ -382,8 +385,8 @@ export function initializeIpcHandlers(appState: AppState): void {
               );
               return null;
             }
-            event.sender.send('gemini-stream-token', identityHit);
-            event.sender.send('gemini-stream-done');
+            event.sender.send('gemini-stream-token', identityHit, clientStreamId);
+            event.sender.send('gemini-stream-done', clientStreamId);
             intelligenceManager.addAssistantMessage(identityHit);
             intelligenceManager.logUsage('chat', message, identityHit);
             return null;
@@ -456,13 +459,13 @@ export function initializeIpcHandlers(appState: AppState): void {
               );
               return null;
             }
-            event.sender.send('gemini-stream-token', token);
+            event.sender.send('gemini-stream-token', token, clientStreamId);
             fullResponse += token;
           }
 
           // Final check: only send done if we are still the active stream
           if (_chatStreamsBySender.get(senderId)?.streamId === myStreamId) {
-            event.sender.send('gemini-stream-done');
+            event.sender.send('gemini-stream-done', clientStreamId);
 
             // Update IntelligenceManager with ASSISTANT message after completion
             if (fullResponse.trim().length > 0) {
@@ -477,6 +480,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             event.sender.send(
               'gemini-stream-error',
               streamError.message || 'Unknown streaming error',
+              clientStreamId,
             );
           }
         }

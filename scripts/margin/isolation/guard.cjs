@@ -28,11 +28,21 @@ const ALLOW_EXEC = new Set((process.env.MARGIN_ISOLATION_ALLOW_EXEC || '').split
 // blocked and recorded like an outbound attempt.
 const WATCHED_PORTS = new Set((process.env.MARGIN_ISOLATION_WATCH_PORTS || '').split(',').map((p) => p.trim()).filter(Boolean));
 
-function record(kind, detail) {
-  const entry = { t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind, detail };
-  if (LOG) {
-    try { fs.appendFileSync(LOG, JSON.stringify(entry) + '\n'); } catch { /* best effort */ }
+// Appends one record to the isolation log. A record that cannot be written would
+// make a run look cleaner than it was, so the process ends instead (exit 70): the
+// test or launch then fails (PLAN.md AG-17 review).
+function writeLog(entry) {
+  if (!LOG) return;
+  try {
+    fs.appendFileSync(LOG, JSON.stringify(entry) + '\n');
+  } catch (e) {
+    try { process.stderr.write(`[isolation] cannot write the isolation log ${LOG}: ${e && e.message}; exiting\n`); } catch { /* closed stderr */ }
+    process.exit(70);
   }
+}
+
+function record(kind, detail) {
+  writeLog({ t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind, detail });
   try { process.stderr.write(`[isolation] blocked ${kind}: ${detail}\n`); } catch { /* closed stderr */ }
 }
 
@@ -306,10 +316,8 @@ function installChromiumGuard(electron) {
 
 process.env.MARGIN_ISOLATION_ACTIVE = '1';
 
-// Load record: every guarded process writes one, so a log that is missing has no
-// evidence that the guard ran, and env.mjs readGuardLog() fails on it (PLAN.md AG-17
-// review). Not a blocked attempt, so it is not printed.
-if (LOG) {
-  const entry = { t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind: 'guard-loaded', detail: process.type || 'node' };
-  try { fs.appendFileSync(LOG, JSON.stringify(entry) + '\n'); } catch { /* readGuardLog reports the missing log */ }
-}
+// Load record: every guarded process writes one, so a log without a record from the
+// expected process has no evidence that the guard ran there, and env.mjs
+// readGuardLog() fails on it (PLAN.md AG-17 review). Not a blocked attempt, so it is
+// not printed.
+writeLog({ t: new Date().toISOString(), pid: process.pid, script: process.argv[1], kind: 'guard-loaded', detail: process.type || 'node' });

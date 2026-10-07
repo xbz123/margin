@@ -6,7 +6,7 @@ import {
     RefreshCw, Trash2, Check, ExternalLink, Volume2, Globe, Brain, Cpu, Calendar, Star, CreditCard, X, Pencil, Lightbulb,
     SlidersHorizontal, PointerOff, ArrowRight, LayoutGrid, DollarSign, Building2
 } from 'lucide-react';
-import { SiOpenai, SiGoogle } from 'react-icons/si';
+import { SiOpenai, SiGoogle, SiAnthropic } from 'react-icons/si';
 import { useShortcuts } from '../../hooks/useShortcuts';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import { isMac, getModifierSymbol } from '../../utils/platformUtils';
@@ -920,8 +920,8 @@ export const HelpSettings: React.FC = () => {
                     <div className="space-y-4">
                         <p>
                             {isMac
-                                ? 'Natively operates entirely on-device, but requires OS permissions to tap into your screen context and global keystrokes. Here is how your system should look:'
-                                : 'Natively operates entirely on-device. Windows will prompt you for microphone access the first time you start a meeting — no other OS permissions are required.'}
+                                ? 'Natively needs OS permissions to read your screen context and global keystrokes. Answers, transcription and summaries come from the cloud providers you configure. Here is how your system should look:'
+                                : 'Windows will prompt you for microphone access the first time you start a meeting — no other OS permissions are required. Answers, transcription and summaries come from the cloud providers you configure.'}
                         </p>
                         {isMac && <MockPermissionsAnim />}
                         <div className="space-y-3 mt-4">
@@ -1103,7 +1103,7 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="3. AI Providers & Prompt Engine" icon={<Key className="w-4 h-4" />}>
                     <div className="space-y-4">
-                        <p className="text-sm">Natively uses Large Language Models (LLMs) to reason about your screen and audio context. You can configure cloud providers, local models, or fully custom endpoints.</p>
+                        <p className="text-sm">Natively uses Large Language Models (LLMs) to reason about your screen and audio context. Your question, and the screen and audio context you allow under AI Providers, is sent to the cloud provider you configure below.</p>
 
                         <div className="space-y-3 pt-2">
                             <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">1. Standard Cloud Providers</h4>
@@ -1112,7 +1112,7 @@ export const HelpSettings: React.FC = () => {
                                 <div className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle hover:border-border-muted transition-colors">
                                     <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center mb-1">
                                         <span className="flex items-center gap-2">
-                                            <img src="https://groq.com/favicon.svg" alt="Groq" className="w-4 h-4 object-contain" /> Groq
+                                            <Zap className="w-3.5 h-3.5 text-orange-500" /> Groq
                                         </span>
                                         <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
                                     </h5>
@@ -1132,7 +1132,7 @@ export const HelpSettings: React.FC = () => {
                                 <div className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle hover:border-border-muted transition-colors">
                                     <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center mb-1">
                                         <span className="flex items-center gap-2">
-                                            <img src="https://cdn.simpleicons.org/anthropic/000000" style={{ filter: isLight ? '' : 'invert(1)' }} alt="Anthropic" className="w-4 h-4 object-contain" /> Anthropic
+                                            <SiAnthropic className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`} /> Anthropic
                                         </span>
                                         <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.anthropic.com/settings/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
                                     </h5>
@@ -1149,15 +1149,6 @@ export const HelpSettings: React.FC = () => {
                                     <p className="text-[11px] opacity-80 mb-2">Immense contextual window. Default model: <strong>gemini-3.1-pro</strong>.</p>
                                     <span className={kbdClass}>AIzaSy...</span>
                                 </div>
-                            </div>
-
-                            <div className="mt-2 bg-bg-item-surface p-4 rounded-xl border border-border-subtle shadow-sm flex gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-bg-elevated border border-border-subtle flex items-center justify-center shrink-0">
-                                    <Zap className="w-4 h-4 text-accent-primary" />
-                                </div>
-                                <p className="text-[11px] text-text-secondary leading-relaxed mt-0.5">
-                                    <strong className="text-text-primary font-bold">Autonomous Registry Sync:</strong> Natively utilizes a 14-day background sync clock (<span className="font-mono bg-bg-elevated border border-border-muted px-1.5 py-0.5 rounded text-[10px] text-text-primary shadow-[inset_0_-1px_0_rgba(0,0,0,0.1)]">v2/api/models</span>) to silently poll upstream APIs. If Anthropic or OpenAI drops a new flagship architecture (e.g. GPT-5), your app dynamically absorbs it into the UI dropdown automatically.
-                                </p>
                             </div>
 
                             <div className="p-4 mt-2 rounded-xl border border-border-subtle bg-bg-item-surface">

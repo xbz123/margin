@@ -451,7 +451,10 @@ export class LLMHelper {
   }
 
   private async generateWithCodexCli(userContent: string, systemPrompt?: string, fastMode = false, imagePaths?: string[], signal?: AbortSignal): Promise<string> {
+    // Codex CLI sends the prompt to OpenAI, so it is a cloud provider like the others:
+    // every Codex call goes through here or streamWithCodexCli (PLAN.md AG-17 review).
     if (!this.codexCliConfig.enabled) throw new Error('Codex CLI transport is disabled.');
+    this.assertOutboundScopes('codex', userContent, imagePaths);
     const model = this.getSelectedCodexCliModel(fastMode);
     return CodexCliService.run(this.codexCliConfig.path, {
       prompt: this.buildCodexCliPrompt(userContent, systemPrompt),
@@ -467,6 +470,7 @@ export class LLMHelper {
 
   private async *streamWithCodexCli(userContent: string, systemPrompt?: string, fastMode = false, imagePaths?: string[], signal?: AbortSignal): AsyncGenerator<string, void, unknown> {
     if (!this.codexCliConfig.enabled) throw new Error('Codex CLI transport is disabled.');
+    this.assertOutboundScopes('codex', userContent, imagePaths); // see generateWithCodexCli
     const model = this.getSelectedCodexCliModel(fastMode);
     yield* CodexCliService.stream(this.codexCliConfig.path, {
       prompt: this.buildCodexCliPrompt(userContent, systemPrompt),

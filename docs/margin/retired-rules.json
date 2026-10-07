@@ -1271,6 +1271,31 @@
       "ticket": "AG-16",
       "kind": "symbol",
       "value": "Phone Mirror"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "entirely on-device"
+    },
+    {
+      "ticket": "AG-16",
+      "kind": "symbol",
+      "value": "fully custom endpoints"
+    },
+    {
+      "ticket": "AG-10",
+      "kind": "symbol",
+      "value": "Autonomous Registry Sync"
+    },
+    {
+      "ticket": "AG-17",
+      "kind": "host",
+      "value": "cdn.simpleicons.org"
+    },
+    {
+      "ticket": "AG-17",
+      "kind": "host",
+      "value": "groq.com/favicon.svg"
     }
   ]
 }

@@ -46,16 +46,23 @@ export function isolatedEnv(sandbox, extra = {}) {
   return env;
 }
 
-// Every guarded process writes a "guard-loaded" record when the guard starts, so a
-// missing log means the guard never ran or could not write: there is no evidence,
-// which is an error, not "nothing blocked" (PLAN.md AG-17 review).
-export function readGuardLog(sandbox) {
+// Every guarded process writes a "guard-loaded" record when the guard starts (and
+// ends itself if it cannot write a record). A missing or empty log, or with `pid` no
+// load record from that process, means there is no evidence that the guard ran: that
+// is an error, not "nothing blocked" (PLAN.md AG-17 review).
+export function readGuardLog(sandbox, { pid } = {}) {
   if (!fs.existsSync(sandbox.log)) throw new Error(`isolation log missing: ${sandbox.log} (the guard did not load or could not write)`);
-  return fs.readFileSync(sandbox.log, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+  const records = fs.readFileSync(sandbox.log, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+  const loads = records.filter((r) => r.kind === 'guard-loaded');
+  if (!loads.length) throw new Error(`isolation log has no guard-loaded record: ${sandbox.log}`);
+  if (pid !== undefined && !loads.some((r) => r.pid === pid)) {
+    throw new Error(`no guard-loaded record from pid ${pid} in ${sandbox.log} (records from ${[...new Set(loads.map((r) => r.pid))].join(', ')})`);
+  }
+  return records;
 }
 
-export function readBlocked(sandbox) {
-  return readGuardLog(sandbox).filter((e) => e.kind !== 'guard-loaded');
+export function readBlocked(sandbox, options) {
+  return readGuardLog(sandbox, options).filter((e) => e.kind !== 'guard-loaded');
 }
 
 // Real-account locations an isolated run must never touch. Snapshot them before and

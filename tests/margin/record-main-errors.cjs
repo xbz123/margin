@@ -3,9 +3,13 @@
 // launch-app.mjs loads it with `-r` before the app code, so it sees uncaught
 // exceptions and unhandled rejections even when the app's own handlers or its debug
 // log fail. It writes JSON lines to MARGIN_MAIN_ERRORS_LOG: one "loaded" record when
-// it starts, then one record per event. The app (electron/main.ts) installs its own
-// uncaughtException and unhandledRejection handlers, so listening here does not
-// change how the app reacts to either.
+// it starts, then one record per event.
+//
+// Effect on the app: `uncaughtExceptionMonitor` only observes. The `unhandledRejection`
+// listener does change one thing: a rejection raised before electron/main.ts installs
+// its own handler (early in start-up) is recorded instead of taking Node's default
+// action. Once main.ts's handler is installed, behavior is the same as without this
+// file. Either way a recorded rejection fails the harness tests.
 
 'use strict';
 

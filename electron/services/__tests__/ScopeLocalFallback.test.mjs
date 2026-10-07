@@ -97,3 +97,46 @@ test('meeting summaries send the transcript only when both transcript and post_c
     assert.equal(denied.requests.length, 0, `no request at all when ${JSON.stringify(policy)}`);
   }
 });
+
+// Codex CLI is a cloud provider too (PLAN.md AG-17 review): both Codex entry points,
+// through which every Codex call goes, must refuse a denied scope before starting the
+// CLI. `spawn` is replaced for the duration of each call, so nothing is started: an
+// allowed call reaches the stub (proving the check sits in front of the send step).
+const SPAWN_STUB = 'spawn-stub-reached';
+
+async function codexWith(entry, policy) {
+  const LLMHelper = loadBuiltLLMHelper();
+  const childProcess = createRequire(import.meta.url)('node:child_process');
+  const realSpawn = childProcess.spawn;
+  const spawned = [];
+  childProcess.spawn = (cmd, args) => { spawned.push(cmd); throw new Error(SPAWN_STUB); };
+  const self = Object.assign(Object.create(LLMHelper.prototype), {
+    codexCliConfig: { enabled: true, path: '/margin-test/codex-not-installed', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex', timeoutMs: 1_000, sandboxMode: 'read-only', serviceTier: 'default' },
+    currentModelId: 'codex-cli:gpt-5.4',
+    getProviderScopePolicy: () => policy,
+  });
+  try {
+    if (entry === 'stream') {
+      for await (const _ of self.streamWithCodexCli('TRANSCRIPT_SENTINEL said hello', 'SYSTEM')) { /* drain */ }
+    } else {
+      await self.generateWithCodexCli('TRANSCRIPT_SENTINEL said hello', 'SYSTEM');
+    }
+    return { error: null, spawned };
+  } catch (error) {
+    return { error, spawned };
+  } finally {
+    childProcess.spawn = realSpawn;
+  }
+}
+
+for (const entry of ['generate', 'stream']) {
+  test(`Codex CLI (${entry}) does not start when the transcript scope is denied`, async () => {
+    const allowed = await codexWith(entry, {});
+    assert.match(String(allowed.error?.message), new RegExp(SPAWN_STUB), 'with every scope allowed the call reaches the CLI');
+    assert.deepEqual(allowed.spawned, ['/margin-test/codex-not-installed']);
+
+    const denied = await codexWith(entry, { transcript: false });
+    assert.equal(denied.error?.name, 'ProviderScopeError', `expected a scope error, got ${denied.error}`);
+    assert.deepEqual(denied.spawned, [], 'the CLI must not be started');
+  });
+}

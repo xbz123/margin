@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { isolatedEnv, CHROMIUM_SWITCHES, REPO, GUARD } from '../../scripts/margin/isolation/env.mjs';
+import { isolatedEnv, readGuardLog, CHROMIUM_SWITCHES, REPO, GUARD } from '../../scripts/margin/isolation/env.mjs';
 
 const require = createRequire(import.meta.url);
 const { _electron } = require('playwright');
@@ -80,9 +80,11 @@ export async function launchApp(sandbox, extraEnv = {}) {
     await app.close().catch(() => {});
     throw new Error('isolation guard is not active in the Electron main process; aborting');
   }
-  // Fails now, not at the end of the test, if the recorder is not running.
+  // Fails now, not at the end of the test, if the recorder is not running or the
+  // guard wrote no load record from this main process.
   try {
     readMainErrors(mainErrorsLog, app.process().pid);
+    readGuardLog(sandbox, { pid: app.process().pid });
   } catch (e) {
     await app.close().catch(() => {});
     throw e;
