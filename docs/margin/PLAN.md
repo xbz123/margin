@@ -643,7 +643,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
 | AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
 | AG-17 | 完成 | 见 AG-17 提交 | 见下文 AG-17 记录。Electron 43.1.0；两个 `tsc` 退出 0；基线遗留的 20 条测试失败全部处理（5 个用例跳过并写明原因）；证据：`docs/margin/evidence/AG-17/summary.json`，对照 `AG-16/` |
-| 阶段 1 出口 / Astra 复核 | 第六轮复核修复完成，待在当前代码上重跑不使用缓存的 CI，再请 Astra 复查 | `2e71066b`、`94a10fb1`、`02d4cb2e`、`4523c762`、`4bd2eb00`、`d26a9937`、`fa70efc8` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"；第二轮（`2e71066b`）、第三轮（`c8365b63`）、第四轮（`8f7ceda2`）、第五轮（`5c30ec84`）、第六轮（`b80c9440`）复查结论都是"仍需进一步修复"。六轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过；第 1 条按 S11 要在 `fa70efc8` 的代码上重跑不使用缓存的 CI，待运行。证据：`docs/margin/evidence/AG-17-review6/summary.json`（`fa70efc8`，0 个未提交路径），对照 `AG-17-review5/` |
+| 阶段 1 出口 / Astra 复核 | 第六轮复核修复完成，待 Astra 再次复查 | `2e71066b`、`94a10fb1`、`02d4cb2e`、`4523c762`、`4bd2eb00`、`d26a9937`、`fa70efc8` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"；第二轮（`2e71066b`）、第三轮（`c8365b63`）、第四轮（`8f7ceda2`）、第五轮（`5c30ec84`）、第六轮（`b80c9440`）复查结论都是"仍需进一步修复"。六轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过；第 1 条按 S11 以不使用缓存的 CI 运行 `37703373985`（`78015838`，代码与 `fa70efc8` 相同）为准，通过。证据：`docs/margin/evidence/AG-17-review6/summary.json`（`fa70efc8`，0 个未提交路径），对照 `AG-17-review5/` |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
 ### AG-10 记录（2026-10-07）
@@ -1001,7 +1001,16 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
     - `summary.json` 的未提交路径为 0，清单为空。
   - **结论**：满足 S11 对第 1 条的要求（`d26a9937` 的代码）。第六轮修复改了应用代码，要在新代码上重跑，见下一条。
 
-- **第六轮修复后的不使用缓存的运行**：待运行（在包含 `fa70efc8` 代码的提交上，`no_cache: true`）。
+- **第六轮修复后的不使用缓存的运行**（运行 `37703373985`，手动触发，`no_cache: true`，提交 `78015838`，代码与 `fa70efc8` 相同；对照 `AG-17/`；原始证据在 `docs/margin/evidence/CI-37703373985/`；运行产物保留到 2026-11-06）：
+  - **耗时**：作业 4 分 36 秒（23:38:14–23:42:50 UTC）。
+  - **缓存**：两个 `actions/cache` 步骤都是 skipped，其余步骤都是 success（`job-steps.json`）；`setup:native` 走了 `1/5 Electron 43.1.0 binary` 的下载分支。
+  - **从零编译**：`Compiling cidre v0.11.10`，cargo `Finished release … in 35.41s`；核对这一行的步骤通过。
+  - **原生模块产物**：`BUILD-INFO.txt` 记录提交 `78015838`、`no_cache: true`、本次编译了 `cidre`；sha256 `33e82789…4ed4e4e`，与前三次从零构建相同。下载后重算一致，收据见 `CI-37703373985/native/sha256-recheck.txt`。
+  - **结果**：运行器退出 0，15 个步骤全部退出 0，与本机 `AG-17-review6/` 一致：
+    - 测试 737 个，732 通过，0 失败，5 跳过；`tests.log` 为空；
+    - 回归 6/6，会议存储 5/5，启动冒烟 1/1（启动器就绪 1.8 秒）；
+    - `summary.json` 的未提交路径为 0，清单为空。
+  - **结论**：满足 S11 对第 1 条的要求。
 
 ### AG-15 记录（2026-10-07）
 
@@ -1285,7 +1294,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 | # | 条目 | 结论 | 证据 |
 | --- | --- | --- | --- |
-| 1 | 干净安装 | 待重跑（按 S11 以 CI 为准） | D5 已定（2026-10-08，S11）：本机不装 Xcode，本条以 CI 为准。本机的 `setup:native` 仍用 X3 复制来的 cargo 缓存，不作本条证据。<br>上一次证据是运行 `37700866188`（提交 `fd47de32`，代码与 `d26a9937` 相同）：跳过 Electron 和 cargo 缓存，`npm ci` → `setup:native` 从零编译 `cidre` → 15 个门禁步骤全部退出 0，未提交路径为 0；原始证据在 `docs/margin/evidence/CI-37700866188/`。`fa70efc8` 改了应用代码，要在新代码上重跑，见 CI 门禁记录。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。|
+| 1 | 干净安装 | 通过（按 S11 以 CI 为准） | D5 已定（2026-10-08，S11）：本机不装 Xcode，本条以 CI 为准。本机的 `setup:native` 仍用 X3 复制来的 cargo 缓存，不作本条证据。<br>证据：运行 `37703373985`（提交 `78015838`，代码与 `fa70efc8` 相同），跳过 Electron 和 cargo 缓存，`npm ci` → `setup:native` 从零编译 `cidre` → 15 个门禁步骤全部退出 0，未提交路径为 0。原始证据在 `docs/margin/evidence/CI-37703373985/`。详见 CI 门禁记录。<br>其余部分满足：`npm ci` 后没有模型文件，`package.json` 没有模型下载脚本，`.npmrc` 的评估结论见 AG-17 第 8 条。|
 | 2 | 构建与类型 | 通过 | 清空构建目录后 `build-electron`、`vite build` 退出 0；两个 `tsc` 都退出 0，0 诊断 |
 | 3 | 退役清理 | 通过 | `retired-check.mjs --all`：257 条规则零命中。三轮复核共新增 15 条规则，覆盖复核找到的残留：主机 `natively.software`（整个域名）、`src/lib/featureFlags.ts` 与 `PREMIUM_ENABLED`、`Phone Mirror`、`Modes Manager`、`In-App Updates`、`entirely on-device`、`fully custom endpoints`、`Autonomous Registry Sync`，帮助页曾加载的远程图标主机 `cdn.simpleicons.org`、`groq.com/favicon.svg`，以及把 Codex 说成本地处理的 `Local/private route`、`Local Provider`、`selectable local backend`、`locally authenticated Codex`。每条规则在加入前的提交上都有命中。`git ls-tree -r HEAD` 中没有 `premium`、`natively-api`、`.gitmodules`，也没有 gitlink。G3 只能证明这些规则零命中，不能证明全部清理完毕；复核中逐页检查过设置、帮助、关于和启动页 |
 | 4 | 测试 | 通过（5 个跳过，原因见 AG-17 第 4 条，恢复要求见 AG-41、AG-61） | 守卫下 104 个文件，737 个测试，732 通过，0 失败，5 跳过；`test-failures.txt` 为空。每个文件的隔离日志都由门禁直接读取：没有拦截记录；守卫的加载记录来自实际执行该文件的进程，它的父进程是门禁所启动的 `run-node.mjs` 下的 `node --test` 运行器（按 `ppid` 和脚本路径核对；`tests.log` 为空）；没有"退出码非 0 但没有失败用例"的文件 |
@@ -1293,7 +1302,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 | 6 | 行为回归 | 通过 | `regression.log`：6/6。新增用例：启动器的对话请求在开始流之前失败（在主进程注入一次 setup 异常），重试后回答恰好显示一次，完成事件之后仍在。<br>取消用例在页面里通过同一个 preload 接口记录实际送达的事件，依次检查四种情况：<br>- 取消后的空档，旧流的 token 和完成事件不送达；<br>- 立即开始新流后，旧流的 token、完成和错误事件不送达；<br>- 不带流标识的事件不送达；<br>- 新流自己的事件照常送达，新流以恰好一次完成事件正常结束。<br>流标识由主进程的发送监听取得，事件经真实的 main → preload → renderer 通道注入 |
 | 7 | 会议存储 | 通过 | `storage.log`：5/5。临时 SQLite 上保存、读取、重启后读取、删除；关闭 Transcripts 数据范围时，会议照常保存，但不为标题和摘要发出任何请求。会议对话只发送会议 ID，由主进程读取已保存的会议并组装上下文：`profile_history` 被拒绝时不发任何请求；`post_call_summary` 被拒绝时不带摘要、要点和行动项；窗口自己拼出的带会议标题的上下文会被剔除；未知的会议 ID 被拒绝。<br>启动时恢复上次未处理完的会议：`profile_history` 被拒绝时不发任何请求，会议照常保存（没有生成的标题）；允许时照常发送。会议对话的问答不进入下一场会议的转写。<br>会议详情页的编辑保存失败时，页面显示提示并恢复为数据库里的内容。<br>不加载向量扩展（AG-14 已删除 `sqlite-vec`） |
 
-**结论**：第 2–7 条通过；第 1 条待在当前代码上重跑不使用缓存的 CI。之后第六轮修复还需要 Astra 再次只读复查；复查通过、且第 1 条有当前代码的 CI 证据之前，不进入阶段 2。
+**结论**：第 1–7 条通过（第 1 条按 S11 以 CI 运行 `37703373985` 为准）。第六轮修复还需要 Astra 再次只读复查；复查通过之前，不进入阶段 2。
 
 ### 事件记录（2026-10-07）
 
@@ -1331,7 +1340,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
    - **处理**：没有使用。这些 key 会把请求发往外部服务商，不符合 S8、S9（阶段 1–2 不用真实 key）和本会话的操作规则。本记录不含 key 的值。已建议用户立即撤销。真实服务的验收按 D2 在阶段 3 起单独安排，由用户自己在应用设置里填写 key。
    - **证据限制**：这是过程陈述，没有独立的审计证据能证明 key 从未被使用或写入（第五轮复查第 6 条）。可核对的部分：2026-10-08 用两个 key 的开头字符搜索，本仓库所有分支的提交历史、工作区（不含 `node_modules`）和会话记忆目录里都没有；所有测试都在隔离守卫下运行，守卫拦截外连。key 仍留在用户的对话记录里。
 
-**下一步**：在包含 `fa70efc8` 代码的提交上运行不使用缓存的 CI 并存档；然后请 Astra 只读复查第六轮修复和这次 CI 运行。复查通过之前，不进入阶段 2。决定 1 已定（S12）。
+**下一步**：Astra 只读复查第六轮修复（`fa70efc8` 和证据提交）以及不使用缓存的 CI 运行 `37703373985`。复查通过之前，不进入阶段 2。决定 1 已定（S12）。
 
 ## 9. 评审记录
 
@@ -1553,4 +1562,4 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 本轮提交前先运行了类型检查、来源、退役、preload 和 IPC 检查以及全部单元测试（`checks/pre-commit-gates.summary.json`：737 个测试，732 通过，0 失败，5 跳过）。
 
-修复后的全部门禁：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-17-review6 --ref docs/margin/evidence/AG-17-review5`，在 `fa70efc8` 上 15 个步骤全部退出 0：737 个测试，732 通过，0 失败，5 跳过；回归 6/6，存储 5/5，启动 1/1；未提交路径为 0。G2 零命中，没有新增白名单。出口第 1 条要在当前代码上重跑不使用缓存的 CI，见 CI 门禁记录。
+修复后的全部门禁：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-17-review6 --ref docs/margin/evidence/AG-17-review5`，在 `fa70efc8` 上 15 个步骤全部退出 0：737 个测试，732 通过，0 失败，5 跳过；回归 6/6，存储 5/5，启动 1/1；未提交路径为 0。G2 零命中，没有新增白名单。出口第 1 条在当前代码上重跑了不使用缓存的 CI（运行 `37703373985`，通过），见 CI 门禁记录。
