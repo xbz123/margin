@@ -56,6 +56,11 @@
     { "line": "if (version < 17) {", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-14 v17 drops the RAG tables), 2026-10-07" },
     { "line": "this.db.pragma('user_version = 17');", "reason": "Next step of the baseline's own migration pattern (if (version < N) ... user_version = N, see v1-v15 at a786910e); written for this branch (AG-14 v17 drops the RAG tables), 2026-10-07" },
     { "line": "return \"gemini\";", "reason": "Generic one-line idiom (a provider name return / an options object literal) left after removing the Ollama branches in AG-14; not copied expression." },
-    { "line": "const options = {", "reason": "Generic one-line idiom (a provider name return / an options object literal) left after removing the Ollama branches in AG-14; not copied expression." }
+    { "line": "const options = {", "reason": "Generic one-line idiom (a provider name return / an options object literal) left after removing the Ollama branches in AG-14; not copied expression." },
+    { "line": "fs.mkdirSync(out, { recursive: true });", "reason": "Generic Node idiom (create the output directory); written for this branch (gate runner). Hit only in the first CI run, whose upstream pool is larger than the local one, 2026-10-07" },
+    { "line": "const stub = {", "reason": "Generic test idiom (an object literal opener, a stub that reports encryption as available, a node:test after-hook, temp-dir cleanup); written for this branch (AG-15 STT provider test), 2026-10-07" },
+    { "line": "isEncryptionAvailable: () => true,", "reason": "Generic test idiom (an object literal opener, a stub that reports encryption as available, a node:test after-hook, temp-dir cleanup); written for this branch (AG-15 STT provider test), 2026-10-07" },
+    { "line": "test.after(() => {", "reason": "Generic test idiom (an object literal opener, a stub that reports encryption as available, a node:test after-hook, temp-dir cleanup); written for this branch (AG-15 STT provider test), 2026-10-07" },
+    { "line": "fs.rmSync(dir, { recursive: true, force: true });", "reason": "Generic test idiom (an object literal opener, a stub that reports encryption as available, a node:test after-hook, temp-dir cleanup); written for this branch (AG-15 STT provider test), 2026-10-07" }
   ]
 }

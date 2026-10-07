@@ -11,7 +11,6 @@
     "build:electron:tsc": "tsc -p electron/tsconfig.json",
     "typecheck:electron": "tsc -p electron/tsconfig.json --noEmit",
     "preview": "vite preview",
-    "postinstall": "cross-env SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm rebuild sharp && electron-rebuild -f -w better-sqlite3,keytar && node scripts/download-models.js && node scripts/patch-electron-plist.js",
     "electron:dev": "npm run build:electron && cross-env NODE_ENV=development electron .",
     "electron:build": "npm run build:electron && cross-env NODE_ENV=production electron .",
     "app:dev": "concurrently \"npm run dev -- --port 5180 --strictPort\" \"wait-on http://localhost:5180 && npm run electron:dev\"",
@@ -59,10 +58,6 @@
       {
         "from": "assets/natively.icns",
         "to": "natively.icns"
-      },
-      {
-        "from": "resources/models/",
-        "to": "models/"
       }
     ],
     "mac": {
@@ -188,7 +183,6 @@
     "@google/stitch-sdk": "^0.0.3",
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
-    "@huggingface/transformers": "^3.8.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-toast": "^1.2.2",
     "@tanstack/react-query": "^5.100.10",
@@ -213,7 +207,6 @@
     "lucide-react": "^0.460.0",
     "mammoth": "^1.11.0",
     "marked": "^18.0.4",
-    "onnxruntime-node": "1.22.0",
     "openai": "^6.22.0",
     "pdf-parse": "^2.4.5",
     "qrcode": "^1.5.4",
@@ -237,8 +230,5 @@
     "tree-kill": "^1.2.2",
     "uuid": "^11.0.3",
     "ws": "^8.19.0"
-  },
-  "overrides": {
-    "onnxruntime-node": "1.22.0"
   }
 }

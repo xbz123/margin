@@ -92,33 +92,8 @@ interface ElectronAPI {
       | 'elevenlabs'
       | 'azure'
       | 'ibmwatson'
-      | 'soniox'
-      | 'local-whisper',
+      | 'soniox',
   ) => Promise<{ success: boolean; error?: string }>;
-  localWhisperGetModels: () => Promise<{ models: any[]; activeModelId: string }>;
-  localWhisperSetModel: (modelId: string) => Promise<{ success: boolean }>;
-  localWhisperDeleteModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
-  localWhisperStartDownload: (modelId: string) => Promise<{ success: boolean; error?: string }>;
-  onLocalWhisperDownloadProgress: (
-    callback: (data: { modelId: string; progress: number }) => void,
-  ) => () => void;
-  onLocalWhisperDownloadComplete: (callback: (data: { modelId: string }) => void) => () => void;
-  onLocalWhisperDownloadError: (
-    callback: (data: { modelId: string; error: string }) => void,
-  ) => () => void;
-  localWhisperPreload: (
-    modelId?: string,
-  ) => Promise<{ success: boolean; reason?: string; error?: string }>;
-  localWhisperGetHardware: () => Promise<{
-    arch: string;
-    platform: string;
-    cpuModel: string;
-    isAppleSilicon: boolean;
-    totalRamGb: number;
-    tier: string;
-    recommendation: string;
-    recommendedModel: string;
-  }>;
   getSttProvider: () => Promise<string>;
   setGroqSttApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
   setOpenAiSttApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
@@ -820,8 +795,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       | 'elevenlabs'
       | 'azure'
       | 'ibmwatson'
-      | 'soniox'
-      | 'local-whisper',
+      | 'soniox',
   ) => ipcRenderer.invoke('set-stt-provider', provider),
   getSttProvider: () => ipcRenderer.invoke('get-stt-provider'),
   setGroqSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-stt-api-key', apiKey),
@@ -840,29 +814,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     apiKey: string,
     region?: string,
   ) => ipcRenderer.invoke('test-stt-connection', provider, apiKey, region),
-  localWhisperGetModels: () => ipcRenderer.invoke('local-whisper-get-models'),
-  localWhisperSetModel: (modelId: string) => ipcRenderer.invoke('local-whisper-set-model', modelId),
-  localWhisperDeleteModel: (modelId: string) =>
-    ipcRenderer.invoke('local-whisper-delete-model', modelId),
-  localWhisperStartDownload: (modelId: string) =>
-    ipcRenderer.invoke('local-whisper-start-download', modelId),
-  onLocalWhisperDownloadProgress: (cb: (data: { modelId: string; progress: number }) => void) => {
-    const listener = (_: any, data: any) => cb(data);
-    ipcRenderer.on('local-whisper-download-progress', listener);
-    return () => ipcRenderer.removeListener('local-whisper-download-progress', listener);
-  },
-  onLocalWhisperDownloadComplete: (cb: (data: { modelId: string }) => void) => {
-    const listener = (_: any, data: any) => cb(data);
-    ipcRenderer.on('local-whisper-download-complete', listener);
-    return () => ipcRenderer.removeListener('local-whisper-download-complete', listener);
-  },
-  onLocalWhisperDownloadError: (cb: (data: { modelId: string; error: string }) => void) => {
-    const listener = (_: any, data: any) => cb(data);
-    ipcRenderer.on('local-whisper-download-error', listener);
-    return () => ipcRenderer.removeListener('local-whisper-download-error', listener);
-  },
-  localWhisperPreload: (modelId?: string) => ipcRenderer.invoke('local-whisper-preload', modelId),
-  localWhisperGetHardware: () => ipcRenderer.invoke('local-whisper-get-hardware'),
 
   // STT Config Events (Adapted from public PR #173)
   onSttConfigChanged: (callback: (data: { configured: boolean; provider: string }) => void) => {

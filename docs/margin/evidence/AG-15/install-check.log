@@ -1,0 +1,17 @@
+$ npm ci  (worktree, .npmrc ignore-scripts=true)
+exit 0
+
+$ ls resources
+ls: resources: No such file or directory
+
+$ find . (excluding node_modules, native-module/target) -name "*.onnx" -o -name "*.gguf" -o -name "*.bin"
+(no output = none)
+
+$ npm ls onnxruntime-node @huggingface/transformers
+natively@2.7.0 /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration
+`-- (empty)
+
+exit 1
+
+$ npm run setup:native
+exit 0

@@ -4,7 +4,8 @@
     "AG-11",
     "AG-12",
     "AG-13",
-    "AG-14"
+    "AG-14",
+    "AG-15"
   ],
   "scanRoots": [
     "electron",
@@ -628,6 +629,91 @@
       "ticket": "AG-15",
       "kind": "dep",
       "value": "@huggingface/transformers"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "local-whisper-get-models"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "local-whisper-start-download"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "local-whisper-preload"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "local-whisper-get-hardware"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "localWhisperGetModels"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "localWhisperStartDownload"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "onLocalWhisperDownloadProgress"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "localWhisperModel"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "localWhisperPerChannelEnabled"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "LocalWhisperModelPanel"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "ZeroShotClassifier"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "warmupIntentClassifier"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "modelPreloader"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "symbol",
+      "value": "resolveWhisperWorkerPath"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "host",
+      "value": "mobilebert-uncased-mnli"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "host",
+      "value": "all-MiniLM-L6-v2"
+    },
+    {
+      "ticket": "AG-15",
+      "kind": "host",
+      "value": "Xenova/whisper"
     },
     {
       "ticket": "AG-16",

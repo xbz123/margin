@@ -351,7 +351,6 @@ import { ElevenLabsStreamingSTT } from "./audio/ElevenLabsStreamingSTT"
 import { OpenAIStreamingSTT } from "./audio/OpenAIStreamingSTT"
 import { ThemeManager } from "./ThemeManager"
 import { DatabaseManager } from "./db/DatabaseManager"
-import { warmupIntentClassifier } from "./llm"
 
 /** Unified type for all STT providers with optional extended capabilities */
 type STTProvider = (GoogleSTT | RestSTT | DeepgramStreamingSTT | SonioxStreamingSTT | ElevenLabsStreamingSTT | OpenAIStreamingSTT) & {
@@ -506,29 +505,6 @@ export class AppState {
     if (process.platform === 'win32' || process.platform === 'darwin') {
       this.cropperWindowHelper.preload();
     }
-
-    // Warm the local Whisper worker in the background so the first recording
-    // session starts instantly instead of waiting for model load from disk.
-    // Only fires if local-whisper is selected AND a model is already cached.
-    setImmediate(() => {
-      try {
-        const { CredentialsManager } = require('./services/CredentialsManager');
-        if (CredentialsManager.getInstance().getSttProvider() === 'local-whisper') {
-          const { isModelCached } = require('./audio/whisper/modelManager');
-          const { modelPreloader } = require('./audio/whisper/modelPreloader');
-          const { resolveInferenceConfig } = require('./audio/whisper/inferenceConfig');
-          const modelId = settingsManager.get('localWhisperModel') ?? 'Xenova/whisper-tiny.en';
-          const { dtype } = resolveInferenceConfig();
-          if (isModelCached(modelId, dtype)) {
-            console.log(`[AppState] Preloading local Whisper model: ${modelId}`);
-            modelPreloader.preload(modelId);
-          }
-        }
-      } catch (e) {
-        // Non-fatal — recording still works, just with a cold-start delay
-        console.warn('[AppState] Local Whisper preload skipped:', e);
-      }
-    });
 
     // Initialize KeybindManager
     const keybindManager = KeybindManager.getInstance();
@@ -764,10 +740,6 @@ export class AppState {
 
     this.setupIntelligenceEvents()
 
-    // Pre-warm the zero-shot intent classifier in background
-    warmupIntentClassifier();
-
-
     // --- NEW SYSTEM AUDIO PIPELINE (SOX + NODE GOOGLE STT) ---
     // LAZY INIT: Do not setup pipeline here to prevent launch volume surge.
     // this.setupSystemAudioPipeline()
@@ -925,26 +897,6 @@ export class AppState {
         console.warn(`[Main] No API key for ${sttProvider} STT, falling back to GoogleSTT`);
         stt = new GoogleSTT(speaker);
       }
-    } else if (sttProvider === 'local-whisper') {
-      const { LocalWhisperSTT } = require('./audio/LocalWhisperSTT');
-      const sm = SettingsManager.getInstance();
-      const globalModel = sm.get('localWhisperModel') ?? 'Xenova/whisper-tiny.en';
-      // Per-channel override: when enabled the two STT instances may load
-      // different models (e.g. Moonshine Tiny for mic, Moonshine Base for
-      // system audio). Falls back to globalModel if the per-channel slot is
-      // empty or the feature is disabled.
-      let modelId = globalModel;
-      if (sm.get('localWhisperPerChannelEnabled')) {
-        const override = speaker === 'interviewer'
-          ? sm.get('localWhisperModelSystem')
-          : sm.get('localWhisperModelMic');
-        if (override) modelId = override;
-      }
-      console.log(`[Main] Using LocalWhisperSTT for ${speaker}, model: ${modelId}`);
-      const lws = new LocalWhisperSTT(modelId);
-      // Channel label disambiguates the two concurrent instances in latency logs.
-      lws.setChannel(speaker === 'interviewer' ? 'system' : 'mic');
-      stt = lws as any;
     } else {
       stt = new GoogleSTT(speaker);
     }

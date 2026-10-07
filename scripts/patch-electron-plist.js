@@ -11,7 +11,8 @@
  * under the generic "com.github.Electron" bundle ID, which means the entry
  * is lost the next time electron is reinstalled / node_modules is cleared.
  *
- * Run this script after every `npm install` via `postinstall` in package.json.
+ * Run this script after every `npm ci` / `npm install` via `npm run setup:native`
+ * (scripts/margin/setup-native.mjs; install scripts are disabled by .npmrc).
  * It is idempotent — safe to run multiple times.
  */
 

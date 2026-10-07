@@ -1,0 +1,24 @@
+electron/IntelligenceEngine.ts(443,50): error TS2345: Argument of type 'SessionTracker' is not assignable to parameter of type 'PreparedContextSession'.
+  The types returned by 'getAssistantResponseHistory()' are incompatible between these types.
+    Type 'AssistantResponse[]' is not assignable to type 'string[]'.
+      Type 'AssistantResponse' is not assignable to type 'string'.
+electron/ipcHandlers.ts(1093,52): error TS2339: Property 'error' does not exist on type '{ ok: true; } | { ok: false; error: string; }'.
+  Property 'error' does not exist on type '{ ok: true; }'.
+electron/ipcHandlers.ts(1161,52): error TS2339: Property 'error' does not exist on type '{ ok: true; } | { ok: false; error: string; }'.
+  Property 'error' does not exist on type '{ ok: true; }'.
+electron/ipcHandlers.ts(2002,16): error TS2339: Property 'sendModelChanged' does not exist on type 'AppState'.
+electron/ipcHandlers.ts(2028,16): error TS2339: Property 'sendModelChanged' does not exist on type 'AppState'.
+electron/LLMHelper.ts(2489,47): error TS7011: Function expression, which lacks return-type annotation, implicitly has an 'any' return type.
+electron/main.ts(3719,42): error TS2339: Property 'setIgnoreBlur' does not exist on type 'ModelSelectorWindowHelper'.
+electron/main.ts(3754,61): error TS2339: Property 'setIgnoreBlur' does not exist on type 'ModelSelectorWindowHelper'.
+electron/test/erp-1hour-real.test.ts(271,23): error TS2367: This comparison appears to be unintentional because the types 'PromptTier' and '"error"' have no overlap.
+electron/test/input-fuzzing.test.ts(156,21): error TS2345: Argument of type '{ pass: boolean; error?: string; handler: string; label: string; }' is not assignable to parameter of type '{ handler: string; label: string; pass: boolean; error?: string; sqlInjection: boolean; }'.
+  Property 'sqlInjection' is missing in type '{ pass: boolean; error?: string; handler: string; label: string; }' but required in type '{ handler: string; label: string; pass: boolean; error?: string; sqlInjection: boolean; }'.
+electron/utils/preparedTranscriptContext.ts(34,63): error TS2345: Argument of type '{ role: string; text: string; timestamp: number; }[]' is not assignable to parameter of type 'TranscriptTurn[]'.
+  Type '{ role: string; text: string; timestamp: number; }' is not assignable to type 'TranscriptTurn'.
+    Types of property 'role' are incompatible.
+      Type 'string' is not assignable to type '"interviewer" | "user" | "assistant"'.
+electron/utils/preparedTranscriptContext.ts(36,5): error TS2345: Argument of type 'PreparedContextItem[]' is not assignable to parameter of type 'ContextItem[]'.
+  Type 'PreparedContextItem' is not assignable to type 'ContextItem'.
+    Types of property 'role' are incompatible.
+      Type 'string' is not assignable to type '"interviewer" | "user" | "assistant"'.

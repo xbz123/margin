@@ -22,15 +22,6 @@ export interface AppSettings {
     knowledgeMode?: boolean;
     phoneMirrorEnabled?: boolean;
     phoneMirrorExposeOnLan?: boolean;
-    localWhisperModel?: string;
-    // Per-channel model overrides for local Whisper. When
-    // localWhisperPerChannelEnabled is true, the two LocalWhisperSTT instances
-    // pick their own model (mic / system) instead of sharing localWhisperModel.
-    // Use case: tiny model for the user's own voice (predictable, fast) + a
-    // larger one for system audio (varied accents / jargon).
-    localWhisperPerChannelEnabled?: boolean;
-    localWhisperModelMic?: string;
-    localWhisperModelSystem?: string;
     // Phase 9 — privacy/retention controls. Foundation only. Encryption is
     // documented in docs/engineering/LOCAL_DB_ENCRYPTION_DESIGN.md.
     // 'forever' (default), '7d', '30d', or 'never' (do not store transcripts).

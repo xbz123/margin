@@ -631,8 +631,9 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | 证据方法 | 已更正 | 见 AG-13 提交 | 门禁统一由 `scripts/margin/run-gates.mjs` 运行，原始输出和退出码存于 `docs/margin/evidence/`。发现并修正了两处会让测试结果失真的问题（构建不清理旧产物；`--test-force-exit` 漏报测试），详见下文 AG-13 记录 |
 | AG-13 | 完成 | 见 AG-13 提交 | 见下文 AG-13 记录。证据：`docs/margin/evidence/AG-13/summary.json`，对照 `pre-AG-13/`。**待用户决定**：是否保留默认回答提示词（见记录中的决定 1） |
 | AG-14 | 完成 | `93fa62fe` 及 AG-14 (2/2) 提交 | 见下文 AG-14 记录。证据：`docs/margin/evidence/AG-14/summary.json`，对照 `AG-13/`；守卫记录到对 `11434` 端口零请求 |
-| CI 门禁 | 已加入，首次运行待对照 | 见 CI 门禁提交 | `.github/workflows/margin-gates.yml`，见下文 CI 门禁记录。只作干净安装的参考，**不算 D5 已通过** |
-| AG-15–17 | 待开始 | | AG-15 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
+| CI 门禁 | 完成 | `516815f4` | `.github/workflows/margin-gates.yml`，见下文 CI 门禁记录。首次运行（对照 AG-14）只有来源检查多出 1 处命中，已解释。只作干净安装的参考，**不算 D5 已通过** |
+| AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
+| AG-16–17 | 待开始 | | AG-16 为下一张；每张集成后重跑 AG-09 回归和会议存储测试 |
 | 阶段 1 出口 / Astra 复核 | 待开始 | | 出口第 1 条（干净安装）在 D5 定下之前无法通过 |
 | AG-20–26 | 待开始 | | 等阶段 1 出口 |
 
@@ -890,7 +891,67 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
   7. 无论成败，`ci-evidence/` 都作为运行产物上传，保留 30 天。
 - **定位**：GitHub 的 macOS 镜像装有完整 Xcode，所以 CI 能从零构建 Rust 原生模块。这只能作为"干净安装可行"的参考，**不等于 D5 已通过**：D5 问的是本机没有 Xcode 时怎么办，仍由用户决定。
 - **与本机的已知差异**：上游现在有 123 个分支，本机的 `refs/remotes/upstream/*` 是 77 个（本机不重新拉取，以免改动与原工作区共享的引用）。CI 的受限池因此可能更大，来源检查可能多出命中。
-- **首次运行对照**：待运行后补充。
+- **首次运行对照**（运行 `37639645826`，提交 `516815f4`，对照本机 `AG-14/`；运行产物 `margin-gates-516815f4…`，保留到 2026-11-06）：
+  - **耗时**：作业 6 分 9 秒（按 7 分钟计费，乘 10 约 70 分钟额度）。两个缓存都未命中（首次运行；作业失败时 `actions/cache` 不保存），`npm ci` 25 秒，`setup:native` 从零编译 Rust 模块（含 `cidre`）约 35 秒，门禁约 4 分钟。
+  - **工具链**：node 26.0.0、npm 11.12.1、rustc / cargo 1.98.1（与本机相同）、Xcode 16.4。
+  - **结果**：运行器退出 1，唯一未通过的步骤是来源检查。
+
+    | 步骤 | CI | 本机 AG-14 | 差异说明 |
+    | --- | --- | --- | --- |
+    | 构建三步、渲染层 `tsc` | 0 | 0 | 相同 |
+    | Electron `tsc` | 2，9 类全部继承 | 同 | `tsc-electron.diagnostics.txt` 逐行相同 |
+    | G2 来源检查 | **1，1 处命中** | 0 | CI 拉到 123 个上游分支，受限池 606,682 个行键；本机 77 个分支，587,141 个。多出的命中是 `scripts/margin/run-gates.mjs:177` 的 `fs.mkdirSync(out, { recursive: true });`，本分支自写的通用写法，已在 AG-15 中加入白名单并写明理由 |
+    | G3、契约、守卫自测 | 通过 | 通过 | 相同 |
+    | 测试 | 624 个，583 通过，11 失败 | 624 个，582 通过，12 失败 | 失败条目 19 个，全部继承、新增 0。少的一个是 `CodexCliService` 的"自动探测"用例：本机守卫拦下了真实的 `/opt/homebrew/bin/codex`，CI 机器上没有 codex，用例通过 |
+    | AG-09 回归、会议存储 | 5/5、1/1 | 同 | 相同 |
+    | `diff-check` | 0 | 0 | 相同 |
+
+  - **结论**：在装有 Xcode 的干净 macOS 上，`npm ci` → `setup:native` → 全部门禁可以跑通，结果与本机一致；差异只来自上游分支更新和本机装有 codex。这仍不算 D5 通过。
+  - **之后的做法**：本机不重新拉取上游（引用与原工作区共享），所以 CI 的来源检查覆盖面更大。每张 ticket 收尾时以 CI 的来源检查结果为准补充解释，本机证据照常保留。
+
+### AG-15 记录（2026-10-07）
+
+**1. 删除**
+
+- 本地 STT：`electron/audio/whisper/`（模型管理、预加载、硬件检测、VAD、worker 等 10 个文件）、`electron/audio/LocalWhisperSTT.ts`、`src/components/LocalWhisperModelPanel.tsx` 及其专用的 `whisper-dl` 动画样式；`main.ts` 中启动时的模型预加载和 `local-whisper` 分支；9 个 `local-whisper-*` IPC 和事件，preload 与类型中的 9 个对应成员；`SettingsManager` 中 4 个 `localWhisper*` 设置项；设置界面中的"Local Whisper"选项和模型面板。
+- 模型和下载：`scripts/download-models.js`、仓库中提交的 `resources/models/`（`Xenova/all-MiniLM-L6-v2` 和 `Xenova/mobilebert-uncased-mnli`，含 4 个 `.onnx` 文件）、`docs/LOCAL_STT_NATIVELY_SETUP.md`。
+- `package.json`：`postinstall`（AG-08 起已因 `ignore-scripts` 不执行，现删除）、`extraResources` 中的 `resources/models/`、`@huggingface/transformers` 和 `onnxruntime-node` 依赖及 `overrides`。lockfile 用 `npm install --package-lock-only --ignore-scripts` 同步，其余变动只是若干包改标为 `dev`/`optional`。
+- 测试：`LocalWhisperStopFlush`（2 个用例，只查源码字符串）和 `WhisperWorkerPathResolver`（3 个）随功能删除；`SensitiveLogRedaction` 删掉对已删除的模型分类日志的断言，其余断言不变。
+- `scripts/patch-electron-plist.js` 的注释改为由 `setup:native` 调用。
+
+**2. 意图分类的本地模型（行为变化）**
+
+- `IntentClassifier` 原有三级：正则 → 本地零样本模型（`mobilebert-uncased-mnli`，经 `@huggingface/transformers`；打包版用随包模型，开发版从 `resources/models` 读取）→ 按上下文推断。删除依赖后只剩第一和第三级，即基线在模型加载失败时本来就走的路径；启动时的 `warmupIntentClassifier` 一并删除。
+- **影响**：正则没有命中的提问，原先可能被模型分到某个意图，现在按上下文推断（多为 `general`），回答结构提示可能不同。这属于本票"依赖树里没有 transformers、安装和打包不涉及模型"的范围，但没有用真实模型评估质量差异（未获授权），记为未验证。
+- `all-MiniLM-L6-v2` 是 RAG 的嵌入模型，代码已在 AG-14 删除，本票删掉模型文件。
+
+**3. 已保存的 `local-whisper` 设置**
+
+- `CredentialsManager.getSttProvider()` 把已保存的 `local-whisper` 读作 `none`（不转写）；`get-stored-credentials` 也改用这个方法。否则 `createSTTProvider` 会落到最后的 Google 分支，把音频发给用户没有选的云端服务。
+- 新增行为测试 `electron/services/__tests__/SttProviderLocalWhisperRetired.test.mjs`：用替身 `electron` 模块加载构建后的 `CredentialsManager`，凭据文件在临时目录。验证读回为 `none`，之后选择 `groq` 能正常保存和读回。去掉映射后该测试失败（已手动验证）。
+- 首版测试用的是上游常见的 `Module._load` 替身写法，与受限上游的 12 行逐字相同；改为预置 `require.cache` 的写法后剩 4 行通用写法，已加入白名单。
+
+**4. 检查结果**
+
+命令：`node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-15 --ref docs/margin/evidence/AG-14`，运行器退出码 0。（首次运行时还没有新测试和白名单补充；补上后整套重跑，证据为重跑结果。）
+
+| 步骤 | 退出码 | 结果 | 原始输出 |
+| --- | --- | --- | --- |
+| 清空构建目录、`build-electron`、`vite build` | 0、0、0 | 通过 | `clean-dist.log`、`build-electron.log`、`vite-build.log` |
+| 渲染层 `tsc` | 0 | 0 个错误 | `tsc-renderer.log` |
+| Electron `tsc` | 2 | 9 类诊断全部继承，没有新增 | `tsc-electron.log`、`tsc-electron.diagnostics.txt` |
+| G2 来源检查 | 0 | 零命中。新增 5 条白名单：CI 首次运行发现的 1 条，新测试的 4 条 | `provenance.log` |
+| G3 | 0 | 137 条规则零命中；AG-15 列入已完成 ticket，规则从 9 条增加到 26 条（IPC 名、preload 名、设置项、模型 ID 等） | `retired.log` |
+| preload 契约 / IPC 通道 | 1 / 1 | 各 4 个、2 个缺口，全部继承，没有新增 | `*.gaps.txt` |
+| 守卫自测 | 0 | 通过 | `guard-selftest.log` |
+| 测试（106 个文件） | 1 | 621 个测试，579 通过，12 失败，30 跳过。失败条目 20 个，**全部继承，新增 0**，与 AG-14 相同 | `tests.tap`、`tests.files.json`、`test-failures.txt` |
+| AG-09 回答回归 | 0 | 5/5 通过 | `regression.log` |
+| 会议存储 | 0 | 1/1 通过 | `storage.log` |
+| `git diff HEAD --check` | 0 | 无问题 | `diff-check.log` |
+
+- **测试数**：624 − 2（`LocalWhisperStopFlush`）− 3（`WhisperWorkerPathResolver`）+ 2（新增）= 621。
+- **安装检查**（`install-check.log`）：在本工作树运行 `npm ci`（退出 0）后，`resources/` 不存在，仓库中没有 `.onnx`、`.gguf`、`.bin` 文件；`npm ls onnxruntime-node @huggingface/transformers` 输出 `(empty)`（找不到包时 npm 退出 1）；随后 `npm run setup:native` 退出 0，门禁在这套依赖上运行。
+- **未验证**：意图分类去掉模型后的回答质量（见第 2 条）；阶段 1 出口第 1 条（干净安装）仍等待 D5。
 
 ### 事件记录（2026-10-07）
 
@@ -914,7 +975,7 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
    - **修复**：守卫改为通过 `-r` 参数传入（与 Playwright 自己的加载方式相同）；测试启动后先确认主进程里 `MARGIN_ISOLATION_ACTIVE === '1'`，否则立即中止。
    - **复验**：之后所有回归运行都确认了守卫生效，并且只有本地替身记录。
 
-**下一步**：AG-15（移除本地 STT 和模型下载），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
+**下一步**：AG-16（移除外围功能），每张 ticket 集成后用 `run-gates.mjs` 对照上一张的证据重跑全部门禁。
 
 ## 9. 评审记录
 

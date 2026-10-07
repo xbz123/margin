@@ -48,7 +48,13 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `baseline-a786910e/` | `test-failures.txt` only: the failing tests of the guarded X2 run (2026-10-07, commit `f6b3f2a1`, whose `electron/` and `src/` are identical to the baseline `a786910e`). 991 tests, 33 failed. Extracted with the same rule as `run-gates.mjs` |
 | `pre-AG-13/` | Reference for AG-13: the tree of `fdf9cd7c` (exported with `git archive` into a throwaway local repository, so `git ls-files` works), run with the runner from the AG-13 commit. Provenance and `diff-check` need the real history and were run on `fdf9cd7c` itself (0 hits, clean) |
 | `AG-13/` | AG-13 on the worktree, compared with `pre-AG-13/` |
+| `AG-14/` | AG-14 on the worktree, compared with `AG-13/` |
+| `AG-15/` | AG-15 on the worktree, compared with `AG-14/`; also `install-check.log` (models and model dependencies after `npm ci`) |
 
 Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
 The `regression` and `storage` steps need a display session (they launch the app
 under the isolation guard); everything runs offline.
+
+CI (`.github/workflows/margin-gates.yml`) runs the same command on a clean macOS runner
+against the newest `AG-*` directory and keeps its output as a run artifact (30 days),
+not in this directory; PLAN.md records how each CI run compares with the local one.
