@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "unresolvedExactlyExpected": true,
+  "retainedCandidateFieldsUnchanged": true,
+  "changedBasis": [
+    {
+      "id": "npm:has-flag@4.0.0:node_modules/has-flag",
+      "before": "installed non-dev lock candidate",
+      "after": "embedded in current main bundle source maps"
+    }
+  ],
+  "texts": 382,
+  "removedFiles": 124,
+  "removedBytes": 190774,
+  "lockSHA256": "2bfe2588c86d235892a0fc60c5d1937743f2db147d393452ff0d177143f05999",
+  "manifestSHA256": "04971d6a1fe45bbda71dddfc69919d9b3ebf57816b5a38dbb7555ac9c2df09df"
+}

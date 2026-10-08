@@ -61,28 +61,48 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 ## Recorded unresolved categories
 
-The current snapshot retains 15 missing exact-version notice candidates. Twelve
-installed npm candidates were observed as included files/metadata in the S17
-temp-app diagnostic (CI 37829181248); they are not excluded:
-@alcalzone/ansi-tokenize 0.1.3, @npmcli/agent 4.0.0,
-dingbat-to-unicode 1.0.1, eastasianwidth 0.2.0, err-code 2.0.3, format 0.2.2,
-react-remove-scroll-bar 2.3.8, screenshot-desktop 1.15.4,
-@tootallnate/once 1.1.2,
-stream-events 1.0.5, stubs 3.0.0 and tr46 0.0.3. A declared SPDX identifier is
-recorded, not silently converted into a fabricated package copyright/grant.
+<!-- margin-license-inventory:start -->
+Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
+726 candidates; 382 unique stored texts; 33 excluded paths; 10 unresolved candidates; 2 deferred notices.
 
-Two former missing-text entries, spdx-exceptions 2.5.0 (CC-BY-3.0) and
-spdx-license-ids 3.0.23 (CC0-1.0), now bind their exact-version published license
+Current supplemental notice bindings:
+- npm:highlightjs-vue@1.0.0: CC0-1.0
+- cargo:r-efi@5.3.0: MIT OR Apache-2.0 OR LGPL-2.1-or-later (selected MIT)
+
+Unresolved candidates:
+- npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode
+- npm:eastasianwidth@0.2.0:node_modules/eastasianwidth
+- npm:format@0.2.2:node_modules/format
+- npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
+- npm:stream-events@1.0.5:node_modules/stream-events
+- npm:stubs@3.0.0:node_modules/stubs
+- npm:tr46@0.0.3:node_modules/tr46
+- cargo:oboe@0.6.1
+- cargo:oboe-sys@0.6.1
+- cargo:realfft@3.5.0
+<!-- margin-license-inventory:end -->
+
+A declared SPDX identifier is recorded, not silently converted into a fabricated
+package copyright/grant. The S17 temp-app diagnostic (CI 37829181248) observed
+the then-candidate npm packages as included files/metadata; S18 changes the root
+dependency graph but does not retroactively reclassify that old artifact or
+establish the contents of a new package.
+
+At checkpoints 45b11c5b and 3ac02ece, spdx-exceptions 2.5.0 (CC-BY-3.0) and
+spdx-license-ids 3.0.23 (CC0-1.0) bound their exact-version published license
 declarations to the full official Creative Commons standard terms. Each also
-retains its complete original licensing README from the immutable npm gitHead;
+retained its complete original licensing README from the immutable npm gitHead;
 README attribution alone does not close a missing full-text entry. The actual
-packaged identifier JSON hashes match the installed originals. NOTICE preserves
-the supplied Linux Foundation/Contributors attribution and Kyle Mitchell's
+then-packaged identifier JSON hashes matched the installed originals. NOTICE
+preserves the supplied Linux Foundation/Contributors attribution and Kyle Mitchell's
 mechanical-extraction statement without inventing copyright or endorsement.
 CC BY's attribution, retained notices, license/source links and applicable change
 identification remain distribution obligations; CC0 grants no trademark or
 patent rights and does not warrant third-party clearance. These two text bindings
-did not accept a distributable or resolve the other candidates.
+did not accept a distributable or resolve the other candidates. S18 removes
+their now-unreferenced candidates and supplemental sources from the current
+inventory; the original texts and metadata remain recoverable from those Git
+checkpoints, not claimed present in the current Resources or manifest.
 
 highlightjs-vue 1.0.0 similarly binds its exact-version CC0 declaration to the
 official full terms and retains its complete original README at npm gitHead
@@ -97,11 +117,12 @@ while the manifest preserves MIT OR Apache-2.0 OR LGPL-2.1-or-later. The full
 AUTHORS retains all three original copyright statements, the author list, and
 the Apache/LGPL alternative notices. No generic MIT template is substituted and
 no Apache/LGPL selection or target-linked claim is made. These two further text
-bindings remove only their missing-text entries; the 15 other candidates and
-separate distribution obligations remain unresolved.
+bindings remove only their missing-text entries; other candidates and separate
+distribution obligations are not resolved by those bindings.
 
-The official ansi-tokenize later add-missing-LICENSE text is retained as a
-supplement, not proof that it accompanied 0.1.3. For format, the old installed
+The ansi-tokenize later add-missing-LICENSE supplement was retained at those
+checkpoints, not proof that it accompanied 0.1.3; S18 removes its unreferenced
+supplement. For format, the old installed
 header's copyright/date and external MIT URL are not replaced by an assumed
 same-version grant from a changing website. react-remove-scroll-bar's published
 gitHead does not resolve in the identified repository; a neighboring version is
@@ -112,8 +133,8 @@ alternative was found in its exact original manifest/version sources) and needs
 target-linked review;
 oboe/oboe-sys 0.6.1 are Android candidates, pending full wrapper/vendored notice
 and target-graph/artifact review. They are not excluded based on target labels.
-The 37 missing incompatible
-platform-optional npm paths and two verified dangling aliases are recorded under
+Missing incompatible platform-optional npm paths and verified dangling aliases
+are recorded under
 `excluded`, not treated as installed binaries. None of those counts proves the
 actual package set.
 

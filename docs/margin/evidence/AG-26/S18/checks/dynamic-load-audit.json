@@ -1,0 +1,2715 @@
+{
+  "trackedFiles": 324,
+  "staticImports": 1221,
+  "requires": 221,
+  "dynamicImports": 55,
+  "targetLoads": [],
+  "nonliteralLoads": [
+    {
+      "file": "electron/audio/__tests__/CaptureRestartRegression.test.mjs",
+      "line": 127,
+      "call": "import",
+      "arg": "path.join(distRoot, 'SystemAudioCapture.js')",
+      "fileSHA256": "79072003e3e9898f65ad6cb621a9c1e435e0bdba4c7be2f4e2ed6269fa14b3d7",
+      "context": [
+        {
+          "line": 124,
+          "text": "};"
+        },
+        {
+          "line": 125,
+          "text": ""
+        },
+        {
+          "line": 126,
+          "text": "// Now we can safely import the compiled wrappers."
+        },
+        {
+          "line": 127,
+          "text": "const { SystemAudioCapture } = await import(path.join(distRoot, 'SystemAudioCapture.js'));"
+        },
+        {
+          "line": 128,
+          "text": "const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));"
+        },
+        {
+          "line": 129,
+          "text": ""
+        },
+        {
+          "line": 130,
+          "text": "// setImmediate-flush helper. `stop()` defers `monitor.stop()` via setImmediate;"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/CaptureRestartRegression.test.mjs",
+      "line": 128,
+      "call": "import",
+      "arg": "path.join(distRoot, 'MicrophoneCapture.js')",
+      "fileSHA256": "79072003e3e9898f65ad6cb621a9c1e435e0bdba4c7be2f4e2ed6269fa14b3d7",
+      "context": [
+        {
+          "line": 125,
+          "text": ""
+        },
+        {
+          "line": 126,
+          "text": "// Now we can safely import the compiled wrappers."
+        },
+        {
+          "line": 127,
+          "text": "const { SystemAudioCapture } = await import(path.join(distRoot, 'SystemAudioCapture.js'));"
+        },
+        {
+          "line": 128,
+          "text": "const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));"
+        },
+        {
+          "line": 129,
+          "text": ""
+        },
+        {
+          "line": 130,
+          "text": "// setImmediate-flush helper. `stop()` defers `monitor.stop()` via setImmediate;"
+        },
+        {
+          "line": 131,
+          "text": "// we wait one macrotask so the deferred teardown actually runs."
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/CaptureStopAwaitable.test.mjs",
+      "line": 94,
+      "call": "import",
+      "arg": "path.join(distRoot, 'MicrophoneCapture.js')",
+      "fileSHA256": "c8d270fe9527183a0722b2df96db4feed4c2aa7b4aab46ccf3a0026878d0f675",
+      "context": [
+        {
+          "line": 91,
+          "text": "    return origLoad.apply(this, arguments);"
+        },
+        {
+          "line": 92,
+          "text": "};"
+        },
+        {
+          "line": 93,
+          "text": ""
+        },
+        {
+          "line": 94,
+          "text": "const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));"
+        },
+        {
+          "line": 95,
+          "text": "const { SystemAudioCapture } = await import(path.join(distRoot, 'SystemAudioCapture.js'));"
+        },
+        {
+          "line": 96,
+          "text": ""
+        },
+        {
+          "line": 97,
+          "text": "test('MicrophoneCapture.stop() returns a Promise that resolves after native teardown', async () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/CaptureStopAwaitable.test.mjs",
+      "line": 95,
+      "call": "import",
+      "arg": "path.join(distRoot, 'SystemAudioCapture.js')",
+      "fileSHA256": "c8d270fe9527183a0722b2df96db4feed4c2aa7b4aab46ccf3a0026878d0f675",
+      "context": [
+        {
+          "line": 92,
+          "text": "};"
+        },
+        {
+          "line": 93,
+          "text": ""
+        },
+        {
+          "line": 94,
+          "text": "const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));"
+        },
+        {
+          "line": 95,
+          "text": "const { SystemAudioCapture } = await import(path.join(distRoot, 'SystemAudioCapture.js'));"
+        },
+        {
+          "line": 96,
+          "text": ""
+        },
+        {
+          "line": 97,
+          "text": "test('MicrophoneCapture.stop() returns a Promise that resolves after native teardown', async () => {"
+        },
+        {
+          "line": 98,
+          "text": "    created.microphone.length = 0;"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs",
+      "line": 36,
+      "call": "require",
+      "arg": "id",
+      "fileSHA256": "76d05ecd4ef6264bba88f32524de4d74790dea6c824bb068319fde2e9e0c1f34",
+      "context": [
+        {
+          "line": 33,
+          "text": "        if (id === './outbound' || id === '../services/outbound') return require('../../../dist-electron/electron/services/outbound.js');"
+        },
+        {
+          "line": 34,
+          "text": "        if (id === '@google-cloud/speech') return { SpeechClient: SpeechClient ?? class { constructor(options) { constructed.push(options); } } };"
+        },
+        {
+          "line": 35,
+          "text": "        if (id === '../config/languages') return { RECOGNITION_LANGUAGES: {} };"
+        },
+        {
+          "line": 36,
+          "text": "        return require(id);"
+        },
+        {
+          "line": 37,
+          "text": "      },"
+        },
+        {
+          "line": 38,
+          "text": "    });"
+        },
+        {
+          "line": 39,
+          "text": "    return module.exports;"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/MicrophoneCapturePreWarmFailed.test.mjs",
+      "line": 93,
+      "call": "import",
+      "arg": "path.join(distRoot, 'MicrophoneCapture.js')",
+      "fileSHA256": "be1d82162869c8b91966f6f39fb88e323f4f576d59c11122b045eca2a70449dd",
+      "context": [
+        {
+          "line": 90,
+          "text": "    return origLoad.apply(this, arguments);"
+        },
+        {
+          "line": 91,
+          "text": "};"
+        },
+        {
+          "line": 92,
+          "text": ""
+        },
+        {
+          "line": 93,
+          "text": "const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));"
+        },
+        {
+          "line": 94,
+          "text": ""
+        },
+        {
+          "line": 95,
+          "text": "// stop()'s deferred work runs inside `setImmediate`. We flush by awaiting one"
+        },
+        {
+          "line": 96,
+          "text": "// setImmediate of our own — Node's immediate queue is FIFO so ours runs after"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/OutboundSttRevocation.test.mjs",
+      "line": 51,
+      "call": "require",
+      "arg": "id",
+      "fileSHA256": "a89f48497f3724bec6551c628ed28987e26274e4133dbf6588db924b63c9280a",
+      "context": [
+        {
+          "line": 48,
+          "text": "      if (id === '../services/outbound') return outbound;"
+        },
+        {
+          "line": 49,
+          "text": "      if (id === '../services/googleServiceAccount') return { loadGoogleServiceAccount: () => ({}), googleSpeechClientOptions: () => ({}) };"
+        },
+        {
+          "line": 50,
+          "text": "      if (id === './openaiTranscriptTurnCoalescer') return require('../../../dist-electron/electron/audio/openaiTranscriptTurnCoalescer.js');"
+        },
+        {
+          "line": 51,
+          "text": "      return require(id);"
+        },
+        {
+          "line": 52,
+          "text": "    },"
+        },
+        {
+          "line": 53,
+          "text": "  });"
+        },
+        {
+          "line": 54,
+          "text": "  return { Class: module.exports[name], sockets, timers };"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/PreWarmGatedAfterTeardown.test.mjs",
+      "line": 81,
+      "call": "import",
+      "arg": "path.join(distRoot, 'MicrophoneCapture.js')",
+      "fileSHA256": "f38ebbc2793e9cc4761e5b7ec860b83e6a558c91e49144ea120ce05a50f94f73",
+      "context": [
+        {
+          "line": 78,
+          "text": "    return origLoad.apply(this, arguments);"
+        },
+        {
+          "line": 79,
+          "text": "};"
+        },
+        {
+          "line": 80,
+          "text": ""
+        },
+        {
+          "line": 81,
+          "text": "const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));"
+        },
+        {
+          "line": 82,
+          "text": ""
+        },
+        {
+          "line": 83,
+          "text": "// Helper: wait for a microtask + setImmediate cycle so the"
+        },
+        {
+          "line": 84,
+          "text": "// teardownPromise.then() chained pre-warm gets a chance to run."
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/SystemAudioOrphanHandleOnStartFailure.test.mjs",
+      "line": 96,
+      "call": "import",
+      "arg": "path.join(distRoot, 'SystemAudioCapture.js')",
+      "fileSHA256": "cf25dfe2236d75b63d5acf6745b46226f1bd112d825b817c45bf57d652d75134",
+      "context": [
+        {
+          "line": 93,
+          "text": "    return origLoad.apply(this, arguments);"
+        },
+        {
+          "line": 94,
+          "text": "};"
+        },
+        {
+          "line": 95,
+          "text": ""
+        },
+        {
+          "line": 96,
+          "text": "const { SystemAudioCapture } = await import(path.join(distRoot, 'SystemAudioCapture.js'));"
+        },
+        {
+          "line": 97,
+          "text": ""
+        },
+        {
+          "line": 98,
+          "text": "function flushSetImmediate() {"
+        },
+        {
+          "line": 99,
+          "text": "    return new Promise((r) => setImmediate(r));"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/__tests__/openaiTranscriptTurnCoalescer.test.mjs",
+      "line": 20,
+      "call": "import",
+      "arg": "pathToFileURL(compiledPath).href",
+      "fileSHA256": "376d16b44e03b48d2bb936e49e2b63095efbb9f7db98e97b7322fad485415f66",
+      "context": [
+        {
+          "line": 17,
+          "text": "    );"
+        },
+        {
+          "line": 18,
+          "text": "}"
+        },
+        {
+          "line": 19,
+          "text": ""
+        },
+        {
+          "line": 20,
+          "text": "const { OpenAITranscriptTurnCoalescer } = await import(pathToFileURL(compiledPath).href);"
+        },
+        {
+          "line": 21,
+          "text": ""
+        },
+        {
+          "line": 22,
+          "text": "describe('OpenAITranscriptTurnCoalescer', () => {"
+        },
+        {
+          "line": 23,
+          "text": "    test('does not emit final on word-level completed events until speech_stopped', () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/audio/nativeModuleLoader.ts",
+      "line": 206,
+      "call": "require",
+      "arg": "filePath",
+      "fileSHA256": "6184097d3b8196efb37ffce972ef2e381cf021131314ba65d6afd2d3a4862bf2",
+      "context": [
+        {
+          "line": 203,
+          "text": ""
+        },
+        {
+          "line": 204,
+          "text": "    for (const filePath of candidates) {"
+        },
+        {
+          "line": 205,
+          "text": "        try {"
+        },
+        {
+          "line": 206,
+          "text": "            const mod = require(filePath);"
+        },
+        {
+          "line": 207,
+          "text": "            validateNativeModule(mod);"
+        },
+        {
+          "line": 208,
+          "text": "            cached = mod;"
+        },
+        {
+          "line": 209,
+          "text": "            if (verboseLogging) {"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/CodeSanityCheck.test.mjs",
+      "line": 16,
+      "call": "import",
+      "arg": "pathToFileURL(modPath).href",
+      "fileSHA256": "6703984fb52dd3ec863555331ad7d70f7b4ffb1cb6d46c25692c5cbde53e665f",
+      "context": [
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "const __dirname = path.dirname(fileURLToPath(import.meta.url));"
+        },
+        {
+          "line": 15,
+          "text": "const modPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/CodeSanityCheck.js');"
+        },
+        {
+          "line": 16,
+          "text": "const { checkAnswerForCodeBugs } = await import(pathToFileURL(modPath).href);"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "describe('CodeSanityCheck — subtraction-as-tuple (FINDING-012)', () => {"
+        },
+        {
+          "line": 19,
+          "text": "  test('flags `complement = target, num` inside a python code block', () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/CodeSanityCheck.test.mjs",
+      "line": 147,
+      "call": "import",
+      "arg": "pathToFileURL(promptsPath).href",
+      "fileSHA256": "6703984fb52dd3ec863555331ad7d70f7b4ffb1cb6d46c25692c5cbde53e665f",
+      "context": [
+        {
+          "line": 144,
+          "text": "describe('CodeSanityCheck — prompt invariant exists in SHARED_CODING_RULES', () => {"
+        },
+        {
+          "line": 145,
+          "text": "  test('SHARED_CODING_RULES contains the anti-pattern guidance for two-sum tuple bug', async () => {"
+        },
+        {
+          "line": 146,
+          "text": "    const promptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');"
+        },
+        {
+          "line": 147,
+          "text": "    const prompts = await import(pathToFileURL(promptsPath).href);"
+        },
+        {
+          "line": 148,
+          "text": "    assert.ok(prompts.SHARED_CODING_RULES.includes('SUBTRACTION VS TUPLE'));"
+        },
+        {
+          "line": 149,
+          "text": "    assert.ok(prompts.SHARED_CODING_RULES.includes('complement = target - num'));"
+        },
+        {
+          "line": 150,
+          "text": "    assert.ok(prompts.SHARED_CODING_RULES.includes('complement = target, num'));"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/ConversationSummarizer.test.mjs",
+      "line": 11,
+      "call": "import",
+      "arg": "pathToFileURL(modulePath).href",
+      "fileSHA256": "cdb554702610d95b1b116b18841065a6ba6d9ee19b5370dc0e0a09c93c944679",
+      "context": [
+        {
+          "line": 8,
+          "text": "const modulePath = path.join(root, 'dist-electron/electron/llm/ConversationSummarizer.js');"
+        },
+        {
+          "line": 9,
+          "text": ""
+        },
+        {
+          "line": 10,
+          "text": "async function loadSummarizer() {"
+        },
+        {
+          "line": 11,
+          "text": "  return import(pathToFileURL(modulePath).href);"
+        },
+        {
+          "line": 12,
+          "text": "}"
+        },
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "test('formatSummaryAsBlock escapes transcript-derived summary fields', async () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/IdentityGuard.test.mjs",
+      "line": 23,
+      "call": "import",
+      "arg": "pathToFileURL(tinyPath).href",
+      "fileSHA256": "0b5fb46fe1e4681d74151f68e6b487c5500aafb94ce24313830d8066e59716fc",
+      "context": [
+        {
+          "line": 20,
+          "text": "const __dirname = path.dirname(fileURLToPath(import.meta.url));"
+        },
+        {
+          "line": 21,
+          "text": "const tinyPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/tinyPrompts.js');"
+        },
+        {
+          "line": 22,
+          "text": "const fullPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');"
+        },
+        {
+          "line": 23,
+          "text": "const tiny = await import(pathToFileURL(tinyPath).href);"
+        },
+        {
+          "line": 24,
+          "text": "const full = await import(pathToFileURL(fullPath).href);"
+        },
+        {
+          "line": 25,
+          "text": ""
+        },
+        {
+          "line": 26,
+          "text": "const GUARD_MARKERS = ["
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/IdentityGuard.test.mjs",
+      "line": 24,
+      "call": "import",
+      "arg": "pathToFileURL(fullPath).href",
+      "fileSHA256": "0b5fb46fe1e4681d74151f68e6b487c5500aafb94ce24313830d8066e59716fc",
+      "context": [
+        {
+          "line": 21,
+          "text": "const tinyPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/tinyPrompts.js');"
+        },
+        {
+          "line": 22,
+          "text": "const fullPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');"
+        },
+        {
+          "line": 23,
+          "text": "const tiny = await import(pathToFileURL(tinyPath).href);"
+        },
+        {
+          "line": 24,
+          "text": "const full = await import(pathToFileURL(fullPath).href);"
+        },
+        {
+          "line": 25,
+          "text": ""
+        },
+        {
+          "line": 26,
+          "text": "const GUARD_MARKERS = ["
+        },
+        {
+          "line": 27,
+          "text": "  'IDENTITY GUARD',"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/PlannerDecision.test.mjs",
+      "line": 10,
+      "call": "import",
+      "arg": "pathToFileURL(plannerPath).href",
+      "fileSHA256": "94c5e6ab83a945433d94f4caecf7b643c409f95dce28b1057eec2d640822931c",
+      "context": [
+        {
+          "line": 7,
+          "text": "const plannerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/PlannerDecision.js');"
+        },
+        {
+          "line": 8,
+          "text": ""
+        },
+        {
+          "line": 9,
+          "text": "async function loadPlanner() {"
+        },
+        {
+          "line": 10,
+          "text": "  return import(pathToFileURL(plannerPath).href);"
+        },
+        {
+          "line": 11,
+          "text": "}"
+        },
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "function decide(input) {"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/ProviderRouter.test.mjs",
+      "line": 10,
+      "call": "import",
+      "arg": "pathToFileURL(routerPath).href",
+      "fileSHA256": "1e73bdd65676e61fd02acc0408bbf9a7f9da1d697614e6659da0a7570adb5f69",
+      "context": [
+        {
+          "line": 7,
+          "text": "const routerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/ProviderRouter.js');"
+        },
+        {
+          "line": 8,
+          "text": ""
+        },
+        {
+          "line": 9,
+          "text": "async function loadRouter() {"
+        },
+        {
+          "line": 10,
+          "text": "  return import(pathToFileURL(routerPath).href);"
+        },
+        {
+          "line": 11,
+          "text": "}"
+        },
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "async function route(options) {"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/VisionStreamFallback.test.mjs",
+      "line": 28,
+      "call": "import",
+      "arg": "pathToFileURL(modPath).href",
+      "fileSHA256": "bf8ebe167296addc977b72fd645190696dc63591f88ac3c9971a1d542298f108",
+      "context": [
+        {
+          "line": 25,
+          "text": "  markVisionUnhealthy,"
+        },
+        {
+          "line": 26,
+          "text": "  recordVisionTtft,"
+        },
+        {
+          "line": 27,
+          "text": "  DEFAULT_VISION_FALLBACK_CONFIG,"
+        },
+        {
+          "line": 28,
+          "text": "} = await import(pathToFileURL(modPath).href);"
+        },
+        {
+          "line": 29,
+          "text": ""
+        },
+        {
+          "line": 30,
+          "text": "// ── Fake-provider helpers ───────────────────────────────────────────────────"
+        },
+        {
+          "line": 31,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/defaultAnswerPrompt.test.mjs",
+      "line": 8,
+      "call": "import",
+      "arg": "pathToFileURL(promptsPath).href",
+      "fileSHA256": "c2749fc8f9168f095bdb2123554637ae2328b36bb38732fed5005d2c9d69dd34",
+      "context": [
+        {
+          "line": 5,
+          "text": ""
+        },
+        {
+          "line": 6,
+          "text": "const __dirname = path.dirname(fileURLToPath(import.meta.url));"
+        },
+        {
+          "line": 7,
+          "text": "const promptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');"
+        },
+        {
+          "line": 8,
+          "text": "const prompts = await import(pathToFileURL(promptsPath).href);"
+        },
+        {
+          "line": 9,
+          "text": ""
+        },
+        {
+          "line": 10,
+          "text": "// The default answer prompt is the baseline's General mode prompt (PLAN.md AG-13)."
+        },
+        {
+          "line": 11,
+          "text": "const GENERAL = prompts.MODE_GENERAL_PROMPT;"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+      "line": 24,
+      "call": "require",
+      "arg": "distPromptsPath",
+      "fileSHA256": "4cfa393f9001b07d4f8e1b3ccf099a71af9aa77a0f0e3259a6d6e3dc9b2321c2",
+      "context": [
+        {
+          "line": 21,
+          "text": "const distWhatToAnswerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js');"
+        },
+        {
+          "line": 22,
+          "text": "const distPromptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');"
+        },
+        {
+          "line": 23,
+          "text": "const require = createRequire(import.meta.url);"
+        },
+        {
+          "line": 24,
+          "text": "const { DEFAULT_ANSWER_PROMPT_SUFFIX, HARD_SYSTEM_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(distPromptsPath);"
+        },
+        {
+          "line": 25,
+          "text": ""
+        },
+        {
+          "line": 26,
+          "text": "test('generateSuggestion uses the fixed default answer suffix and no mode system', () => {"
+        },
+        {
+          "line": 27,
+          "text": "  assert.ok(generateSuggestionStart >= 0, 'generateSuggestion should exist');"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+      "line": 44,
+      "call": "require",
+      "arg": "built",
+      "fileSHA256": "4cfa393f9001b07d4f8e1b3ccf099a71af9aa77a0f0e3259a6d6e3dc9b2321c2",
+      "context": [
+        {
+          "line": 41,
+          "text": "    exports: { app: { getPath: () => os.tmpdir(), isPackaged: false, getVersion: () => '0.0.0' } },"
+        },
+        {
+          "line": 42,
+          "text": "  };"
+        },
+        {
+          "line": 43,
+          "text": "  try {"
+        },
+        {
+          "line": 44,
+          "text": "    return require(built).LLMHelper;"
+        },
+        {
+          "line": 45,
+          "text": "  } finally {"
+        },
+        {
+          "line": 46,
+          "text": "    if (previous) require.cache[electronId] = previous; else delete require.cache[electronId];"
+        },
+        {
+          "line": 47,
+          "text": "  }"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+      "line": 109,
+      "call": "require",
+      "arg": "distWhatToAnswerPath",
+      "fileSHA256": "4cfa393f9001b07d4f8e1b3ccf099a71af9aa77a0f0e3259a6d6e3dc9b2321c2",
+      "context": [
+        {
+          "line": 106,
+          "text": "});"
+        },
+        {
+          "line": 107,
+          "text": ""
+        },
+        {
+          "line": 108,
+          "text": "test('WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content', async () => {"
+        },
+        {
+          "line": 109,
+          "text": "  const { WhatToAnswerLLM } = require(distWhatToAnswerPath);"
+        },
+        {
+          "line": 110,
+          "text": "  const calls = [];"
+        },
+        {
+          "line": 111,
+          "text": ""
+        },
+        {
+          "line": 112,
+          "text": "  const llmHelper = {"
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+      "line": 143,
+      "call": "require",
+      "arg": "distWhatToAnswerPath",
+      "fileSHA256": "4cfa393f9001b07d4f8e1b3ccf099a71af9aa77a0f0e3259a6d6e3dc9b2321c2",
+      "context": [
+        {
+          "line": 140,
+          "text": "});"
+        },
+        {
+          "line": 141,
+          "text": ""
+        },
+        {
+          "line": 142,
+          "text": "test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content', async () => {"
+        },
+        {
+          "line": 143,
+          "text": "  const { WhatToAnswerLLM } = require(distWhatToAnswerPath);"
+        },
+        {
+          "line": 144,
+          "text": "  const calls = [];"
+        },
+        {
+          "line": 145,
+          "text": "  const imagePaths = ['/tmp/natively-screen.png'];"
+        },
+        {
+          "line": 146,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+      "line": 217,
+      "call": "require",
+      "arg": "distWhatToAnswerPath",
+      "fileSHA256": "4cfa393f9001b07d4f8e1b3ccf099a71af9aa77a0f0e3259a6d6e3dc9b2321c2",
+      "context": [
+        {
+          "line": 214,
+          "text": "  // Natively → local) picks a vision-capable provider, retries, and degrades"
+        },
+        {
+          "line": 215,
+          "text": "  // gracefully. The premature \"switch to a vision model\" refusal is gone — that"
+        },
+        {
+          "line": 216,
+          "text": "  // dead-ended screenshots whenever the picked model couldn't see images."
+        },
+        {
+          "line": 217,
+          "text": "  const { WhatToAnswerLLM } = require(distWhatToAnswerPath);"
+        },
+        {
+          "line": 218,
+          "text": "  const calls = [];"
+        },
+        {
+          "line": 219,
+          "text": ""
+        },
+        {
+          "line": 220,
+          "text": "  const llmHelper = {"
+        }
+      ]
+    },
+    {
+      "file": "electron/margin/__tests__/appIdentity.test.mjs",
+      "line": 74,
+      "call": "require",
+      "arg": "id",
+      "fileSHA256": "067808f7983d77445a260485c159a22ece7196945e22d2663ba84eb16bb0ad01",
+      "context": [
+        {
+          "line": 71,
+          "text": "        return { installOutboundFetchPolicy() { electron.events.push('outbound-policy'); } };"
+        },
+        {
+          "line": 72,
+          "text": "      }"
+        },
+        {
+          "line": 73,
+          "text": "      if (id === './main') return main();"
+        },
+        {
+          "line": 74,
+          "text": "      return require(id);"
+        },
+        {
+          "line": 75,
+          "text": "    },"
+        },
+        {
+          "line": 76,
+          "text": "  }, { filename: file });"
+        },
+        {
+          "line": 77,
+          "text": "  return module.exports;"
+        }
+      ]
+    },
+    {
+      "file": "electron/margin/__tests__/appIdentity.test.mjs",
+      "line": 95,
+      "call": "require",
+      "arg": "GUARD",
+      "fileSHA256": "067808f7983d77445a260485c159a22ece7196945e22d2663ba84eb16bb0ad01",
+      "context": [
+        {
+          "line": 92,
+          "text": ""
+        },
+        {
+          "line": 93,
+          "text": "test('guard first-launch preflight uses the built identity before path setup', () => {"
+        },
+        {
+          "line": 94,
+          "text": "  const electron = fakeElectron();"
+        },
+        {
+          "line": 95,
+          "text": "  require(GUARD).installChromiumGuard(electron);"
+        },
+        {
+          "line": 96,
+          "text": "  assert.equal(electron.app.getName(), identity.name);"
+        },
+        {
+          "line": 97,
+          "text": "  assert.equal(electron.paths.appData, path.dirname(ownData));"
+        },
+        {
+          "line": 98,
+          "text": "  assert.equal(electron.paths.userData, ownData);"
+        }
+      ]
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 29,
+      "call": "require",
+      "arg": "id",
+      "fileSHA256": "ac8f1d8b7113583462281720dd7aa839ec1fb445c2e34266630fcf5ac36b7f97",
+      "context": [
+        {
+          "line": 26,
+          "text": "    require(id) {"
+        },
+        {
+          "line": 27,
+          "text": "      if (id === 'fs') return fakeFs;"
+        },
+        {
+          "line": 28,
+          "text": "      if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');"
+        },
+        {
+          "line": 29,
+          "text": "      return require(id);"
+        },
+        {
+          "line": 30,
+          "text": "    },"
+        },
+        {
+          "line": 31,
+          "text": "  });"
+        },
+        {
+          "line": 32,
+          "text": "  return module.exports;"
+        }
+      ]
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 69,
+      "call": "require",
+      "arg": "id",
+      "fileSHA256": "ac8f1d8b7113583462281720dd7aa839ec1fb445c2e34266630fcf5ac36b7f97",
+      "context": [
+        {
+          "line": 66,
+          "text": "        if (id === 'fs') return fakeFs;"
+        },
+        {
+          "line": 67,
+          "text": "        if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');"
+        },
+        {
+          "line": 68,
+          "text": "        if (id === './googleServiceAccount') return accountHelper(fakeFs);"
+        },
+        {
+          "line": 69,
+          "text": "        return require(id);"
+        },
+        {
+          "line": 70,
+          "text": "      },"
+        },
+        {
+          "line": 71,
+          "text": "    });"
+        },
+        {
+          "line": 72,
+          "text": "    const manager = module.exports.CredentialsManager.getInstance();"
+        }
+      ]
+    },
+    {
+      "file": "electron/margin/__tests__/devOverrides.test.mjs",
+      "line": 12,
+      "call": "require",
+      "arg": "path.resolve('dist-electron/electron/margin/devOverrides.js')",
+      "fileSHA256": "663559dc0f49261bc4c231207276e50ba6a74e78330b513978f3461c757405bf",
+      "context": [
+        {
+          "line": 9,
+          "text": ""
+        },
+        {
+          "line": 10,
+          "text": "const require = createRequire(import.meta.url);"
+        },
+        {
+          "line": 11,
+          "text": "const { resolveDevOpenAIBaseUrl, resolveDevScreenshotFixture, devOpenAIBaseUrl } ="
+        },
+        {
+          "line": 12,
+          "text": "  require(path.resolve('dist-electron/electron/margin/devOverrides.js'));"
+        },
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "test('base URL override is honoured only for loopback http in unpackaged builds', () => {"
+        },
+        {
+          "line": 15,
+          "text": "  const env = (v) => ({ MARGIN_DEV_OPENAI_BASE_URL: v });"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/CodexCliService.test.mjs",
+      "line": 13,
+      "call": "import",
+      "arg": "pathToFileURL(compiledPath).href",
+      "fileSHA256": "2b04de0750aa089ecbaa52c621df4369d51860dbf34e1bd0f3fcb65c170ecc7c",
+      "context": [
+        {
+          "line": 10,
+          "text": ""
+        },
+        {
+          "line": 11,
+          "text": "const __dirname = path.dirname(fileURLToPath(import.meta.url));"
+        },
+        {
+          "line": 12,
+          "text": "const compiledPath = path.resolve(__dirname, '../../../dist-electron/electron/services/CodexCliService.js');"
+        },
+        {
+          "line": 13,
+          "text": "const mod = await import(pathToFileURL(compiledPath).href);"
+        },
+        {
+          "line": 14,
+          "text": "const { CodexCliService, DEFAULT_CODEX_CLI_CONFIG, CODEX_SANDBOX_MODES } = mod;"
+        },
+        {
+          "line": 15,
+          "text": ""
+        },
+        {
+          "line": 16,
+          "text": "// Mock binary that ignores all argv and sleeps 30s — used for in-flight abort/timeout tests."
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/FormatPermissionMessageCrossPlatform.test.mjs",
+      "line": 35,
+      "call": "createRequire(import.meta.url)",
+      "arg": "path.join(root, 'electron-builder.config.cjs')",
+      "fileSHA256": "ba657db2c58fe47f57b0657a65391b9521ff32db5e1444eb125ec183f6885423",
+      "context": [
+        {
+          "line": 32,
+          "text": "}"
+        },
+        {
+          "line": 33,
+          "text": ""
+        },
+        {
+          "line": 34,
+          "text": "const main = read('electron/main.ts');"
+        },
+        {
+          "line": 35,
+          "text": "const build = createRequire(import.meta.url)(path.join(root, 'electron-builder.config.cjs'));"
+        },
+        {
+          "line": 36,
+          "text": ""
+        },
+        {
+          "line": 37,
+          "text": "function extractMacVariants() {"
+        },
+        {
+          "line": 38,
+          "text": "  // The PermissionReason union sits between `type PermissionReason =` and the"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ImageOptimizer.test.mjs",
+      "line": 22,
+      "call": "import",
+      "arg": "pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href",
+      "fileSHA256": "39eb73e896a01c8bd7733b76af087ef46e69c2726aebc6218c213f942080520e",
+      "context": [
+        {
+          "line": 19,
+          "text": "const screenDir = path.join(root, 'dist-electron/electron/services/screen');"
+        },
+        {
+          "line": 20,
+          "text": ""
+        },
+        {
+          "line": 21,
+          "text": "async function loadOptimizer() {"
+        },
+        {
+          "line": 22,
+          "text": "  const mod = await import(pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href);"
+        },
+        {
+          "line": 23,
+          "text": "  return mod.ImageOptimizer;"
+        },
+        {
+          "line": 24,
+          "text": "}"
+        },
+        {
+          "line": 25,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ImeDetectorCache.test.mjs",
+      "line": 66,
+      "call": "import",
+      "arg": "pathToFileURL(COMPILED).href",
+      "fileSHA256": "311f60a63f22cd4236f3109e2f0c0bdf5348dc1b7e06a85de4b07afa56958f04",
+      "context": [
+        {
+          "line": 63,
+          "text": "  );"
+        },
+        {
+          "line": 64,
+          "text": "}"
+        },
+        {
+          "line": 65,
+          "text": ""
+        },
+        {
+          "line": 66,
+          "text": "const mod = await import(pathToFileURL(COMPILED).href);"
+        },
+        {
+          "line": 67,
+          "text": "const { shouldAutoEngageStealthTap, refreshImeDetection } = mod;"
+        },
+        {
+          "line": 68,
+          "text": ""
+        },
+        {
+          "line": 69,
+          "text": "const ORIGINAL_PLATFORM = process.platform;"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineCodeHint.test.mjs",
+      "line": 19,
+      "call": "import",
+      "arg": "pathToFileURL(enginePath).href",
+      "fileSHA256": "e8100a0e3c5ec6006019d04bfacfadb9c47353f2684773bca3a7f02770d6b565",
+      "context": [
+        {
+          "line": 16,
+          "text": "}"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function makeEngine() {"
+        },
+        {
+          "line": 19,
+          "text": "  const { IntelligenceEngine } = await import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 20,
+          "text": "  const { SessionTracker } = require(sessionPath);"
+        },
+        {
+          "line": 21,
+          "text": "  const session = new SessionTracker();"
+        },
+        {
+          "line": 22,
+          "text": "  const engine = new IntelligenceEngine(makeHelper(), session);"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineCodeHint.test.mjs",
+      "line": 20,
+      "call": "require",
+      "arg": "sessionPath",
+      "fileSHA256": "e8100a0e3c5ec6006019d04bfacfadb9c47353f2684773bca3a7f02770d6b565",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function makeEngine() {"
+        },
+        {
+          "line": 19,
+          "text": "  const { IntelligenceEngine } = await import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 20,
+          "text": "  const { SessionTracker } = require(sessionPath);"
+        },
+        {
+          "line": 21,
+          "text": "  const session = new SessionTracker();"
+        },
+        {
+          "line": 22,
+          "text": "  const engine = new IntelligenceEngine(makeHelper(), session);"
+        },
+        {
+          "line": 23,
+          "text": "  return { engine, session };"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineOverlayContext.test.mjs",
+      "line": 13,
+      "call": "import",
+      "arg": "pathToFileURL(sessionPath).href",
+      "fileSHA256": "c084102b479de65fdedb9a2d1baefbfb9b8265ab35a1c516da458f762edf7e82",
+      "context": [
+        {
+          "line": 10,
+          "text": ""
+        },
+        {
+          "line": 11,
+          "text": "async function loadSessionTracker() {"
+        },
+        {
+          "line": 12,
+          "text": "  const sessionPath = path.resolve(__dirname, '../../../dist-electron/electron/SessionTracker.js');"
+        },
+        {
+          "line": 13,
+          "text": "  return import(pathToFileURL(sessionPath).href);"
+        },
+        {
+          "line": 14,
+          "text": "}"
+        },
+        {
+          "line": 15,
+          "text": ""
+        },
+        {
+          "line": 16,
+          "text": "describe('SessionTracker — formatted context with interim transcript', () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEnginePlanner.test.mjs",
+      "line": 19,
+      "call": "import",
+      "arg": "pathToFileURL(enginePath).href",
+      "fileSHA256": "61e33767a89f2d7217d5e605e7c6b266a7fda3045b6c78aeda6fe15ed1410015",
+      "context": [
+        {
+          "line": 16,
+          "text": "}"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function makeEngine() {"
+        },
+        {
+          "line": 19,
+          "text": "  const { IntelligenceEngine } = await import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 20,
+          "text": "  const { SessionTracker } = require(sessionPath);"
+        },
+        {
+          "line": 21,
+          "text": "  const session = new SessionTracker();"
+        },
+        {
+          "line": 22,
+          "text": "  const engine = new IntelligenceEngine(makeHelper(), session);"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEnginePlanner.test.mjs",
+      "line": 20,
+      "call": "require",
+      "arg": "sessionPath",
+      "fileSHA256": "61e33767a89f2d7217d5e605e7c6b266a7fda3045b6c78aeda6fe15ed1410015",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function makeEngine() {"
+        },
+        {
+          "line": 19,
+          "text": "  const { IntelligenceEngine } = await import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 20,
+          "text": "  const { SessionTracker } = require(sessionPath);"
+        },
+        {
+          "line": 21,
+          "text": "  const session = new SessionTracker();"
+        },
+        {
+          "line": 22,
+          "text": "  const engine = new IntelligenceEngine(makeHelper(), session);"
+        },
+        {
+          "line": 23,
+          "text": "  return { engine, session };"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEnginePreparedContext.test.mjs",
+      "line": 15,
+      "call": "import",
+      "arg": "pathToFileURL(modPath).href",
+      "fileSHA256": "6c0eb3a57cea0c554bc0f0d4ac1578692901e6e71aec6971d736fac3a4a1f062",
+      "context": [
+        {
+          "line": 12,
+          "text": "    __dirname,"
+        },
+        {
+          "line": 13,
+          "text": "    '../../../dist-electron/electron/utils/preparedTranscriptContext.js',"
+        },
+        {
+          "line": 14,
+          "text": "  );"
+        },
+        {
+          "line": 15,
+          "text": "  return import(pathToFileURL(modPath).href);"
+        },
+        {
+          "line": 16,
+          "text": "}"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function loadSessionTracker() {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEnginePreparedContext.test.mjs",
+      "line": 20,
+      "call": "import",
+      "arg": "pathToFileURL(sessionPath).href",
+      "fileSHA256": "6c0eb3a57cea0c554bc0f0d4ac1578692901e6e71aec6971d736fac3a4a1f062",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function loadSessionTracker() {"
+        },
+        {
+          "line": 19,
+          "text": "  const sessionPath = path.resolve(__dirname, '../../../dist-electron/electron/SessionTracker.js');"
+        },
+        {
+          "line": 20,
+          "text": "  return import(pathToFileURL(sessionPath).href);"
+        },
+        {
+          "line": 21,
+          "text": "}"
+        },
+        {
+          "line": 22,
+          "text": ""
+        },
+        {
+          "line": 23,
+          "text": "describe('buildPreparedTranscriptContext', () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineScreenContext.test.mjs",
+      "line": 10,
+      "call": "import",
+      "arg": "pathToFileURL(enginePath).href",
+      "fileSHA256": "667fd4f23a26add9effcd252b008fbe6cf0ad6172c4a537262d99c20b14e67a4",
+      "context": [
+        {
+          "line": 7,
+          "text": ""
+        },
+        {
+          "line": 8,
+          "text": "async function loadIntelligenceEngine() {"
+        },
+        {
+          "line": 9,
+          "text": "  const enginePath = path.resolve(__dirname, '../../../dist-electron/electron/IntelligenceEngine.js');"
+        },
+        {
+          "line": 10,
+          "text": "  return import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 11,
+          "text": "}"
+        },
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "async function loadSessionTracker() {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineScreenContext.test.mjs",
+      "line": 15,
+      "call": "import",
+      "arg": "pathToFileURL(sessionPath).href",
+      "fileSHA256": "667fd4f23a26add9effcd252b008fbe6cf0ad6172c4a537262d99c20b14e67a4",
+      "context": [
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "async function loadSessionTracker() {"
+        },
+        {
+          "line": 14,
+          "text": "  const sessionPath = path.resolve(__dirname, '../../../dist-electron/electron/SessionTracker.js');"
+        },
+        {
+          "line": 15,
+          "text": "  return import(pathToFileURL(sessionPath).href);"
+        },
+        {
+          "line": 16,
+          "text": "}"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "class StubLLMHelper {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineSentinel.test.mjs",
+      "line": 19,
+      "call": "import",
+      "arg": "pathToFileURL(enginePath).href",
+      "fileSHA256": "63a0d427757392f8696d0067975b2cdcfe2390b6d5cd9d4d22c87d5985e00ce5",
+      "context": [
+        {
+          "line": 16,
+          "text": "}"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function makeEngineWithAnswer(chunks) {"
+        },
+        {
+          "line": 19,
+          "text": "  const { IntelligenceEngine } = await import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 20,
+          "text": "  const { SessionTracker } = require(sessionPath);"
+        },
+        {
+          "line": 21,
+          "text": "  const session = new SessionTracker();"
+        },
+        {
+          "line": 22,
+          "text": "  const engine = new IntelligenceEngine(makeHelper(), session);"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/IntelligenceEngineSentinel.test.mjs",
+      "line": 20,
+      "call": "require",
+      "arg": "sessionPath",
+      "fileSHA256": "63a0d427757392f8696d0067975b2cdcfe2390b6d5cd9d4d22c87d5985e00ce5",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function makeEngineWithAnswer(chunks) {"
+        },
+        {
+          "line": 19,
+          "text": "  const { IntelligenceEngine } = await import(pathToFileURL(enginePath).href);"
+        },
+        {
+          "line": 20,
+          "text": "  const { SessionTracker } = require(sessionPath);"
+        },
+        {
+          "line": 21,
+          "text": "  const session = new SessionTracker();"
+        },
+        {
+          "line": 22,
+          "text": "  const engine = new IntelligenceEngine(makeHelper(), session);"
+        },
+        {
+          "line": 23,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs",
+      "line": 23,
+      "call": "import",
+      "arg": "pathToFileURL(compiledPath).href",
+      "fileSHA256": "07fc8ab76b86128f5261dc77e35db7c1ee62544ba5cb71c075b76d81701b745a",
+      "context": [
+        {
+          "line": 20,
+          "text": "        `tests load the bundled class via dynamic import.`"
+        },
+        {
+          "line": 21,
+          "text": "    );"
+        },
+        {
+          "line": 22,
+          "text": "}"
+        },
+        {
+          "line": 23,
+          "text": "const { OpenAIStreamingSTT } = await import(pathToFileURL(compiledPath).href);"
+        },
+        {
+          "line": 24,
+          "text": ""
+        },
+        {
+          "line": 25,
+          "text": "// Deferred in PLAN.md AG-17: these cases expect transcription_session.update with"
+        },
+        {
+          "line": 26,
+          "text": "// input_audio_format, while the baseline code sends session.update with the"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/OutboundBoundary.test.mjs",
+      "line": 71,
+      "call": "require",
+      "arg": "pkg",
+      "fileSHA256": "9d93da01f90530f4a18df5c1e9b5bf81af767282e0970ee697d8042676bbb0c2",
+      "context": [
+        {
+          "line": 68,
+          "text": "    assert.equal((await gemini.models.generateContent({ model: 'allowed', contents: 'synthetic' })).text, 'allowed');"
+        },
+        {
+          "line": 69,
+          "text": "    await assert.rejects(gemini.models.generateContent({ model: 'test', contents: 'synthetic' }));"
+        },
+        {
+          "line": 70,
+          "text": "    for (const [pkg, method] of [['openai', 'chat'], ['groq-sdk', 'chat'], ['@anthropic-ai/sdk', 'messages']]) {"
+        },
+        {
+          "line": 71,
+          "text": "      const Client = require(pkg).default;"
+        },
+        {
+          "line": 72,
+          "text": "      const client = new Client({ apiKey: 'synthetic-only', baseURL: base, maxRetries: 0, fetch: outboundFetch });"
+        },
+        {
+          "line": 73,
+          "text": "      if (method === 'chat') await assert.rejects(client.chat.completions.create({ model: 'test', messages: [{ role: 'user', content: 'synthetic' }] }));"
+        },
+        {
+          "line": 74,
+          "text": "      else await assert.rejects(client.messages.create({ model: 'test', max_tokens: 1, messages: [{ role: 'user', content: 'synthetic' }] }));"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/PostCallWorkflow.test.mjs",
+      "line": 11,
+      "call": "import",
+      "arg": "pathToFileURL(workflowPath).href",
+      "fileSHA256": "2bee7df74a24de207e2d1d2e0b8cdc673ed25cbe5a9ec36e956a94fddafde088",
+      "context": [
+        {
+          "line": 8,
+          "text": "const {"
+        },
+        {
+          "line": 9,
+          "text": "  buildPostCallEnhancements,"
+        },
+        {
+          "line": 10,
+          "text": "  extractStructuredActionItems,"
+        },
+        {
+          "line": 11,
+          "text": "} = await import(pathToFileURL(workflowPath).href);"
+        },
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "// Ids switched from `action_<N>` (length-derived; collided across reruns /"
+        },
+        {
+          "line": 14,
+          "text": "// multi-meeting aggregation) to `action_<uuid>` per issue #253 sweep."
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/PromptAssembler.test.mjs",
+      "line": 15,
+      "call": "import",
+      "arg": "pathToFileURL(modulePath).href",
+      "fileSHA256": "9ab5a2edf66dc6dade995ac140c849023916ec49f82334525e7fcf639c321727",
+      "context": [
+        {
+          "line": 12,
+          "text": ""
+        },
+        {
+          "line": 13,
+          "text": "async function loadPromptAssembler() {"
+        },
+        {
+          "line": 14,
+          "text": "  const modulePath = path.join(contextDir, 'PromptAssembler.js');"
+        },
+        {
+          "line": 15,
+          "text": "  return import(pathToFileURL(modulePath).href);"
+        },
+        {
+          "line": 16,
+          "text": "}"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function loadTrustLevels() {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/PromptAssembler.test.mjs",
+      "line": 20,
+      "call": "import",
+      "arg": "pathToFileURL(modulePath).href",
+      "fileSHA256": "9ab5a2edf66dc6dade995ac140c849023916ec49f82334525e7fcf639c321727",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "async function loadTrustLevels() {"
+        },
+        {
+          "line": 19,
+          "text": "  const modulePath = path.join(contextDir, 'TrustLevels.js');"
+        },
+        {
+          "line": 20,
+          "text": "  return import(pathToFileURL(modulePath).href);"
+        },
+        {
+          "line": 21,
+          "text": "}"
+        },
+        {
+          "line": 22,
+          "text": ""
+        },
+        {
+          "line": 23,
+          "text": "// Test fixtures"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+      "line": 90,
+      "call": "import",
+      "arg": "pathToFileURL(routerPath).href",
+      "fileSHA256": "ec2d75248e3706c5b866eaad29fe666482d715b19287f2e5e06e0258529de1a2",
+      "context": [
+        {
+          "line": 87,
+          "text": ""
+        },
+        {
+          "line": 88,
+          "text": "async function loadRouter() {"
+        },
+        {
+          "line": 89,
+          "text": "  const routerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/ProviderRouter.js');"
+        },
+        {
+          "line": 90,
+          "text": "  return import(pathToFileURL(routerPath).href);"
+        },
+        {
+          "line": 91,
+          "text": "}"
+        },
+        {
+          "line": 92,
+          "text": ""
+        },
+        {
+          "line": 93,
+          "text": "test('assertProviderDataScopes throws ProviderScopeError when a denied scope is requested', async () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ProviderRouting.test.mjs",
+      "line": 11,
+      "call": "import",
+      "arg": "pathToFileURL(routerPath).href",
+      "fileSHA256": "781c6c526ea0687b1ae1990612bcd0b59db4da7b104bd3f23b6868b2ee9bf41b",
+      "context": [
+        {
+          "line": 8,
+          "text": "// Load ProviderRouter from dist-electron"
+        },
+        {
+          "line": 9,
+          "text": "async function loadRouter() {"
+        },
+        {
+          "line": 10,
+          "text": "  const routerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/ProviderRouter.js');"
+        },
+        {
+          "line": 11,
+          "text": "  return import(pathToFileURL(routerPath).href);"
+        },
+        {
+          "line": 12,
+          "text": "}"
+        },
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "// Load RateLimiter for testing"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ProviderRouting.test.mjs",
+      "line": 17,
+      "call": "import",
+      "arg": "pathToFileURL(limiterPath).href",
+      "fileSHA256": "781c6c526ea0687b1ae1990612bcd0b59db4da7b104bd3f23b6868b2ee9bf41b",
+      "context": [
+        {
+          "line": 14,
+          "text": "// Load RateLimiter for testing"
+        },
+        {
+          "line": 15,
+          "text": "async function loadRateLimiter() {"
+        },
+        {
+          "line": 16,
+          "text": "  const limiterPath = path.resolve(__dirname, '../../../dist-electron/electron/services/RateLimiter.js');"
+        },
+        {
+          "line": 17,
+          "text": "  return import(pathToFileURL(limiterPath).href);"
+        },
+        {
+          "line": 18,
+          "text": "}"
+        },
+        {
+          "line": 19,
+          "text": ""
+        },
+        {
+          "line": 20,
+          "text": "describe('RateLimiter', () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/RedactForLog.test.mjs",
+      "line": 7,
+      "call": "import",
+      "arg": "pathToFileURL(path.resolve(dirname, '../../../dist-electron/electron/utils/redactForLog.js')).href",
+      "fileSHA256": "eba4eb8126f0c97244db9c937103da2e7b7d5274bd8ca0a04e00af665e9fd32a",
+      "context": [
+        {
+          "line": 4,
+          "text": "import { fileURLToPath, pathToFileURL } from 'node:url';"
+        },
+        {
+          "line": 5,
+          "text": ""
+        },
+        {
+          "line": 6,
+          "text": "const dirname = path.dirname(fileURLToPath(import.meta.url));"
+        },
+        {
+          "line": 7,
+          "text": "const loadRedactor = () => import(pathToFileURL(path.resolve(dirname, '../../../dist-electron/electron/utils/redactForLog.js')).href);"
+        },
+        {
+          "line": 8,
+          "text": ""
+        },
+        {
+          "line": 9,
+          "text": "test('arbitrary credential and user strings have no preview, pattern or minimum-length exception', async () => {"
+        },
+        {
+          "line": 10,
+          "text": "  const { redactForLog, redactValue } = await loadRedactor();"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/RollingTranscriptState.test.mjs",
+      "line": 23,
+      "call": "import",
+      "arg": "pathToFileURL(compiledPath).href",
+      "fileSHA256": "6e9b131db067d8a64d44f96a04c4eb044bce6a879a9b6b70155c88dbf0fae527",
+      "context": [
+        {
+          "line": 20,
+          "text": "const {"
+        },
+        {
+          "line": 21,
+          "text": "  mergeRollingTranscriptPartial,"
+        },
+        {
+          "line": 22,
+          "text": "  mergeRollingTranscriptFinal,"
+        },
+        {
+          "line": 23,
+          "text": "} = await import(pathToFileURL(compiledPath).href);"
+        },
+        {
+          "line": 24,
+          "text": ""
+        },
+        {
+          "line": 25,
+          "text": "test('partial updates replace in-progress tail without clearing committed segments', () => {"
+        },
+        {
+          "line": 26,
+          "text": "  let bar = mergeRollingTranscriptPartial('', 'hello');"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 16,
+      "call": "import",
+      "arg": "pathToFileURL(routerPath).href",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "async function loadRouter() {"
+        },
+        {
+          "line": 15,
+          "text": "  const routerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/ProviderRouter.js');"
+        },
+        {
+          "line": 16,
+          "text": "  return import(pathToFileURL(routerPath).href);"
+        },
+        {
+          "line": 17,
+          "text": "}"
+        },
+        {
+          "line": 18,
+          "text": ""
+        },
+        {
+          "line": 19,
+          "text": "test('transcript scope denial omits transcript from cloud calls', () => {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 68,
+      "call": "require",
+      "arg": "built",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 65,
+          "text": "    exports: { app: { getPath: () => os.tmpdir(), isPackaged: false, getVersion: () => '0.0.0' } },"
+        },
+        {
+          "line": 66,
+          "text": "  };"
+        },
+        {
+          "line": 67,
+          "text": "  try {"
+        },
+        {
+          "line": 68,
+          "text": "    return require(built).LLMHelper;"
+        },
+        {
+          "line": 69,
+          "text": "  } finally {"
+        },
+        {
+          "line": 70,
+          "text": "    if (previous) require.cache[electronId] = previous; else delete require.cache[electronId];"
+        },
+        {
+          "line": 71,
+          "text": "  }"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 208,
+      "call": "import",
+      "arg": "pathToFileURL(path.join(repoRoot, 'dist-electron/electron/llm/visionStreamFallback.js')).href",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 205,
+          "text": ""
+        },
+        {
+          "line": 206,
+          "text": "test('vision denial is terminal without retries, health penalty or fallback', async () => {"
+        },
+        {
+          "line": 207,
+          "text": "  const { ProviderScopeError } = await loadRouter();"
+        },
+        {
+          "line": 208,
+          "text": "  const { runStreamingVisionFallback, DEFAULT_VISION_FALLBACK_CONFIG } = await import(pathToFileURL(path.join(repoRoot, 'dist-electron/electron/llm/visionStreamFallback.js')).href);"
+        },
+        {
+          "line": 209,
+          "text": "  const denied = new ProviderScopeError('test', ['screenshots']);"
+        },
+        {
+          "line": 210,
+          "text": "  const health = new Map();"
+        },
+        {
+          "line": 211,
+          "text": "  const attempts = [];"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 283,
+      "call": "require",
+      "arg": "path.join(repoRoot, `dist-electron/electron/llm/${className}.js`)",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 280,
+          "text": "  const require = createRequire(import.meta.url);"
+        },
+        {
+          "line": 281,
+          "text": "  for (const name of ['WhatToAnswer', 'CodeHint', 'Brainstorm', 'Answer', 'Recap', 'FollowUp', 'Clarify', 'Assist', 'FollowUpQuestions']) {"
+        },
+        {
+          "line": 282,
+          "text": "    const className = `${name}LLM`;"
+        },
+        {
+          "line": 283,
+          "text": "    const Class = require(path.join(repoRoot, `dist-electron/electron/llm/${className}.js`))[className];"
+        },
+        {
+          "line": 284,
+          "text": "    const wrapper = new Class(helper);"
+        },
+        {
+          "line": 285,
+          "text": "    for (const method of ['generate', 'generateStream']) {"
+        },
+        {
+          "line": 286,
+          "text": "      if (typeof wrapper[method] !== 'function') continue;"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 299,
+      "call": "createRequire(import.meta.url)",
+      "arg": "path.join(repoRoot, 'dist-electron/electron/IntelligenceEngine.js')",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 296,
+          "text": "test('WhatToSay emits the refusal and rejects without a fabricated answer', async () => {"
+        },
+        {
+          "line": 297,
+          "text": "  loadBuiltLLMHelper();"
+        },
+        {
+          "line": 298,
+          "text": "  const { ProviderScopeError } = await loadRouter();"
+        },
+        {
+          "line": 299,
+          "text": "  const { IntelligenceEngine } = createRequire(import.meta.url)(path.join(repoRoot, 'dist-electron/electron/IntelligenceEngine.js'));"
+        },
+        {
+          "line": 300,
+          "text": "  const denied = new ProviderScopeError('test', ['transcript']);"
+        },
+        {
+          "line": 301,
+          "text": "  const events = [];"
+        },
+        {
+          "line": 302,
+          "text": "  const engine = Object.assign(Object.create(IntelligenceEngine.prototype), {"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 540,
+      "call": "createRequire(import.meta.url)",
+      "arg": "path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js')",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 537,
+          "text": "// WhatToAnswer leaves earlier answers out of the request when profile_history is"
+        },
+        {
+          "line": 538,
+          "text": "// denied, so the answer still works without them."
+        },
+        {
+          "line": 539,
+          "text": "async function whatToAnswerWith(deniedScopes) {"
+        },
+        {
+          "line": 540,
+          "text": "  const { WhatToAnswerLLM } = createRequire(import.meta.url)(path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js'));"
+        },
+        {
+          "line": 541,
+          "text": "  const calls = [];"
+        },
+        {
+          "line": 542,
+          "text": "  const helper = {"
+        },
+        {
+          "line": 543,
+          "text": "    getCapabilities: () => ({ outputBudgetTokens: 2000 }),"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 570,
+      "call": "createRequire(import.meta.url)",
+      "arg": "path.resolve(__dirname, '../../../dist-electron/electron/services/meetingChatContext.js')",
+      "fileSHA256": "efe48b60f75d5a62a04bd7dc8696d5887165cbeca4cf62427f8f775abc638ba1",
+      "context": [
+        {
+          "line": 567,
+          "text": "// from the saved meeting. A saved meeting is profile_history data; its summary parts"
+        },
+        {
+          "line": 568,
+          "text": "// are post_call_summary data too and are left out on request."
+        },
+        {
+          "line": 569,
+          "text": "test('the meeting chat context carries the scopes of what it contains', () => {"
+        },
+        {
+          "line": 570,
+          "text": "  const { buildMeetingChatContext } = createRequire(import.meta.url)(path.resolve(__dirname, '../../../dist-electron/electron/services/meetingChatContext.js'));"
+        },
+        {
+          "line": 571,
+          "text": "  const meeting = {"
+        },
+        {
+          "line": 572,
+          "text": "    title: 'TITLE_SENTINEL',"
+        },
+        {
+          "line": 573,
+          "text": "    detailedSummary: { overview: 'OVERVIEW_SENTINEL', keyPoints: ['KEYPOINT_SENTINEL'], actionItems: ['ACTION_SENTINEL'] },"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/SkillsIpcWiring.test.mjs",
+      "line": 182,
+      "call": "cjsRequire",
+      "arg": "distPath",
+      "fileSHA256": "64f7ca30fe1a85ee73ba393d9aa731f6ff4fc661977eed6b1a1ee2b847a3a60d",
+      "context": [
+        {
+          "line": 179,
+          "text": ""
+        },
+        {
+          "line": 180,
+          "text": "  // Clear any prior load so the require picks up the stubbed electron module."
+        },
+        {
+          "line": 181,
+          "text": "  delete cjsRequire.cache[distPath];"
+        },
+        {
+          "line": 182,
+          "text": "  const { SkillsManager } = cjsRequire(distPath);"
+        },
+        {
+          "line": 183,
+          "text": ""
+        },
+        {
+          "line": 184,
+          "text": "  // Reset the static singleton so each test run starts fresh."
+        },
+        {
+          "line": 185,
+          "text": "  if (SkillsManager.instance) SkillsManager.instance = undefined;"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/SttProviderLocalWhisperRetired.test.mjs",
+      "line": 32,
+      "call": "require",
+      "arg": "built",
+      "fileSHA256": "147ae45a7be2cae69d4500d38eb08c830945fe38c8e1a489070286c7ec7b6968",
+      "context": [
+        {
+          "line": 29,
+          "text": "  },"
+        },
+        {
+          "line": 30,
+          "text": "};"
+        },
+        {
+          "line": 31,
+          "text": "require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: stub };"
+        },
+        {
+          "line": 32,
+          "text": "const manager = require(built).CredentialsManager.getInstance();"
+        },
+        {
+          "line": 33,
+          "text": ""
+        },
+        {
+          "line": 34,
+          "text": "test('a stored local-whisper STT provider reads back as none', () => {"
+        },
+        {
+          "line": 35,
+          "text": "  manager.init();"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/ToggleStateReducer.test.mjs",
+      "line": 13,
+      "call": "import",
+      "arg": "pathToFileURL(reducerPath).href",
+      "fileSHA256": "29bb1a832e6ab8310a36b8e505f1c5b3601dfafe89bcf565b8c94bb3b30b8201",
+      "context": [
+        {
+          "line": 10,
+          "text": ");"
+        },
+        {
+          "line": 11,
+          "text": ""
+        },
+        {
+          "line": 12,
+          "text": "async function load() {"
+        },
+        {
+          "line": 13,
+          "text": "  return import(pathToFileURL(reducerPath).href);"
+        },
+        {
+          "line": 14,
+          "text": "}"
+        },
+        {
+          "line": 15,
+          "text": ""
+        },
+        {
+          "line": 16,
+          "text": "// Regression for RC-2 (Phase 3): the toggle must ALWAYS reconcile the renderer"
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/VisionProviderFallbackChain.test.mjs",
+      "line": 21,
+      "call": "import",
+      "arg": "pathToFileURL(path.join(screenDir, 'VisionProviderFallbackChain.js')).href",
+      "fileSHA256": "4d3cda12b7930ce813e053d4b19174bacf128c307183aced6b08dda4cb6d6ec6",
+      "context": [
+        {
+          "line": 18,
+          "text": "const screenDir = path.join(root, 'dist-electron/electron/services/screen');"
+        },
+        {
+          "line": 19,
+          "text": ""
+        },
+        {
+          "line": 20,
+          "text": "async function loadChain() {"
+        },
+        {
+          "line": 21,
+          "text": "  const mod = await import(pathToFileURL(path.join(screenDir, 'VisionProviderFallbackChain.js')).href);"
+        },
+        {
+          "line": 22,
+          "text": "  return mod.runVisionFallback;"
+        },
+        {
+          "line": 23,
+          "text": "}"
+        },
+        {
+          "line": 24,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/services/__tests__/VisionProviderFallbackChain.test.mjs",
+      "line": 26,
+      "call": "import",
+      "arg": "pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href",
+      "fileSHA256": "4d3cda12b7930ce813e053d4b19174bacf128c307183aced6b08dda4cb6d6ec6",
+      "context": [
+        {
+          "line": 23,
+          "text": "}"
+        },
+        {
+          "line": 24,
+          "text": ""
+        },
+        {
+          "line": 25,
+          "text": "async function loadOptimizer() {"
+        },
+        {
+          "line": 26,
+          "text": "  const mod = await import(pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href);"
+        },
+        {
+          "line": 27,
+          "text": "  return mod.ImageOptimizer;"
+        },
+        {
+          "line": 28,
+          "text": "}"
+        },
+        {
+          "line": 29,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/utils/__tests__/validateImagePath.test.mjs",
+      "line": 20,
+      "call": "import",
+      "arg": "pathToFileURL(modPath).href",
+      "fileSHA256": "ef6ab9903692319189f9b60d69329cb23b0b27780d390966e8bea6843d56e36f",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "const __dirname = path.dirname(fileURLToPath(import.meta.url));"
+        },
+        {
+          "line": 19,
+          "text": "const modPath = path.resolve(__dirname, '../../../dist-electron/electron/utils/imagePathValidation.js');"
+        },
+        {
+          "line": 20,
+          "text": "const { validateImagePath } = await import(pathToFileURL(modPath).href);"
+        },
+        {
+          "line": 21,
+          "text": ""
+        },
+        {
+          "line": 22,
+          "text": "const MAC_USER_DATA = '/Users/alice/Library/Application Support/Natively';"
+        },
+        {
+          "line": 23,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "file": "electron/utils/nativeModuleGuard.ts",
+      "line": 20,
+      "call": "require",
+      "arg": "moduleName",
+      "fileSHA256": "7eed5cfb7bd93e6b7e701dd2f5333caef5b4e1e2823f98378e8fb70ff7c8dc5b",
+      "context": [
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "function probeAbi(moduleName: string): AbiMismatch | null {"
+        },
+        {
+          "line": 19,
+          "text": "  try {"
+        },
+        {
+          "line": 20,
+          "text": "    require(moduleName);"
+        },
+        {
+          "line": 21,
+          "text": "    return null;"
+        },
+        {
+          "line": 22,
+          "text": "  } catch (err: any) {"
+        },
+        {
+          "line": 23,
+          "text": "    const msg = String(err?.message ?? '');"
+        }
+      ]
+    },
+    {
+      "file": "scripts/bench-screen-understanding.mjs",
+      "line": 29,
+      "call": "import",
+      "arg": "pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href",
+      "fileSHA256": "2e00c2edf235c258e8a8a210194b6c2fe7f11e0f33c87fc228f5f53aacc0a9f8",
+      "context": [
+        {
+          "line": 26,
+          "text": "const iterations = Number.parseInt(process.env.SCREEN_UNDERSTANDING_BENCH_ITERATIONS || '5', 10);"
+        },
+        {
+          "line": 27,
+          "text": "process.env.NATIVELY_TEST_USER_DATA = process.env.NATIVELY_TEST_USER_DATA || os.tmpdir();"
+        },
+        {
+          "line": 28,
+          "text": ""
+        },
+        {
+          "line": 29,
+          "text": "const { ImageOptimizer } = await import(pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href);"
+        },
+        {
+          "line": 30,
+          "text": "const { runVisionFallback } = await import(pathToFileURL(path.join(screenDir, 'VisionProviderFallbackChain.js')).href);"
+        },
+        {
+          "line": 31,
+          "text": ""
+        },
+        {
+          "line": 32,
+          "text": "function percentile(values, p) {"
+        }
+      ]
+    },
+    {
+      "file": "scripts/bench-screen-understanding.mjs",
+      "line": 30,
+      "call": "import",
+      "arg": "pathToFileURL(path.join(screenDir, 'VisionProviderFallbackChain.js')).href",
+      "fileSHA256": "2e00c2edf235c258e8a8a210194b6c2fe7f11e0f33c87fc228f5f53aacc0a9f8",
+      "context": [
+        {
+          "line": 27,
+          "text": "process.env.NATIVELY_TEST_USER_DATA = process.env.NATIVELY_TEST_USER_DATA || os.tmpdir();"
+        },
+        {
+          "line": 28,
+          "text": ""
+        },
+        {
+          "line": 29,
+          "text": "const { ImageOptimizer } = await import(pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href);"
+        },
+        {
+          "line": 30,
+          "text": "const { runVisionFallback } = await import(pathToFileURL(path.join(screenDir, 'VisionProviderFallbackChain.js')).href);"
+        },
+        {
+          "line": 31,
+          "text": ""
+        },
+        {
+          "line": 32,
+          "text": "function percentile(values, p) {"
+        },
+        {
+          "line": 33,
+          "text": "  if (values.length === 0) return 0;"
+        }
+      ]
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/native-load.cjs",
+      "line": 13,
+      "call": "require",
+      "arg": "require.resolve(m, { paths: [ROOT] })",
+      "fileSHA256": "dbfa288674cc17fd8009c8182d462ed4380f349f00539735c4fdf02de2dd3e87",
+      "context": [
+        {
+          "line": 10,
+          "text": "const path = require('node:path');"
+        },
+        {
+          "line": 11,
+          "text": ""
+        },
+        {
+          "line": 12,
+          "text": "const ROOT = path.resolve(__dirname, '../../../..');"
+        },
+        {
+          "line": 13,
+          "text": "const req = (m) => require(require.resolve(m, { paths: [ROOT] }));"
+        },
+        {
+          "line": 14,
+          "text": "const results = {};"
+        },
+        {
+          "line": 15,
+          "text": ""
+        },
+        {
+          "line": 16,
+          "text": "async function check(name, fn) {"
+        }
+      ]
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/native-load.cjs",
+      "line": 42,
+      "call": "require",
+      "arg": "path.join(ROOT, 'native-module')",
+      "fileSHA256": "dbfa288674cc17fd8009c8182d462ed4380f349f00539735c4fdf02de2dd3e87",
+      "context": [
+        {
+          "line": 39,
+          "text": "  });"
+        },
+        {
+          "line": 40,
+          "text": ""
+        },
+        {
+          "line": 41,
+          "text": "  await check('native-module', () => {"
+        },
+        {
+          "line": 42,
+          "text": "    const native = require(path.join(ROOT, 'native-module'));"
+        },
+        {
+          "line": 43,
+          "text": "    const exported = Object.keys(native).sort();"
+        },
+        {
+          "line": 44,
+          "text": "    return `${exported.length} exports: ${exported.slice(0, 12).join(', ')}${exported.length > 12 ? ', …' : ''}`;"
+        },
+        {
+          "line": 45,
+          "text": "  });"
+        }
+      ]
+    }
+  ],
+  "manualReview": {
+    "productionNonliteral": "nativeModuleLoader fixed .node paths; nativeModuleGuard only better-sqlite3/keytar",
+    "testNonliteral": "dist-electron paths, explicit SDK arrays, native-module selftest; no removed packages",
+    "nativeReporter": "run-gates --test-reporter=tap uses built-in node:test, not npm tap"
+  }
+}

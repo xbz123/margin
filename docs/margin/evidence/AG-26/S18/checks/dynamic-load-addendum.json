@@ -1,0 +1,539 @@
+{
+  "sourceRecords": [
+    {
+      "file": "native-module/index.js",
+      "sha256": "802909eeebb97f8f84a49ed34a99241e830a128d4c3b62c433d692ad5b3251a1",
+      "relevantLines": [
+        {
+          "line": 6,
+          "text": "const { readFileSync } = require('node:fs')"
+        },
+        {
+          "line": 56,
+          "text": "    return require('child_process').execSync('ldd --version', { encoding: 'utf8' }).includes('musl')"
+        },
+        {
+          "line": 64,
+          "text": "  if (process.env.NAPI_RS_NATIVE_LIBRARY_PATH) {"
+        },
+        {
+          "line": 66,
+          "text": "      return require(process.env.NAPI_RS_NATIVE_LIBRARY_PATH);"
+        },
+        {
+          "line": 73,
+          "text": "        return require('./index.android-arm64.node')"
+        },
+        {
+          "line": 78,
+          "text": "        const binding = require('natively-audio-android-arm64')"
+        },
+        {
+          "line": 79,
+          "text": "        const bindingPackageVersion = require('natively-audio-android-arm64/package.json').version"
+        },
+        {
+          "line": 89,
+          "text": "        return require('./index.android-arm-eabi.node')"
+        },
+        {
+          "line": 94,
+          "text": "        const binding = require('natively-audio-android-arm-eabi')"
+        },
+        {
+          "line": 95,
+          "text": "        const bindingPackageVersion = require('natively-audio-android-arm-eabi/package.json').version"
+        },
+        {
+          "line": 110,
+          "text": "        return require('./index.win32-x64-gnu.node')"
+        },
+        {
+          "line": 115,
+          "text": "        const binding = require('natively-audio-win32-x64-gnu')"
+        },
+        {
+          "line": 116,
+          "text": "        const bindingPackageVersion = require('natively-audio-win32-x64-gnu/package.json').version"
+        },
+        {
+          "line": 126,
+          "text": "        return require('./index.win32-x64-msvc.node')"
+        },
+        {
+          "line": 131,
+          "text": "        const binding = require('natively-audio-win32-x64-msvc')"
+        },
+        {
+          "line": 132,
+          "text": "        const bindingPackageVersion = require('natively-audio-win32-x64-msvc/package.json').version"
+        },
+        {
+          "line": 143,
+          "text": "        return require('./index.win32-ia32-msvc.node')"
+        },
+        {
+          "line": 148,
+          "text": "        const binding = require('natively-audio-win32-ia32-msvc')"
+        },
+        {
+          "line": 149,
+          "text": "        const bindingPackageVersion = require('natively-audio-win32-ia32-msvc/package.json').version"
+        },
+        {
+          "line": 159,
+          "text": "        return require('./index.win32-arm64-msvc.node')"
+        },
+        {
+          "line": 164,
+          "text": "        const binding = require('natively-audio-win32-arm64-msvc')"
+        },
+        {
+          "line": 165,
+          "text": "        const bindingPackageVersion = require('natively-audio-win32-arm64-msvc/package.json').version"
+        },
+        {
+          "line": 178,
+          "text": "      return require('./index.darwin-universal.node')"
+        },
+        {
+          "line": 183,
+          "text": "      const binding = require('natively-audio-darwin-universal')"
+        },
+        {
+          "line": 184,
+          "text": "      const bindingPackageVersion = require('natively-audio-darwin-universal/package.json').version"
+        },
+        {
+          "line": 194,
+          "text": "        return require('./index.darwin-x64.node')"
+        },
+        {
+          "line": 199,
+          "text": "        const binding = require('natively-audio-darwin-x64')"
+        },
+        {
+          "line": 200,
+          "text": "        const bindingPackageVersion = require('natively-audio-darwin-x64/package.json').version"
+        },
+        {
+          "line": 210,
+          "text": "        return require('./index.darwin-arm64.node')"
+        },
+        {
+          "line": 215,
+          "text": "        const binding = require('natively-audio-darwin-arm64')"
+        },
+        {
+          "line": 216,
+          "text": "        const bindingPackageVersion = require('natively-audio-darwin-arm64/package.json').version"
+        },
+        {
+          "line": 230,
+          "text": "        return require('./index.freebsd-x64.node')"
+        },
+        {
+          "line": 235,
+          "text": "        const binding = require('natively-audio-freebsd-x64')"
+        },
+        {
+          "line": 236,
+          "text": "        const bindingPackageVersion = require('natively-audio-freebsd-x64/package.json').version"
+        },
+        {
+          "line": 246,
+          "text": "        return require('./index.freebsd-arm64.node')"
+        },
+        {
+          "line": 251,
+          "text": "        const binding = require('natively-audio-freebsd-arm64')"
+        },
+        {
+          "line": 252,
+          "text": "        const bindingPackageVersion = require('natively-audio-freebsd-arm64/package.json').version"
+        },
+        {
+          "line": 267,
+          "text": "          return require('./index.linux-x64-musl.node')"
+        },
+        {
+          "line": 272,
+          "text": "          const binding = require('natively-audio-linux-x64-musl')"
+        },
+        {
+          "line": 273,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-x64-musl/package.json').version"
+        },
+        {
+          "line": 283,
+          "text": "          return require('./index.linux-x64-gnu.node')"
+        },
+        {
+          "line": 288,
+          "text": "          const binding = require('natively-audio-linux-x64-gnu')"
+        },
+        {
+          "line": 289,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-x64-gnu/package.json').version"
+        },
+        {
+          "line": 301,
+          "text": "          return require('./index.linux-arm64-musl.node')"
+        },
+        {
+          "line": 306,
+          "text": "          const binding = require('natively-audio-linux-arm64-musl')"
+        },
+        {
+          "line": 307,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-arm64-musl/package.json').version"
+        },
+        {
+          "line": 317,
+          "text": "          return require('./index.linux-arm64-gnu.node')"
+        },
+        {
+          "line": 322,
+          "text": "          const binding = require('natively-audio-linux-arm64-gnu')"
+        },
+        {
+          "line": 323,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-arm64-gnu/package.json').version"
+        },
+        {
+          "line": 335,
+          "text": "          return require('./index.linux-arm-musleabihf.node')"
+        },
+        {
+          "line": 340,
+          "text": "          const binding = require('natively-audio-linux-arm-musleabihf')"
+        },
+        {
+          "line": 341,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-arm-musleabihf/package.json').version"
+        },
+        {
+          "line": 351,
+          "text": "          return require('./index.linux-arm-gnueabihf.node')"
+        },
+        {
+          "line": 356,
+          "text": "          const binding = require('natively-audio-linux-arm-gnueabihf')"
+        },
+        {
+          "line": 357,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-arm-gnueabihf/package.json').version"
+        },
+        {
+          "line": 369,
+          "text": "          return require('./index.linux-loong64-musl.node')"
+        },
+        {
+          "line": 374,
+          "text": "          const binding = require('natively-audio-linux-loong64-musl')"
+        },
+        {
+          "line": 375,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-loong64-musl/package.json').version"
+        },
+        {
+          "line": 385,
+          "text": "          return require('./index.linux-loong64-gnu.node')"
+        },
+        {
+          "line": 390,
+          "text": "          const binding = require('natively-audio-linux-loong64-gnu')"
+        },
+        {
+          "line": 391,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-loong64-gnu/package.json').version"
+        },
+        {
+          "line": 403,
+          "text": "          return require('./index.linux-riscv64-musl.node')"
+        },
+        {
+          "line": 408,
+          "text": "          const binding = require('natively-audio-linux-riscv64-musl')"
+        },
+        {
+          "line": 409,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-riscv64-musl/package.json').version"
+        },
+        {
+          "line": 419,
+          "text": "          return require('./index.linux-riscv64-gnu.node')"
+        },
+        {
+          "line": 424,
+          "text": "          const binding = require('natively-audio-linux-riscv64-gnu')"
+        },
+        {
+          "line": 425,
+          "text": "          const bindingPackageVersion = require('natively-audio-linux-riscv64-gnu/package.json').version"
+        },
+        {
+          "line": 436,
+          "text": "        return require('./index.linux-ppc64-gnu.node')"
+        },
+        {
+          "line": 441,
+          "text": "        const binding = require('natively-audio-linux-ppc64-gnu')"
+        },
+        {
+          "line": 442,
+          "text": "        const bindingPackageVersion = require('natively-audio-linux-ppc64-gnu/package.json').version"
+        },
+        {
+          "line": 452,
+          "text": "        return require('./index.linux-s390x-gnu.node')"
+        },
+        {
+          "line": 457,
+          "text": "        const binding = require('natively-audio-linux-s390x-gnu')"
+        },
+        {
+          "line": 458,
+          "text": "        const bindingPackageVersion = require('natively-audio-linux-s390x-gnu/package.json').version"
+        },
+        {
+          "line": 472,
+          "text": "        return require('./index.openharmony-arm64.node')"
+        },
+        {
+          "line": 477,
+          "text": "        const binding = require('natively-audio-openharmony-arm64')"
+        },
+        {
+          "line": 478,
+          "text": "        const bindingPackageVersion = require('natively-audio-openharmony-arm64/package.json').version"
+        },
+        {
+          "line": 488,
+          "text": "        return require('./index.openharmony-x64.node')"
+        },
+        {
+          "line": 493,
+          "text": "        const binding = require('natively-audio-openharmony-x64')"
+        },
+        {
+          "line": 494,
+          "text": "        const bindingPackageVersion = require('natively-audio-openharmony-x64/package.json').version"
+        },
+        {
+          "line": 504,
+          "text": "        return require('./index.openharmony-arm.node')"
+        },
+        {
+          "line": 509,
+          "text": "        const binding = require('natively-audio-openharmony-arm')"
+        },
+        {
+          "line": 510,
+          "text": "        const bindingPackageVersion = require('natively-audio-openharmony-arm/package.json').version"
+        },
+        {
+          "line": 532,
+          "text": "    wasiBinding = require('./index.wasi.cjs')"
+        },
+        {
+          "line": 541,
+          "text": "      wasiBinding = require('natively-audio-wasm32-wasi')"
+        }
+      ]
+    },
+    {
+      "file": "native-module/package.json",
+      "sha256": "1f5fc57c8337918ff9d448767e40e0f34209cc8c7b239f52213a367a19faab6d",
+      "relevantLines": []
+    },
+    {
+      "file": "electron-builder.config.cjs",
+      "sha256": "5a8ddb9fce2eee534610ce236d071c06c5b77420e6ba8959470ff24201cbf750",
+      "relevantLines": [
+        {
+          "line": 1,
+          "text": "const { selectIdentity } = require('./scripts/margin/app-identity.cjs');"
+        },
+        {
+          "line": 5,
+          "text": "  ...require('./package.json').build,"
+        },
+        {
+          "line": 9,
+          "text": "    ...require('./package.json').build.mac,"
+        }
+      ]
+    },
+    {
+      "file": "vite.config.mts",
+      "sha256": "ce3cc5a5f8d3997ed54e722432f16decb08b0073a11a3e49105a4e9e3db73fcf",
+      "relevantLines": [
+        {
+          "line": 1,
+          "text": "import { defineConfig } from 'vite'"
+        },
+        {
+          "line": 2,
+          "text": "import react from '@vitejs/plugin-react'"
+        },
+        {
+          "line": 3,
+          "text": "import path from 'path'"
+        },
+        {
+          "line": 4,
+          "text": "import { version } from './package.json'"
+        },
+        {
+          "line": 5,
+          "text": "import identityConfig from './scripts/margin/app-identity.cjs'"
+        }
+      ]
+    },
+    {
+      "file": "scripts/margin/setup-native.mjs",
+      "sha256": "4af05bfd57bd6a9c0f79c6c1ac044b4a63e5d5f5e87a2ee23a03b37a55979945",
+      "relevantLines": [
+        {
+          "line": 3,
+          "text": "// so `npm ci` runs no install scripts at all: not this repo's legacy postinstall (which"
+        },
+        {
+          "line": 7,
+          "text": "//   1. Electron binary        node_modules/electron/install.js (official Electron release)"
+        },
+        {
+          "line": 14,
+          "text": "//   4. native-module          scripts/build-native.js (cargo; crates from crates.io)"
+        },
+        {
+          "line": 18,
+          "text": "// Usage: npm run setup:native"
+        },
+        {
+          "line": 20,
+          "text": "import { execFileSync, spawnSync } from 'node:child_process';"
+        },
+        {
+          "line": 21,
+          "text": "import fs from 'node:fs';"
+        },
+        {
+          "line": 22,
+          "text": "import path from 'node:path';"
+        },
+        {
+          "line": 23,
+          "text": "import { fileURLToPath } from 'node:url';"
+        },
+        {
+          "line": 28,
+          "text": "  console.log(`\\n[setup:native] ${label}`);"
+        },
+        {
+          "line": 50,
+          "text": "      console.log(`[setup:native] clang++ cannot find libc++ headers; using ${libcxx}`);"
+        },
+        {
+          "line": 59,
+          "text": "  run(`1/5 Electron ${electronPkg.version} binary`, node, ['node_modules/electron/install.js']);"
+        },
+        {
+          "line": 61,
+          "text": "  console.log(`\\n[setup:native] 1/5 Electron ${electronPkg.version} binary already present`);"
+        },
+        {
+          "line": 70,
+          "text": "  'node_modules/@electron/rebuild/lib/cli.js', '-f', '-w', 'better-sqlite3,keytar', '-v', electronPkg.version,"
+        },
+        {
+          "line": 73,
+          "text": "run('4/5 build native-module', node, ['scripts/build-native.js']);"
+        },
+        {
+          "line": 77,
+          "text": "console.log('\\n[setup:native] done');"
+        }
+      ]
+    },
+    {
+      "file": "scripts/build-native.js",
+      "sha256": "77c733da0a607fbcdab5e35b359bfa86d19612e1d73eef963159f33c0b8a30fc",
+      "relevantLines": [
+        {
+          "line": 1,
+          "text": "const { execSync } = require('child_process');"
+        },
+        {
+          "line": 2,
+          "text": "const fs = require('fs');"
+        },
+        {
+          "line": 3,
+          "text": "const os = require('os');"
+        },
+        {
+          "line": 4,
+          "text": "const path = require('path');"
+        }
+      ]
+    },
+    {
+      "file": "scripts/build-electron.js",
+      "sha256": "0a6003751d509caf9b30c6bb68b669ff910799e2f1945a54def12d4311820905",
+      "relevantLines": [
+        {
+          "line": 8,
+          "text": "const { build } = require('esbuild');"
+        },
+        {
+          "line": 9,
+          "text": "const path = require('path');"
+        },
+        {
+          "line": 10,
+          "text": "const fs = require('fs');"
+        },
+        {
+          "line": 11,
+          "text": "const identity = require('./margin/app-identity.cjs').selectIdentity();"
+        }
+      ]
+    },
+    {
+      "file": ".github/workflows/margin-gates.yml",
+      "sha256": "e76daf1fc1642e6e8ee8bda6221b32fd6004399f6ec58255593c46ffe6d3bae9",
+      "relevantLines": [
+        {
+          "line": 49,
+          "text": "          for sha in $(node -p \"require('./docs/margin/provenance-config.json').restrictedExtraRefs.join(' ')\"); do"
+        },
+        {
+          "line": 79,
+          "text": "      - run: npm ci"
+        },
+        {
+          "line": 86,
+          "text": "          npm run setup:native 2>&1 | tee \"$RUNNER_TEMP/native-artifact/setup-native.log\""
+        },
+        {
+          "line": 122,
+          "text": "            const fs = require('fs');"
+        },
+        {
+          "line": 157,
+          "text": "          node -e \"const fs=require('fs'); const path=require('path'); const dir=path.join(process.env.RUNNER_TEMP,'margin-package-inventory','reports'); if(fs.existsSync(dir)) require('./scripts/margin/package-inventory.cjs').assertTextArtifacts(dir);\""
+        }
+      ]
+    }
+  ],
+  "manualReview": {
+    "generatedNativeLoader": "index.js lines64-66 allow arbitrary NAPI_RS_NATIVE_LIBRARY_PATH override; default Darwin tries universal then fixed arch .node and natively-audio platform packages, not removed package names",
+    "productionLoader": "nativeModuleLoader directly requires fixed .node candidate paths; generated wrapper is exercised by native selftest",
+    "rootConfigs": "electron-builder imports only identity/package config; Vite imports Vite/React/path/package/identity, manual chunk lists contain no removed package",
+    "setup": "only Electron/sharp/better-sqlite3/keytar/native-module/plist steps",
+    "ci": "workflow files do not explicitly set NAPI_RS_NATIVE_LIBRARY_PATH; inherited external/runner environment cannot be statically proved absent",
+    "scopeLimit": "No actual native load, fresh package, arbitrary environment override or external code execution was performed"
+  }
+}

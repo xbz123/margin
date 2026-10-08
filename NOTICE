@@ -25,24 +25,30 @@ Full fixed-version Electron/Chromium notices are copied into licenses/electron
 inside packaged Resources and hash-checked, not replaced by an MIT summary.
 Inter 4.1 retains SIL OFL; React Icons retains package/icon-set notices.
 
+Historical SPDX attribution from checkpoints 45b11c5b and 3ac02ece follows.
+S18 removes these packages and their supplemental sources from the current
+candidate inventory. Original notice texts and metadata remain in those Git
+checkpoints; their presence in current licenses/manifest.json or Resources is
+not asserted.
+
 spdx-exceptions 2.5.0 declares Creative Commons Attribution 3.0 Unported.
 Its original README quotes the SPDX 2.0 statement: "Copyright © 2010-2015
 Linux Foundation and its Contributors. Licensed under the Creative Commons
 Attribution License 3.0 Unported. All other rights are expressly reserved."
 Kyle Mitchell states that he mechanically copied the exception identifiers
-from the SPDX specification. The full original README and official CC BY 3.0
-legal code are retained in licenses; exact sources and hashes are in its manifest.
+from the SPDX specification. Those checkpoints retained the full original README
+and official CC BY 3.0 legal code with exact sources and hashes in their manifest.
 Source: https://github.com/kemitchell/spdx-exceptions.json/tree/3aa64bec339abc6a3eca00c3436aaa7e154b8799
 License: https://creativecommons.org/licenses/by/3.0/legalcode
-The packaged identifier data matches the original installed version; no changes
-to those data files are made here. This attribution implies no endorsement by
-The Linux Foundation, SPDX or their contributors. The original README identifies
+The then-packaged identifier data matched the original installed version;
+those data files were not changed by the notice binding. This attribution implies
+no endorsement by The Linux Foundation, SPDX or their contributors. The original README identifies
 SPDX as a trademark of The Linux Foundation Corporation.
 
 spdx-license-ids 3.0.23 declares Creative Commons Zero 1.0 Universal. Package
 metadata identifies Shinnosuke Watanabe as author; no copyright year or grant
-is invented from that author field. Its original licensing README and official
-CC0 full text are retained with exact sources and hashes in licenses/manifest.json.
+is invented from that author field. Those checkpoints retained its original
+licensing README and official CC0 full text with exact sources and hashes.
 Source: https://github.com/jslicense/spdx-license-ids/tree/a2a975daf48bbc2afdc8e7c304405b44c656fd53
 License: https://creativecommons.org/publicdomain/zero/1.0/legalcode
 CC0 does not grant trademark or patent rights or guarantee clearance of other
@@ -67,6 +73,27 @@ Copyright (C) 2019-2023 Microsoft Corporation
 Copyright (C) 2022-2023 David Rheinsberg
 Source: https://github.com/r-efi/r-efi/blob/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS
 This retained notice does not establish that r-efi is linked into a packaged app.
+
+<!-- margin-license-inventory:start -->
+Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
+726 candidates; 382 unique stored texts; 33 excluded paths; 10 unresolved candidates; 2 deferred notices.
+
+Current supplemental notice bindings:
+- npm:highlightjs-vue@1.0.0: CC0-1.0
+- cargo:r-efi@5.3.0: MIT OR Apache-2.0 OR LGPL-2.1-or-later (selected MIT)
+
+Unresolved candidates:
+- npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode
+- npm:eastasianwidth@0.2.0:node_modules/eastasianwidth
+- npm:format@0.2.2:node_modules/format
+- npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
+- npm:stream-events@1.0.5:node_modules/stream-events
+- npm:stubs@3.0.0:node_modules/stubs
+- npm:tr46@0.0.3:node_modules/tr46
+- cargo:oboe@0.6.1
+- cargo:oboe-sys@0.6.1
+- cargo:realfft@3.5.0
+<!-- margin-license-inventory:end -->
 
 Candidate coverage is not proof of the actual distributed set or fulfillment of
 copyleft corresponding-source/relinking obligations. licenses/README.md records

@@ -1,0 +1,1225 @@
+{
+  "oldPackageCount": 1596,
+  "newPackageCount": 1334,
+  "rootChanges": [
+    {
+      "name": "screenshot-desktop",
+      "old": "^1.15.0"
+    },
+    {
+      "name": "sqlite3",
+      "old": "^5.1.7"
+    },
+    {
+      "name": "tap",
+      "old": "^21.5.0"
+    }
+  ],
+  "removed": [
+    "node_modules/@alcalzone/ansi-tokenize",
+    "node_modules/@alcalzone/ansi-tokenize/node_modules/ansi-styles",
+    "node_modules/@alcalzone/ansi-tokenize/node_modules/is-fullwidth-code-point",
+    "node_modules/@base2/pretty-print-object",
+    "node_modules/@bcoe/v8-coverage",
+    "node_modules/@cspotcode/source-map-support",
+    "node_modules/@cspotcode/source-map-support/node_modules/@jridgewell/trace-mapping",
+    "node_modules/@gar/promise-retry",
+    "node_modules/@isaacs/cliui",
+    "node_modules/@isaacs/ts-node-temp-fork-for-pr-2009",
+    "node_modules/@isaacs/ts-node-temp-fork-for-pr-2009/node_modules/arg",
+    "node_modules/@isaacs/ts-node-temp-fork-for-pr-2009/node_modules/diff",
+    "node_modules/@isaacs/which",
+    "node_modules/@istanbuljs/schema",
+    "node_modules/@npmcli/agent",
+    "node_modules/@npmcli/agent/node_modules/lru-cache",
+    "node_modules/@npmcli/fs",
+    "node_modules/@npmcli/git",
+    "node_modules/@npmcli/git/node_modules/ini",
+    "node_modules/@npmcli/git/node_modules/lru-cache",
+    "node_modules/@npmcli/git/node_modules/which",
+    "node_modules/@npmcli/installed-package-contents",
+    "node_modules/@npmcli/node-gyp",
+    "node_modules/@npmcli/package-json",
+    "node_modules/@npmcli/package-json/node_modules/glob",
+    "node_modules/@npmcli/package-json/node_modules/hosted-git-info",
+    "node_modules/@npmcli/package-json/node_modules/lru-cache",
+    "node_modules/@npmcli/promise-spawn",
+    "node_modules/@npmcli/promise-spawn/node_modules/which",
+    "node_modules/@npmcli/redact",
+    "node_modules/@npmcli/run-script",
+    "node_modules/@sigstore/bundle",
+    "node_modules/@sigstore/core",
+    "node_modules/@sigstore/protobuf-specs",
+    "node_modules/@sigstore/sign",
+    "node_modules/@sigstore/tuf",
+    "node_modules/@sigstore/verify",
+    "node_modules/@tapjs/after",
+    "node_modules/@tapjs/after-each",
+    "node_modules/@tapjs/asserts",
+    "node_modules/@tapjs/before",
+    "node_modules/@tapjs/before-each",
+    "node_modules/@tapjs/chdir",
+    "node_modules/@tapjs/config",
+    "node_modules/@tapjs/config/node_modules/chalk",
+    "node_modules/@tapjs/core",
+    "node_modules/@tapjs/core/node_modules/diff",
+    "node_modules/@tapjs/error-serdes",
+    "node_modules/@tapjs/filter",
+    "node_modules/@tapjs/fixture",
+    "node_modules/@tapjs/intercept",
+    "node_modules/@tapjs/mock",
+    "node_modules/@tapjs/node-serialize",
+    "node_modules/@tapjs/processinfo",
+    "node_modules/@tapjs/processinfo/node_modules/uuid",
+    "node_modules/@tapjs/reporter",
+    "node_modules/@tapjs/reporter/node_modules/chalk",
+    "node_modules/@tapjs/reporter/node_modules/react",
+    "node_modules/@tapjs/run",
+    "node_modules/@tapjs/run/node_modules/chalk",
+    "node_modules/@tapjs/run/node_modules/chokidar",
+    "node_modules/@tapjs/run/node_modules/glob",
+    "node_modules/@tapjs/run/node_modules/readdirp",
+    "node_modules/@tapjs/snapshot",
+    "node_modules/@tapjs/spawn",
+    "node_modules/@tapjs/stack",
+    "node_modules/@tapjs/stdin",
+    "node_modules/@tapjs/test",
+    "node_modules/@tapjs/test/node_modules/glob",
+    "node_modules/@tapjs/typescript",
+    "node_modules/@tapjs/worker",
+    "node_modules/@tsconfig/node14",
+    "node_modules/@tsconfig/node16",
+    "node_modules/@tsconfig/node18",
+    "node_modules/@tsconfig/node20",
+    "node_modules/@tufjs/canonical-json",
+    "node_modules/@tufjs/models",
+    "node_modules/@types/istanbul-lib-coverage",
+    "node_modules/@typescript/native-preview",
+    "node_modules/@typescript/native-preview-darwin-arm64",
+    "node_modules/@typescript/native-preview-darwin-x64",
+    "node_modules/@typescript/native-preview-linux-arm",
+    "node_modules/@typescript/native-preview-linux-arm64",
+    "node_modules/@typescript/native-preview-linux-x64",
+    "node_modules/@typescript/native-preview-win32-arm64",
+    "node_modules/@typescript/native-preview-win32-x64",
+    "node_modules/acorn-walk",
+    "node_modules/ansi-escapes",
+    "node_modules/async-hook-domain",
+    "node_modules/auto-bind",
+    "node_modules/c8",
+    "node_modules/c8/node_modules/foreground-child",
+    "node_modules/cacache",
+    "node_modules/cacache/node_modules/glob",
+    "node_modules/cacache/node_modules/lru-cache",
+    "node_modules/cli-boxes",
+    "node_modules/code-excerpt",
+    "node_modules/convert-to-spaces",
+    "node_modules/environment",
+    "node_modules/events-to-array",
+    "node_modules/foreground-child",
+    "node_modules/fromentries",
+    "node_modules/fs-minipass",
+    "node_modules/function-loop",
+    "node_modules/get-east-asian-width",
+    "node_modules/html-escaper",
+    "node_modules/ignore-walk",
+    "node_modules/indent-string",
+    "node_modules/ink",
+    "node_modules/ink/node_modules/ansi-regex",
+    "node_modules/ink/node_modules/ansi-styles",
+    "node_modules/ink/node_modules/chalk",
+    "node_modules/ink/node_modules/cli-cursor",
+    "node_modules/ink/node_modules/cli-truncate",
+    "node_modules/ink/node_modules/cli-truncate/node_modules/is-fullwidth-code-point",
+    "node_modules/ink/node_modules/cli-truncate/node_modules/slice-ansi",
+    "node_modules/ink/node_modules/emoji-regex",
+    "node_modules/ink/node_modules/is-fullwidth-code-point",
+    "node_modules/ink/node_modules/react-reconciler",
+    "node_modules/ink/node_modules/restore-cursor",
+    "node_modules/ink/node_modules/scheduler",
+    "node_modules/ink/node_modules/signal-exit",
+    "node_modules/ink/node_modules/slice-ansi",
+    "node_modules/ink/node_modules/string-width",
+    "node_modules/ink/node_modules/strip-ansi",
+    "node_modules/ink/node_modules/type-fest",
+    "node_modules/is-actual-promise",
+    "node_modules/is-in-ci",
+    "node_modules/is-plain-object",
+    "node_modules/istanbul-lib-coverage",
+    "node_modules/istanbul-lib-report",
+    "node_modules/istanbul-lib-report/node_modules/supports-color",
+    "node_modules/istanbul-reports",
+    "node_modules/jackspeak",
+    "node_modules/json-parse-even-better-errors",
+    "node_modules/jsonc-simple-parser",
+    "node_modules/jsonparse",
+    "node_modules/loose-envify",
+    "node_modules/make-dir",
+    "node_modules/make-error",
+    "node_modules/make-fetch-happen",
+    "node_modules/minipass-collect",
+    "node_modules/minipass-fetch",
+    "node_modules/minipass-sized",
+    "node_modules/mkdirp",
+    "node_modules/negotiator",
+    "node_modules/node-options-to-argv",
+    "node_modules/npm-bundled",
+    "node_modules/npm-install-checks",
+    "node_modules/npm-normalize-package-bin",
+    "node_modules/npm-package-arg",
+    "node_modules/npm-package-arg/node_modules/hosted-git-info",
+    "node_modules/npm-package-arg/node_modules/lru-cache",
+    "node_modules/npm-packlist",
+    "node_modules/npm-pick-manifest",
+    "node_modules/npm-registry-fetch",
+    "node_modules/opener",
+    "node_modules/p-map",
+    "node_modules/pacote",
+    "node_modules/patch-console",
+    "node_modules/polite-json",
+    "node_modules/prismjs-terminal",
+    "node_modules/prismjs-terminal/node_modules/chalk",
+    "node_modules/process-on-spawn",
+    "node_modules/react-is",
+    "node_modules/reghex",
+    "node_modules/resolve-import",
+    "node_modules/resolve-import/node_modules/glob",
+    "node_modules/screenshot-desktop",
+    "node_modules/sigstore",
+    "node_modules/socks-proxy-agent",
+    "node_modules/spdx-exceptions",
+    "node_modules/spdx-expression-parse",
+    "node_modules/spdx-license-ids",
+    "node_modules/sqlite3",
+    "node_modules/sqlite3/node_modules/@npmcli/fs",
+    "node_modules/sqlite3/node_modules/@npmcli/move-file",
+    "node_modules/sqlite3/node_modules/@tootallnate/once",
+    "node_modules/sqlite3/node_modules/abbrev",
+    "node_modules/sqlite3/node_modules/agent-base",
+    "node_modules/sqlite3/node_modules/cacache",
+    "node_modules/sqlite3/node_modules/chownr",
+    "node_modules/sqlite3/node_modules/fs-minipass",
+    "node_modules/sqlite3/node_modules/http-proxy-agent",
+    "node_modules/sqlite3/node_modules/https-proxy-agent",
+    "node_modules/sqlite3/node_modules/lru-cache",
+    "node_modules/sqlite3/node_modules/make-fetch-happen",
+    "node_modules/sqlite3/node_modules/minipass",
+    "node_modules/sqlite3/node_modules/minipass-collect",
+    "node_modules/sqlite3/node_modules/minipass-fetch",
+    "node_modules/sqlite3/node_modules/minipass-sized",
+    "node_modules/sqlite3/node_modules/minizlib",
+    "node_modules/sqlite3/node_modules/mkdirp",
+    "node_modules/sqlite3/node_modules/negotiator",
+    "node_modules/sqlite3/node_modules/node-addon-api",
+    "node_modules/sqlite3/node_modules/node-gyp",
+    "node_modules/sqlite3/node_modules/nopt",
+    "node_modules/sqlite3/node_modules/p-map",
+    "node_modules/sqlite3/node_modules/rimraf",
+    "node_modules/sqlite3/node_modules/socks-proxy-agent",
+    "node_modules/sqlite3/node_modules/ssri",
+    "node_modules/sqlite3/node_modules/tar",
+    "node_modules/sqlite3/node_modules/tar/node_modules/minipass",
+    "node_modules/sqlite3/node_modules/unique-filename",
+    "node_modules/sqlite3/node_modules/unique-slug",
+    "node_modules/sqlite3/node_modules/yallist",
+    "node_modules/ssri",
+    "node_modules/stack-utils",
+    "node_modules/stack-utils/node_modules/escape-string-regexp",
+    "node_modules/string-length",
+    "node_modules/string-length/node_modules/ansi-regex",
+    "node_modules/string-length/node_modules/strip-ansi",
+    "node_modules/sync-content",
+    "node_modules/sync-content/node_modules/glob",
+    "node_modules/tap",
+    "node_modules/tap-parser",
+    "node_modules/tap-yaml",
+    "node_modules/tcompare",
+    "node_modules/tcompare/node_modules/diff",
+    "node_modules/tcompare/node_modules/react",
+    "node_modules/tcompare/node_modules/react-dom",
+    "node_modules/tcompare/node_modules/react-element-to-jsx-string",
+    "node_modules/tcompare/node_modules/scheduler",
+    "node_modules/test-exclude",
+    "node_modules/test-exclude/node_modules/@isaacs/cliui",
+    "node_modules/test-exclude/node_modules/ansi-regex",
+    "node_modules/test-exclude/node_modules/ansi-styles",
+    "node_modules/test-exclude/node_modules/balanced-match",
+    "node_modules/test-exclude/node_modules/brace-expansion",
+    "node_modules/test-exclude/node_modules/emoji-regex",
+    "node_modules/test-exclude/node_modules/foreground-child",
+    "node_modules/test-exclude/node_modules/glob",
+    "node_modules/test-exclude/node_modules/glob/node_modules/minimatch",
+    "node_modules/test-exclude/node_modules/jackspeak",
+    "node_modules/test-exclude/node_modules/lru-cache",
+    "node_modules/test-exclude/node_modules/path-scurry",
+    "node_modules/test-exclude/node_modules/string-width",
+    "node_modules/test-exclude/node_modules/strip-ansi",
+    "node_modules/test-exclude/node_modules/wrap-ansi",
+    "node_modules/trivial-deferred",
+    "node_modules/tshy",
+    "node_modules/tshy/node_modules/chalk",
+    "node_modules/tshy/node_modules/chokidar",
+    "node_modules/tshy/node_modules/readdirp",
+    "node_modules/tuf-js",
+    "node_modules/v8-compile-cache-lib",
+    "node_modules/v8-to-istanbul",
+    "node_modules/validate-npm-package-name",
+    "node_modules/walk-up-path",
+    "node_modules/widest-line",
+    "node_modules/widest-line/node_modules/ansi-regex",
+    "node_modules/widest-line/node_modules/emoji-regex",
+    "node_modules/widest-line/node_modules/string-width",
+    "node_modules/widest-line/node_modules/strip-ansi",
+    "node_modules/wrap-ansi",
+    "node_modules/wrap-ansi/node_modules/ansi-regex",
+    "node_modules/wrap-ansi/node_modules/ansi-styles",
+    "node_modules/wrap-ansi/node_modules/emoji-regex",
+    "node_modules/wrap-ansi/node_modules/string-width",
+    "node_modules/wrap-ansi/node_modules/strip-ansi",
+    "node_modules/yaml-types",
+    "node_modules/yoga-layout"
+  ],
+  "added": [],
+  "identityChanges": [],
+  "metadataChanges": [
+    {
+      "path": "node_modules/@gar/promisify",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/@isaacs/fs-minipass",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/@jridgewell/resolve-uri",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/@jridgewell/sourcemap-codec",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/@jridgewell/trace-mapping",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/abbrev",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/acorn",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/aggregate-error",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/aggregate-error/node_modules/indent-string",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/ajv-formats",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/aproba",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/are-we-there-yet",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/balanced-match",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/brace-expansion",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/chownr",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/clean-stack",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/color-support",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/concat-map",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/console-control-strings",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/convert-source-map",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/delegates",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/err-code",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/es-toolkit",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/exponential-backoff",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/find-up",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/fs.realpath",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/gauge",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/gauge/node_modules/signal-exit",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/glob",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/glob/node_modules/balanced-match",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/glob/node_modules/brace-expansion",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/glob/node_modules/minimatch",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/graceful-fs",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/has-flag",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/has-unicode",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/http-cache-semantics",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/iconv-lite",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/imurmurhash",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/infer-owner",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/inflight",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/ip-address",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/is-lambda",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/isexe",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/js-tokens",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/json-schema-typed",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/locate-path",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minimatch",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minipass-flush",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minipass-flush/node_modules/minipass",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minipass-flush/node_modules/yallist",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minipass-pipeline",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minipass-pipeline/node_modules/minipass",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minipass-pipeline/node_modules/yallist",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/minizlib",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/node-gyp",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/node-gyp/node_modules/which",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/nopt",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/npmlog",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/object-assign",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/p-limit",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/p-locate",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/path-exists",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/path-scurry",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/path-scurry/node_modules/lru-cache",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/pirates",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/proc-log",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/promise-inflight",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/promise-retry",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/promise-retry/node_modules/retry",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/rimraf",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/rimraf/node_modules/glob",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/set-blocking",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/smart-buffer",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/socks",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/tar",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/tar/node_modules/yallist",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/temp",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/temp/node_modules/mkdirp",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/temp/node_modules/rimraf",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        },
+        {
+          "key": "peer",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/tinyglobby",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/tinyglobby/node_modules/fdir",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/tinyglobby/node_modules/picomatch",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/typescript",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/undici",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/wide-align",
+      "changes": [
+        {
+          "key": "devOptional",
+          "old": true
+        },
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/yaml",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    },
+    {
+      "path": "node_modules/yocto-queue",
+      "changes": [
+        {
+          "key": "dev",
+          "new": true
+        }
+      ]
+    }
+  ],
+  "removedBindings": [
+    {
+      "id": "standard:node-options-to-argv",
+      "name": "node-options-to-argv",
+      "version": "1.0.0",
+      "license": "BlueOak-1.0.0"
+    },
+    {
+      "id": "standard:spdx-exceptions",
+      "name": "spdx-exceptions",
+      "version": "2.5.0",
+      "license": "CC-BY-3.0"
+    },
+    {
+      "id": "standard:spdx-license-ids",
+      "name": "spdx-license-ids",
+      "version": "3.0.23",
+      "license": "CC0-1.0"
+    }
+  ]
+}

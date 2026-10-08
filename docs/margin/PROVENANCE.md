@@ -124,6 +124,48 @@ package-diagnostic logic are unchanged. Neither this binding nor the platform
 labels exclude r-efi/Oboe candidates or close native static-composition and
 distribution obligations; oboe/oboe-sys and realfft still lack full notices.
 
+### AG-26 S18 dependency-scope reduction
+
+S18 removes only the root production declarations for `tap`, `sqlite3` and
+`screenshot-desktop`, after checking static imports, dynamic load sites and their
+callers, root build configuration, native-loader defaults, setup, tests and CI.
+The app's database route retains `better-sqlite3`; screenshots retain Electron
+desktopCapturer and the existing Linux shell route. Node's built-in TAP test
+reporter is not the removed npm `tap` package. The generated native entrypoint
+permits an external `NAPI_RS_NATIVE_LIBRARY_PATH` override; arbitrary external
+overrides are outside the static reachability proof, and were not executed.
+The old S17 artifact's inclusion evidence is not reclassified as non-distribution.
+
+An offline, install-script-disabled lock-only calculation removes 262 unreferenced
+nodes while keeping shared nodes, all retained package versions, resolved sources,
+integrities, dependency fields and independent root development declarations.
+The 87 retained classification changes are 26 devOptional-to-dev transitions,
+53 dev-only flags and 8 dev-plus-peer flags. The latter remain through ESLint
+peer paths or electron-builder's peer Windows-installer chain. No new package,
+version upgrade, replacement library or native rebuild is introduced here.
+The generated lock's parsed values are retained exactly; old object key order is
+restored mechanically to keep the diff focused.
+
+The three removed root trees no longer supply the ansi-tokenize, npmcli/agent,
+once 1.1.2 and screenshot-desktop candidates. err-code remains installed as a
+development dependency, not an application-map candidate; eastasianwidth remains
+in scope. Those missing notices leave the current candidate inventory through
+the approved graph change, not a fabricated license grant or manual exclusion.
+The collector still derives candidates from the lock and application source maps;
+physical node_modules leftovers cannot alone re-enter the candidate inventory.
+README and NOTICE current-inventory sections are regenerated together from the
+manifest within strict markers, leaving original legal prose and attribution
+outside those sections intact. Missing/duplicate markers fail collection.
+
+Six now-unreferenced supplemental source entries are removed precisely: the
+node-options-to-argv standard binding, both SPDX standard bindings and their two
+README attachments, and the ansi-tokenize supplement. Their original licensing
+records remain in checkpoints `45b11c5b` and `3ac02ece`; retained historical SPDX
+attribution does not assert current manifest or Resources inclusion. All remaining
+source bindings retain exact identity/hash checks. Native vendored composition,
+remaining missing notices, corresponding-source/relinking duties, and acceptance
+of a newly packaged artifact are separate unresolved obligations.
+
 AG-26's notice collector, package-byte checker, synthetic tests and rewritten
 public documents are written for this branch from PLAN's license/documentation
 contract and Node standard-library APIs. They import no later application

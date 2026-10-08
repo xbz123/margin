@@ -1,0 +1,38 @@
+[
+  {
+    "file": "package.json",
+    "sha256": "8a2a5dca168c3369e0584b47fc68efca98d5017106cda5d32cd4400b925633bc"
+  },
+  {
+    "file": "package-lock.json",
+    "sha256": "2bfe2588c86d235892a0fc60c5d1937743f2db147d393452ff0d177143f05999"
+  },
+  {
+    "file": "scripts/margin/collect-licenses.mjs",
+    "sha256": "0059b7dc942af8d6c7515d656ace884670ed8d25af9ab200406a15b29cd33722"
+  },
+  {
+    "file": "scripts/margin/license-sources.json",
+    "sha256": "8a63e2a7a4fef3fe2b83c255f8aa7d66662d48f3bcc811bd322102485e224d58"
+  },
+  {
+    "file": "electron/margin/__tests__/licenseInventory.test.mjs",
+    "sha256": "a7df55d5e1f06682f950d57961323c014fbf75814d813378cd6354e2d42b1cce"
+  },
+  {
+    "file": "licenses/manifest.json",
+    "sha256": "04971d6a1fe45bbda71dddfc69919d9b3ebf57816b5a38dbb7555ac9c2df09df"
+  },
+  {
+    "file": "licenses/README.md",
+    "sha256": "4aec56b962e65ecf61708d5214d3a56e1b0c5122632c8f428bc4e5f427d6784a"
+  },
+  {
+    "file": "NOTICE",
+    "sha256": "e28cf5fec5a527a27945667f63e60389041ab1d4f4dd1d679087f028ae82462c"
+  },
+  {
+    "file": "docs/margin/PROVENANCE.md",
+    "sha256": "9ee6313c9921b1fff1db585eb58bf20f0360b6b6c9bb97d3e17b5c6fb9455bdf"
+  }
+]

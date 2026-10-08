@@ -1,0 +1,1181 @@
+{
+  "currentReferences": 382,
+  "orphanCount": 124,
+  "allTrackedAndContentHashMatched": true,
+  "orphan": [
+    {
+      "path": "licenses/texts/05991c2e8f070b69ec5b656c2c12fd07cd0153dd157d39b050b82af59b319a01.txt",
+      "sha256": "05991c2e8f070b69ec5b656c2c12fd07cd0153dd157d39b050b82af59b319a01",
+      "bytes": 1141,
+      "oldReferences": [
+        "npm:mkdirp@0.5.6:node_modules/temp/node_modules/mkdirp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/05dc4d785ac3a488676d3ed10e901b75ad89dafcc63f8e66610fd4a39cc5c7e8.txt",
+      "sha256": "05dc4d785ac3a488676d3ed10e901b75ad89dafcc63f8e66610fd4a39cc5c7e8",
+      "bytes": 748,
+      "oldReferences": [
+        "npm:inflight@1.0.6:node_modules/inflight"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/0cef05dfff8b6aa7f35596984f5709f0d17c2582924a751efa471a76de7cdc11.txt",
+      "sha256": "0cef05dfff8b6aa7f35596984f5709f0d17c2582924a751efa471a76de7cdc11",
+      "bytes": 752,
+      "oldReferences": [
+        "npm:aproba@2.1.0:node_modules/aproba",
+        "npm:wide-align@1.1.5:node_modules/wide-align"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/0daa3c2445c4bfaaa7e8c69ec2742a8841bc920b75818ef2c7a510242de2b04a.txt",
+      "sha256": "0daa3c2445c4bfaaa7e8c69ec2742a8841bc920b75818ef2c7a510242de2b04a",
+      "bytes": 1080,
+      "oldReferences": [
+        "npm:@jridgewell/trace-mapping@0.3.9:node_modules/@cspotcode/source-map-support/node_modules/@jridgewell/trace-mapping"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/11734bf6e540e2c021413451205315e5053932de9df9e81279cf2acad6f135ed.txt",
+      "sha256": "11734bf6e540e2c021413451205315e5053932de9df9e81279cf2acad6f135ed",
+      "bytes": 717,
+      "oldReferences": [
+        "npm:unique-filename@1.1.1:node_modules/sqlite3/node_modules/unique-filename"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/144c935613e823350f7798d19da78b5e8315a79af5c2a3744fd85cd61baf07ee.txt",
+      "sha256": "144c935613e823350f7798d19da78b5e8315a79af5c2a3744fd85cd61baf07ee",
+      "bytes": 1166,
+      "oldReferences": [
+        "npm:mkdirp@1.0.4:node_modules/sqlite3/node_modules/mkdirp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/152f0fb43e953fcf5c56c5bfa4c834bb96b1603e4026319c613dd3e734f305cf.txt",
+      "sha256": "152f0fb43e953fcf5c56c5bfa4c834bb96b1603e4026319c613dd3e734f305cf",
+      "bytes": 1572,
+      "oldReferences": [
+        "npm:diff@4.0.4:node_modules/@isaacs/ts-node-temp-fork-for-pr-2009/node_modules/diff"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/198d506def2360aa9781fad04cc15125a096f4983a44479b366e657c9b1d3138.txt",
+      "sha256": "198d506def2360aa9781fad04cc15125a096f4983a44479b366e657c9b1d3138",
+      "bytes": 1114,
+      "oldReferences": [
+        "npm:ink@5.2.1:node_modules/ink"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/1a9c55b2961f5e3062e181fa55666c44d011fc3cc03ed6d4fa4321c51f2a5ec5.txt",
+      "sha256": "1a9c55b2961f5e3062e181fa55666c44d011fc3cc03ed6d4fa4321c51f2a5ec5",
+      "bytes": 731,
+      "oldReferences": [
+        "npm:@bcoe/v8-coverage@1.0.2:node_modules/@bcoe/v8-coverage",
+        "npm:c8@10.1.3:node_modules/c8",
+        "npm:v8-to-istanbul@9.3.0:node_modules/v8-to-istanbul"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/1c0cd70d6ba8cb9f35cebbf1fe36922a2575a22d5e119bfa126d279807f0a9ab.txt",
+      "sha256": "1c0cd70d6ba8cb9f35cebbf1fe36922a2575a22d5e119bfa126d279807f0a9ab",
+      "bytes": 1141,
+      "oldReferences": [
+        "npm:@npmcli/move-file@1.1.2:node_modules/sqlite3/node_modules/@npmcli/move-file"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/1c66b5311fc6328ab70616d2cf8e20a8e0a787f534831cf8a311b20098b617a5.txt",
+      "sha256": "1c66b5311fc6328ab70616d2cf8e20a8e0a787f534831cf8a311b20098b617a5",
+      "bytes": 1156,
+      "oldReferences": [
+        "npm:@gar/promise-retry@1.0.3:node_modules/@gar/promise-retry"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/1dedee6f84f5875ce4dc398d4d767274eb952a43cfd510a6ada856b2ed347472.txt",
+      "sha256": "1dedee6f84f5875ce4dc398d4d767274eb952a43cfd510a6ada856b2ed347472",
+      "bytes": 1308,
+      "oldReferences": [
+        "npm:minipass-fetch@5.0.2:node_modules/minipass-fetch",
+        "npm:minipass-fetch@1.4.1:node_modules/sqlite3/node_modules/minipass-fetch"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/1e76029602ae9b21cc4e612db2496d92febed882ba13ba745f8b3309e85f9d39.txt",
+      "sha256": "1e76029602ae9b21cc4e612db2496d92febed882ba13ba745f8b3309e85f9d39",
+      "bytes": 1084,
+      "oldReferences": [
+        "npm:@npmcli/fs@5.0.0:node_modules/@npmcli/fs",
+        "npm:@npmcli/fs@1.1.1:node_modules/sqlite3/node_modules/@npmcli/fs"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/1fa6ee8bb95a81ae3d73a5bd074a3ac380ffec13697051063ca1a601921b91db.txt",
+      "sha256": "1fa6ee8bb95a81ae3d73a5bd074a3ac380ffec13697051063ca1a601921b91db",
+      "bytes": 1078,
+      "oldReferences": [
+        "npm:convert-source-map@2.0.0:node_modules/convert-source-map"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/2213d91c606205c71eb051a199478cdc2adde945893404d7f1421436dd6d5cc1.txt",
+      "sha256": "2213d91c606205c71eb051a199478cdc2adde945893404d7f1421436dd6d5cc1",
+      "bytes": 1103,
+      "oldReferences": [
+        "npm:js-tokens@4.0.0:node_modules/js-tokens"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/22c68811e174cbbfb3813d4135918df4f540959c14d872e601d9abe83d3cde8f.txt",
+      "sha256": "22c68811e174cbbfb3813d4135918df4f540959c14d872e601d9abe83d3cde8f",
+      "bytes": 1076,
+      "oldReferences": [
+        "npm:tinyglobby@0.2.16:node_modules/tinyglobby"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/26a3d1035dcf8da7fc75fccf184deeeb5fdf11eae31f0ff1f98994753155b586.txt",
+      "sha256": "26a3d1035dcf8da7fc75fccf184deeeb5fdf11eae31f0ff1f98994753155b586",
+      "bytes": 4585,
+      "oldReferences": [
+        "npm:socks-proxy-agent@6.2.1:node_modules/sqlite3/node_modules/socks-proxy-agent"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/26da15c6dfbc3e685988c83dea650f3c42ee1189d42aadf324d3b47da8c8ec91.txt",
+      "sha256": "26da15c6dfbc3e685988c83dea650f3c42ee1189d42aadf324d3b47da8c8ec91",
+      "bytes": 729,
+      "oldReferences": [
+        "npm:make-error@1.3.6:node_modules/make-error"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/27d06bbb2eb031be8aa376868a2e1f11b6acba938d4cc8e1234b66b9739c54a3.txt",
+      "sha256": "27d06bbb2eb031be8aa376868a2e1f11b6acba938d4cc8e1234b66b9739c54a3",
+      "bytes": 1089,
+      "oldReferences": [
+        "npm:html-escaper@2.0.2:node_modules/html-escaper"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/27d998b503b18cdb16c49e93da04069a99ba8a1d7e18d67146de8e242f9a6d21.txt",
+      "sha256": "27d998b503b18cdb16c49e93da04069a99ba8a1d7e18d67146de8e242f9a6d21",
+      "bytes": 798,
+      "oldReferences": [
+        "npm:@npmcli/fs@5.0.0:node_modules/@npmcli/fs",
+        "npm:gauge@4.0.4:node_modules/gauge",
+        "npm:npm-registry-fetch@19.1.1:node_modules/npm-registry-fetch",
+        "npm:npmlog@6.0.2:node_modules/npmlog",
+        "npm:@npmcli/fs@1.1.1:node_modules/sqlite3/node_modules/@npmcli/fs"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/2ded0fbde4ed3ea64e196d0ac68a8d54c97ec3dd40c94a979a354ac71899178f.txt",
+      "sha256": "2ded0fbde4ed3ea64e196d0ac68a8d54c97ec3dd40c94a979a354ac71899178f",
+      "bytes": 1091,
+      "oldReferences": [
+        "npm:jsonc-simple-parser@3.0.0:node_modules/jsonc-simple-parser"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/32f91405bf470c1967ddf77ccd506e87a5ec15eb3e3fed863dee94b8f1db5261.txt",
+      "sha256": "32f91405bf470c1967ddf77ccd506e87a5ec15eb3e3fed863dee94b8f1db5261",
+      "bytes": 585,
+      "oldReferences": [
+        "npm:yoga-layout@3.2.1:node_modules/yoga-layout"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0.txt",
+      "sha256": "364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+      "bytes": 11351,
+      "oldReferences": [
+        "npm:@sigstore/bundle@4.0.0:node_modules/@sigstore/bundle",
+        "npm:@sigstore/core@3.2.0:node_modules/@sigstore/core",
+        "npm:@sigstore/protobuf-specs@0.5.1:node_modules/@sigstore/protobuf-specs",
+        "npm:@sigstore/sign@4.1.1:node_modules/@sigstore/sign",
+        "npm:@sigstore/tuf@4.0.2:node_modules/@sigstore/tuf",
+        "npm:@sigstore/verify@3.1.0:node_modules/@sigstore/verify",
+        "npm:sigstore@4.1.0:node_modules/sigstore"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/36ec394cd0f976603cfec687c19175a703c1c0d9db717a76915391e756522c8e.txt",
+      "sha256": "36ec394cd0f976603cfec687c19175a703c1c0d9db717a76915391e756522c8e",
+      "bytes": 791,
+      "oldReferences": [
+        "npm:pacote@21.5.0:node_modules/pacote"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/3749709146345fa15546aaba4e3ab1b3b92a4d930077b5bc32d90815cb63afaf.txt",
+      "sha256": "3749709146345fa15546aaba4e3ab1b3b92a4d930077b5bc32d90815cb63afaf",
+      "bytes": 760,
+      "oldReferences": [
+        "npm:ssri@13.0.1:node_modules/ssri"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/3a7d3bb198e909ed642bd68bd29a7d7c09a636d27a51ec663d35f00c4760ec42.txt",
+      "sha256": "3a7d3bb198e909ed642bd68bd29a7d7c09a636d27a51ec663d35f00c4760ec42",
+      "bytes": 1079,
+      "oldReferences": [
+        "npm:@cspotcode/source-map-support@0.8.1:node_modules/@cspotcode/source-map-support"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4491517f7deb68d0b2a3bb590e785e276a60f12448447a9650d0bd50161a101c.txt",
+      "sha256": "4491517f7deb68d0b2a3bb590e785e276a60f12448447a9650d0bd50161a101c",
+      "bytes": 4763,
+      "oldReferences": [
+        "npm:imurmurhash@0.1.4:node_modules/imurmurhash"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4736df0aa50d339e32c2364b5fafeb923075e8f92ea4cc2ac5c9ca926783ffc5.txt",
+      "sha256": "4736df0aa50d339e32c2364b5fafeb923075e8f92ea4cc2ac5c9ca926783ffc5",
+      "bytes": 1091,
+      "oldReferences": [
+        "npm:is-lambda@1.0.1:node_modules/is-lambda"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/49810fde850fee8647c52ae2d5debb9272c3b26634b9f6a800242b8aa823bad2.txt",
+      "sha256": "49810fde850fee8647c52ae2d5debb9272c3b26634b9f6a800242b8aa823bad2",
+      "bytes": 1123,
+      "oldReferences": [
+        "npm:convert-to-spaces@2.0.1:node_modules/convert-to-spaces"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4cd903859549d4b20b571041f96dfae1136ed079c476126268f9d7cc1b611150.txt",
+      "sha256": "4cd903859549d4b20b571041f96dfae1136ed079c476126268f9d7cc1b611150",
+      "bytes": 1088,
+      "oldReferences": [
+        "npm:is-plain-object@5.0.0:node_modules/is-plain-object"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4eb7543b08d955a6d23fcc224601d43ff566e775be918805e26210d7f6eb4893.txt",
+      "sha256": "4eb7543b08d955a6d23fcc224601d43ff566e775be918805e26210d7f6eb4893",
+      "bytes": 1100,
+      "oldReferences": [
+        "npm:loose-envify@1.4.0:node_modules/loose-envify"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4eeb3271453a891df609e5a9f4ee79a68307f730c13417a3bfeffa604ac8cf25.txt",
+      "sha256": "4eeb3271453a891df609e5a9f4ee79a68307f730c13417a3bfeffa604ac8cf25",
+      "bytes": 1103,
+      "oldReferences": [
+        "npm:@isaacs/ts-node-temp-fork-for-pr-2009@10.9.7:node_modules/@isaacs/ts-node-temp-fork-for-pr-2009"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4f4f28866154c8d758241a64296e8790d45d7d912ff7b029930778c06d8f2a72.txt",
+      "sha256": "4f4f28866154c8d758241a64296e8790d45d7d912ff7b029930778c06d8f2a72",
+      "bytes": 1082,
+      "oldReferences": [
+        "npm:socks@2.8.9:node_modules/socks"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/4fb79375cefa3732be3b245350a5f2e2c8f1809882119d080acfb521b22e105a.txt",
+      "sha256": "4fb79375cefa3732be3b245350a5f2e2c8f1809882119d080acfb521b22e105a",
+      "bytes": 1075,
+      "oldReferences": [
+        "npm:react-element-to-jsx-string@15.0.0:node_modules/tcompare/node_modules/react-element-to-jsx-string"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/50627796eb4236cd05674e71d090e594447995225b7d94cd59e57c25fa3a0217.txt",
+      "sha256": "50627796eb4236cd05674e71d090e594447995225b7d94cd59e57c25fa3a0217",
+      "bytes": 1209,
+      "oldReferences": [
+        "npm:json-parse-even-better-errors@5.0.0:node_modules/json-parse-even-better-errors"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/51ff8bfb2f9f25978427f17d2b65cae0f23fc6bfc9060e96fb2f5a7eac141631.txt",
+      "sha256": "51ff8bfb2f9f25978427f17d2b65cae0f23fc6bfc9060e96fb2f5a7eac141631",
+      "bytes": 752,
+      "oldReferences": [
+        "npm:promise-inflight@1.0.1:node_modules/promise-inflight"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85.txt",
+      "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85",
+      "bytes": 1086,
+      "oldReferences": [
+        "npm:react@18.3.1:node_modules/@tapjs/reporter/node_modules/react",
+        "npm:react-reconciler@0.29.2:node_modules/ink/node_modules/react-reconciler",
+        "npm:scheduler@0.23.2:node_modules/ink/node_modules/scheduler",
+        "npm:react-is@18.1.0:node_modules/react-is",
+        "npm:react@18.3.1:node_modules/tcompare/node_modules/react",
+        "npm:react-dom@18.3.1:node_modules/tcompare/node_modules/react-dom",
+        "npm:scheduler@0.23.2:node_modules/tcompare/node_modules/scheduler",
+        "npm:yoga-layout@3.2.1:node_modules/yoga-layout"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/553d4d20029a24e315b428a1a54a9e109eaa340f2e958a4f50a92362c2c4070b.txt",
+      "sha256": "553d4d20029a24e315b428a1a54a9e109eaa340f2e958a4f50a92362c2c4070b",
+      "bytes": 1177,
+      "oldReferences": [
+        "npm:negotiator@1.0.0:node_modules/negotiator",
+        "npm:negotiator@0.6.4:node_modules/sqlite3/node_modules/negotiator"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/554b19eee11d2964e9f7b244e47944c08d52ca75539260a04f3227e6c0144513.txt",
+      "sha256": "554b19eee11d2964e9f7b244e47944c08d52ca75539260a04f3227e6c0144513",
+      "bytes": 1243,
+      "oldReferences": [],
+      "oldAttachments": [
+        "attribution:spdx-exceptions"
+      ]
+    },
+    {
+      "path": "licenses/texts/55ebc02db1f1610e3b4924d0dba2dcef3c3e3f930676b4990cad04ab8d5cb842.txt",
+      "sha256": "55ebc02db1f1610e3b4924d0dba2dcef3c3e3f930676b4990cad04ab8d5cb842",
+      "bytes": 1297,
+      "oldReferences": [
+        "npm:@base2/pretty-print-object@1.0.1:node_modules/@base2/pretty-print-object"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/564bcb001d6e131452a8e9fba0f0ccc59e8b881f84ce3e46e319a5a33e191e10.txt",
+      "sha256": "564bcb001d6e131452a8e9fba0f0ccc59e8b881f84ce3e46e319a5a33e191e10",
+      "bytes": 1088,
+      "oldReferences": [
+        "npm:@tufjs/canonical-json@2.0.0:node_modules/@tufjs/canonical-json",
+        "npm:@tufjs/models@4.1.0:node_modules/@tufjs/models",
+        "npm:tuf-js@4.1.0:node_modules/tuf-js"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/565acf764f4583abe4cf4b02128f01b5d4d1b4c62c253e92df7ed6a8a8ad406b.txt",
+      "sha256": "565acf764f4583abe4cf4b02128f01b5d4d1b4c62c253e92df7ed6a8a8ad406b",
+      "bytes": 733,
+      "oldReferences": [
+        "npm:@npmcli/git@7.0.2:node_modules/@npmcli/git",
+        "npm:@npmcli/promise-spawn@9.0.1:node_modules/@npmcli/promise-spawn"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/5a547aafe7b171c859ec64de1dd3c3363689f830133f508d043c83da12a6d0a2.txt",
+      "sha256": "5a547aafe7b171c859ec64de1dd3c3363689f830133f508d043c83da12a6d0a2",
+      "bytes": 1068,
+      "oldReferences": [
+        "npm:@istanbuljs/schema@0.1.6:node_modules/@istanbuljs/schema",
+        "npm:process-on-spawn@1.1.0:node_modules/process-on-spawn"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/5a75205326c6f109889a2b55c77c84d70785dda39754506a9070c200f970f062.txt",
+      "sha256": "5a75205326c6f109889a2b55c77c84d70785dda39754506a9070c200f970f062",
+      "bytes": 775,
+      "oldReferences": [
+        "npm:events-to-array@2.0.3:node_modules/events-to-array"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/5bba27375d93e9119f76c1015f7672cf9ad5f70952296e0842fb2243d6376869.txt",
+      "sha256": "5bba27375d93e9119f76c1015f7672cf9ad5f70952296e0842fb2243d6376869",
+      "bytes": 738,
+      "oldReferences": [
+        "npm:yaml@2.9.0:node_modules/yaml",
+        "npm:yaml-types@0.4.0:node_modules/yaml-types"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/6236fa0b88a4a0cce3dda0367979491b2052b3c8d6b1c10b3668de083e86a7f0.txt",
+      "sha256": "6236fa0b88a4a0cce3dda0367979491b2052b3c8d6b1c10b3668de083e86a7f0",
+      "bytes": 976,
+      "oldReferences": [
+        "npm:glob@7.2.3:node_modules/glob"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/63053a2fc2b06fe2138fa128ab29c487e28e38be8a7b9c16a4ef7209e945c0b0.txt",
+      "sha256": "63053a2fc2b06fe2138fa128ab29c487e28e38be8a7b9c16a4ef7209e945c0b0",
+      "bytes": 1086,
+      "oldReferences": [
+        "npm:temp@0.9.4:node_modules/temp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/646f8936b8ddcd14e13e578ff6857e368780b0d1a4f6066bee89211923a373e2.txt",
+      "sha256": "646f8936b8ddcd14e13e578ff6857e368780b0d1a4f6066bee89211923a373e2",
+      "bytes": 1073,
+      "oldReferences": [
+        "npm:@tsconfig/node14@14.1.8:node_modules/@tsconfig/node14",
+        "npm:@tsconfig/node16@16.1.8:node_modules/@tsconfig/node16",
+        "npm:@tsconfig/node18@18.2.6:node_modules/@tsconfig/node18",
+        "npm:@tsconfig/node20@20.1.9:node_modules/@tsconfig/node20"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/65675229fc81818c9490a1942f361f7ef31cd525bef9111e62a6c84e9bd4769d.txt",
+      "sha256": "65675229fc81818c9490a1942f361f7ef31cd525bef9111e62a6c84e9bd4769d",
+      "bytes": 719,
+      "oldReferences": [
+        "npm:@npmcli/package-json@7.0.5:node_modules/@npmcli/package-json"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/662a1b0115251cfb29c6aed0f221f8847bc49c6365d1c53a62c9f4bccc2489c3.txt",
+      "sha256": "662a1b0115251cfb29c6aed0f221f8847bc49c6365d1c53a62c9f4bccc2489c3",
+      "bytes": 1102,
+      "oldReferences": [
+        "npm:node-gyp@12.3.0:node_modules/node-gyp",
+        "npm:node-gyp@8.4.1:node_modules/sqlite3/node_modules/node-gyp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/67726f6c8adeaf7d7e1a3af90fc88c76f7b9747552e5187a8ba62bf781297b49.txt",
+      "sha256": "67726f6c8adeaf7d7e1a3af90fc88c76f7b9747552e5187a8ba62bf781297b49",
+      "bytes": 1115,
+      "oldReferences": [
+        "npm:patch-console@2.0.0:node_modules/patch-console"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/720836c9bdad386485a492ab41fe08007ecf85ca278ddd8f9333494dcac4949d.txt",
+      "sha256": "720836c9bdad386485a492ab41fe08007ecf85ca278ddd8f9333494dcac4949d",
+      "bytes": 755,
+      "oldReferences": [
+        "npm:cacache@20.0.4:node_modules/cacache",
+        "npm:npm-pick-manifest@11.0.3:node_modules/npm-pick-manifest",
+        "npm:cacache@15.3.0:node_modules/sqlite3/node_modules/cacache",
+        "npm:make-fetch-happen@9.1.0:node_modules/sqlite3/node_modules/make-fetch-happen",
+        "npm:ssri@8.0.1:node_modules/sqlite3/node_modules/ssri"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/7686f81e580cd6774f609a2d8a41b2cebdf79bc30e6b46c3efff5a656158981c.txt",
+      "sha256": "7686f81e580cd6774f609a2d8a41b2cebdf79bc30e6b46c3efff5a656158981c",
+      "bytes": 1460,
+      "oldReferences": [
+        "npm:sqlite3@5.1.7:node_modules/sqlite3"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/769d154fbde32a915af110b1123650bc79f4cbe675acc66e005265bf069c6c6c.txt",
+      "sha256": "769d154fbde32a915af110b1123650bc79f4cbe675acc66e005265bf069c6c6c",
+      "bytes": 1080,
+      "oldReferences": [
+        "npm:@jridgewell/sourcemap-codec@1.5.5:node_modules/@jridgewell/sourcemap-codec",
+        "npm:@jridgewell/trace-mapping@0.3.31:node_modules/@jridgewell/trace-mapping"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7.txt",
+      "sha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
+      "bytes": 1099,
+      "oldReferences": [
+        "npm:acorn@8.16.0:node_modules/acorn"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/796bdebb9db096fc859b1d5450d4f15ecdae9e546361a1a2a76f3af1f3ba910e.txt",
+      "sha256": "796bdebb9db096fc859b1d5450d4f15ecdae9e546361a1a2a76f3af1f3ba910e",
+      "bytes": 1396,
+      "oldReferences": [
+        "npm:polite-json@5.0.0:node_modules/polite-json"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/7c9c21c620f09fa0897060a50ae3b02da7677338c72cbe399dbe417d74899974.txt",
+      "sha256": "7c9c21c620f09fa0897060a50ae3b02da7677338c72cbe399dbe417d74899974",
+      "bytes": 752,
+      "oldReferences": [
+        "npm:has-unicode@2.0.1:node_modules/has-unicode"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/7edb57f7065309027de249642341292a5b21410d5773cc55bba73ff9cf01060e.txt",
+      "sha256": "7edb57f7065309027de249642341292a5b21410d5773cc55bba73ff9cf01060e",
+      "bytes": 1111,
+      "oldReferences": [
+        "npm:spdx-expression-parse@4.0.0:node_modules/spdx-expression-parse"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/7f75bb21103e77b7acfcf88a6ad0286741a18b5d13c4326160346e8cf7e356ad.txt",
+      "sha256": "7f75bb21103e77b7acfcf88a6ad0286741a18b5d13c4326160346e8cf7e356ad",
+      "bytes": 717,
+      "oldReferences": [
+        "npm:are-we-there-yet@3.0.1:node_modules/are-we-there-yet"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/825dacf686e3d026be4a5b3e4efb8ddd67a8676f9e96085a53cfa045a5bd0509.txt",
+      "sha256": "825dacf686e3d026be4a5b3e4efb8ddd67a8676f9e96085a53cfa045a5bd0509",
+      "bytes": 758,
+      "oldReferences": [
+        "npm:walk-up-path@4.0.0:node_modules/walk-up-path"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/833faa18ac4b83a6372c05b3643d0d44ecd27d6627b8cd19b0f48fe74260cf39.txt",
+      "sha256": "833faa18ac4b83a6372c05b3643d0d44ecd27d6627b8cd19b0f48fe74260cf39",
+      "bytes": 787,
+      "oldReferences": [
+        "npm:minipass@5.0.0:node_modules/sqlite3/node_modules/tar/node_modules/minipass"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/8465b04b67f473341171b5c9c8b2c741a4a395b3f6ed58339b3a4f4db3db7472.txt",
+      "sha256": "8465b04b67f473341171b5c9c8b2c741a4a395b3f6ed58339b3a4f4db3db7472",
+      "bytes": 2125,
+      "oldReferences": [
+        "npm:fs.realpath@1.0.0:node_modules/fs.realpath"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/85a926eba7e6b0a078dfbcb9ff208c11b5faddff10a762415d0b0394399d62ad.txt",
+      "sha256": "85a926eba7e6b0a078dfbcb9ff208c11b5faddff10a762415d0b0394399d62ad",
+      "bytes": 1071,
+      "oldReferences": [],
+      "oldAttachments": [
+        "supplement:ansi-tokenize"
+      ]
+    },
+    {
+      "path": "licenses/texts/87a4800d70de7edc1640351a045bb588fcaa958093fcd1b3ee878388abceb818.txt",
+      "sha256": "87a4800d70de7edc1640351a045bb588fcaa958093fcd1b3ee878388abceb818",
+      "bytes": 1297,
+      "oldReferences": [
+        "npm:minizlib@2.1.2:node_modules/sqlite3/node_modules/minizlib"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/89024017b88a9f2b763f79b941a4f2db3b4428edfcacdc0b23866b2da633ad0c.txt",
+      "sha256": "89024017b88a9f2b763f79b941a4f2db3b4428edfcacdc0b23866b2da633ad0c",
+      "bytes": 1150,
+      "oldReferences": [
+        "npm:node-addon-api@7.1.1:node_modules/sqlite3/node_modules/node-addon-api"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/898c2bcff663681498ad1ca8235d45b6e70b10cdf1f869a5b5e69f6e46efedd3.txt",
+      "sha256": "898c2bcff663681498ad1ca8235d45b6e70b10cdf1f869a5b5e69f6e46efedd3",
+      "bytes": 739,
+      "oldReferences": [
+        "npm:@npmcli/installed-package-contents@4.0.0:node_modules/@npmcli/installed-package-contents",
+        "npm:@npmcli/run-script@10.0.4:node_modules/@npmcli/run-script",
+        "npm:npm-normalize-package-bin@5.0.0:node_modules/npm-normalize-package-bin",
+        "npm:npm-package-arg@13.0.2:node_modules/npm-package-arg"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/8d30579b10154fc04c6054c64e322d7e9e495a668f82db8510732592801f2c87.txt",
+      "sha256": "8d30579b10154fc04c6054c64e322d7e9e495a668f82db8510732592801f2c87",
+      "bytes": 1072,
+      "oldReferences": [
+        "npm:arg@4.1.3:node_modules/@isaacs/ts-node-temp-fork-for-pr-2009/node_modules/arg"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/8da13c785af46eb3d0bf2ce4c34bdf191b8c57bf43e410e9359d5b5eab5f4b0f.txt",
+      "sha256": "8da13c785af46eb3d0bf2ce4c34bdf191b8c57bf43e410e9359d5b5eab5f4b0f",
+      "bytes": 746,
+      "oldReferences": [
+        "npm:@npmcli/node-gyp@5.0.0:node_modules/@npmcli/node-gyp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/8e8b31dd3582eb47f1b28bd6f009b54cd926adb9431e8424db7c2eae7c4af437.txt",
+      "sha256": "8e8b31dd3582eb47f1b28bd6f009b54cd926adb9431e8424db7c2eae7c4af437",
+      "bytes": 734,
+      "oldReferences": [
+        "npm:unique-slug@2.0.2:node_modules/sqlite3/node_modules/unique-slug"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/9781d22b8ca2072edecea2107d8bf8da2b7d4dbe28c88017f772d0de032920df.txt",
+      "sha256": "9781d22b8ca2072edecea2107d8bf8da2b7d4dbe28c88017f772d0de032920df",
+      "bytes": 1180,
+      "oldReferences": [
+        "npm:mkdirp@3.0.1:node_modules/mkdirp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/98d226d560dfbb0a07a77c3654acc18ba6c87589c48cf00cb2a9855ad50fcd07.txt",
+      "sha256": "98d226d560dfbb0a07a77c3654acc18ba6c87589c48cf00cb2a9855ad50fcd07",
+      "bytes": 1088,
+      "oldReferences": [
+        "npm:@bcoe/v8-coverage@1.0.2:node_modules/@bcoe/v8-coverage"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/9a39f2aadab11a3697edd668ff2d8ad885b649737b7ab4d3bf12b34e5ada0c86.txt",
+      "sha256": "9a39f2aadab11a3697edd668ff2d8ad885b649737b7ab4d3bf12b34e5ada0c86",
+      "bytes": 1053,
+      "oldReferences": [
+        "npm:fdir@6.5.0:node_modules/tinyglobby/node_modules/fdir"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/9be2ec8089dfa4059a78e4e3e0443c416b2d63dedffb246c7473d0f3d763c6c4.txt",
+      "sha256": "9be2ec8089dfa4059a78e4e3e0443c416b2d63dedffb246c7473d0f3d763c6c4",
+      "bytes": 1179,
+      "oldReferences": [
+        "npm:stack-utils@2.0.6:node_modules/stack-utils"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/9c63a23124d68cd30cd316a94a1a0bca34f032786df6df69fc4b5f136bac8d2e.txt",
+      "sha256": "9c63a23124d68cd30cd316a94a1a0bca34f032786df6df69fc4b5f136bac8d2e",
+      "bytes": 1144,
+      "oldReferences": [
+        "npm:brace-expansion@5.0.6:node_modules/brace-expansion"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/9ceabb48a3b6efde7f9cd59f5c7fbda0bd0fe48dfb7945765adb2c3ebbd35a97.txt",
+      "sha256": "9ceabb48a3b6efde7f9cd59f5c7fbda0bd0fe48dfb7945765adb2c3ebbd35a97",
+      "bytes": 758,
+      "oldReferences": [
+        "npm:function-loop@4.0.0:node_modules/function-loop",
+        "npm:trivial-deferred@2.0.0:node_modules/trivial-deferred"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/9e0d5c7989f7e9f07d7c4b158aceff270f235eb7464ace41c5e7b200834a43e0.txt",
+      "sha256": "9e0d5c7989f7e9f07d7c4b158aceff270f235eb7464ace41c5e7b200834a43e0",
+      "bytes": 2011,
+      "oldReferences": [
+        "npm:abbrev@4.0.0:node_modules/abbrev",
+        "npm:abbrev@1.1.1:node_modules/sqlite3/node_modules/abbrev"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/a21d6c8d3fc631198b97e57584697f7f9c37805c71c6cf9a12e4442b40394b88.txt",
+      "sha256": "a21d6c8d3fc631198b97e57584697f7f9c37805c71c6cf9a12e4442b40394b88",
+      "bytes": 1071,
+      "oldReferences": [
+        "npm:undici@6.25.0:node_modules/undici"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/a5a110eb524bf3217958e405b5e3411277e915a2f5902c330348877000337e53.txt",
+      "sha256": "a5a110eb524bf3217958e405b5e3411277e915a2f5902c330348877000337e53",
+      "bytes": 787,
+      "oldReferences": [
+        "npm:minipass@3.3.6:node_modules/minipass-flush/node_modules/minipass",
+        "npm:minipass@3.3.6:node_modules/minipass-pipeline/node_modules/minipass",
+        "npm:minipass@3.3.6:node_modules/sqlite3/node_modules/minipass"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47.txt",
+      "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47",
+      "bytes": 9197,
+      "oldReferences": [
+        "npm:@typescript/native-preview@7.0.0-dev.20260517.1:node_modules/@typescript/native-preview",
+        "npm:@typescript/native-preview-darwin-arm64@7.0.0-dev.20260517.1:node_modules/@typescript/native-preview-darwin-arm64",
+        "npm:typescript@5.9.3:node_modules/typescript"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/a806e21000ee60cfd64a6f1416f29c7552b4834701974e86c0156f99c0cdd806.txt",
+      "sha256": "a806e21000ee60cfd64a6f1416f29c7552b4834701974e86c0156f99c0cdd806",
+      "bytes": 765,
+      "oldReferences": [
+        "npm:make-fetch-happen@15.0.5:node_modules/make-fetch-happen"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ab868ad5a2ef5068560d9cd3b2180ec63c140bb4c5cae1ba779d300a0ac74fa3.txt",
+      "sha256": "ab868ad5a2ef5068560d9cd3b2180ec63c140bb4c5cae1ba779d300a0ac74fa3",
+      "bytes": 1274,
+      "oldReferences": [
+        "npm:http-cache-semantics@4.2.0:node_modules/http-cache-semantics"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/af83b3ce4e592e87b4ecfa8c8cb45bc4ec26d0b3fb8f34f3687088f6928f705f.txt",
+      "sha256": "af83b3ce4e592e87b4ecfa8c8cb45bc4ec26d0b3fb8f34f3687088f6928f705f",
+      "bytes": 751,
+      "oldReferences": [
+        "npm:console-control-strings@1.1.0:node_modules/console-control-strings"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/b1344bd78ebcbf8a359225ec444d038a653c6a5f9ecf405a50d4a5c11fbf27d1.txt",
+      "sha256": "b1344bd78ebcbf8a359225ec444d038a653c6a5f9ecf405a50d4a5c11fbf27d1",
+      "bytes": 1056,
+      "oldReferences": [
+        "npm:promise-retry@2.0.1:node_modules/promise-retry"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/b3e8623bbd73e4f964f9b5091c7b4c7e078fd760113890b8c1af951ab7921877.txt",
+      "sha256": "b3e8623bbd73e4f964f9b5091c7b4c7e078fd760113890b8c1af951ab7921877",
+      "bytes": 1071,
+      "oldReferences": [
+        "npm:pirates@4.0.7:node_modules/pirates"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/b4807793db6058c819f76c023362b7d522b3d19c9b41563fcc01c2b2c5b1ccd3.txt",
+      "sha256": "b4807793db6058c819f76c023362b7d522b3d19c9b41563fcc01c2b2c5b1ccd3",
+      "bytes": 1394,
+      "oldReferences": [],
+      "oldAttachments": [
+        "attribution:spdx-license-ids"
+      ]
+    },
+    {
+      "path": "licenses/texts/b53ca5a0db1b07785cbd9627341b6bd731ef6104bc3b74d44c15c5e7a8990f20.txt",
+      "sha256": "b53ca5a0db1b07785cbd9627341b6bd731ef6104bc3b74d44c15c5e7a8990f20",
+      "bytes": 1122,
+      "oldReferences": [
+        "npm:code-excerpt@4.0.0:node_modules/code-excerpt"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/b630651f34d0e0284ea940601bbe0a58f306ad7e9819e351d9dfab812f8d0f38.txt",
+      "sha256": "b630651f34d0e0284ea940601bbe0a58f306ad7e9819e351d9dfab812f8d0f38",
+      "bytes": 775,
+      "oldReferences": [
+        "npm:async-hook-domain@4.0.1:node_modules/async-hook-domain",
+        "npm:minipass-collect@2.0.1:node_modules/minipass-collect"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5.txt",
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+      "bytes": 1344,
+      "oldReferences": [
+        "npm:node-gyp@12.3.0:node_modules/node-gyp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/b8778b155bfde5a28b023a558753c0fa058a52bb9de35c343c250be1bbcdedab.txt",
+      "sha256": "b8778b155bfde5a28b023a558753c0fa058a52bb9de35c343c250be1bbcdedab",
+      "bytes": 1079,
+      "oldReferences": [
+        "npm:@jridgewell/resolve-uri@3.1.2:node_modules/@jridgewell/resolve-uri"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ba7d35d087d49a9d944a90f17a462cbfa2f9c16fe6dccd16dd6fdc57f14c9a25.txt",
+      "sha256": "ba7d35d087d49a9d944a90f17a462cbfa2f9c16fe6dccd16dd6fdc57f14c9a25",
+      "bytes": 1126,
+      "oldReferences": [
+        "npm:tap-parser@18.3.4:node_modules/tap-parser"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/bbe87b573c12bda5baf18742117330efa177e0886b3b0a278dacf8f236e1e129.txt",
+      "sha256": "bbe87b573c12bda5baf18742117330efa177e0886b3b0a278dacf8f236e1e129",
+      "bytes": 2859,
+      "oldReferences": [
+        "npm:json-schema-typed@8.0.2:node_modules/json-schema-typed"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/bc4c06b48b593b8b63f3e1557f52bdd37ebf40295033cfdb03d420d181809c11.txt",
+      "sha256": "bc4c06b48b593b8b63f3e1557f52bdd37ebf40295033cfdb03d420d181809c11",
+      "bytes": 860,
+      "oldReferences": [
+        "npm:@npmcli/package-json@7.0.5:node_modules/@npmcli/package-json"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/bdfd5e0edb6089e6586c8f15e6a86fab83ffbeeda3b3b7b33734ccb8c5906965.txt",
+      "sha256": "bdfd5e0edb6089e6586c8f15e6a86fab83ffbeeda3b3b7b33734ccb8c5906965",
+      "bytes": 1124,
+      "oldReferences": [
+        "npm:chokidar@4.0.3:node_modules/@tapjs/run/node_modules/chokidar",
+        "npm:chokidar@4.0.3:node_modules/tshy/node_modules/chokidar"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c1476ec53119cd4c8370f91f5152ac76312a29b4fae2d49b5e0e0970fe0fa5ee.txt",
+      "sha256": "c1476ec53119cd4c8370f91f5152ac76312a29b4fae2d49b5e0e0970fe0fa5ee",
+      "bytes": 733,
+      "oldReferences": [
+        "npm:hosted-git-info@9.0.3:node_modules/@npmcli/package-json/node_modules/hosted-git-info",
+        "npm:hosted-git-info@9.0.3:node_modules/npm-package-arg/node_modules/hosted-git-info"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c2d8184ea9becd063aa40be243e8c6ec2c4f72828fdfe4b0752664ef73e96ed3.txt",
+      "sha256": "c2d8184ea9becd063aa40be243e8c6ec2c4f72828fdfe4b0752664ef73e96ed3",
+      "bytes": 1099,
+      "oldReferences": [
+        "npm:acorn-walk@8.3.5:node_modules/acorn-walk"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c46e2c333e1c9e6fcfd130cf91b8e54bf67b60fabbc04996f7e199b990353ff3.txt",
+      "sha256": "c46e2c333e1c9e6fcfd130cf91b8e54bf67b60fabbc04996f7e199b990353ff3",
+      "bytes": 1087,
+      "oldReferences": [
+        "npm:smart-buffer@4.2.0:node_modules/smart-buffer"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c58416e852f7603cc1c7c5f7582e8cc7b1934d7bcb5456d64ada379d6770da45.txt",
+      "sha256": "c58416e852f7603cc1c7c5f7582e8cc7b1934d7bcb5456d64ada379d6770da45",
+      "bytes": 1779,
+      "oldReferences": [
+        "npm:@isaacs/cliui@9.0.0:node_modules/@isaacs/cliui"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c77674258a3fdf3036a5d13d2aecd30d7a25aa6191cb0a9a7dd45b975dc7fe69.txt",
+      "sha256": "c77674258a3fdf3036a5d13d2aecd30d7a25aa6191cb0a9a7dd45b975dc7fe69",
+      "bytes": 1080,
+      "oldReferences": [
+        "npm:v8-compile-cache-lib@3.0.1:node_modules/v8-compile-cache-lib"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c87e35d8d9f1df3972a9f9215ae52c67f0cbf04e066383b42113151eb5b77a05.txt",
+      "sha256": "c87e35d8d9f1df3972a9f9215ae52c67f0cbf04e066383b42113151eb5b77a05",
+      "bytes": 3308,
+      "oldReferences": [
+        "npm:@tapjs/error-serdes@4.3.2:node_modules/@tapjs/error-serdes"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/c91d87c3bca16ab6d96d82da08edc54377d14b679547a331eecc4adef3c353c8.txt",
+      "sha256": "c91d87c3bca16ab6d96d82da08edc54377d14b679547a331eecc4adef3c353c8",
+      "bytes": 1158,
+      "oldReferences": [
+        "npm:slice-ansi@5.0.0:node_modules/ink/node_modules/cli-truncate/node_modules/slice-ansi",
+        "npm:slice-ansi@7.1.2:node_modules/ink/node_modules/slice-ansi"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ca0b65367e78e9c255a1c9883eb7ec30aae491d76e1c6815b865563106d21dff.txt",
+      "sha256": "ca0b65367e78e9c255a1c9883eb7ec30aae491d76e1c6815b865563106d21dff",
+      "bytes": 2527,
+      "oldReferences": [
+        "npm:http-proxy-agent@4.0.1:node_modules/sqlite3/node_modules/http-proxy-agent"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ca90abb6ed71de0774461ef9f928de33e748b617aeb79f9e52415cf08d69230e.txt",
+      "sha256": "ca90abb6ed71de0774461ef9f928de33e748b617aeb79f9e52415cf08d69230e",
+      "bytes": 1537,
+      "oldReferences": [
+        "npm:node-gyp@12.3.0:node_modules/node-gyp",
+        "npm:node-gyp@8.4.1:node_modules/sqlite3/node_modules/node-gyp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48.txt",
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+      "bytes": 197,
+      "oldReferences": [
+        "npm:node-gyp@12.3.0:node_modules/node-gyp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/cb4e4296dfc59387f7c6ef71b670cde7050617313fcea7173995176fec0fcef2.txt",
+      "sha256": "cb4e4296dfc59387f7c6ef71b670cde7050617313fcea7173995176fec0fcef2",
+      "bytes": 1079,
+      "oldReferences": [
+        "npm:delegates@1.0.0:node_modules/delegates"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/d0b7cddf14a2005e05b397a950b9f69e1de412b8c6749e5b5d70610fb119e9ee.txt",
+      "sha256": "d0b7cddf14a2005e05b397a950b9f69e1de412b8c6749e5b5d70610fb119e9ee",
+      "bytes": 1060,
+      "oldReferences": [
+        "npm:@npmcli/redact@4.0.0:node_modules/@npmcli/redact"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9.txt",
+      "sha256": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9",
+      "bytes": 1091,
+      "oldReferences": [
+        "npm:picomatch@4.0.4:node_modules/tinyglobby/node_modules/picomatch"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/d408f38ffa3355c5faec517153295338892eb0f1ea43f57874bb23c6075979b5.txt",
+      "sha256": "d408f38ffa3355c5faec517153295338892eb0f1ea43f57874bb23c6075979b5",
+      "bytes": 1155,
+      "oldReferences": [
+        "npm:balanced-match@4.0.4:node_modules/balanced-match"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/dc32a0dee275e0a9aeffbc974dbf4899a30dcdc2e5ffa8934aecb69261065864.txt",
+      "sha256": "dc32a0dee275e0a9aeffbc974dbf4899a30dcdc2e5ffa8934aecb69261065864",
+      "bytes": 742,
+      "oldReferences": [
+        "npm:proc-log@6.1.0:node_modules/proc-log"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/df05697a04b8997c79d423930534e59cc18828f6e22d0c8c2d62fcbea1c4f50b.txt",
+      "sha256": "df05697a04b8997c79d423930534e59cc18828f6e22d0c8c2d62fcbea1c4f50b",
+      "bytes": 1339,
+      "oldReferences": [
+        "npm:minizlib@3.1.0:node_modules/minizlib"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/dffec71d93f273d2af7b54c6c7e7e70b3289c632ec0d7253210ec21ac336d5ac.txt",
+      "sha256": "dffec71d93f273d2af7b54c6c7e7e70b3289c632ec0d7253210ec21ac336d5ac",
+      "bytes": 1114,
+      "oldReferences": [
+        "npm:readdirp@4.1.2:node_modules/@tapjs/run/node_modules/readdirp",
+        "npm:readdirp@4.1.2:node_modules/tshy/node_modules/readdirp"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/e05b1eaf5b5f99b7ad75cd1f38858ff9a311780b97715ead67936d60bf96aa7e.txt",
+      "sha256": "e05b1eaf5b5f99b7ad75cd1f38858ff9a311780b97715ead67936d60bf96aa7e",
+      "bytes": 748,
+      "oldReferences": [
+        "npm:signal-exit@3.0.7:node_modules/gauge/node_modules/signal-exit",
+        "npm:signal-exit@3.0.7:node_modules/ink/node_modules/signal-exit"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/e09f9b52c6ce5c17ba8103cd0cbf446c33b5448b0c1d01d711b36a1f15a501ba.txt",
+      "sha256": "e09f9b52c6ce5c17ba8103cd0cbf446c33b5448b0c1d01d711b36a1f15a501ba",
+      "bytes": 1488,
+      "oldReferences": [
+        "npm:istanbul-lib-coverage@3.2.2:node_modules/istanbul-lib-coverage",
+        "npm:istanbul-lib-report@3.0.1:node_modules/istanbul-lib-report",
+        "npm:istanbul-reports@3.2.0:node_modules/istanbul-reports"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/e1b54533f47750e62cfa121a5587845923390805a4c02b3bacbea13635eb90f6.txt",
+      "sha256": "e1b54533f47750e62cfa121a5587845923390805a4c02b3bacbea13635eb90f6",
+      "bytes": 1072,
+      "oldReferences": [
+        "npm:reghex@3.0.2:node_modules/reghex"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76.txt",
+      "sha256": "e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76",
+      "bytes": 19467,
+      "oldReferences": [
+        "npm:spdx-exceptions@2.5.0:node_modules/spdx-exceptions"
+      ],
+      "oldAttachments": [
+        "standard:spdx-exceptions"
+      ]
+    },
+    {
+      "path": "licenses/texts/ec361617c0473d39347b020eaa6dceedaebab43879fa1cd8b8f0f97a8e80a475.txt",
+      "sha256": "ec361617c0473d39347b020eaa6dceedaebab43879fa1cd8b8f0f97a8e80a475",
+      "bytes": 756,
+      "oldReferences": [
+        "npm:infer-owner@1.0.4:node_modules/infer-owner",
+        "npm:npm-bundled@5.0.0:node_modules/npm-bundled"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ed1dee75f0befd73516672bd3ca10f81b61825953a24677966bb6c2f05d86a9f.txt",
+      "sha256": "ed1dee75f0befd73516672bd3ca10f81b61825953a24677966bb6c2f05d86a9f",
+      "bytes": 1885,
+      "oldReferences": [
+        "npm:opener@1.5.2:node_modules/opener"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ed251dc3a48522399fffe95fe04d94fbcadcd9edd0e7689f3b71cf73403a6138.txt",
+      "sha256": "ed251dc3a48522399fffe95fe04d94fbcadcd9edd0e7689f3b71cf73403a6138",
+      "bytes": 1087,
+      "oldReferences": [
+        "npm:jsonparse@1.3.1:node_modules/jsonparse"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ed68888a2a28f32a05e88f24d4d4ee75075a1bda2b6372a1f2e00fa0576a5524.txt",
+      "sha256": "ed68888a2a28f32a05e88f24d4d4ee75075a1bda2b6372a1f2e00fa0576a5524",
+      "bytes": 1424,
+      "oldReferences": [
+        "npm:es-toolkit@1.46.1:node_modules/es-toolkit"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/ef7d10c21fe01e47a90973abda734e9be75162e5f561a84e95c5dcb9adbb89ea.txt",
+      "sha256": "ef7d10c21fe01e47a90973abda734e9be75162e5f561a84e95c5dcb9adbb89ea",
+      "bytes": 1094,
+      "oldReferences": [
+        "npm:@gar/promisify@1.1.3:node_modules/@gar/promisify"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/f3e1645267f7dd77ee6545283cc1766e5883e8fb3b5088fe2cfb995defbb3dde.txt",
+      "sha256": "f3e1645267f7dd77ee6545283cc1766e5883e8fb3b5088fe2cfb995defbb3dde",
+      "bytes": 728,
+      "oldReferences": [
+        "npm:validate-npm-package-name@7.0.2:node_modules/validate-npm-package-name"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/f5afc95c69e116ea6b1755f91a8763f53eadb78b4f1582a08d2d18586a03a117.txt",
+      "sha256": "f5afc95c69e116ea6b1755f91a8763f53eadb78b4f1582a08d2d18586a03a117",
+      "bytes": 11351,
+      "oldReferences": [
+        "npm:exponential-backoff@3.1.3:node_modules/exponential-backoff"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/f65c5d9f22a317b2a10803bd1868461ce6499c2ed7217bc80c0cc772a748789c.txt",
+      "sha256": "f65c5d9f22a317b2a10803bd1868461ce6499c2ed7217bc80c0cc772a748789c",
+      "bytes": 791,
+      "oldReferences": [
+        "npm:graceful-fs@4.2.11:node_modules/graceful-fs"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/f674630c4d3e668dabac6d955fb5f74c75b4a63a707ac93a8833b74bdc57221e.txt",
+      "sha256": "f674630c4d3e668dabac6d955fb5f74c75b4a63a707ac93a8833b74bdc57221e",
+      "bytes": 1333,
+      "oldReferences": [
+        "npm:npm-install-checks@8.0.0:node_modules/npm-install-checks"
+      ],
+      "oldAttachments": []
+    },
+    {
+      "path": "licenses/texts/f8d791359a50cbcac82c29cb7b0b1b889b28be76fdd35b8ee33f0f7c8704702a.txt",
+      "sha256": "f8d791359a50cbcac82c29cb7b0b1b889b28be76fdd35b8ee33f0f7c8704702a",
+      "bytes": 1061,
+      "oldReferences": [
+        "npm:ip-address@10.2.0:node_modules/ip-address"
+      ],
+      "oldAttachments": []
+    }
+  ]
+}

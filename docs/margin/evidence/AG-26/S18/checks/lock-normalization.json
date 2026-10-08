@@ -1,0 +1,7 @@
+{
+  "pass": true,
+  "originalNpmSHA256": "1088ad70c37b229a068a7df19c1632370a248b9708768022b714add57a30283c",
+  "normalizedSHA256": "2bfe2588c86d235892a0fc60c5d1937743f2db147d393452ff0d177143f05999",
+  "sameParsedValue": true,
+  "retainedOriginalNpmPath": "<local-evidence>/lock-trial/package-lock.json"
+}

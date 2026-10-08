@@ -1,0 +1,32 @@
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (80.479083ms)
+✔ README license detection keeps all holders and original surrounding bytes (40.572458ms)
+✔ missing required and compatible optional candidates remain unresolved (61.097959ms)
+✔ installed version cannot borrow a different lock version integrity (20.669916ms)
+✔ cached remote notices require matching integrity and exact Git metadata (54.772958ms)
+✔ missing or substituted Chromium notice cannot pass package checks (71.670292ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (57.841334ms)
+✔ notice symlinks and escaped destinations fail closed (67.662125ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (55.194125ms)
+✔ summary regeneration preserves legal prose and ignores physical leftovers unless mapped (54.664292ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (45.415042ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 729.826

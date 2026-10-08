@@ -1,0 +1,12 @@
+{
+  "targetRootTrees": 434,
+  "keptRootReachability": 1332,
+  "removedCount": 262,
+  "outsideTarget": [],
+  "sharedRemoved": [],
+  "metadataChangeCounts": {
+    "devOptional:true->undefined": 26,
+    "dev:undefined->true": 87,
+    "peer:undefined->true": 8
+  }
+}

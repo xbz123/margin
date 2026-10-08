@@ -153,6 +153,34 @@ async function remoteNotices(component, addText) {
   if (!component.texts.length) throw new Error(`no full license text at version reference for ${component.name}`);
 }
 
+export function inventorySummary(manifest) {
+  const texts = new Set([...manifest.components.flatMap((item) => item.texts), ...manifest.attachments.map((item) => item.text)].map((item) => item.file));
+  const bindings = manifest.attachments.filter((item) => item.bind && item.closesMissing).map((item) =>
+    `- ${item.bind.kind}:${item.bind.name}@${item.version}: ${item.license}${item.selectedLicense ? ` (selected ${item.selectedLicense})` : ''}`);
+  const unresolved = manifest.unresolved.map((item) => `- ${item.id}`);
+  return [
+    'Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.',
+    `${manifest.components.length} candidates; ${texts.size} unique stored texts; ${manifest.excluded.length} excluded paths; ${manifest.unresolved.length} unresolved candidates; ${manifest.deferred.length} deferred notices.`,
+    '', 'Current supplemental notice bindings:', ...(bindings.length ? bindings : ['None.']),
+    '', 'Unresolved candidates:', ...(unresolved.length ? unresolved : ['None recorded; separate distribution obligations still require review.']),
+  ].join('\n');
+}
+
+function refreshInventorySummaries(root, manifest) {
+  const start = '<!-- margin-license-inventory:start -->';
+  const end = '<!-- margin-license-inventory:end -->';
+  const summary = inventorySummary(manifest);
+  const updates = ['licenses/README.md', 'NOTICE'].map((file) => {
+    const destination = path.join(root, file);
+    const text = fs.readFileSync(destination, 'utf8');
+    const first = text.indexOf(start);
+    const last = text.indexOf(end);
+    if (first < 0 || last <= first || text.indexOf(start, first + start.length) >= 0 || text.indexOf(end, last + end.length) >= 0) throw new Error(`missing/ambiguous inventory summary markers: ${file}`);
+    return [destination, text.slice(0, first + start.length) + '\n' + summary + '\n' + text.slice(last)];
+  });
+  for (const [destination, text] of updates) fs.writeFileSync(destination, text);
+}
+
 export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fetchOnly } = {}) {
   const output = path.join(root, 'licenses');
   fs.mkdirSync(path.join(output, 'texts'), { recursive: true });
@@ -272,6 +300,7 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
   });
   const manifest = { schemaVersion: 1, scope: 'Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.', packageLockSHA256: sha256(fs.readFileSync(path.join(root, 'package-lock.json'))), cargoLockSHA256: sha256(fs.readFileSync(path.join(root, 'native-module/Cargo.lock'))), sourceConfigSHA256: fs.existsSync(sourcesFile) ? sha256(fs.readFileSync(sourcesFile)) : null, electronVersion: electron.version, components, attachments, excluded, unresolved, deferred };
   fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  refreshInventorySummaries(root, manifest);
   console.log(JSON.stringify({ candidates: components.length, uniqueTexts: texts.size, excluded: excluded.length, unresolved: unresolved.length, deferred: deferred.length }));
   return manifest;
 }

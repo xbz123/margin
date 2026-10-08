@@ -1,0 +1,44 @@
+{
+  "pass": true,
+  "rootRemovals": [
+    "tap",
+    "sqlite3",
+    "screenshot-desktop"
+  ],
+  "removedLockNodes": 262,
+  "newLockNodes": 0,
+  "retainedIdentityAndDependencyFieldsUnchanged": true,
+  "metadataChangedEntries": 87,
+  "oldKeyOrderRetained": true,
+  "sourcesRemovedExactly": [
+    "standard:node-options-to-argv",
+    "standard:spdx-exceptions",
+    "attribution:spdx-exceptions",
+    "standard:spdx-license-ids",
+    "attribution:spdx-license-ids",
+    "supplement:ansi-tokenize"
+  ],
+  "candidates": 726,
+  "removedCandidates": 342,
+  "retainedCandidatesChangedBasis": 1,
+  "uniqueTexts": 382,
+  "excluded": 33,
+  "unresolved": 10,
+  "missingEntriesRemovedExactly": [
+    "npm:@alcalzone/ansi-tokenize@0.1.3:node_modules/@alcalzone/ansi-tokenize",
+    "npm:@npmcli/agent@4.0.0:node_modules/@npmcli/agent",
+    "npm:@tootallnate/once@1.1.2:node_modules/sqlite3/node_modules/@tootallnate/once",
+    "npm:screenshot-desktop@1.15.4:node_modules/screenshot-desktop",
+    "npm:err-code@2.0.3:node_modules/err-code"
+  ],
+  "eastasianwidthRetained": true,
+  "physicalSqlite3LeftoverNotInventoried": true,
+  "deletedOrphanTexts": 124,
+  "deletedBytes": 190774,
+  "orphanTexts": 0,
+  "allCurrentHashesAndGitBlobsValid": true,
+  "summariesMatchManifest": true,
+  "lockSHA256": "2bfe2588c86d235892a0fc60c5d1937743f2db147d393452ff0d177143f05999",
+  "sourceConfigSHA256": "8a63e2a7a4fef3fe2b83c255f8aa7d66662d48f3bcc811bd322102485e224d58",
+  "manifestSHA256": "04971d6a1fe45bbda71dddfc69919d9b3ebf57816b5a38dbb7555ac9c2df09df"
+}

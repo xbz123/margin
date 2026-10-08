@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
-import { collect, cargoPackages, embeddedMIT, sha256 } from '../../../scripts/margin/collect-licenses.mjs';
+import { collect, cargoPackages, embeddedMIT, sha256, inventorySummary } from '../../../scripts/margin/collect-licenses.mjs';
 
 const { verifyBundle } = createRequire(import.meta.url)('../../../scripts/margin/license-bundle.cjs');
 const json = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -30,7 +30,9 @@ function fixture(t) {
   fs.mkdirSync(path.join(root, 'dist'));
   fs.mkdirSync(path.join(root, 'cargo-cache'));
   write(root, 'LICENSE', 'Synthetic application LICENSE, tests only\n');
-  write(root, 'NOTICE', 'Synthetic application NOTICE\n');
+  const markers = '<!-- margin-license-inventory:start -->\n<!-- margin-license-inventory:end -->\n';
+  write(root, 'NOTICE', 'Synthetic application NOTICE\n' + markers);
+  write(root, 'licenses/README.md', 'Synthetic notice documentation\n' + markers);
   return { root, cargoRoot: path.join(root, 'cargo-cache') };
 }
 function copyResources(root) {
@@ -158,4 +160,42 @@ test('changed locks invalidate inventory and generated Cargo metadata is strict'
   assert.deepEqual(cargoPackages('version = 4\n[[package]]\nname = "example"\nversion = "1.0.0"\nsource = "registry+synthetic"\nchecksum = "synthetic"\n'), [{ name: 'example', version: '1.0.0', source: 'registry+synthetic', checksum: 'synthetic' }]);
   assert.throws(() => cargoPackages('[[package]]\nname = "example"\n'), /unsupported/);
   assert.equal(sha256(Buffer.from('synthetic')), sha256(Buffer.from('synthetic')));
+});
+
+test('summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates', async (t) => {
+  const options = fixture(t);
+  write(options.root, 'node_modules/retired/package.json', { name: 'retired', version: '1.0.0', license: 'MIT' });
+  write(options.root, 'node_modules/retired/LICENSE', 'Synthetic retired notice\n');
+  const lock = json(path.join(options.root, 'package-lock.json'));
+  lock.packages['node_modules/dev-only'] = { version: '1.0.0', dev: true };
+  write(options.root, 'package-lock.json', lock);
+  write(options.root, 'node_modules/dev-only/package.json', { name: 'dev-only', version: '1.0.0', license: 'MIT' });
+  write(options.root, 'node_modules/dev-only/LICENSE', 'Synthetic mapped notice\n');
+  const prefix = 'Synthetic original copyright and license prose\n';
+  const suffix = '\nSynthetic distribution obligations\n';
+  const start = '<!-- margin-license-inventory:start -->';
+  const end = '<!-- margin-license-inventory:end -->';
+  for (const file of ['NOTICE', 'licenses/README.md']) write(options.root, file, prefix + start + '\nSTALE inventory\n' + end + suffix);
+  const first = await collect(options);
+  assert.deepEqual(first.components.map((item) => item.name), ['example', 'Inter']);
+  for (const file of ['NOTICE', 'licenses/README.md']) assert.equal(fs.readFileSync(path.join(options.root, file), 'utf8'), prefix + start + '\n' + inventorySummary(first) + '\n' + end + suffix);
+  write(options.root, 'dist-electron/main.js.map', { sources: ['../node_modules/dev-only/index.js'] });
+  const mapped = await collect(options);
+  assert.deepEqual(mapped.components.map((item) => item.name), ['dev-only', 'example', 'Inter']);
+  assert.equal(mapped.components[0].basis, 'embedded in current main bundle source maps');
+  assert.equal(fs.readFileSync(path.join(options.root, 'NOTICE'), 'utf8'), prefix + start + '\n' + inventorySummary(mapped) + '\n' + end + suffix);
+});
+
+test('missing or duplicated inventory markers fail rather than overwrite legal prose', async (t) => {
+  const options = fixture(t);
+  const missing = 'Synthetic original notice without generator markers\n';
+  const readme = fs.readFileSync(path.join(options.root, 'licenses/README.md'), 'utf8');
+  write(options.root, 'NOTICE', missing);
+  await assert.rejects(collect(options), /missing\/ambiguous inventory summary markers: NOTICE/);
+  assert.equal(fs.readFileSync(path.join(options.root, 'NOTICE'), 'utf8'), missing);
+  assert.equal(fs.readFileSync(path.join(options.root, 'licenses/README.md'), 'utf8'), readme);
+  const duplicate = '<!-- margin-license-inventory:start -->\n<!-- margin-license-inventory:start -->\n<!-- margin-license-inventory:end -->\n';
+  write(options.root, 'NOTICE', duplicate);
+  await assert.rejects(collect(options), /missing\/ambiguous inventory summary markers: NOTICE/);
+  assert.equal(fs.readFileSync(path.join(options.root, 'NOTICE'), 'utf8'), duplicate);
 });
