@@ -1,0 +1,9 @@
+{
+  "algorithm": "sha256",
+  "file": "index.darwin-arm64.node",
+  "expectedFromBuildInfo": "33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e",
+  "actual": "33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e",
+  "matched": true,
+  "commit": "c43b10e9e60e8e4bf634e4304289d2b4af36484c",
+  "runId": 37709440574
+}

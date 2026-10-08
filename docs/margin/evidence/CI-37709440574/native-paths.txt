@@ -1,0 +1,3 @@
+BUILD-INFO.txt
+setup-native.log
+index.darwin-arm64.node

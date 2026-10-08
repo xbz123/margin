@@ -1,0 +1,25 @@
+Archive:  /tmp/margin-review8-ci37709440574-GcGgFn/gates-artifact.zip
+Zip file size: 48148 bytes, number of entries: 22
+-rw-r--r--  4.5 unx       32 bl       34 defN 26-Oct-08 00:47 build-electron.log
+-rw-r--r--  4.5 unx     2751 bl      897 defN 26-Oct-08 00:48 guard-selftest.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:49 diff-check.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:47 clean-dist.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:48 ipc-channels.gaps.txt
+-rw-r--r--  4.5 unx       52 bl       42 defN 26-Oct-08 00:48 ipc-channels.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:48 preload-contract.gaps.txt
+-rw-r--r--  4.5 unx       51 bl       45 defN 26-Oct-08 00:48 preload-contract.log
+-rw-r--r--  4.5 unx      311 bl      216 defN 26-Oct-08 00:48 provenance.log
+-rw-r--r--  4.5 unx      674 bl      360 defN 26-Oct-08 00:48 regression.log
+-rw-r--r--  4.5 unx      123 bl       90 defN 26-Oct-08 00:48 retired.log
+-rw-r--r--  4.5 unx      616 bl      297 defN 26-Oct-08 00:49 startup.log
+-rw-r--r--  4.5 unx      605 bl      338 defN 26-Oct-08 00:49 storage.log
+-rw-r--r--  4.5 unx     6443 bl     1231 defN 26-Oct-08 00:49 summary.json
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:48 test-failures.txt
+-rw-r--r--  4.5 unx    30725 bl     2350 defN 26-Oct-08 00:48 tests.files.json
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:48 tests.log
+-rw-r--r--  4.5 unx   223171 bl    37389 defN 26-Oct-08 00:48 tests.tap
+-rw-r--r--  4.5 unx        1 bl        3 defN 26-Oct-08 00:47 tsc-electron.diagnostics.txt
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:47 tsc-electron.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 00:47 tsc-renderer.log
+-rw-r--r--  4.5 unx    10142 bl     2106 defN 26-Oct-08 00:47 vite-build.log
+22 files, 275697 bytes uncompressed, 45414 bytes compressed:  83.5%

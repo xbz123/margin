@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-10-08T00:54:13.045Z",
+  "safe": true,
+  "reports": [
+    {
+      "kind": "gates",
+      "artifactId": 11521078166,
+      "name": "margin-gates-c43b10e9e60e8e4bf634e4304289d2b4af36484c",
+      "zip": "/tmp/margin-review8-ci37709440574-GcGgFn/gates-artifact.zip",
+      "destination": "/tmp/margin-review8-ci37709440574-GcGgFn/gates",
+      "members": [
+        "build-electron.log",
+        "guard-selftest.log",
+        "diff-check.log",
+        "clean-dist.log",
+        "ipc-channels.gaps.txt",
+        "ipc-channels.log",
+        "preload-contract.gaps.txt",
+        "preload-contract.log",
+        "provenance.log",
+        "regression.log",
+        "retired.log",
+        "startup.log",
+        "storage.log",
+        "summary.json",
+        "test-failures.txt",
+        "tests.files.json",
+        "tests.log",
+        "tests.tap",
+        "tsc-electron.diagnostics.txt",
+        "tsc-electron.log",
+        "tsc-renderer.log",
+        "vite-build.log"
+      ],
+      "memberCount": 22,
+      "absolutePaths": 0,
+      "parentTraversal": 0,
+      "windowsPaths": 0,
+      "specialEntries": 0,
+      "duplicateEntries": 0,
+      "digest": "sha256:bf89bf74123a8c8cb6bc8b3de07770a61e2083e824c531ce3ec446c901c90ee7",
+      "digestMatchesGitHub": true
+    },
+    {
+      "kind": "native",
+      "artifactId": 11520809186,
+      "name": "margin-native-c43b10e9e60e8e4bf634e4304289d2b4af36484c",
+      "zip": "/tmp/margin-review8-ci37709440574-GcGgFn/native-artifact.zip",
+      "destination": "/tmp/margin-review8-ci37709440574-GcGgFn/native",
+      "members": [
+        "BUILD-INFO.txt",
+        "setup-native.log",
+        "index.darwin-arm64.node"
+      ],
+      "memberCount": 3,
+      "absolutePaths": 0,
+      "parentTraversal": 0,
+      "windowsPaths": 0,
+      "specialEntries": 0,
+      "duplicateEntries": 0,
+      "digest": "sha256:f5e07dd23dafee2b1108619d5d6e2a6658e170f59414f02d11af55ee9adc1f56",
+      "digestMatchesGitHub": true
+    }
+  ]
+}

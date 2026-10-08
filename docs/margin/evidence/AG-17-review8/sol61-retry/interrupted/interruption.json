@@ -1,0 +1,60 @@
+{
+  "status": "interrupted",
+  "reason": "storage restart remained stuck; explicitly interrupted before a valid terminal TAP result",
+  "time": "2026-10-08T00:48:45.918Z",
+  "rootPid": 26039,
+  "originalExecSession": 71280,
+  "originalCommandExitCode": 143,
+  "originalCommandSignal": "SIGTERM",
+  "signals": [
+    {
+      "pid": 26039,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26830,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26829,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26828,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26827,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26826,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26239,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26238,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26233,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26212,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26211,
+      "signal": "SIGTERM"
+    },
+    {
+      "pid": 26209,
+      "signal": "SIGTERM"
+    }
+  ],
+  "survivors": []
+}

@@ -1,0 +1,261 @@
+2026-10-08T00:40:11.591Z [ERROR] (node:26214) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `Electron --trace-deprecation ...` to show where the warning was created)
+2026-10-08T00:40:11.731Z [LOG] [CredentialsManager] No stored credentials found
+2026-10-08T00:40:11.735Z [LOG] [CredentialsManager] Initialized
+2026-10-08T00:40:11.735Z [LOG] [AppState] Initialized with isUndetectable=false, disguiseMode=none, verboseLogging=false
+2026-10-08T00:40:11.736Z [WARN] [ProcessingHelper] GEMINI_API_KEY not found in env. Will try CredentialsManager after ready.
+2026-10-08T00:40:11.737Z [WARN] [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+2026-10-08T00:40:11.737Z [LOG] [SettingsWindowHelper] Setting content protection to: false
+2026-10-08T00:40:11.737Z [LOG] [ModelSelectorWindowHelper] Setting content protection to: false
+2026-10-08T00:40:11.738Z [LOG] [CropperWindowHelper] Creating cropper window with multi-monitor bounds: {"x":0,"y":0,"width":1440,"height":900}
+2026-10-08T00:40:11.880Z [LOG] [CropperWindowHelper] Window created. Actual bounds: {"x":0,"y":0,"width":1440,"height":900}
+2026-10-08T00:40:11.880Z [LOG] [CropperWindowHelper] Expected bounds: {x:0, y:0, width:1440, height:900}
+2026-10-08T00:40:11.885Z [LOG] [IntelligenceEngine] Initializing LLMs with LLMHelper
+2026-10-08T00:40:11.886Z [LOG] [LLMHelper] Codex CLI disabled with model: gpt-5.4
+2026-10-08T00:40:11.886Z [LOG] [DatabaseManager] Initializing database at /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively/natively.db
+2026-10-08T00:40:11.886Z [LOG] [DatabaseManager] Directory exists: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively
+2026-10-08T00:40:11.887Z [LOG] [DatabaseManager] Directory contents: ["Cache","Code Cache","DIPS","DawnGraphiteCache","DawnWebGPUCache","DevToolsActivePort","GPUCache","Local Storage","Shared Dictionary","SingletonCookie","SingletonLock","SingletonSocket","blob_storage","extra_screenshots","screenshots"]
+2026-10-08T00:40:11.887Z [LOG] [DatabaseManager] No existing DB found at /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively/natively.db. Creating new one.
+2026-10-08T00:40:11.893Z [LOG] [DatabaseManager] Current schema version: 0
+2026-10-08T00:40:11.894Z [LOG] [DatabaseManager] Applying migration v0 → v1: Initial schema
+2026-10-08T00:40:11.894Z [LOG] [DatabaseManager] Applying migration v1 → v2: Add meetings columns
+2026-10-08T00:40:11.895Z [LOG] [DatabaseManager] Applying migration v5 → v6: Add app_state table
+2026-10-08T00:40:11.895Z [LOG] [DatabaseManager] Applying migration v6 → v7: Add meeting_id indexes
+2026-10-08T00:40:11.895Z [LOG] [DatabaseManager] Meeting ID indexes created successfully
+2026-10-08T00:40:11.895Z [LOG] [DatabaseManager] Applying migration v13 → v14: Add profile_custom_notes table
+2026-10-08T00:40:11.896Z [LOG] [DatabaseManager] Applying migration v14 → v15: Add profile_persona table
+2026-10-08T00:40:11.896Z [LOG] [DatabaseManager] Applying migration v15 → v16: Drop retired mode tables
+2026-10-08T00:40:11.896Z [LOG] [DatabaseManager] Applying migration v16 → v17: Drop retired RAG tables
+2026-10-08T00:40:11.896Z [LOG] [DatabaseManager] Migrations completed.
+2026-10-08T00:40:11.897Z [LOG] [IntelligenceEngine] Initializing LLMs with LLMHelper
+2026-10-08T00:40:11.897Z [LOG] [ModelVersionManager] Running initial model discovery (non-blocking)...
+2026-10-08T00:40:11.897Z [LOG] [ModelVersionManager] 🔍 Starting model discovery...
+2026-10-08T00:40:11.897Z [LOG] [ProcessingHelper] Loading stored Default Model: gemini-3.1-flash-lite-preview
+2026-10-08T00:40:11.897Z [LOG] [LLMHelper] Switched to Model: gemini-3.1-flash-lite-preview
+2026-10-08T00:40:11.897Z [LOG] [LLMHelper] STT Language set to: english-us
+2026-10-08T00:40:11.898Z [LOG] [LLMHelper] AI Response Language set to: auto
+2026-10-08T00:40:11.899Z [LOG] [AppState] Applying disguise: none (Natively) on darwin
+2026-10-08T00:40:11.920Z [LOG] App is ready
+2026-10-08T00:40:11.920Z [LOG] [Main] Pre-warming interviewer STT provider...
+2026-10-08T00:40:11.920Z [LOG] [Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.
+2026-10-08T00:40:11.921Z [LOG] [Main] Pre-warming user STT provider...
+2026-10-08T00:40:11.921Z [LOG] [Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.
+2026-10-08T00:40:11.921Z [LOG] [WindowHelper] Icon Path: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/assets/natively.icns
+2026-10-08T00:40:11.921Z [LOG] [WindowHelper] Start URL: file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist/index.html
+2026-10-08T00:40:11.944Z [LOG] [WindowHelper] BrowserWindow created successfully
+2026-10-08T00:40:11.966Z [LOG] [Tray] Using template icon: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/assets/iconTemplate.png
+2026-10-08T00:40:11.986Z [LOG] [Main] updateTrayMenu called. Screenshot Accelerator: CommandOrControl+H
+2026-10-08T00:40:11.987Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+B -> general:toggle-visibility
+2026-10-08T00:40:11.988Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+B -> general:toggle-mouse-passthrough
+2026-10-08T00:40:11.988Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Enter -> general:capture-and-process
+2026-10-08T00:40:11.988Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+H -> general:take-screenshot
+2026-10-08T00:40:11.989Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+H -> general:selective-screenshot
+2026-10-08T00:40:11.989Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Up -> window:move-up
+2026-10-08T00:40:11.989Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Down -> window:move-down
+2026-10-08T00:40:11.990Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Left -> window:move-left
+2026-10-08T00:40:11.990Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Right -> window:move-right
+2026-10-08T00:40:11.992Z [LOG] [KeybindManager] Application menu updated
+2026-10-08T00:40:12.011Z [LOG] [SettingsWindowHelper] Creating Settings Window with Content Protection: false
+2026-10-08T00:40:12.031Z [LOG] [ModelSelectorWindowHelper] Creating window with Content Protection: false
+2026-10-08T00:40:12.033Z [LOG] [MeetingPersistence] Checking for unprocessed meetings...
+2026-10-08T00:40:12.034Z [LOG] [MeetingPersistence] No unprocessed meetings found.
+2026-10-08T00:40:12.034Z [LOG] [ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+2026-10-08T00:40:12.035Z [LOG] [ModelVersionManager] 📅 Background scheduler started (every ~14 days)
+2026-10-08T00:40:12.035Z [LOG] [ModelVersionManager] Current Model Tiers:
+  --- Vision ---
+  openai: T1=gpt-5.4 | T2/T3=gpt-5.4
+  gemini_flash: T1=gemini-3.1-flash-lite-preview | T2/T3=gemini-3.1-flash-lite-preview
+  claude: T1=claude-sonnet-4-6 | T2/T3=claude-sonnet-4-6
+  gemini_pro: T1=gemini-3.1-pro-preview | T2/T3=gemini-3.1-pro-preview
+  groq_llama: T1=meta-llama/llama-4-scout-17b-16e-instruct | T2/T3=meta-llama/llama-4-scout-17b-16e-instruct
+  --- Text ---
+  text_groq: T1=llama-3.3-70b-versatile | T2/T3=llama-3.3-70b-versatile
+  text_openai: T1=gpt-5.4 | T2/T3=gpt-5.4
+  text_claude: T1=claude-sonnet-4-6 | T2/T3=claude-sonnet-4-6
+  text_gemini_flash: T1=gemini-3.1-flash-lite-preview | T2/T3=gemini-3.1-flash-lite-preview
+  text_gemini_pro: T1=gemini-3.1-pro-preview | T2/T3=gemini-3.1-pro-preview
+  Last discovery: 2026-10-08T00:40:12.034Z
+  Discovery interval: 14 days
+2026-10-08T00:40:12.496Z [LOG] [WindowHelper] loadURL success
+2026-10-08T00:40:12.500Z [LOG] [WindowHelper] Switching to LAUNCHER (inactive: false)
+2026-10-08T00:40:12.561Z [LOG] [CropperWindowHelper] URL loaded successfully (attempt 1)
+2026-10-08T00:40:12.640Z [LOG] [WindowHelper] Applied stealth NSPanel attributes to overlay
+2026-10-08T00:40:12.643Z [LOG] [WindowHelper] Switching to LAUNCHER (inactive: false)
+2026-10-08T00:40:12.653Z [LOG] [LLMHelper] Switched to Model: gemini-3.1-flash-lite-preview
+2026-10-08T00:40:12.780Z [LOG] [CredentialsManager] Groq API Key updated
+2026-10-08T00:40:12.781Z [LOG] [LLMHelper] Groq API Key updated.
+2026-10-08T00:40:12.782Z [LOG] [IntelligenceEngine] Initializing LLMs with LLMHelper
+2026-10-08T00:40:12.916Z [LOG] [Init] Screen recording permission status at startup: denied
+2026-10-08T00:40:12.917Z [LOG] [Init] Dev TCC bypass enabled — skipping startup screen-recording check
+2026-10-08T00:40:12.933Z [LOG] [Main] Starting Meeting... undefined
+2026-10-08T00:40:12.941Z [LOG] [Main] macOS microphone permission before meeting start: granted
+2026-10-08T00:40:12.943Z [LOG] [Main] Dev TCC bypass enabled (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) — reporting screen capture as granted
+2026-10-08T00:40:12.943Z [LOG] [Main] macOS screen recording permission status: granted; capturable=true; sources=0
+2026-10-08T00:40:12.944Z [LOG] [WindowHelper] Overlay position reset to default for next meeting.
+2026-10-08T00:40:12.946Z [LOG] [WindowHelper] Switching to OVERLAY (inactive: false)
+2026-10-08T00:40:12.947Z [LOG] [KeybindManager] Mode changed to: overlay. Refreshing global shortcuts.
+2026-10-08T00:40:12.948Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+B -> general:toggle-visibility
+2026-10-08T00:40:12.949Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+B -> general:toggle-mouse-passthrough
+2026-10-08T00:40:12.949Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Enter -> general:process-screenshots
+2026-10-08T00:40:12.954Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Enter -> general:capture-and-process
+2026-10-08T00:40:12.954Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+R -> general:reset-cancel
+2026-10-08T00:40:12.955Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+H -> general:take-screenshot
+2026-10-08T00:40:12.955Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+H -> general:selective-screenshot
+2026-10-08T00:40:12.955Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+1 -> chat:whatToAnswer
+2026-10-08T00:40:12.956Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+2 -> chat:clarify
+2026-10-08T00:40:12.956Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+3 -> chat:dynamicAction4
+2026-10-08T00:40:12.957Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+4 -> chat:followUp
+2026-10-08T00:40:12.958Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+5 -> chat:answer
+2026-10-08T00:40:12.960Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+6 -> chat:codeHint
+2026-10-08T00:40:12.961Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+7 -> chat:brainstorm
+2026-10-08T00:40:12.962Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Up -> chat:scrollUp
+2026-10-08T00:40:12.964Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Down -> chat:scrollDown
+2026-10-08T00:40:12.965Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Alt+Left -> chat:scrollLeft
+2026-10-08T00:40:12.967Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Alt+Right -> chat:scrollRight
+2026-10-08T00:40:12.970Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Space -> chat:focusInput
+2026-10-08T00:40:12.972Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Up -> window:move-up
+2026-10-08T00:40:12.973Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Down -> window:move-down
+2026-10-08T00:40:12.974Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Left -> window:move-left
+2026-10-08T00:40:12.974Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Right -> window:move-right
+2026-10-08T00:40:12.977Z [LOG] [KeybindManager] Application menu updated
+2026-10-08T00:40:13.015Z [LOG] [Main] Dev TCC bypass enabled (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) — reporting screen capture as granted
+2026-10-08T00:40:13.017Z [LOG] [SystemAudioCapture] Initialized (lazy). Device ID: default
+2026-10-08T00:40:13.025Z [LOG] [Main] device-selection-applied: {"kind":"output","requested":null,"actual":"default","fellBack":false}
+2026-10-08T00:40:13.028Z [LOG] [MicrophoneCapture] Initialized wrapper. Device ID: default
+2026-10-08T00:40:13.033Z [LOG] [MicrophoneCapture] Creating native monitor (Eager Init)...
+2026-10-08T00:40:13.040Z [ERROR] [MicrophoneCapture] Failed to create native monitor: Error: [isolation] device blocked: MicrophoneCapture construction
+    at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:51:15)
+    at new <anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:205:27)
+    at new MicrophoneCapture (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:112746:28)
+    at _AppState.setupSystemAudioPipeline (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:224983:40)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:225996:13
+2026-10-08T00:40:13.044Z [ERROR] [Main] MicrophoneCapture construction failed: Error: [isolation] device blocked: MicrophoneCapture construction
+    at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:51:15)
+    at new <anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:205:27)
+    at new MicrophoneCapture (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:112746:28)
+    at _AppState.setupSystemAudioPipeline (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:224983:40)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:225996:13
+2026-10-08T00:40:13.047Z [LOG] [Main] Creating interviewer STT provider: none
+2026-10-08T00:40:13.053Z [LOG] [Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.
+2026-10-08T00:40:13.056Z [LOG] [Main] Creating user STT provider: none
+2026-10-08T00:40:13.057Z [LOG] [Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.
+2026-10-08T00:40:13.058Z [LOG] [SystemAudioCapture] Creating native monitor (lazy init)...
+2026-10-08T00:40:13.059Z [ERROR] [SystemAudioCapture] Failed to create native monitor: Error: [isolation] device blocked: SystemAudioCapture construction
+    at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:51:15)
+    at new <anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:205:27)
+    at SystemAudioCapture.start (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:112585:28)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/main.js:226005:38
+2026-10-08T00:40:13.062Z [WARN] [AudioRecovery] SystemAudioCapture error — attempting recovery #1: [isolation] device blocked: SystemAudioCapture construction
+2026-10-08T00:40:13.065Z [LOG] [DefaultOutputWatcher] Started. Initial default output: (none)
+2026-10-08T00:40:13.071Z [LOG] [Main] Audio pipeline started successfully.
+2026-10-08T00:40:13.155Z [LOG] [Main] Ending Meeting...
+2026-10-08T00:40:13.155Z [LOG] [WindowHelper] Switching to LAUNCHER (inactive: false)
+2026-10-08T00:40:13.156Z [LOG] [KeybindManager] Mode changed to: launcher. Refreshing global shortcuts.
+2026-10-08T00:40:13.158Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+B -> general:toggle-visibility
+2026-10-08T00:40:13.158Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+B -> general:toggle-mouse-passthrough
+2026-10-08T00:40:13.159Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Enter -> general:capture-and-process
+2026-10-08T00:40:13.160Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+H -> general:take-screenshot
+2026-10-08T00:40:13.161Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+H -> general:selective-screenshot
+2026-10-08T00:40:13.161Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Up -> window:move-up
+2026-10-08T00:40:13.162Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Down -> window:move-down
+2026-10-08T00:40:13.162Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Left -> window:move-left
+2026-10-08T00:40:13.163Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Right -> window:move-right
+2026-10-08T00:40:13.165Z [LOG] [KeybindManager] Application menu updated
+2026-10-08T00:40:13.176Z [LOG] [Main] Reverting model to default: gemini-3.1-flash-lite-preview
+2026-10-08T00:40:13.176Z [LOG] [LLMHelper] Switched to Model: gemini-3.1-flash-lite-preview
+2026-10-08T00:40:13.430Z [LOG] [MeetingPersistence] Stopping meeting and queueing save...
+2026-10-08T00:40:13.433Z [LOG] [DatabaseManager] Successfully saved meeting 3a6bfe1f-05df-442d-ab9c-8d4ccd2567be
+2026-10-08T00:40:13.434Z [LOG] [LLMHelper] generateMeetingSummary called. Context length: 214
+2026-10-08T00:40:13.438Z [LOG] [LLMHelper] Estimated tokens: 54
+2026-10-08T00:40:13.438Z [LOG] [LLMHelper] Attempting Groq for summary...
+2026-10-08T00:40:13.444Z [ERROR] (node:26214) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-08T00:40:13.452Z [LOG] [LLMHelper] ✅ Groq summary generated successfully.
+2026-10-08T00:40:13.457Z [LOG] [MeetingPersistence] Using structured prompt with sections: ["Summary","Action items","Key points"]
+2026-10-08T00:40:13.458Z [LOG] [LLMHelper] generateMeetingSummary called. Context length: 214
+2026-10-08T00:40:13.458Z [LOG] [LLMHelper] Estimated tokens: 54
+2026-10-08T00:40:13.459Z [LOG] [LLMHelper] Attempting Groq for summary...
+2026-10-08T00:40:13.466Z [LOG] [LLMHelper] ✅ Groq summary generated successfully.
+2026-10-08T00:40:13.469Z [LOG] [MeetingPersistence] LLM summary response received {"length":224}
+2026-10-08T00:40:13.472Z [LOG] [MeetingPersistence] Parsed sections: ["Summary(1)","Action items(1)","Key points(1)"]
+2026-10-08T00:40:13.473Z [LOG] [DatabaseManager] Successfully saved meeting 3a6bfe1f-05df-442d-ab9c-8d4ccd2567be
+2026-10-08T00:40:13.506Z [LOG] [CropperWindowHelper] before-quit: auto-disposing IPC listeners
+2026-10-08T00:40:13.506Z [LOG] App is quitting, cleaning up resources...
+2026-10-08T00:40:13.507Z [LOG] [CropperWindowHelper] Disposing...
+2026-10-08T00:40:13.507Z [LOG] [CropperWindowHelper] IPC listeners removed
+2026-10-08T00:40:13.507Z [LOG] [CropperWindowHelper] Window closed
+2026-10-08T00:40:13.507Z [LOG] [CropperWindowHelper] Disposal complete
+2026-10-08T00:40:13.507Z [LOG] [CredentialsManager] Memory scrubbed
+2026-10-08T00:40:13.507Z [LOG] [ModelVersionManager] Background scheduler stopped
+2026-10-08T00:40:13.508Z [LOG] [LLMHelper] Keys scrubbed from memory
+2026-10-08T00:40:13.508Z [LOG] [Main] Credentials scrubbed from memory on quit
+2026-10-08T00:40:13.508Z [LOG] [Main] Screenshot queues cleared on quit
+2026-10-08T00:40:14.304Z [ERROR] (node:26233) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `Electron --trace-deprecation ...` to show where the warning was created)
+2026-10-08T00:41:55.912Z [LOG] [CredentialsManager] Loaded encrypted credentials
+2026-10-08T00:41:55.916Z [LOG] [CredentialsManager] Initialized
+2026-10-08T00:41:55.917Z [LOG] [AppState] Initialized with isUndetectable=false, disguiseMode=none, verboseLogging=false
+2026-10-08T00:41:55.919Z [WARN] [ProcessingHelper] GEMINI_API_KEY not found in env. Will try CredentialsManager after ready.
+2026-10-08T00:41:55.925Z [LOG] [ModelVersionManager] Loaded persisted state from disk
+2026-10-08T00:41:55.929Z [WARN] [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+2026-10-08T00:41:55.930Z [LOG] [SettingsWindowHelper] Setting content protection to: false
+2026-10-08T00:41:55.930Z [LOG] [ModelSelectorWindowHelper] Setting content protection to: false
+2026-10-08T00:41:55.934Z [LOG] [CropperWindowHelper] Creating cropper window with multi-monitor bounds: {"x":0,"y":0,"width":1440,"height":900}
+2026-10-08T00:41:56.093Z [LOG] [CropperWindowHelper] Window created. Actual bounds: {"x":0,"y":0,"width":1440,"height":900}
+2026-10-08T00:41:56.094Z [LOG] [CropperWindowHelper] Expected bounds: {x:0, y:0, width:1440, height:900}
+2026-10-08T00:41:56.108Z [LOG] [IntelligenceEngine] Initializing LLMs with LLMHelper
+2026-10-08T00:41:56.108Z [LOG] [LLMHelper] Codex CLI disabled with model: gpt-5.4
+2026-10-08T00:41:56.108Z [LOG] [DatabaseManager] Initializing database at /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively/natively.db
+2026-10-08T00:41:56.108Z [LOG] [DatabaseManager] Directory exists: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively
+2026-10-08T00:41:56.109Z [LOG] [DatabaseManager] Directory contents: ["Cache","Code Cache","DIPS","DawnGraphiteCache","DawnWebGPUCache","DevToolsActivePort","GPUCache","Local State","Local Storage","Network Persistent State","Preferences","Session Storage","Shared Dictionary","Trust Tokens","Trust Tokens-journal","blob_storage","credentials.enc","extra_screenshots","model_versions.json","natively.db","screenshots"]
+2026-10-08T00:41:56.109Z [LOG] [DatabaseManager] Found existing DB. Size: 57344 bytes
+2026-10-08T00:41:56.128Z [LOG] [DatabaseManager] Current schema version: 17
+2026-10-08T00:41:56.129Z [LOG] [DatabaseManager] Migrations completed.
+2026-10-08T00:41:56.129Z [LOG] [ProcessingHelper] Loading stored Groq API Key from CredentialsManager
+2026-10-08T00:41:56.129Z [LOG] [LLMHelper] Groq API Key updated.
+2026-10-08T00:41:56.130Z [LOG] [IntelligenceEngine] Initializing LLMs with LLMHelper
+2026-10-08T00:41:56.130Z [LOG] [ModelVersionManager] Next scheduled discovery in ~14 days
+2026-10-08T00:41:56.131Z [LOG] [ModelVersionManager] 📅 Background scheduler started (every ~14 days)
+2026-10-08T00:41:56.131Z [LOG] [ProcessingHelper] Loading stored Default Model: gemini-3.1-flash-lite-preview
+2026-10-08T00:41:56.131Z [LOG] [LLMHelper] Switched to Model: gemini-3.1-flash-lite-preview
+2026-10-08T00:41:56.132Z [LOG] [LLMHelper] STT Language set to: english-us
+2026-10-08T00:41:56.132Z [LOG] [LLMHelper] AI Response Language set to: auto
+2026-10-08T00:41:56.133Z [LOG] [AppState] Applying disguise: none (Natively) on darwin
+2026-10-08T00:41:56.153Z [LOG] App is ready
+2026-10-08T00:41:56.181Z [LOG] [Main] Pre-warming interviewer STT provider...
+2026-10-08T00:41:56.182Z [LOG] [Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.
+2026-10-08T00:41:56.182Z [LOG] [Main] Pre-warming user STT provider...
+2026-10-08T00:41:56.183Z [LOG] [Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.
+2026-10-08T00:41:56.184Z [LOG] [WindowHelper] Icon Path: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/assets/natively.icns
+2026-10-08T00:41:56.184Z [LOG] [WindowHelper] Start URL: file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist/index.html
+2026-10-08T00:41:56.206Z [LOG] [WindowHelper] BrowserWindow created successfully
+2026-10-08T00:41:56.226Z [LOG] [Tray] Using template icon: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/assets/iconTemplate.png
+2026-10-08T00:41:56.263Z [LOG] [Main] updateTrayMenu called. Screenshot Accelerator: CommandOrControl+H
+2026-10-08T00:41:56.270Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+B -> general:toggle-visibility
+2026-10-08T00:41:56.270Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+B -> general:toggle-mouse-passthrough
+2026-10-08T00:41:56.270Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Enter -> general:capture-and-process
+2026-10-08T00:41:56.270Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+H -> general:take-screenshot
+2026-10-08T00:41:56.271Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+H -> general:selective-screenshot
+2026-10-08T00:41:56.271Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Up -> window:move-up
+2026-10-08T00:41:56.271Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Down -> window:move-down
+2026-10-08T00:41:56.272Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Left -> window:move-left
+2026-10-08T00:41:56.272Z [LOG] [KeybindManager] Registered global shortcut: CommandOrControl+Shift+Right -> window:move-right
+2026-10-08T00:41:56.275Z [LOG] [KeybindManager] Application menu updated
+2026-10-08T00:41:56.291Z [LOG] [SettingsWindowHelper] Creating Settings Window with Content Protection: false
+2026-10-08T00:41:56.307Z [LOG] [ModelSelectorWindowHelper] Creating window with Content Protection: false
+2026-10-08T00:41:56.309Z [LOG] [MeetingPersistence] Checking for unprocessed meetings...
+2026-10-08T00:41:56.309Z [LOG] [MeetingPersistence] No unprocessed meetings found.
+2026-10-08T00:41:56.310Z [LOG] [ModelVersionManager] Current Model Tiers:
+  --- Vision ---
+  openai: T1=gpt-5.4 | T2/T3=gpt-5.4
+  gemini_flash: T1=gemini-3.1-flash-lite-preview | T2/T3=gemini-3.1-flash-lite-preview
+  claude: T1=claude-sonnet-4-6 | T2/T3=claude-sonnet-4-6
+  gemini_pro: T1=gemini-3.1-pro-preview | T2/T3=gemini-3.1-pro-preview
+  groq_llama: T1=meta-llama/llama-4-scout-17b-16e-instruct | T2/T3=meta-llama/llama-4-scout-17b-16e-instruct
+  --- Text ---
+  text_groq: T1=llama-3.3-70b-versatile | T2/T3=llama-3.3-70b-versatile
+  text_openai: T1=gpt-5.4 | T2/T3=gpt-5.4
+  text_claude: T1=claude-sonnet-4-6 | T2/T3=claude-sonnet-4-6
+  text_gemini_flash: T1=gemini-3.1-flash-lite-preview | T2/T3=gemini-3.1-flash-lite-preview
+  text_gemini_pro: T1=gemini-3.1-pro-preview | T2/T3=gemini-3.1-pro-preview
+  Last discovery: 2026-10-08T00:40:12.034Z
+  Discovery interval: 14 days

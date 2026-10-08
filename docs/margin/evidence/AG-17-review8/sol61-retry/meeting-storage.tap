@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: a meeting is saved with a mock summary, survives a restart, and stays deleted
+ok 1 - a meeting is saved with a mock summary, survives a restart, and stays deleted
+  ---
+  duration_ms: 5356.999333
+  type: 'test'
+  ...
+# Subtest: with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary
+ok 2 - with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary
+  ---
+  duration_ms: 627.702667
+  type: 'test'
+  ...
+# Subtest: the meeting chat follows the post_call_summary and profile_history scopes
+ok 3 - the meeting chat follows the post_call_summary and profile_history scopes
+  ---
+  duration_ms: 5357.209208
+  type: 'test'
+  ...
+# Subtest: a meeting edit that fails to save is rolled back and reported
+ok 4 - a meeting edit that fails to save is rolled back and reported
+  ---
+  duration_ms: 4347.930292
+  type: 'test'
+  ...
+# Subtest: startup recovery of an unprocessed meeting follows the profile_history scope
+ok 5 - startup recovery of an unprocessed meeting follows the profile_history scope
+  ---
+  duration_ms: 8018.464958
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24216.270667

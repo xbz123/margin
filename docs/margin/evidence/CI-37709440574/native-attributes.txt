@@ -1,0 +1,6 @@
+Archive:  /tmp/margin-review8-ci37709440574-GcGgFn/native-artifact.zip
+Zip file size: 426260 bytes, number of entries: 3
+-rw-r--r--  4.5 unx      405 bl      274 defN 26-Oct-08 00:47 BUILD-INFO.txt
+-rw-r--r--  4.5 unx     4883 bl     1698 defN 26-Oct-08 00:47 setup-native.log
+-rwxr-xr-x  4.5 unx  1152760 bl   423884 defN 26-Oct-08 00:47 index.darwin-arm64.node
+3 files, 1158048 bytes uncompressed, 425856 bytes compressed:  63.2%

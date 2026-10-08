@@ -1,0 +1,10 @@
+{"t":"2026-10-08T00:40:11.206Z","pid":26214,"ppid":26212,"script":"--inspect=0","kind":"guard-loaded","detail":"browser"}
+{"t":"2026-10-08T00:40:11.354Z","pid":26214,"script":"--inspect=0","kind":"device","detail":"native audio module wrapped (index.darwin-arm64.node)"}
+{"t":"2026-10-08T00:40:11.355Z","pid":26214,"script":"--inspect=0","kind":"device","detail":"native audio module wrapped (index.darwin-arm64.node)"}
+{"t":"2026-10-08T00:40:12.647Z","pid":26214,"script":"--inspect=0","kind":"local-exec","detail":"execFileSync defaults"}
+{"t":"2026-10-08T00:40:12.934Z","pid":26214,"script":"--inspect=0","kind":"permission","detail":"getMediaAccessStatus microphone (double: granted)"}
+{"t":"2026-10-08T00:40:13.036Z","pid":26214,"script":"--inspect=0","kind":"device","detail":"MicrophoneCapture construction"}
+{"t":"2026-10-08T00:40:13.058Z","pid":26214,"script":"--inspect=0","kind":"device","detail":"SystemAudioCapture construction"}
+{"t":"2026-10-08T00:40:14.006Z","pid":26233,"ppid":26212,"script":"--inspect=0","kind":"guard-loaded","detail":"browser"}
+{"t":"2026-10-08T00:40:14.165Z","pid":26233,"script":"--inspect=0","kind":"device","detail":"native audio module wrapped (index.darwin-arm64.node)"}
+{"t":"2026-10-08T00:40:14.166Z","pid":26233,"script":"--inspect=0","kind":"device","detail":"native audio module wrapped (index.darwin-arm64.node)"}

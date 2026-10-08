@@ -1,0 +1,641 @@
+﻿2026-10-08T00:45:48.9391410Z Current runner version: '2.337.0'
+2026-10-08T00:45:48.9406610Z ##[group]Runner Image Provisioner
+2026-10-08T00:45:48.9407230Z Hosted Compute Agent
+2026-10-08T00:45:48.9407610Z Version: 20260828.587
+2026-10-08T00:45:48.9408060Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-10-08T00:45:48.9408590Z Build Date: 2026-08-28T16:44:25Z
+2026-10-08T00:45:48.9409020Z Worker ID: {092e89e2-ac55-4091-afce-9153dfb5b760}
+2026-10-08T00:45:48.9409450Z Azure Region: westus
+2026-10-08T00:45:48.9409820Z ##[endgroup]
+2026-10-08T00:45:48.9410680Z ##[group]Operating System
+2026-10-08T00:45:48.9411050Z macOS
+2026-10-08T00:45:48.9411360Z 15.7.9
+2026-10-08T00:45:48.9411680Z 24G830
+2026-10-08T00:45:48.9412000Z ##[endgroup]
+2026-10-08T00:45:48.9412330Z ##[group]Runner Image
+2026-10-08T00:45:48.9447220Z Image: macos-15-arm64
+2026-10-08T00:45:48.9447590Z Version: 20260907.0337.1
+2026-10-08T00:45:48.9448550Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20260907.0337/images/macos/macos-15-arm64-Readme.md
+2026-10-08T00:45:48.9449540Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20260907.0337
+2026-10-08T00:45:48.9450240Z ##[endgroup]
+2026-10-08T00:45:48.9450950Z ##[group]GITHUB_TOKEN Permissions
+2026-10-08T00:45:48.9452890Z Contents: read
+2026-10-08T00:45:48.9453230Z Metadata: read
+2026-10-08T00:45:48.9453550Z ##[endgroup]
+2026-10-08T00:45:48.9454840Z Secret source: Actions
+2026-10-08T00:45:48.9455360Z Cache mode: write
+2026-10-08T00:45:48.9455760Z Prepare workflow directory
+2026-10-08T00:45:48.9659460Z Prepare all required actions
+2026-10-08T00:45:48.9693290Z Getting action download info
+2026-10-08T00:45:49.2156460Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-08T00:45:49.3698720Z Download action repository 'actions/setup-node@v7' (SHA:820762786026740c76f36085b0efc47a31fe5020)
+2026-10-08T00:45:49.4542070Z Download action repository 'actions/cache@v6' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+2026-10-08T00:45:49.5789500Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+2026-10-08T00:45:50.3441980Z Complete job name: gates
+2026-10-08T00:45:50.3849480Z ##[group]Run actions/checkout@v7
+2026-10-08T00:45:50.3850050Z with:
+2026-10-08T00:45:50.3850370Z   fetch-depth: 0
+2026-10-08T00:45:50.3850750Z   repository: xbz123/Assessment-Assistant
+2026-10-08T00:45:50.3853560Z   token: ***
+2026-10-08T00:45:50.3853890Z   ssh-strict: true
+2026-10-08T00:45:50.3854270Z   ssh-user: git
+2026-10-08T00:45:50.3854640Z   persist-credentials: true
+2026-10-08T00:45:50.3855010Z   clean: true
+2026-10-08T00:45:50.3855380Z   sparse-checkout-cone-mode: true
+2026-10-08T00:45:50.3855820Z   fetch-tags: false
+2026-10-08T00:45:50.3861900Z   show-progress: true
+2026-10-08T00:45:50.3862240Z   lfs: false
+2026-10-08T00:45:50.3862550Z   submodules: false
+2026-10-08T00:45:50.3862870Z   set-safe-directory: true
+2026-10-08T00:45:50.3863240Z   allow-unsafe-pr-checkout: false
+2026-10-08T00:45:50.3863850Z ##[endgroup]
+2026-10-08T00:45:50.5079180Z Syncing repository: xbz123/Assessment-Assistant
+2026-10-08T00:45:50.5080450Z ##[group]Getting Git version info
+2026-10-08T00:45:50.5081340Z Working directory is '/Users/runner/work/Assessment-Assistant/Assessment-Assistant'
+2026-10-08T00:45:50.5082450Z [command]/opt/homebrew/bin/git version
+2026-10-08T00:45:50.5475690Z git version 2.55.0
+2026-10-08T00:45:50.5485530Z ##[endgroup]
+2026-10-08T00:45:50.5490440Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/2c7f4a07-fe64-4f05-a142-c4dcb7f15492/.gitconfig'
+2026-10-08T00:45:50.5496650Z Temporarily overriding HOME='/Users/runner/work/_temp/2c7f4a07-fe64-4f05-a142-c4dcb7f15492' before making global git config changes
+2026-10-08T00:45:50.5499690Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T00:45:50.5500730Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Assessment-Assistant/Assessment-Assistant
+2026-10-08T00:45:50.5573890Z Deleting the contents of '/Users/runner/work/Assessment-Assistant/Assessment-Assistant'
+2026-10-08T00:45:50.5575150Z ##[group]Determining repository object format
+2026-10-08T00:45:50.5575900Z ##[endgroup]
+2026-10-08T00:45:50.5576480Z ##[group]Initializing the repository
+2026-10-08T00:45:50.5578850Z [command]/opt/homebrew/bin/git init /Users/runner/work/Assessment-Assistant/Assessment-Assistant
+2026-10-08T00:45:50.5713450Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-08T00:45:50.5714370Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-08T00:45:50.5715280Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-08T00:45:50.5715880Z hint: call:
+2026-10-08T00:45:50.5716270Z hint:
+2026-10-08T00:45:50.5726210Z hint: 	git config --global init.defaultBranch <name>
+2026-10-08T00:45:50.5726780Z hint:
+2026-10-08T00:45:50.5727210Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-08T00:45:50.5728100Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-08T00:45:50.5728760Z hint:
+2026-10-08T00:45:50.5729120Z hint: 	git branch -m <name>
+2026-10-08T00:45:50.5729470Z hint:
+2026-10-08T00:45:50.5729940Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-08T00:45:50.5730740Z Initialized empty Git repository in /Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/
+2026-10-08T00:45:50.5732130Z [command]/opt/homebrew/bin/git remote add origin https://github.com/xbz123/Assessment-Assistant
+2026-10-08T00:45:50.5767930Z ##[endgroup]
+2026-10-08T00:45:50.5768600Z ##[group]Disabling automatic garbage collection
+2026-10-08T00:45:50.5770060Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-10-08T00:45:50.5809540Z ##[endgroup]
+2026-10-08T00:45:50.5810120Z ##[group]Setting up auth
+2026-10-08T00:45:50.5810640Z Removing SSH command configuration
+2026-10-08T00:45:50.5813720Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T00:45:50.5862980Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T00:45:50.6755160Z Removing HTTP extra header
+2026-10-08T00:45:50.6756490Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T00:45:50.6758590Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T00:45:50.7300270Z Removing includeIf entries pointing to credentials config files
+2026-10-08T00:45:50.7303570Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T00:45:50.7344910Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T00:45:50.8055020Z [command]/opt/homebrew/bin/git config --file /Users/runner/work/_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-08T00:45:50.8103970Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path /Users/runner/work/_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:45:50.8146990Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path /Users/runner/work/_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:45:50.8191500Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:45:50.8233080Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:45:50.8272420Z ##[endgroup]
+2026-10-08T00:45:50.8272970Z ##[group]Fetching the repository
+2026-10-08T00:45:50.8276320Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-10-08T00:46:00.5842860Z From https://github.com/xbz123/Assessment-Assistant
+2026-10-08T00:46:00.5843860Z  * [new branch]      codex/ai-assistant-refactor -> origin/codex/ai-assistant-refactor
+2026-10-08T00:46:00.5844860Z  * [new branch]      codex/margin-agpl-migration -> origin/codex/margin-agpl-migration
+2026-10-08T00:46:00.5845670Z  * [new branch]      main            -> origin/main
+2026-10-08T00:46:00.5846380Z  * [new branch]      old             -> origin/old
+2026-10-08T00:46:00.5847080Z  * [new branch]      windows-support -> origin/windows-support
+2026-10-08T00:46:00.5847920Z  * [new tag]         v1.0.0-macos    -> v1.0.0-macos
+2026-10-08T00:46:00.5848560Z  * [new tag]         v1.0.0-windows  -> v1.0.0-windows
+2026-10-08T00:46:00.5850640Z [command]/opt/homebrew/bin/git branch --list --remote origin/codex/margin-agpl-migration
+2026-10-08T00:46:00.5904600Z   origin/codex/margin-agpl-migration
+2026-10-08T00:46:00.5909600Z [command]/opt/homebrew/bin/git rev-parse refs/remotes/origin/codex/margin-agpl-migration
+2026-10-08T00:46:00.5960010Z c43b10e9e60e8e4bf634e4304289d2b4af36484c
+2026-10-08T00:46:00.5964300Z ##[endgroup]
+2026-10-08T00:46:00.5965740Z ##[group]Determining the checkout info
+2026-10-08T00:46:00.5967620Z ##[endgroup]
+2026-10-08T00:46:00.5968440Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-10-08T00:46:00.6029320Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-08T00:46:00.6079490Z ##[group]Checking out the ref
+2026-10-08T00:46:00.6081290Z [command]/opt/homebrew/bin/git checkout --progress --force -B codex/margin-agpl-migration refs/remotes/origin/codex/margin-agpl-migration
+2026-10-08T00:46:01.0190140Z Switched to a new branch 'codex/margin-agpl-migration'
+2026-10-08T00:46:01.0192340Z branch 'codex/margin-agpl-migration' set up to track 'origin/codex/margin-agpl-migration'.
+2026-10-08T00:46:01.0212200Z ##[endgroup]
+2026-10-08T00:46:01.0316930Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-10-08T00:46:01.0390670Z c43b10e9e60e8e4bf634e4304289d2b4af36484c
+2026-10-08T00:46:01.0522680Z ##[group]Run # The empty extraheader keeps the checkout token from being sent to the upstream repository.
+2026-10-08T00:46:01.0523250Z [36;1m# The empty extraheader keeps the checkout token from being sent to the upstream repository.[0m
+2026-10-08T00:46:01.0523940Z [36;1mgit -c http.https://github.com/.extraheader= fetch --no-tags https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant.git \[0m
+2026-10-08T00:46:01.0524450Z [36;1m  '+refs/heads/*:refs/remotes/upstream/*'[0m
+2026-10-08T00:46:01.0524840Z [36;1mfor sha in $(node -p "require('./docs/margin/provenance-config.json').restrictedExtraRefs.join(' ')"); do[0m
+2026-10-08T00:46:01.0525330Z [36;1m  git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch --no-tags origin "$sha"[0m
+2026-10-08T00:46:01.0525650Z [36;1m  git cat-file -e "$sha^{commit}"[0m
+2026-10-08T00:46:01.0525820Z [36;1mdone[0m
+2026-10-08T00:46:01.0526090Z [36;1mecho "upstream refs: $(git for-each-ref refs/remotes/upstream --format=x | wc -l)"[0m
+2026-10-08T00:46:01.0563980Z shell: /bin/bash -e {0}
+2026-10-08T00:46:01.0564150Z ##[endgroup]
+2026-10-08T00:46:11.2188200Z From https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant
+2026-10-08T00:46:11.2188800Z  * [new branch]        audit/autopilot-2026-08-18 -> upstream/audit/autopilot-2026-08-18
+2026-10-08T00:46:11.2189280Z  * [new branch]        backup/audio-zerofill-orphans -> upstream/backup/audio-zerofill-orphans
+2026-10-08T00:46:11.2189780Z  * [new branch]        backup/dangling-anchor-2026-09-15 -> upstream/backup/dangling-anchor-2026-09-15
+2026-10-08T00:46:11.2190610Z  * [new branch]        backup/dangling-baseline-check -> upstream/backup/dangling-baseline-check
+2026-10-08T00:46:11.2191070Z  * [new branch]        backup/dangling-css-baseline -> upstream/backup/dangling-css-baseline
+2026-10-08T00:46:11.2192040Z  * [new branch]        backup/dangling-gitignore-amend -> upstream/backup/dangling-gitignore-amend
+2026-10-08T00:46:11.2192630Z  * [new branch]        backup/dangling-ia32-cross-compile -> upstream/backup/dangling-ia32-cross-compile
+2026-10-08T00:46:11.2193140Z  * [new branch]        backup/device-migration-2026-09-15 -> upstream/backup/device-migration-2026-09-15
+2026-10-08T00:46:11.2193720Z  * [new branch]        backup/feat-launcher-before-local-merge -> upstream/backup/feat-launcher-before-local-merge
+2026-10-08T00:46:11.2194670Z  * [new branch]        backup/launcher-aspect-lock-orphans -> upstream/backup/launcher-aspect-lock-orphans
+2026-10-08T00:46:11.2195210Z  * [new branch]        backup/main-before-local-merge -> upstream/backup/main-before-local-merge
+2026-10-08T00:46:11.2195700Z  * [new branch]        backup/stash-0-premerge29-preflight -> upstream/backup/stash-0-premerge29-preflight
+2026-10-08T00:46:11.2196190Z  * [new branch]        backup/stash-1-corner-work-ab -> upstream/backup/stash-1-corner-work-ab
+2026-10-08T00:46:11.2196610Z  * [new branch]        bench/evidence-rich    -> upstream/bench/evidence-rich
+2026-10-08T00:46:11.2196930Z  * [new branch]        cand/e15               -> upstream/cand/e15
+2026-10-08T00:46:11.2197260Z  * [new branch]        cand/e16b              -> upstream/cand/e16b
+2026-10-08T00:46:11.2197650Z  * [new branch]        chore/2026-09-12-session-work -> upstream/chore/2026-09-12-session-work
+2026-10-08T00:46:11.2198110Z  * [new branch]        chore/natively-api-submodule -> upstream/chore/natively-api-submodule
+2026-10-08T00:46:11.2205930Z  * [new branch]        chore/rescue-local-work -> upstream/chore/rescue-local-work
+2026-10-08T00:46:11.2206450Z  * [new branch]        chore/ts7-upgrade      -> upstream/chore/ts7-upgrade
+2026-10-08T00:46:11.2206850Z  * [new branch]        diag/nemotron-stt-observability -> upstream/diag/nemotron-stt-observability
+2026-10-08T00:46:11.2207280Z  * [new branch]        electron-43            -> upstream/electron-43
+2026-10-08T00:46:11.2207680Z  * [new branch]        feat/auto-answer-v3    -> upstream/feat/auto-answer-v3
+2026-10-08T00:46:11.2208460Z  * [new branch]        feat/browser-extension-split-card -> upstream/feat/browser-extension-split-card
+2026-10-08T00:46:11.2208940Z  * [new branch]        feat/card-art-chrome-timer -> upstream/feat/card-art-chrome-timer
+2026-10-08T00:46:11.2209450Z  * [new branch]        feat/direct-assist-context-upgrade -> upstream/feat/direct-assist-context-upgrade
+2026-10-08T00:46:11.2209970Z  * [new branch]        feat/direct-assist-fallback -> upstream/feat/direct-assist-fallback
+2026-10-08T00:46:11.2210410Z  * [new branch]        feat/extension-registry-install -> upstream/feat/extension-registry-install
+2026-10-08T00:46:11.2211000Z  * [new branch]        feat/extension-system  -> upstream/feat/extension-system
+2026-10-08T00:46:11.2211360Z  * [new branch]        feat/fast-model-picker -> upstream/feat/fast-model-picker
+2026-10-08T00:46:11.2211750Z  * [new branch]        feat/first-boot-welcome-card -> upstream/feat/first-boot-welcome-card
+2026-10-08T00:46:11.2212160Z  * [new branch]        feat/genie-animation-toggle -> upstream/feat/genie-animation-toggle
+2026-10-08T00:46:11.2212560Z  * [new branch]        feat/help-and-setup-bar -> upstream/feat/help-and-setup-bar
+2026-10-08T00:46:11.2212970Z  * [new branch]        feat/litellm-model-selection -> upstream/feat/litellm-model-selection
+2026-10-08T00:46:11.2213380Z  * [new branch]        feat/nemotron-local-stt -> upstream/feat/nemotron-local-stt
+2026-10-08T00:46:11.2213780Z  * [new branch]        feat/ninerouter-provider -> upstream/feat/ninerouter-provider
+2026-10-08T00:46:11.2214260Z  * [new branch]        feat/overlay-click-through-pill -> upstream/feat/overlay-click-through-pill
+2026-10-08T00:46:11.2214840Z  * [new branch]        feat/overlay-edit-shortcuts -> upstream/feat/overlay-edit-shortcuts
+2026-10-08T00:46:11.2215380Z  * [new branch]        feat/overlay-edit-shortcuts-and-word-delete -> upstream/feat/overlay-edit-shortcuts-and-word-delete
+2026-10-08T00:46:11.2215850Z  * [new branch]        feat/retrieval-scale   -> upstream/feat/retrieval-scale
+2026-10-08T00:46:11.2216230Z  * [new branch]        feat/system-design-diagrams -> upstream/feat/system-design-diagrams
+2026-10-08T00:46:11.2216640Z  * [new branch]        feat/toaster-redesign  -> upstream/feat/toaster-redesign
+2026-10-08T00:46:11.2216990Z  * [new branch]        feat/trial-ended-card  -> upstream/feat/trial-ended-card
+2026-10-08T00:46:11.2217910Z  * [new branch]        feat/undetectable-mode-ring -> upstream/feat/undetectable-mode-ring
+2026-10-08T00:46:11.2218290Z  * [new branch]        feat/usage-ledger      -> upstream/feat/usage-ledger
+2026-10-08T00:46:11.2218730Z  * [new branch]        feat/windows-permissions-toast -> upstream/feat/windows-permissions-toast
+2026-10-08T00:46:11.2219320Z  * [new branch]        fix/always-answer-and-reranker-on-v3 -> upstream/fix/always-answer-and-reranker-on-v3
+2026-10-08T00:46:11.2219800Z  * [new branch]        fix/always-answer-round4 -> upstream/fix/always-answer-round4
+2026-10-08T00:46:11.2220240Z  * [new branch]        fix/always-answer-round5 -> upstream/fix/always-answer-round5
+2026-10-08T00:46:11.2220700Z  * [new branch]        fix/answer-policy-and-conversation-state -> upstream/fix/answer-policy-and-conversation-state
+2026-10-08T00:46:11.2221150Z  * [new branch]        fix/aq-astra           -> upstream/fix/aq-astra
+2026-10-08T00:46:11.2221470Z  * [new branch]        fix/asterisk-closure   -> upstream/fix/asterisk-closure
+2026-10-08T00:46:11.2221880Z  * [new branch]        fix/ci-electron-abi-test-runner -> upstream/fix/ci-electron-abi-test-runner
+2026-10-08T00:46:11.2222310Z  * [new branch]        fix/ci-premium-submodule -> upstream/fix/ci-premium-submodule
+2026-10-08T00:46:11.2222800Z  * [new branch]        fix/ci-run-tests-on-windows -> upstream/fix/ci-run-tests-on-windows
+2026-10-08T00:46:11.2223280Z  * [new branch]        fix/codex-vision-and-google-credentials -> upstream/fix/codex-vision-and-google-credentials
+2026-10-08T00:46:11.2223710Z  * [new branch]        fix/cred-cluster       -> upstream/fix/cred-cluster
+2026-10-08T00:46:11.2224280Z  * [new branch]        fix/extension-card-genie-pictures -> upstream/fix/extension-card-genie-pictures
+2026-10-08T00:46:11.2224860Z  * [new branch]        fix/google-stt-auth-crash-on-missing-credentials -> upstream/fix/google-stt-auth-crash-on-missing-credentials
+2026-10-08T00:46:11.2225410Z  * [new branch]        fix/index-hash-trim-stability -> upstream/fix/index-hash-trim-stability
+2026-10-08T00:46:11.2225880Z  * [new branch]        fix/intelligence-settings-dead-flags -> upstream/fix/intelligence-settings-dead-flags
+2026-10-08T00:46:11.2226440Z  * [new branch]        fix/interview-prep-doc-grounding-switch -> upstream/fix/interview-prep-doc-grounding-switch
+2026-10-08T00:46:11.2227070Z  * [new branch]        fix/issue-543-wta-provider-rejection -> upstream/fix/issue-543-wta-provider-rejection
+2026-10-08T00:46:11.2227740Z  * [new branch]        fix/issue-558-codex-cli-login-and-models -> upstream/fix/issue-558-codex-cli-login-and-models
+2026-10-08T00:46:11.2228210Z  * [new branch]        fix/ledger-vision-whisper -> upstream/fix/ledger-vision-whisper
+2026-10-08T00:46:11.2228690Z  * [new branch]        fix/license-overwrite-protection -> upstream/fix/license-overwrite-protection
+2026-10-08T00:46:11.2229220Z  * [new branch]        fix/live-surface-answer-contract -> upstream/fix/live-surface-answer-contract
+2026-10-08T00:46:11.2229770Z  * [new branch]        fix/local-stt-language-capability -> upstream/fix/local-stt-language-capability
+2026-10-08T00:46:11.2230230Z  * [new branch]        fix/local-stt-slot-starvation -> upstream/fix/local-stt-slot-starvation
+2026-10-08T00:46:11.2230770Z  * [new branch]        fix/macos-ci-baseline  -> upstream/fix/macos-ci-baseline
+2026-10-08T00:46:11.2231100Z  * [new branch]        fix/main-ci-green      -> upstream/fix/main-ci-green
+2026-10-08T00:46:11.2231470Z  * [new branch]        fix/meeting-overlay-memory -> upstream/fix/meeting-overlay-memory
+2026-10-08T00:46:11.2231900Z  * [new branch]        fix/meeting-title-sync-and-editor -> upstream/fix/meeting-title-sync-and-editor
+2026-10-08T00:46:11.2232370Z  * [new branch]        fix/model-selector-provider-marks -> upstream/fix/model-selector-provider-marks
+2026-10-08T00:46:11.2232850Z  * [new branch]        fix/nemotron-model-picker-grouping -> upstream/fix/nemotron-model-picker-grouping
+2026-10-08T00:46:11.2233290Z  * [new branch]        fix/overlay-aux-opacity-gap -> upstream/fix/overlay-aux-opacity-gap
+2026-10-08T00:46:11.2233680Z  * [new branch]        fix/overlay-banner-actions -> upstream/fix/overlay-banner-actions
+2026-10-08T00:46:11.2234120Z  * [new branch]        fix/overlay-fixes-and-genie-toggle -> upstream/fix/overlay-fixes-and-genie-toggle
+2026-10-08T00:46:11.2234550Z  * [new branch]        fix/own-subject-overreach -> upstream/fix/own-subject-overreach
+2026-10-08T00:46:11.2235000Z  * [new branch]        fix/permissions-card-genie-pictures -> upstream/fix/permissions-card-genie-pictures
+2026-10-08T00:46:11.2235450Z  * [new branch]        fix/pi-identity-descriptors -> upstream/fix/pi-identity-descriptors
+2026-10-08T00:46:11.2235920Z  * [new branch]        fix/pi-indexing-survives-panel-close -> upstream/fix/pi-indexing-survives-panel-close
+2026-10-08T00:46:11.2236390Z  * [new branch]        fix/pr487-liverag-and-chatguard -> upstream/fix/pr487-liverag-and-chatguard
+2026-10-08T00:46:11.2236870Z  * [new branch]        fix/profile-pack-fk-and-gap-analysis -> upstream/fix/profile-pack-fk-and-gap-analysis
+2026-10-08T00:46:11.2237310Z  * [new branch]        fix/rag-config-forwarding -> upstream/fix/rag-config-forwarding
+2026-10-08T00:46:11.2237750Z  * [new branch]        fix/reference-retrieval-grounding -> upstream/fix/reference-retrieval-grounding
+2026-10-08T00:46:11.2238280Z  * [new branch]        fix/restore-build-config-and-test-fixtures -> upstream/fix/restore-build-config-and-test-fixtures
+2026-10-08T00:46:11.2238830Z  * [new branch]        fix/retrieval-local-cards-light-mode -> upstream/fix/retrieval-local-cards-light-mode
+2026-10-08T00:46:11.2239300Z  * [new branch]        fix/retrieval-review-followups -> upstream/fix/retrieval-review-followups
+2026-10-08T00:46:11.2239900Z  * [new branch]        fix/settings-dropdown-stacking-context -> upstream/fix/settings-dropdown-stacking-context
+2026-10-08T00:46:11.2240470Z  * [new branch]        fix/settings-popup-toggle-knob -> upstream/fix/settings-popup-toggle-knob
+2026-10-08T00:46:11.2241040Z  * [new branch]        fix/spotlight-arrow-glass-glyph -> upstream/fix/spotlight-arrow-glass-glyph
+2026-10-08T00:46:11.2241560Z  * [new branch]        fix/spotlight-arrows-glass-proximity -> upstream/fix/spotlight-arrows-glass-proximity
+2026-10-08T00:46:11.2242130Z  * [new branch]        fix/stack-review-safe-subset -> upstream/fix/stack-review-safe-subset
+2026-10-08T00:46:11.2242630Z  * [new branch]        fix/stealth-tray-taskbar-parity -> upstream/fix/stealth-tray-taskbar-parity
+2026-10-08T00:46:11.2243150Z  * [new branch]        fix/stream-fault-injection -> upstream/fix/stream-fault-injection
+2026-10-08T00:46:11.2243660Z  * [new branch]        fix/stt-fragment-lookup-and-second-person -> upstream/fix/stt-fragment-lookup-and-second-person
+2026-10-08T00:46:11.2244250Z  * [new branch]        fix/stt-no-speech-and-sck-stream-stop -> upstream/fix/stt-no-speech-and-sck-stream-stop
+2026-10-08T00:46:11.2244820Z  * [new branch]        fix/tester-pack-remaining-causes -> upstream/fix/tester-pack-remaining-causes
+2026-10-08T00:46:11.2249690Z  * [new branch]        fix/toggle-flat-blue-accent -> upstream/fix/toggle-flat-blue-accent
+2026-10-08T00:46:11.2250180Z  * [new branch]        fix/toggle-zoom-glass-compositing -> upstream/fix/toggle-zoom-glass-compositing
+2026-10-08T00:46:11.2250930Z  * [new branch]        fix/ts7-premium-coverage -> upstream/fix/ts7-premium-coverage
+2026-10-08T00:46:11.2251330Z  * [new branch]        fix/windows-esm-test-imports -> upstream/fix/windows-esm-test-imports
+2026-10-08T00:46:11.2251780Z  * [new branch]        fix/windows-launcher-transparency -> upstream/fix/windows-launcher-transparency
+2026-10-08T00:46:11.2252430Z  * [new branch]        fix/windows-stealth-deadkey-and-screenshot-restore -> upstream/fix/windows-stealth-deadkey-and-screenshot-restore
+2026-10-08T00:46:11.2253030Z  * [new branch]        fix/windows-tsc-invocations -> upstream/fix/windows-tsc-invocations
+2026-10-08T00:46:11.2253470Z  * [new branch]        fix/wta-phase1-question-detection -> upstream/fix/wta-phase1-question-detection
+2026-10-08T00:46:11.2254120Z  * [new branch]        hardening/v2.7.0       -> upstream/hardening/v2.7.0
+2026-10-08T00:46:11.2254490Z  * [new branch]        main                   -> upstream/main
+2026-10-08T00:46:11.2254950Z  * [new branch]        polish/launcher-meeting-notes-transition -> upstream/polish/launcher-meeting-notes-transition
+2026-10-08T00:46:11.2255380Z  * [new branch]        pr-367                 -> upstream/pr-367
+2026-10-08T00:46:11.2255720Z  * [new branch]        pr/audio-zerofill-aliasing -> upstream/pr/audio-zerofill-aliasing
+2026-10-08T00:46:11.2256100Z  * [new branch]        pr/launcher-aspect-lock -> upstream/pr/launcher-aspect-lock
+2026-10-08T00:46:11.2256480Z  * [new branch]        pr/premium-license-fix -> upstream/pr/premium-license-fix
+2026-10-08T00:46:11.2256950Z  * [new branch]        pr/settings-and-shortcuts -> upstream/pr/settings-and-shortcuts
+2026-10-08T00:46:11.2257410Z  * [new branch]        pr/ui-polish           -> upstream/pr/ui-polish
+2026-10-08T00:46:11.2257760Z  * [new branch]        pr/windows-build-tooling -> upstream/pr/windows-build-tooling
+2026-10-08T00:46:11.2258190Z  * [new branch]        pr/windows-meeting-lifecycle -> upstream/pr/windows-meeting-lifecycle
+2026-10-08T00:46:11.2258690Z  * [new branch]        pr/windows-platform-parity -> upstream/pr/windows-platform-parity
+2026-10-08T00:46:11.2259130Z  * [new branch]        pr/windows-stealth-typing -> upstream/pr/windows-stealth-typing
+2026-10-08T00:46:11.2259510Z  * [new branch]        rust                   -> upstream/rust
+2026-10-08T00:46:11.2259780Z  * [new branch]        theme-retint           -> upstream/theme-retint
+2026-10-08T00:46:11.2260110Z  * [new branch]        worktree-electron-43-bump -> upstream/worktree-electron-43-bump
+2026-10-08T00:46:11.4416740Z upstream refs:      123
+2026-10-08T00:46:11.4482070Z ##[group]Run actions/setup-node@v7
+2026-10-08T00:46:11.4482230Z with:
+2026-10-08T00:46:11.4482360Z   node-version: 26.0.0
+2026-10-08T00:46:11.4482490Z   check-latest: false
+2026-10-08T00:46:11.4484230Z   token: ***
+2026-10-08T00:46:11.4484350Z   package-manager-cache: true
+2026-10-08T00:46:11.4484510Z ##[endgroup]
+2026-10-08T00:46:11.5513740Z Attempting to download 26.0.0...
+2026-10-08T00:46:12.4794200Z Acquiring 26.0.0 - arm64 from https://github.com/actions/node-versions/releases/download/26.0.0-25413736946/node-26.0.0-darwin-arm64.tar.gz
+2026-10-08T00:46:13.5941480Z Extracting ...
+2026-10-08T00:46:13.6044510Z [command]/usr/bin/tar xz --strip 1 -C /Users/runner/work/_temp/7dcd9013-e731-4478-95b6-bbfcc38a5f3a -f /Users/runner/work/_temp/6cb2f713-7e8b-45d9-b959-bf3f965e3a00
+2026-10-08T00:46:14.6787710Z Adding to the cache ...
+2026-10-08T00:46:16.6201870Z ##[group]Environment details
+2026-10-08T00:46:16.8420330Z node: v26.0.0
+2026-10-08T00:46:16.8420610Z npm: 11.12.1
+2026-10-08T00:46:16.8420820Z yarn: 1.22.22
+2026-10-08T00:46:16.8421370Z ##[endgroup]
+2026-10-08T00:46:16.8500710Z ##[group]Run node -v; npm -v; rustc -V; cargo -V; xcodebuild -version
+2026-10-08T00:46:16.8501060Z [36;1mnode -v; npm -v; rustc -V; cargo -V; xcodebuild -version[0m
+2026-10-08T00:46:16.8501360Z [36;1mecho "rustc=$(rustc -V | tr ' ' '-')" >> "$GITHUB_OUTPUT"[0m
+2026-10-08T00:46:16.8532190Z shell: /bin/bash -e {0}
+2026-10-08T00:46:16.8532530Z ##[endgroup]
+2026-10-08T00:46:16.9003390Z v26.0.0
+2026-10-08T00:46:16.9680930Z 11.12.1
+2026-10-08T00:46:17.2007770Z rustc 1.98.1 (48a229cea 2026-09-01)
+2026-10-08T00:46:17.2458230Z cargo 1.98.1 (797e8a9bc 2026-08-05)
+2026-10-08T00:46:17.3595640Z Xcode 16.4
+2026-10-08T00:46:17.3605030Z Build version 16F6
+2026-10-08T00:46:17.3891490Z ##[group]Run npm ci
+2026-10-08T00:46:17.3891670Z [36;1mnpm ci[0m
+2026-10-08T00:46:17.3920040Z shell: /bin/bash -e {0}
+2026-10-08T00:46:17.3920220Z ##[endgroup]
+2026-10-08T00:46:18.3723500Z npm warn ERESOLVE overriding peer dependency
+2026-10-08T00:46:18.3728010Z npm warn While resolving: react-reconciler@0.29.2
+2026-10-08T00:46:18.3728380Z npm warn Found: react@19.2.6
+2026-10-08T00:46:18.3728590Z npm warn node_modules/react
+2026-10-08T00:46:18.3728890Z npm warn   react@"^19.2.6" from the root project
+2026-10-08T00:46:18.3729240Z npm warn   35 more (@radix-ui/react-collection, ...)
+2026-10-08T00:46:18.3729540Z npm warn
+2026-10-08T00:46:18.3729810Z npm warn Could not resolve dependency:
+2026-10-08T00:46:18.3730140Z npm warn peer react@"^18.3.1" from react-reconciler@0.29.2
+2026-10-08T00:46:18.3730510Z npm warn node_modules/ink/node_modules/react-reconciler
+2026-10-08T00:46:18.3730900Z npm warn   react-reconciler@"^0.29.0" from ink@5.2.1
+2026-10-08T00:46:18.3731260Z npm warn   node_modules/ink
+2026-10-08T00:46:18.3731420Z npm warn
+2026-10-08T00:46:18.3731640Z npm warn Conflicting peer dependency: react@18.3.1
+2026-10-08T00:46:18.3731890Z npm warn node_modules/react
+2026-10-08T00:46:18.3732180Z npm warn   peer react@"^18.3.1" from react-reconciler@0.29.2
+2026-10-08T00:46:18.3732510Z npm warn   node_modules/ink/node_modules/react-reconciler
+2026-10-08T00:46:18.3732850Z npm warn     react-reconciler@"^0.29.0" from ink@5.2.1
+2026-10-08T00:46:18.3733130Z npm warn     node_modules/ink
+2026-10-08T00:46:19.9678270Z npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+2026-10-08T00:46:20.0757290Z npm warn deprecated npmlog@6.0.2: This package is no longer supported.
+2026-10-08T00:46:20.6641920Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-10-08T00:46:20.7650910Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-08T00:46:20.9534120Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-10-08T00:46:21.1626550Z npm warn deprecated gauge@4.0.4: This package is no longer supported.
+2026-10-08T00:46:21.7266920Z npm warn deprecated are-we-there-yet@3.0.1: This package is no longer supported.
+2026-10-08T00:46:21.9555620Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+2026-10-08T00:46:22.3381880Z npm warn deprecated @npmcli/move-file@2.0.1: This functionality has been moved to @npmcli/fs
+2026-10-08T00:46:23.0713100Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+2026-10-08T00:46:23.1291330Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-10-08T00:46:23.2232570Z npm warn deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs
+2026-10-08T00:46:23.6081340Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-10-08T00:46:23.6972690Z npm warn deprecated glob@8.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-08T00:46:23.9161940Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-10-08T00:46:23.9927110Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-08T00:46:26.0484840Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-08T00:46:27.0575970Z npm warn deprecated electron-rebuild@3.2.9: Please use @electron/rebuild moving forward.  There is no API change, just a package name change
+2026-10-08T00:46:27.0761700Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-08T00:46:27.2019130Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-10-08T00:46:38.7067270Z 
+2026-10-08T00:46:38.7067820Z added 1408 packages, and audited 1410 packages in 21s
+2026-10-08T00:46:38.7068070Z 
+2026-10-08T00:46:38.7068200Z 336 packages are looking for funding
+2026-10-08T00:46:38.7076260Z   run `npm fund` for details
+2026-10-08T00:46:38.7865160Z 
+2026-10-08T00:46:38.7865710Z 71 vulnerabilities (8 low, 15 moderate, 45 high, 3 critical)
+2026-10-08T00:46:38.7865940Z 
+2026-10-08T00:46:38.7866120Z To address issues that do not require attention, run:
+2026-10-08T00:46:38.7866350Z   npm audit fix
+2026-10-08T00:46:38.7866450Z 
+2026-10-08T00:46:38.7866660Z To address all issues possible (including breaking changes), run:
+2026-10-08T00:46:38.7866910Z   npm audit fix --force
+2026-10-08T00:46:38.7867010Z 
+2026-10-08T00:46:38.7867160Z Some issues need review, and may require choosing
+2026-10-08T00:46:38.7867420Z a different dependency.
+2026-10-08T00:46:38.7867550Z 
+2026-10-08T00:46:38.7867670Z Run `npm audit` for details.
+2026-10-08T00:46:38.8552200Z ##[group]Run set -o pipefail
+2026-10-08T00:46:38.8552400Z [36;1mset -o pipefail[0m
+2026-10-08T00:46:38.8552600Z [36;1m# Outside the checkout, so the gates see a clean tree.[0m
+2026-10-08T00:46:38.8552850Z [36;1mmkdir -p "$RUNNER_TEMP/native-artifact"[0m
+2026-10-08T00:46:38.8553150Z [36;1mnpm run setup:native 2>&1 | tee "$RUNNER_TEMP/native-artifact/setup-native.log"[0m
+2026-10-08T00:46:38.8585430Z shell: /bin/bash -e {0}
+2026-10-08T00:46:38.8585590Z ##[endgroup]
+2026-10-08T00:46:38.9844290Z 
+2026-10-08T00:46:38.9844990Z > natively@2.7.0 setup:native
+2026-10-08T00:46:38.9845370Z > node scripts/margin/setup-native.mjs
+2026-10-08T00:46:38.9845530Z 
+2026-10-08T00:46:39.0187050Z 
+2026-10-08T00:46:39.0187640Z [setup:native] 1/5 Electron 43.1.0 binary
+2026-10-08T00:46:45.1820740Z 
+2026-10-08T00:46:45.1821150Z [setup:native] 2/5 sharp prebuilt check
+2026-10-08T00:46:46.1642040Z 
+2026-10-08T00:46:46.1642550Z [setup:native] 3/5 rebuild better-sqlite3 and keytar for Electron
+2026-10-08T00:46:46.2134830Z Searching dependency tree
+2026-10-08T00:46:46.3510230Z Building modules: better-sqlite3, keytar, sqlite3
+2026-10-08T00:47:05.5068710Z ✔ Rebuild Complete
+2026-10-08T00:47:05.5089720Z 
+2026-10-08T00:47:05.5090110Z [setup:native] 4/5 build native-module
+2026-10-08T00:47:05.5344620Z Building for macOS (darwin) for current architecture only: aarch64-apple-darwin
+2026-10-08T00:47:05.5542740Z Using clang runtime path: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin
+2026-10-08T00:47:05.5543450Z > rustup target add aarch64-apple-darwin
+2026-10-08T00:47:05.6028090Z info: component rust-std is up to date
+2026-10-08T00:47:05.6045860Z 
+2026-10-08T00:47:05.6046200Z --- Building for aarch64-apple-darwin ---
+2026-10-08T00:47:05.6046730Z > npx napi build --platform --target aarch64-apple-darwin --release
+2026-10-08T00:47:11.5706760Z    Compiling proc-macro2 v1.0.106
+2026-10-08T00:47:11.5709120Z    Compiling unicode-ident v1.0.22
+2026-10-08T00:47:11.5709490Z    Compiling quote v1.0.44
+2026-10-08T00:47:11.5709720Z    Compiling libc v0.2.180
+2026-10-08T00:47:11.5709900Z    Compiling cfg-if v1.0.4
+2026-10-08T00:47:11.7200400Z    Compiling shlex v1.3.0
+2026-10-08T00:47:11.7869640Z    Compiling autocfg v1.5.0
+2026-10-08T00:47:11.8185320Z    Compiling glob v0.3.3
+2026-10-08T00:47:11.9856210Z    Compiling clang-sys v1.8.1
+2026-10-08T00:47:12.0361130Z    Compiling num-traits v0.2.19
+2026-10-08T00:47:13.3649900Z    Compiling memchr v2.7.6
+2026-10-08T00:47:13.3774000Z    Compiling minimal-lexical v0.2.1
+2026-10-08T00:47:13.4390700Z    Compiling regex-syntax v0.8.8
+2026-10-08T00:47:13.4837740Z    Compiling libloading v0.8.9
+2026-10-08T00:47:13.5565020Z    Compiling syn v2.0.114
+2026-10-08T00:47:13.6025360Z    Compiling nom v7.1.3
+2026-10-08T00:47:13.8094890Z    Compiling either v1.15.0
+2026-10-08T00:47:13.8825430Z    Compiling bindgen v0.72.1
+2026-10-08T00:47:13.9987650Z    Compiling regex-automata v0.4.13
+2026-10-08T00:47:14.0308770Z    Compiling zerocopy v0.8.35
+2026-10-08T00:47:14.2252430Z    Compiling itertools v0.13.0
+2026-10-08T00:47:14.3587030Z    Compiling cexpr v0.6.0
+2026-10-08T00:47:14.6763600Z    Compiling regex v1.12.2
+2026-10-08T00:47:14.7009700Z    Compiling dtor-proc-macro v0.0.6
+2026-10-08T00:47:14.8340990Z    Compiling rustc-hash v2.1.1
+2026-10-08T00:47:14.8676600Z    Compiling pin-project-lite v0.2.16
+2026-10-08T00:47:14.8748640Z    Compiling bitflags v2.10.0
+2026-10-08T00:47:14.8974660Z    Compiling num-integer v0.1.46
+2026-10-08T00:47:14.9518660Z    Compiling objc-sys v0.3.5
+2026-10-08T00:47:15.0565280Z    Compiling core-foundation-sys v0.8.7
+2026-10-08T00:47:15.1501460Z    Compiling futures-sink v0.3.32
+2026-10-08T00:47:15.1762510Z    Compiling futures-core v0.3.32
+2026-10-08T00:47:15.1897570Z    Compiling find-msvc-tools v0.1.8
+2026-10-08T00:47:15.2598880Z    Compiling futures-channel v0.3.32
+2026-10-08T00:47:15.2795380Z    Compiling parking_lot_core v0.9.12
+2026-10-08T00:47:15.3905060Z    Compiling futures-task v0.3.32
+2026-10-08T00:47:15.4523210Z    Compiling strength_reduce v0.2.4
+2026-10-08T00:47:15.6067290Z    Compiling slab v0.4.11
+2026-10-08T00:47:15.6866070Z    Compiling ctor-proc-macro v0.0.7
+2026-10-08T00:47:15.8321710Z    Compiling futures-io v0.3.32
+2026-10-08T00:47:15.8393380Z    Compiling transpose v0.2.3
+2026-10-08T00:47:15.8871130Z    Compiling cc v1.2.54
+2026-10-08T00:47:15.9588520Z    Compiling zerocopy-derive v0.8.35
+2026-10-08T00:47:15.9620030Z    Compiling futures-macro v0.3.32
+2026-10-08T00:47:16.2890880Z    Compiling primal-check v0.3.4
+2026-10-08T00:47:16.3081640Z    Compiling futures-util v0.3.32
+2026-10-08T00:47:16.3534740Z    Compiling num-complex v0.4.6
+2026-10-08T00:47:16.5420620Z    Compiling errno v0.3.14
+2026-10-08T00:47:16.6165450Z    Compiling getrandom v0.2.17
+2026-10-08T00:47:16.6245010Z    Compiling napi-build v2.3.1
+2026-10-08T00:47:16.6899940Z    Compiling crossbeam-utils v0.8.21
+2026-10-08T00:47:16.7066260Z    Compiling smallvec v1.15.1
+2026-10-08T00:47:16.8193720Z    Compiling scopeguard v1.2.0
+2026-10-08T00:47:16.8225660Z    Compiling unicode-segmentation v1.12.0
+2026-10-08T00:47:16.8505740Z    Compiling objc2-encode v4.1.0
+2026-10-08T00:47:16.9973070Z    Compiling convert_case v0.11.0
+2026-10-08T00:47:17.1235370Z    Compiling objc2 v0.5.2
+2026-10-08T00:47:17.2173350Z    Compiling lock_api v0.4.14
+2026-10-08T00:47:17.4892370Z    Compiling napi v3.8.3
+2026-10-08T00:47:17.6007890Z    Compiling futures-executor v0.3.32
+2026-10-08T00:47:17.7186020Z    Compiling rand_core v0.6.4
+2026-10-08T00:47:17.8338220Z    Compiling signal-hook-registry v1.4.8
+2026-10-08T00:47:17.8405100Z    Compiling rustfft v6.4.1
+2026-10-08T00:47:17.8538080Z    Compiling webrtc-vad v0.4.0
+2026-10-08T00:47:17.9654880Z    Compiling foreign-types-macros v0.2.3
+2026-10-08T00:47:18.0573230Z    Compiling coreaudio-sys v0.2.17
+2026-10-08T00:47:18.0720770Z    Compiling tokio-macros v2.6.0
+2026-10-08T00:47:18.2180380Z    Compiling core-foundation v0.10.1
+2026-10-08T00:47:18.4063620Z    Compiling dtor v0.1.1
+2026-10-08T00:47:18.4584830Z    Compiling mio v1.1.1
+2026-10-08T00:47:18.4706850Z    Compiling socket2 v0.6.2
+2026-10-08T00:47:18.6390290Z    Compiling ppv-lite86 v0.2.21
+2026-10-08T00:47:18.7486820Z    Compiling libloading v0.9.0
+2026-10-08T00:47:18.8869960Z    Compiling bytes v1.11.0
+2026-10-08T00:47:18.9181810Z    Compiling bitflags v1.3.2
+2026-10-08T00:47:18.9403220Z    Compiling anyhow v1.0.100
+2026-10-08T00:47:18.9447510Z    Compiling foreign-types-shared v0.3.1
+2026-10-08T00:47:18.9722300Z    Compiling cpal v0.15.3
+2026-10-08T00:47:19.0797810Z    Compiling semver v1.0.27
+2026-10-08T00:47:19.0869520Z    Compiling cidre v0.11.10
+2026-10-08T00:47:19.2077650Z    Compiling tokio v1.49.0
+2026-10-08T00:47:19.3763150Z    Compiling realfft v3.5.0
+2026-10-08T00:47:19.4031650Z    Compiling napi-derive-backend v5.0.2
+2026-10-08T00:47:19.5294020Z    Compiling foreign-types v0.5.0
+2026-10-08T00:47:19.5544270Z    Compiling napi-sys v3.2.1
+2026-10-08T00:47:20.8270910Z    Compiling rand_chacha v0.3.1
+2026-10-08T00:47:21.2765060Z    Compiling half v2.7.1
+2026-10-08T00:47:21.7510950Z    Compiling ctor v0.6.3
+2026-10-08T00:47:21.8725250Z    Compiling core-graphics-types v0.2.0
+2026-10-08T00:47:22.3581270Z    Compiling coreaudio-rs v0.11.3
+2026-10-08T00:47:22.8748470Z    Compiling futures v0.3.32
+2026-10-08T00:47:22.9709180Z    Compiling objc2-foundation v0.2.2
+2026-10-08T00:47:23.8906290Z    Compiling parking_lot v0.12.5
+2026-10-08T00:47:25.3063250Z    Compiling mach2 v0.4.3
+2026-10-08T00:47:25.5205860Z    Compiling cidre-macros v0.3.0
+2026-10-08T00:47:25.5507840Z    Compiling nohash-hasher v0.2.0
+2026-10-08T00:47:25.5616230Z    Compiling dasp_sample v0.11.0
+2026-10-08T00:47:25.9181240Z    Compiling ringbuf v0.4.8
+2026-10-08T00:47:26.0811880Z    Compiling objc2-app-kit v0.2.2
+2026-10-08T00:47:26.5283540Z    Compiling core-graphics v0.24.0
+2026-10-08T00:47:26.7159430Z    Compiling napi-derive v3.5.2
+2026-10-08T00:47:26.8478850Z    Compiling rand v0.8.5
+2026-10-08T00:47:27.4504130Z    Compiling rubato v0.16.2
+2026-10-08T00:47:27.5119750Z    Compiling bytemuck v1.25.0
+2026-10-08T00:47:27.5932560Z    Compiling once_cell v1.21.3
+2026-10-08T00:47:40.8971620Z    Compiling natively-audio v0.1.0 (/Users/runner/work/Assessment-Assistant/Assessment-Assistant/native-module)
+2026-10-08T00:47:42.1807970Z     Finished `release` profile [optimized] target(s) in 30.71s
+2026-10-08T00:47:42.9970660Z   Fixing dylib path: /Users/runner/work/Assessment-Assistant/Assessment-Assistant/native-module/target/aarch64-apple-darwin/release/deps/libnatively_audio.dylib -> @loader_path/libnatively_audio.dylib
+2026-10-08T00:47:43.4057550Z Fixed dylib paths in: index.darwin-arm64.node
+2026-10-08T00:47:43.4058410Z Verified native artifacts:
+2026-10-08T00:47:43.4058650Z - index.darwin-arm64.node
+2026-10-08T00:47:43.4079610Z 
+2026-10-08T00:47:43.4079860Z [setup:native] 5/5 patch dev Electron Info.plist
+2026-10-08T00:47:43.4442650Z [patch-electron-plist] Added NSScreenCaptureUsageDescription.
+2026-10-08T00:47:43.4448400Z [patch-electron-plist] NSAudioCaptureUsageDescription already present — skipping.
+2026-10-08T00:47:43.4450290Z [patch-electron-plist] Updated NSMicrophoneUsageDescription text.
+2026-10-08T00:47:43.4450680Z [patch-electron-plist] Info.plist patched successfully.
+2026-10-08T00:47:43.4460800Z 
+2026-10-08T00:47:43.4465590Z [setup:native] done
+2026-10-08T00:47:43.4591780Z ##[group]Run cd "$RUNNER_TEMP"
+2026-10-08T00:47:43.4592140Z [36;1mcd "$RUNNER_TEMP"[0m
+2026-10-08T00:47:43.4592330Z [36;1mif [ "$NO_CACHE" = true ]; then[0m
+2026-10-08T00:47:43.4593000Z [36;1m  # From scratch means cargo compiled cidre in this run.[0m
+2026-10-08T00:47:43.4593440Z [36;1m  grep -E '^\s*Compiling cidre v' native-artifact/setup-native.log[0m
+2026-10-08T00:47:43.4599050Z [36;1mfi[0m
+2026-10-08T00:47:43.4599350Z [36;1mcp "$GITHUB_WORKSPACE/native-module/index.darwin-arm64.node" native-artifact/[0m
+2026-10-08T00:47:43.4599680Z [36;1m{[0m
+2026-10-08T00:47:43.4599860Z [36;1m  echo "commit: $GITHUB_SHA"[0m
+2026-10-08T00:47:43.4607120Z [36;1m  echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"[0m
+2026-10-08T00:47:43.4607390Z [36;1m  echo "no_cache: $NO_CACHE"[0m
+2026-10-08T00:47:43.4607590Z [36;1m  echo "rustc: $(rustc -V)"[0m
+2026-10-08T00:47:43.4607880Z [36;1m  echo "xcode: $(xcodebuild -version | tr '\n' ' ')"[0m
+2026-10-08T00:47:43.4608350Z [36;1m  echo "cidre compiled in this run: $(grep -cE '^\s*Compiling cidre v' native-artifact/setup-native.log || true)"[0m
+2026-10-08T00:47:43.4608780Z [36;1m  shasum -a 256 native-artifact/index.darwin-arm64.node[0m
+2026-10-08T00:47:43.4609050Z [36;1m  file native-artifact/index.darwin-arm64.node[0m
+2026-10-08T00:47:43.4609280Z [36;1m} > native-artifact/BUILD-INFO.txt[0m
+2026-10-08T00:47:43.4609500Z [36;1mcat native-artifact/BUILD-INFO.txt[0m
+2026-10-08T00:47:43.4790540Z shell: /bin/bash -e {0}
+2026-10-08T00:47:43.4790770Z env:
+2026-10-08T00:47:43.4790890Z   NO_CACHE: true
+2026-10-08T00:47:43.4791020Z ##[endgroup]
+2026-10-08T00:47:43.5235130Z    Compiling cidre v0.11.10
+2026-10-08T00:47:43.6564810Z commit: c43b10e9e60e8e4bf634e4304289d2b4af36484c
+2026-10-08T00:47:43.6565180Z run: 37709440574 (attempt 1)
+2026-10-08T00:47:43.6565420Z no_cache: true
+2026-10-08T00:47:43.6565770Z rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+2026-10-08T00:47:43.6566090Z xcode: Xcode 16.4 Build version 16F6 
+2026-10-08T00:47:43.6566390Z cidre compiled in this run: 1
+2026-10-08T00:47:43.6566910Z 33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e  native-artifact/index.darwin-arm64.node
+2026-10-08T00:47:43.6567560Z native-artifact/index.darwin-arm64.node: Mach-O 64-bit dynamically linked shared library arm64
+2026-10-08T00:47:43.6646430Z ##[group]Run actions/upload-artifact@v7
+2026-10-08T00:47:43.6646660Z with:
+2026-10-08T00:47:43.6646870Z   name: margin-native-c43b10e9e60e8e4bf634e4304289d2b4af36484c
+2026-10-08T00:47:43.6647160Z   path: /Users/runner/work/_temp/native-artifact/
+2026-10-08T00:47:43.6647390Z   retention-days: 30
+2026-10-08T00:47:43.6647550Z   if-no-files-found: warn
+2026-10-08T00:47:43.6647690Z   compression-level: 6
+2026-10-08T00:47:43.6647830Z   overwrite: false
+2026-10-08T00:47:43.6647970Z   include-hidden-files: false
+2026-10-08T00:47:43.6648120Z   archive: true
+2026-10-08T00:47:43.6648240Z ##[endgroup]
+2026-10-08T00:47:43.8677180Z With the provided path, there will be 3 files uploaded
+2026-10-08T00:47:43.8678010Z Artifact name is valid!
+2026-10-08T00:47:43.8685090Z Root directory input is valid!
+2026-10-08T00:47:44.0788000Z Uploading artifact: margin-native-c43b10e9e60e8e4bf634e4304289d2b4af36484c.zip
+2026-10-08T00:47:44.0809650Z Beginning upload of artifact content to blob storage
+2026-10-08T00:47:44.5746890Z Uploaded bytes 426260
+2026-10-08T00:47:44.6135210Z Finished uploading artifact content to blob storage!
+2026-10-08T00:47:44.6135820Z SHA256 digest of uploaded artifact is f5e07dd23dafee2b1108619d5d6e2a6658e170f59414f02d11af55ee9adc1f56
+2026-10-08T00:47:44.6136280Z Finalizing artifact upload
+2026-10-08T00:47:44.8827960Z Artifact margin-native-c43b10e9e60e8e4bf634e4304289d2b4af36484c successfully finalized. Artifact ID 11520809186
+2026-10-08T00:47:44.8828890Z Artifact margin-native-c43b10e9e60e8e4bf634e4304289d2b4af36484c has been successfully uploaded! Final size is 426260 bytes. Artifact ID is 11520809186
+2026-10-08T00:47:44.8832900Z Artifact download URL: https://github.com/xbz123/Assessment-Assistant/actions/runs/37709440574/artifacts/11520809186
+2026-10-08T00:47:44.8898220Z ##[group]Run ref=$(node -e "
+2026-10-08T00:47:44.8898430Z [36;1mref=$(node -e "[0m
+2026-10-08T00:47:44.8898600Z [36;1m  const fs = require('fs');[0m
+2026-10-08T00:47:44.8898920Z [36;1m  const dirs = fs.readdirSync('docs/margin/evidence').filter((d) => /^AG-\d+$/.test(d));[0m
+2026-10-08T00:47:44.8899500Z [36;1m  dirs.sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)));[0m
+2026-10-08T00:47:44.8899810Z [36;1m  console.log('docs/margin/evidence/' + dirs.at(-1));[0m
+2026-10-08T00:47:44.8900030Z [36;1m")[0m
+2026-10-08T00:47:44.8900160Z [36;1mecho "reference: $ref"[0m
+2026-10-08T00:47:44.8900420Z [36;1mnode scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \[0m
+2026-10-08T00:47:44.8900850Z [36;1m  --note "GitHub Actions run 37709440574 (attempt 1) on macos-15, no_cache=true, compared with $ref"[0m
+2026-10-08T00:47:44.8932220Z shell: /bin/bash -e {0}
+2026-10-08T00:47:44.8932380Z ##[endgroup]
+2026-10-08T00:47:44.9611600Z reference: docs/margin/evidence/AG-17
+2026-10-08T00:47:45.1168320Z [gates] clean-dist ... exit 0 PASS (0s)
+2026-10-08T00:47:46.3725440Z [gates] build-electron ... exit 0 PASS (1s)
+2026-10-08T00:47:51.2196680Z [gates] vite-build ... exit 0 PASS (5s)
+2026-10-08T00:47:54.4442770Z [gates] tsc-renderer ... exit 0 PASS (3s)
+2026-10-08T00:47:56.4327580Z [gates] tsc-electron ... exit 0 PASS (2s)
+2026-10-08T00:48:23.0633780Z [gates] provenance ... exit 0 PASS (27s)
+2026-10-08T00:48:24.5915510Z [gates] retired ... exit 0 PASS (2s)
+2026-10-08T00:48:24.6275060Z [gates] preload-contract ... exit 0 PASS (0s)
+2026-10-08T00:48:24.6832180Z [gates] ipc-channels ... exit 0 PASS (0s)
+2026-10-08T00:48:24.9122480Z [gates] guard-selftest ... exit 0 PASS (0s)
+2026-10-08T00:48:31.0813380Z [gates] tests ... exit 0 PASS (6s)
+2026-10-08T00:48:52.9361790Z [gates] regression ... exit 0 PASS (22s)
+2026-10-08T00:49:21.4742310Z [gates] storage ... exit 0 PASS (29s)
+2026-10-08T00:49:58.7224240Z [gates] startup ... exit 0 PASS (37s)
+2026-10-08T00:49:58.7424530Z [gates] diff-check ... exit 0 PASS (0s)
+2026-10-08T00:49:58.7426790Z [gates] all passed; summary: ci-evidence/summary.json
+2026-10-08T00:49:58.7502580Z ##[group]Run actions/upload-artifact@v7
+2026-10-08T00:49:58.7502780Z with:
+2026-10-08T00:49:58.7502970Z   name: margin-gates-c43b10e9e60e8e4bf634e4304289d2b4af36484c
+2026-10-08T00:49:58.7503210Z   path: ci-evidence/
+2026-10-08T00:49:58.7503350Z   retention-days: 30
+2026-10-08T00:49:58.7503500Z   if-no-files-found: warn
+2026-10-08T00:49:58.7503650Z   compression-level: 6
+2026-10-08T00:49:58.7503790Z   overwrite: false
+2026-10-08T00:49:58.7503930Z   include-hidden-files: false
+2026-10-08T00:49:58.7504090Z   archive: true
+2026-10-08T00:49:58.7504220Z ##[endgroup]
+2026-10-08T00:49:58.9184730Z With the provided path, there will be 22 files uploaded
+2026-10-08T00:49:58.9185660Z Artifact name is valid!
+2026-10-08T00:49:58.9186060Z Root directory input is valid!
+2026-10-08T00:49:59.1988840Z Uploading artifact: margin-gates-c43b10e9e60e8e4bf634e4304289d2b4af36484c.zip
+2026-10-08T00:49:59.2007480Z Beginning upload of artifact content to blob storage
+2026-10-08T00:49:59.4201190Z Uploaded bytes 48148
+2026-10-08T00:49:59.4571380Z Finished uploading artifact content to blob storage!
+2026-10-08T00:49:59.4672580Z SHA256 digest of uploaded artifact is bf89bf74123a8c8cb6bc8b3de07770a61e2083e824c531ce3ec446c901c90ee7
+2026-10-08T00:49:59.4773650Z Finalizing artifact upload
+2026-10-08T00:49:59.7682290Z Artifact margin-gates-c43b10e9e60e8e4bf634e4304289d2b4af36484c successfully finalized. Artifact ID 11521078166
+2026-10-08T00:49:59.7683300Z Artifact margin-gates-c43b10e9e60e8e4bf634e4304289d2b4af36484c has been successfully uploaded! Final size is 48148 bytes. Artifact ID is 11521078166
+2026-10-08T00:49:59.7687130Z Artifact download URL: https://github.com/xbz123/Assessment-Assistant/actions/runs/37709440574/artifacts/11521078166
+2026-10-08T00:49:59.7793890Z Post job cleanup.
+2026-10-08T00:49:59.8966240Z Post job cleanup.
+2026-10-08T00:49:59.9894140Z [command]/opt/homebrew/bin/git version
+2026-10-08T00:49:59.9948330Z git version 2.55.0
+2026-10-08T00:49:59.9964900Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/2d656e98-4213-4d36-8e21-4bdb64f5be67/.gitconfig'
+2026-10-08T00:49:59.9971140Z Temporarily overriding HOME='/Users/runner/work/_temp/2d656e98-4213-4d36-8e21-4bdb64f5be67' before making global git config changes
+2026-10-08T00:49:59.9979680Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-08T00:49:59.9980440Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Assessment-Assistant/Assessment-Assistant
+2026-10-08T00:50:00.0022550Z Removing SSH command configuration
+2026-10-08T00:50:00.0026650Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-08T00:50:00.0074250Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-08T00:50:00.0717850Z Removing HTTP extra header
+2026-10-08T00:50:00.0722680Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-08T00:50:00.0768710Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-08T00:50:00.1346920Z Removing includeIf entries pointing to credentials config files
+2026-10-08T00:50:00.1351420Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-08T00:50:00.1393730Z includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path
+2026-10-08T00:50:00.1394430Z includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path
+2026-10-08T00:50:00.1394920Z includeif.gitdir:/github/workspace/.git.path
+2026-10-08T00:50:00.1395280Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-08T00:50:00.1399970Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path
+2026-10-08T00:50:00.1442780Z /Users/runner/work/_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:50:00.1449860Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path \/Users\/runner\/work\/_temp\/git\-credentials\-03fd55ed\-e943\-4562\-9502\-ab9cbeb39621\.config
+2026-10-08T00:50:00.1506010Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path
+2026-10-08T00:50:00.1560780Z /Users/runner/work/_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:50:00.1562440Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path \/Users\/runner\/work\/_temp\/git\-credentials\-03fd55ed\-e943\-4562\-9502\-ab9cbeb39621\.config
+2026-10-08T00:50:00.1623580Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-08T00:50:00.1678000Z /github/runner_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:50:00.1691400Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-03fd55ed\-e943\-4562\-9502\-ab9cbeb39621\.config
+2026-10-08T00:50:00.1811450Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-08T00:50:00.1912760Z /github/runner_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config
+2026-10-08T00:50:00.2215470Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-03fd55ed\-e943\-4562\-9502\-ab9cbeb39621\.config
+2026-10-08T00:50:00.2516640Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-08T00:50:00.2983080Z Removing credentials config '/Users/runner/work/_temp/git-credentials-03fd55ed-e943-4562-9502-ab9cbeb39621.config'
+2026-10-08T00:50:00.3069680Z Cleaning up orphan processes

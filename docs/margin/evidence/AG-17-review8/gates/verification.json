@@ -1,0 +1,47 @@
+{
+  "verifiedAt": "2026-10-08T00:56:10.910Z",
+  "verifier": "gpt-6.1-sol",
+  "head": "c43b10e9e60e8e4bf634e4304289d2b4af36484c",
+  "uncommittedPaths": 0,
+  "stepCount": 15,
+  "everyStepExitCode": 0,
+  "rawTapCounts": {
+    "tests": 767,
+    "pass": 762,
+    "fail": 0,
+    "skipped": 5,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "unitFileCount": 104,
+  "isolationBlocked": [],
+  "unexplainedExits": [],
+  "filesNotFinished": [],
+  "filesEndedAfterFooter": [],
+  "ui": {
+    "regression": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "storage": {
+      "tests": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    "startup": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0
+    }
+  },
+  "startup": {
+    "launcherReadyMs": 1378,
+    "settingsReadyMs": 1393,
+    "observedMs": 15000,
+    "controlledExitCode": 0
+  },
+  "provenanceHits": 0,
+  "retiredRules": 257,
+  "retiredFailing": 0
+}

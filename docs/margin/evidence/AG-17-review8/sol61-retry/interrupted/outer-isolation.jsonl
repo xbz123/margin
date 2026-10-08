@@ -1,0 +1,2 @@
+{"t":"2026-10-08T00:40:10.461Z","pid":26211,"ppid":26209,"script":"tests/margin/meeting-storage.test.mjs","kind":"guard-loaded","detail":"node"}
+{"t":"2026-10-08T00:40:10.591Z","pid":26212,"ppid":26211,"script":"/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs","kind":"guard-loaded","detail":"node"}

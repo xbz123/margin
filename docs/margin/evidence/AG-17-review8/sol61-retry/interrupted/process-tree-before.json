@@ -1,0 +1,86 @@
+[
+  {
+    "pid": 26039,
+    "ppid": 2529,
+    "elapsed": "08:55",
+    "state": "Ss",
+    "args": "node scripts/margin/run-gates.mjs --out /tmp/margin-review8-ui-authorized --ref docs/margin/evidence/AG-17-review7 --only regression,storage,startup"
+  },
+  {
+    "pid": 26209,
+    "ppid": 26039,
+    "elapsed": "08:33",
+    "state": "S",
+    "args": "/opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs"
+  },
+  {
+    "pid": 26211,
+    "ppid": 26209,
+    "elapsed": "08:33",
+    "state": "S",
+    "args": "/opt/homebrew/Cellar/node/26.0.0/bin/node --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs"
+  },
+  {
+    "pid": 26212,
+    "ppid": 26211,
+    "elapsed": "08:33",
+    "state": "S",
+    "args": "/opt/homebrew/Cellar/node/26.0.0/bin/node --test-concurrency=0 --heap-prof-interval=524288 --test-timeout=240000 --test-coverage-lines=0 --stack-trace-limit=10 --report-signal=SIGUSR2 --max-http-header-size=16384 --heapsnapshot-near-heap-limit=0 --tls-cipher-list=TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA --watch-kill-signal=SIGTERM --inspect-publish-uid=stderr,http --test-isolation=process --cpu-prof-interval=1000 --test-coverage-functions=0 --require=/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs --inspect-port=127.0.0.1:9229 --use-largepages=off --test-coverage-branches=0 --network-family-autoselection-attempt-timeout=500 --secure-heap-min=2 --v8-pool-size=4 --secure-heap=0 --node-snapshot --trace-event-file-pattern=node_trace.${rotation}.log --test-timeout=240000 tests/margin/meeting-storage.test.mjs"
+  },
+  {
+    "pid": 26233,
+    "ppid": 26212,
+    "elapsed": "08:30",
+    "state": "Ss",
+    "args": "Natively"
+  },
+  {
+    "pid": 26238,
+    "ppid": 26233,
+    "elapsed": "08:29",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper --type=gpu-process --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAOAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAABgAAAAAAAAAGAAAAAAAAAAIAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708988185955192 --seatbelt-client=37"
+  },
+  {
+    "pid": 26239,
+    "ppid": 26233,
+    "elapsed": "08:29",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=network --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708989122997041 --seatbelt-client=41"
+  },
+  {
+    "pid": 26826,
+    "ppid": 26233,
+    "elapsed": "06:47",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper (Renderer).app/Contents/MacOS/Electron Helper (Renderer) --type=renderer --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --app-path=/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --enable-sandbox --remote-debugging-port=0 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1788684864152014 --launch-time-ticks=2735251946409 --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708990060038890 --seatbelt-client=62"
+  },
+  {
+    "pid": 26827,
+    "ppid": 26233,
+    "elapsed": "06:47",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper (Renderer).app/Contents/MacOS/Electron Helper (Renderer) --type=renderer --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --app-path=/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --enable-sandbox --scroll-bounce --remote-debugging-port=0 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=5 --time-ticks-at-unix-epoch=-1788684864152014 --launch-time-ticks=2735252054930 --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708990997080739 --seatbelt-client=65"
+  },
+  {
+    "pid": 26828,
+    "ppid": 26233,
+    "elapsed": "06:47",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper (Renderer).app/Contents/MacOS/Electron Helper (Renderer) --type=renderer --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --app-path=/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --enable-sandbox --scroll-bounce --remote-debugging-port=0 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=6 --time-ticks-at-unix-epoch=-1788684864152014 --launch-time-ticks=2735252072760 --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708991934122588 --seatbelt-client=65"
+  },
+  {
+    "pid": 26829,
+    "ppid": 26233,
+    "elapsed": "06:47",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper (Renderer).app/Contents/MacOS/Electron Helper (Renderer) --type=renderer --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --app-path=/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --enable-sandbox --remote-debugging-port=0 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=7 --time-ticks-at-unix-epoch=-1788684864152014 --launch-time-ticks=2735252140213 --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708992871164437 --seatbelt-client=65"
+  },
+  {
+    "pid": 26830,
+    "ppid": 26233,
+    "elapsed": "06:47",
+    "state": "S",
+    "args": "/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/Frameworks/Electron Helper (Renderer).app/Contents/MacOS/Electron Helper (Renderer) --type=renderer --user-data-dir=/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-yuUSEh/tmp/margin-isolation-meeting-storage-Es5m59/home/Library/Application Support/natively --app-path=/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --enable-sandbox --remote-debugging-port=0 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=8 --time-ticks-at-unix-epoch=-1788684864152014 --launch-time-ticks=2735252155937 --shared-files --field-trial-handle=1718379636,r,15681876498435183728,17758447246748203368,262144 --enable-features=PdfUseShowSaveFilePicker,ScreenCaptureKitPickerScreen,ScreenCaptureKitStreamPickerSonoma --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TimeoutHangingVideoCaptureStarts,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=1935764596,r,3990337480022349476,10252587713718123903,4 --trace-process-track-uuid=3190708993808206286 --seatbelt-client=65"
+  }
+]

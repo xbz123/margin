@@ -1,0 +1,15 @@
+{
+  "sandbox": "/private/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-rd4VGL/tmp/margin-isolation-meeting-storage-8EgPaV",
+  "testPid": 28994,
+  "outerGuardLoads": 2,
+  "outerBlocked": [],
+  "appLaunches": 5,
+  "appMainRecorderLoads": 5,
+  "mainErrors": [],
+  "egress": [],
+  "standIns": {
+    "device": 23,
+    "permission": 9,
+    "local-exec": 5
+  }
+}
