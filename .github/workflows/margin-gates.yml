@@ -117,6 +117,15 @@ jobs:
           node scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \
             --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, no_cache=${{ inputs.no_cache && 'true' || 'false' }}, compared with $ref"
 
+      - name: Check release identity contract (CI only; no packaging)
+        env:
+          MARGIN_APP_VARIANT: release
+        run: |
+          set -o pipefail
+          node scripts/build-electron.js 2>&1 | tee ci-evidence/identity-release-build.log
+          node_modules/.bin/vite build 2>&1 | tee ci-evidence/identity-release-renderer.log
+          node scripts/margin/isolation/run-node.mjs --test electron/margin/__tests__/appIdentity.test.mjs 2>&1 | tee ci-evidence/identity-release-contract.log
+
       - if: always()
         uses: actions/upload-artifact@v7
         with:

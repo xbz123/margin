@@ -1,3 +1,4 @@
+import { APP_IDENTITY } from './margin/appIdentity';
 import { app, BrowserWindow, Menu, screen } from 'electron';
 import path from 'node:path';
 import { AppState } from './main';
@@ -201,6 +202,7 @@ export class WindowHelper {
     const isMac = process.platform === 'darwin';
 
     const launcherSettings: Electron.BrowserWindowConstructorOptions = {
+      title: APP_IDENTITY.name,
       width: width,
       height: height,
       x: x,
@@ -304,6 +306,7 @@ export class WindowHelper {
     );
 
     const overlaySettings: Electron.BrowserWindowConstructorOptions = {
+      title: APP_IDENTITY.name,
       width: WindowHelper.OVERLAY_DEFAULT_WIDTH,
       height: 1,
       x: overlayDefaultX,

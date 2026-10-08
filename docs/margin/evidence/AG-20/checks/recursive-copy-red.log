@@ -1,0 +1,55 @@
+✖ recursive and directory operations refuse parents containing protected data (143.818458ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 383.547208
+
+✖ failing tests:
+
+test at electron/margin/__tests__/appIdentity.test.mjs:158:1
+✖ recursive and directory operations refuse parents containing protected data (143.818458ms)
+  AssertionError [ERR_ASSERTION]: node:internal/assert/utils:146
+    throw error;
+    ^
+  
+  AssertionError [ERR_ASSERTION]: cpSync must not copy the protected sentinel through its parent
+  
+  true !== false
+  
+      at [eval]:7:12
+      at runScriptInThisContext (node:internal/vm:219:10)
+      at node:internal/process/execution:483:12
+      at [eval]-wrapper:6:24
+      at runScriptInContext (node:internal/process/execution:481:60)
+      at evalFunction (node:internal/process/execution:315:30)
+      at evalTypeScript (node:internal/process/execution:327:3)
+      at node:internal/main/eval_string:71:3 {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+  
+  Node.js v26.0.0
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/appIdentity.test.mjs:202:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,239 @@
+{
+  "startedAt": "2026-10-08T09:20:33.716Z",
+  "head": "fe83da31bc95e7551e146ff3ea88d25d7863f3c6",
+  "uncommittedPaths": 37,
+  "uncommittedPathList": [
+    "M .github/workflows/margin-gates.yml",
+    " M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    " M electron/CropperWindowHelper.ts",
+    " M electron/ModelSelectorWindowHelper.ts",
+    " M electron/ScreenshotHelper.ts",
+    " M electron/SettingsWindowHelper.ts",
+    " M electron/WindowHelper.ts",
+    " M electron/db/DatabaseManager.ts",
+    " M electron/main.ts",
+    " M electron/services/__tests__/FormatPermissionMessageCrossPlatform.test.mjs",
+    " M index.html",
+    " M package.json",
+    " M scripts/build-electron.js",
+    " M scripts/margin/isolation/env.mjs",
+    " M scripts/margin/isolation/guard.cjs",
+    " M src/components/AboutSection.tsx",
+    " M src/components/Launcher.tsx",
+    " M src/components/NativelyInterface.tsx",
+    " M src/components/NativelyInterfaceCard.tsx",
+    " M src/components/SettingsOverlay.tsx",
+    " M src/components/StartupSequence.tsx",
+    " M src/components/onboarding/PermissionsToaster.tsx",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/components/settings/HelpSettings.tsx",
+    " M src/components/ui/TopPill.tsx",
+    " M tests/margin/startup-smoke.test.mjs",
+    " M vite.config.mts",
+    "?? docs/margin/evidence/AG-20/",
+    "?? electron-builder.config.cjs",
+    "?? electron/bootstrap.ts",
+    "?? electron/margin/__tests__/appIdentity.test.mjs",
+    "?? electron/margin/appIdentity.ts",
+    "?? scripts/margin/app-identity.cjs",
+    "?? scripts/margin/isolation/storage-guard.cjs",
+    "?? src/appIdentity.ts"
+  ],
+  "reference": "docs/margin/evidence/AG-17-review8/gates",
+  "note": "AG-20 final local precommit gates; temp identity; synthetic HOME and mock keychain; canonical log path and recursive storage-guard fixes; release runtime excluded",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 153,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2064,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 7739,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3088,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2031,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2666,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2008,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 77,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 127,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1049,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 10181,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/tests.log",
+      "tap": "docs/margin/evidence/AG-20/checks/precommit-3/tests.tap",
+      "perFile": "docs/margin/evidence/AG-20/checks/precommit-3/tests.files.json",
+      "files": 105,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 773,
+        "pass": 768,
+        "fail": 0,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 18924,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 23569,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/storage.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 37641,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/startup.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 75,
+      "log": "docs/margin/evidence/AG-20/checks/precommit-3/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-08T09:22:25.114Z",
+  "allPassed": true
+}

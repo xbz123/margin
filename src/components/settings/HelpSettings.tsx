@@ -1,3 +1,4 @@
+import { APP_NAME } from '../../appIdentity';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -52,7 +53,7 @@ const MockAppInterface = () => {
                         <div className="w-8 h-8 rounded-full bg-bg-item-active flex items-center justify-center border border-border-muted overflow-hidden">
                             <img
                                 src={nativelyIcon}
-                                alt="Natively"
+                                alt={APP_NAME}
                                 className="w-[20px] h-[20px] object-contain"
                                 style={{ filter: isLight ? 'brightness(0)' : 'brightness(0) invert(1)', opacity: 0.9 }}
                             />
@@ -423,8 +424,8 @@ const MockPermissionsAnim = () => {
                 </div>
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                        <img src={nativelyIcon} alt="Natively" className="w-6 h-6 object-contain rounded drop-shadow-sm opacity-90" />
-                        <span className="text-text-primary text-sm font-medium">Natively</span>
+                        <img src={nativelyIcon} alt={APP_NAME} className="w-6 h-6 object-contain rounded drop-shadow-sm opacity-90" />
+                        <span className="text-text-primary text-sm font-medium">{APP_NAME}</span>
                     </div>
 
                     <motion.div
@@ -442,8 +443,8 @@ const MockPermissionsAnim = () => {
             </div>
             <div className="text-xs text-text-secondary text-center max-w-[280px]">
                 {isMac
-                    ? 'Natively requires Accessibility and Screen Recording permissions to analyze screen context.'
-                    : 'Natively will ask for microphone access the first time you start a meeting.'}
+                    ? `${APP_NAME} requires Accessibility and Screen Recording permissions to analyze screen context.`
+                    : `${APP_NAME} will ask for microphone access the first time you start a meeting.`}
             </div>
         </div>
     );
@@ -811,7 +812,7 @@ const SetupGuide = () => {
         {
             title: 'Grant Permissions',
             desc: isMac
-                ? 'Enable Screen Recording and Accessibility for Natively in macOS Privacy & Security.'
+                ? `Enable Screen Recording and Accessibility for ${APP_NAME} in macOS Privacy & Security.`
                 : 'Approve the microphone prompt the first time you start a meeting (Settings → Privacy → Microphone).',
         },
         {
@@ -842,7 +843,7 @@ const SetupGuide = () => {
         <div className="mb-10">
             <div className="mb-7">
                 <h3 className="text-[20px] font-bold text-text-primary tracking-tight leading-tight">Quick Start</h3>
-                <p className="text-[13px] text-text-tertiary mt-0.5">Get Natively running in four steps.</p>
+                <p className="text-[13px] text-text-tertiary mt-0.5">Get {APP_NAME} running in four steps.</p>
             </div>
 
             <div>
@@ -902,7 +903,7 @@ export const HelpSettings: React.FC = () => {
                     Help & Setup Guide
                 </h2>
                 <p className={`text-sm text-text-secondary mt-3 max-w-2xl`}>
-                    Learn how to deeply configure Natively. Everything from providing the right API scopes to executing conversational interviews seamlessly is covered below.
+                    Learn how to deeply configure {APP_NAME}. Everything from providing the right API scopes to executing conversational interviews seamlessly is covered below.
                 </p>
             </div>
 
@@ -920,7 +921,7 @@ export const HelpSettings: React.FC = () => {
                     <div className="space-y-4">
                         <p>
                             {isMac
-                                ? 'Natively needs OS permissions to read your screen context and global keystrokes. Answers, transcription and summaries come from the cloud providers you configure. Here is how your system should look:'
+                                ? `${APP_NAME} needs OS permissions to read your screen context and global keystrokes. Answers, transcription and summaries come from the cloud providers you configure. Here is how your system should look:`
                                 : 'Windows will prompt you for microphone access the first time you start a meeting — no other OS permissions are required. Answers, transcription and summaries come from the cloud providers you configure.'}
                         </p>
                         {isMac && <MockPermissionsAnim />}
@@ -932,7 +933,7 @@ export const HelpSettings: React.FC = () => {
                                     <Mic size={14} className="text-blue-500" /> Microphone & Speaker Loopback Selection
                                 </h5>
                                 <p className="text-[11px] opacity-90 leading-relaxed text-text-secondary">
-                                    Natively can capture both what you say and what you hear globally. At the top of the Audio Settings, use the Dropdowns to explicitly select your hardware Input (e.g. your physical microphone) and Output capture (what the speakers play). By default, Natively utilizes the <strong>System Default</strong>, so audio routing will automatically follow your OS preferences.
+                                    {APP_NAME} can capture both what you say and what you hear globally. At the top of the Audio Settings, use the Dropdowns to explicitly select your hardware Input (e.g. your physical microphone) and Output capture (what the speakers play). By default, {APP_NAME} utilizes the <strong>System Default</strong>, so audio routing will automatically follow your OS preferences.
                                 </p>
                             </div>
 
@@ -973,7 +974,7 @@ export const HelpSettings: React.FC = () => {
                                     <h4 className={`font-semibold text-sm mb-2 text-text-primary flex items-center gap-2`}>
                                         <Monitor className="w-4 h-4 text-accent-primary" /> Screen Recording
                                     </h4>
-                                    <p className="text-xs opacity-90 mb-2">Provides Natively the ability to read your screen temporarily when you capture context.</p>
+                                    <p className="text-xs opacity-90 mb-2">Provides {APP_NAME} the ability to read your screen temporarily when you capture context.</p>
                                     <p className="text-[11px] text-text-tertiary">System Settings &gt; Privacy & Security &gt; Screen Recording</p>
                                 </div>
 
@@ -981,7 +982,7 @@ export const HelpSettings: React.FC = () => {
                                     <h4 className={`font-semibold text-sm mb-2 text-text-primary flex items-center gap-2`}>
                                         <Command className="w-4 h-4 text-purple-500" /> Accessibility
                                     </h4>
-                                    <p className="text-xs opacity-90 mb-2">Required for Natively to detect the global keyboard shortcuts below, regardless of what window is focused.</p>
+                                    <p className="text-xs opacity-90 mb-2">Required for {APP_NAME} to detect the global keyboard shortcuts below, regardless of what window is focused.</p>
                                     <p className="text-[11px] text-text-tertiary">System Settings &gt; Privacy & Security &gt; Accessibility</p>
                                 </div>
                             </div>
@@ -1001,7 +1002,7 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="2. Audio STT Providers Setup (Microphone)" icon={<Mic className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p>Natively supports over 8 different Audio engines to transcribe what you hear and say. From the Audio tab in settings, use the overarching dropdown to switch the active engine.</p>
+                        <p>{APP_NAME} supports over 8 different Audio engines to transcribe what you hear and say. From the Audio tab in settings, use the overarching dropdown to switch the active engine.</p>
 
                         <MockProviderSelectionAnim />
 
@@ -1103,7 +1104,7 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="3. AI Providers & Prompt Engine" icon={<Key className="w-4 h-4" />}>
                     <div className="space-y-4">
-                        <p className="text-sm">Natively uses Large Language Models (LLMs) to reason about your screen and audio context. Your question, and the screen and audio context you allow under AI Providers, is sent to the cloud provider you configure below.</p>
+                        <p className="text-sm">{APP_NAME} uses Large Language Models (LLMs) to reason about your screen and audio context. Your question, and the screen and audio context you allow under AI Providers, is sent to the cloud provider you configure below.</p>
 
                         <div className="space-y-3 pt-2">
                             <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">1. Standard Cloud Providers</h4>
@@ -1162,9 +1163,9 @@ export const HelpSettings: React.FC = () => {
                     </div>
                 </AccordionSection>
 
-                <AccordionSection title="4. Natively Interface Operations" icon={<Monitor className="w-4 h-4" />}>
+                <AccordionSection title={`4. ${APP_NAME} Interface Operations`} icon={<Monitor className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p className="text-[13px]">When initialized, Natively hides itself visually while remaining active as a persistent translucent overlay. This is your command center.</p>
+                        <p className="text-[13px]">When initialized, {APP_NAME} hides itself visually while remaining active as a persistent translucent overlay. This is your command center.</p>
 
                         <div className="relative w-full flex flex-col p-2 sm:p-5 bg-bg-main rounded-[26px] border border-border-subtle shadow-inner">
                             <MockAppInterface />
@@ -1261,7 +1262,7 @@ export const HelpSettings: React.FC = () => {
                                     <FileText className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" /> Summary Execution
                                 </h4>
                                 <p className="text-[12px] text-text-secondary leading-relaxed">
-                                    Natively fires a local background job as soon as the meeting finishes to compress the entire raw audio transcript into clean, formatted markdown representing structural overviews and explicit action items.
+                                    {APP_NAME} fires a local background job as soon as the meeting finishes to compress the entire raw audio transcript into clean, formatted markdown representing structural overviews and explicit action items.
                                 </p>
                             </div>
 
@@ -1317,7 +1318,7 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="6. Global Search & Shortcuts" icon={<Search className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p className="text-[13px]">Hit <span className={kbdClass}>{isMac ? 'Cmd+K' : 'Ctrl+K'}</span> anywhere on your computer to invoke the Natively Global Palette. This acts as your Spotlight overlay for interacting directly with the system backbone.</p>
+                        <p className="text-[13px]">Hit <span className={kbdClass}>{isMac ? 'Cmd+K' : 'Ctrl+K'}</span> anywhere on your computer to invoke the {APP_NAME} Global Palette. This acts as your Spotlight overlay for interacting directly with the system backbone.</p>
 
                         <MockSearchPillAnim />
 
@@ -1343,7 +1344,7 @@ export const HelpSettings: React.FC = () => {
 
                         <div className="border-t border-border-subtle pt-6">
                             <h4 className="font-bold text-sm text-text-primary border-b border-border-subtle pb-1">Global System Shortcuts</h4>
-                            <p className="text-[11px] text-text-secondary mt-1 mb-3">These hotkeys work anywhere on your operating system, regardless of whether Natively is focused or completely hidden. Change them via <strong>Settings &gt; Hotkeys</strong>.</p>
+                            <p className="text-[11px] text-text-secondary mt-1 mb-3">These hotkeys work anywhere on your operating system, regardless of whether {APP_NAME} is focused or completely hidden. Change them via <strong>Settings &gt; Hotkeys</strong>.</p>
 
                             <div className="grid gap-3">
                                 <div className="flex items-center justify-between p-4 rounded-xl border bg-bg-item-surface border-border-subtle group">
@@ -1383,7 +1384,7 @@ export const HelpSettings: React.FC = () => {
                                         </div>
                                         <div>
                                             <div className="font-semibold text-sm text-text-primary">Process Captured Context (Execute)</div>
-                                            <div className="text-xs text-text-secondary mt-1">Triggers Natively to analyze the captured screenshots and text from the rolling buffer.</div>
+                                            <div className="text-xs text-text-secondary mt-1">Triggers {APP_NAME} to analyze the captured screenshots and text from the rolling buffer.</div>
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -1441,7 +1442,7 @@ export const HelpSettings: React.FC = () => {
                                 <Ghost size={14} /> Process Disguise & Undetectability
                             </h4>
                             <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                Natively is heavily geared towards power users seeking minimalistic operation. The process completely disguises itself and remains undetectable/invisible to standard screen-recording applications and desktop sharing utilities.
+                                {APP_NAME} is heavily geared towards power users seeking minimalistic operation. The process completely disguises itself and remains undetectable/invisible to standard screen-recording applications and desktop sharing utilities.
                             </p>
                         </div>
 
@@ -1464,7 +1465,7 @@ export const HelpSettings: React.FC = () => {
                                 </p>
                                 <div className="p-2 border border-orange-500/20 bg-orange-500/5 rounded-lg">
                                     <p className="text-[10px] text-orange-400 m-0">
-                                        <strong>⚠️ Warning:</strong> This renders the Natively overlay completely unclickable. You MUST memorize the Global Hotkeys (e.g. <strong>{isMac ? 'Cmd' : 'Ctrl'}+Shift+Arrows</strong> to move, <strong>{isMac ? 'Cmd' : 'Ctrl'}+B</strong> to hide, <strong>{isMac ? 'Cmd' : 'Ctrl'}+1-7</strong> for actions) to control the application once this is active.
+                                        <strong>⚠️ Warning:</strong> This renders the {APP_NAME} overlay completely unclickable. You MUST memorize the Global Hotkeys (e.g. <strong>{isMac ? 'Cmd' : 'Ctrl'}+Shift+Arrows</strong> to move, <strong>{isMac ? 'Cmd' : 'Ctrl'}+B</strong> to hide, <strong>{isMac ? 'Cmd' : 'Ctrl'}+1-7</strong> for actions) to control the application once this is active.
                                     </p>
                                 </div>
                             </div>

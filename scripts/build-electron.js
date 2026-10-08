@@ -8,6 +8,7 @@
 const { build } = require('esbuild');
 const path = require('path');
 const fs = require('fs');
+const identity = require('./margin/app-identity.cjs').selectIdentity();
 
 const rootDir = path.resolve(__dirname, '..');
 const outDir = path.resolve(rootDir, 'dist-electron');
@@ -44,6 +45,7 @@ build({
   format: 'cjs',          // Electron loads package.json main as CommonJS in this repo
                           // (package.json has no "type": "module").
   external: ['electron', 'better-sqlite3', 'keytar'],
+  define: { __MARGIN_APP_IDENTITY__: JSON.stringify(identity) },
   sourcemap: true,
   jsx: 'automatic',
   loader: {
@@ -52,6 +54,7 @@ build({
   },
   logLevel: 'warning',
 }).then(() => {
+  fs.writeFileSync(path.join(outDir, 'app-identity.json'), JSON.stringify(identity) + '\n');
   console.log(`[build-electron] Done in ${Date.now() - start}ms`);
 }).catch((err) => {
   console.error('[build-electron] Build failed:', err.message);

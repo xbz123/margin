@@ -1,0 +1,24 @@
+
+electron/margin/__tests__/appIdentity.test.mjs: 3 hit(s)
+  39: const electron = {
+  65: return require(id);
+  131: const script = `
+
+electron/margin/appIdentity.ts: 1 hit(s)
+  14: fs.mkdirSync(userData, { recursive: true });
+
+scripts/margin/isolation/storage-guard.cjs: 1 hit(s)
+  15: for (const name of names) {
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128299,
+  "restrictedLineKeys": 587141,
+  "addedSubstantiveLines": 5591,
+  "hits": 5,
+  "genericIdiomHits": 69,
+  "allowlistedHits": 116,
+  "filesWithHits": 3,
+  "binariesToReviewByHand": []
+}

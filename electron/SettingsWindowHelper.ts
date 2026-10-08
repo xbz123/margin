@@ -1,3 +1,4 @@
+import { APP_IDENTITY } from './margin/appIdentity';
 import { BrowserWindow, screen, app } from "electron"
 import { WindowHelper } from "./WindowHelper"
 import path from "node:path"
@@ -157,6 +158,7 @@ export class SettingsWindowHelper {
     private createWindow(x?: number, y?: number, showWhenReady: boolean = true): void {
         const isMac = process.platform === 'darwin';
         const windowSettings: Electron.BrowserWindowConstructorOptions = {
+            title: APP_IDENTITY.name,
             width: 180, // Match React component width (SettingsPopup.tsx)
             height: 200, // Trimmed; ResizeObserver in renderer pins exact height
             frame: false,

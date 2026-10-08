@@ -20,6 +20,10 @@ const dgram = require('node:dgram');
 const childProcess = require('node:child_process');
 const Module = require('node:module');
 const path = require('node:path');
+const { selectIdentity } = require('../app-identity.cjs');
+const IDENTITY = selectIdentity();
+const identityFile = path.resolve(__dirname, '../../../dist-electron/app-identity.json');
+const BUILT_IDENTITY = fs.existsSync(identityFile) ? JSON.parse(fs.readFileSync(identityFile, 'utf8')) : null;
 
 const LOG = process.env.MARGIN_ISOLATION_LOG || '';
 const ALLOW_EXEC = new Set((process.env.MARGIN_ISOLATION_ALLOW_EXEC || '').split(':').filter(Boolean));
@@ -51,6 +55,10 @@ function blockedError(kind, detail) {
   const err = new Error(`[isolation] ${kind} blocked: ${detail}`);
   err.code = 'EMARGINISOLATION';
   return err;
+}
+
+if (process.env.MARGIN_ISOLATION_HOME) {
+  require('./storage-guard.cjs').installStorageGuard(IDENTITY, process.env.MARGIN_ISOLATION_HOME, blockedError);
 }
 
 const LOOPBACK_NAMES = new Set(['localhost', 'localhost.', '::1', '[::1]']);
@@ -244,16 +252,21 @@ function installChromiumGuard(electron) {
   // point every well-known path into the sandbox before the app or Chromium uses it.
   const sandboxHome = process.env.MARGIN_ISOLATION_HOME;
   if (sandboxHome) {
+    if (!BUILT_IDENTITY || JSON.stringify(BUILT_IDENTITY) !== JSON.stringify(IDENTITY)) {
+      throw blockedError('identity', 'build identity missing or differs from the isolated runtime variant');
+    }
+    electron.app.setName(IDENTITY.name);
     const p = (...s) => path.join(sandboxHome, ...s);
-    const name = electron.app.getName(); // from package.json, as Electron's own default
+    const name = IDENTITY.name;
     const paths = {
       home: p(), appData: p('Library/Application Support'), userData: p('Library/Application Support', name),
-      sessionData: p('Library/Application Support', name), temp: p('tmp'), logs: p('Library/Logs', name),
-      crashDumps: p('Library/Logs', name, 'Crashpad'), documents: p('Documents'), desktop: p('Desktop'),
+      sessionData: p('Library/Application Support', name), temp: p('tmp'), logs: p('Library/Application Support', name),
+      crashDumps: p('Library/Application Support', name, 'Crashpad'), documents: p('Documents'), desktop: p('Desktop'),
       downloads: p('Downloads'), music: p('Music'), pictures: p('Pictures'), videos: p('Movies'),
     };
     for (const [key, dir] of Object.entries(paths)) {
-      try { fs.mkdirSync(dir, { recursive: true }); electron.app.setPath(key, dir); } catch (e) { record('setPath', `${key}: ${e.message}`); }
+      fs.mkdirSync(dir, { recursive: true });
+      electron.app.setPath(key, dir);
     }
   }
   // Never let a test or smoke launch raise an OS permission dialog (microphone,
@@ -313,6 +326,8 @@ function installChromiumGuard(electron) {
   }
   // Electron's own net module uses Chromium sessions, so it is covered above.
 }
+
+module.exports = { installChromiumGuard };
 
 process.env.MARGIN_ISOLATION_ACTIVE = '1';
 

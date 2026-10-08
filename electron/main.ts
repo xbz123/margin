@@ -2,6 +2,7 @@ import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, shell, systemPref
 import * as crypto from "crypto"
 import path from "path"
 import fs from "fs"
+import { APP_IDENTITY } from './margin/appIdentity'
 if (!app.isPackaged) {
   require('dotenv').config();
 }
@@ -19,14 +20,12 @@ process.on('unhandledRejection', (reason, promise) => {
   logToFile('[CRITICAL] Unhandled Rejection: ' + redactArgsForLog([reason]));
 });
 
-// CQ-04 fix: do NOT call app.getPath() at module load time.
-// app.getPath('documents') is not guaranteed to be available before app.whenReady().
-// Use a lazy getter instead — the path is resolved on first logToFile() call.
+// Bootstrap sets the identity and log directory before this module is loaded.
 let _logFile: string | null = null;
 const getLogFile = (): string | null => {
   if (_logFile) return _logFile;
   try {
-    _logFile = path.join(app.getPath('documents'), 'natively_debug.log');
+    _logFile = path.join(app.getPath('logs'), 'debug.log');
     return _logFile;
   } catch {
     // app.ready not yet fired — return null, logToFile will skip silently
@@ -281,22 +280,22 @@ function formatPermissionMessage(reason: PermissionReason, extra?: { device?: st
         : 'System audio capture is unavailable. Interviewer audio will not be captured. Check your audio device routing in Settings and restart the meeting.';
     case 'mac-screen-recording-restricted':
       if (!isMac) return formatPermissionMessage('system-audio-stuck');
-      return 'Screen Recording is restricted by device policy. Interviewer audio will not be captured. Contact your administrator to allow screen capture for Natively.';
+      return `Screen Recording is restricted by device policy. Interviewer audio will not be captured. Contact your administrator to allow screen capture for ${APP_IDENTITY.name}.`;
     case 'mac-screen-recording-revoked-rebuild':
       // Defense-in-depth: even though all call sites must be darwin-gated
       // (the `mac-` prefix marks this constraint), if a future contributor
       // calls this from a cross-platform path we degrade gracefully rather
       // than leak macOS UI strings to Windows users.
       if (!isMac) return formatPermissionMessage('system-audio-stuck');
-      return 'System audio is being captured but every sample is silent. This usually means macOS Screen Recording permission needs to be re-granted to this build of Natively. Open System Settings → Privacy & Security → Screen Recording, toggle Natively off and back on, then restart the app. (If you recently rebuilt or updated, the previous grant may not apply.)';
+      return `System audio is being captured but every sample is silent. This usually means macOS Screen Recording permission needs to be re-granted to this build of ${APP_IDENTITY.name}. Open System Settings → Privacy & Security → Screen Recording, toggle ${APP_IDENTITY.name} off and back on, then restart the app. (If you recently rebuilt or updated, the previous grant may not apply.)`;
     case 'mic-denied':
       return isMac
-        ? 'Microphone access denied. Please allow microphone access in System Settings → Privacy & Security → Microphone, then restart Natively.'
-        : 'Microphone access denied. Please allow microphone access in Settings → Privacy → Microphone, then restart Natively.';
+        ? `Microphone access denied. Please allow microphone access in System Settings → Privacy & Security → Microphone, then restart ${APP_IDENTITY.name}.`
+        : `Microphone access denied. Please allow microphone access in Settings → Privacy → Microphone, then restart ${APP_IDENTITY.name}.`;
     case 'mic-zero-fill':
       return isMac
-        ? 'Microphone is producing silent audio. Check that the device is unmuted and that macOS Microphone permission is granted to Natively in System Settings → Privacy & Security → Microphone.'
-        : 'Microphone is producing silent audio. Check that the device is unmuted and that Natively has microphone access in Settings → Privacy → Microphone.';
+        ? `Microphone is producing silent audio. Check that the device is unmuted and that macOS Microphone permission is granted to ${APP_IDENTITY.name} in System Settings → Privacy & Security → Microphone.`
+        : `Microphone is producing silent audio. Check that the device is unmuted and that ${APP_IDENTITY.name} has microphone access in Settings → Privacy → Microphone.`;
     case 'mac-same-device-input-output':
       // Defense-in-depth: see comment on `mac-screen-recording-revoked-rebuild`.
       // The CoreAudio Process Tap same-device limitation is macOS-specific;
@@ -1458,7 +1457,7 @@ export class AppState {
           this.systemAudioCapture = null;
           this.sendAudioCaptureFailed({
             channel: 'system',
-            message: 'System audio capture failed to initialize. The native audio module could not allocate the capture device. Restarting Natively may help; if the problem persists, file a bug.',
+            message: `System audio capture failed to initialize. The native audio module could not allocate the capture device. Restarting ${APP_IDENTITY.name} may help; if the problem persists, file a bug.`,
             attempt: 0,
             maxAttempts: 0,
             terminal: true,
@@ -1481,7 +1480,7 @@ export class AppState {
           this.microphoneCapture = null;
           this.sendAudioCaptureFailed({
             channel: 'mic',
-            message: 'Microphone capture failed to initialize. The native audio module could not open the default input device. Check that the device is connected and not in exclusive use by another app, then restart Natively.',
+            message: `Microphone capture failed to initialize. The native audio module could not open the default input device. Check that the device is connected and not in exclusive use by another app, then restart ${APP_IDENTITY.name}.`,
             attempt: 0,
             maxAttempts: 0,
             terminal: true,
@@ -3532,7 +3531,7 @@ export class AppState {
     trayIcon.setTemplateImage(iconToUse.endsWith('Template.png'));
 
     this.tray = new Tray(trayIcon)
-    this.tray.setToolTip('Natively') // This tooltip might also need update if we change global shortcut, but global shortcut is removed.
+    this.tray.setToolTip(APP_IDENTITY.name)
     this.updateTrayMenu();
 
     // Double-click to show window
@@ -3550,7 +3549,7 @@ export class AppState {
     console.log('[Main] updateTrayMenu called. Screenshot Accelerator:', screenshotAccel);
 
     // Update tooltip for verification
-    this.tray.setToolTip('Natively');
+    this.tray.setToolTip(APP_IDENTITY.name);
 
     // Helper to format accelerator for display (e.g. CommandOrControl+H -> Cmd+H)
     const formatAccel = (accel: string) => {
@@ -3570,7 +3569,7 @@ export class AppState {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Show Natively',
+        label: `Show ${APP_IDENTITY.name}`,
         click: () => {
           this.centerAndShowWindow()
         }
@@ -3811,7 +3810,7 @@ export class AppState {
   }
 
   private _applyDisguise(mode: 'terminal' | 'settings' | 'activity' | 'none'): void {
-    let appName = "Natively";
+    let appName = APP_IDENTITY.name;
     let iconPath = "";
 
     const isWin = process.platform === 'win32';
@@ -3855,7 +3854,7 @@ export class AppState {
         }
         break;
       case 'none':
-        appName = "Natively";
+        appName = APP_IDENTITY.name;
         if (isMac) {
           iconPath = app.isPackaged
             ? path.join(process.resourcesPath, "natively.icns")
@@ -3891,7 +3890,7 @@ export class AppState {
     // 3. Update App User Model ID (Windows Taskbar grouping)
     if (isWin) {
       // Use unique AUMID per disguise to avoid grouping with the real app
-      app.setAppUserModelId(`com.natively.assistant.${mode}`);
+      app.setAppUserModelId(mode === 'none' ? APP_IDENTITY.appId : `${APP_IDENTITY.appId}.${mode}`);
     }
 
     // 4. Update Icons
@@ -4189,7 +4188,7 @@ async function initializeApp() {
             console.warn('[Init] Microphone is restricted by device policy at startup.');
             appState.sendAudioCaptureFailed({
               channel: 'mic',
-              message: 'Microphone is restricted by device policy. Contact your administrator to enable microphone access for Natively.',
+              message: `Microphone is restricted by device policy. Contact your administrator to enable microphone access for ${APP_IDENTITY.name}.`,
               attempt: 0,
               maxAttempts: 0,
               terminal: true,

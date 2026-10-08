@@ -90,6 +90,11 @@
     { "line": "const helper = {", "reason": "Generic idiom (an object literal for a test stand-in); written for this branch in the AG-17 review fixes (fourth Astra review) in electron/services/__tests__/ScopeLocalFallback.test.mjs, 2026-10-08" },
     { "line": "fitContextForCurrentModel: (text) => text,", "reason": "Test stand-in for the baseline LLMHelper method fitContextForCurrentModel (a786910e electron/LLMHelper.ts:624), returning its input; written for the AG-17 review fixes (fourth Astra review) in ScopeLocalFallback.test.mjs, 2026-10-08" },
     { "line": "getPromptTier: () => 'standard',", "reason": "Test stand-in for the baseline LLMHelper method getPromptTier (a786910e electron/LLMHelper.ts:4764) with a fixed tier; written for the AG-17 review fixes (fourth Astra review) in ScopeLocalFallback.test.mjs, 2026-10-08" },
-    { "line": "await new Promise((r) => setTimeout(r, 1_500));", "reason": "Generic idiom (a fixed wait); written for this branch in the AG-17 review fixes (fourth Astra review) in tests/margin/meeting-storage.test.mjs, because MeetingPersistence drops meetings shorter than one second, 2026-10-08" }
+    { "line": "await new Promise((r) => setTimeout(r, 1_500));", "reason": "Generic idiom (a fixed wait); written for this branch in the AG-17 review fixes (fourth Astra review) in tests/margin/meeting-storage.test.mjs, because MeetingPersistence drops meetings shorter than one second, 2026-10-08" },
+    { "line": "const electron = {", "reason": "Generic object literal opener in the independently written AG-20 fake Electron test; no upstream implementation imported. See AG-20/checks/precommit-1/provenance.log, 2026-10-08" },
+    { "line": "return require(id);", "reason": "Standard CommonJS require forwarding for non-Electron modules in the AG-20 test VM; independently written for this branch, 2026-10-08" },
+    { "line": "const script = `", "reason": "Generic template literal opener for AG-20 synthetic filesystem probes; independently written for this branch, 2026-10-08" },
+    { "line": "fs.mkdirSync(userData, { recursive: true });", "reason": "Standard Node mkdirSync recursive option, applied to AG-20's own identity directory before Electron setPath; independently written for this branch, 2026-10-08" },
+    { "line": "for (const name of names) {", "reason": "Generic JavaScript for-of loop over AG-20 protected application directory names; independently written for this branch, 2026-10-08" }
   ]
 }

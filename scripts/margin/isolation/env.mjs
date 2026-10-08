@@ -21,6 +21,12 @@ export function makeSandbox(label = 'run') {
   const work = path.join(root, 'cwd');
   const tmp = path.join(root, 'tmp');
   for (const d of [home, work, tmp]) fs.mkdirSync(d, { recursive: true });
+  // Synthetic legacy data exists before the guarded process starts. No real data is read.
+  for (const name of ['Natively', 'natively', 'natively-local', 'ai assistant', 'Margin', 'temp']) {
+    const dir = path.join(home, 'Library/Application Support', name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'identity-sentinel'), 'synthetic protected data\n');
+  }
   return { root, home, work, tmp, log: path.join(root, 'isolation.jsonl') };
 }
 
@@ -43,6 +49,12 @@ export function isolatedEnv(sandbox, extra = {}) {
     NATIVELY_DEV_BYPASS_SCREEN_TCC: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
   }, extra);
+  // Release runtime checks run only on CI; do not inherit arbitrary caller variables.
+  if (process.env.CI === 'true' && process.env.GITHUB_ACTIONS === 'true') {
+    env.CI = 'true';
+    env.GITHUB_ACTIONS = 'true';
+    if (process.env.MARGIN_APP_VARIANT === 'release') env.MARGIN_APP_VARIANT = 'release';
+  }
   return env;
 }
 

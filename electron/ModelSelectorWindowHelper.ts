@@ -1,3 +1,4 @@
+import { APP_IDENTITY } from './margin/appIdentity';
 import { BrowserWindow, screen, app } from "electron"
 import path from "node:path"
 
@@ -122,6 +123,7 @@ export class ModelSelectorWindowHelper {
     ): void {
         const isMac = process.platform === 'darwin';
         const windowSettings: Electron.BrowserWindowConstructorOptions = {
+            title: APP_IDENTITY.name,
             width: 140,
             height: 200,
             frame: false,

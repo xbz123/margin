@@ -1,3 +1,4 @@
+import { APP_NAME } from '../../appIdentity';
 import { ChevronUp, ChevronDown } from "lucide-react";
 import icon from "../icon.png";
 import type { OverlayAppearance } from "../../lib/overlayAppearance";
@@ -49,7 +50,7 @@ export default function TopPill({
                     >
                         <img
                             src={icon}
-                            alt="Natively"
+                            alt={APP_NAME}
                             className="w-[24px] h-[24px] object-contain opacity-95 scale-105 force-black-icon"
                             draggable="false"
                             onDragStart={(e) => e.preventDefault()}

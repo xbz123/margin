@@ -22,6 +22,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../../..');
@@ -31,7 +32,7 @@ function read(rel) {
 }
 
 const main = read('electron/main.ts');
-const pkg = JSON.parse(read('package.json'));
+const build = createRequire(import.meta.url)(path.join(root, 'electron-builder.config.cjs'));
 
 function extractMacVariants() {
   // The PermissionReason union sits between `type PermissionReason =` and the
@@ -91,14 +92,14 @@ test('every call site that passes a `mac-` PermissionReason is gated on darwin',
 });
 
 test('macOS build declares screen, microphone, and system audio usage descriptions', () => {
-  const extendInfo = pkg.build?.mac?.extendInfo ?? {};
+  const extendInfo = build.mac?.extendInfo ?? {};
 
   for (const key of [
     'NSScreenCaptureUsageDescription',
     'NSMicrophoneUsageDescription',
     'NSAudioCaptureUsageDescription',
   ]) {
-    assert.equal(typeof extendInfo[key], 'string', `${key} should be declared in package.json build.mac.extendInfo`);
+    assert.equal(typeof extendInfo[key], 'string', `${key} should be declared in electron-builder.config.cjs mac.extendInfo`);
     assert.ok(extendInfo[key].trim().length > 0, `${key} should not be empty`);
   }
 });

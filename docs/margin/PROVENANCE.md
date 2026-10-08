@@ -21,6 +21,16 @@ Notes:
 
 ## Ledger
 
+AG-20 is written on this branch from PLAN's application-identity requirements;
+no earlier Margin implementation or icon asset is imported. The initial scanner
+output is retained in `evidence/AG-20/checks/precommit-1/provenance.log`. Its five
+matches were reviewed individually: `const electron = {` and the `const script`
+template-literal opener are test scaffolding, `return require(id);` forwards a
+CommonJS module load, `fs.mkdirSync(userData, { recursive: true });` uses Node's
+standard recursive directory creation, and `for (const name of names) {` is a
+JavaScript iteration statement. Only these exact lines were allowlisted; source
+pools, approved files and scan exclusions were not widened.
+
 Stage 1 review 8 is written on this branch from the scope-refusal behavior requirements.
 The old Margin branch was inspected as a behavior reference, not copied. Four source
 scanner matches are generic JavaScript: `signal?.throwIfAborted();` (the native

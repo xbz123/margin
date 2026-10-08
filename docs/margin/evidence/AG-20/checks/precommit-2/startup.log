@@ -1,0 +1,25 @@
+✖ the app starts, opens the launcher and settings, stays up, and quits cleanly (16680.565458ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17019.683667
+
+✖ failing tests:
+
+test at tests/margin/startup-smoke.test.mjs:30:1
+✖ the app starts, opens the launcher and settings, stays up, and quits cleanly (16680.565458ms)
+  AssertionError [ERR_ASSERTION]: debug log must live in the sandbox, got /private/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-D4w5KO/tmp/margin-isolation-startup-smoke-NUJCe4/home/Library/Application Support/temp/debug.log
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/startup-smoke.test.mjs:61:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

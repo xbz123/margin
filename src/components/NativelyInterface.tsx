@@ -1,3 +1,4 @@
+import { APP_NAME } from '../appIdentity';
 import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion';
 import {
   ArrowRight,
@@ -4006,7 +4007,7 @@ Provide only the answer, nothing else.`;
                                 ? wantsMicrophonePane
                                   ? 'Open macOS Microphone privacy settings'
                                   : 'Open macOS Screen Recording privacy settings'
-                                : 'Open Natively Settings'
+                                : `Open ${APP_NAME} Settings`
                             }
                           >
                             {deepLinkUrl
@@ -4050,7 +4051,7 @@ Provide only the answer, nothing else.`;
                               }}
                               disabled={tccRepairing}
                               className="px-3 py-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-500 text-[11px] font-medium transition-all active:scale-95 border border-yellow-500/15 disabled:opacity-60 disabled:cursor-not-allowed"
-                              title="Reset macOS permission entries for Natively (you will need to grant them again after relaunch)"
+                              title={`Reset macOS permission entries for ${APP_NAME} (you will need to grant them again after relaunch)`}
                             >
                               {tccRepairing ? 'Resetting…' : 'Repair Permissions'}
                             </button>
@@ -4406,7 +4407,7 @@ Provide only the answer, nothing else.`;
                   >
                     <span className="overlay-text-primary flex-1">
                       Stealth typing needs Accessibility access. Grant it in System Settings, then
-                      restart Natively.
+                      restart {APP_NAME}.
                     </span>
                     <button
                       onClick={() => window.electronAPI.stealthTapOpenSettings()}

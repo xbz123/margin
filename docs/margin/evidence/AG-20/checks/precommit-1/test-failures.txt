@@ -1,0 +1,1 @@
+electron/services/__tests__/FormatPermissionMessageCrossPlatform.test.mjs :: macOS build declares screen, microphone, and system audio usage descriptions

@@ -1,3 +1,4 @@
+import { APP_IDENTITY } from './margin/appIdentity';
 // ScreenshotHelper.ts
 
 import path from "node:path"
@@ -41,7 +42,7 @@ function assertScreenRecordingPermission(): void {
     case 'denied':
       throw new Error(
         'Screen Recording permission is denied. Enable it in System Settings > ' +
-        'Privacy & Security > Screen Recording, then restart Natively.'
+        `Privacy & Security > Screen Recording, then restart ${APP_IDENTITY.name}.`
       );
     case 'restricted':
       throw new Error(
@@ -55,7 +56,7 @@ function assertScreenRecordingPermission(): void {
       // appears behind other apps on macOS Sequoia). Tell the user to restart instead.
       throw new Error(
         'Screen Recording permission has not been granted yet. ' +
-        'Please restart Natively — you will be prompted to grant access on next launch.'
+        `Please restart ${APP_IDENTITY.name} — you will be prompted to grant access on next launch.`
       );
   }
 }
@@ -491,7 +492,7 @@ export class ScreenshotHelper {
         throw new Error(
           process.platform === 'darwin'
             ? 'Screen capture permission denied. Please grant screen recording permission in System Settings > Privacy & Security > Screen Recording.'
-            : 'Screen capture permission denied by the OS. Please try again or restart Natively.'
+            : `Screen capture permission denied by the OS. Please try again or restart ${APP_IDENTITY.name}.`
         );
       }
       if ((error as NodeJS.ErrnoException).name === 'NotFoundError') {

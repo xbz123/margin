@@ -1,3 +1,4 @@
+import { APP_NAME } from '../appIdentity';
 import React from 'react';
 import { motion } from 'framer-motion';
 import logoAsset from '../assets/logo.png';
@@ -148,7 +149,7 @@ const StartupSequence: React.FC<StartupSequenceProps> = ({ onComplete }) => {
                             fontWeight: 500
                         }}
                     >
-                        Welcome to Natively
+                        Welcome to {APP_NAME}
                     </motion.h1>
 
                     <motion.p

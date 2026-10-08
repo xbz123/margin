@@ -1,3 +1,4 @@
+import { APP_NAME } from '../../appIdentity';
 // src/components/onboarding/PermissionsToaster.tsx
 //
 // Skills: ui-ux-pro-max · ui-design-system · canvas-designer · frontend-design
@@ -192,7 +193,7 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px', paddingBottom: '16px', borderBottom: `1px solid ${T.rule}` }}>
                 <span style={{ fontSize: '10.5px', fontWeight: 660, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.t2 }}>
-                  Natively · Permissions
+                  {APP_NAME} · Permissions
                 </span>
                 <button onClick={handleDismiss} aria-label="Dismiss"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', opacity: 0.35, padding: 0, transition: 'opacity 150ms, background 150ms' }}
@@ -210,7 +211,7 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
                   </h2>
                   <p style={{ fontSize: '13px', lineHeight: 1.64, color: T.t3, margin: 0, maxWidth: '340px' }}>
                     {platform === 'darwin'
-                      ? 'Natively needs access to your screen and microphone to capture meetings and transcribe speech.'
+                      ? `${APP_NAME} needs access to your screen and microphone to capture meetings and transcribe speech.`
                       : 'Click "Allow" if Windows asks for microphone or screen access when you start a meeting.'}
                   </p>
                 </motion.div>
@@ -271,7 +272,7 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
                     <p style={{ fontSize: '11px', color: T.t4, textAlign: 'center', marginTop: '10px', fontFamily: T.font }}>
                       {platform === 'darwin'
                         ? 'You can grant permissions later in System Preferences.'
-                        : 'Windows will prompt you the first time Natively needs the microphone.'}
+                        : `Windows will prompt you the first time ${APP_NAME} needs the microphone.`}
                     </p>
                   )}
                 </motion.div>

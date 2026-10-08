@@ -1,3 +1,4 @@
+import { APP_IDENTITY } from './margin/appIdentity';
 import { BrowserWindow, screen, app, ipcMain, IpcMainEvent } from "electron"
 import path from "node:path"
 
@@ -394,6 +395,7 @@ export class CropperWindowHelper {
         console.log(`[CropperWindowHelper] Creating cropper window with multi-monitor bounds:`, combinedBounds);
 
         const windowSettings: Electron.BrowserWindowConstructorOptions = {
+            title: APP_IDENTITY.name,
             width,
             height,
             x: combinedBounds.x,

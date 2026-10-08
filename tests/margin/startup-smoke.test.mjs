@@ -6,7 +6,7 @@
 //   - app.quit() ends the main process with exit code 0;
 //   - the main process had no uncaught exception or unhandled rejection, checked in
 //     two places: record-main-errors.cjs (loaded with -r before the app code) and the
-//     app's own natively_debug.log in the sandbox's Documents;
+//     app's own debug.log in the sandbox's identity data directory;
 //   - the guard recorded no outbound attempt.
 // Missing evidence fails the test: the recorder's file, the debug log and the guard
 // log must all exist. As a positive control, one probe exception and one probe
@@ -21,11 +21,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
-import { makeSandbox, readBlocked, readGuardLog } from '../../scripts/margin/isolation/env.mjs';
+import { makeSandbox, readBlocked, readGuardLog, REPO } from '../../scripts/margin/isolation/env.mjs';
 
 const OBSERVE_MS = 15_000;
 const PROBE = 'MARGIN-SMOKE-PROBE';
+const identity = JSON.parse(fs.readFileSync(path.join(REPO, 'dist-electron/app-identity.json'), 'utf8'));
 
 test('the app starts, opens the launcher and settings, stays up, and quits cleanly', async (t) => {
   const sandbox = makeSandbox('startup-smoke');
@@ -57,8 +59,9 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
     assert.equal(mainProcess.exitCode, null, 'main process must still be running after the observation window');
 
     const logFile = await app.evaluate(({ app: electronApp }) =>
-      process.getBuiltinModule('path').join(electronApp.getPath('documents'), 'natively_debug.log'));
-    assert.ok(logFile.startsWith(sandbox.root), `debug log must live in the sandbox, got ${logFile}`);
+      process.getBuiltinModule('path').join(electronApp.getPath('logs'), 'debug.log'));
+    const expectedLogFile = path.join(sandbox.home, 'Library/Application Support', identity.name, 'debug.log');
+    assert.equal(fs.realpathSync(logFile), fs.realpathSync(expectedLogFile), 'debug log must be exactly the built identity log in the synthetic HOME');
 
     // Positive control for both error channels (see the header).
     await app.evaluate((_, probe) => {
