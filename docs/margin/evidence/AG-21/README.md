@@ -1,7 +1,9 @@
 # AG-21 icon implementation
 
-Local implementation and gates passed; CI and Claude's read-only review are
-pending. This ticket does not claim packaged-app or real-device acceptance.
+Implementation and local/CI gates passed for source `0f289314`;
+[CI 37762841891](../CI-37762841891/README.md) raw evidence was verified.
+Claude's read-only review remains pending. This ticket does not claim
+packaged-app or real-device acceptance.
 
 The four permitted icon sources from `cbb92b8ae1a310ae1af3323d45b2990757d781d9`
 were read in full before import. Original blobs, adaptations, three exact-line

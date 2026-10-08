@@ -1,0 +1,21 @@
+[CredentialsManager] No stored credentials found
+[CredentialsManager] Initialized
+[CredentialsManager] OpenAI API Key updated
+[CredentialsManager] Loaded encrypted credentials
+[CredentialsManager] Initialized
+[SettingsManager] Settings loaded successfully { keys: 1 }
+[SettingsManager] Settings loaded
+✔ build selection defaults to temp and rejects release outside CI (3.773083ms)
+✔ guard first-launch preflight uses the built identity before path setup (2.581875ms)
+✔ bootstrap precedes real credentials/storage imports and settings survive a restart (38.67825ms)
+✔ synthetic protected directories reject reads, writes, alternate APIs and symlink aliases (46.240083ms)
+✔ recursive and directory operations refuse parents containing protected data (50.790042ms)
+✔ disguise restores the build name and leaves persisted paths in its own directory (40.427667ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 313.394916
