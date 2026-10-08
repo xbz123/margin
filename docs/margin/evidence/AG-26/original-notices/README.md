@@ -81,7 +81,15 @@ marker length to eight; no licensing byte, collector rule or other source-file
 check changes. All 49 newly staged notice/input files independently match their
 verified working bytes. The final staged check must pass before the commit.
 
-No app was packaged, uploaded, installed or accepted by this supplement. No
+The submitted checkpoint `17bfc656` subsequently passed no-cache CI
+`37846880697`; see `../../CI-37846880697/` for exact-source gates, native build,
+downloaded text artifacts and package-byte verification. Its formed temp app
+contains all 28 new original texts and still fails normal verification for three
+candidates. This supersedes the pending-CI checkpoint above, not the recorded
+initial failure. The final staged check passed before commit with unchanged
+original notice bytes.
+
+No distributable app was uploaded, installed or accepted by this supplement. No
 upstream issue/comment was posted. No real provider, keychain, device or formal
 Margin identity was used. AG-26, full AG-25 and the stage exit remain incomplete;
 the independent read-only review is still pending.

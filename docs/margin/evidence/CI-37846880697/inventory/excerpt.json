@@ -1,0 +1,121 @@
+{
+  "kind": "derived verification excerpt, not complete inventory",
+  "pass": true,
+  "source": {
+    "run": 37846880697,
+    "commit": "17bfc6568d578d88511923039ec580b21a10a951",
+    "inventoryBytes": 44623922,
+    "inventorySHA256": "807a5944b1ef9928a76b976927b9650a9ffe054e17458bd532d3e7e8d62896a3",
+    "workflowBytes": 104841,
+    "workflowSHA256": "5ba622a351b9a93957631a8315e6d9dc8acf2ed7c765760fd0a0541e91e077dc"
+  },
+  "acceptance": false,
+  "gateSteps": 16,
+  "cleanCheckout": true,
+  "unitCounts": {
+    "tests": 884,
+    "pass": 878,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "normalVerification": {
+    "passed": false,
+    "error": "unresolved notice candidates: 3; inspect the package before distribution"
+  },
+  "expectedStopVerified": true,
+  "entries": 40510,
+  "packageMetadataRecords": 609,
+  "candidates": 726,
+  "uniqueLicenseFilesVerified": 412,
+  "sourceManifestSHA256": "7aa2faee25cd0ba8b45e982805b519761428b6859d7e28a9d91b579daeb3d47d",
+  "newOriginalTexts": 28,
+  "removedPackagePaths": 0,
+  "remaining": [
+    {
+      "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "observation": "included-files"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "observation": "unknown"
+    }
+  ],
+  "native": {
+    "count": 23,
+    "allArm64": true,
+    "projectNativeSHA256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603",
+    "fromScratchCidreEvidence": true
+  },
+  "mapGaps": 1412,
+  "absence": [
+    {
+      "name": "tap",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "sqlite3",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "screenshot-desktop",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "@alcalzone/ansi-tokenize",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "@npmcli/agent",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "err-code",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "@tootallnate/once",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "gates",
+      "id": 11580033807,
+      "bytes": 57412,
+      "sha256": "e904690b942044038f2c591cf052063c0564e712cf9b75a944751e16cd3bafe7",
+      "inspectedRegularEntries": 26
+    },
+    {
+      "name": "inventory",
+      "id": 11580905015,
+      "bytes": 3154019,
+      "sha256": "71081ff7dbe1a7eb6a84a451ca853e0a516633d00e47de8bd44065d1b424f964",
+      "inspectedRegularEntries": 5
+    }
+  ],
+  "limits": [
+    "No app/native artifact downloaded",
+    "No signature or full AG-25 acceptance",
+    "Static native vendor and source/relinking obligations remain open"
+  ]
+}

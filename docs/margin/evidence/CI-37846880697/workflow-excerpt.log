@@ -1,0 +1,5 @@
+Derived workflow excerpt. Full-source SHA-256: 5ba622a351b9a93957631a8315e6d9dc8acf2ed7c765760fd0a0541e91e077dc
+gates	Native setup	2026-10-08T21:29:17.6365070Z    Compiling cidre v0.11.10
+gates	Collect the native module	2026-10-08T21:29:41.1536640Z no_cache: true
+gates	Collect the native module	2026-10-08T21:29:41.1537630Z cidre compiled in this run: 1
+gates	Collect the native module	2026-10-08T21:29:41.1538290Z 71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603  native-artifact/index.darwin-arm64.node

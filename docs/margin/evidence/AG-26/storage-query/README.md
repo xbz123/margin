@@ -63,6 +63,12 @@ it does not claim a precise classifier for every underlying protocol error.
 - The complete five-test storage suite and full gates remain separate acceptance
   checks; they are not claimed from the first-test loop.
 
+Subsequent full verification: `../original-notices/gates-fixed/` passes all 16
+local steps, including storage 5/5. Source checkpoint `17bfc656` then passes
+the same 16 steps and storage 5/5 in no-cache CI `37846880697`; see
+`../../CI-37846880697/`. Neither result accepts the unresolved license or full
+packaging scope.
+
 The first temporary boundary driver incorrectly required SIGTERM in the signal
 field and therefore exited 1 although the owned main had exited and no retry
 occurred. Its captured failure excerpt is retained; the corrected driver checks
