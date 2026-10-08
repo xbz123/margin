@@ -342,46 +342,112 @@ test('the meeting chat follows the post_call_summary and profile_history scopes'
   mock.setScript({ respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
 });
 
-// PLAN.md AG-17 (sixth review): an edit whose save fails must not stay on screen as if
-// it were stored. The update handler is made to return false once (Electron keeps
-// invoke handlers in ipcMain._invokeHandlers); the page then shows a notice and the
-// stored title again. The next edit saves normally and clears the notice.
+// PLAN.md AG-17 (sixth and seventh reviews): an edit whose save fails must not stay on
+// screen as if it were stored. Handlers in the main process are replaced for one call
+// (Electron keeps invoke handlers in ipcMain._invokeHandlers) to make a save fail, be
+// slow, or make the reload fail. Checked: the failed field is restored (from the
+// database, or to its value before the edit when the meeting cannot be read), other
+// fields and list rows are left alone, only the latest edit's response acts, and the
+// notice is cleared only by a later successful save of the same field.
 test('a meeting edit that fails to save is rolled back and reported', async () => {
   const launcher = await launcherWindow();
+  const meeting = (await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).find((m) => m.title === TITLE);
+  assert.ok(meeting, 'the meeting from the chat test is listed');
+  assert.equal(await launcher.evaluate((id) => window.electronAPI.updateMeetingSummary(id, { keyPoints: ['KP_ONE', 'KP_TWO'] }), meeting.id), true);
   await launcher.reload();
   await launcher.waitForLoadState('domcontentloaded');
   await launcher.getByText(TITLE).first().click();
-  const title = launcher.locator('h1').filter({ hasText: TITLE }).first();
+  const title = launcher.locator('h1[contenteditable]').first();
   await title.waitFor();
-  const meeting = (await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).find((m) => m.title === TITLE);
-  assert.ok(meeting, 'the meeting from the chat test is listed');
+  const stored = () => launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id);
+  const titleText = async () => (await title.innerText()).trim();
+  const alert = launcher.getByRole('alert');
+  const alertText = async () => ((await alert.count()) ? (await alert.innerText()).trim() : '');
 
-  await app.evaluate(({ ipcMain }) => {
+  // Makes the next call on `channel` return `result` (after `delayMs`) or throw.
+  const patchOnce = (channel, behavior) => app.evaluate(({ ipcMain }, { channel, behavior }) => {
     const handlers = ipcMain._invokeHandlers;
-    const real = handlers?.get('update-meeting-title');
-    if (!real) throw new Error('update-meeting-title handler not found');
-    handlers.set('update-meeting-title', async () => {
-      handlers.set('update-meeting-title', real);
-      return false;
+    const real = handlers?.get(channel);
+    if (!real) throw new Error(`${channel} handler not found`);
+    handlers.set(channel, async () => {
+      handlers.set(channel, real);
+      if (behavior.delayMs) await new Promise((r) => setTimeout(r, behavior.delayMs));
+      if (behavior.throws) throw new Error('margin: injected failure');
+      return behavior.result;
     });
-  });
+  }, { channel, behavior });
+  // Clicks are dispatched to the element: after scrolling to the key points, other
+  // parts of the page can cover the title.
   const rename = async (text) => {
-    await title.click();
+    await title.dispatchEvent('click');
+    await waitFor(() => title.evaluate((e) => document.activeElement === e), 'focus on the title', 5_000);
     await launcher.keyboard.press('Meta+A');
     await launcher.keyboard.type(text);
     await launcher.keyboard.press('Enter');
   };
-  const alert = launcher.getByRole('alert');
+  const keyPoint = (text) => launcher.locator('p').filter({ hasText: text }).first();
+  const editKeyPoint = async (from, to) => {
+    const el = keyPoint(from);
+    await el.dispatchEvent('click');
+    await waitFor(() => el.evaluate((e) => document.activeElement === e), `focus on ${from}`, 5_000);
+    await launcher.keyboard.press('Meta+A');
+    await launcher.keyboard.type(to);
+    await el.evaluate((e) => e.blur());
+  };
+  const NOT_SAVED = 'This change could not be saved.';
 
+  // 1. The title save fails: notice, stored title shown again.
+  await patchOnce('update-meeting-title', { result: false });
   await rename('RENAMED_NOT_SAVED');
-  await alert.filter({ hasText: 'This change could not be saved.' }).waitFor({ timeout: 10_000 });
-  await waitFor(async () => (await launcher.locator('h1').first().innerText()).trim() === TITLE, 'the stored title shown again', 10_000);
-  assert.equal((await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id)).title, TITLE);
+  await waitFor(async () => (await alertText()) === NOT_SAVED, 'the notice', 10_000);
+  await waitFor(async () => (await titleText()) === TITLE, 'the stored title shown again', 10_000);
+  assert.equal((await stored()).title, TITLE);
 
-  // Saving works again; the notice goes away. The title is set back afterwards.
+  // 2. A successful save of another field leaves the title's notice in place.
+  await editKeyPoint('KP_ONE', 'KP_ONE_EDITED');
+  await waitFor(async () => (await stored()).detailedSummary.keyPoints[0] === 'KP_ONE_EDITED', 'the saved key point', 10_000);
+  assert.equal(await alertText(), NOT_SAVED, 'the notice of the title stays');
+
+  // 3. The title saves: its notice goes away.
   await rename('RENAMED_SAVED');
-  await waitFor(async () => (await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id)).title === 'RENAMED_SAVED', 'the saved title', 10_000);
+  await waitFor(async () => (await stored()).title === 'RENAMED_SAVED', 'the saved title', 10_000);
   await waitFor(async () => (await alert.count()) === 0, 'the notice cleared', 10_000);
+
+  // 4. A key point save fails: the list is restored from the database, the title and
+  // the other row (same DOM node, so its draft and key survive) are left alone.
+  await keyPoint('KP_TWO').evaluate((e) => { e.__marginMarker = 'kept'; });
+  await patchOnce('update-meeting-summary', { result: false });
+  await editKeyPoint('KP_ONE_EDITED', 'KP_NOT_SAVED');
+  await waitFor(async () => (await alertText()) === NOT_SAVED, 'the key point notice', 10_000);
+  await keyPoint('KP_ONE_EDITED').waitFor({ timeout: 10_000 });
+  assert.equal(await keyPoint('KP_TWO').evaluate((e) => e.__marginMarker), 'kept', 'the other row was not remounted');
+  assert.equal(await titleText(), 'RENAMED_SAVED');
+  assert.deepEqual((await stored()).detailedSummary.keyPoints, ['KP_ONE_EDITED', 'KP_TWO']);
+
+  // 5. The save fails and the meeting cannot be read: the title goes back to its value
+  // before the edit.
+  await patchOnce('update-meeting-title', { result: false });
+  await patchOnce('get-meeting-details', { throws: true });
+  await rename('RENAMED_RELOAD_FAILED');
+  await waitFor(async () => (await titleText()) === 'RENAMED_SAVED', 'the title before the edit', 10_000);
+  assert.equal(await alertText(), NOT_SAVED);
+
+  // 6. The save fails and the meeting no longer exists: the notice says so.
+  await patchOnce('update-meeting-title', { result: false });
+  await patchOnce('get-meeting-details', { result: null });
+  await rename('RENAMED_MEETING_GONE');
+  await waitFor(async () => /no longer exists/.test(await alertText()), 'the missing-meeting notice', 10_000);
+
+  // 7. Only the latest edit's response acts: a slow failure of an earlier edit, answered
+  // after a later edit was saved, changes nothing.
+  await patchOnce('update-meeting-title', { result: false, delayMs: 1_500 });
+  await rename('RENAMED_SLOW_FAIL');
+  await rename('RENAMED_LATEST');
+  await waitFor(async () => (await stored()).title === 'RENAMED_LATEST', 'the latest title saved', 10_000);
+  await new Promise((r) => setTimeout(r, 2_000)); // the slow response has arrived by now
+  assert.equal(await titleText(), 'RENAMED_LATEST');
+  assert.equal(await alert.count(), 0, 'no notice from the outdated response');
+
   assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: meeting.id, t: TITLE }), true);
 });
 

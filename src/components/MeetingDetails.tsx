@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { ArrowLeft, Search, Mail, Link, ChevronDown, Play, ArrowUp, Copy, Check, MoreHorizontal, Settings, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -66,6 +66,22 @@ interface Meeting {
     }>;
 }
 
+type EditField = 'title' | 'overview' | 'actionItems' | 'keyPoints' | 'actionItemsTitle' | 'keyPointsTitle';
+
+// Copies one edited field from `source` (the stored meeting, or the state before the
+// edit) into `current`, leaving every other field as it is.
+const restoreField = (current: Meeting, source: Meeting, field: EditField): Meeting => {
+    if (field === 'title') return { ...current, title: source.title };
+    const summary = source.detailedSummary;
+    return {
+        ...current,
+        detailedSummary: {
+            ...current.detailedSummary!,
+            [field]: field === 'actionItems' || field === 'keyPoints' ? [...(summary?.[field] ?? [])] : summary?.[field],
+        },
+    };
+};
+
 interface MeetingDetailsProps {
     meeting: Meeting;
     onBack: () => void;
@@ -81,7 +97,14 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
     const [isCopied, setIsCopied] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [submittedQuery, setSubmittedQuery] = useState('');
-    const [saveError, setSaveError] = useState<string | null>(null);
+    // The notice of the last failed save, with the field it belongs to.
+    const [saveError, setSaveError] = useState<{ field: EditField; message: string } | null>(null);
+    // The latest meeting state, for handlers called from older closures (a debounced
+    // save fires with the closure of the render that started it).
+    const meetingRef = useRef(meeting);
+    meetingRef.current = meeting;
+    // A version per field: only the response to the latest edit of a field acts.
+    const editVersions = useRef(new Map<EditField, number>());
 
     // Stable client-side keys for the action-item and key-point lists. The
     // persisted shape is string[], so React keyed the rows by index, but the
@@ -151,81 +174,98 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
 
     // UPDATE HANDLERS
     // Edits show at once and are saved in the background. A save that fails (the update
-    // rejects or returns false, e.g. the meeting is gone) must not stay on screen as if it
-    // were stored: the meeting is reloaded from the database and a notice is shown
-    // (PLAN.md AG-17 sixth review).
-    const persistEdit = async (save: () => Promise<boolean> | undefined) => {
+    // rejects or returns false) must not stay on screen as if it were stored (PLAN.md
+    // AG-17 sixth and seventh reviews):
+    // - only the response to the latest edit of a field acts; earlier ones are ignored;
+    // - the failed field alone is restored, from the database, or, when the meeting
+    //   cannot be read, to the value it had before the edit; other fields, drafts still
+    //   being typed and list keys are left alone (list keys are rebuilt only when the
+    //   restored list has a different length);
+    // - the notice names the failure and is cleared only by a later successful save of
+    //   the same field.
+    const persistEdit = async (
+        field: EditField,
+        previous: Meeting,
+        save: () => Promise<boolean> | undefined,
+    ) => {
+        const version = (editVersions.current.get(field) ?? 0) + 1;
+        editVersions.current.set(field, version);
+        const isLatest = () => editVersions.current.get(field) === version;
+
         let saved = false;
         try {
             saved = (await save()) === true;
         } catch (err) {
             console.error('[MeetingDetails] Failed to save the edit:', err);
         }
+        if (!isLatest()) return;
         if (saved) {
-            setSaveError(null);
+            setSaveError(prev => (prev?.field === field ? null : prev));
             return;
         }
-        setSaveError('This change could not be saved.');
+
+        let stored: Meeting | null = null;
+        let reloadFailed = false;
         try {
-            const stored = await window.electronAPI?.getMeetingDetails?.(meeting.id);
-            if (stored) {
-                setMeeting(stored as Meeting);
-                setActionItemKeys((stored.detailedSummary?.actionItems ?? []).map(() => genMessageId()));
-                setKeyPointKeys((stored.detailedSummary?.keyPoints ?? []).map(() => genMessageId()));
-            }
+            stored = (await window.electronAPI?.getMeetingDetails?.(meetingRef.current.id)) ?? null;
         } catch (err) {
+            reloadFailed = true;
             console.error('[MeetingDetails] Failed to reload the meeting after a failed save:', err);
         }
-    };
-
-    const handleTitleSave = async (newTitle: string) => {
-        setMeeting(prev => ({ ...prev, title: newTitle }));
-        await persistEdit(() => window.electronAPI?.updateMeetingTitle?.(meeting.id, newTitle));
-    };
-
-    const handleOverviewSave = async (newOverview: string) => {
-        setMeeting(prev => ({
-            ...prev,
-            detailedSummary: {
-                ...prev.detailedSummary!,
-                overview: newOverview
-            }
-        }));
-        await persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { overview: newOverview }));
-    };
-
-    const handleActionItemSave = async (index: number, newVal: string) => {
-        const newItems = [...(meeting.detailedSummary?.actionItems || [])];
-        if (!newVal.trim()) {
-            // Optional: Remove empty items? For now just keep empty or update
+        if (!isLatest()) return;
+        if (!stored && !reloadFailed) {
+            setSaveError({ field, message: 'This change could not be saved: the meeting no longer exists.' });
+            return;
         }
-        newItems[index] = newVal;
-
-        setMeeting(prev => ({
-            ...prev,
-            detailedSummary: {
-                ...prev.detailedSummary!,
-                actionItems: newItems
-            }
-        }));
-
-        await persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { actionItems: newItems }));
+        const source = stored ?? previous;
+        setMeeting(prev => restoreField(prev, source, field));
+        if (field === 'actionItems') {
+            const length = source.detailedSummary?.actionItems?.length ?? 0;
+            setActionItemKeys(prev => (prev.length === length ? prev : Array.from({ length }, () => genMessageId())));
+        }
+        if (field === 'keyPoints') {
+            const length = source.detailedSummary?.keyPoints?.length ?? 0;
+            setKeyPointKeys(prev => (prev.length === length ? prev : Array.from({ length }, () => genMessageId())));
+        }
+        setSaveError({ field, message: 'This change could not be saved.' });
     };
 
-    const handleKeyPointSave = async (index: number, newVal: string) => {
-        const newItems = [...(meeting.detailedSummary?.keyPoints || [])];
-        newItems[index] = newVal;
-
-        setMeeting(prev => ({
-            ...prev,
-            detailedSummary: {
-                ...prev.detailedSummary!,
-                keyPoints: newItems
-            }
-        }));
-
-        await persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { keyPoints: newItems }));
+    // Applies an edit to the latest state and saves it.
+    const editField = (field: EditField, apply: (m: Meeting) => Meeting, save: (m: Meeting) => Promise<boolean> | undefined) => {
+        const previous = meetingRef.current;
+        const next = apply(previous);
+        meetingRef.current = next;
+        setMeeting(prev => apply(prev));
+        return persistEdit(field, previous, () => save(next));
     };
+
+    const handleTitleSave = (newTitle: string) => editField('title',
+        (m) => ({ ...m, title: newTitle }),
+        (m) => window.electronAPI?.updateMeetingTitle?.(m.id, newTitle));
+
+    const handleOverviewSave = (newOverview: string) => editField('overview',
+        (m) => ({ ...m, detailedSummary: { ...m.detailedSummary!, overview: newOverview } }),
+        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { overview: newOverview }));
+
+    const handleActionItemSave = (index: number, newVal: string) => editField('actionItems',
+        (m) => {
+            const items = [...(m.detailedSummary?.actionItems || [])];
+            items[index] = newVal;
+            return { ...m, detailedSummary: { ...m.detailedSummary!, actionItems: items } };
+        },
+        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { actionItems: m.detailedSummary?.actionItems ?? [] }));
+
+    const handleKeyPointSave = (index: number, newVal: string) => editField('keyPoints',
+        (m) => {
+            const items = [...(m.detailedSummary?.keyPoints || [])];
+            items[index] = newVal;
+            return { ...m, detailedSummary: { ...m.detailedSummary!, keyPoints: items } };
+        },
+        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { keyPoints: m.detailedSummary?.keyPoints ?? [] }));
+
+    const handleSectionTitleSave = (field: 'actionItemsTitle' | 'keyPointsTitle', val: string) => editField(field,
+        (m) => ({ ...m, detailedSummary: { ...m.detailedSummary!, [field]: val } }),
+        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { [field]: val }));
 
 
     return (
@@ -255,7 +295,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                 multiline={false}
                             />
                             {saveError && (
-                                <div role="alert" className="mt-1 text-xs text-red-500">{saveError}</div>
+                                <div role="alert" className="mt-1 text-xs text-red-500">{saveError.message}</div>
                             )}
                         </div>
 
@@ -332,13 +372,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                         <div className="flex items-center justify-between mb-4">
                                             <EditableTextBlock
                                                 initialValue={meeting.detailedSummary?.actionItemsTitle || 'Action Items'}
-                                                onSave={(val) => {
-                                                    setMeeting(prev => ({
-                                                        ...prev,
-                                                        detailedSummary: { ...prev.detailedSummary!, actionItemsTitle: val }
-                                                    }));
-                                                    void persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { actionItemsTitle: val }));
-                                                }}
+                                                onSave={(val) => { void handleSectionTitleSave('actionItemsTitle', val); }}
                                                 tagName="h2"
                                                 className="text-lg font-semibold text-text-primary -ml-2 px-2 py-1 rounded-sm transition-colors"
                                                 multiline={false}
@@ -356,8 +390,9 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                                             className="text-sm text-text-secondary leading-relaxed -ml-2 px-2 rounded-sm transition-colors"
                                                             placeholder="Type an action item..."
                                                             onEnter={() => {
-                                                                const newItems = [...(meeting.detailedSummary?.actionItems || [])];
+                                                                const newItems = [...(meetingRef.current.detailedSummary?.actionItems || [])];
                                                                 newItems.splice(i + 1, 0, "");
+                                                                meetingRef.current = { ...meetingRef.current, detailedSummary: { ...meetingRef.current.detailedSummary!, actionItems: newItems } };
                                                                 setActionItemKeys(prev => {
                                                                     const next = [...prev];
                                                                     next.splice(i + 1, 0, genMessageId());
@@ -382,13 +417,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                         <div className="flex items-center justify-between mb-4">
                                             <EditableTextBlock
                                                 initialValue={meeting.detailedSummary?.keyPointsTitle || 'Key Points'}
-                                                onSave={(val) => {
-                                                    setMeeting(prev => ({
-                                                        ...prev,
-                                                        detailedSummary: { ...prev.detailedSummary!, keyPointsTitle: val }
-                                                    }));
-                                                    void persistEdit(() => window.electronAPI?.updateMeetingSummary?.(meeting.id, { keyPointsTitle: val }));
-                                                }}
+                                                onSave={(val) => { void handleSectionTitleSave('keyPointsTitle', val); }}
                                                 tagName="h2"
                                                 className="text-lg font-semibold text-text-primary -ml-2 px-2 py-1 rounded-sm transition-colors"
                                                 multiline={false}
@@ -406,8 +435,9 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                                             className="text-sm text-text-secondary leading-relaxed -ml-2 px-2 rounded-sm transition-colors"
                                                             placeholder="Type a key point..."
                                                             onEnter={() => {
-                                                                const newItems = [...(meeting.detailedSummary?.keyPoints || [])];
+                                                                const newItems = [...(meetingRef.current.detailedSummary?.keyPoints || [])];
                                                                 newItems.splice(i + 1, 0, "");
+                                                                meetingRef.current = { ...meetingRef.current, detailedSummary: { ...meetingRef.current.detailedSummary!, keyPoints: newItems } };
                                                                 setKeyPointKeys(prev => {
                                                                     const next = [...prev];
                                                                     next.splice(i + 1, 0, genMessageId());

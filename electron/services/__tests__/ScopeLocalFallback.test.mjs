@@ -73,14 +73,14 @@ function loadBuiltLLMHelper() {
 async function summarizeWith(policy, extraDataScopes) {
   const LLMHelper = loadBuiltLLMHelper();
   const requests = [];
-  const self = {
+  const self = Object.assign(Object.create(LLMHelper.prototype), {
     codexCliConfig: { enabled: false },
     groqClient: { chat: { completions: { create: async (body) => { requests.push(body); return { choices: [{ message: { content: 'SUMMARY' } }] }; } } } },
     getProviderScopePolicy: () => policy,
     logScopeFallback: () => {},
     withTimeout: (promise) => promise,
     processResponse: (text) => text,
-  };
+  });
   const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', extraDataScopes);
   return { result, requests };
 }
@@ -228,7 +228,10 @@ test('chatWithGemini with Claude selected does not send a transcript-bearing mes
 });
 
 // Static sweep: every call in LLMHelper.ts that sends to a cloud provider must have a
-// scope check earlier in the same method. A new send without one fails here.
+// scope check earlier in the same method, with nothing that can wait or run later in
+// between (no `await`, `yield` or function boundary, PLAN.md AG-17 seventh review): a
+// scope turned off while the request waited must stop the send. Wrapping a send in
+// `await this.withTimeout(` is allowed. A new send without such a check fails here.
 test('every cloud send in LLMHelper.ts is preceded by a scope check in its method', () => {
   const lines = read('electron/LLMHelper.ts').split('\n');
   const SEND = /\.chat\.completions\.create\(|\.models\.generateContent(?:Stream)?\(|\.messages\.(?:create|stream)\(|CodexCliService\.(?:run|stream)\(/;
@@ -239,11 +242,19 @@ test('every cloud send in LLMHelper.ts is preceded by a scope check in its metho
     if (!SEND.test(line) || /^\s*(?:\/\/|\*)/.test(line)) return;
     let start = i;
     while (start > 0 && !METHOD.test(lines[start])) start--;
-    const checked = lines.slice(start, i).some((l) => CHECK.test(l));
-    sends.push({ line: i + 1, method: lines[start].trim().slice(0, 60), checked });
+    let check = i - 1;
+    while (check > start && !CHECK.test(lines[check])) check--;
+    const checked = CHECK.test(lines[check]);
+    const before = line.slice(0, line.search(SEND));
+    const waits = lines.slice(check + 1, i)
+      .filter((l) => !/^\s*(?:\/\/|\*)/.test(l) && !/^\s*(?:const \w+ = )?await this\.withTimeout\($/.test(l))
+      .filter((l) => /\bawait\b|\byield\b|=>/.test(l));
+    if (/=>/.test(before)) waits.push(line.trim());
+    sends.push({ line: i + 1, method: lines[start].trim().slice(0, 60), checked, waits });
   });
   assert.ok(sends.length >= 20, `found only ${sends.length} sends; the pattern no longer matches the code`);
   assert.deepEqual(sends.filter((s) => !s.checked), [], 'sends without a scope check');
+  assert.deepEqual(sends.filter((s) => s.waits.length > 0).map((s) => ({ line: s.line, waits: s.waits })), [], 'sends whose check is separated from them by a wait');
 });
 
 // Fourth review (PLAN.md AG-17): the static sweep only shows that a check comes
@@ -346,4 +357,101 @@ test('the keyword fallback recognizes the meeting chat headings in a window-buil
   assert.deepEqual(self.inferContextScopes('MEETING: x\n\nSUMMARY:\ny'), ['profile_history', 'post_call_summary']);
   assert.deepEqual(self.inferContextScopes('notes\nKEY POINTS:\n- a'), ['post_call_summary']);
   assert.deepEqual(self.inferContextScopes('plain conversation about a summary of nothing'), []);
+});
+
+// Seventh review (PLAN.md AG-17): a scope turned off while a request waits (a provider
+// failing, the rate limiter) must stop the sends that follow. Each stub turns the scope
+// off at that moment; the later sends must not happen. Data already sent before the
+// change cannot be recalled and is not part of this check.
+test('meeting summaries stop the fallback chain when a scope is turned off during it', async () => {
+  const LLMHelper = loadBuiltLLMHelper();
+  for (const [scope, extra] of [['profile_history', ['profile_history']], ['post_call_summary', []], ['transcript', []]]) {
+    // Codex fails after the scope is turned off; Groq must not be asked.
+    const policy = {};
+    const groqRequests = [];
+    const self = helperWith(policy, {
+      codexCliConfig: { enabled: true, timeoutMs: 1000 },
+      generateWithCodexCli: async () => { policy[scope] = false; throw new Error('codex failed'); },
+      groqClient: { chat: { completions: { create: async (body) => { groqRequests.push(body); return { choices: [{ message: { content: 'SUMMARY' } }] }; } } } },
+      processResponse: (text) => text,
+    });
+    const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', extra);
+    assert.equal(result, '', `${scope}: no summary`);
+    assert.equal(groqRequests.length, 0, `${scope}: Groq is not asked after the scope was turned off`);
+  }
+
+  // Gemini: the first Flash attempt returns nothing after the scope is turned off; no
+  // further Flash or Pro attempt is sent, and the refusal ends the chain at once
+  // instead of going through the retries and their back-off waits (1 s and more).
+  const policy = {};
+  const geminiRequests = [];
+  const self = helperWith(policy, {
+    client: { models: { generateContent: async (body) => { geminiRequests.push(body); policy.profile_history = false; return { text: '' }; } } },
+    processResponse: (text) => text,
+  });
+  const started = Date.now();
+  const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', ['profile_history']);
+  const tookMs = Date.now() - started;
+  assert.equal(result, '');
+  assert.equal(geminiRequests.length, 1, 'only the attempt sent before the change');
+  assert.ok(tookMs < 900, `the refusal ends the chain without retrying (took ${tookMs} ms)`);
+});
+
+test('streamChat re-checks its scopes before each send, also after waiting', async () => {
+  const run = (self, scopes) => (async () => {
+    for await (const _ of self.streamChat('QUESTION', undefined, 'MEETING: Weekly sync\nRECENT TRANSCRIPT:\nCHAT_SENTINEL', undefined, true, true, scopes)) { /* drain */ }
+  })();
+  const groqStream = (requests) => async (body) => { requests.push(body); return (async function* () { yield { choices: [{ delta: { content: 'ok' } }] }; })(); };
+
+  // 1. Declared scope, turned off while the rate limiter waits: the Groq send is refused.
+  for (const scopes of [['profile_history'], []]) {
+    const policy = {};
+    const requests = [];
+    const self = helperWith(policy, {
+      currentModelId: 'llama-3.3-70b-versatile',
+      personaPrompt: '',
+      groqClient: { chat: { completions: { create: groqStream(requests) } } },
+      rateLimiters: { groq: { acquire: async () => { policy.profile_history = false; } } },
+    });
+    let error = null;
+    try { await run(self, scopes); } catch (e) { error = e; }
+    // With nothing declared, the `MEETING:` context heading carries profile_history.
+    assert.equal(error?.name, 'ProviderScopeError', `${JSON.stringify(scopes)}: expected a scope error, got ${error}`);
+    assert.equal(requests.length, 0, `${JSON.stringify(scopes)}: nothing may be sent after the scope was turned off`);
+  }
+
+  // 2. Fast mode: Codex fails after the scope is turned off; Groq is not asked.
+  const policy = {};
+  const requests = [];
+  const self = helperWith(policy, {
+    currentModelId: 'llama-3.3-70b-versatile',
+    personaPrompt: '',
+    groqFastTextMode: true,
+    codexCliConfig: { enabled: true },
+    streamWithCodexCli: async function* () { policy.profile_history = false; throw new Error('codex failed'); },
+    groqClient: { chat: { completions: { create: groqStream(requests) } } },
+  });
+  let error = null;
+  try { await run(self, ['profile_history']); } catch (e) { error = e; }
+  assert.equal(error?.name, 'ProviderScopeError', `fast mode: expected a scope error, got ${error}`);
+  assert.equal(requests.length, 0, 'fast mode: Groq is not asked');
+
+  // Control: with nothing turned off the request is sent.
+  const open = {};
+  const sent = [];
+  await run(helperWith(open, { currentModelId: 'llama-3.3-70b-versatile', personaPrompt: '', groqClient: { chat: { completions: { create: groqStream(sent) } } } }), ['profile_history']);
+  assert.equal(sent.length, 1, 'with nothing turned off the request is sent');
+  assert.match(JSON.stringify(sent[0]), /CHAT_SENTINEL/);
+});
+
+test('chatWithGemini keeps the scopes of its context for every send', async () => {
+  const policy = {};
+  const requests = [];
+  const self = helperWith(policy, {
+    ...claudeClient((body) => { requests.push(body); throw new Error(SEND_STUB); }),
+    rateLimiters: { claude: { acquire: async () => { policy.post_call_summary = false; } }, groq: { acquire: async () => {} }, gemini: { acquire: async () => {} }, openai: { acquire: async () => {} }, deepseek: { acquire: async () => {} } },
+  });
+  const result = await self.chatWithGemini('QUESTION', undefined, 'MEETING: Weekly sync\n\nSUMMARY:\nSUMMARY_SENTINEL');
+  assert.equal(requests.length, 0, 'the context was allowed at the start, but not when Claude was about to be asked');
+  assert.doesNotMatch(String(result), /SUMMARY_SENTINEL/);
 });

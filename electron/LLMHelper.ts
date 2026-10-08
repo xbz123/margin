@@ -4,6 +4,7 @@ import OpenAI from "openai"
 import { devOpenAIBaseUrl } from './margin/devOverrides';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
+import { AsyncLocalStorage } from "async_hooks"
 import { createHash } from "crypto"
 import sharp from "sharp"
 import { ModelVersionManager, ModelFamily, TextModelFamily } from './services/ModelVersionManager'
@@ -32,6 +33,29 @@ import { assertProviderDataScopes, getDeniedDataScopes, routeWithScopeFallback, 
 import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { createProviderRateLimiters, RateLimiter } from './services/RateLimiter';
 import { CodexCliConfig, CodexCliService, DEFAULT_CODEX_CLI_CONFIG } from './services/CodexCliService';
+
+// Data scopes of the request being served, beyond what each payload shows: the scopes
+// its caller declared and those recognized in its context when it started. Every send
+// checks them again against the current settings right before it goes out, so a scope
+// turned off while a request waits (rate limiter, a failed provider, a retry) stops
+// the later sends of that request too (PLAN.md AG-17 seventh review).
+type RequestDataScopes = { scopes: Set<ProviderDataScope> };
+const requestDataScopes = new AsyncLocalStorage<RequestDataScopes>();
+
+// Steps a generator with the request's scopes in effect: the generator resumes inside
+// each `next()` call, so its sends see them.
+async function* withRequestDataScopes<T>(store: RequestDataScopes, gen: AsyncGenerator<T, void, unknown>): AsyncGenerator<T, void, unknown> {
+  let finished = false;
+  try {
+    for (;;) {
+      const step: IteratorResult<T, void> = await requestDataScopes.run(store, () => gen.next());
+      if (step.done) { finished = true; return; }
+      yield step.value as T;
+    }
+  } finally {
+    if (!finished) await requestDataScopes.run(store, () => gen.return(undefined)).catch((): undefined => undefined);
+  }
+}
 
 // Model constant for Gemini 3 Flash
 const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview"
@@ -124,6 +148,7 @@ export class LLMHelper {
   // fourth review).
   private scopesForPayload(text: string, imagePaths?: string[], extraScopes: ProviderDataScope[] = []): ProviderDataScope[] {
     const scopes = new Set<ProviderDataScope>(extraScopes);
+    for (const scope of requestDataScopes.getStore()?.scopes ?? []) scopes.add(scope);
     if (text.trim().length > 0) scopes.add('transcript');
     if (imagePaths?.length) scopes.add('screenshots');
     return [...scopes];
@@ -546,6 +571,7 @@ export class LLMHelper {
 
     await this.rateLimiters.gemini.acquire();
     // console.log(`[LLMHelper] Calling ${GEMINI_FLASH_MODEL}...`)
+    this.assertGeminiContents(contents); // again right before sending
     const response = await this.client.models.generateContent({
       model: GEMINI_PRO_MODEL,
       contents: contents,
@@ -567,6 +593,7 @@ export class LLMHelper {
 
     await this.rateLimiters.gemini.acquire();
     // console.log(`[LLMHelper] Calling ${GEMINI_FLASH_MODEL}...`)
+    this.assertGeminiContents(contents); // again right before sending
     const response = await this.client.models.generateContent({
       model: GEMINI_FLASH_MODEL,
       contents: contents,
@@ -641,6 +668,7 @@ export class LLMHelper {
     console.log(`[LLMHelper] Calling ${targetModel}...`)
 
     return this.withRetry(async () => {
+      this.assertGeminiContents(contents); // again right before sending
       // @ts-ignore
       const response = await this.client!.models.generateContent({
         model: targetModel,
@@ -1073,6 +1101,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   }
 
   public async chatWithGemini(message: string, imagePaths?: string[], context?: string, skipSystemPrompt: boolean = false, alternateGroqMessage?: string): Promise<string> {
+    // The scopes of the context that is kept stay in effect for every send (see requestDataScopes).
+    const requestStore: RequestDataScopes = { scopes: new Set() };
+    return requestDataScopes.run(requestStore, async () => {
     try {
       console.log(`[LLMHelper] chatWithGemini called`, { messageLength: message.length, imageCount: imagePaths?.length ?? 0, hasContext: Boolean(context) })
 
@@ -1131,6 +1162,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           this.logScopeFallback(scope);
         }
       }
+      if (cloudContext) for (const scope of this.inferContextScopes(cloudContext)) requestStore.scopes.add(scope);
 
       // System prompts for OpenAI/Claude/Codex CLI (skipped if skipSystemPrompt)
       const openaiSystemPrompt = skipSystemPrompt ? undefined : this.injectLanguageInstruction(OPENAI_SYSTEM_PROMPT);
@@ -1303,6 +1335,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
             }
             console.warn(`[LLMHelper] ⚠️ ${provider.name} returned empty response`);
           } catch (error: any) {
+            if (error instanceof ProviderScopeError) throw error; // a refusal stops the chain
             console.warn(`[LLMHelper] ⚠️ ${provider.name} failed: ${error.message}`);
           }
         }
@@ -1323,6 +1356,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
       return `I encountered an error: ${error.message || "Unknown error"}. Please try again.`;
     }
+    });
   }
 
   /**
@@ -1481,6 +1515,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
     messages.push({ role: "user", content: userMessage });
 
+    this.assertOutboundScopes('groq', userMessage); // again right before sending
     const response = await this.groqClient.chat.completions.create({
       model: modelId,
       messages,
@@ -1528,12 +1563,15 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     const cacheKey = this.getOpenAiPromptCacheKey(systemPrompt);
     const response = await this.withTimeout(
-      this.withRetry(() => this.openaiClient!.chat.completions.create({
-        model,
-        messages,
-        max_completion_tokens: model.toLowerCase().includes('claude') ? this.getClaudeMaxOutput(model) : MAX_OUTPUT_TOKENS,
-        ...(cacheKey ? { prompt_cache_key: cacheKey } : {}),
-      })),
+      this.withRetry(() => {
+        this.assertOutboundScopes('openai', userMessage, imagePaths);
+        return this.openaiClient!.chat.completions.create({
+          model,
+          messages,
+          max_completion_tokens: model.toLowerCase().includes('claude') ? this.getClaudeMaxOutput(model) : MAX_OUTPUT_TOKENS,
+          ...(cacheKey ? { prompt_cache_key: cacheKey } : {}),
+        });
+      }),
       60000,
       `OpenAI (${model})`
     );
@@ -1560,11 +1598,14 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     messages.push({ role: "user", content: userMessage });
 
     const response = await this.withTimeout(
-      this.withRetry(() => this.deepseekClient!.chat.completions.create({
-        model,
-        messages,
-        max_tokens: this.getDeepseekMaxOutput(model),
-      })),
+      this.withRetry(() => {
+        this.assertOutboundScopes('deepseek', userMessage);
+        return this.deepseekClient!.chat.completions.create({
+          model,
+          messages,
+          max_tokens: this.getDeepseekMaxOutput(model),
+        });
+      }),
       60000,
       `DeepSeek (${model})`
     );
@@ -1609,6 +1650,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // streaming sidesteps the SDK gate regardless of ceiling.
     const response = await this.withTimeout(
       this.withRetry(async () => {
+        this.assertOutboundScopes('claude', userMessage, imagePaths); // again right before sending
         const stream = this.claudeClient!.messages.stream({
           model,
           max_tokens: this.getClaudeMaxOutput(model),
@@ -1700,6 +1742,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
     messages.push({ role: "user", content: contentParts });
 
+    this.assertOutboundScopes('groq', userMessage, imagePaths); // again right before sending
     const response = await this.groqClient.chat.completions.create({
       model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages,
@@ -1979,6 +2022,11 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * MULTIMODAL: Gemini-only (existing logic)
    */
   public async * streamChatWithGemini(message: string, imagePaths?: string[], context?: string, skipSystemPrompt: boolean = false, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
+    // The scopes of the context that is kept stay in effect for every send (see requestDataScopes).
+    yield* withRequestDataScopes({ scopes: new Set() }, this.streamChatWithGeminiInner(message, imagePaths, context, skipSystemPrompt, abortSignal));
+  }
+
+  private async * streamChatWithGeminiInner(message: string, imagePaths?: string[], context?: string, skipSystemPrompt: boolean = false, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
     console.log(`[LLMHelper] streamChatWithGemini called`, { messageLength: message.length, imageCount: imagePaths?.length ?? 0, hasContext: Boolean(context) });
 
     let isMultimodal = !!(imagePaths?.length);
@@ -1992,6 +2040,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       if (deniedOutboundScopes.includes('screenshots')) imagePaths = undefined;
       isMultimodal = !!(imagePaths?.length);
     }
+    const requestStore = requestDataScopes.getStore();
+    if (requestStore) for (const scope of this.inferContextScopes(context)) requestStore.scopes.add(scope);
 
     // Build single-string messages for Groq/Gemini (which use combined prompts)
     const buildCombinedMessage = (systemPrompt: string) => {
@@ -2281,7 +2331,15 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
   }
 
-  private async * _streamChatInner(
+  // Runs the request with its scopes in effect for every send (see requestDataScopes):
+  // the declared ones (7th argument) from the start; _streamChatBody adds those it
+  // recognizes in the context it keeps.
+  private async * _streamChatInner(...args: Parameters<LLMHelper['_streamChatBody']>): AsyncGenerator<string, void, unknown> {
+    const declared = Array.isArray(args[6]) ? args[6] as ProviderDataScope[] : [];
+    yield* withRequestDataScopes({ scopes: new Set(declared) }, this._streamChatBody(...args));
+  }
+
+  private async * _streamChatBody(
     message: string,
     imagePaths?: string[],
     context?: string,
@@ -2345,6 +2403,9 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       if (deniedOutboundScopes.includes('screenshots')) imagePaths = undefined;
       isMultimodal = !!(imagePaths?.length);
     }
+    // The context that is kept carries its scopes to every send of this request.
+    const requestStore = requestDataScopes.getStore();
+    if (requestStore) for (const scope of this.inferContextScopes(context)) requestStore.scopes.add(scope);
 
     // Determine the system prompt to use
     // logic: if override provided, use it. otherwise use HARD_SYSTEM_PROMPT (which is the universal base)
@@ -2406,6 +2467,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           yield* this.streamWithCodexCli(userContent, finalSystemPrompt, true, undefined, abortSignal);
           return;
         } catch (e: any) {
+          if (e instanceof ProviderScopeError) throw e; // a refusal is not a provider failure
           console.warn("[LLMHelper] Codex CLI Fast Text streaming failed, falling back:", e.message);
         }
       }
@@ -2421,6 +2483,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           yield* this.streamWithGroq(userContent, groqModelId, finalGroqSystem, abortSignal);
           return;
         } catch (e: any) {
+          if (e instanceof ProviderScopeError) throw e; // a refusal is not a provider failure
           console.warn("[LLMHelper] Groq Fast Text streaming failed, falling back:", e.message);
           if (typeof e?.message === 'string' && /401|invalid[_\s-]api[_\s-]key/i.test(e.message)) {
             this._groqLocalDisabled = true;
@@ -2531,6 +2594,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     messages.push({ role: "user", content: userMessage });
 
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('groq', userMessage); // again right before sending
     const stream = await this.groqClient.chat.completions.create({
       model: modelId,
       messages,
@@ -2577,6 +2641,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     messages.push({ role: "user", content: contentParts });
 
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('groq', userMessage, imagePaths); // again right before sending
     const stream = await this.groqClient.chat.completions.create({
       model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages,
@@ -2626,6 +2691,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     const cacheKey = this.getOpenAiPromptCacheKey(systemPrompt);
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('openai', userMessage); // again right before sending
     const stream = await this.openaiClient.chat.completions.create({
       model,
       messages,
@@ -2660,6 +2726,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const model = modelId || (this.isClaudeModel(this.currentModelId) ? this.currentModelId : CLAUDE_MODEL);
 
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('claude', userMessage); // again right before sending
     const stream = this.claudeClient.messages.stream({
       model,
       max_tokens: this.getClaudeMaxOutput(model),
@@ -2697,6 +2764,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     messages.push({ role: "user", content: userMessage });
 
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('deepseek', userMessage); // again right before sending
     const stream = await this.deepseekClient.chat.completions.create({
       model,
       messages,
@@ -2743,6 +2811,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     const cacheKey = this.getOpenAiPromptCacheKey(systemPrompt);
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('openai', userMessage, imagePaths); // again right before sending
     const stream = await this.openaiClient.chat.completions.create({
       model,
       messages,
@@ -2792,6 +2861,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
 
     if (abortSignal?.aborted) return;
+    this.assertOutboundScopes('claude', userMessage, imagePaths); // again right before sending
     const stream = this.claudeClient.messages.stream({
       model,
       max_tokens: this.getClaudeMaxOutput(model),
@@ -2876,6 +2946,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     let streamResult: any;
     try {
+      this.assertOutboundScopes('gemini', fullMessage, imagePaths); // again right before sending
       streamResult = await this.client.models.generateContentStream({
         model,
         contents,
@@ -2888,6 +2959,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       if (cacheName && /cached?[\s_]?content|not\s*found|expired/i.test(msg)) {
         console.warn(`[LLMHelper] Gemini cachedContent ${cacheName} stale (${msg}); retrying with systemInstruction`);
         this.geminiPromptCache.invalidate(cacheName);
+        this.assertOutboundScopes('gemini', fullMessage, imagePaths); // again right before sending
         streamResult = await this.client.models.generateContentStream({
           model,
           contents,
@@ -3009,11 +3081,14 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // Wrap the API call in an abort-aware race so the signal can interrupt it.
     // The Google GenAI SDK does not natively support AbortSignal on generateContent,
     // so we implement manual cancellation via Promise.race.
-    const callWithConfig = (useCacheName: string | null) => this.client!.models.generateContent({
-      model,
-      contents,
-      config: buildConfig(useCacheName),
-    });
+    const callWithConfig = (useCacheName: string | null) => {
+      this.assertOutboundScopes('gemini', fullMessage, imagePaths);
+      return this.client!.models.generateContent({
+        model,
+        contents,
+        config: buildConfig(useCacheName),
+      });
+    };
 
     const runOnce = async (useCacheName: string | null): Promise<any> => {
       const apiCall = callWithConfig(useCacheName);
@@ -3162,6 +3237,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       try {
         console.log(`[LLMHelper] 🚀 Mode-specific Groq stream starting...`);
         await this.rateLimiters.groq.acquire();
+        this.assertOutboundScopes('groq', groqMessage); // again right before sending
         const stream = await this.groqClient.chat.completions.create({
           model: GROQ_MODEL,
           messages: [{ role: "user", content: groqMessage }],
@@ -3249,6 +3325,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // 1. Initial Attempt (Flash)
     try {
       await this.rateLimiters.gemini.acquire();
+      this.assertGeminiContents(args?.contents); // again right before sending
       const response = await client.models.generateContent({
         ...args,
         model: originalModel
@@ -3267,6 +3344,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       // Small delay before retry to let system settle? No, user said "immediately"
       try {
         await this.rateLimiters.gemini.acquire();
+        this.assertGeminiContents(args?.contents); // again right before sending
         const res = await client.models.generateContent({ ...args, model: originalModel });
         if (isValidResponse(res)) return { type: 'flash', res };
         throw new Error("Empty Flash Response");
@@ -3277,6 +3355,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       try {
         // Pro might be slower, but it's the robust backup
         await this.rateLimiters.gemini.acquire();
+        this.assertGeminiContents(args?.contents); // again right before sending
         const res = await client.models.generateContent({ ...args, model: GEMINI_PRO_MODEL });
         if (isValidResponse(res)) return { type: 'pro', res };
         throw new Error("Empty Pro Response");
@@ -3303,6 +3382,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // 4. Last Resort: Flash Final Retry
     console.log(`[LLMHelper] ⚠️ All parallel attempts failed. Trying Flash one last time...`);
     try {
+      this.assertGeminiContents(args?.contents); // again right before sending
       return await client.models.generateContent({ ...args, model: originalModel });
     } catch (finalError) {
       console.error(`[LLMHelper] Final retry failed.`);
@@ -3353,11 +3433,16 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // below is a cloud provider (PLAN.md AG-17). `extraDataScopes` adds what the caller
     // knows about the context: a meeting recovered from an earlier run is saved history,
     // so recovery adds profile_history (AG-17 sixth review).
-    const summaryDeniedScopes = getDeniedDataScopes(['transcript', 'post_call_summary', ...extraDataScopes], this.getProviderScopePolicy());
+    const summaryScopes: ProviderDataScope[] = ['transcript', 'post_call_summary', ...extraDataScopes];
+    const summaryDeniedScopes = getDeniedDataScopes(summaryScopes, this.getProviderScopePolicy());
     if (summaryDeniedScopes.length > 0) {
       for (const scope of summaryDeniedScopes) this.logScopeFallback(scope);
       return '';
     }
+    // The same scopes are checked again before every send below; a scope turned off
+    // while a provider is tried stops the chain (PLAN.md AG-17 seventh review).
+    return requestDataScopes.run({ scopes: new Set(summaryScopes) }, async () => {
+    try {
 
     // Helper: Estimate tokens (crude approximation: 4 chars = 1 token)
     const estimateTokens = (text: string) => Math.ceil(text.length / 4);
@@ -3378,6 +3463,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           return this.processResponse(text);
         }
       } catch (e: any) {
+        if (e instanceof ProviderScopeError) throw e;
         console.warn(`[LLMHelper] ⚠️ Codex CLI summary failed: ${e.message}. Falling back...`);
       }
     }
@@ -3386,6 +3472,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       console.log(`[LLMHelper] Attempting Groq for summary...`);
       try {
         const groqPrompt = groqSystemPrompt || systemPrompt;
+        this.assertOutboundScopes('groq', context);
         const response = await this.withTimeout(
           this.groqClient.chat.completions.create({
             model: GROQ_MODEL,
@@ -3407,6 +3494,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           return this.processResponse(text);
         }
       } catch (e: any) {
+        if (e instanceof ProviderScopeError) throw e;
         console.warn(`[LLMHelper] ⚠️ Groq summary failed: ${e.message}. Falling back to Gemini...`);
       }
     } else {
@@ -3431,6 +3519,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           return this.processResponse(text);
         }
       } catch (e: any) {
+        if (e instanceof ProviderScopeError) throw e;
         console.warn(`[LLMHelper] ⚠️ Gemini Flash attempt ${attempt}/3 failed: ${e.message}`);
         if (attempt < 3) {
           await new Promise(r => setTimeout(r, 1000 * attempt)); // Linear backoff
@@ -3447,6 +3536,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         try {
           console.log(`[LLMHelper] 🔄 Gemini Pro Attempt ${attempt}/${maxProRetries}...`);
           await this.rateLimiters.gemini.acquire();
+          this.assertGeminiContents(contents);
           const response = await this.withTimeout(
             // @ts-ignore
             this.client.models.generateContent({
@@ -3467,6 +3557,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
             return this.processResponse(text);
           }
         } catch (e: any) {
+          if (e instanceof ProviderScopeError) throw e;
           console.warn(`[LLMHelper] ⚠️ Gemini Pro attempt ${attempt} failed: ${e.message}`);
           // Aggressive backoff for Pro: 2s, 4s, 8s, 16s, 32s
           const backoff = 2000 * Math.pow(2, attempt - 1);
@@ -3479,6 +3570,12 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
 
     throw new Error("Failed to generate summary after all fallback attempts.");
+    } catch (e) {
+      if (!(e instanceof ProviderScopeError)) throw e;
+      for (const scope of e.deniedScopes ?? []) this.logScopeFallback(scope);
+      return '';
+    }
+    });
   }
 
   public async switchToGemini(apiKey?: string, modelId?: string): Promise<void> {

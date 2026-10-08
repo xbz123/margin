@@ -26,6 +26,12 @@ const EditableTextBlock: React.FC<EditableTextBlockProps> = ({
     const contentRef = useRef<HTMLElement>(null);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // A pending debounced save must not fire after the block is gone: its closure holds
+    // the state of an older render (PLAN.md AG-17 seventh review).
+    useEffect(() => () => {
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    }, []);
+
     // Sync external changes if not editing
     useEffect(() => {
         if (!isEditing) {
