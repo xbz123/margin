@@ -1,0 +1,30 @@
+[SettingsManager] Settings loaded successfully { keys: 1 }
+[SettingsManager] Settings loaded
+✔ build selection defaults to temp and rejects release outside CI (4.773459ms)
+✔ guard first-launch preflight uses the built identity before path setup (4.038667ms)
+✔ bootstrap precedes real credentials/storage imports and settings survive a restart (83.288084ms)
+✔ synthetic protected directories reject reads, writes, alternate APIs and symlink aliases (119.943792ms)
+✔ recursive and directory operations refuse parents containing protected data (122.395ms)
+✔ disguise restores the build name and leaves persisted paths in its own directory (52.195834ms)
+✔ real bootstrap protects import-time logs and all console exits including stdout/stderr (200.078416ms)
+✔ sanitizer load failure stays closed in every exit and critical handler (76.821084ms)
+✔ sanitizer call failure stays closed in every exit and critical handler (72.159458ms)
+✔ isolated preload never emits raw console arguments even with verbose forwarding (33.699625ms)
+✔ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (2.16225ms)
+✔ main-world renderer protects business imports independently of preload (11.842625ms)
+✔ verbose toggling only forwards already-safe metadata (29.78825ms)
+✔ duplicate bundled installers keep one console boundary and controlled events (3.802708ms)
+✔ separate real build bundles share app events through the console marker (66.6655ms)
+✔ critical evidence rejects missing, extra and unknown events and has no payload-prefix trust (92.614208ms)
+✔ real log IPC uses identity logs and hostile forwarded payloads stay opaque (119.809542ms)
+✔ development ElevenLabs construction and audio write never create a PCM debug file (10.464667ms)
+✔ sink failures cannot expose data, throw or recurse through console (475.595833ms)
+✔ recursive inspectors and sinks are dropped without losing later safe events (4.149458ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1452.894292

@@ -160,14 +160,15 @@ export class SonioxStreamingSTT extends EventEmitter {
         this.connect();
     }
 
-    public stop(): void {
+    public stop(graceful = true): void {
+        this.isActive = false;
         this.shouldReconnect = false;
         this.clearTimers();
 
         if (this.ws) {
             try {
                 // Send empty string to signal end-of-audio
-                if (this.ws.readyState === WebSocket.OPEN) {
+                if (graceful && this.ws.readyState === WebSocket.OPEN) {
                     this.ws.send('');
                 }
             } catch {
@@ -177,7 +178,6 @@ export class SonioxStreamingSTT extends EventEmitter {
             this.ws = null;
         }
 
-        this.isActive = false;
         this.isConnecting = false;
         this.configSent = false;
         this.buffer = [];

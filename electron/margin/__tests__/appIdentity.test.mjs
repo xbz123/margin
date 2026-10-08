@@ -64,6 +64,12 @@ function load(file, electron, main) {
       // This harness tests identity/storage order; real logging initialization is
       // covered separately without mutating the node:test runner's console.
       if (id === './logging') return { installMainLogging: () => () => {} };
+      if (id === './services/outbound') {
+        assert.equal(electron.app.name, identity.name, 'identity precedes outbound dependency evaluation');
+        assert.equal(electron.paths.logs, ownData, 'identity log path precedes outbound dependency evaluation');
+        electron.events.push('outbound-import');
+        return { installOutboundFetchPolicy() { electron.events.push('outbound-policy'); } };
+      }
       if (id === './main') return main();
       return require(id);
     },
@@ -99,6 +105,7 @@ test('bootstrap precedes real credentials/storage imports and settings survive a
     const electron = fakeElectron();
     let storage;
     load(path.join(REPO, 'electron/bootstrap.ts'), electron, () => {
+      assert.ok(electron.events.includes('outbound-policy'), 'fetch policy is installed before main/storage imports');
       const { CredentialsManager } = load(path.join(REPO, 'dist-electron/electron/services/CredentialsManager.js'), electron);
       const { SettingsManager } = load(path.join(REPO, 'dist-electron/electron/services/SettingsManager.js'), electron);
       const credentials = CredentialsManager.getInstance();
@@ -110,6 +117,8 @@ test('bootstrap precedes real credentials/storage imports and settings survive a
     assert.equal(electron.paths.userData, ownData);
     assert.equal(electron.paths.logs, ownData);
     assert.ok(electron.events.indexOf('logs') < electron.events.indexOf('storage'));
+    assert.ok(electron.events.indexOf('logs') < electron.events.indexOf('outbound-import'));
+    assert.ok(electron.events.indexOf('outbound-import') < electron.events.indexOf('outbound-policy'));
     return { ...storage, electron };
   };
   const first = boot();

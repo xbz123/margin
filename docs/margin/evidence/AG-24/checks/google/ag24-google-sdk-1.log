@@ -1,0 +1,39 @@
+✔ unsupported Google credential types are rejected before constructing a client (132.049959ms)
+✔ normal service-account metadata is accepted but only minimal public options reach SpeechClient (16.201708ms)
+✔ invalid replacements keep the old client and environment; actual construction reloads file contents (10.684875ms)
+✔ service-account fields, alternative auth inputs and metadata URLs fail closed (17.866834ms)
+✔ installed SpeechClient signs a valid local JWT without ADC, gcloud, metadata or auth HTTP (1254.342ms)
+✔ an injected credential token URI pointing at a 307 server reaches neither hop (12.670709ms)
+✖ installed streaming helper sends synthetic audio when allowed, but not after connection-wait revocation (16.787375ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 103570.260166
+
+✖ failing tests:
+
+test at electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:141:1
+✖ installed streaming helper sends synthetic audio when allowed, but not after connection-wait revocation (16.787375ms)
+  AssertionError [ERR_ASSERTION]: audio is queued while connection is pending
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:156:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

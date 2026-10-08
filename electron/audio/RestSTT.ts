@@ -12,7 +12,7 @@
  */
 
 import { EventEmitter } from 'events';
-import axios from 'axios';
+import { outboundAxios as axios, regionalSttEndpoint } from '../services/outbound';
 import FormData from 'form-data';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 
@@ -85,7 +85,7 @@ const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
         const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.bcp47 : undefined;
         const finalLang = lang || 'en-US';
         return {
-            endpoint: `https://${region}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${finalLang}`,
+            endpoint: regionalSttEndpoint('azure', region, finalLang),
             model: '',
             authHeader: { 'Ocp-Apim-Subscription-Key': apiKey },
             uploadType: 'binary',
@@ -98,7 +98,7 @@ const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
         const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.bcp47 : undefined;
         const finalLang = lang || 'en-US';
         return {
-            endpoint: `https://api.${region}.speech-to-text.watson.cloud.ibm.com/v1/recognize?language=${finalLang}`,
+            endpoint: regionalSttEndpoint('ibmwatson', region, finalLang),
             model: '',
             authHeader: { Authorization: `Basic ${Buffer.from(`apikey:${apiKey}`).toString('base64')}` },
             uploadType: 'binary',
@@ -218,7 +218,7 @@ export class RestSTT extends EventEmitter {
     }
 
     /**
-     * Stop the upload timer and flush remaining buffer
+     * Stop the upload timer and discard audio not yet sent
      */
     public stop(): void {
         if (!this.isActive) return;
@@ -231,8 +231,9 @@ export class RestSTT extends EventEmitter {
             this.safetyNetTimer = null;
         }
 
-        // Flush remaining audio
-        this.flushAndUpload();
+        this.chunks = [];
+        this.totalBufferedBytes = 0;
+        this.flushPending = false;
     }
 
     /**

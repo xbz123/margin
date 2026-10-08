@@ -143,15 +143,39 @@ test.after(async () => {
 });
 
 test('a typed question streams the mock answer into the overlay', async () => {
-  mock.setScript({ chunks: ['Margin ', 'regression ', 'answer ', 'one.'], delayMs: 150 });
+  let releaseTail;
+  const tailGate = new Promise((resolve) => { releaseTail = resolve; });
+  let reachedPause;
+  const paused = new Promise((resolve) => { reachedPause = resolve; });
+  mock.setScript({
+    chunks: ['Margin ', 'regression ', 'answer ', 'one.'], delayMs: 150,
+    afterChunk(entry) {
+      if (entry.chunksSent !== 2) return;
+      reachedPause(entry);
+      return tailGate;
+    },
+  });
   const before = mock.chatRequests().length;
-  await ask('What is two plus two?');
-
-  // Partial text must appear before the stream finishes (streaming, not one block).
-  await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression'), null, { timeout: 15_000 });
-  const partial = await overlayText();
-  assert.ok(!partial.includes('Margin regression answer one.'), 'first visible state should be partial');
-  await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression answer one.'), null, { timeout: 15_000 });
+  let pauseTimeout;
+  try {
+    await ask('What is two plus two?');
+    const req = await Promise.race([
+      paused,
+      new Promise((_, reject) => { pauseTimeout = setTimeout(() => reject(new Error('mock stream did not pause after two chunks')), 15_000); }),
+    ]);
+    // Hold the server's tail while observing the real renderer: slow browser
+    // round trips cannot turn a partial-state assertion into a completed sample.
+    await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression'), null, { timeout: 15_000 });
+    const partial = await overlayText();
+    assert.equal(req.chunksSent, 2, 'only the first two chunks were sent while observing the partial');
+    assert.ok(partial.includes('Margin regression'), 'the renderer must display the paused partial');
+    assert.ok(!partial.includes('Margin regression answer one.'), 'first visible state should be partial');
+    releaseTail();
+    await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression answer one.'), null, { timeout: 15_000 });
+  } finally {
+    clearTimeout(pauseTimeout);
+    releaseTail();
+  }
 
   const req = mock.chatRequests().at(-1);
   assert.equal(mock.chatRequests().length, before + 1, 'exactly one request per question');

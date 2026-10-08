@@ -75,6 +75,7 @@ export class ElevenLabsStreamingSTT extends EventEmitter {
     }
 
     public stop(): void {
+        this.isActive = false;
         this.shouldReconnect = false;
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
@@ -85,7 +86,6 @@ export class ElevenLabsStreamingSTT extends EventEmitter {
             this.ws.close();
             this.ws = null;
         }
-        this.isActive = false;
         this.isConnecting = false;
         this.isSessionReady = false;
         this.buffer = [];

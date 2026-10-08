@@ -91,20 +91,24 @@ export class DeepgramStreamingSTT extends EventEmitter {
         this.connect();
     }
 
-    public stop(): void {
+    public stop(graceful = true): void {
+        this.isActive = false;
         this.shouldReconnect = false;
         this.clearTimers();
 
         if (this.live) {
             try {
-                this.live.requestClose();
+                if (graceful) this.live.requestClose();
+                else {
+                    this.live.removeAllListeners();
+                    this.live.disconnect();
+                }
             } catch {
                 // ignore errors during shutdown
             }
             this.live = null;
         }
 
-        this.isActive = false;
         this.isConnecting = false;
         this.isOpen = false;
         this.buffer = [];
@@ -166,6 +170,7 @@ export class DeepgramStreamingSTT extends EventEmitter {
             });
 
             this.live.on(LiveTranscriptionEvents.Open, () => {
+                if (!this.isActive || !this.shouldReconnect || !this.live) return;
                 this.isConnecting = false;
                 this.isOpen = true;
                 console.log('[DeepgramStreaming] Connected');

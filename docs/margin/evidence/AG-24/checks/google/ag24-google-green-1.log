@@ -1,0 +1,39 @@
+✔ unsupported Google credential types are rejected before constructing a client (157.845875ms)
+✖ normal service-account metadata is accepted but only minimal public options reach SpeechClient (13.972291ms)
+✖ invalid replacements keep the old client and environment; actual construction reloads file contents (10.562125ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 510.277167
+
+✖ failing tests:
+
+test at electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:49:1
+✖ normal service-account metadata is accepted but only minimal public options reach SpeechClient (13.972291ms)
+  Error: Invalid Google service account. Select a valid service_account JSON file.
+      at loadGoogleServiceAccount (evalmachine.<anonymous>:65:15)
+      at new GoogleSTT (evalmachine.<anonymous>:40:77)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:51:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:60:1
+✖ invalid replacements keep the old client and environment; actual construction reloads file contents (10.562125ms)
+  Error: Invalid Google service account. Select a valid service_account JSON file.
+      at loadGoogleServiceAccount (evalmachine.<anonymous>:65:15)
+      at new GoogleSTT (evalmachine.<anonymous>:40:77)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:61:35)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

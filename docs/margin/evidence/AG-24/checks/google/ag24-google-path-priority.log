@@ -1,0 +1,28 @@
+✔ AppState validates before modifying environment or either running Google client (127.262042ms)
+✔ invalid stored/environment paths do not abort startup and Google factory emits a safe UI failure (63.521375ms)
+✔ unsupported Google credential types are rejected before constructing a client (417.884458ms)
+✔ normal service-account metadata is accepted but only minimal public options reach SpeechClient (10.476708ms)
+✔ invalid replacements keep the old client and environment; actual construction reloads file contents (9.82275ms)
+✔ service-account fields, alternative auth inputs and metadata URLs fail closed (14.973709ms)
+✔ legacy project IDs, Compute/AppEngine accounts and file universe remain supported (26.959709ms)
+✔ installed SpeechClient signs a valid local JWT without ADC, gcloud, metadata or auth HTTP (76.993625ms)
+✔ an injected credential token URI pointing at a 307 server reaches neither hop (11.289916ms)
+✔ installed streaming helper sends synthetic audio when allowed, but not after connection-wait revocation (39.833ms)
+✔ DeepgramStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (62.189666ms)
+✔ SonioxStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (21.694333ms)
+✔ ElevenLabsStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (21.293208ms)
+✔ OpenAIStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (122.64175ms)
+✔ OpenAI normal Stop drains the accumulator; discard does not (38.889625ms)
+✔ RestSTT: queued REST upload does not run after discard (10.875792ms)
+✔ OpenAIStreamingSTT: queued REST upload does not run after discard (17.915208ms)
+✔ Google stopped stream cannot flush queued audio or restart (7.470041ms)
+✔ AppState revokes both old senders before a capture-stop failure or pipeline wait (18.787166ms)
+✔ AppState never guesses Google for unknown, none or missing selected keys (63.386792ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1065.889584

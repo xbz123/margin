@@ -16,6 +16,8 @@ import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages
 import { CHAT_MODE_PROMPT } from './llm/prompts';
 import { buildMeetingChatContext } from './services/meetingChatContext';
 import type { CredentialSaveResult } from '../src/types/credentialSave';
+import { outboundAxios as axios, regionalSttEndpoint, openAiSttEndpoint } from './services/outbound';
+import { loadGoogleServiceAccount, googleSpeechClientOptions } from './services/googleServiceAccount';
 
 export function initializeIpcHandlers(appState: AppState): void {
   const persistCredentials = async (
@@ -35,6 +37,12 @@ export function initializeIpcHandlers(appState: AppState): void {
       return result;
     } catch {
       return { ok: true, warning: applyWarning };
+    }
+  };
+  const discardRemovedSttKey = (provider: string, key: string): void => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    if (!key.trim() && CredentialsManager.getInstance().getSttProvider() === provider) {
+      appState.discardSttProviders();
     }
   };
   const safeHandle = (
@@ -973,6 +981,11 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const creds = CredentialsManager.getInstance().getAllCredentials();
+      let googleServiceAccountPath = creds.googleServiceAccountPath || null;
+      if (googleServiceAccountPath) {
+        try { googleSpeechClientOptions(loadGoogleServiceAccount(googleServiceAccountPath)); }
+        catch { googleServiceAccountPath = null; }
+      }
 
       // Return masked versions for security (just indicate if set)
       const hasKey = (key?: string) => !!(key && key.trim().length > 0);
@@ -983,7 +996,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasOpenaiKey: hasKey(creds.openaiApiKey),
         hasClaudeKey: hasKey(creds.claudeApiKey),
         hasDeepseekKey: hasKey(creds.deepseekApiKey),
-        googleServiceAccountPath: creds.googleServiceAccountPath || null,
+        googleServiceAccountPath,
         sttProvider: CredentialsManager.getInstance().getSttProvider(),
         groqSttModel: creds.groqSttModel || 'whisper-large-v3-turbo',
         hasSttGroqKey: hasKey(creds.groqSttApiKey),
@@ -1117,6 +1130,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-groq-stt-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setGroqSttApiKey(apiKey), async () => {
+      discardRemovedSttKey('groq', apiKey);
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
@@ -1126,6 +1140,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-openai-stt-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setOpenAiSttApiKey(apiKey), async () => {
+      discardRemovedSttKey('openai', apiKey);
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
@@ -1145,6 +1160,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-deepgram-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setDeepgramApiKey(apiKey), async () => {
+      discardRemovedSttKey('deepgram', apiKey);
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
@@ -1161,6 +1177,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-elevenlabs-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setElevenLabsApiKey(apiKey), async () => {
+      discardRemovedSttKey('elevenlabs', apiKey);
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
@@ -1169,7 +1186,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('set-azure-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setAzureApiKey(apiKey));
+    return persistCredentials(() => CredentialsManager.getInstance().setAzureApiKey(apiKey), () => discardRemovedSttKey('azure', apiKey));
   });
 
   safeHandle('set-azure-region', async (_, region: string) => {
@@ -1181,12 +1198,13 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('set-ibmwatson-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setIbmWatsonApiKey(apiKey));
+    return persistCredentials(() => CredentialsManager.getInstance().setIbmWatsonApiKey(apiKey), () => discardRemovedSttKey('ibmwatson', apiKey));
   });
 
   safeHandle('set-soniox-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setSonioxApiKey(apiKey), async () => {
+      discardRemovedSttKey('soniox', apiKey);
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
@@ -1216,6 +1234,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     ) => {
       console.log(`[IPC] Received test - stt - connection request for provider: ${provider} `);
       try {
+        if (!['groq', 'openai', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'soniox'].includes(provider)) return { success: false, error: 'Invalid STT provider' };
         if (provider === 'deepgram') {
           const WebSocket = require('ws');
           const token = apiKey.trim();
@@ -1331,7 +1350,6 @@ export function initializeIpcHandlers(appState: AppState): void {
           });
         }
 
-        const axios = require('axios');
         const FormData = require('form-data');
 
         // Generate a tiny silent WAV (0.5s of silence at 16kHz mono 16-bit)
@@ -1362,6 +1380,7 @@ export function initializeIpcHandlers(appState: AppState): void {
               timeout: 10000,
             });
           } catch (elErr: any) {
+            if (elErr?.response?.status >= 300 && elErr?.response?.status < 400) throw elErr;
             const elStatus = elErr?.response?.data?.detail?.status;
             // If the error is "invalid_api_key", the key itself is wrong — fail.
             // Any other error (missing permission, etc.) means the key IS valid, just possibly scoped.
@@ -1377,7 +1396,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           // Azure: raw binary with subscription key
           const azureRegion = region || 'eastus';
           await axios.post(
-            `https://${azureRegion}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-US`,
+            regionalSttEndpoint('azure', azureRegion),
             testWav,
             {
               headers: { 'Ocp-Apim-Subscription-Key': apiKey, 'Content-Type': 'audio/wav' },
@@ -1388,7 +1407,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           // IBM Watson: raw binary with Basic auth
           const ibmRegion = region || 'us-south';
           await axios.post(
-            `https://api.${ibmRegion}.speech-to-text.watson.cloud.ibm.com/v1/recognize`,
+            regionalSttEndpoint('ibmwatson', ibmRegion),
             testWav,
             {
               headers: {
@@ -1408,10 +1427,7 @@ export function initializeIpcHandlers(appState: AppState): void {
               CredentialsManager.getInstance().getOpenAiSttBaseUrl() || ''
             ).trim();
             if (customBase) {
-              const trimmed = customBase.replace(/\/+$/, '');
-              openAiEndpoint = /\/v\d+$/.test(trimmed)
-                ? `${trimmed}/audio/transcriptions`
-                : `${trimmed}/v1/audio/transcriptions`;
+              openAiEndpoint = openAiSttEndpoint(customBase);
             }
           }
           const endpoint =
@@ -1468,7 +1484,6 @@ export function initializeIpcHandlers(appState: AppState): void {
           return { success: false, error: 'No API key provided' };
         }
 
-        const axios = require('axios');
         let response;
 
         if (provider === 'gemini') {
@@ -2329,10 +2344,12 @@ export function initializeIpcHandlers(appState: AppState): void {
       const selected: any = await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'JSON', extensions: ['json'] }] });
       if (selected.canceled || selected.filePaths.length === 0) return { cancelled: true };
       const filePath = selected.filePaths[0];
+      const account = loadGoogleServiceAccount(filePath);
+      googleSpeechClientOptions(account);
       const { CredentialsManager } = require('./services/CredentialsManager');
       const result = await persistCredentials(
-        () => CredentialsManager.getInstance().setGoogleServiceAccountPath(filePath),
-        () => appState.updateGoogleCredentials(filePath),
+        () => CredentialsManager.getInstance().setGoogleServiceAccountPath(filePath, account),
+        () => appState.updateGoogleCredentials(filePath, account),
       );
       return result.ok ? { ...result, path: filePath } : result;
     } catch {

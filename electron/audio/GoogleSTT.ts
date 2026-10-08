@@ -2,6 +2,7 @@ import { SpeechClient } from '@google-cloud/speech';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { RECOGNITION_LANGUAGES, EnglishVariant } from '../config/languages';
+import { loadGoogleServiceAccount, googleSpeechClientOptions } from '../services/googleServiceAccount';
 
 /**
  * GoogleSTT
@@ -34,31 +35,20 @@ export class GoogleSTT extends EventEmitter {
     private languageCode = 'en-US';
     private alternativeLanguageCodes: string[] = ['en-IN', 'en-GB']; // Default fallbacks
 
-    constructor(label?: string) {
+    constructor(label?: string, credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS ?? '') {
         super();
         if (label) this.label = label;
-        // ... (credentials setup) ...
-
-        // Note: In production, credentials are set by main.ts via process.env.GOOGLE_APPLICATION_CREDENTIALS
-        // or passed explicitly to setCredentials(). We do not load .env files here to avoid ASAR path issues.
-        const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-        if (!credentialsPath) {
-            console.error(`[GoogleSTT/${this.label}] Missing GOOGLE_APPLICATION_CREDENTIALS in environment. Checked CWD:`, process.cwd());
-        } else {
-            console.log(`[GoogleSTT/${this.label}] Using credentials from: ${credentialsPath}`);
-        }
-
-        this.client = new SpeechClient({
-            keyFilename: credentialsPath
-        });
+        const account = loadGoogleServiceAccount(credentialsPath);
+        this.client = new SpeechClient(googleSpeechClientOptions(account));
     }
 
-    public setCredentials(keyFilePath: string): void {
-        console.log(`[GoogleSTT/${this.label}] Updating credentials to: ${keyFilePath}`);
+    public setCredentials(keyFilePath: string, account = loadGoogleServiceAccount(keyFilePath)): void {
+        const client = new SpeechClient(googleSpeechClientOptions(account));
+        const wasActive = this.isActive;
+        this.stop(false);
+        this.client = client;
         process.env.GOOGLE_APPLICATION_CREDENTIALS = keyFilePath;
-        this.client = new SpeechClient({
-            keyFilename: keyFilePath
-        });
+        if (wasActive) this.start();
     }
 
     public setSampleRate(rate: number): void {
@@ -150,7 +140,7 @@ export class GoogleSTT extends EventEmitter {
         this.startStream();
     }
 
-    public stop(): void {
+    public stop(graceful = true): void {
         if (!this.isActive) return;
 
         console.log(`[GoogleSTT/${this.label}] Stopping stream (wrote ${this.writeCount} chunks total)...`);
@@ -177,10 +167,12 @@ export class GoogleSTT extends EventEmitter {
         }
 
         if (this.stream) {
-            this.stream.end();
+            if (graceful) this.stream.end();
+            else this.stream.cancel?.();
             this.stream.destroy();
             this.stream = null;
         }
+        this.buffer = [];
     }
 
     public finalize(): void {
@@ -262,7 +254,7 @@ export class GoogleSTT extends EventEmitter {
     }
 
     private flushBuffer(): void {
-        if (!this.stream) return;
+        if (!this.isActive || !this.stream) return;
 
         while (this.buffer.length > 0) {
             if (!this.stream.writable) {
@@ -282,6 +274,7 @@ export class GoogleSTT extends EventEmitter {
     }
 
     private startStream(): void {
+        if (!this.isActive) return;
         this.lastConnectAttempt = Date.now();
         this.isStreaming = true;
         this.isConnecting = true;

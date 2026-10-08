@@ -1,0 +1,34 @@
+✔ unsupported Google credential types are rejected before constructing a client (129.57ms)
+✔ normal service-account metadata is accepted but only minimal public options reach SpeechClient (13.280959ms)
+✔ invalid replacements keep the old client and environment; actual construction reloads file contents (10.3685ms)
+✔ service-account fields, alternative auth inputs and metadata URLs fail closed (14.953625ms)
+✔ installed SpeechClient signs a valid local JWT without ADC, gcloud, metadata or auth HTTP (400.20725ms)
+✔ an injected credential token URI pointing at a 307 server reaches neither hop (12.988958ms)
+✖ installed streaming helper sends synthetic audio when allowed, but not after connection-wait revocation (35.719083ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 897.277083
+
+✖ failing tests:
+
+test at electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:141:1
+✖ installed streaming helper sends synthetic audio when allowed, but not after connection-wait revocation (35.719083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs:167:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

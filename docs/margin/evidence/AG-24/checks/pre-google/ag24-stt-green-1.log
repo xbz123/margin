@@ -1,0 +1,17 @@
+✔ DeepgramStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (61.465834ms)
+✔ SonioxStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (21.374834ms)
+✔ ElevenLabsStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (19.54025ms)
+✔ OpenAIStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (100.237875ms)
+✔ OpenAI normal Stop drains the accumulator; discard does not (30.419292ms)
+✔ RestSTT: queued REST upload does not run after discard (13.344542ms)
+✔ OpenAIStreamingSTT: queued REST upload does not run after discard (15.759833ms)
+✔ Google stopped stream cannot flush queued audio or restart (8.030958ms)
+✔ AppState revokes both old senders before a capture-stop failure or pipeline wait (17.603458ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 543.848667

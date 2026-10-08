@@ -6,7 +6,7 @@ import { genMessageId } from '../utils/messageId';
 import MeetingChatOverlay from './MeetingChatOverlay';
 import EditableTextBlock from './EditableTextBlock';
 import NativelyLogo from './icon.png';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from './SafeMarkdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';

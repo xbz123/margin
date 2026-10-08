@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai"
 import Groq from "groq-sdk"
 import OpenAI from "openai"
 import { devOpenAIBaseUrl } from './margin/devOverrides';
+import { outboundFetch, validateHttpEndpoint } from './services/outbound';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
 import { AsyncLocalStorage } from "async_hooks"
@@ -194,28 +195,28 @@ export class LLMHelper {
     if (groqApiKey) {
       this.groqApiKey = groqApiKey
       // Only application retries may resend: each one rechecks the data scopes.
-      this.groqClient = new Groq({ apiKey: groqApiKey, maxRetries: 0 })
+      this.groqClient = new Groq({ apiKey: groqApiKey, baseURL: validateHttpEndpoint(process.env.GROQ_BASE_URL ?? 'https://api.groq.com'), fetch: outboundFetch, maxRetries: 0 })
       console.log(`[LLMHelper] Groq client initialized with model: ${GROQ_MODEL}`)
     }
 
     // Initialize OpenAI client if API key provided
     if (openaiApiKey) {
       this.openaiApiKey = openaiApiKey
-      this.openaiClient = new OpenAI({ apiKey: openaiApiKey, baseURL: devOpenAIBaseUrl(), maxRetries: 0 })
+      this.openaiClient = new OpenAI({ apiKey: openaiApiKey, baseURL: validateHttpEndpoint(devOpenAIBaseUrl() ?? process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'), fetch: outboundFetch, maxRetries: 0 })
       console.log(`[LLMHelper] OpenAI client initialized with model: ${OPENAI_MODEL}`)
     }
 
     // Initialize Claude client if API key provided
     if (claudeApiKey) {
       this.claudeApiKey = claudeApiKey
-      this.claudeClient = new Anthropic({ apiKey: claudeApiKey, maxRetries: 0 })
+      this.claudeClient = new Anthropic({ apiKey: claudeApiKey, baseURL: validateHttpEndpoint(process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com'), fetch: outboundFetch, maxRetries: 0 })
       console.log(`[LLMHelper] Claude client initialized with model: ${CLAUDE_MODEL}`)
     }
 
     // Initialize DeepSeek client if API key provided (OpenAI-compatible)
     if (deepseekApiKey) {
       this.deepseekApiKey = deepseekApiKey
-      this.deepseekClient = new OpenAI({ apiKey: deepseekApiKey, baseURL: DEEPSEEK_BASE_URL, maxRetries: 0 })
+      this.deepseekClient = new OpenAI({ apiKey: deepseekApiKey, baseURL: DEEPSEEK_BASE_URL, fetch: outboundFetch, maxRetries: 0 })
       console.log(`[LLMHelper] DeepSeek client initialized with model: ${DEEPSEEK_MODEL}`)
     }
 
@@ -249,7 +250,7 @@ export class LLMHelper {
   }
 
   public setGroqApiKey(apiKey: string) {
-    this.groqClient = new Groq({ apiKey, maxRetries: 0 });
+    this.groqClient = new Groq({ apiKey, baseURL: validateHttpEndpoint(process.env.GROQ_BASE_URL ?? 'https://api.groq.com'), fetch: outboundFetch, maxRetries: 0 });
     this._groqLocalDisabled = false;
     this.visionHealth.delete('groq'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] Groq API Key updated.");
@@ -257,14 +258,14 @@ export class LLMHelper {
 
   public setOpenaiApiKey(apiKey: string) {
     this.openaiApiKey = apiKey;
-    this.openaiClient = new OpenAI({ apiKey, baseURL: devOpenAIBaseUrl(), maxRetries: 0 });
+    this.openaiClient = new OpenAI({ apiKey, baseURL: validateHttpEndpoint(devOpenAIBaseUrl() ?? process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'), fetch: outboundFetch, maxRetries: 0 });
     this.visionHealth.delete('openai'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] OpenAI API Key updated.");
   }
 
   public setClaudeApiKey(apiKey: string) {
     this.claudeApiKey = apiKey;
-    this.claudeClient = new Anthropic({ apiKey, maxRetries: 0 });
+    this.claudeClient = new Anthropic({ apiKey, baseURL: validateHttpEndpoint(process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com'), fetch: outboundFetch, maxRetries: 0 });
     this.visionHealth.delete('claude'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] Claude API Key updated.");
   }
@@ -278,7 +279,7 @@ export class LLMHelper {
       return;
     }
     this.deepseekApiKey = trimmed;
-    this.deepseekClient = new OpenAI({ apiKey: trimmed, baseURL: DEEPSEEK_BASE_URL, maxRetries: 0 });
+    this.deepseekClient = new OpenAI({ apiKey: trimmed, baseURL: DEEPSEEK_BASE_URL, fetch: outboundFetch, maxRetries: 0 });
     console.log("[LLMHelper] DeepSeek API Key updated.");
   }
 
@@ -2941,6 +2942,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
     }
 
+    abortSignal?.throwIfAborted();
+    this.assertOutboundScopes('gemini', fullMessage, imagePaths);
     // CACHE BOUNDARY: static system content lives in `config.cachedContent`
     // (or `config.systemInstruction` on fallback); dynamic content stays in `contents`.
     const cacheName = systemInstruction
@@ -2959,6 +2962,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     let streamResult: any;
     try {
+      abortSignal?.throwIfAborted();
       this.assertOutboundScopes('gemini', fullMessage, imagePaths); // again right before sending
       streamResult = await this.client.models.generateContentStream({
         model,
@@ -2973,6 +2977,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       if (cacheName && /cached?[\s_]?content|not\s*found|expired/i.test(msg)) {
         console.warn(`[LLMHelper] Gemini cachedContent ${cacheName} stale (${msg}); retrying with systemInstruction`);
         this.geminiPromptCache.invalidate(cacheName);
+        abortSignal?.throwIfAborted();
         this.assertOutboundScopes('gemini', fullMessage, imagePaths); // again right before sending
         streamResult = await this.client.models.generateContentStream({
           model,
@@ -3061,6 +3066,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
     }
 
+    signal?.throwIfAborted();
+    this.assertOutboundScopes('gemini', fullMessage, imagePaths);
     // CACHE BOUNDARY: static system content lives in `config.cachedContent`
     // (or `config.systemInstruction` on fallback); dynamic content stays in `contents`.
     const cacheName = systemInstruction

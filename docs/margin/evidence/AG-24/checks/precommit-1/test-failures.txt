@@ -1,0 +1,8 @@
+electron/margin/__tests__/appIdentity.test.mjs :: bootstrap precedes real credentials/storage imports and settings survive a restart
+electron/margin/__tests__/loggingPrivacy.test.mjs :: critical evidence rejects missing, extra and unknown events and has no payload-prefix trust
+electron/margin/__tests__/loggingPrivacy.test.mjs :: real bootstrap protects import-time logs and all console exits including stdout/stderr
+electron/margin/__tests__/loggingPrivacy.test.mjs :: real log IPC uses identity logs and hostile forwarded payloads stay opaque
+electron/margin/__tests__/loggingPrivacy.test.mjs :: sanitizer call failure stays closed in every exit and critical handler
+electron/margin/__tests__/loggingPrivacy.test.mjs :: sanitizer load failure stays closed in every exit and critical handler
+electron/margin/__tests__/loggingPrivacy.test.mjs :: separate real build bundles share app events through the console marker
+electron/margin/__tests__/loggingPrivacy.test.mjs :: sink failures cannot expose data, throw or recurse through console

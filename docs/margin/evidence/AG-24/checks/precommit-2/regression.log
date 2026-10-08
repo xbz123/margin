@@ -1,0 +1,30 @@
+✖ a typed question streams the mock answer into the overlay (2647.633791ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (8048.528042ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3301.561958ms)
+✔ a screenshot question sends the fixture image to the model (429.456625ms)
+✔ a provider error is shown and the next question still works (1562.711333ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (2031.078333ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18633.306667
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:145:1
+✖ a typed question streams the mock answer into the overlay (2647.633791ms)
+  AssertionError [ERR_ASSERTION]: first visible state should be partial
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:153:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

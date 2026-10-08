@@ -21,10 +21,8 @@
 //     timer that nothing ever clears.
 //   - Belt-and-braces: the re-arm block also has its own isActive check.
 //
-// Strategy: structural assertion against RestSTT.ts. Behavioural test is
-// hard because flushAndUpload requires axios, multipart/form-data, and a
-// fake HTTP server. Structural pins the invariant so a future refactor
-// that splits flushAndUpload or removes the guard will fail loudly.
+// Structural pins complement the real-class pending-upload/discard behavior
+// checks in OutboundSttRevocation.test.mjs; neither uses real audio or providers.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -95,14 +93,15 @@ test('stop() clears safetyNetTimer before any further flush logic', () => {
   const stopBody = extractMethodBody('stop');
   const clearIdx = stopBody.search(/clearInterval\s*\(\s*this\.safetyNetTimer\s*\)/);
   const nullIdx  = stopBody.search(/this\.safetyNetTimer\s*=\s*null/);
-  const finalFlushIdx = stopBody.search(/this\.flushAndUpload\s*\(\s*\)/);
+  const discardIdx = stopBody.indexOf('this.chunks = []');
 
   assert.ok(clearIdx >= 0, 'sanity: stop() must clearInterval the safetyNetTimer');
   assert.ok(nullIdx  >= 0, 'sanity: stop() must null safetyNetTimer after clearing');
-  assert.ok(finalFlushIdx >= 0, 'sanity: stop() should still call flushAndUpload() to drain trailing audio');
+  assert.ok(discardIdx >= 0, 'stop() discards audio that has not been sent');
+  assert.doesNotMatch(stopBody, /this\.flushAndUpload\s*\(/, 'revocation must not flush trailing audio');
 
   assert.ok(
-    clearIdx < finalFlushIdx,
-    'BUG: stop() must clear safetyNetTimer BEFORE the final flushAndUpload(); otherwise the final flush would re-arm a fresh interval against the stopping session.',
+    clearIdx < discardIdx,
+    'stop() must clear safetyNetTimer before discarding the buffer',
   );
 });

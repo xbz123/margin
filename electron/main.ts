@@ -254,6 +254,7 @@ import { MicrophoneCapture } from "./audio/MicrophoneCapture"
 import { AudioDevices } from "./audio/AudioDevices"
 import { loadNativeModule } from "./audio/nativeModuleLoader"
 import { GoogleSTT } from "./audio/GoogleSTT"
+import { loadGoogleServiceAccount, googleSpeechClientOptions } from './services/googleServiceAccount';
 import { RestSTT } from "./audio/RestSTT"
 import { DeepgramStreamingSTT } from "./audio/DeepgramStreamingSTT"
 import { SonioxStreamingSTT } from "./audio/SonioxStreamingSTT"
@@ -758,30 +759,30 @@ export class AppState {
 
     if (sttProvider === 'deepgram') {
       const apiKey = CredentialsManager.getInstance().getDeepgramApiKey();
-      if (apiKey) {
+      if (apiKey?.trim()) {
         console.log(`[Main] Using DeepgramStreamingSTT for ${speaker}`);
         stt = new DeepgramStreamingSTT(apiKey);
       } else {
-        console.warn(`[Main] No API key for Deepgram STT, falling back to GoogleSTT`);
-        stt = new GoogleSTT(speaker);
+        console.warn(`[Main] No API key for Deepgram STT; transcription disabled`);
+        return null;
       }
     } else if (sttProvider === 'soniox') {
       const apiKey = CredentialsManager.getInstance().getSonioxApiKey();
-      if (apiKey) {
+      if (apiKey?.trim()) {
         console.log(`[Main] Using SonioxStreamingSTT for ${speaker}`);
         stt = new SonioxStreamingSTT(apiKey);
       } else {
-        console.warn(`[Main] No API key for Soniox STT, falling back to GoogleSTT`);
-        stt = new GoogleSTT(speaker);
+        console.warn(`[Main] No API key for Soniox STT; transcription disabled`);
+        return null;
       }
     } else if (sttProvider === 'elevenlabs') {
       const apiKey = CredentialsManager.getInstance().getElevenLabsApiKey();
-      if (apiKey) {
+      if (apiKey?.trim()) {
         console.log(`[Main] Using ElevenLabsStreamingSTT for ${speaker}`);
         stt = new ElevenLabsStreamingSTT(apiKey);
       } else {
-        console.warn(`[Main] No API key for ElevenLabs STT, falling back to GoogleSTT`);
-        stt = new GoogleSTT(speaker);
+        console.warn(`[Main] No API key for ElevenLabs STT; transcription disabled`);
+        return null;
       }
     } else if (sttProvider === 'openai') {
       // OpenAI: WebSocket Realtime (gpt-4o-transcribe → gpt-4o-mini-transcribe) with whisper-1 REST fallback.
@@ -789,12 +790,12 @@ export class AppState {
       // skips the Realtime WS path and uses REST against the custom endpoint.
       const apiKey = CredentialsManager.getInstance().getOpenAiSttApiKey();
       const baseUrl = CredentialsManager.getInstance().getOpenAiSttBaseUrl();
-      if (apiKey) {
+      if (apiKey?.trim()) {
         console.log(`[Main] Using OpenAIStreamingSTT for ${speaker}${baseUrl ? ` (custom endpoint: ${baseUrl})` : ' (WebSocket+REST fallback)'}`);
         stt = new OpenAIStreamingSTT(apiKey, baseUrl);
       } else {
-        console.warn(`[Main] No API key for OpenAI STT, falling back to GoogleSTT`);
-        stt = new GoogleSTT(speaker);
+        console.warn(`[Main] No API key for OpenAI STT; transcription disabled`);
+        return null;
       }
     } else if (sttProvider === 'groq' || sttProvider === 'azure' || sttProvider === 'ibmwatson') {
       let apiKey: string | undefined;
@@ -812,16 +813,26 @@ export class AppState {
         region = CredentialsManager.getInstance().getIbmWatsonRegion();
       }
 
-      if (apiKey) {
+      if (apiKey?.trim()) {
         console.log(`[Main] Using RestSTT (${sttProvider}) for ${speaker}`);
         stt = new RestSTT(sttProvider, apiKey, modelOverride, region);
       } else {
-        console.warn(`[Main] No API key for ${sttProvider} STT, falling back to GoogleSTT`);
-        stt = new GoogleSTT(speaker);
+        console.warn(`[Main] No API key for ${sttProvider} STT; transcription disabled`);
+        return null;
       }
-    } else {
-      stt = new GoogleSTT(speaker);
-    }
+    } else if (sttProvider === 'google') {
+      const credentialsPath = CredentialsManager.getInstance().getGoogleServiceAccountPath() || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      if (!credentialsPath) return null;
+      try {
+        stt = new GoogleSTT(speaker, credentialsPath);
+      } catch {
+        console.warn('[Main] Invalid Google service account; transcription disabled.');
+        this.sendSttStatus({ state: 'failed', provider: 'google', channel: speaker,
+          error: 'Invalid Google service account. Select a valid service_account JSON file in Settings.' });
+        this.broadcast('stt-config-changed', { configured: false, provider: 'google' });
+        return null;
+      }
+    } else return null;
 
     stt.setRecognitionLanguage(sttLanguage);
 
@@ -1963,24 +1974,13 @@ export class AppState {
   public async reconfigureSttProvider(): Promise<void> {
     console.log('[Main] Reconfiguring STT Provider...');
 
-    // RC-01 fix: pause audio captures FIRST so their EventEmitter queues drain
-    // before we null-out the STT instances. Without this, buffered 'data' events
-    // still in-flight call this.googleSTT?.write() while googleSTT is already null.
+    // Reconfiguration revokes the old audio destination, unlike meeting Stop.
+    this.discardSttProviders();
+
+    // Capture teardown may fail or wait; old audio sends were already revoked.
     if (this.isMeetingActive) {
       this.systemAudioCapture?.stop();
       this.microphoneCapture?.stop();
-    }
-
-    // Now safe to destroy STT instances — no more audio events incoming
-    if (this.googleSTT) {
-      this.googleSTT.stop();
-      this.googleSTT.removeAllListeners();
-      this.googleSTT = null;
-    }
-    if (this.googleSTT_User) {
-      this.googleSTT_User.stop();
-      this.googleSTT_User.removeAllListeners();
-      this.googleSTT_User = null;
     }
 
     // Only reinitialize the pipeline when a meeting is already active.
@@ -2000,7 +2000,25 @@ export class AppState {
     // Broadcast the new STT config state to all windows so they can update banners / warnings
     const { CredentialsManager: CM } = require('./services/CredentialsManager');
     const newProvider = CM.getInstance().getSttProvider();
-    this.broadcast('stt-config-changed', { configured: newProvider !== 'none', provider: newProvider });
+    let configured = newProvider !== 'none';
+    if (newProvider === 'google') {
+      const credentialsPath = CM.getInstance().getGoogleServiceAccountPath() || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      try { googleSpeechClientOptions(loadGoogleServiceAccount(credentialsPath ?? '')); }
+      catch { configured = false; }
+    }
+    this.broadcast('stt-config-changed', { configured, provider: newProvider });
+  }
+
+  public discardSttProviders(): void {
+    const old = [this.googleSTT, this.googleSTT_User];
+    this.googleSTT = null;
+    this.googleSTT_User = null;
+    for (const stt of old) {
+      if (!stt) continue;
+      try { stt.stop(false); }
+      catch (error) { console.error('[Main] STT discard failed:', error); }
+      finally { stt.removeAllListeners(); }
+    }
   }
 
   /**
@@ -3098,18 +3116,17 @@ export class AppState {
 
 
 
-  public updateGoogleCredentials(keyPath: string): void {
-    console.log(`[AppState] Updating Google Credentials to: ${keyPath}`);
-    // Set global environment variable so new instances pick it up
+  public updateGoogleCredentials(keyPath: string, account = loadGoogleServiceAccount(keyPath)): void {
+    googleSpeechClientOptions(account);
+
+    if (this.googleSTT instanceof GoogleSTT) {
+      this.googleSTT.setCredentials(keyPath, account);
+    }
+
+    if (this.googleSTT_User instanceof GoogleSTT) {
+      this.googleSTT_User.setCredentials(keyPath, account);
+    }
     process.env.GOOGLE_APPLICATION_CREDENTIALS = keyPath;
-
-    if (this.googleSTT) {
-      this.googleSTT.setCredentials(keyPath);
-    }
-
-    if (this.googleSTT_User) {
-      this.googleSTT_User.setCredentials(keyPath);
-    }
   }
 
   public setRecognitionLanguage(key: string): CredentialSaveResult {
@@ -3938,12 +3955,16 @@ async function initializeApp() {
   const storedServiceAccountPath = CredentialsManager.getInstance().getGoogleServiceAccountPath()
     || process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (storedServiceAccountPath) {
-    console.log("[Init] Loading stored Google Service Account path");
-    appState.updateGoogleCredentials(storedServiceAccountPath);
-    // Persist env-var path so Spotlight launches also work going forward
-    if (!CredentialsManager.getInstance().getGoogleServiceAccountPath()) {
-      const saved = CredentialsManager.getInstance().setGoogleServiceAccountPath(storedServiceAccountPath);
-      if (!saved.ok) console.warn('[Init] Environment service account path was not saved:', saved.message);
+    try {
+      const account = loadGoogleServiceAccount(storedServiceAccountPath);
+      appState.updateGoogleCredentials(storedServiceAccountPath, account);
+      // Persist env-var path so Spotlight launches also work going forward.
+      if (!CredentialsManager.getInstance().getGoogleServiceAccountPath()) {
+        const saved = CredentialsManager.getInstance().setGoogleServiceAccountPath(storedServiceAccountPath, account);
+        if (!saved.ok) console.warn('[Init] Environment service account path was not saved:', saved.message);
+      }
+    } catch {
+      console.warn('[Init] Invalid Google service account; Google transcription is disabled until a valid file is selected.');
     }
   }
 

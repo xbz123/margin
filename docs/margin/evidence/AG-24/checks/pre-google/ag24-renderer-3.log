@@ -1,0 +1,53 @@
+✖ all nine Markdown callers and streaming sanitize block image loads in a real renderer (3413.405833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3873.951584
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:11:1
+✖ all nine Markdown callers and streaming sanitize block image loads in a real renderer (3413.405833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     detail: 'native audio module wrapped (index.darwin-arm64.node)',
+  +     kind: 'device',
+  +     pid: 44880,
+  +     script: '--inspect=0',
+  +     t: '2026-10-08T14:43:05.445Z'
+  +   },
+  +   {
+  +     detail: 'native audio module wrapped (index.darwin-arm64.node)',
+  +     kind: 'device',
+  +     pid: 44880,
+  +     script: '--inspect=0',
+  +     t: '2026-10-08T14:43:05.446Z'
+  +   },
+  +   {
+  +     detail: 'execFileSync defaults',
+  +     kind: 'local-exec',
+  +     pid: 44880,
+  +     script: '--inspect=0',
+  +     t: '2026-10-08T14:43:06.899Z'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/outbound-renderer.test.mjs:70:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { t: '2026-10-08T14:43:05.445Z', pid: 44880, script: '--inspect=0', kind: 'device', detail: 'native audio module wrapped (index.darwin-arm64.node)' }, { t: '2026-10-08T14:43:05.446Z', pid: 44880, script: '--inspect=0', kind: 'device', detail: 'native audio module wrapped (index.darwin-arm64.node)' }, { t: '2026-10-08T14:43:06.899Z', pid: 44880, script: '--inspect=0', kind: 'local-exec', detail: 'execFileSync defaults' } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

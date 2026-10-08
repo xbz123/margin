@@ -1,0 +1,29 @@
+[isolation] blocked exec: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+✖ all nine Markdown callers and streaming sanitize block image loads in a real renderer (64.336292ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 499.703959
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:11:1
+✖ all nine Markdown callers and streaming sanitize block image loads in a real renderer (64.336292ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at build (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1873:26)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/outbound-renderer.test.mjs:26:24)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    code: 'EMARGINISOLATION'
+  }
+[isolation] 1 blocked attempt(s); log: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-xk2yYu/isolation.jsonl
+[isolation]   exec spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild

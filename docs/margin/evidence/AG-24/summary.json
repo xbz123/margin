@@ -1,0 +1,251 @@
+{
+  "startedAt": "2026-10-08T16:37:04.737Z",
+  "head": "f75980361b6af290ea0ace6aff1196b2252e6d39",
+  "uncommittedPaths": 39,
+  "uncommittedPathList": [
+    "M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    " M electron/LLMHelper.ts",
+    " M electron/audio/DeepgramStreamingSTT.ts",
+    " M electron/audio/ElevenLabsStreamingSTT.ts",
+    " M electron/audio/GoogleSTT.ts",
+    " M electron/audio/OpenAIStreamingSTT.ts",
+    " M electron/audio/RestSTT.ts",
+    " M electron/audio/SonioxStreamingSTT.ts",
+    " M electron/audio/__tests__/RestSttSafetyNetGate.test.mjs",
+    " M electron/bootstrap.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/main.ts",
+    " M electron/margin/__tests__/appIdentity.test.mjs",
+    " M electron/margin/__tests__/credentialTransactions.test.mjs",
+    " M electron/margin/__tests__/loggingPrivacy.test.mjs",
+    " M electron/services/CredentialsManager.ts",
+    " M electron/services/ModelVersionManager.ts",
+    " M electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+    " M electron/utils/modelFetcher.ts",
+    " M index.html",
+    " M scripts/margin/run-gates.mjs",
+    " M src/components/MeetingChatOverlay.tsx",
+    " M src/components/MeetingDetails.tsx",
+    " M src/components/NativelyInterface.tsx",
+    " M src/components/StartupSequence.tsx",
+    " M tests/margin/answer-regression.test.mjs",
+    " M tests/margin/mock-openai.mjs",
+    "?? docs/margin/OUTBOUND.md",
+    "?? docs/margin/evidence/AG-24/",
+    "?? electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs",
+    "?? electron/audio/__tests__/OutboundSttRevocation.test.mjs",
+    "?? electron/services/__tests__/OutboundBoundary.test.mjs",
+    "?? electron/services/__tests__/OutboundInventory.test.mjs",
+    "?? electron/services/googleServiceAccount.ts",
+    "?? electron/services/outbound.ts",
+    "?? src/components/SafeMarkdown.tsx",
+    "?? tests/margin/outbound-renderer.test.mjs"
+  ],
+  "reference": "docs/margin/evidence/AG-23",
+  "note": "AG-24/S16 final 16-step gates; deterministic server-gated AG09 partial observation, no production streaming changes; X2 temp and mock-only services/keychain/devices",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 185,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1667,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5960,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2891,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1817,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1918,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1800,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 77,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 130,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 958,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13495,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/tests.log",
+      "tap": "docs/margin/evidence/AG-24/checks/precommit-3/tests.tap",
+      "perFile": "docs/margin/evidence/AG-24/checks/precommit-3/tests.files.json",
+      "files": 112,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 864,
+        "pass": 859,
+        "fail": 0,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 18500,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 23225,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/storage.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 37702,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/startup.log",
+      "passed": true
+    },
+    {
+      "id": "outbound-renderer",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron:esbuild --test --test-timeout=180000 tests/margin/outbound-renderer.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2978,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/outbound-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 86,
+      "log": "docs/margin/evidence/AG-24/checks/precommit-3/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-08T16:38:58.130Z",
+  "allPassed": true
+}

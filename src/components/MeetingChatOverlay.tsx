@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { genMessageId } from '../utils/messageId';
 import nativelyIcon from './icon.png';
 
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from './SafeMarkdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';

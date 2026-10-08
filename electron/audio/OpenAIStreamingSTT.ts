@@ -14,7 +14,7 @@
 
 import { EventEmitter } from 'events';
 import WebSocket from 'ws';
-import axios from 'axios';
+import { outboundAxios as axios, openAiSttEndpoint } from '../services/outbound';
 import FormData from 'form-data';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 import { streamingStttWsOptions } from './dnsHelpers';
@@ -30,10 +30,7 @@ const REST_ENDPOINT   = 'https://api.openai.com/v1/audio/transcriptions';
  *  Strips a trailing slash so we don't end up with `//v1/...`. Accepts both
  *  `https://my-host.tld` and `https://my-host.tld/v1` (the latter occurs in the wild). */
 function deriveRestEndpoint(baseUrl: string): string {
-    const trimmed = baseUrl.replace(/\/+$/, '');
-    return /\/v\d+$/.test(trimmed)
-        ? `${trimmed}/audio/transcriptions`
-        : `${trimmed}/v1/audio/transcriptions`;
+    return openAiSttEndpoint(baseUrl);
 }
 
 /** WebSocket model priority order */
@@ -233,7 +230,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
         this._connectWs();
     }
 
-    public stop(): void {
+    public stop(graceful = true): void {
         if (!this.isActive) return;
         console.log('[OpenAIStreaming] Stopping...');
         this._flushTurnCoalescer();
@@ -247,7 +244,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // Split append/commit into separate try blocks: a failed append must NOT
         // bypass the commit — the server still has buffered audio from prior
         // _sendWsAudioChunk calls that should be transcribed.
-        if (this.mode === 'ws' && this.ws?.readyState === WebSocket.OPEN &&
+        if (graceful && this.mode === 'ws' && this.ws?.readyState === WebSocket.OPEN &&
             this.isSessionReady) {
             try {
                 if (this.pcmAccumulatorLen > 0) {
@@ -409,6 +406,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
         }, 10_000);
 
         this.ws.on('open', () => {
+            if (!this.isActive || !this.shouldReconnect) return;
             if (this.connectionTimeoutTimer) {
                 clearTimeout(this.connectionTimeoutTimer);
                 this.connectionTimeoutTimer = null;
@@ -900,6 +898,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
      *  whisper-1 REST, we don't try to climb back to WS within the same session.
      *  A user must call `stop()` and `start()` again to retry the WS path. */
     private _switchToRest(): void {
+        if (!this.isActive) return;
         this.mode = 'rest';
         // _closeWs() now routes through _clearTimers() (R3-1), so we don't
         // need a separate _clearTimers() call here.

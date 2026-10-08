@@ -1,0 +1,11 @@
+✔ unsupported Google credential types are rejected before constructing a client (149.164084ms)
+✔ normal service-account metadata is accepted but only minimal public options reach SpeechClient (13.798459ms)
+✔ invalid replacements keep the old client and environment; actual construction reloads file contents (10.593417ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 409.20525

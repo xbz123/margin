@@ -69,7 +69,7 @@ import { oneLight, vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/
 import 'katex/dist/katex.min.css';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from './SafeMarkdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -1394,7 +1394,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       // marked.parse is sync and fast (<1ms for typical LLM chunks).
       // DOMPurify strips any script/event-handler injection.
       const rawHtml = marked.parse(streamingTextRef.current, { async: false }) as string;
-      node.innerHTML = DOMPurify.sanitize(rawHtml);
+      node.innerHTML = DOMPurify.sanitize(rawHtml, { FORBID_TAGS: ['img', 'image'] });
     });
   }, []);
 

@@ -6,4 +6,5 @@ import { installMainLogging } from './logging';
 const enableFileLogging = installMainLogging();
 initializeAppIdentity();
 enableFileLogging();
+require('./services/outbound').installOutboundFetchPolicy();
 require('./main');

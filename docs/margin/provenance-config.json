@@ -11,6 +11,8 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "await new Promise(resolve => setImmediate(resolve));", "reason": "Generic Node event-loop drain for installed Speech streaming-helper mock transport cleanup in the independently written S16 test, 2026-10-08; see PROVENANCE.md" },
+    { "line": "return saved;", "reason": "Generic return of the real credential transaction result from a synthetic file-change hook in the independently written S16 selection test, 2026-10-08; see PROVENANCE.md" },
     { "line": "await Promise.resolve(); await Promise.resolve();", "reason": "Generic microtask draining for two synthetic preload verbose-flag callbacks in independently written AG-23 tests, 2026-10-08; see PROVENANCE.md" },
     { "line": "stt.isActive = true; stt.isSessionReady = true;", "reason": "Selects the existing audio-write branch on a synthetic ElevenLabs instance without a provider connection in the independently written AG-23 test, 2026-10-08; see PROVENANCE.md" },
     { "line": "const dirname = path.dirname(fileURLToPath(import.meta.url));", "reason": "Generic Node standard-library resolution of the independently written AG-23 test module directory, 2026-10-08; see PROVENANCE.md" },
@@ -110,6 +112,14 @@
     { "line": "return require(id);", "reason": "Standard CommonJS require forwarding for non-Electron modules in the AG-20 test VM; independently written for this branch, 2026-10-08" },
     { "line": "const script = `", "reason": "Generic template literal opener for AG-20 synthetic filesystem probes; independently written for this branch, 2026-10-08" },
     { "line": "fs.mkdirSync(userData, { recursive: true });", "reason": "Standard Node mkdirSync recursive option, applied to AG-20's own identity directory before Electron setPath; independently written for this branch, 2026-10-08" },
-    { "line": "for (const name of names) {", "reason": "Generic JavaScript for-of loop over AG-20 protected application directory names; independently written for this branch, 2026-10-08" }
+    { "line": "for (const name of names) {", "reason": "Generic JavaScript for-of loop over AG-20 protected application directory names; independently written for this branch, 2026-10-08" },
+    { "line": "const server = http.createServer((req, res) => {", "reason": "Standard Node HTTP loopback test server declaration, independently written for AG-24 redirect tests; no upstream code imported, 2026-10-08" },
+    { "line": "const oldFetch = globalThis.fetch;", "reason": "Save a test-global fetch function before installing the AG-24 boundary, independently written for this branch, 2026-10-08" },
+    { "line": "globalThis.fetch = oldFetch;", "reason": "Restore the fetch function saved above in the AG-24 test finally block, independently written for this branch, 2026-10-08" },
+    { "line": "function loadHelper() {", "reason": "Generic test helper declaration for loading built LLMHelper with synthetic Electron state in AG-24, independently written for this branch, 2026-10-08" },
+    { "line": "rateLimiters: { gemini: { acquire: async () => {} } },", "reason": "Synthetic immediate limiter implementing the existing RateLimiter.acquire contract in AG-24 cache behavior tests, independently written for this branch, 2026-10-08" },
+    { "line": "} else return null;", "reason": "Generic fail-closed branch in AG-24 STT factory: unknown provider is not implicit Google consent, independently written for this branch, 2026-10-08" },
+    { "line": "end() { this.ended = true; }", "reason": "Synthetic stream end recorder in AG-24 STT VM tests, independently written for this branch, 2026-10-08" },
+    { "line": "return config;", "reason": "Return validated Axios interceptor configuration in AG-24 using the installed public Axios API, independently written for this branch, 2026-10-08" }
   ]
 }

@@ -3,7 +3,7 @@
  * Fetches available models from AI provider APIs
  */
 
-import axios from 'axios';
+import { outboundAxios as axios } from '../services/outbound';
 
 export interface ProviderModel {
     id: string;

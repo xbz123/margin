@@ -1,0 +1,66 @@
+(node:38972) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✖ streamWithGeminiModel: revocation during image processing prevents cache and generation (179.860083ms)
+✖ collectStreamResponse: revocation during image processing prevents cache and generation (0.700208ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (3.809375ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.233834ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.267667ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.176375ms)
+✔ LLMHelper guards every outbound provider with assertOutboundScopes (1.798625ms)
+✔ LLMHelper passes data scopes and policy to routeLLMProviders for fallback rotation (0.673708ms)
+✔ SettingsManager exposes providerDataScopes setting (1.018916ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (2.47775ms)
+✔ preload and renderer types expose provider data scope controls (2.582167ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (1.188917ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 10
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 321.847459
+
+✖ failing tests:
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:23:3
+✖ streamWithGeminiModel: revocation during image processing prevents cache and generation (179.860083ms)
+  AssertionError [ERR_ASSERTION]: a cache creation is an outbound request too
+  + actual - expected
+  
+  + [
+  +   'cache'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:40:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'cache' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:23:3
+✖ collectStreamResponse: revocation during image processing prevents cache and generation (0.700208ms)
+  AssertionError [ERR_ASSERTION]: a cache creation is an outbound request too
+  + actual - expected
+  
+  + [
+  +   'cache'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:40:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'cache' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

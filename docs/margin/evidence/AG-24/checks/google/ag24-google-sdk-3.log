@@ -1,0 +1,15 @@
+✔ unsupported Google credential types are rejected before constructing a client (128.896ms)
+✔ normal service-account metadata is accepted but only minimal public options reach SpeechClient (14.032ms)
+✔ invalid replacements keep the old client and environment; actual construction reloads file contents (10.547958ms)
+✔ service-account fields, alternative auth inputs and metadata URLs fail closed (15.118042ms)
+✔ installed SpeechClient signs a valid local JWT without ADC, gcloud, metadata or auth HTTP (389.486208ms)
+✔ an injected credential token URI pointing at a 307 server reaches neither hop (14.785792ms)
+✔ installed streaming helper sends synthetic audio when allowed, but not after connection-wait revocation (40.752375ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 877.433875

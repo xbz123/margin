@@ -68,6 +68,8 @@ const steps = [
     '--test-timeout=240000', 'tests/margin/meeting-storage.test.mjs'], timeoutMs: 600_000 },
   { id: 'startup', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
     '--test-timeout=180000', 'tests/margin/startup-smoke.test.mjs'], timeoutMs: 300_000 },
+  { id: 'outbound-renderer', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron:esbuild', '--test',
+    '--test-timeout=180000', 'tests/margin/outbound-renderer.test.mjs'], timeoutMs: 300_000 },
   { id: 'diff-check', cmd: 'git', args: ['diff', 'HEAD', '--check'] },
 ];
 

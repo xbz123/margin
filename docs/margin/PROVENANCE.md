@@ -21,6 +21,45 @@ Notes:
 
 ## Ledger
 
+AG-24's outbound boundary, STT revocation distinction, Markdown image rejection,
+endpoint inventory and synthetic behavior tests are written for this branch from
+PLAN's requirements and the installed libraries' public interfaces. No later
+upstream implementation is imported. The scanner's exact generic matches are
+individually justified in `provenance-config.json`; no source pools or exclusions
+are widened. The Google service-account validator, minimal public SDK options,
+startup/selection integration and GoogleServiceAccountBoundary/OutboundInventory
+tests are written from the user-approved PLAN S16 contract, Node standard APIs
+and the installed libraries' public interfaces. Legacy account/project/universe
+compatibility and synthetic transport checks are documented in [OUTBOUND.md](OUTBOUND.md).
+These implementation checks alone are not evidence that the AG-24 exit has passed.
+The S16 scanner's two exact generic statement matches are an event-loop drain
+(`await new Promise(resolve => setImmediate(resolve));`) for synthetic streaming
+cleanup and `return saved;` for the real persistence result in a file-change test
+hook. Both were written for this branch; only these exact statements are added
+to the allowlist, without widening any source pool or exclusion.
+The independent serial `outbound-renderer` run-gates step is written from AG-24's
+existing real-renderer regression and the runner's existing isolated Electron
+step format. It adds only the precise Electron/esbuild execution capability and
+a bounded timeout, so local full gates and CI retain this behavior check.
+AG-24's bootstrap follow-up defers outbound/Axios module evaluation until the
+identity and main log boundary are installed, but still installs fetch policy
+before main/SDK evaluation. The identity VM records this dependency order; the
+logging VM evaluates the real outbound source with a synthetic Axios import-time
+canary, retaining existing real-bundle and privacy checks. This repair and test
+adaptation were written for this branch after the first full-gate failures.
+AG-24's AG-09 harness follow-up is written for this branch using Node promises
+and the existing loopback mock. Separate browser polling and text reads can miss
+a short partial state; a synthetic slow-observation diagnostic recorded a real
+DOM partial before completion while the old sampling assertion failed. This is
+a counterexample to the old observation method, not a reconstruction of the
+original full-gate failure's complete timing. The test-only `afterChunk` gate
+pauses the mock after two writes until the real renderer's partial is asserted,
+then releases the tail; it does not change production streaming or its delays.
+The hook is captured per request, reset by `setScript`, and released in the
+test's `finally`. The red diagnostic, six-case green regression and hook
+snapshot/reset self-check logs are archived by the main gate workflow; they do
+not replace fresh full-gate or CI acceptance.
+
 AG-20 is written on this branch from PLAN's application-identity requirements;
 no earlier Margin implementation or icon asset is imported. The initial scanner
 output is retained in `evidence/AG-20/checks/precommit-1/provenance.log`. Its five

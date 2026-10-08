@@ -8,6 +8,8 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import type { CredentialSaveResult } from '../../src/types/credentialSave';
+import { regionalSttEndpoint, openAiSttEndpoint } from './outbound';
+import { GoogleServiceAccount, loadGoogleServiceAccount, validateGoogleServiceAccount } from './googleServiceAccount';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
@@ -210,11 +212,13 @@ export class CredentialsManager {
         return this.saveCredentials({ deepseekApiKey: trimmed || undefined });
     }
 
-    public setGoogleServiceAccountPath(filePath: string): CredentialSaveResult {
+    public setGoogleServiceAccountPath(filePath: string, account: GoogleServiceAccount = loadGoogleServiceAccount(filePath)): CredentialSaveResult {
+        validateGoogleServiceAccount(account);
         return this.saveCredentials({ googleServiceAccountPath: filePath });
     }
 
     public setSttProvider(provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'): CredentialSaveResult {
+        if (!['none', 'google', 'groq', 'openai', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'soniox'].includes(provider)) throw new Error('Invalid STT provider');
         return this.saveCredentials({ sttProvider: provider });
     }
 
@@ -234,6 +238,7 @@ export class CredentialsManager {
         // Store undefined (not empty string) when clearing, so callers can fall back
         // to the default api.openai.com endpoint with a simple truthiness check.
         const trimmed = url.trim();
+        if (trimmed) openAiSttEndpoint(trimmed);
         return this.saveCredentials({ openAiSttBaseUrl: trimmed || undefined });
     }
 
@@ -250,6 +255,7 @@ export class CredentialsManager {
     }
 
     public setAzureRegion(region: string): CredentialSaveResult {
+        regionalSttEndpoint('azure', region);
         return this.saveCredentials({ azureRegion: region });
     }
 
@@ -258,6 +264,7 @@ export class CredentialsManager {
     }
 
     public setIbmWatsonRegion(region: string): CredentialSaveResult {
+        regionalSttEndpoint('ibmwatson', region);
         return this.saveCredentials({ ibmWatsonRegion: region });
     }
 

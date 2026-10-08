@@ -1,3 +1,5 @@
+import { outboundFetch as fetch } from './outbound';
+
 /**
  * ModelVersionManager — Self-Improving Model Rotation (v3)
  *

@@ -26,7 +26,7 @@ const compile = (source, fileName = 'module.ts') => {
 // service, path and process. No Electron, provider, filesystem or device is used.
 function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = {}) {
   const file = [], terminal = [], sent = [], handlers = new Map(), ipcEvents = new Map(), ipcHandlers = new Map(), listenerCounts = new Map();
-  let enabled = false, inspected = 0;
+  let enabled = false, inspected = 0, outboundImports = 0;
   const fakeFs = {
     mkdirSync() {}, existsSync: () => ['stat', 'unlink', 'rename'].includes(fileFault),
     writeFileSync: filename => { sent.push(['create', filename]); },
@@ -58,7 +58,8 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
       send: (...args) => sent.push(args) },
   };
   const cache = new Map();
-  const context = vm.createContext({ console, process: fakeProcess, Buffer, setTimeout, clearTimeout,
+  const context = vm.createContext({ console, process: fakeProcess, Buffer, setTimeout, clearTimeout, URL, Request,
+    fetch: () => Promise.resolve(new Response('synthetic')),
     document: { documentElement: { setAttribute() {} }, getElementById() {} },
     localStorage: { getItem: () => null }, window: { electronAPI: {} },
     __MARGIN_APP_IDENTITY__: { variant: 'temp', name: 'temp', appId: 'synthetic.temp' } });
@@ -72,6 +73,14 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
       if (id === 'react') return { createElement() {}, StrictMode: 'synthetic' };
       if (id === 'events') return require('node:events');
       if (id === 'ws') return { OPEN: 1 };
+      if (id === 'axios') {
+        outboundImports++;
+        console.log(CANARY, new Error(CANARY)); // actual outbound dependency import boundary
+        return { create(options) {
+          assert.equal(options.maxRedirects, 0);
+          return { interceptors: { request: { use() {} } } };
+        } };
+      }
       if (id === 'react-dom/client') return { createRoot: () => ({ render() {} }) };
       if (id.endsWith('redactForLog')) {
         if (redactorFault === 'load') throw Error(CANARY);
@@ -80,7 +89,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
       if (id.startsWith('.')) {
         const resolved = path.posix.normalize(path.posix.join(path.posix.dirname(fileName), id)) + '.ts';
         if (['electron/bootstrap.ts', 'electron/main.ts', 'electron/logging.ts', 'electron/utils/consoleLogging.ts',
-          'electron/utils/redactForLog.ts', 'electron/margin/appIdentity.ts', 'src/logging.ts'].includes(resolved)) return load(resolved);
+          'electron/utils/redactForLog.ts', 'electron/margin/appIdentity.ts', 'electron/services/outbound.ts', 'src/logging.ts'].includes(resolved)) return load(resolved);
         if (id === './WindowHelper') console.log(CANARY, new Error(CANARY)); // actual import boundary
         if (id === './App') console.log(CANARY); // actual renderer business import boundary
         return {};
@@ -94,7 +103,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
     return module.exports;
   };
   return { load, console, file, terminal, sent, handlers, ipcEvents, ipcHandlers, context, fakeFs, listenerCounts,
-    get inspected() { return inspected; },
+    get inspected() { return inspected; }, get outboundImports() { return outboundImports; },
     hostile: { get value() { inspected++; throw Error(CANARY); }, toJSON() { inspected++; return CANARY; }, toString() { inspected++; return CANARY; } } };
 }
 
@@ -112,6 +121,7 @@ test('real bootstrap protects import-time logs and all console exits including s
   assert.ok(r.file.every(entry => entry.name === '/synthetic/temp/debug.log'));
   assert.equal(r.terminal.filter(entry => entry.name === 'error').length > 0, true);
   assert.equal(r.terminal.filter(entry => entry.name === 'log').length > 0, true);
+  assert.equal(r.outboundImports, 1, 'the real outbound module evaluated its dependency inside the installed log boundary');
 });
 
 for (const redactorFault of ['load', 'call']) {

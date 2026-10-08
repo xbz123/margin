@@ -1,0 +1,21 @@
+✖ all nine Markdown callers and streaming sanitize block image loads in a real renderer (726.281334ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1182.238541
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:11:1
+✖ all nine Markdown callers and streaming sanitize block image loads in a real renderer (726.281334ms)
+  Error: Process failed to launch!
+      at waitForLine (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/playwright-core/lib/coreBundle.js:42440:21)
+      at Electron.launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/playwright-core/lib/coreBundle.js:42633:36)
+      at async ElectronDispatcher.launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/playwright-core/lib/coreBundle.js:50945:37)
+      at async _ProgressController.run (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/playwright-core/lib/coreBundle.js:12974:27)
+      at async ElectronDispatcher._runCommand (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/playwright-core/lib/coreBundle.js:24019:18)
+      at async DispatcherConnection.dispatch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/playwright-core/lib/coreBundle.js:24253:27)
