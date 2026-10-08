@@ -1,0 +1,16 @@
+# sha256 recheck of the native module artifact of CI run 37706465030
+# 2026-10-08T00:17:07Z: gh run download 37706465030 --repo xbz123/Assessment-Assistant into a new empty directory
+# artifact: margin-native-d70e585d84cbba830f137598dc9fad5e92df39ca
+
+$ grep -E '^[0-9a-f]{64}  ' BUILD-INFO.txt   (downloaded; the sha256 line)
+33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e  native-artifact/index.darwin-arm64.node
+
+$ shasum -a 256 index.darwin-arm64.node   (downloaded)
+33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e  index.darwin-arm64.node
+
+$ cmp downloaded BUILD-INFO.txt with docs/margin/evidence/CI-37706465030/native/BUILD-INFO.txt
+identical
+$ cmp downloaded setup-native.log with docs/margin/evidence/CI-37706465030/native/setup-native.log
+identical
+
+RESULT: recomputed sha256 matches BUILD-INFO.txt
