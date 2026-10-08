@@ -1,7 +1,8 @@
 # AG-24 outbound boundaries and S16
 
-Implementation and final local gates passed; fresh CI and Claude's read-only
-review remain pending. [OUTBOUND.md](../../OUTBOUND.md) inventories current
+Implementation and final local/CI gates passed on source `a623e3f7`;
+[CI 37811351032](../CI-37811351032/README.md) raw evidence was verified.
+Claude's read-only review remains pending. [OUTBOUND.md](../../OUTBOUND.md) inventories current
 transports, explicit configuration sources and retained limitations.
 
 HTTP transports validate URL syntax and refuse automatic redirects. Fixed

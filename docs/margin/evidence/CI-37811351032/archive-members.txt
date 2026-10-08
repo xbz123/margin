@@ -1,0 +1,29 @@
+Archive:  /private/tmp/ag24-ci.DtzIeB/gates.zip
+Zip file size: 56387 bytes, number of entries: 26
+-rw-r--r--  4.5 unx       32 bl       34 defN 26-Oct-08 16:47 build-electron.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:50 diff-check.log
+-rw-r--r--  4.5 unx     2755 bl      898 defN 26-Oct-08 16:48 guard-selftest.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:47 clean-dist.log
+-rw-r--r--  4.5 unx       32 bl       34 defN 26-Oct-08 16:50 identity-release-build.log
+-rw-r--r--  4.5 unx      774 bl      450 defN 26-Oct-08 16:50 identity-release-contract.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:48 ipc-channels.gaps.txt
+-rw-r--r--  4.5 unx    10009 bl     2072 defN 26-Oct-08 16:50 identity-release-renderer.log
+-rw-r--r--  4.5 unx       52 bl       42 defN 26-Oct-08 16:48 ipc-channels.log
+-rw-r--r--  4.5 unx      222 bl      159 defN 26-Oct-08 16:50 outbound-renderer.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:48 preload-contract.gaps.txt
+-rw-r--r--  4.5 unx       51 bl       45 defN 26-Oct-08 16:48 preload-contract.log
+-rw-r--r--  4.5 unx      829 bl      343 defN 26-Oct-08 16:48 provenance.log
+-rw-r--r--  4.5 unx      677 bl      366 defN 26-Oct-08 16:48 regression.log
+-rw-r--r--  4.5 unx      123 bl       90 defN 26-Oct-08 16:48 retired.log
+-rw-r--r--  4.5 unx      621 bl      298 defN 26-Oct-08 16:50 startup.log
+-rw-r--r--  4.5 unx      606 bl      340 defN 26-Oct-08 16:49 storage.log
+-rw-r--r--  4.5 unx     6864 bl     1268 defN 26-Oct-08 16:50 summary.json
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:48 test-failures.txt
+-rw-r--r--  4.5 unx    33040 bl     2545 defN 26-Oct-08 16:48 tests.files.json
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:48 tests.log
+-rw-r--r--  4.5 unx   249294 bl    41996 defN 26-Oct-08 16:48 tests.tap
+-rw-r--r--  4.5 unx        1 bl        3 defN 26-Oct-08 16:47 tsc-electron.diagnostics.txt
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:47 tsc-electron.log
+-rw-r--r--  4.5 unx        0 bl        2 defN 26-Oct-08 16:47 tsc-renderer.log
+-rw-r--r--  4.5 unx    10025 bl     2076 defN 26-Oct-08 16:47 vite-build.log
+26 files, 316007 bytes uncompressed, 53075 bytes compressed:  83.2%
