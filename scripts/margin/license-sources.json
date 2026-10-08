@@ -1,0 +1,96 @@
+[
+  {
+    "id": "header:bufbuild-protobuf-google",
+    "version": "1.10.1",
+    "license": "BSD-3-Clause",
+    "localPath": "node_modules/@bufbuild/protobuf/dist/esm/google/varint.js",
+    "sourceSHA256": "603451abb911a4e89c58f0ddbbddce21ed95c8f0a726e26024469b677c5782a7",
+    "sha256": "0e952cb110ff6944789fbe47c25b38819a3866c04c7c5cbea8d0c0d8f3a92f0e",
+    "endBefore": "/* eslint",
+    "role": "original complete Google BSD header from installed protobuf varint; no implementation code retained"
+  },
+  {
+    "id": "standard:LGPL-3.0",
+    "version": "3.0",
+    "license": "LGPL-3.0-or-later",
+    "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/LGPL-3.0-or-later.txt",
+    "gitBlob": "513d1c01fe5b5b9724e999d8eb041ff17d444eaa",
+    "authorityURL": "https://www.gnu.org/licenses/lgpl-3.0.html",
+    "role": "fixed official SPDX canonical GNU LGPLv3 terms; source and relinking obligations remain unresolved"
+  },
+  {
+    "id": "standard:GPL-3.0",
+    "version": "3.0",
+    "license": "GPL-3.0-or-later",
+    "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/GPL-3.0-or-later.txt",
+    "gitBlob": "f6cdd22a6c1fbc887e08a215cb4beb3c47048041",
+    "authorityURL": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "role": "fixed official SPDX canonical GNU GPLv3 terms referenced by LGPLv3; not substituted by AGPLv3"
+  },
+  {
+    "id": "attribution:free-cluely",
+    "version": "0ba93efff4d15dafc24956c16a08c2ef3e10ffa4",
+    "license": "Apache-2.0",
+    "url": "https://raw.githubusercontent.com/Prat011/free-cluely/0ba93efff4d15dafc24956c16a08c2ef3e10ffa4/LICENSE",
+    "gitBlob": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "role": "original upstream Apache license and attribution"
+  },
+  {
+    "id": "standard:node-options-to-argv",
+    "version": "1.0.0",
+    "license": "BlueOak-1.0.0",
+    "url": "https://blueoakcouncil.org/license/1.0.0.md",
+    "sha256": "8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004",
+    "role": "authoritative versioned standard terms declared by the exact installed package",
+    "bind": { "kind": "npm", "name": "node-options-to-argv" },
+    "closesMissing": true
+  },
+  {
+    "id": "supplement:ansi-tokenize",
+    "version": "0.1.3",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/AlCalzone/ansi-tokenize/900f19ac5e16ab31633b10d5b46ab58b7af6273b/LICENSE",
+    "gitBlob": "bdcc49c8e64360f4dbdf85bcc7d688b5a4135906",
+    "role": "later official add-missing-LICENSE supplement, NOT text shipped with 0.1.3; version-specific grant remains unresolved"
+  },
+  {
+    "id": "source:libvips",
+    "version": "8.17.3",
+    "license": "LGPL-2.1",
+    "url": "https://raw.githubusercontent.com/libvips/libvips/0c9151a4f416d2f8ae20a755db218f6637050eec/LICENSE",
+    "gitBlob": "4362b49151d7b34ef83b3067a8f9c9f877d72a0e",
+    "role": "exact libvips source terms; binary distributor uses applicable or-later clause for LGPLv3"
+  },
+  {
+    "id": "inventory:sharp-libvips",
+    "version": "1.2.4",
+    "license": "multiple; not a replacement for license texts",
+    "url": "https://raw.githubusercontent.com/lovell/sharp-libvips/20b5e899954907a3039d6e3d4c200aaa0ec52c4c/THIRD-PARTY-NOTICES.md",
+    "gitBlob": "7b794812a9a32a2f4b7c1535c9b89a90b613dd7f",
+    "role": "official component license table, NOT complete third-party license texts"
+  },
+  {
+    "id": "versions:sharp-libvips",
+    "version": "1.2.4",
+    "license": "component version metadata only",
+    "url": "https://raw.githubusercontent.com/lovell/sharp-libvips/20b5e899954907a3039d6e3d4c200aaa0ec52c4c/versions.properties",
+    "role": "exact wrapper-tag dependency versions; not proof of the packaged linked set"
+  },
+  {
+    "id": "source:skia",
+    "version": "1fdbea293a53b270e3f5e74c92cc6670d68412ff",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/google/skia/1fdbea293a53b270e3f5e74c92cc6670d68412ff/LICENSE",
+    "gitBlob": "e32636d5668d51ca7a938ae6cef93c795c656d7c",
+    "role": "Skia gitlink source LICENSE for canvas 0.1.80; vendored/actual binary coverage remains unresolved"
+  },
+  {
+    "id": "attribution:skia",
+    "version": "1fdbea293a53b270e3f5e74c92cc6670d68412ff",
+    "license": "author attribution",
+    "url": "https://raw.githubusercontent.com/google/skia/1fdbea293a53b270e3f5e74c92cc6670d68412ff/AUTHORS",
+    "gitBlob": "979766465b67ec2175015fac89cef8ddbf641978",
+    "role": "original Skia contributors, not an invented wrapper copyright"
+  }
+]

@@ -1,0 +1,139 @@
+{
+  "base": "30b9fb240fabd3946f19f44bb7df86ac71bbabbe",
+  "expected": [
+    ".mcp.json",
+    "AUDIO_RELIABILITY_REPORT.md",
+    "AUDIT.md",
+    "CROSS_PLATFORM_AUDIT.md",
+    "CROSS_PLATFORM_REVIEW.md",
+    "QA_REPORT.md",
+    "QAautomationprompt.md",
+    "ROADMAP.md",
+    "TOFIX.MD",
+    "apple-signing-report.md",
+    "changes.md",
+    "cluelyresearch.md",
+    "comparisonreport.md",
+    "fixreport.md",
+    "promptfix.md",
+    "refund.md",
+    "report.md",
+    "termsandcondition.md",
+    "tinypromptsreport.md",
+    "visionpipelineresearch.md",
+    "visionupgrade.md"
+  ],
+  "actual": [
+    ".mcp.json",
+    "AUDIO_RELIABILITY_REPORT.md",
+    "AUDIT.md",
+    "CROSS_PLATFORM_AUDIT.md",
+    "CROSS_PLATFORM_REVIEW.md",
+    "QA_REPORT.md",
+    "QAautomationprompt.md",
+    "ROADMAP.md",
+    "TOFIX.MD",
+    "apple-signing-report.md",
+    "changes.md",
+    "cluelyresearch.md",
+    "comparisonreport.md",
+    "fixreport.md",
+    "promptfix.md",
+    "refund.md",
+    "report.md",
+    "termsandcondition.md",
+    "tinypromptsreport.md",
+    "visionpipelineresearch.md",
+    "visionupgrade.md"
+  ],
+  "exactDeletionMatch": true,
+  "recoveryBlobs": [
+    {
+      "path": ".mcp.json",
+      "blob": "905d844840a9794b6fa1a93ca5608759c36bc29d"
+    },
+    {
+      "path": "AUDIO_RELIABILITY_REPORT.md",
+      "blob": "82d96691f688b0cc3923b7769862c32eb0dd645f"
+    },
+    {
+      "path": "AUDIT.md",
+      "blob": "0005221e83b2347c3a176187b9d605bd75672932"
+    },
+    {
+      "path": "CROSS_PLATFORM_AUDIT.md",
+      "blob": "132b02b258701420f16274831124dfcb52008cc3"
+    },
+    {
+      "path": "CROSS_PLATFORM_REVIEW.md",
+      "blob": "87b5187d193a7906a90a2c86bd5ceeec573919ad"
+    },
+    {
+      "path": "QA_REPORT.md",
+      "blob": "e7c398ce6b36c7caf5e2f92ca1e4a8d45285a9f6"
+    },
+    {
+      "path": "QAautomationprompt.md",
+      "blob": "c5773025a65b21f5fea14ec886276dc1baf8aa52"
+    },
+    {
+      "path": "ROADMAP.md",
+      "blob": "beb363859c91809625275a0c13feb732dc883b84"
+    },
+    {
+      "path": "TOFIX.MD",
+      "blob": "66cbbc786bca56c500882c95a24d33bed63e06a3"
+    },
+    {
+      "path": "apple-signing-report.md",
+      "blob": "7bc953c7ded21f1c10b6301bfb3edff179c0cfe8"
+    },
+    {
+      "path": "changes.md",
+      "blob": "13047adf244e42e3eeec00361e31eff6c9b0e334"
+    },
+    {
+      "path": "cluelyresearch.md",
+      "blob": "b18e86369d2bd75e5a621357d9266fa9422f4bde"
+    },
+    {
+      "path": "comparisonreport.md",
+      "blob": "bdf439c4603b8101978b8626813f5ee4ad936687"
+    },
+    {
+      "path": "fixreport.md",
+      "blob": "326039f8f60c9fa68c554ff7bd8511e08d9ea7ab"
+    },
+    {
+      "path": "promptfix.md",
+      "blob": "8fe1aba8dfff40ba987f27f758688ae96e1ba4ec"
+    },
+    {
+      "path": "refund.md",
+      "blob": "d0f3250d638de93faf7f405b3c2a877ab81ed2bd"
+    },
+    {
+      "path": "report.md",
+      "blob": "925429251a7077c6511d706fdc49a789eea85bb9"
+    },
+    {
+      "path": "termsandcondition.md",
+      "blob": "595c9d94e8f6176b7af09c16ed9bc262e731caf8"
+    },
+    {
+      "path": "tinypromptsreport.md",
+      "blob": "6196257432fd11b8614d7c2fc2af8fe35dc5eff6"
+    },
+    {
+      "path": "visionpipelineresearch.md",
+      "blob": "889987f9b7177ce3d8b4fc2f95ac29adc0b4d610"
+    },
+    {
+      "path": "visionupgrade.md",
+      "blob": "2357b7ce9b404fee042586e40243bf45b97b3a3d"
+    }
+  ],
+  "unchangedLicense": true,
+  "unchangedChangelog": true,
+  "mcpContentsRead": false
+}

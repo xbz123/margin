@@ -1,114 +1,56 @@
-# Contributing to Natively
+# Contributing to Margin
 
-First off, thank you for considering contributing to Natively! It's people like you that make Natively such a great tool.
+Keep changes scoped. Explain the observable behavior, boundary and checks
+actually run. Preserve unrelated edits. Do not commit recordings, datasets,
+credentials, models, build directories or machine-specific configuration.
 
-Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
+## Provenance
 
-## Table of Contents
+Application source is AGPL-3.0-only. Read [BASELINE](docs/margin/BASELINE.md),
+[ADAPTATION](docs/margin/ADAPTATION.md) and [PROVENANCE](docs/margin/PROVENANCE.md)
+before imports. Later upstream code or an older personal branch is not an
+automatically approved source. Renaming copied code proves no license right.
+Record the exact reference, path, license and applicable approval. Third-party
+components retain their own original license and copyright notices.
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Enhancements](#suggesting-enhancements)
-  - [Pull Requests](#pull-requests)
-- [Development Workflow](#development-workflow)
-  - [Prerequisites](#prerequisites)
-  - [Local Development](#local-development)
-  - [Architecture Overview](#architecture-overview)
-- [Styleguides](#styleguides)
-  - [Git Commit Messages](#git-commit-messages)
+## Development safety
 
-## Code of Conduct
+Use locked dependencies and install without lifecycle scripts. Do not repair
+unrelated dependencies, change global configuration or rebuild native code as
+an incidental check. Native modules need their own toolchain and build
+provenance; JS success is not clean native or Windows/Linux acceptance.
 
-This project and everyone participating in it is governed by the [Natively Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to evinjohnn@gmail.com.
+Run executable tests through `scripts/margin/isolation/run-node.mjs`. It uses a
+temporary profile, clears provider credentials and records blocked access.
+Grant only exact needed local executables. Electron tests must retain fake
+credentials, synthetic content, mock devices/keychain and loopback transports.
 
-## How Can I Contribute?
+```sh
+node scripts/build-electron.js
+npx vite build
+node scripts/margin/isolation/run-node.mjs --allow-exec Electron \
+  --test --test-timeout=180000 tests/margin/answer-regression.test.mjs
+node scripts/margin/run-gates.mjs --out <new-evidence-directory> --ref <verified-reference>
+git diff --check
+```
 
-### Reporting Bugs
+Keep implementation, synthetic checks, full gates, fresh CI, package inspection,
+real-service/device tests and independent review separate. State deferred cases
+and excluded platforms. Older CI cannot validate new code.
 
-Before creating bug reports, please check the issue tracker as you might find out that you don't need to create one. When you are creating a bug report, please include as many details as possible:
+## License inventory
 
-- Use a clear and descriptive title for the issue to identify the problem.
-- Describe the exact steps which reproduce the problem in as many details as possible.
-- Provide specific examples to demonstrate the steps.
-- Describe the behavior you observed after following the steps and point out what exactly is the problem with that behavior.
-- Explain which behavior you expected to see instead and why.
-- Include screenshots and animated GIFs which show you following the described steps and clearly demonstrate the problem.
-- Specify your OS version.
-- Specify your Node/Npm versions.
+`scripts/margin/collect-licenses.mjs` reads original local notices from installed
+lock candidates, dependencies embedded in main-bundle source maps and an
+existing Cargo registry cache. It installs nothing and does not build native
+code. `--fetch-missing` retrieves only licensing material and version metadata
+from official references; `--github-via-gh` can use an existing GitHub session
+for public read-only metadata without printing credentials.
 
-### Suggesting Enhancements
-
-Enhancement suggestions are tracked as GitHub issues. When you are creating an enhancement suggestion, please include:
-
-- Use a clear and descriptive title for the issue to identify the suggestion.
-- Provide a step-by-step description of the suggested enhancement in as many details as possible.
-- Provide specific examples to demonstrate the steps.
-- Describe the current behavior and explain which behavior you expected to see instead and why.
-- Explain why this enhancement would be useful to most Natively users.
-
-### Pull Requests
-
-- Fill in the required template
-- Do not include issue numbers in the PR title
-- Include screenshots and animated GIFs in your pull request whenever possible.
-- Follow the TypeScript and React styleguides.
-- Document new code based on the Documentation Styleguide.
-- End all files with a newline.
-
-## Development Workflow
-
-### Prerequisites
-
-- Node.js (v20+ recommended)
-- Git
-- Rust (required for native audio capture compilation)
-
-### Local Development
-
-1. Fork the repo and create your branch from `main`.
-2. Clone your fork locally: `git clone https://github.com/YOUR_USERNAME/natively-cluely-ai-assistant.git`
-3. Install dependencies: `npm install`
-4. Set up your `.env` file (refer to the README for template).
-5. Start the development server: `npm start`
-
-If you've added code that should be tested, add tests.
-If you've changed APIs, update the documentation.
-Ensure the test suite passes.
-
-### Architecture Overview
-
-Natively uses a modern stack consisting of:
-
-- **Frontend**: React, Vite, TypeScript, TailwindCSS
-- **Backend/Desktop**: Electron
-- **Native Audio**: Rust (`napi-rs` for zero-copy ABI transfers)
-- **Database**: SQLite (local storage with `sqlite-vec` for RAG)
-
-When contributing, ensure you understand which context (Main Process, Renderer Process, or Native/Rust addon) your code will run in, and use the IPC correctly for communication.
-
-## Styleguides
-
-### Git Commit Messages
-
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- Limit the first line to 72 characters or less
-- Reference issues and pull requests liberally after the first line
-- Consider starting the commit message with an applicable emoji:
-  - 🎨 `:art:` when improving the format/structure of the code
-  - 🐎 `:racehorse:` when improving performance
-  - 🚱 `:non-potable_water:` when plugging memory leaks
-  - 📝 `:memo:` when writing docs
-  - 🐧 `:penguin:` when fixing something on Linux
-  - 🍎 `:apple:` when fixing something on macOS
-  - 🏁 `:checkered_flag:` when fixing something on Windows
-  - 🐛 `:bug:` when fixing a bug
-  - 🔥 `:fire:` when removing code or files
-  - 💚 `:green_heart:` when fixing the CI build
-  - ✅ `:white_check_mark:` when adding tests
-  - 🔒 `:lock:` when dealing with security
-  - ⬆️ `:arrow_up:` when upgrading dependencies
-  - ⬇️ `:arrow_down:` when downgrading dependencies
-
-Thank you for contributing to Natively!
+Review `licenses/manifest.json` unresolved entries. SPDX fields do not solve
+missing texts, native vendored components, multi-license choices or copyleft
+source/relinking obligations. See [licenses/README](licenses/README.md).
+Packaging must retain LICENSE, NOTICE, the inventory/texts and full fixed-version
+Electron/Chromium notices; the package hook checks hashes. Actual asar, unpacked
+libraries, Resources and Frameworks still require complete artifact-to-inventory
+comparison before claiming distribution compliance.

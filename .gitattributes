@@ -30,3 +30,6 @@
 # Raw gate output kept unedited as evidence (docs/margin/evidence/README.md)
 docs/margin/evidence/** -whitespace
 docs/margin/evidence/README.md whitespace
+
+# Third-party notice bytes are hash-verified originals, including their whitespace.
+licenses/texts/*.txt -text -whitespace

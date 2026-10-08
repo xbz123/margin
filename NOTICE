@@ -1,0 +1,30 @@
+Margin
+
+This application derives from Natively at the documented AGPLv3 baseline
+a786910e33767a00116a519a3009ec14db812123. Upstream copyright statements remain
+with their original holders. LICENSE is GNU Affero General Public License
+version 3; application license metadata is AGPL-3.0-only. No separate MIT
+authorization for the application is asserted.
+
+Natively identifies free-cluely as an upstream source. The free-cluely license
+at Prat011/free-cluely commit 0ba93eff is Apache-2.0; its original full text and
+attribution are retained in licenses with exact source and hash. This does not
+establish that every application file came from that repository or change the
+application's AGPL license.
+
+Modifications include application identity/assets; retirement of commercial,
+retrieval and update integrations; credential transactions; application logging
+privacy; outbound purposes, destinations and data scopes; speech revocation;
+safe Markdown rendering; and synthetic isolation/regression checks. Git history
+and docs/margin/PROVENANCE.md record their scope and sources. No verified
+clean-room or broader security claim is asserted.
+
+Third-party packages, native libraries, fonts and icons retain their own
+licenses. licenses/manifest.json records versions, original sources and hashes.
+Full fixed-version Electron/Chromium notices are copied into licenses/electron
+inside packaged Resources and hash-checked, not replaced by an MIT summary.
+Inter 4.1 retains SIL OFL; React Icons retains package/icon-set notices.
+
+Candidate coverage is not proof of the actual distributed set or fulfillment of
+copyleft corresponding-source/relinking obligations. licenses/README.md records
+the remaining distribution-review boundary.

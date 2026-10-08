@@ -30,7 +30,7 @@
     "doctor": "npx react-doctor@latest"
   },
   "build": {
-    "afterPack": "./scripts/ad-hoc-sign.js",
+    "afterPack": "./scripts/margin/license-bundle.cjs",
     "files": [
       "dist",
       "dist-electron",
@@ -57,6 +57,26 @@
       {
         "from": "assets/margin.icns",
         "to": "margin.icns"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "NOTICE",
+        "to": "NOTICE"
+      },
+      {
+        "from": "licenses/",
+        "to": "licenses/"
+      },
+      {
+        "from": "node_modules/electron/dist/LICENSE",
+        "to": "licenses/electron/LICENSE"
+      },
+      {
+        "from": "node_modules/electron/dist/LICENSES.chromium.html",
+        "to": "licenses/electron/LICENSES.chromium.html"
       }
     ],
     "mac": {
@@ -129,7 +149,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",
     "@napi-rs/cli": "^3.5.1",

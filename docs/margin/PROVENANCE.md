@@ -21,6 +21,114 @@ Notes:
 
 ## Ledger
 
+The S17 early AG-25 package diagnostic (`scripts/margin/package-inventory.cjs`,
+its separate builder config and `packageInventory.test.mjs`) is written on this
+branch from the approved actual-package inventory contract, Node standard-library
+APIs and the already installed `@electron/asar` list/stat/read API. The existing
+Margin workflow gains manual opt-in and an explicit gate-reference input; ordinary
+runs do not package. Only GitHub Actions macOS arm64 may rebuild the temp identity
+from empty generated directories and form a `--dir --publish never` bundle in a
+dedicated runner temporary directory. Normal Vite build settings are retained;
+extra renderer source maps are not generated or added to the package for diagnosis.
+The independent diagnostic hook records the unchanged normal license verifier's
+actual result, inventories the formed asar/unpacked/Resources/Frameworks tree, and
+throws a unique receipt before any signing or publishing. Only a complete receipt
+and that exact nonzero builder stop count as successful evidence collection, never
+as package acceptance. Missing metadata/maps retain unknown component status;
+dynamic-link inspection does not establish native static vendor composition.
+Missing renderer maps are a documented evidence blind spot, not proof of absence.
+Failures retain diagnostic JSON/logs where available. A separate text allowlist
+check precedes five exact report uploads; no app, archive, source-map contents,
+native binary or normal native-module artifact is uploaded in diagnostic mode.
+This does not implement or pass the full AG-25 signing, launch or joint acceptance
+contract, and does not resolve AG-26's outstanding license obligations.
+The initial diagnostic source scan retained ten matches for eight generic lines:
+`if (explicit) {`, `if-no-files-found: warn`, fixture parent-directory creation,
+CommonJS repository-root resolution, SHA-256 initialization, `entries.push(entry);`,
+the missing-directory early return, and `async function run() {`. These are the
+standard operations in this independently written diagnostic and workflow.
+Only their exact lines were allowlisted; no source pool or excluded path changed.
+
+AG-26's notice collector, package-byte checker, synthetic tests and rewritten
+public documents are written for this branch from PLAN's license/documentation
+contract and Node standard-library APIs. They import no later application
+implementation. License texts retain their package/cache origins or official
+immutable references in `licenses/manifest.json`; they are third-party licensing
+material, not newly authored application code. Candidate coverage is kept
+separate from the actual packaged set and from copyleft source/relinking duties.
+Electron's full installed-version notices are copied through `extraResources`
+and verified inside Resources before the existing signing hook runs, without
+checking the large Chromium file into this repository. This byte check does not
+fix or endorse the existing signing behavior, which remains a separate ticket.
+The first AG-26 scanner run matched retained standard MIT terms. Fourteen exact
+license clauses were reviewed against installed `retry@0.12.0` and
+`better-sqlite3@12.11.1` license texts (SHA-256
+`01ad164273e8e095abc9dbd1c21e194594a671af7d528cb43ee7b4c903ba7da3` and
+`09856b52897c91ab67e7456ef43067019f31dfd3b87fda72e655736b1ebdee55`).
+Only the exact reviewed clauses were allowlisted. Three separate generic
+matches are the public heading `## Provenance`, the documented existing command
+`node scripts/build-electron.js`, and `return found;` returning the collector's
+local set. No source pool or path exclusion was broadened.
+The final source scan found three additional generic lines: the synthetic test's
+`fs.mkdirSync(path.dirname(destination), { recursive: true });`, `await sleep(1000);`
+in the original `agent-base@6.0.2` README, and `## Installation` in the original
+`isarray@1.0.0` README. The two full READMEs preserve embedded MIT attribution;
+their source bytes match inventory hashes `f1425c3b72330fe4fb2aa5a2fb152e939bdf534692a32b5f0b38f74147b98556`
+and `ff138e683771b187f3629c383db72ee7d632009010a36d08e18e8d2a34222ec7`.
+Only those three exact generic lines were additionally allowlisted.
+The exact `licenses/texts/*.txt` Git attributes disable text conversion and
+whitespace rewriting for the retained third-party bytes. CRLF and original
+trailing spaces remain part of their hashes; ordinary code whitespace checks
+are unchanged. Five obsolete collector-generated text hashes, proven absent
+from the final manifest references, were removed individually before packaging
+configuration was frozen. No arbitrary notice or user artifact was cleaned.
+`license-sources.json` separately records the original free-cluely Apache text,
+the installed protobuf Google BSD header, authoritative BlueOak terms, libvips
+source terms/version metadata, canonical LGPLv3 plus its GPLv3 companion from a
+fixed official SPDX commit, and the exact canvas Skia-gitlink LICENSE/AUTHORS.
+The later ansi-tokenize add-missing-LICENSE is explicitly supplemental, not
+represented as part of the installed 0.1.3 release. Missing exact-version texts
+and native distribution obligations remain unresolved and block completeness.
+An offline replay exposed a collector cache mismatch for `cidre-macros`: its
+cached manifest omits repository metadata while the previously checked official
+source is `yury/cidre`. The reviewed fixed repository mappings now apply before
+both collection and cache comparison. A synthetic missing-repository replay
+failed before that change and passes afterwards, retaining version/checksum,
+exact source URL, SHA-256 and Git-blob checks rather than weakening reuse.
+
+### AG-26 authorized removals
+
+Only the following PLAN-listed tracked files are removed. Each entry was checked
+against the index before deletion and can be recovered from commit
+`a623e3f79cbb31b6461eb43e7c3e386b8c99dd11` using its exact path. The `.mcp.json`
+entry was inventoried by metadata only; its contents were not read or printed.
+`CHANGELOG.md` and root `LICENSE` are preserved. No model, user data, credentials,
+training output or unlisted file is removed.
+
+| Path | Previous Git blob |
+| --- | --- |
+| `AUDIO_RELIABILITY_REPORT.md` | `82d96691f688b0cc3923b7769862c32eb0dd645f` |
+| `AUDIT.md` | `0005221e83b2347c3a176187b9d605bd75672932` |
+| `CROSS_PLATFORM_AUDIT.md` | `132b02b258701420f16274831124dfcb52008cc3` |
+| `CROSS_PLATFORM_REVIEW.md` | `87b5187d193a7906a90a2c86bd5ceeec573919ad` |
+| `QA_REPORT.md` | `e7c398ce6b36c7caf5e2f92ca1e4a8d45285a9f6` |
+| `QAautomationprompt.md` | `c5773025a65b21f5fea14ec886276dc1baf8aa52` |
+| `TOFIX.MD` | `66cbbc786bca56c500882c95a24d33bed63e06a3` |
+| `apple-signing-report.md` | `7bc953c7ded21f1c10b6301bfb3edff179c0cfe8` |
+| `changes.md` | `13047adf244e42e3eeec00361e31eff6c9b0e334` |
+| `cluelyresearch.md` | `b18e86369d2bd75e5a621357d9266fa9422f4bde` |
+| `comparisonreport.md` | `bdf439c4603b8101978b8626813f5ee4ad936687` |
+| `fixreport.md` | `326039f8f60c9fa68c554ff7bd8511e08d9ea7ab` |
+| `promptfix.md` | `8fe1aba8dfff40ba987f27f758688ae96e1ba4ec` |
+| `report.md` | `925429251a7077c6511d706fdc49a789eea85bb9` |
+| `tinypromptsreport.md` | `6196257432fd11b8614d7c2fc2af8fe35dc5eff6` |
+| `visionpipelineresearch.md` | `889987f9b7177ce3d8b4fc2f95ac29adc0b4d610` |
+| `visionupgrade.md` | `2357b7ce9b404fee042586e40243bf45b97b3a3d` |
+| `refund.md` | `d0f3250d638de93faf7f405b3c2a877ab81ed2bd` |
+| `termsandcondition.md` | `595c9d94e8f6176b7af09c16ed9bc262e731caf8` |
+| `ROADMAP.md` | `beb363859c91809625275a0c13feb732dc883b84` |
+| `.mcp.json` | `905d844840a9794b6fa1a93ca5608759c36bc29d` |
+
 AG-24's outbound boundary, STT revocation distinction, Markdown image rejection,
 endpoint inventory and synthetic behavior tests are written for this branch from
 PLAN's requirements and the installed libraries' public interfaces. No later
