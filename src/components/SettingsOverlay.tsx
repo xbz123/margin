@@ -1,4 +1,5 @@
 import { APP_NAME } from '../appIdentity';
+import type { CredentialSaveResult } from '../types/credentialSave';
 import React, { useState, useEffect, useMemo } from 'react';
 import packageJson from '../../package.json';
 import {
@@ -489,6 +490,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
     // AI Response Language
     const [aiResponseLanguage, setAiResponseLanguage] = useState('English');
+    const [credentialNotice, setCredentialNotice] = useState('');
     const [availableAiLanguages, setAvailableAiLanguages] = useState<any[]>([]);
 
     // Overlay Opacity state
@@ -665,7 +667,18 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
                     // Save the auto-detected default
                     if (window.electronAPI?.setRecognitionLanguage) {
-                        window.electronAPI.setRecognitionLanguage(currentLangKey);
+                        try {
+                            const result = await window.electronAPI.setRecognitionLanguage(currentLangKey);
+                            if (!result.ok) {
+                                setCredentialNotice(result.message);
+                                currentLangKey = storedStt;
+                            } else {
+                                setCredentialNotice(result.warning || '');
+                            }
+                        } catch {
+                            setCredentialNotice('The detected recognition language could not be saved.');
+                            currentLangKey = storedStt;
+                        }
                     }
                 }
 
@@ -699,18 +712,23 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     }, []);
 
     const handleLanguageChange = async (key: string) => {
-        setRecognitionLanguage(key);
-        setAutoDetectedLanguage(null);  // always reset — new session may detect a different language
-        if (availableLanguages[key]) {
-            setSelectedSttGroup(availableLanguages[key].group);
-        }
-        if (window.electronAPI?.setRecognitionLanguage) {
-            await window.electronAPI.setRecognitionLanguage(key);
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.setRecognitionLanguage(key);
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The recognition language could not be saved.');
+                return;
+            }
+            setRecognitionLanguage(key);
+            setAutoDetectedLanguage(null);
+            if (availableLanguages[key]) setSelectedSttGroup(availableLanguages[key].group);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The recognition language could not be saved.');
         }
     };
 
     const handleGroupChange = (group: string) => {
-        setSelectedSttGroup(group);
         // Find default variant for this group (first one)
         const firstVariant = Object.entries(availableLanguages).find(([_, lang]) => lang.group === group);
         if (firstVariant) {
@@ -742,21 +760,17 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
     const handleAiLanguageChange = async (key: string) => {
         if (!key) return;
-        const previous = aiResponseLanguage;
-        setAiResponseLanguage(key); // Optimistic update
+        setCredentialNotice('');
         try {
-            if (window.electronAPI?.setAiResponseLanguage) {
-                const result = await window.electronAPI.setAiResponseLanguage(key);
-                if (result && !result.success) {
-                    // Rollback on explicit failure
-                    setAiResponseLanguage(previous);
-                    console.error('[Settings] Failed to set AI response language:', result.error);
-                }
+            const result = await window.electronAPI?.setAiResponseLanguage(key);
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The AI response language could not be saved.');
+                return;
             }
-        } catch (err) {
-            // Rollback on exception
-            setAiResponseLanguage(previous);
-            console.error('[Settings] Exception setting AI response language:', err);
+            setAiResponseLanguage(key);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The AI response language could not be saved.');
         }
     };
 
@@ -931,15 +945,20 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     }, []); // mount-once: isOpen is checked inside the callback
 
     const handleSttProviderChange = async (provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => {
-        setSttProvider(provider);
         setIsSttDropdownOpen(false);
         setSttTestStatus('idle');
         setSttTestError('');
+        setCredentialNotice('');
         try {
-            // @ts-ignore
-            await window.electronAPI?.setSttProvider?.(provider);
-        } catch (e) {
-            console.error('Failed to set STT provider:', e);
+            const result = await window.electronAPI?.setSttProvider(provider);
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The STT provider could not be saved.');
+                return;
+            }
+            setSttProvider(provider);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The STT provider could not be saved.');
         }
     };
 
@@ -948,6 +967,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
         // Auto-test before saving
         setSttSaving(true);
+        setSttSaved(false);
+        setCredentialNotice('');
         setSttTestStatus('testing');
         setSttTestError('');
 
@@ -966,32 +987,40 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                 return; // Stop save
             }
 
-            // If success, proceed to save
-            setSttTestStatus('success');
-            setTimeout(() => setSttTestStatus('idle'), 3000);
+            // Connection validation is separate from persistence success.
+            let saved: CredentialSaveResult | undefined;
 
             if (provider === 'groq') {
                 // @ts-ignore
-                await window.electronAPI?.setGroqSttApiKey?.(key.trim());
+                saved = await window.electronAPI?.setGroqSttApiKey?.(key.trim());
             } else if (provider === 'openai') {
                 // @ts-ignore
-                await window.electronAPI?.setOpenAiSttApiKey?.(key.trim());
+                saved = await window.electronAPI?.setOpenAiSttApiKey?.(key.trim());
             } else if (provider === 'elevenlabs') {
                 // @ts-ignore
-                await window.electronAPI?.setElevenLabsApiKey?.(key.trim());
+                saved = await window.electronAPI?.setElevenLabsApiKey?.(key.trim());
             } else if (provider === 'azure') {
                 // @ts-ignore
-                await window.electronAPI?.setAzureApiKey?.(key.trim());
+                saved = await window.electronAPI?.setAzureApiKey?.(key.trim());
             } else if (provider === 'ibmwatson') {
                 // @ts-ignore
-                await window.electronAPI?.setIbmWatsonApiKey?.(key.trim());
+                saved = await window.electronAPI?.setIbmWatsonApiKey?.(key.trim());
             } else if (provider === 'soniox') {
                 // @ts-ignore
-                await window.electronAPI?.setSonioxApiKey?.(key.trim());
+                saved = await window.electronAPI?.setSonioxApiKey?.(key.trim());
             } else {
                 // @ts-ignore
-                await window.electronAPI?.setDeepgramApiKey?.(key.trim());
+                saved = await window.electronAPI?.setDeepgramApiKey?.(key.trim());
             }
+            if (!saved?.ok) {
+                setSttTestStatus('error');
+                setSttTestError(saved?.message || 'The API key could not be saved.');
+                setCredentialNotice(saved?.message || 'The API key could not be saved.');
+                return;
+            }
+            setSttTestStatus('success');
+            setTimeout(() => setSttTestStatus('idle'), 3000);
+            setCredentialNotice(saved.warning || '');
             if (provider === 'groq') setHasStoredSttGroqKey(true);
             else if (provider === 'openai') setHasStoredSttOpenaiKey(true);
             else if (provider === 'elevenlabs') setHasStoredElevenLabsKey(true);
@@ -1002,10 +1031,10 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
             setSttSaved(true);
             setTimeout(() => setSttSaved(false), 2000);
-        } catch (e: any) {
-            console.error(`Failed to save ${provider} STT key:`, e);
+        } catch {
             setSttTestStatus('error');
-            setSttTestError(e.message || 'Validation failed');
+            setSttTestError('The API key could not be validated or saved.');
+            setCredentialNotice('The API key could not be validated or saved.');
         } finally {
             setSttSaving(false);
         }
@@ -1013,46 +1042,113 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
     const handleRemoveSttKey = async (provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => {
         if (!confirm(`Are you sure you want to remove the ${provider === 'ibmwatson' ? 'IBM Watson' : provider.charAt(0).toUpperCase() + provider.slice(1)} API key?`)) return;
-
+        setCredentialNotice('');
         try {
+            const setters = {
+                groq: window.electronAPI?.setGroqSttApiKey,
+                openai: window.electronAPI?.setOpenAiSttApiKey,
+                deepgram: window.electronAPI?.setDeepgramApiKey,
+                elevenlabs: window.electronAPI?.setElevenLabsApiKey,
+                azure: window.electronAPI?.setAzureApiKey,
+                ibmwatson: window.electronAPI?.setIbmWatsonApiKey,
+                soniox: window.electronAPI?.setSonioxApiKey,
+            };
+            const result = await setters[provider]?.('');
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The STT key could not be removed.');
+                return;
+            }
+            setCredentialNotice(result.warning || '');
             if (provider === 'groq') {
-                // @ts-ignore
-                await window.electronAPI?.setGroqSttApiKey?.('');
                 setSttGroqKey('');
                 setHasStoredSttGroqKey(false);
             } else if (provider === 'openai') {
-                // @ts-ignore
-                await window.electronAPI?.setOpenAiSttApiKey?.('');
                 setSttOpenaiKey('');
                 setHasStoredSttOpenaiKey(false);
             } else if (provider === 'elevenlabs') {
-                // @ts-ignore
-                await window.electronAPI?.setElevenLabsApiKey?.('');
                 setSttElevenLabsKey('');
                 setHasStoredElevenLabsKey(false);
             } else if (provider === 'azure') {
-                // @ts-ignore
-                await window.electronAPI?.setAzureApiKey?.('');
                 setSttAzureKey('');
                 setHasStoredAzureKey(false);
             } else if (provider === 'ibmwatson') {
-                // @ts-ignore
-                await window.electronAPI?.setIbmWatsonApiKey?.('');
                 setSttIbmKey('');
                 setHasStoredIbmWatsonKey(false);
             } else if (provider === 'soniox') {
-                // @ts-ignore
-                await window.electronAPI?.setSonioxApiKey?.('');
                 setSttSonioxKey('');
                 setHasStoredSonioxKey(false);
             } else {
-                // @ts-ignore
-                await window.electronAPI?.setDeepgramApiKey?.('');
                 setSttDeepgramKey('');
                 setHasStoredDeepgramKey(false);
             }
-        } catch (e) {
-            console.error(`Failed to remove ${provider} STT key:`, e);
+        } catch {
+            setCredentialNotice('The STT key could not be removed. The previous key was kept.');
+        }
+    };
+
+    const handleGroqSttModelChange = async (model: string) => {
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.setGroqSttModel(model);
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The STT model could not be saved.');
+                return;
+            }
+            setGroqSttModel(model);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The STT model could not be saved.');
+        }
+    };
+
+    const handleSelectServiceAccount = async () => {
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.selectServiceAccount();
+            if (result && 'cancelled' in result) return;
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The service account path could not be saved.');
+                return;
+            }
+            setGoogleServiceAccountPath(result.path);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The service account path could not be saved.');
+        }
+    };
+
+    const handleAzureRegionSave = async () => {
+        if (!sttAzureRegion.trim()) return;
+        setSttSaved(false);
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.setAzureRegion(sttAzureRegion.trim());
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The Azure region could not be saved.');
+                return;
+            }
+            setSttSaved(true);
+            setTimeout(() => setSttSaved(false), 2000);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The Azure region could not be saved.');
+        }
+    };
+
+    const handleOpenAiSttBaseUrlSave = async () => {
+        setSttSaved(false);
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.setOpenAiSttBaseUrl(sttOpenaiBaseUrl.trim());
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The STT endpoint could not be saved.');
+                return;
+            }
+            setSttSaved(true);
+            setTimeout(() => setSttSaved(false), 2000);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The STT endpoint could not be saved.');
         }
     };
 
@@ -1326,6 +1422,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
                         {/* Content */}
                         <div className="flex-1 bg-bg-main overflow-y-auto p-8 relative">
+                            {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{credentialNotice}</p>}
                             {activeTab === 'general' && (
                                 <div className="space-y-6 animated fadeIn">
                                     <div className="space-y-3.5">
@@ -2107,15 +2204,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                         ].map((m) => (
                                                             <button
                                                                 key={m.id}
-                                                                onClick={async () => {
-                                                                    setGroqSttModel(m.id);
-                                                                    try {
-                                                                        // @ts-ignore
-                                                                        await window.electronAPI?.setGroqSttModel?.(m.id);
-                                                                    } catch (e) {
-                                                                        console.error('Failed to set Groq model:', e);
-                                                                    }
-                                                                }}
+                                                                onClick={() => handleGroqSttModelChange(m.id)}
                                                                 className={`rounded-lg px-3 py-2.5 text-left transition-all duration-200 ease-in-out active:scale-[0.98] ${groqSttModel === m.id
                                                                     ? 'bg-blue-600 text-white shadow-md'
                                                                     : 'bg-bg-input hover:bg-bg-elevated text-text-primary'
@@ -2141,13 +2230,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                                 : <span className="text-text-tertiary italic">No file selected</span>}
                                                         </div>
                                                         <button
-                                                            onClick={async () => {
-                                                                // @ts-ignore
-                                                                const result = await window.electronAPI?.selectServiceAccount?.();
-                                                                if (result?.success && result.path) {
-                                                                    setGoogleServiceAccountPath(result.path);
-                                                                }
-                                                            }}
+                                                            onClick={handleSelectServiceAccount}
                                                             className="px-3 py-2 bg-bg-input hover:bg-bg-elevated border border-border-subtle rounded-lg text-xs font-medium text-text-primary transition-colors flex items-center gap-2"
                                                         >
                                                             <Upload size={14} /> Select File
@@ -2267,13 +2350,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                                     className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
                                                                 />
                                                                 <button
-                                                                    onClick={async () => {
-                                                                        if (!sttAzureRegion.trim()) return;
-                                                                        // @ts-ignore
-                                                                        await window.electronAPI?.setAzureRegion?.(sttAzureRegion.trim());
-                                                                        setSttSaved(true);
-                                                                        setTimeout(() => setSttSaved(false), 2000);
-                                                                    }}
+                                                                    onClick={handleAzureRegionSave}
                                                                     disabled={!sttAzureRegion.trim()}
                                                                     className="px-5 py-2.5 rounded-lg text-xs font-medium bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary disabled:opacity-50 transition-colors"
                                                                 >
@@ -2298,12 +2375,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                                     className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
                                                                 />
                                                                 <button
-                                                                    onClick={async () => {
-                                                                        // @ts-ignore
-                                                                        await window.electronAPI?.setOpenAiSttBaseUrl?.(sttOpenaiBaseUrl.trim());
-                                                                        setSttSaved(true);
-                                                                        setTimeout(() => setSttSaved(false), 2000);
-                                                                    }}
+                                                                    onClick={handleOpenAiSttBaseUrlSave}
                                                                     className="px-5 py-2.5 rounded-lg text-xs font-medium bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary transition-colors"
                                                                 >
                                                                     Save

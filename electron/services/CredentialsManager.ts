@@ -6,6 +6,8 @@
 import { app, safeStorage } from 'electron';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
+import type { CredentialSaveResult } from '../../src/types/credentialSave';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
@@ -45,6 +47,10 @@ export interface StoredCredentials {
 export class CredentialsManager {
     private static instance: CredentialsManager;
     private credentials: StoredCredentials = {};
+    // An unread existing ciphertext must never be replaced by a partial new state.
+    private loadFailure: Extract<CredentialSaveResult, { ok: false }> | undefined = {
+        ok: false, code: 'decrypt_failed', message: 'Credentials have not been loaded. Restart the application before saving.',
+    };
 
     private constructor() {
         // Load on construction after app ready
@@ -61,9 +67,8 @@ export class CredentialsManager {
      * Initialize - load credentials from disk
      * Must be called after app.whenReady()
      */
-    public init(): void {
-        this.loadCredentials();
-        console.log('[CredentialsManager] Initialized');
+    public init(): CredentialSaveResult {
+        return this.loadCredentials();
     }
 
     // =========================================================================
@@ -184,133 +189,91 @@ export class CredentialsManager {
     // Setters (auto-save)
     // =========================================================================
 
-    public setGeminiApiKey(key: string): void {
-        this.credentials.geminiApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Gemini API Key updated');
+    public setGeminiApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ geminiApiKey: key });
     }
 
-    public setGroqApiKey(key: string): void {
-        this.credentials.groqApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Groq API Key updated');
+    public setGroqApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ groqApiKey: key });
     }
 
-    public setOpenaiApiKey(key: string): void {
-        this.credentials.openaiApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] OpenAI API Key updated');
+    public setOpenaiApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ openaiApiKey: key });
     }
 
-    public setClaudeApiKey(key: string): void {
-        this.credentials.claudeApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Claude API Key updated');
+    public setClaudeApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ claudeApiKey: key });
     }
 
-    public setDeepseekApiKey(key: string): void {
+    public setDeepseekApiKey(key: string): CredentialSaveResult {
         const trimmed = key.trim();
-        this.credentials.deepseekApiKey = trimmed || undefined;
-        this.saveCredentials();
-        console.log('[CredentialsManager] DeepSeek API Key updated');
+        return this.saveCredentials({ deepseekApiKey: trimmed || undefined });
     }
 
-    public setGoogleServiceAccountPath(filePath: string): void {
-        this.credentials.googleServiceAccountPath = filePath;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Google Service Account path updated');
+    public setGoogleServiceAccountPath(filePath: string): CredentialSaveResult {
+        return this.saveCredentials({ googleServiceAccountPath: filePath });
     }
 
-    public setSttProvider(provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'): void {
-        this.credentials.sttProvider = provider;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] STT Provider set to: ${provider}`);
+    public setSttProvider(provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'): CredentialSaveResult {
+        return this.saveCredentials({ sttProvider: provider });
     }
 
-    public setDeepgramApiKey(key: string): void {
-        this.credentials.deepgramApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Deepgram API Key updated');
+    public setDeepgramApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ deepgramApiKey: key });
     }
 
-    public setGroqSttApiKey(key: string): void {
-        this.credentials.groqSttApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Groq STT API Key updated');
+    public setGroqSttApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ groqSttApiKey: key });
     }
 
-    public setOpenAiSttApiKey(key: string): void {
-        this.credentials.openAiSttApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] OpenAI STT API Key updated');
+    public setOpenAiSttApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ openAiSttApiKey: key });
     }
 
-    public setOpenAiSttBaseUrl(url: string): void {
+    public setOpenAiSttBaseUrl(url: string): CredentialSaveResult {
         // Store undefined (not empty string) when clearing, so callers can fall back
         // to the default api.openai.com endpoint with a simple truthiness check.
         const trimmed = url.trim();
-        this.credentials.openAiSttBaseUrl = trimmed || undefined;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] OpenAI STT Base URL set to: ${trimmed || '(default)'}`);
+        return this.saveCredentials({ openAiSttBaseUrl: trimmed || undefined });
     }
 
-    public setGroqSttModel(model: string): void {
-        this.credentials.groqSttModel = model;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Groq STT Model set to: ${model}`);
+    public setGroqSttModel(model: string): CredentialSaveResult {
+        return this.saveCredentials({ groqSttModel: model });
     }
 
-    public setElevenLabsApiKey(key: string): void {
-        this.credentials.elevenLabsApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] ElevenLabs API Key updated');
+    public setElevenLabsApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ elevenLabsApiKey: key });
     }
 
-    public setAzureApiKey(key: string): void {
-        this.credentials.azureApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Azure API Key updated');
+    public setAzureApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ azureApiKey: key });
     }
 
-    public setAzureRegion(region: string): void {
-        this.credentials.azureRegion = region;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Azure Region set to: ${region}`);
+    public setAzureRegion(region: string): CredentialSaveResult {
+        return this.saveCredentials({ azureRegion: region });
     }
 
-    public setIbmWatsonApiKey(key: string): void {
-        this.credentials.ibmWatsonApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] IBM Watson API Key updated');
+    public setIbmWatsonApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ ibmWatsonApiKey: key });
     }
 
-    public setIbmWatsonRegion(region: string): void {
-        this.credentials.ibmWatsonRegion = region;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] IBM Watson Region set to: ${region}`);
+    public setIbmWatsonRegion(region: string): CredentialSaveResult {
+        return this.saveCredentials({ ibmWatsonRegion: region });
     }
 
-    public setSonioxApiKey(key: string): void {
-        this.credentials.sonioxApiKey = key;
-        this.saveCredentials();
-        console.log('[CredentialsManager] Soniox API Key updated');
+    public setSonioxApiKey(key: string): CredentialSaveResult {
+        return this.saveCredentials({ sonioxApiKey: key });
     }
 
-    public setSttLanguage(language: string): void {
-        this.credentials.sttLanguage = language;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] STT Language set to: ${language}`);
+    public setSttLanguage(language: string): CredentialSaveResult {
+        return this.saveCredentials({ sttLanguage: language });
     }
 
-    public setAiResponseLanguage(language: string): void {
-        this.credentials.aiResponseLanguage = language;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] AI Response Language set to: ${language}`);
+    public setAiResponseLanguage(language: string): CredentialSaveResult {
+        return this.saveCredentials({ aiResponseLanguage: language });
     }
-    public setDefaultModel(model: string): void {
-        this.credentials.defaultModel = model;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] Default Model set to: ${model}`);
+    public setDefaultModel(model: string): CredentialSaveResult {
+        return this.saveCredentials({ defaultModel: model });
     }
 
     public getPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek'): string | undefined {
@@ -318,11 +281,9 @@ export class CredentialsManager {
         return this.credentials[key] as string | undefined;
     }
 
-    public setPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string): void {
+    public setPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string): CredentialSaveResult {
         const key = `${provider}PreferredModel` as keyof StoredCredentials;
-        (this.credentials as any)[key] = modelId;
-        this.saveCredentials();
-        console.log(`[CredentialsManager] ${provider} preferred model set to: ${modelId}`);
+        return this.saveCredentials({ [key]: modelId });
     }
 
     public clearAll(): void {
@@ -357,74 +318,73 @@ export class CredentialsManager {
     // Storage (Encrypted)
     // =========================================================================
 
-    private saveCredentials(): void {
+    private saveCredentials(patch: Partial<StoredCredentials>): CredentialSaveResult {
+        if (this.loadFailure) return this.loadFailure;
+        let tmpEnc: string | undefined;
+        let tempWritten = false;
         try {
             if (!safeStorage.isEncryptionAvailable()) {
-                console.warn('[CredentialsManager] Encryption not available; credentials kept in memory only');
-                return;
+                return { ok: false, code: 'encryption_unavailable', message: 'Secure storage is unavailable. Credentials were not saved.' };
             }
-
-            const data = JSON.stringify(this.credentials);
-            const encrypted = safeStorage.encryptString(data);
-            const tmpEnc = CREDENTIALS_PATH + '.tmp';
-            fs.writeFileSync(tmpEnc, encrypted);
+            const candidate = { ...this.credentials, ...patch };
+            const encrypted = safeStorage.encryptString(JSON.stringify(candidate));
+            tmpEnc = `${CREDENTIALS_PATH}.${randomUUID()}.tmp`;
+            fs.writeFileSync(tmpEnc, encrypted, { mode: 0o600, flag: 'wx' });
+            tempWritten = true;
             fs.renameSync(tmpEnc, CREDENTIALS_PATH);
+            this.credentials = candidate;
+            return { ok: true };
         } catch (error) {
-            console.error('[CredentialsManager] Failed to save credentials:', error);
+            // An exclusive-create collision does not give us ownership of that file.
+            if (!tempWritten && (error as NodeJS.ErrnoException)?.code === 'EEXIST') tmpEnc = undefined;
+            return { ok: false, code: 'write_failed', message: 'Credentials could not be saved. The previous credentials were kept.' };
+        } finally {
+            if (tmpEnc) {
+                try {
+                    if (fs.existsSync(tmpEnc)) fs.unlinkSync(tmpEnc);
+                } catch {
+                    console.warn('[CredentialsManager] Could not remove the temporary encrypted file');
+                }
+            }
         }
     }
 
-    private loadCredentials(): void {
+    private loadCredentials(): CredentialSaveResult {
         try {
-            // Try encrypted file first
             if (fs.existsSync(CREDENTIALS_PATH)) {
                 if (!safeStorage.isEncryptionAvailable()) {
-                    console.warn('[CredentialsManager] Encryption not available for load');
-                    return;
+                    this.scrubMemory();
+                    this.loadFailure = { ok: false, code: 'encryption_unavailable', message: 'Secure storage is unavailable. Existing credentials were kept on disk; restart after restoring secure storage.' };
+                    return this.loadFailure;
                 }
 
                 const encrypted = fs.readFileSync(CREDENTIALS_PATH);
                 const decrypted = safeStorage.decryptString(encrypted);
-                try {
-                    const parsed = JSON.parse(decrypted);
-                    if (typeof parsed === 'object' && parsed !== null) {
-                        this.credentials = parsed;
-                        console.log('[CredentialsManager] Loaded encrypted credentials');
-                    } else {
-                        throw new Error('Decrypted credentials is not a valid object');
-                    }
-                } catch (parseError) {
-                    console.error('[CredentialsManager] Failed to parse decrypted credentials — file may be corrupted. Starting fresh:', parseError);
-                    this.credentials = {};
+                const parsed = JSON.parse(decrypted);
+                if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+                    throw new Error('Invalid credentials object');
                 }
-
-                // Clean up any leftover plaintext fallback file to eliminate the data leak
-                const plaintextPath = CREDENTIALS_PATH + '.json';
-                if (fs.existsSync(plaintextPath)) {
-                    try {
-                        fs.unlinkSync(plaintextPath);
-                        console.log('[CredentialsManager] Removed stale plaintext credential file');
-                    } catch (cleanupErr) {
-                        console.warn('[CredentialsManager] Could not remove stale plaintext file:', cleanupErr);
-                    }
-                }
-                return;
+                this.credentials = parsed;
+            } else {
+                this.credentials = {};
             }
-
+            this.loadFailure = undefined;
+            // Legacy plaintext is never read or used as a fallback.
             const plaintextPath = CREDENTIALS_PATH + '.json';
             if (fs.existsSync(plaintextPath)) {
                 try {
                     fs.unlinkSync(plaintextPath);
                     console.log('[CredentialsManager] Removed plaintext credential file');
-                } catch (cleanupErr) {
-                    console.warn('[CredentialsManager] Could not remove plaintext credential file:', cleanupErr);
+                } catch {
+                    console.warn('[CredentialsManager] Could not remove plaintext credential file');
                 }
             }
 
-            console.log('[CredentialsManager] No stored credentials found');
-        } catch (error) {
-            console.error('[CredentialsManager] Failed to load credentials:', error);
-            this.credentials = {};
+            return { ok: true };
+        } catch {
+            this.scrubMemory();
+            this.loadFailure = { ok: false, code: 'decrypt_failed', message: 'Stored credentials could not be read. The original file was kept and saving is blocked until it can be loaded.' };
+            return this.loadFailure;
         }
     }
 }

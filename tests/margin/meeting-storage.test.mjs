@@ -107,7 +107,7 @@ test('a meeting is saved with a mock summary, survives a restart, and stays dele
   assert.ok(dbPath.startsWith(sandbox.root), `database must live in the sandbox, got ${dbPath}`);
 
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
-  assert.equal(keyResult?.success, true, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
+  assert.deepEqual(keyResult, { ok: true }, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
   assert.deepEqual(await launcher.evaluate(() => window.electronAPI.getRecentMeetings()), [], 'fresh database has no meetings');
 
   // 1. Meeting with a transcript.
@@ -241,7 +241,7 @@ test('with the Transcripts data scope off, the meeting is saved and nothing is s
 test('the meeting chat follows the post_call_summary and profile_history scopes', async () => {
   let launcher = await launcherWindow();
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
-  assert.equal(keyResult?.success, true, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
+  assert.deepEqual(keyResult, { ok: true }, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
   assert.equal((await launcher.evaluate(() => window.electronAPI.startMeeting()))?.success, true);
   for (const [speaker, text] of [
     ['interviewer', 'CHAT_TRANSCRIPT one: we review the release checklist.'],
@@ -459,7 +459,7 @@ test('a meeting edit that fails to save is rolled back and reported', async () =
 test('startup recovery of an unprocessed meeting follows the profile_history scope', async () => {
   let launcher = await launcherWindow();
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
-  assert.equal(keyResult?.success, true, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
+  assert.deepEqual(keyResult, { ok: true }, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
 
   // Leaves one meeting unprocessed: the mock holds its title request, and the app is
   // closed while it waits.

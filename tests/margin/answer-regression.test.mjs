@@ -119,7 +119,7 @@ test.before(async () => {
   const launcher = await windowWithQuery(app, 'window=launcher');
   await launcher.waitForLoadState('domcontentloaded');
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_KEY);
-  assert.equal(keyResult?.success, true, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
+  assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
   await launcher.evaluate((m) => window.electronAPI.setModel(m), MODEL); // see note in PLAN.md AG-09
   const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
   assert.equal(config?.model, MODEL, `active model is ${JSON.stringify(config)}`);

@@ -45,6 +45,54 @@ Rows are added as code is brought in. "Check" is what was done to confirm the so
 | --- | --- | --- | --- | --- |
 | Whole tree at branch start | Upstream `a786910e` | AGPLv3 | [BASELINE.md](BASELINE.md) | `a786910e` |
 
+## AG-22 credential save transactions
+
+The transaction changes, shared result types, IPC result handling and renderer
+callbacks are written on this branch from PLAN's AG-22 requirements. No earlier
+Margin or restricted upstream implementation was imported. All 22 setters build
+a candidate object; memory changes only after encrypted temporary-file write and
+rename succeed. An unread existing ciphertext locks subsequent saves until a
+successful reload. Temporary paths use Node's `randomUUID`, exclusive creation
+and mode `0600`; an `EEXIST` collision never transfers ownership of that path.
+
+The existing plaintext cleanup behavior is retained, with no plaintext read or
+fallback. Independently supplied environment credentials remain an authentication
+source, not a claim that an unsuccessful opportunistic save succeeded.
+
+`src/types/credentialSave.ts` defines the saving result used by both preload type
+surfaces and all save consumers. A service-account dialog cancellation is an
+independent `{ cancelled: true }` branch. Successful selection adds `path`.
+Runtime application is attempted only after successful persistence; a failure to
+apply returns `ok: true` with a fixed, non-sensitive `warning`, not `write_failed`.
+A provider switch without a new key does not claim any credentials were saved.
+
+| Stored values / entry point | IPC and renderer callers covered |
+| --- | --- |
+| Gemini, Groq, OpenAI, Claude, DeepSeek keys (5 setters) | Five `set-*-api-key` handlers; `switch-to-gemini` with a new key; AIProvidersSettings Save/Remove and ProviderCard auto-save / save-before-Fetch |
+| Google service-account path | `select-service-account` and SettingsOverlay selection; main startup's environment-path save checks its result without disabling environment authentication |
+| STT provider; Groq/OpenAI/Deepgram/ElevenLabs/Azure/IBM Watson/Soniox keys (8 setters) | `set-stt-provider`, seven key handlers; SettingsOverlay selection, validated Save and Remove |
+| Groq STT model, OpenAI STT URL, Azure region, IBM Watson region (4 setters) | Corresponding four save handlers; SettingsOverlay model, URL and Azure region controls; IBM region has no current renderer call |
+| STT language, AI response language (2 setters) | `set-recognition-language` through AppState and `set-ai-response-language`; SettingsOverlay explicit changes and detected-language save |
+| Default model, per-provider preferred model (2 setters) | `set-default-model`, `set-provider-preferred-model`; AIProvidersSettings default selection and ProviderCard manual / fetched-model selection |
+
+The behavior regression uses the installed TypeScript compiler and existing
+`node:test`/VM pattern. It executes the real manager and production IPC, preload
+and renderer callback bodies with synthetic dependencies; the original
+source-pattern-only credential checks were replaced by these behavior checks.
+Coverage includes all 22 setters and 23 IPC/bridge entry points, eight storage
+failure cases, a warm-instance reload chain, partial-temp cleanup, `EEXIST`,
+legacy plaintext non-use, stopped downstream effects, UI non-commit, warnings,
+cancellation, and the full manager-to-renderer failure path. STT connection
+validation remains before persistence; a validation result is not a Saved state.
+These checks do not claim real keychain, provider or device acceptance.
+
+The first source scan matched five occurrences of four generic statements:
+`const appState = {` and `const context = {` open test dependency objects;
+`const source = read('electron/main.ts');` reads the local callback under test;
+`if (!result.ok) {` branches on the result explicitly required by AG-22. Each was
+written independently for this branch. Only these exact statements were
+allowlisted; source pools, approved files and exclusions were not broadened.
+
 ## AG-21 icon sources and generated assets
 
 Only the following four files are approved from the earlier Margin commit

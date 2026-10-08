@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import type { CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
 
 // Types for the exposed Electron API
 interface ElectronAPI {
@@ -44,24 +45,20 @@ interface ElectronAPI {
   switchToGemini: (
     apiKey?: string,
     modelId?: string,
-  ) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<CredentialSaveResult>;
   testLlmConnection: (
     provider: 'gemini' | 'groq' | 'openai' | 'claude',
     apiKey?: string,
   ) => Promise<{ success: boolean; error?: string }>;
-  selectServiceAccount: () => Promise<{
-    success: boolean;
-    path?: string;
-    cancelled?: boolean;
-    error?: string;
-  }>;
+  selectServiceAccount: () => Promise<ServiceAccountSelectionResult>;
 
   // API Key Management
-  setGeminiApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setGroqApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setOpenaiApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setClaudeApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setDeepseekApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
+  setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setClaudeApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<CredentialSaveResult>;
   getStoredCredentials: () => Promise<{
     hasGeminiKey: boolean;
     hasGroqKey: boolean;
@@ -93,19 +90,19 @@ interface ElectronAPI {
       | 'azure'
       | 'ibmwatson'
       | 'soniox',
-  ) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<CredentialSaveResult>;
   getSttProvider: () => Promise<string>;
-  setGroqSttApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setOpenAiSttApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setOpenAiSttBaseUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
-  setDeepgramApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setElevenLabsApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setAzureApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setAzureRegion: (region: string) => Promise<{ success: boolean; error?: string }>;
-  setIbmWatsonApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setGroqSttModel: (model: string) => Promise<{ success: boolean; error?: string }>;
-  setSonioxApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>;
-  setIbmWatsonRegion: (region: string) => Promise<{ success: boolean; error?: string }>;
+  setGroqSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setOpenAiSttBaseUrl: (url: string) => Promise<CredentialSaveResult>;
+  setDeepgramApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setElevenLabsApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setAzureApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setAzureRegion: (region: string) => Promise<CredentialSaveResult>;
+  setIbmWatsonApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setGroqSttModel: (model: string) => Promise<CredentialSaveResult>;
+  setSonioxApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  setIbmWatsonRegion: (region: string) => Promise<CredentialSaveResult>;
   testSttConnection: (
     provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox',
     apiKey: string,
@@ -135,9 +132,9 @@ interface ElectronAPI {
   generateSuggestion: (context: string, lastQuestion: string) => Promise<{ suggestion: string }>;
   getInputDevices: () => Promise<Array<{ id: string; name: string }>>;
   getOutputDevices: () => Promise<Array<{ id: string; name: string }>>;
-  setRecognitionLanguage: (key: string) => Promise<{ success: boolean; error?: string }>;
+  setRecognitionLanguage: (key: string) => Promise<CredentialSaveResult>;
   getAiResponseLanguages: () => Promise<Array<{ label: string; code: string }>>;
-  setAiResponseLanguage: (language: string) => Promise<{ success: boolean; error?: string }>;
+  setAiResponseLanguage: (language: string) => Promise<CredentialSaveResult>;
   getSttLanguage: () => Promise<string>;
   getAiResponseLanguage: () => Promise<string>;
   onSttLanguageAutoDetected: (callback: (bcp47: string) => void) => () => void;
@@ -259,7 +256,7 @@ interface ElectronAPI {
   // Model Management
   getDefaultModel: () => Promise<{ model: string }>;
   setModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
-  setDefaultModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
+  setDefaultModel: (modelId: string) => Promise<CredentialSaveResult>;
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) => Promise<void>;
   modelSelectorCloseIfOpen: () => Promise<void>;
 

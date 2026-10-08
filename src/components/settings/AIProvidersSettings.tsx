@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, ChevronDown, Check, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
 import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, STANDARD_CLOUD_MODELS, prettifyModelId } from '../../utils/modelUtils';
 import { ProviderCard } from './ProviderCard';
+import type { CredentialSaveResult } from '../../types/credentialSave';
 
 const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
 const CODEX_MODEL_REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
@@ -124,6 +125,7 @@ export const AIProvidersSettings: React.FC = () => {
     const [hasStoredKey, setHasStoredKey] = useState<Record<string, boolean>>({});
     const [testStatus, setTestStatus] = useState<Record<string, 'idle' | 'testing' | 'success' | 'error'>>({});
     const [testError, setTestError] = useState<Record<string, string>>({});
+    const [credentialNotice, setCredentialNotice] = useState('');
 
     // --- Codex CLI ---
     const [codexCliConfig, setCodexCliConfig] = useState({ enabled: false, path: 'codex', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', timeoutMs: 60000, sandboxMode: 'read-only' as string, serviceTier: 'default' as string | undefined, modelReasoningEffort: undefined as string | undefined });
@@ -296,11 +298,13 @@ export const AIProvidersSettings: React.FC = () => {
         }
     };
 
-    const handleSaveKey = async (provider: string, key: string, setter: (val: string) => void) => {
-        if (!key.trim()) return;
+    const handleSaveKey = async (provider: string, key: string, setter: (val: string) => void): Promise<CredentialSaveResult> => {
+        if (!key.trim()) return { ok: false, code: 'write_failed', message: 'Enter an API key before saving.' };
+        setCredentialNotice('');
         setSavingStatus(prev => ({ ...prev, [provider]: true }));
+        setSavedStatus(prev => ({ ...prev, [provider]: false }));
         try {
-            let result;
+            let result: CredentialSaveResult | undefined;
             // @ts-ignore
             if (provider === 'gemini') result = await window.electronAPI.setGeminiApiKey(key);
             // @ts-ignore
@@ -312,14 +316,21 @@ export const AIProvidersSettings: React.FC = () => {
             // @ts-ignore
             if (provider === 'deepseek') result = await window.electronAPI.setDeepseekApiKey(key);
 
-            if (result && result.success) {
+            if (result?.ok) {
                 setSavedStatus(prev => ({ ...prev, [provider]: true }));
                 setHasStoredKey(prev => ({ ...prev, [provider]: true }));
                 setter('');
                 setTimeout(() => setSavedStatus(prev => ({ ...prev, [provider]: false })), 2000);
+                setCredentialNotice(result.warning || '');
+                return result;
             }
-        } catch (e) {
-            console.error(`Failed to save ${provider} key:`, e);
+            const failed: CredentialSaveResult = result || { ok: false, code: 'write_failed', message: 'No save result was received.' };
+            if (!failed.ok) setCredentialNotice(failed.message);
+            return failed;
+        } catch {
+            const failed: CredentialSaveResult = { ok: false, code: 'write_failed', message: 'The API key could not be saved. The previous key was kept.' };
+            setCredentialNotice(failed.message);
+            return failed;
         } finally {
             setSavingStatus(prev => ({ ...prev, [provider]: false }));
         }
@@ -327,6 +338,7 @@ export const AIProvidersSettings: React.FC = () => {
 
     const handleRemoveKey = async (provider: string, setter: (val: string) => void) => {
         if (!confirm(`Are you sure you want to remove the ${provider} API key?`)) return;
+        setCredentialNotice('');
         try {
             let result;
             // @ts-ignore
@@ -340,12 +352,30 @@ export const AIProvidersSettings: React.FC = () => {
             // @ts-ignore
             if (provider === 'deepseek') result = await window.electronAPI.setDeepseekApiKey('');
 
-            if (result && result.success) {
+            if (result?.ok) {
                 setHasStoredKey(prev => ({ ...prev, [provider]: false }));
                 setter('');
+                setCredentialNotice(result.warning || '');
+            } else {
+                setCredentialNotice(result?.message || 'The API key could not be removed.');
             }
-        } catch (e) {
-            console.error(`Failed to remove ${provider} key:`, e);
+        } catch {
+            setCredentialNotice('The API key could not be removed. The previous key was kept.');
+        }
+    };
+
+    const handleDefaultModelChange = async (model: string) => {
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.setDefaultModel(model);
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'The default model could not be saved.');
+                return;
+            }
+            setDefaultModel(model);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('The default model could not be saved.');
         }
     };
 
@@ -387,6 +417,7 @@ export const AIProvidersSettings: React.FC = () => {
 
     return (
         <div className="space-y-5 animated fadeIn pb-10">
+            {credentialNotice && <p role="alert" className="text-xs text-amber-500">{credentialNotice}</p>}
             {/* Default Model for Chat */}
             <div className="space-y-5">
                 <div>
@@ -427,11 +458,7 @@ export const AIProvidersSettings: React.FC = () => {
                             }
                             return opts;
                         })()}
-                        onChange={(val) => {
-                            setDefaultModel(val);
-                            // @ts-ignore - persist as default + update runtime + broadcast
-                            window.electronAPI?.setDefaultModel(val).catch(console.error);
-                        }}
+                        onChange={handleDefaultModelChange}
                     />
                 </div>
 
@@ -486,7 +513,7 @@ export const AIProvidersSettings: React.FC = () => {
                         preferredModel={preferredModels.gemini}
                         hasStoredKey={!!hasStoredKey.gemini}
                         onKeyChange={setApiKey}
-                        onSaveKey={async () => { await handleSaveKey('gemini', apiKey, setApiKey); }}
+                        onSaveKey={() => handleSaveKey('gemini', apiKey, setApiKey)}
                         onRemoveKey={() => handleRemoveKey('gemini', setApiKey)}
                         onTestConnection={() => handleTestConnection('gemini', apiKey)}
                         testStatus={testStatus.gemini || 'idle'}
@@ -506,7 +533,7 @@ export const AIProvidersSettings: React.FC = () => {
                         preferredModel={preferredModels.groq}
                         hasStoredKey={!!hasStoredKey.groq}
                         onKeyChange={setGroqApiKey}
-                        onSaveKey={async () => { await handleSaveKey('groq', groqApiKey, setGroqApiKey); }}
+                        onSaveKey={() => handleSaveKey('groq', groqApiKey, setGroqApiKey)}
                         onRemoveKey={() => handleRemoveKey('groq', setGroqApiKey)}
                         onTestConnection={() => handleTestConnection('groq', groqApiKey)}
                         testStatus={testStatus.groq || 'idle'}
@@ -526,7 +553,7 @@ export const AIProvidersSettings: React.FC = () => {
                         preferredModel={preferredModels.openai}
                         hasStoredKey={!!hasStoredKey.openai}
                         onKeyChange={setOpenaiApiKey}
-                        onSaveKey={async () => { await handleSaveKey('openai', openaiApiKey, setOpenaiApiKey); }}
+                        onSaveKey={() => handleSaveKey('openai', openaiApiKey, setOpenaiApiKey)}
                         onRemoveKey={() => handleRemoveKey('openai', setOpenaiApiKey)}
                         onTestConnection={() => handleTestConnection('openai', openaiApiKey)}
                         testStatus={testStatus.openai || 'idle'}
@@ -546,7 +573,7 @@ export const AIProvidersSettings: React.FC = () => {
                         preferredModel={preferredModels.claude}
                         hasStoredKey={!!hasStoredKey.claude}
                         onKeyChange={setClaudeApiKey}
-                        onSaveKey={async () => { await handleSaveKey('claude', claudeApiKey, setClaudeApiKey); }}
+                        onSaveKey={() => handleSaveKey('claude', claudeApiKey, setClaudeApiKey)}
                         onRemoveKey={() => handleRemoveKey('claude', setClaudeApiKey)}
                         onTestConnection={() => handleTestConnection('claude', claudeApiKey)}
                         testStatus={testStatus.claude || 'idle'}
@@ -566,7 +593,7 @@ export const AIProvidersSettings: React.FC = () => {
                         preferredModel={preferredModels.deepseek}
                         hasStoredKey={!!hasStoredKey.deepseek}
                         onKeyChange={setDeepseekApiKey}
-                        onSaveKey={async () => { await handleSaveKey('deepseek', deepseekApiKey, setDeepseekApiKey); }}
+                        onSaveKey={() => handleSaveKey('deepseek', deepseekApiKey, setDeepseekApiKey)}
                         onRemoveKey={() => handleRemoveKey('deepseek', setDeepseekApiKey)}
                         onTestConnection={() => handleTestConnection('deepseek', deepseekApiKey)}
                         testStatus={testStatus.deepseek || 'idle'}

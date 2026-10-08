@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { CredentialSaveResult } from '../../types/credentialSave';
 import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, ChevronDown, Check, RefreshCw } from 'lucide-react';
 
 interface FetchedModel {
@@ -13,7 +14,7 @@ interface ProviderCardProps {
     preferredModel?: string;
     hasStoredKey: boolean;
     onKeyChange: (key: string) => void;
-    onSaveKey: () => Promise<void>;
+    onSaveKey: () => Promise<CredentialSaveResult>;
     onRemoveKey: () => void;
     onTestConnection: () => void;
     testStatus: 'idle' | 'testing' | 'success' | 'error';
@@ -90,7 +91,11 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
         try {
             // If a new key is entered, save it first
             if (apiKey.trim()) {
-                await onSaveKey();
+                const saved = await onSaveKey();
+                if (!saved.ok) {
+                    setFetchError(saved.message);
+                    return;
+                }
             }
 
             // Fetch models using the key (or stored key)
@@ -105,9 +110,14 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                     const existsInList = result.models.some((m: FetchedModel) => m.id === selectedModel);
                     if (!existsInList) {
                         const firstModel = result.models[0].id;
-                        setSelectedModel(firstModel);
                         // @ts-ignore
-                        await window.electronAPI?.setProviderPreferredModel(providerId, firstModel);
+                        const saved = await window.electronAPI?.setProviderPreferredModel(providerId, firstModel);
+                        if (!saved?.ok) {
+                            setFetchError(saved?.message || 'Preferred model could not be saved.');
+                            return;
+                        }
+                        setSelectedModel(firstModel);
+                        if (saved.warning) setFetchError(saved.warning);
                         if (onPreferredModelChange) {
                             onPreferredModelChange(firstModel);
                         }
@@ -124,16 +134,21 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
     };
 
     const handleSelectModel = async (modelId: string) => {
-        setSelectedModel(modelId);
         setIsDropdownOpen(false);
         try {
             // @ts-ignore
-            await window.electronAPI?.setProviderPreferredModel(providerId, modelId);
+            const result = await window.electronAPI?.setProviderPreferredModel(providerId, modelId);
+            if (!result?.ok) {
+                setFetchError(result?.message || 'Preferred model could not be saved.');
+                return;
+            }
+            setSelectedModel(modelId);
+            setFetchError(result.warning || null);
             if (onPreferredModelChange) {
                 onPreferredModelChange(modelId);
             }
-        } catch (e) {
-            console.error('Failed to save preferred model:', e);
+        } catch {
+            setFetchError('Preferred model could not be saved.');
         }
     };
 

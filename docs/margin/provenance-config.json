@@ -11,6 +11,10 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "const appState = {", "reason": "Generic object literal opener for the independently written AG-22 fake runtime in the behavior test, 2026-10-08; see PROVENANCE.md" },
+    { "line": "const context = {", "reason": "Generic object literal opener for independently written AG-22 VM dependency contexts, 2026-10-08; see PROVENANCE.md" },
+    { "line": "const source = read('electron/main.ts');", "reason": "Local source read for executing the actual AppState language callback in the independently written AG-22 behavior test, 2026-10-08; see PROVENANCE.md" },
+    { "line": "if (!result.ok) {", "reason": "Generic boolean check of AG-22's explicitly required discriminated save result before committing UI state; independently written, 2026-10-08; see PROVENANCE.md" },
     { "line": "? path.join(process.resourcesPath, \"assets/icon.png\")", "reason": "Standard path join to the existing package.json assets/ extraResources destination; independently corrected for AG-21 Linux icon restore, 2026-10-08; see PROVENANCE.md" },
     { "line": "for (const platform of ['darwin', 'win32', 'linux']) {", "reason": "Generic for-of loop enumerating Node platform identifiers in the independently written AG-21 icon consumer test, 2026-10-08; see PROVENANCE.md" },
     { "line": "schemaVersion: 1,", "reason": "Generic initial version field of the independently written AG-21 generated-asset manifest, 2026-10-08; see PROVENANCE.md" },

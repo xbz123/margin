@@ -1,0 +1,86 @@
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (1166.935417ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (763.196084ms)
+✖ the meeting chat follows the post_call_summary and profile_history scopes (9.688459ms)
+✖ a meeting edit that fails to save is rolled back and reported (3.413291ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (7.088584ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2463.392083
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:104:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (1166.935417ms)
+  AssertionError [ERR_ASSERTION]: setGroqApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:110:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/meeting-storage.test.mjs:241:1
+✖ the meeting chat follows the post_call_summary and profile_history scopes (9.688459ms)
+  AssertionError [ERR_ASSERTION]: setGroqApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:244:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/meeting-storage.test.mjs:352:1
+✖ a meeting edit that fails to save is rolled back and reported (3.413291ms)
+  AssertionError [ERR_ASSERTION]: the meeting from the chat test is listed
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:355:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/margin/meeting-storage.test.mjs:459:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (7.088584ms)
+  AssertionError [ERR_ASSERTION]: setGroqApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:462:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

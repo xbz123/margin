@@ -15,8 +15,28 @@ import { SkillsManager } from './services/SkillsManager';
 import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages';
 import { CHAT_MODE_PROMPT } from './llm/prompts';
 import { buildMeetingChatContext } from './services/meetingChatContext';
+import type { CredentialSaveResult } from '../src/types/credentialSave';
 
 export function initializeIpcHandlers(appState: AppState): void {
+  const persistCredentials = async (
+    save: () => CredentialSaveResult,
+    apply?: () => void | Promise<void>,
+    applyWarning = 'Saved, but the running service could not apply the change. Restart the application to use the saved configuration.',
+  ): Promise<CredentialSaveResult> => {
+    let result: CredentialSaveResult;
+    try {
+      result = save();
+    } catch {
+      return { ok: false, code: 'write_failed', message: 'Credentials could not be saved. The previous credentials were kept.' };
+    }
+    if (!result.ok) return result;
+    try {
+      await apply?.();
+      return result;
+    } catch {
+      return { ok: true, warning: applyWarning };
+    }
+  };
   const safeHandle = (
     channel: string,
     listener: (event: any, ...args: any[]) => Promise<any> | any,
@@ -42,26 +62,12 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('set-ai-response-language', async (_, language: string) => {
-    // Validate: must be a non-empty string
-    if (!language || typeof language !== 'string' || !language.trim()) {
-      console.warn('[IPC] set-ai-response-language: invalid or empty language received, ignoring.');
-      return { success: false, error: 'Invalid language value' };
-    }
+    if (typeof language !== 'string' || !language.trim()) return { ok: false, code: 'write_failed', message: 'Invalid language value' };
     const sanitizedLanguage = language.trim();
     const { CredentialsManager } = require('./services/CredentialsManager');
-    // Persist to disk
-    CredentialsManager.getInstance().setAiResponseLanguage(sanitizedLanguage);
-    // Update live in-memory LLMHelper (same instance used by IntelligenceEngine)
-    const llmHelper = appState.processingHelper?.getLLMHelper?.();
-    if (llmHelper) {
-      llmHelper.setAiResponseLanguage(sanitizedLanguage);
-      console.log(`[IPC] AI response language updated to: ${sanitizedLanguage}`);
-    } else {
-      console.warn(
-        '[IPC] set-ai-response-language: processingHelper or LLMHelper not ready, language saved to disk only.',
-      );
-    }
-    return { success: true };
+    return persistCredentials(() => CredentialsManager.getInstance().setAiResponseLanguage(sanitizedLanguage), () => {
+      appState.processingHelper?.getLLMHelper?.()?.setAiResponseLanguage(sanitizedLanguage);
+    });
   });
 
   safeHandle('get-stt-language', async () => {
@@ -908,129 +914,58 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('switch-to-gemini', async (_, apiKey?: string, modelId?: string) => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      await llmHelper.switchToGemini(apiKey, modelId);
-
-      // Persist API key if provided
-      if (apiKey) {
-        const { CredentialsManager } = require('./services/CredentialsManager');
-        CredentialsManager.getInstance().setGeminiApiKey(apiKey);
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      // console.error("Error switching to Gemini:", error);
-      return { success: false, error: error.message };
-    }
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(
+      () => apiKey ? CredentialsManager.getInstance().setGeminiApiKey(apiKey) : { ok: true },
+      () => appState.processingHelper.getLLMHelper().switchToGemini(apiKey, modelId),
+      apiKey ? undefined : 'No credentials were saved. The provider switch could not be applied. Please try again.',
+    );
   });
 
   // Dedicated API key setters (for Settings UI Save buttons)
   safeHandle('set-gemini-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setGeminiApiKey(apiKey);
-
-      // Also update the LLMHelper immediately
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setApiKey(apiKey);
-
-      // CQ-06 fix: cancel any in-flight LLM stream before swapping LLM clients.
-      // Use resetEngine() (NOT reset()) so session transcript is preserved mid-meeting.
-      // initializeLLMs() now also calls engine.reset() internally for double-safety.
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setGeminiApiKey(apiKey), () => {
+      appState.processingHelper.getLLMHelper().setApiKey(apiKey);
       appState.getIntelligenceManager().resetEngine();
-      // Re-init IntelligenceManager
       appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Gemini API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-groq-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setGroqApiKey(apiKey);
-
-      // Also update the LLMHelper immediately
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setGroqApiKey(apiKey);
-
-      // CQ-06 fix: cancel in-flight stream before re-init (engine only, not session)
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setGroqApiKey(apiKey), () => {
+      appState.processingHelper.getLLMHelper().setGroqApiKey(apiKey);
       appState.getIntelligenceManager().resetEngine();
-      // Re-init IntelligenceManager
       appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Groq API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-openai-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setOpenaiApiKey(apiKey);
-
-      // Also update the LLMHelper immediately
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setOpenaiApiKey(apiKey);
-
-      // CQ-06 fix: cancel in-flight stream before re-init (engine only, not session)
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setOpenaiApiKey(apiKey), () => {
+      appState.processingHelper.getLLMHelper().setOpenaiApiKey(apiKey);
       appState.getIntelligenceManager().resetEngine();
-      // Re-init IntelligenceManager
       appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving OpenAI API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-claude-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setClaudeApiKey(apiKey);
-
-      // Also update the LLMHelper immediately
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setClaudeApiKey(apiKey);
-
-      // CQ-06 fix: cancel in-flight stream before re-init (engine only, not session)
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setClaudeApiKey(apiKey), () => {
+      appState.processingHelper.getLLMHelper().setClaudeApiKey(apiKey);
       appState.getIntelligenceManager().resetEngine();
-      // Re-init IntelligenceManager
       appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Claude API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-deepseek-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setDeepseekApiKey(apiKey);
-
-      // Also update the LLMHelper immediately
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setDeepseekApiKey(apiKey);
-
-      // Cancel in-flight stream before re-init (engine only, not session)
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setDeepseekApiKey(apiKey), () => {
+      appState.processingHelper.getLLMHelper().setDeepseekApiKey(apiKey);
       appState.getIntelligenceManager().resetEngine();
-      // Re-init IntelligenceManager
       appState.getIntelligenceManager().initializeLLMs();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving DeepSeek API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   // Get stored API keys (masked for UI display)
@@ -1148,12 +1083,8 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle(
     'set-provider-preferred-model',
     async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => {
-      try {
-        const { CredentialsManager } = require('./services/CredentialsManager');
-        CredentialsManager.getInstance().setPreferredModel(provider, modelId);
-      } catch (error: any) {
-        console.error(`[IPC] Failed to set preferred model for ${provider}:`, error);
-      }
+      const { CredentialsManager } = require('./services/CredentialsManager');
+      return persistCredentials(() => CredentialsManager.getInstance().setPreferredModel(provider, modelId));
     },
   );
 
@@ -1163,37 +1094,15 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle(
     'set-stt-provider',
-    async (
-      _,
-      provider:
-        | 'none'
-        | 'google'
-        | 'groq'
-        | 'openai'
-        | 'deepgram'
-        | 'elevenlabs'
-        | 'azure'
-        | 'ibmwatson'
-        | 'soniox',
-    ) => {
-      try {
-        const { CredentialsManager } = require('./services/CredentialsManager');
-        CredentialsManager.getInstance().setSttProvider(provider);
-
-        // Reconfigure the audio pipeline to use the new STT provider
-        await appState.reconfigureSttProvider();
-
-        // Notify all windows so the settings UI reflects the change immediately
-        BrowserWindow.getAllWindows().forEach((win) => {
-          if (!win.isDestroyed()) win.webContents.send('credentials-changed');
-        });
-
-        return { success: true };
-      } catch (error: any) {
-        console.error('Error setting STT provider:', error);
-        return { success: false, error: error.message };
-      }
-    },
+    async (_, provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setSttProvider(provider), async () => {
+      await appState.reconfigureSttProvider();
+      BrowserWindow.getAllWindows().forEach((win) => {
+        if (!win.isDestroyed()) win.webContents.send('credentials-changed');
+      });
+    });
+  },
   );
 
   safeHandle('get-stt-provider', async () => {
@@ -1206,157 +1115,89 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('set-groq-stt-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setGroqSttApiKey(apiKey);
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setGroqSttApiKey(apiKey), async () => {
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Groq STT API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-openai-stt-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setOpenAiSttApiKey(apiKey);
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setOpenAiSttApiKey(apiKey), async () => {
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving OpenAI STT API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-openai-stt-base-url', async (_, url: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setOpenAiSttBaseUrl(url);
-      // Reconfigure the active pipeline so the new endpoint is used immediately,
-      // matching the behavior of azure/ibmwatson region setters.
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setOpenAiSttBaseUrl(url), async () => {
       await appState.reconfigureSttProvider();
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving OpenAI STT base URL:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-deepgram-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setDeepgramApiKey(apiKey);
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setDeepgramApiKey(apiKey), async () => {
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Deepgram API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-groq-stt-model', async (_, model: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setGroqSttModel(model);
-
-      // Reconfigure the audio pipeline to use the new model
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setGroqSttModel(model), async () => {
       await appState.reconfigureSttProvider();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error setting Groq STT model:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-elevenlabs-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setElevenLabsApiKey(apiKey);
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setElevenLabsApiKey(apiKey), async () => {
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving ElevenLabs API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-azure-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setAzureApiKey(apiKey);
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Azure API key:', error);
-      return { success: false, error: error.message };
-    }
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setAzureApiKey(apiKey));
   });
 
   safeHandle('set-azure-region', async (_, region: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setAzureRegion(region);
-
-      // Reconfigure the pipeline since region changes the endpoint URL
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setAzureRegion(region), async () => {
       await appState.reconfigureSttProvider();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error setting Azure region:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-ibmwatson-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setIbmWatsonApiKey(apiKey);
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving IBM Watson API key:', error);
-      return { success: false, error: error.message };
-    }
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setIbmWatsonApiKey(apiKey));
   });
 
   safeHandle('set-soniox-api-key', async (_, apiKey: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setSonioxApiKey(apiKey);
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setSonioxApiKey(apiKey), async () => {
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error saving Soniox API key:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   safeHandle('set-ibmwatson-region', async (_, region: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setIbmWatsonRegion(region);
-
-      // Reconfigure the pipeline since region changes the endpoint URL
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setIbmWatsonRegion(region), async () => {
       await appState.reconfigureSttProvider();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error setting IBM Watson region:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   // Helper to sanitize error messages (remove API key references)
@@ -1831,25 +1672,12 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // Persist default model (from Settings), update runtime, and notify model UI surfaces
   safeHandle('set-default-model', async (_, modelId: string) => {
-    try {
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const cm = CredentialsManager.getInstance();
-      cm.setDefaultModel(modelId);
-
-      // Also update the runtime model
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setModel(modelId);
-
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setDefaultModel(modelId), () => {
+      appState.processingHelper.getLLMHelper().setModel(modelId);
       appState.sendModelChanged(modelId);
-
-      // Close the selector window if open
       appState.modelSelectorWindowHelper.hideWindow();
-
-      return { success: true };
-    } catch (error: any) {
-      console.error('Error setting default model:', error);
-      return { success: false, error: error.message };
-    }
+    });
   });
 
   // Read the persisted default model
@@ -1916,10 +1744,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     return { success: true };
   });
 
-  safeHandle('set-recognition-language', async (_, key: string) => {
-    appState.setRecognitionLanguage(key);
-    return { success: true };
-  });
+  safeHandle('set-recognition-language', async (_, key: string) => appState.setRecognitionLanguage(key));
 
   // ==========================================
   // Meeting Lifecycle Handlers
@@ -2501,28 +2326,17 @@ export function initializeIpcHandlers(appState: AppState): void {
   // Service Account Selection
   safeHandle('select-service-account', async () => {
     try {
-      const result: any = await dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [{ name: 'JSON', extensions: ['json'] }],
-      });
-
-      if (result.canceled || result.filePaths.length === 0) {
-        return { success: false, cancelled: true };
-      }
-
-      const filePath = result.filePaths[0];
-
-      // Update backend state immediately
-      appState.updateGoogleCredentials(filePath);
-
-      // Persist the path for future sessions
+      const selected: any = await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'JSON', extensions: ['json'] }] });
+      if (selected.canceled || selected.filePaths.length === 0) return { cancelled: true };
+      const filePath = selected.filePaths[0];
       const { CredentialsManager } = require('./services/CredentialsManager');
-      CredentialsManager.getInstance().setGoogleServiceAccountPath(filePath);
-
-      return { success: true, path: filePath };
-    } catch (error: any) {
-      console.error('Error selecting service account:', error);
-      return { success: false, error: error.message };
+      const result = await persistCredentials(
+        () => CredentialsManager.getInstance().setGoogleServiceAccountPath(filePath),
+        () => appState.updateGoogleCredentials(filePath),
+      );
+      return result.ok ? { ...result, path: filePath } : result;
+    } catch {
+      return { ok: false, code: 'write_failed', message: 'The service account file could not be selected or saved.' };
     }
   });
 

@@ -386,6 +386,7 @@ interface ScreenshotCaptureSession {
 }
 
 import { CredentialsManager } from "./services/CredentialsManager"
+import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { SettingsManager } from "./services/SettingsManager"
 import { setVerboseLoggingFlag } from "./verboseLog"
 import { decideToggle } from './services/toggleStateReducer'
@@ -3200,17 +3201,22 @@ export class AppState {
     }
   }
 
-  public setRecognitionLanguage(key: string): void {
-    console.log(`[AppState] Setting recognition language to: ${key}`);
+  public setRecognitionLanguage(key: string): CredentialSaveResult {
     const { CredentialsManager } = require('./services/CredentialsManager');
-    CredentialsManager.getInstance().setSttLanguage(key);
+    const result = CredentialsManager.getInstance().setSttLanguage(key);
+    if (!result.ok) return result;
 
     // 'auto' needs server-side language detection, which no remaining provider offers.
     const effectiveKey = key === 'auto' ? 'english-us' : key;
 
-    this.googleSTT?.setRecognitionLanguage(effectiveKey);
-    this.googleSTT_User?.setRecognitionLanguage(effectiveKey);
-    this.processingHelper.getLLMHelper().setSttLanguage(effectiveKey);
+    try {
+      this.googleSTT?.setRecognitionLanguage(effectiveKey);
+      this.googleSTT_User?.setRecognitionLanguage(effectiveKey);
+      this.processingHelper.getLLMHelper().setSttLanguage(effectiveKey);
+      return result;
+    } catch {
+      return { ok: true, warning: 'Saved, but the running service could not apply the language. Restart the application to use the saved configuration.' };
+    }
   }
 
   public static getInstance(): AppState {
@@ -3998,7 +4004,8 @@ async function initializeApp() {
   // Initialize CredentialsManager and load keys explicitly
   // This fixes the issue where keys (especially in production) aren't loaded in time for the LLM
   const { CredentialsManager } = require('./services/CredentialsManager');
-  CredentialsManager.getInstance().init();
+  const credentialLoad = CredentialsManager.getInstance().init();
+  if (!credentialLoad.ok) console.warn('[Init] Credentials unavailable:', credentialLoad.message);
 
   // 4. Initialize State
   const appState = AppState.getInstance()
@@ -4024,7 +4031,8 @@ async function initializeApp() {
     appState.updateGoogleCredentials(storedServiceAccountPath);
     // Persist env-var path so Spotlight launches also work going forward
     if (!CredentialsManager.getInstance().getGoogleServiceAccountPath()) {
-      CredentialsManager.getInstance().setGoogleServiceAccountPath(storedServiceAccountPath);
+      const saved = CredentialsManager.getInstance().setGoogleServiceAccountPath(storedServiceAccountPath);
+      if (!saved.ok) console.warn('[Init] Environment service account path was not saved:', saved.message);
     }
   }
 

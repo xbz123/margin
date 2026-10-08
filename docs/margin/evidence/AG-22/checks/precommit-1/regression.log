@@ -1,0 +1,124 @@
+✖ a typed question streams the mock answer into the overlay (2996.477708ms)
+✖ after cancel, and after a new stream has started, events of the old stream are not shown (1.389583ms)
+✖ while an answer streams, a typed question is held back and a new stream request supersedes it (0.085542ms)
+✖ a screenshot question sends the fixture image to the model (0.029125ms)
+✖ a provider error is shown and the next question still works (0.056292ms)
+✖ after a chat request fails before streaming, the next answer is shown once and kept (0.034083ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3874.994875
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:145:1
+✖ a typed question streams the mock answer into the overlay (2996.477708ms)
+  AssertionError [ERR_ASSERTION]: setOpenaiApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:122:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:163:1
+✖ after cancel, and after a new stream has started, events of the old stream are not shown (1.389583ms)
+  AssertionError [ERR_ASSERTION]: setOpenaiApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:122:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:223:1
+✖ while an answer streams, a typed question is held back and a new stream request supersedes it (0.085542ms)
+  AssertionError [ERR_ASSERTION]: setOpenaiApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:122:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:247:1
+✖ a screenshot question sends the fixture image to the model (0.029125ms)
+  AssertionError [ERR_ASSERTION]: setOpenaiApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:122:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:261:1
+✖ a provider error is shown and the next question still works (0.056292ms)
+  AssertionError [ERR_ASSERTION]: setOpenaiApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:122:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:292:1
+✖ after a chat request fails before streaming, the next answer is shown once and kept (0.034083ms)
+  AssertionError [ERR_ASSERTION]: setOpenaiApiKey failed: {"ok":true}
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/answer-regression.test.mjs:122:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,3 +1,5 @@
+import type { CredentialSaveResult, ServiceAccountSelectionResult } from './credentialSave';
+
 export interface ElectronAPI {
   updateContentDimensions: (dimensions: {
     width: number
@@ -77,35 +79,35 @@ export interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{ provider: "gemini" | "codex-cli"; model: string }>
-  switchToGemini: (apiKey?: string, modelId?: string) => Promise<{ success: boolean; error?: string }>
+  switchToGemini: (apiKey?: string, modelId?: string) => Promise<CredentialSaveResult>
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string) => Promise<{ success: boolean; error?: string }>
-  selectServiceAccount: () => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>
+  selectServiceAccount: () => Promise<ServiceAccountSelectionResult>
 
   // API Key Management
-  setGeminiApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setGroqApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setOpenaiApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setClaudeApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setDeepseekApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
+  setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setClaudeApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   getStoredCredentials: () => Promise<{ hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; googleServiceAccountPath: string | null; sttProvider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; hasDeepgramKey: boolean; hasElevenLabsKey: boolean; hasAzureKey: boolean; azureRegion: string; hasIbmWatsonKey: boolean; ibmWatsonRegion: string; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttDeepgramKey?: string; sttElevenLabsKey?: string; sttAzureKey?: string; sttIbmKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>
   requestMicPermission: () => Promise<boolean>
 
   // STT Provider Management
-  setSttProvider: (provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => Promise<{ success: boolean; error?: string }>
+  setSttProvider: (provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => Promise<CredentialSaveResult>
   getSttProvider: () => Promise<string>
-  setGroqSttApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setOpenAiSttApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setOpenAiSttBaseUrl: (url: string) => Promise<{ success: boolean; error?: string }>
-  setDeepgramApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setElevenLabsApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setAzureApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setAzureRegion: (region: string) => Promise<{ success: boolean; error?: string }>
-  setIbmWatsonApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setGroqSttModel: (model: string) => Promise<{ success: boolean; error?: string }>
-  setSonioxApiKey: (apiKey: string) => Promise<{ success: boolean; error?: string }>
-  setIbmWatsonRegion: (region: string) => Promise<{ success: boolean; error?: string }>
+  setGroqSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setOpenAiSttBaseUrl: (url: string) => Promise<CredentialSaveResult>
+  setDeepgramApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setElevenLabsApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setAzureApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setAzureRegion: (region: string) => Promise<CredentialSaveResult>
+  setIbmWatsonApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setGroqSttModel: (model: string) => Promise<CredentialSaveResult>
+  setSonioxApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  setIbmWatsonRegion: (region: string) => Promise<CredentialSaveResult>
   testSttConnection: (provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox', apiKey: string, region?: string) => Promise<{ success: boolean; error?: string }>
 
   // STT Config Events (fired when STT provider/key changes during a meeting)
@@ -123,9 +125,9 @@ export interface ElectronAPI {
   generateSuggestion: (context: string, lastQuestion: string) => Promise<{ suggestion: string }>
   getInputDevices: () => Promise<Array<{ id: string; name: string }>>
   getOutputDevices: () => Promise<Array<{ id: string; name: string }>>
-  setRecognitionLanguage: (key: string) => Promise<{ success: boolean; error?: string }>
+  setRecognitionLanguage: (key: string) => Promise<CredentialSaveResult>
   getAiResponseLanguages: () => Promise<Array<{ label: string; code: string }>>
-  setAiResponseLanguage: (language: string) => Promise<{ success: boolean; error?: string }>
+  setAiResponseLanguage: (language: string) => Promise<CredentialSaveResult>
   getSttLanguage: () => Promise<string>
   getAiResponseLanguage: () => Promise<string>
   onSttLanguageAutoDetected: (callback: (bcp47: string) => void) => () => void
@@ -213,7 +215,7 @@ export interface ElectronAPI {
   // Model Management
   getDefaultModel: () => Promise<{ model: string }>;
   setModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
-  setDefaultModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
+  setDefaultModel: (modelId: string) => Promise<CredentialSaveResult>;
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) => Promise<void>;
   modelSelectorCloseIfOpen: () => Promise<void>;
 
@@ -282,7 +284,7 @@ export interface ElectronAPI {
 
   // Dynamic Model Discovery
   fetchProviderModels: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) => Promise<{ success: boolean; models?: {id: string, label: string}[]; error?: string }>
-  setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<void>
+  setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<CredentialSaveResult>
 
   // Overlay Opacity (Stealth Mode)
   setOverlayOpacity: (opacity: number) => Promise<void>;
