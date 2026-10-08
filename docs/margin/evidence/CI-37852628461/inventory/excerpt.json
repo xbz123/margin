@@ -1,0 +1,97 @@
+{
+  "kind": "derived verification excerpt, not complete inventory",
+  "pass": true,
+  "source": {
+    "run": 37852628461,
+    "commit": "d23c4015829303c7f6f68955a5255a57757692f8",
+    "inventoryBytes": 44624205,
+    "inventorySHA256": "49cdedf6804797c4ff76abc46c3932996940f5461ae42c59bf506d8a79e6db58",
+    "workflowBytes": 104843,
+    "workflowSHA256": "88852e2c79d70870f923c5ef4cf5ee239d771468d9b2a206626bfe2ce79acfd3"
+  },
+  "acceptance": false,
+  "gateSteps": 16,
+  "cleanCheckout": true,
+  "unitCounts": {
+    "tests": 884,
+    "pass": 878,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "normalVerification": {
+    "passed": false,
+    "error": "unresolved notice candidates: 2; inspect the package before distribution"
+  },
+  "expectedStopVerified": true,
+  "entries": 40511,
+  "packageMetadataRecords": 609,
+  "candidates": 726,
+  "uniqueLicenseFilesVerified": 413,
+  "sourceManifestSHA256": "843400af75bd5b827d2142f01d859b5bd551048bb16f632e012d25d33448be22",
+  "eastasianwidth": [
+    {
+      "path": "Resources/app.asar/node_modules/eastasianwidth/package.json",
+      "location": "node_modules/eastasianwidth",
+      "name": "eastasianwidth",
+      "version": "0.3.0",
+      "source": "asar",
+      "sha256": "c377dee4e7f98287e535a7f4dd238b66db01bdec5349f5866aed80e06e4f1c49"
+    }
+  ],
+  "jsSHA256": "82cb2fa400c52c89608c52cafd338fc699c89d03ff050e5602b3ea2b14bdb101",
+  "packageMetadataTransform": {
+    "builderVersion": "26.8.1",
+    "transformerSHA256": "2be90c067b245a9dcea353b7dc97a67a5fcb0764f0694da985c5d055d10be2fc",
+    "removedFields": [
+      "scripts"
+    ],
+    "serialization": "JSON.stringify(data, null, 2), no final newline",
+    "originalBytes": 418,
+    "packagedBytes": 377,
+    "packagedSHA256": "c377dee4e7f98287e535a7f4dd238b66db01bdec5349f5866aed80e06e4f1c49",
+    "filteredFiles": [
+      "README.md",
+      "eastasianwidth.d.ts"
+    ],
+    "sourceFourFileIdentityCheckIsPrePackaging": true
+  },
+  "addedPackagePaths": [
+    "Resources/licenses/texts/94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a.txt"
+  ],
+  "removedPackagePaths": [],
+  "remaining": [
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "observation": "included-files"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "observation": "unknown"
+    }
+  ],
+  "native": {
+    "count": 23,
+    "allArm64": true,
+    "projectNativeSHA256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603",
+    "fromScratchCidreEvidence": true
+  },
+  "mapGaps": 1412,
+  "artifacts": [
+    {
+      "name": "gates",
+      "id": 11583361134,
+      "bytes": 57534,
+      "sha256": "e56dad2c6d1f92b10c29a74986c9e69d7e1a84c0b08981f035aa2feed59d5de3",
+      "inspectedRegularEntries": 26
+    },
+    {
+      "name": "inventory",
+      "id": 11583470392,
+      "bytes": 3154092,
+      "sha256": "53af73c25a8753d8ea30e462a589baf0a49087a3ba0e15a6d7ef109a3b18743d",
+      "inspectedRegularEntries": 5
+    }
+  ]
+}

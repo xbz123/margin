@@ -58,6 +58,13 @@ path prefixes are redacted in the committed copies, with both hashes recorded.
 Fresh no-cache CI, native-from-scratch and actual package verification are
 required for the submitted checkpoint and are not inferred from this local run.
 
+Those checks subsequently passed on checkpoint `d23c4015` in no-cache CI
+`37852628461`; see `../../CI-37852628461/`. Actual eaw 0.3.0 JavaScript and
+its new original notice match. The builder's documented package.json cleanup
+and README/type-file filters are separately verified, not confused with the
+four-file pre-package source identity. S19-A's implementation/verification is
+complete, pending independent read-only review; other S19 parts remain open.
+
 S19-B is not implemented here: react-remove-scroll-bar 2.3.8 and realfft 3.5.0
 still fail normal notice verification. Native vendor coverage, corresponding
 source/relinking, full AG-25 and independent review remain separate requirements.

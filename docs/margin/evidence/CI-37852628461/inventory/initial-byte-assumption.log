@@ -1,0 +1,13 @@
+Independent inspection assertion, exit 1; not a CI failure:
+Resources/app.asar/node_modules/eastasianwidth/package.json
+actual SHA-256: c377dee4e7f98287e535a7f4dd238b66db01bdec5349f5866aed80e06e4f1c49
+expected original npm member SHA-256: 32ffd87591938680573e7ccf18e507d7e0c79e0e25bbc15d77288d097b69690e
+
+The initial assumption that all four original members must remain byte-identical
+in the app was incorrect. app-builder-lib 26.8.1 removes scripts and serializes
+dependency package.json with two-space indentation and no trailing newline.
+That exact source-defined transformation reproduces the 377-byte packaged hash.
+Its existing default filters also omit README.md and *.d.ts. The JavaScript
+remains byte-identical to the approved original; the license is copied separately.
+The final verifier checks those specific transformations rather than ignoring
+arbitrary metadata differences. No source, dependency or packaging rule changed.
