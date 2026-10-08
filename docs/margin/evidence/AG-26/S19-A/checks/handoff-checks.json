@@ -1,0 +1,139 @@
+{
+  "head": "518101fdce1ea1cb07cfa870dc2cc1b760aa2410",
+  "sourceWritesFrozen": true,
+  "files": [
+    {
+      "file": "package.json",
+      "sha256": "1c54bf6ea103e9daed522b773c3c7ac0acca1c1c007bf9a1b4f98c48f693be6d"
+    },
+    {
+      "file": "package-lock.json",
+      "sha256": "1caabfb79bb72a927eaee58a4d5925635ded0de4e4d20148ba43f860bac52dd9"
+    },
+    {
+      "file": "scripts/margin/license-sources.json",
+      "sha256": "26832b267bf1d86dae219eae40794d639b5806a9b95ff0a96fc057c84ef7de54"
+    },
+    {
+      "file": "licenses/manifest.json",
+      "sha256": "843400af75bd5b827d2142f01d859b5bd551048bb16f632e012d25d33448be22"
+    },
+    {
+      "file": "licenses/README.md",
+      "sha256": "b8bb33235690d30017bef3cad4d05b1eacc7ee2c8730f686692791dc36638d90"
+    },
+    {
+      "file": "NOTICE",
+      "sha256": "07eee25ecbdc0494bb8ac4951985c82102e27df72926b6d7d624d2ae54cd1142"
+    },
+    {
+      "file": "docs/margin/PROVENANCE.md",
+      "sha256": "9ad971f63b1c8c86f443a95f8b534cfe01cf69cbe40064731036ef173bf4a3ae"
+    },
+    {
+      "file": "licenses/texts/94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a.txt",
+      "sha256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a"
+    }
+  ],
+  "checks": [
+    {
+      "name": "npm lock-only ignore-scripts",
+      "exitCode": 0
+    },
+    {
+      "name": "source integrity and safe tar inventory before extraction",
+      "exitCode": 0
+    },
+    {
+      "name": "actual string-width 5.1.2 full-code-point comparison under X2",
+      "exitCode": 0
+    },
+    {
+      "name": "parsed lock differences and generated-value-preserving key-order restoration",
+      "exitCode": 0
+    },
+    {
+      "name": "collector fetch-only new supplemental notice",
+      "exitCode": 1,
+      "expected": "Two unrelated unresolved candidates remain; fail-closed result is not a distribution pass"
+    },
+    {
+      "name": "inventory identities, all notice hashes, source extra evidence and synthetic Resources rejection under X2",
+      "exitCode": 0
+    },
+    {
+      "name": "existing licenseInventory.test.mjs under X2",
+      "exitCode": 0,
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "evidence": "Observed tool-returned stdout, not a new committed raw test log; parent full gates provide independent archived test evidence"
+    },
+    {
+      "name": "offline collector repeat under X2 (API return verified)",
+      "exitCode": 0,
+      "idempotent": true
+    },
+    {
+      "name": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "guardLogs": [
+    {
+      "artifact": "width-comparison.isolation.jsonl",
+      "sha256": "389118f00016d0fc63717439109bf22f5cc8de4e5c59b6b69a64349f0f63cb18",
+      "records": [
+        {
+          "t": "2026-10-08T22:05:57.253Z",
+          "pid": 60615,
+          "ppid": 60606,
+          "script": "<PRIVATE_EVIDENCE>/compare-widths.mjs",
+          "kind": "guard-loaded",
+          "detail": "node"
+        }
+      ],
+      "zeroBlockedAttempts": true
+    },
+    {
+      "artifact": "inventory-verification.isolation.jsonl",
+      "sha256": "e57b4b166a55101f72ec60000f8cc1022354e088673cd1f2a6ebac9d0b8fa09e",
+      "records": [
+        {
+          "t": "2026-10-08T22:10:58.018Z",
+          "pid": 62250,
+          "ppid": 62241,
+          "script": "<PRIVATE_EVIDENCE>/verify-inventory.mjs",
+          "kind": "guard-loaded",
+          "detail": "node"
+        }
+      ],
+      "zeroBlockedAttempts": true
+    },
+    {
+      "artifact": "offline-idempotence.isolation.jsonl",
+      "sha256": "1d57a71f6043ba11bd5ee14400f322b4d307dd5696e7187be8ee294917698f23",
+      "records": [
+        {
+          "t": "2026-10-08T22:11:28.083Z",
+          "pid": 62387,
+          "ppid": 62378,
+          "script": "<PRIVATE_EVIDENCE>/check-offline.mjs",
+          "kind": "guard-loaded",
+          "detail": "node"
+        }
+      ],
+      "zeroBlockedAttempts": true
+    }
+  ],
+  "driverNotes": [
+    "Initial safe-tar driver incorrectly required absent linkpath to equal empty string; tar 7 returns undefined for a regular file. Failed before extraction. Corrected to require falsey linkpath while still requiring File type and exact safe path allowlist; actual verified archives were not altered.",
+    "The acquisition/pre-replacement source verification and one-time cache replacement scripts intentionally assert the old installed identity. Do not rerun these against the already replaced cache; compare-widths.mjs, verify-inventory.mjs and check-offline.mjs remain directly reproducible."
+  ],
+  "limitations": [
+    "eaw slice outputs differ at six tested zero/null endpoint cases; no retained path calls slice. The suspected start-null end fallback is not patched.",
+    "Collector noticeBasis generic standard-license wording is untouched under the next S19-B MIT metadata boundary. Specific role and sameVersionEvidence record the actual original notice.",
+    "Source cache replacement is not a clean-install proof; hidden node_modules lock is untouched. No npm ci/native rebuild/build/application launch was performed.",
+    "G1-G7, AG09, independent review and fresh no-cache CI belong to parent. No stage/commit/push performed."
+  ]
+}

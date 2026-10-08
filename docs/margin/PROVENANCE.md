@@ -125,6 +125,64 @@ labels exclude r-efi/Oboe candidates or close native static-composition and
 distribution obligations; at that checkpoint oboe/oboe-sys and realfft still
 lacked full notices.
 
+### AG-26 S19-A exact eastasianwidth override
+
+S19-A changes only `eastasianwidth@0.2.0` to `0.3.0` through the exact npm
+override `"eastasianwidth@0.2.0": "0.3.0"`. The upstream `string-width` 5.1.2
+declaration remains `^0.2.0`; this is an explicit approved deviation, not a
+semver-compatible resolution or an upgrade to string-width 7. An
+install-script-disabled lock-only update keeps all 1334 lock nodes, dependency
+edges and classification flags; only the target version, resolved URL and
+integrity change. npm's 87 unrelated object-key reorderings are mechanically
+restored without changing its parsed output. No native rebuild or other package
+upgrade is performed locally.
+
+The complete retained lock path is @google-cloud/speech -> google-gax -> rimraf
+-> glob -> jackspeak -> @isaacs/cliui (also wrap-ansi) -> string-width 5.1.2 ->
+eastasianwidth. The latter's only package consumer calls `eastAsianWidth` for
+each string-iterator character after ANSI, emoji, control and combining filters.
+An AST inspection of 162 production electron/src files finds no direct
+eastasianwidth/string-width reference. Computed loads are limited to the
+inspected native binary candidates and better-sqlite3/keytar ABI probe; this
+does not prove arbitrary external native overrides or untrusted code safe.
+Physical test-exclude/string-width cache leftovers are absent from the retained
+lock graph and are not reclassified as production users.
+
+An X2 comparison loads the unchanged installed string-width 5.1.2 module twice,
+redirecting only its eastasianwidth import to verified 0.2.0/0.3.0 tarball bytes.
+All 1114112 code points (including lone surrogates) have identical classifications,
+characterLength and length results. Both ambiguous-width settings plus 15
+ANSI/emoji/ZWJ/combining/CJK boundary strings yield 2228254 equal string-width
+results. The full JavaScript diff is 94 strict-comparison changes and three
+slice adjustments; no classification table changes. The unused `slice` export
+does change: six tested null/zero endpoint cases differ, such as
+`slice('abc', 0, 0)` returning `''` instead of `'a'`. Its upstream end fallback
+tests `start === null` rather than `end === null`, after start normalization;
+that suspected upstream defect is recorded, not patched or claimed equivalent.
+No retained call path uses this export; the whole library is not claimed
+behavior-identical.
+
+The official 0.3.0 tarball still contains no LICENSE. Its four files
+eastasianwidth.js, package.json, README.md and eastasianwidth.d.ts match both
+published gitHead `e5ee638e2039093c924b60d8a2ba7c12c52549f8` and later
+same-version notice commit `1d41951a59d63fb2d77cda021050fc070cae424a` byte-for-byte.
+The latter adds only MIT-LICENSE.txt, retaining `Copyright komagata`; its
+1043 original bytes, SHA-256
+`94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a` and Git blob
+`e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab` bind only to 0.3.0. Tarball integrity,
+both immutable refs and all four file SHA-256/Git blobs are recorded under
+`sameVersionEvidence` in license-sources.json and separately checked; the
+unchanged collector does not audit those extra provenance fields automatically.
+No neighboring-version grant is borrowed for the old 0.2.0 candidate.
+
+Regeneration keeps 726 candidates, 33 excluded paths and two deferred notices;
+only eastasianwidth's version identity changes. One original notice raises
+unique texts from 410 to 411 and reduces missing texts from three to two.
+react-remove-scroll-bar 2.3.8 and realfft 3.5.0 remain unresolved, and normal
+package acceptance still rejects the inventory. Native composition,
+corresponding-source/relinking duties, fresh no-cache CI and actual artifact
+review remain separate requirements; this local check is not AG-26 acceptance.
+
 ### AG-26 S18 dependency-scope reduction
 
 S18 removes only the root production declarations for `tap`, `sqlite3` and

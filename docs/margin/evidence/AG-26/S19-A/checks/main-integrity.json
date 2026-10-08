@@ -1,0 +1,16 @@
+{
+  "pass": true,
+  "sourceBase": "518101fd",
+  "unchangedComponents": 725,
+  "unchangedAttachments": 44,
+  "storedTexts": 411,
+  "newOriginalNoticeBytes": 1043,
+  "newOriginalNoticeSHA256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a",
+  "installedFilesMatchSameVersionUpstream": 4,
+  "npmIntegrityVerified": true,
+  "onlyRootPackageChange": "exact eastasianwidth override",
+  "remainingUnresolved": [
+    "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+    "cargo:realfft@3.5.0"
+  ]
+}

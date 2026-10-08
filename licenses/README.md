@@ -63,7 +63,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 410 unique stored texts; 33 excluded paths; 3 unresolved candidates; 2 deferred notices.
+726 candidates; 411 unique stored texts; 33 excluded paths; 2 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -72,12 +72,12 @@ Current supplemental notice bindings:
 - cargo:oboe@0.6.1: Apache-2.0
 - cargo:oboe-sys@0.6.1: Apache-2.0
 - npm:dingbat-to-unicode@1.0.1: BSD-2-Clause
+- npm:eastasianwidth@0.3.0: MIT
 - npm:stream-events@1.0.5: MIT
 - npm:stubs@3.0.0: MIT
 - npm:tr46@0.0.3: MIT
 
 Unresolved candidates:
-- npm:eastasianwidth@0.2.0:node_modules/eastasianwidth
 - npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
 - cargo:realfft@3.5.0
 <!-- margin-license-inventory:end -->
@@ -87,6 +87,17 @@ package copyright/grant. The S17 temp-app diagnostic (CI 37829181248) observed
 the then-candidate npm packages as included files/metadata; S18 changes the root
 dependency graph but does not retroactively reclassify that old artifact or
 establish the contents of a new package.
+
+S19-A overrides only eastasianwidth 0.2.0 to 0.3.0; it does not upgrade
+string-width 5.1.2 or assert that 0.3.0's npm tarball contained LICENSE. All four
+published files match both its npm gitHead
+`e5ee638e2039093c924b60d8a2ba7c12c52549f8` and same-version notice commit
+`1d41951a59d63fb2d77cda021050fc070cae424a`, whose sole addition is the original
+MIT-LICENSE.txt retaining `Copyright komagata`. The immutable notice and all
+four byte comparisons are recorded in license-sources.json; those extra
+provenance fields are checked separately, not automatically by the collector.
+This closes only the new 0.3.0 missing-text entry, not an old-version grant,
+native obligations or distribution acceptance.
 
 At checkpoints 45b11c5b and 3ac02ece, spdx-exceptions 2.5.0 (CC-BY-3.0) and
 spdx-license-ids 3.0.23 (CC0-1.0) bound their exact-version published license

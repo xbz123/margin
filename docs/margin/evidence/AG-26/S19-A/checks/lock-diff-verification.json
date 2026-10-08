@@ -1,0 +1,36 @@
+{
+  "command": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --cache=<temporary-cache> --userconfig=/dev/null --registry=https://registry.npmjs.org",
+  "npmVersion": "11.12.1",
+  "nodeVersion": "v26.0.0",
+  "nodesBefore": 1334,
+  "nodesAfter": 1334,
+  "changed": [
+    {
+      "key": "node_modules/eastasianwidth",
+      "before": {
+        "version": "0.2.0",
+        "resolved": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+        "integrity": "sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==",
+        "license": "MIT"
+      },
+      "after": {
+        "version": "0.3.0",
+        "resolved": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.3.0.tgz",
+        "integrity": "sha512-JqasYqGO32J2c91uYKdhu1vNmXGADaLB7OOgjAhjMvpjdvGb0tsYcuwn381MwqCg4YBQDtByQcNlFYuv2kmOug==",
+        "license": "MIT"
+      }
+    }
+  ],
+  "nodesAdded": [],
+  "nodesRemoved": [],
+  "unrelatedParsedValuesChanged": 0,
+  "unrelatedKeyOrderRestored": 87,
+  "dependencyEdgesChanged": 0,
+  "classificationFlagsChanged": 0,
+  "rootFieldsChanged": [],
+  "override": {
+    "eastasianwidth@0.2.0": "0.3.0"
+  },
+  "generatedSHA256": "fecce9587498cb5a09f59f13b04265a6976ab197f31054fa84dbc6f03110fd98",
+  "finalSHA256": "1caabfb79bb72a927eaee58a4d5925635ded0de4e4d20148ba43f860bac52dd9"
+}

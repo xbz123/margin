@@ -781,6 +781,50 @@
     "closesMissing": true
   },
   {
+    "id": "original:eastasianwidth",
+    "version": "0.3.0",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/komagata/eastasianwidth/1d41951a59d63fb2d77cda021050fc070cae424a/MIT-LICENSE.txt",
+    "gitBlob": "e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab",
+    "sha256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a",
+    "role": "original MIT-LICENSE.txt added at same-version commit 1d41951a59d63fb2d77cda021050fc070cae424a retaining Copyright komagata; all four published 0.3.0 package files match that commit and npm gitHead e5ee638e2039093c924b60d8a2ba7c12c52549f8 byte-for-byte; only MIT-LICENSE.txt was added between those commits, not a claim that the npm tarball contained LICENSE or that this notice covers 0.2.0",
+    "sameVersionEvidence": {
+      "npmTarballURL": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.3.0.tgz",
+      "npmTarballIntegrity": "sha512-JqasYqGO32J2c91uYKdhu1vNmXGADaLB7OOgjAhjMvpjdvGb0tsYcuwn381MwqCg4YBQDtByQcNlFYuv2kmOug==",
+      "npmTarballSHA256": "8b52fac4f929a5de61bbef98594907848b8587c46b7417abe4e66acf65a38552",
+      "npmGitHead": "e5ee638e2039093c924b60d8a2ba7c12c52549f8",
+      "noticeRef": "1d41951a59d63fb2d77cda021050fc070cae424a",
+      "tarballContainsLicense": false,
+      "files": [
+        {
+          "path": "eastasianwidth.js",
+          "sha256": "82cb2fa400c52c89608c52cafd338fc699c89d03ff050e5602b3ea2b14bdb101",
+          "gitBlob": "659abbdab85bad056d8efac180d23b3442c9f696"
+        },
+        {
+          "path": "package.json",
+          "sha256": "32ffd87591938680573e7ccf18e507d7e0c79e0e25bbc15d77288d097b69690e",
+          "gitBlob": "5d66147329b723e6fd8ec3efdb9d2eabf311fb13"
+        },
+        {
+          "path": "README.md",
+          "sha256": "5a20e0a3c5f1a6b449dd3fee8e3f0c7dc0a6e508c93fa5703d7c8823d35aed54",
+          "gitBlob": "a8b71ee54d171820d7d45ac39234c8e9d04c9ad3"
+        },
+        {
+          "path": "eastasianwidth.d.ts",
+          "sha256": "43ddf471e69d71c288b548de4e994cca01247a428e7ec49808bb0c93fa265187",
+          "gitBlob": "f5456eb608edb2851c7e8cbe976726f73a5a0462"
+        }
+      ]
+    },
+    "bind": {
+      "kind": "npm",
+      "name": "eastasianwidth"
+    },
+    "closesMissing": true
+  },
+  {
     "id": "original:stream-events",
     "version": "1.0.5",
     "license": "MIT",

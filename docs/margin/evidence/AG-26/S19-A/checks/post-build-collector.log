@@ -1,0 +1,5 @@
+command: X2 run-node collect-licenses.mjs --cargo-root <CARGO_CACHE>
+exitCode: 1 (expected unresolved candidates)
+{"candidates":726,"uniqueTexts":411,"excluded":33,"unresolved":2,"deferred":2}
+npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar: no local full notice; retrieve an immutable official license source
+cargo:realfft@3.5.0: no local full notice; retrieve an immutable official license source

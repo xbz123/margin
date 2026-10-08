@@ -1,0 +1,26 @@
+{
+  "offline": true,
+  "cachedSupplementOnly": true,
+  "generatedFileHashesBefore": {
+    "licenses/manifest.json": "843400af75bd5b827d2142f01d859b5bd551048bb16f632e012d25d33448be22",
+    "licenses/README.md": "b8bb33235690d30017bef3cad4d05b1eacc7ee2c8730f686692791dc36638d90",
+    "NOTICE": "07eee25ecbdc0494bb8ac4951985c82102e27df72926b6d7d624d2ae54cd1142"
+  },
+  "generatedFileHashesAfter": {
+    "licenses/manifest.json": "843400af75bd5b827d2142f01d859b5bd551048bb16f632e012d25d33448be22",
+    "licenses/README.md": "b8bb33235690d30017bef3cad4d05b1eacc7ee2c8730f686692791dc36638d90",
+    "NOTICE": "07eee25ecbdc0494bb8ac4951985c82102e27df72926b6d7d624d2ae54cd1142"
+  },
+  "idempotent": true,
+  "unresolved": [
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    }
+  ],
+  "x2Log": "<X2_TEMP_PATH>"
+}

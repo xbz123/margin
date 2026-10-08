@@ -186,6 +186,9 @@
     "vite-plugin-electron-renderer": "^0.14.6",
     "wait-on": "^8.0.1"
   },
+  "overrides": {
+    "eastasianwidth@0.2.0": "0.3.0"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
     "@deepgram/sdk": "^3.13.0",

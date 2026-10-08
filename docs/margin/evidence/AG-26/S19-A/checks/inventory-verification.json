@@ -1,0 +1,49 @@
+{
+  "candidatesBefore": 726,
+  "candidatesAfter": 726,
+  "changedIdentityOnly": [
+    "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+    "npm:eastasianwidth@0.3.0:node_modules/eastasianwidth"
+  ],
+  "unrelatedComponentsChanged": 0,
+  "previousAttachmentsUnchanged": 44,
+  "addedAttachments": 1,
+  "uniqueTextsBefore": 410,
+  "uniqueTextsAfter": 411,
+  "oldTextReferencesAllRetained": true,
+  "allCurrentTextHashesChecked": true,
+  "orphanTexts": 0,
+  "excludedUnchanged": 33,
+  "deferredUnchanged": 2,
+  "unresolvedBefore": [
+    {
+      "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    }
+  ],
+  "unresolvedAfter": [
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    }
+  ],
+  "syntheticResourceChecker": {
+    "acceptance": false,
+    "expectedRejection": "unresolved notice candidates: 2; inspect the package before distribution",
+    "allNoticeBytesReachedBeforeRejection": true
+  },
+  "sourceConfigExtraEvidenceVerified": true,
+  "x2Log": "<X2_TEMP_PATH>"
+}

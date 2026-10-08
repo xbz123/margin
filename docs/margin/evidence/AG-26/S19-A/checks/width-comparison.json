@@ -1,0 +1,198 @@
+{
+  "stringWidthVersion": "5.1.2",
+  "method": "Actual installed string-width/index.js loaded twice with only its eastasianwidth import resolved to independently verified tarball JS; every other module resolved unchanged",
+  "x2": true,
+  "apiKeys": [
+    "eastAsianWidth",
+    "characterLength",
+    "length",
+    "slice"
+  ],
+  "counts": {
+    "codePoints": 1114112,
+    "classifications": 1114112,
+    "characterLengths": 1114112,
+    "lengths": 1114112,
+    "stringWidths": 2228254,
+    "strings": 15
+  },
+  "samples": [
+    {
+      "value": "",
+      "widths": [
+        0,
+        0
+      ],
+      "eawLength": 0
+    },
+    {
+      "value": "\u0000\u001f",
+      "widths": [
+        0,
+        0
+      ],
+      "eawLength": 4
+    },
+    {
+      "value": "\u001b[31m中文abc\u001b[0m",
+      "widths": [
+        7,
+        7
+      ],
+      "eawLength": 16
+    },
+    {
+      "value": "àͯͰ",
+      "widths": [
+        2,
+        2
+      ],
+      "eawLength": 6
+    },
+    {
+      "value": "α·Ω",
+      "widths": [
+        3,
+        6
+      ],
+      "eawLength": 6
+    },
+    {
+      "value": "Ａｶ한中文",
+      "widths": [
+        9,
+        9
+      ],
+      "eawLength": 9
+    },
+    {
+      "value": "\ud800",
+      "widths": [
+        1,
+        1
+      ],
+      "eawLength": 0
+    },
+    {
+      "value": "\udfff",
+      "widths": [
+        1,
+        1
+      ],
+      "eawLength": 0
+    },
+    {
+      "value": "\ud800A\udfff",
+      "widths": [
+        3,
+        3
+      ],
+      "eawLength": 1
+    },
+    {
+      "value": "𐀀",
+      "widths": [
+        1,
+        1
+      ],
+      "eawLength": 1
+    },
+    {
+      "value": "􏿿",
+      "widths": [
+        1,
+        1
+      ],
+      "eawLength": 1
+    },
+    {
+      "value": "𠀀𰀀",
+      "widths": [
+        4,
+        4
+      ],
+      "eawLength": 4
+    },
+    {
+      "value": "👩‍💻🏳️‍🌈1️⃣🇸🇪",
+      "widths": [
+        8,
+        8
+      ],
+      "eawLength": 14
+    },
+    {
+      "value": "︀️‍",
+      "widths": [
+        3,
+        5
+      ],
+      "eawLength": 5
+    },
+    {
+      "value": "é",
+      "widths": [
+        1,
+        1
+      ],
+      "eawLength": 3
+    }
+  ],
+  "sliceDifferences": [
+    {
+      "text": "abc",
+      "start": "undefined",
+      "end": "null",
+      "oldValue": "a",
+      "newValue": ""
+    },
+    {
+      "text": "abc",
+      "start": "undefined",
+      "end": 0,
+      "oldValue": "a",
+      "newValue": ""
+    },
+    {
+      "text": "abc",
+      "start": "null",
+      "end": "null",
+      "oldValue": "a",
+      "newValue": ""
+    },
+    {
+      "text": "abc",
+      "start": "null",
+      "end": 0,
+      "oldValue": "a",
+      "newValue": ""
+    },
+    {
+      "text": "abc",
+      "start": 0,
+      "end": "null",
+      "oldValue": "a",
+      "newValue": ""
+    },
+    {
+      "text": "abc",
+      "start": 0,
+      "end": 0,
+      "oldValue": "a",
+      "newValue": ""
+    }
+  ],
+  "sourceAnalysis": {
+    "entireJSDiffChecked": true,
+    "classificationTableUnchanged": true,
+    "strictComparisonChanges": 94,
+    "sliceChanges": [
+      "textLen becomes local rather than implicit global",
+      "start falsey fallback becomes explicit undefined/null fallback",
+      "end falsey fallback becomes end undefined or start null fallback; upstream uses start null, not end null"
+    ],
+    "sliceUsedByStringWidth": false
+  },
+  "widthDifferences": 0,
+  "x2Log": "<X2_TEMP_PATH>"
+}

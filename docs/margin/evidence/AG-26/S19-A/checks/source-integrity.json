@@ -1,0 +1,113 @@
+{
+  "tarballs": [
+    {
+      "version": "0.2.0",
+      "url": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz",
+      "integrity": "sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==",
+      "sha256": "eccfa12bbda71f9f8e09de7ad1a4e554369a6b4d43d7f86085e85055a8694c27",
+      "gitHead": "b89f04d44dc786885615e94cd6e2ba1ef7866fa4",
+      "entries": [
+        {
+          "path": "package/package.json",
+          "type": "File",
+          "size": 390
+        },
+        {
+          "path": "package/eastasianwidth.js",
+          "type": "File",
+          "size": 12067
+        },
+        {
+          "path": "package/README.md",
+          "type": "File",
+          "size": 1183
+        }
+      ],
+      "containsLicense": false
+    },
+    {
+      "version": "0.3.0",
+      "url": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.3.0.tgz",
+      "integrity": "sha512-JqasYqGO32J2c91uYKdhu1vNmXGADaLB7OOgjAhjMvpjdvGb0tsYcuwn381MwqCg4YBQDtByQcNlFYuv2kmOug==",
+      "sha256": "8b52fac4f929a5de61bbef98594907848b8587c46b7417abe4e66acf65a38552",
+      "gitHead": "e5ee638e2039093c924b60d8a2ba7c12c52549f8",
+      "entries": [
+        {
+          "path": "package/eastasianwidth.js",
+          "type": "File",
+          "size": 12229
+        },
+        {
+          "path": "package/package.json",
+          "type": "File",
+          "size": 418
+        },
+        {
+          "path": "package/README.md",
+          "type": "File",
+          "size": 1183
+        },
+        {
+          "path": "package/eastasianwidth.d.ts",
+          "type": "File",
+          "size": 298
+        }
+      ],
+      "containsLicense": false
+    }
+  ],
+  "comparisons": [
+    {
+      "file": "eastasianwidth.js",
+      "bytes": 12229,
+      "sha256": "82cb2fa400c52c89608c52cafd338fc699c89d03ff050e5602b3ea2b14bdb101",
+      "gitBlob": "659abbdab85bad056d8efac180d23b3442c9f696",
+      "matchesPublishedGitHead": true,
+      "matchesSameVersionNoticeCommit": true
+    },
+    {
+      "file": "package.json",
+      "bytes": 418,
+      "sha256": "32ffd87591938680573e7ccf18e507d7e0c79e0e25bbc15d77288d097b69690e",
+      "gitBlob": "5d66147329b723e6fd8ec3efdb9d2eabf311fb13",
+      "matchesPublishedGitHead": true,
+      "matchesSameVersionNoticeCommit": true
+    },
+    {
+      "file": "README.md",
+      "bytes": 1183,
+      "sha256": "5a20e0a3c5f1a6b449dd3fee8e3f0c7dc0a6e508c93fa5703d7c8823d35aed54",
+      "gitBlob": "a8b71ee54d171820d7d45ac39234c8e9d04c9ad3",
+      "matchesPublishedGitHead": true,
+      "matchesSameVersionNoticeCommit": true
+    },
+    {
+      "file": "eastasianwidth.d.ts",
+      "bytes": 298,
+      "sha256": "43ddf471e69d71c288b548de4e994cca01247a428e7ec49808bb0c93fa265187",
+      "gitBlob": "f5456eb608edb2851c7e8cbe976726f73a5a0462",
+      "matchesPublishedGitHead": true,
+      "matchesSameVersionNoticeCommit": true
+    }
+  ],
+  "notice": {
+    "url": "https://raw.githubusercontent.com/komagata/eastasianwidth/1d41951a59d63fb2d77cda021050fc070cae424a/MIT-LICENSE.txt",
+    "ref": "1d41951a59d63fb2d77cda021050fc070cae424a",
+    "bytes": 1043,
+    "sha256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a",
+    "gitBlob": "e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab",
+    "packageVersion": "0.3.0"
+  },
+  "commitDifference": {
+    "status": "ahead",
+    "aheadBy": 1,
+    "files": [
+      {
+        "path": "MIT-LICENSE.txt",
+        "status": "added",
+        "sha": "e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab"
+      }
+    ],
+    "onlyNoticeAdded": true
+  }
+}

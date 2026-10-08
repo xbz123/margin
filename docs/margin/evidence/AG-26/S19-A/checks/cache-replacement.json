@@ -1,0 +1,20 @@
+{
+  "action": "Only verified node_modules/eastasianwidth replaced; all old bytes retained by directory rename",
+  "target": "<WORKTREE>/node_modules/eastasianwidth",
+  "backup": "<PRIVATE_EVIDENCE>/node_modules-eastasianwidth-0.2.0",
+  "beforeFiles": [
+    "README.md",
+    "eastasianwidth.js",
+    "package.json"
+  ],
+  "afterFiles": [
+    "README.md",
+    "eastasianwidth.d.ts",
+    "eastasianwidth.js",
+    "package.json"
+  ],
+  "installedVersion": "0.3.0",
+  "noPackageScriptsExecuted": true,
+  "noLicenseInjectedIntoPackage": true,
+  "hiddenNodeModulesLockUntouched": true
+}
