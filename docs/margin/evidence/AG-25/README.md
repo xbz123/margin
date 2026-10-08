@@ -30,7 +30,18 @@ This checkpoint also includes the previously uncommitted AG-26 implementation
 and its evidence as prerequisites. It does not complete that ticket: its offline
 collector and normal package hook still reject unresolved notices.
 
-CI results will be recorded here after verification. Actual
+## First CI attempt
+
+Checkpoint `c49fb86d` was pushed and dispatched as run `37824733686` with
+`package_inventory=true`, explicit `gate_ref=docs/margin/evidence/AG-25` and
+`no_cache=false`. Only provenance failed; the other 15 gates, clean installation
+and native setup passed. The package step was skipped. Its verified raw evidence
+is in `../CI-37824733686/`. A local refresh of the same upstream reference
+prefixes reproduced the six matches, and the two exact standard/generic strings
+were documented. `checks/fresh-pool-red/` and `fresh-pool-green/` retain both
+verdicts. No application or diagnostic logic changed in that source-review fix.
+
+Further CI results will be recorded after verification. Actual
 static-library composition, complete notices/source obligations, dual-identity
 packaging, signatures, verified download and isolated temp-package startup are
 still pending. Claude's independent read-only stage review is also pending.

@@ -1,0 +1,37 @@
+{
+  "startedAt": "2026-10-08T18:38:39.802Z",
+  "head": "c49fb86d3de16d004ec5f27ee877ddd026200127",
+  "uncommittedPaths": 4,
+  "uncommittedPathList": [
+    "M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    "?? docs/margin/evidence/AG-25/checks/fresh-pool-red/",
+    "?? docs/margin/evidence/CI-37824733686/"
+  ],
+  "reference": "docs/margin/evidence/AG-25",
+  "note": "Same refreshed CI source pool; approve only reviewed Blue Oak heading and Node ESM entry comparison. Application and diagnostic implementation unchanged.",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1609,
+      "log": "docs/margin/evidence/AG-25/checks/fresh-pool-green/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 32,
+      "log": "docs/margin/evidence/AG-25/checks/fresh-pool-green/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-08T18:38:41.444Z",
+  "allPassed": true
+}

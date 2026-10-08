@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-10-08T18:36:47.543Z",
+  "head": "c49fb86d3de16d004ec5f27ee877ddd026200127",
+  "uncommittedPaths": 1,
+  "uncommittedPathList": [
+    "?? docs/margin/evidence/CI-37824733686/"
+  ],
+  "reference": "docs/margin/evidence/AG-25",
+  "note": "Refresh the same upstream ref prefixes as CI 37824733686 to reproduce six exact generic/license-heading source matches before approval.",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 23696,
+      "log": "docs/margin/evidence/AG-25/checks/fresh-pool-red/provenance.log",
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-08T18:37:11.241Z",
+  "allPassed": false
+}

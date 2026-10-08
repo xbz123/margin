@@ -11,6 +11,8 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "## Acceptance", "reason": "Blue Oak Model License 1.0.0 standard heading, retained in five original license texts; official canonical text SHA-256 8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004. Reviewed after S17 CI source-pool refresh; not upstream application code." },
+    { "line": "if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {", "reason": "Generic Node ESM direct-entry check written for the AG-26 collector so importing its helpers does not execute collection; reviewed after S17 CI source-pool refresh. No upstream implementation imported." },
     {"line":"if (explicit) {","reason":"Generic Node path/hash/directory/array/control-flow statement or documented GitHub artifact option written for the S17 AG-25 inventory diagnostic; individually reviewed, no later upstream implementation imported; see PROVENANCE.md."},
     {"line":"if-no-files-found: warn","reason":"Generic Node path/hash/directory/array/control-flow statement or documented GitHub artifact option written for the S17 AG-25 inventory diagnostic; individually reviewed, no later upstream implementation imported; see PROVENANCE.md."},
     {"line":"fs.mkdirSync(path.dirname(file), { recursive: true });","reason":"Generic Node path/hash/directory/array/control-flow statement or documented GitHub artifact option written for the S17 AG-25 inventory diagnostic; individually reviewed, no later upstream implementation imported; see PROVENANCE.md."},

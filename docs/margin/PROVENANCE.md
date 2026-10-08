@@ -48,6 +48,16 @@ CommonJS repository-root resolution, SHA-256 initialization, `entries.push(entry
 the missing-directory early return, and `async function run() {`. These are the
 standard operations in this independently written diagnostic and workflow.
 Only their exact lines were allowlisted; no source pool or excluded path changed.
+CI `37824733686` fetched newer references under the same configured upstream
+prefixes and exposed six additional matches: the Blue Oak 1.0.0 heading
+`## Acceptance` in five preserved license texts, and the collector's Node ESM
+direct-entry comparison of `process.argv[1]` with `fileURLToPath(import.meta.url)`.
+Refreshing those same references locally reproduced all six matches (606678
+restricted line keys). The heading was checked against the official canonical
+Blue Oak text and the manifest's original package sources; the entry comparison
+is independently written standard module/CLI dispatch. Only these two exact
+lines were approved. No source-import permission or path exclusion was expanded;
+the failing CI and local red/green scans remain recorded as evidence.
 
 AG-26's notice collector, package-byte checker, synthetic tests and rewritten
 public documents are written for this branch from PLAN's license/documentation
