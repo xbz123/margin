@@ -1,7 +1,8 @@
 # AG-20 identity implementation
 
-Implementation and local gates are complete; clean-checkout CI and Claude's
-ticket review are pending. This is not phase 2 exit or packaged-app acceptance.
+Implementation, local gates and clean-checkout CI are complete for source
+`831234342e5059029afed6a0fecec5393ebfeefa`; Claude's ticket review is pending.
+This is not phase 2 exit or packaged-app acceptance.
 
 ## Scope
 
@@ -39,7 +40,8 @@ source-scanner matches are documented in PROVENANCE; scan pools were not widened
 
 ## Remaining gates
 
-CI must perform `npm ci`, all temp gates, then build the release identity and
-run its fake-Electron contract checks without launching a release app. Actual
-two-variant Info.plist, package content and signature checks remain in AG-25.
+CI [37756383369](../CI-37756383369/README.md) passed `npm ci`, all temp gates,
+then built the release identity and passed its 6/6 fake-Electron contract checks
+without launching a release app. Raw evidence was downloaded and verified.
+Actual two-variant Info.plist, package content and signature checks remain in AG-25.
 Claude's read-only review is still required before moving to the next ticket.

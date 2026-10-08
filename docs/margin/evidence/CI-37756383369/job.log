@@ -1,0 +1,693 @@
+gates	Set up job	﻿2026-10-08T09:24:12.7367930Z Current runner version: '2.337.0'
+gates	Set up job	2026-10-08T09:24:12.7416360Z ##[group]Runner Image Provisioner
+gates	Set up job	2026-10-08T09:24:12.7416960Z Hosted Compute Agent
+gates	Set up job	2026-10-08T09:24:12.7417310Z Version: 20260828.587
+gates	Set up job	2026-10-08T09:24:12.7417700Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+gates	Set up job	2026-10-08T09:24:12.7418130Z Build Date: 2026-08-28T16:44:25Z
+gates	Set up job	2026-10-08T09:24:12.7418540Z Worker ID: {ab388ba8-a65a-418a-9dca-d2511f392f76}
+gates	Set up job	2026-10-08T09:24:12.7418960Z Azure Region: westus
+gates	Set up job	2026-10-08T09:24:12.7419390Z ##[endgroup]
+gates	Set up job	2026-10-08T09:24:12.7420340Z ##[group]Operating System
+gates	Set up job	2026-10-08T09:24:12.7420690Z macOS
+gates	Set up job	2026-10-08T09:24:12.7420980Z 15.7.9
+gates	Set up job	2026-10-08T09:24:12.7421280Z 24G830
+gates	Set up job	2026-10-08T09:24:12.7421580Z ##[endgroup]
+gates	Set up job	2026-10-08T09:24:12.7421900Z ##[group]Runner Image
+gates	Set up job	2026-10-08T09:24:12.7422240Z Image: macos-15-arm64
+gates	Set up job	2026-10-08T09:24:12.7422570Z Version: 20260907.0337.1
+gates	Set up job	2026-10-08T09:24:12.7423240Z Included Software: https://github.com/actions/runner-images/blob/macos-15-arm64/20260907.0337/images/macos/macos-15-arm64-Readme.md
+gates	Set up job	2026-10-08T09:24:12.7424270Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20260907.0337
+gates	Set up job	2026-10-08T09:24:12.7424880Z ##[endgroup]
+gates	Set up job	2026-10-08T09:24:12.7425570Z ##[group]GITHUB_TOKEN Permissions
+gates	Set up job	2026-10-08T09:24:12.7427230Z Contents: read
+gates	Set up job	2026-10-08T09:24:12.7427560Z Metadata: read
+gates	Set up job	2026-10-08T09:24:12.7427880Z ##[endgroup]
+gates	Set up job	2026-10-08T09:24:12.7429180Z Secret source: Actions
+gates	Set up job	2026-10-08T09:24:12.7429690Z Cache mode: write
+gates	Set up job	2026-10-08T09:24:12.7430260Z Prepare workflow directory
+gates	Set up job	2026-10-08T09:24:12.8053100Z Prepare all required actions
+gates	Set up job	2026-10-08T09:24:12.8083740Z Getting action download info
+gates	Set up job	2026-10-08T09:24:12.9798380Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+gates	Set up job	2026-10-08T09:24:13.1385350Z Download action repository 'actions/setup-node@v7' (SHA:949feb2413d6458794dcd2491c4babbbce0c15c1)
+gates	Set up job	2026-10-08T09:24:13.9088910Z Download action repository 'actions/cache@v6' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+gates	Set up job	2026-10-08T09:24:13.9768600Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+gates	Set up job	2026-10-08T09:24:14.8740670Z Complete job name: gates
+gates	Run actions/checkout@v7	﻿2026-10-08T09:24:15.0028950Z ##[group]Run actions/checkout@v7
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0029700Z with:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0030170Z   fetch-depth: 0
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0030690Z   repository: xbz123/Assessment-Assistant
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0035160Z   token: ***
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0035630Z   ssh-strict: true
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0036110Z   ssh-user: git
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0036600Z   persist-credentials: true
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0037140Z   clean: true
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0037650Z   sparse-checkout-cone-mode: true
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0038220Z   fetch-tags: false
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0038720Z   show-progress: true
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0039220Z   lfs: false
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0039690Z   submodules: false
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0040260Z   set-safe-directory: true
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0040820Z   allow-unsafe-pr-checkout: false
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.0041480Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1149550Z Syncing repository: xbz123/Assessment-Assistant
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1151180Z ##[group]Getting Git version info
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1152200Z Working directory is '/Users/runner/work/Assessment-Assistant/Assessment-Assistant'
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1153910Z [command]/opt/homebrew/bin/git version
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1637490Z git version 2.55.0
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1647590Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1652230Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/db0b9d29-1996-445c-a1b1-7f96be7c0c47/.gitconfig'
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1657370Z Temporarily overriding HOME='/Users/runner/work/_temp/db0b9d29-1996-445c-a1b1-7f96be7c0c47' before making global git config changes
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1659040Z Adding repository directory to the temporary git global config as a safe directory
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1660810Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Assessment-Assistant/Assessment-Assistant
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1739240Z Deleting the contents of '/Users/runner/work/Assessment-Assistant/Assessment-Assistant'
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1741010Z ##[group]Determining repository object format
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1742000Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1742860Z ##[group]Initializing the repository
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1744400Z [command]/opt/homebrew/bin/git init /Users/runner/work/Assessment-Assistant/Assessment-Assistant
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1893630Z hint: Using 'master' as the name for the initial branch. This default branch name
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1894860Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1896000Z hint: to use in all of your new repositories, which will suppress this warning,
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1896850Z hint: call:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1897340Z hint:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1897960Z hint: 	git config --global init.defaultBranch <name>
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1898630Z hint:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1899260Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1900270Z hint: 'development'. The just-created branch can be renamed via this command:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1901070Z hint:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1901540Z hint: 	git branch -m <name>
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1902060Z hint:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1902740Z hint: Disable this message with "git config set advice.defaultBranchName false"
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1903990Z Initialized empty Git repository in /Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1905970Z [command]/opt/homebrew/bin/git remote add origin https://github.com/xbz123/Assessment-Assistant
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1948460Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1949670Z ##[group]Disabling automatic garbage collection
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1950520Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1989570Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1990570Z ##[group]Setting up auth
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1991310Z Removing SSH command configuration
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.1992400Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.2031440Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.2607910Z Removing HTTP extra header
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.2611450Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.2652420Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3199540Z Removing includeIf entries pointing to credentials config files
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3202890Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3244500Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3767940Z [command]/opt/homebrew/bin/git config --file /Users/runner/work/_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3823090Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path /Users/runner/work/_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3866940Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path /Users/runner/work/_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3920060Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.3962860Z [command]/opt/homebrew/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.4001480Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.4002370Z ##[group]Fetching the repository
+gates	Run actions/checkout@v7	2026-10-08T09:24:15.4005780Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2196990Z From https://github.com/xbz123/Assessment-Assistant
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2197720Z  * [new branch]      codex/ai-assistant-refactor -> origin/codex/ai-assistant-refactor
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2198350Z  * [new branch]      codex/margin-agpl-migration -> origin/codex/margin-agpl-migration
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2198680Z  * [new branch]      main            -> origin/main
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2198910Z  * [new branch]      old             -> origin/old
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2199210Z  * [new branch]      windows-support -> origin/windows-support
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2199610Z  * [new tag]         v1.0.0-macos    -> v1.0.0-macos
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2199960Z  * [new tag]         v1.0.0-windows  -> v1.0.0-windows
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2204810Z [command]/opt/homebrew/bin/git branch --list --remote origin/codex/margin-agpl-migration
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2264880Z   origin/codex/margin-agpl-migration
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2271920Z [command]/opt/homebrew/bin/git rev-parse refs/remotes/origin/codex/margin-agpl-migration
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2318500Z 831234342e5059029afed6a0fecec5393ebfeefa
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2320980Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2321310Z ##[group]Determining the checkout info
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2321770Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2325400Z [command]/opt/homebrew/bin/git sparse-checkout disable
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2383960Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2430460Z ##[group]Checking out the ref
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.2433160Z [command]/opt/homebrew/bin/git checkout --progress --force -B codex/margin-agpl-migration refs/remotes/origin/codex/margin-agpl-migration
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.6625690Z Switched to a new branch 'codex/margin-agpl-migration'
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.6633600Z branch 'codex/margin-agpl-migration' set up to track 'origin/codex/margin-agpl-migration'.
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.6651560Z ##[endgroup]
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.6739670Z [command]/opt/homebrew/bin/git log -1 --format=%H
+gates	Run actions/checkout@v7	2026-10-08T09:24:27.6794100Z 831234342e5059029afed6a0fecec5393ebfeefa
+gates	Fetch upstream refs and extra restricted commits (read-only)	﻿2026-10-08T09:24:27.7102280Z ##[group]Run # The empty extraheader keeps the checkout token from being sent to the upstream repository.
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7102850Z [36;1m# The empty extraheader keeps the checkout token from being sent to the upstream repository.[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7110500Z [36;1mgit -c http.https://github.com/.extraheader= fetch --no-tags https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant.git \[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7111110Z [36;1m  '+refs/heads/*:refs/remotes/upstream/*'[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7111480Z [36;1mfor sha in $(node -p "require('./docs/margin/provenance-config.json').restrictedExtraRefs.join(' ')"); do[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7111920Z [36;1m  git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch --no-tags origin "$sha"[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7112220Z [36;1m  git cat-file -e "$sha^{commit}"[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7112390Z [36;1mdone[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7112610Z [36;1mecho "upstream refs: $(git for-each-ref refs/remotes/upstream --format=x | wc -l)"[0m
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7149190Z shell: /bin/bash -e {0}
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:27.7149360Z ##[endgroup]
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8962250Z From https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8962880Z  * [new branch]        audit/autopilot-2026-08-18 -> upstream/audit/autopilot-2026-08-18
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8963320Z  * [new branch]        backup/audio-zerofill-orphans -> upstream/backup/audio-zerofill-orphans
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8963810Z  * [new branch]        backup/dangling-anchor-2026-09-15 -> upstream/backup/dangling-anchor-2026-09-15
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8965240Z  * [new branch]        backup/dangling-baseline-check -> upstream/backup/dangling-baseline-check
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8965770Z  * [new branch]        backup/dangling-css-baseline -> upstream/backup/dangling-css-baseline
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8966200Z  * [new branch]        backup/dangling-gitignore-amend -> upstream/backup/dangling-gitignore-amend
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8966680Z  * [new branch]        backup/dangling-ia32-cross-compile -> upstream/backup/dangling-ia32-cross-compile
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8967200Z  * [new branch]        backup/device-migration-2026-09-15 -> upstream/backup/device-migration-2026-09-15
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8967750Z  * [new branch]        backup/feat-launcher-before-local-merge -> upstream/backup/feat-launcher-before-local-merge
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8968280Z  * [new branch]        backup/launcher-aspect-lock-orphans -> upstream/backup/launcher-aspect-lock-orphans
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8968750Z  * [new branch]        backup/main-before-local-merge -> upstream/backup/main-before-local-merge
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8969280Z  * [new branch]        backup/stash-0-premerge29-preflight -> upstream/backup/stash-0-premerge29-preflight
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8969730Z  * [new branch]        backup/stash-1-corner-work-ab -> upstream/backup/stash-1-corner-work-ab
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8970160Z  * [new branch]        bench/evidence-rich    -> upstream/bench/evidence-rich
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8970480Z  * [new branch]        cand/e15               -> upstream/cand/e15
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8970760Z  * [new branch]        cand/e16b              -> upstream/cand/e16b
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8971110Z  * [new branch]        chore/2026-09-12-session-work -> upstream/chore/2026-09-12-session-work
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8971510Z  * [new branch]        chore/natively-api-submodule -> upstream/chore/natively-api-submodule
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8971900Z  * [new branch]        chore/rescue-local-work -> upstream/chore/rescue-local-work
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8972230Z  * [new branch]        chore/ts7-upgrade      -> upstream/chore/ts7-upgrade
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8972700Z  * [new branch]        diag/nemotron-stt-observability -> upstream/diag/nemotron-stt-observability
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8973070Z  * [new branch]        electron-43            -> upstream/electron-43
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8973390Z  * [new branch]        feat/auto-answer-v3    -> upstream/feat/auto-answer-v3
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8973780Z  * [new branch]        feat/browser-extension-split-card -> upstream/feat/browser-extension-split-card
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8975080Z  * [new branch]        feat/card-art-chrome-timer -> upstream/feat/card-art-chrome-timer
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8975510Z  * [new branch]        feat/direct-assist-context-upgrade -> upstream/feat/direct-assist-context-upgrade
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8975960Z  * [new branch]        feat/direct-assist-fallback -> upstream/feat/direct-assist-fallback
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8985550Z  * [new branch]        feat/extension-registry-install -> upstream/feat/extension-registry-install
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8986110Z  * [new branch]        feat/extension-system  -> upstream/feat/extension-system
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8986480Z  * [new branch]        feat/fast-model-picker -> upstream/feat/fast-model-picker
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8986880Z  * [new branch]        feat/first-boot-welcome-card -> upstream/feat/first-boot-welcome-card
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8987310Z  * [new branch]        feat/genie-animation-toggle -> upstream/feat/genie-animation-toggle
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8987790Z  * [new branch]        feat/help-and-setup-bar -> upstream/feat/help-and-setup-bar
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8988240Z  * [new branch]        feat/litellm-model-selection -> upstream/feat/litellm-model-selection
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8988710Z  * [new branch]        feat/nemotron-local-stt -> upstream/feat/nemotron-local-stt
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8989070Z  * [new branch]        feat/ninerouter-provider -> upstream/feat/ninerouter-provider
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8989470Z  * [new branch]        feat/overlay-click-through-pill -> upstream/feat/overlay-click-through-pill
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8990130Z  * [new branch]        feat/overlay-edit-shortcuts -> upstream/feat/overlay-edit-shortcuts
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8990640Z  * [new branch]        feat/overlay-edit-shortcuts-and-word-delete -> upstream/feat/overlay-edit-shortcuts-and-word-delete
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8991120Z  * [new branch]        feat/retrieval-scale   -> upstream/feat/retrieval-scale
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8991500Z  * [new branch]        feat/system-design-diagrams -> upstream/feat/system-design-diagrams
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8991900Z  * [new branch]        feat/toaster-redesign  -> upstream/feat/toaster-redesign
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8992250Z  * [new branch]        feat/trial-ended-card  -> upstream/feat/trial-ended-card
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8992640Z  * [new branch]        feat/undetectable-mode-ring -> upstream/feat/undetectable-mode-ring
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8993030Z  * [new branch]        feat/usage-ledger      -> upstream/feat/usage-ledger
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8993470Z  * [new branch]        feat/windows-permissions-toast -> upstream/feat/windows-permissions-toast
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8993930Z  * [new branch]        fix/always-answer-and-reranker-on-v3 -> upstream/fix/always-answer-and-reranker-on-v3
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8994360Z  * [new branch]        fix/always-answer-round4 -> upstream/fix/always-answer-round4
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8994710Z  * [new branch]        fix/always-answer-round5 -> upstream/fix/always-answer-round5
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8995160Z  * [new branch]        fix/answer-policy-and-conversation-state -> upstream/fix/answer-policy-and-conversation-state
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8995600Z  * [new branch]        fix/aq-astra           -> upstream/fix/aq-astra
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8995920Z  * [new branch]        fix/asterisk-closure   -> upstream/fix/asterisk-closure
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8996300Z  * [new branch]        fix/ci-electron-abi-test-runner -> upstream/fix/ci-electron-abi-test-runner
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8996810Z  * [new branch]        fix/ci-premium-submodule -> upstream/fix/ci-premium-submodule
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8997190Z  * [new branch]        fix/ci-run-tests-on-windows -> upstream/fix/ci-run-tests-on-windows
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8997650Z  * [new branch]        fix/codex-vision-and-google-credentials -> upstream/fix/codex-vision-and-google-credentials
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8998060Z  * [new branch]        fix/cred-cluster       -> upstream/fix/cred-cluster
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8998440Z  * [new branch]        fix/extension-card-genie-pictures -> upstream/fix/extension-card-genie-pictures
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8999180Z  * [new branch]        fix/google-stt-auth-crash-on-missing-credentials -> upstream/fix/google-stt-auth-crash-on-missing-credentials
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.8999710Z  * [new branch]        fix/index-hash-trim-stability -> upstream/fix/index-hash-trim-stability
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9000180Z  * [new branch]        fix/intelligence-settings-dead-flags -> upstream/fix/intelligence-settings-dead-flags
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9000710Z  * [new branch]        fix/interview-prep-doc-grounding-switch -> upstream/fix/interview-prep-doc-grounding-switch
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9001240Z  * [new branch]        fix/issue-543-wta-provider-rejection -> upstream/fix/issue-543-wta-provider-rejection
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9001800Z  * [new branch]        fix/issue-558-codex-cli-login-and-models -> upstream/fix/issue-558-codex-cli-login-and-models
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9002340Z  * [new branch]        fix/ledger-vision-whisper -> upstream/fix/ledger-vision-whisper
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9002850Z  * [new branch]        fix/license-overwrite-protection -> upstream/fix/license-overwrite-protection
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9003370Z  * [new branch]        fix/live-surface-answer-contract -> upstream/fix/live-surface-answer-contract
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9003840Z  * [new branch]        fix/local-stt-language-capability -> upstream/fix/local-stt-language-capability
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9004290Z  * [new branch]        fix/local-stt-slot-starvation -> upstream/fix/local-stt-slot-starvation
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9005090Z  * [new branch]        fix/macos-ci-baseline  -> upstream/fix/macos-ci-baseline
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9005430Z  * [new branch]        fix/main-ci-green      -> upstream/fix/main-ci-green
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9005770Z  * [new branch]        fix/meeting-overlay-memory -> upstream/fix/meeting-overlay-memory
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9006210Z  * [new branch]        fix/meeting-title-sync-and-editor -> upstream/fix/meeting-title-sync-and-editor
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9006690Z  * [new branch]        fix/model-selector-provider-marks -> upstream/fix/model-selector-provider-marks
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9007170Z  * [new branch]        fix/nemotron-model-picker-grouping -> upstream/fix/nemotron-model-picker-grouping
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9007610Z  * [new branch]        fix/overlay-aux-opacity-gap -> upstream/fix/overlay-aux-opacity-gap
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9008000Z  * [new branch]        fix/overlay-banner-actions -> upstream/fix/overlay-banner-actions
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9008440Z  * [new branch]        fix/overlay-fixes-and-genie-toggle -> upstream/fix/overlay-fixes-and-genie-toggle
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9008880Z  * [new branch]        fix/own-subject-overreach -> upstream/fix/own-subject-overreach
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9009330Z  * [new branch]        fix/permissions-card-genie-pictures -> upstream/fix/permissions-card-genie-pictures
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9009760Z  * [new branch]        fix/pi-identity-descriptors -> upstream/fix/pi-identity-descriptors
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9010220Z  * [new branch]        fix/pi-indexing-survives-panel-close -> upstream/fix/pi-indexing-survives-panel-close
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9010690Z  * [new branch]        fix/pr487-liverag-and-chatguard -> upstream/fix/pr487-liverag-and-chatguard
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9011150Z  * [new branch]        fix/profile-pack-fk-and-gap-analysis -> upstream/fix/profile-pack-fk-and-gap-analysis
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9011590Z  * [new branch]        fix/rag-config-forwarding -> upstream/fix/rag-config-forwarding
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9012010Z  * [new branch]        fix/reference-retrieval-grounding -> upstream/fix/reference-retrieval-grounding
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9012520Z  * [new branch]        fix/restore-build-config-and-test-fixtures -> upstream/fix/restore-build-config-and-test-fixtures
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9013130Z  * [new branch]        fix/retrieval-local-cards-light-mode -> upstream/fix/retrieval-local-cards-light-mode
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9013650Z  * [new branch]        fix/retrieval-review-followups -> upstream/fix/retrieval-review-followups
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9014140Z  * [new branch]        fix/settings-dropdown-stacking-context -> upstream/fix/settings-dropdown-stacking-context
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9014780Z  * [new branch]        fix/settings-popup-toggle-knob -> upstream/fix/settings-popup-toggle-knob
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9015240Z  * [new branch]        fix/spotlight-arrow-glass-glyph -> upstream/fix/spotlight-arrow-glass-glyph
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9015730Z  * [new branch]        fix/spotlight-arrows-glass-proximity -> upstream/fix/spotlight-arrows-glass-proximity
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9016220Z  * [new branch]        fix/stack-review-safe-subset -> upstream/fix/stack-review-safe-subset
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9016640Z  * [new branch]        fix/stealth-tray-taskbar-parity -> upstream/fix/stealth-tray-taskbar-parity
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9017100Z  * [new branch]        fix/stream-fault-injection -> upstream/fix/stream-fault-injection
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9017650Z  * [new branch]        fix/stt-fragment-lookup-and-second-person -> upstream/fix/stt-fragment-lookup-and-second-person
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9018210Z  * [new branch]        fix/stt-no-speech-and-sck-stream-stop -> upstream/fix/stt-no-speech-and-sck-stream-stop
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9018760Z  * [new branch]        fix/tester-pack-remaining-causes -> upstream/fix/tester-pack-remaining-causes
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9019180Z  * [new branch]        fix/toggle-flat-blue-accent -> upstream/fix/toggle-flat-blue-accent
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9019600Z  * [new branch]        fix/toggle-zoom-glass-compositing -> upstream/fix/toggle-zoom-glass-compositing
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9020280Z  * [new branch]        fix/ts7-premium-coverage -> upstream/fix/ts7-premium-coverage
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9020720Z  * [new branch]        fix/windows-esm-test-imports -> upstream/fix/windows-esm-test-imports
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9021180Z  * [new branch]        fix/windows-launcher-transparency -> upstream/fix/windows-launcher-transparency
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9022010Z  * [new branch]        fix/windows-stealth-deadkey-and-screenshot-restore -> upstream/fix/windows-stealth-deadkey-and-screenshot-restore
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9022680Z  * [new branch]        fix/windows-tsc-invocations -> upstream/fix/windows-tsc-invocations
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9023210Z  * [new branch]        fix/wta-phase1-question-detection -> upstream/fix/wta-phase1-question-detection
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9023660Z  * [new branch]        hardening/v2.7.0       -> upstream/hardening/v2.7.0
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9029320Z  * [new branch]        main                   -> upstream/main
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9029750Z  * [new branch]        polish/launcher-meeting-notes-transition -> upstream/polish/launcher-meeting-notes-transition
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9030170Z  * [new branch]        pr-367                 -> upstream/pr-367
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9030580Z  * [new branch]        pr/audio-zerofill-aliasing -> upstream/pr/audio-zerofill-aliasing
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9031020Z  * [new branch]        pr/launcher-aspect-lock -> upstream/pr/launcher-aspect-lock
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9031410Z  * [new branch]        pr/premium-license-fix -> upstream/pr/premium-license-fix
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9031840Z  * [new branch]        pr/settings-and-shortcuts -> upstream/pr/settings-and-shortcuts
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9032250Z  * [new branch]        pr/ui-polish           -> upstream/pr/ui-polish
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9032630Z  * [new branch]        pr/windows-build-tooling -> upstream/pr/windows-build-tooling
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9033040Z  * [new branch]        pr/windows-meeting-lifecycle -> upstream/pr/windows-meeting-lifecycle
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9033560Z  * [new branch]        pr/windows-platform-parity -> upstream/pr/windows-platform-parity
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9033970Z  * [new branch]        pr/windows-stealth-typing -> upstream/pr/windows-stealth-typing
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9034280Z  * [new branch]        rust                   -> upstream/rust
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9034600Z  * [new branch]        theme-retint           -> upstream/theme-retint
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:38.9035000Z  * [new branch]        worktree-electron-43-bump -> upstream/worktree-electron-43-bump
+gates	Fetch upstream refs and extra restricted commits (read-only)	2026-10-08T09:24:39.1263670Z upstream refs:      123
+gates	Run actions/setup-node@v7	﻿2026-10-08T09:24:39.1525520Z ##[group]Run actions/setup-node@v7
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.1525710Z with:
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.1525820Z   node-version: 26.0.0
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.1525970Z   check-latest: false
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.1527460Z   token: ***
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.1527600Z   package-manager-cache: true
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.1527760Z ##[endgroup]
+gates	Run actions/setup-node@v7	2026-10-08T09:24:39.2467810Z Attempting to download 26.0.0...
+gates	Run actions/setup-node@v7	2026-10-08T09:24:40.1937110Z Acquiring 26.0.0 - arm64 from https://github.com/actions/node-versions/releases/download/26.0.0-25413736946/node-26.0.0-darwin-arm64.tar.gz
+gates	Run actions/setup-node@v7	2026-10-08T09:24:40.7141070Z Extracting ...
+gates	Run actions/setup-node@v7	2026-10-08T09:24:40.7246980Z [command]/usr/bin/tar xz --strip 1 -C /Users/runner/work/_temp/3bcb6644-2469-4721-b628-93b721c012a5 -f /Users/runner/work/_temp/7e2be713-0fd3-4cf2-8724-7dcf923ba563
+gates	Run actions/setup-node@v7	2026-10-08T09:24:41.4553740Z Adding to the cache ...
+gates	Run actions/setup-node@v7	2026-10-08T09:24:43.0899670Z ##[group]Environment details
+gates	Run actions/setup-node@v7	2026-10-08T09:24:43.2904940Z node: v26.0.0
+gates	Run actions/setup-node@v7	2026-10-08T09:24:43.2905240Z npm: 11.12.1
+gates	Run actions/setup-node@v7	2026-10-08T09:24:43.2905420Z yarn: 1.22.22
+gates	Run actions/setup-node@v7	2026-10-08T09:24:43.2905920Z ##[endgroup]
+gates	Toolchain versions	﻿2026-10-08T09:24:43.3030240Z ##[group]Run node -v; npm -v; rustc -V; cargo -V; xcodebuild -version
+gates	Toolchain versions	2026-10-08T09:24:43.3030660Z [36;1mnode -v; npm -v; rustc -V; cargo -V; xcodebuild -version[0m
+gates	Toolchain versions	2026-10-08T09:24:43.3035430Z [36;1mecho "rustc=$(rustc -V | tr ' ' '-')" >> "$GITHUB_OUTPUT"[0m
+gates	Toolchain versions	2026-10-08T09:24:43.3067810Z shell: /bin/bash -e {0}
+gates	Toolchain versions	2026-10-08T09:24:43.3068170Z ##[endgroup]
+gates	Toolchain versions	2026-10-08T09:24:43.3518350Z v26.0.0
+gates	Toolchain versions	2026-10-08T09:24:43.4252060Z 11.12.1
+gates	Toolchain versions	2026-10-08T09:24:43.6609650Z rustc 1.98.1 (48a229cea 2026-09-01)
+gates	Toolchain versions	2026-10-08T09:24:43.7179190Z cargo 1.98.1 (797e8a9bc 2026-08-05)
+gates	Toolchain versions	2026-10-08T09:24:43.8269250Z Xcode 16.4
+gates	Toolchain versions	2026-10-08T09:24:43.8278570Z Build version 16F6
+gates	Run actions/cache@v6	﻿2026-10-08T09:24:44.0177340Z ##[group]Run actions/cache@v6
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0177530Z with:
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0177650Z   path: ~/Library/Caches/electron
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0178000Z   key: electron-macOS-ARM64-58d73a0cb230a97b1f192552ca7fcb33562d88e8beff0b4cfb560d61c0dbe217
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0178360Z   restore-keys: electron-macOS-ARM64-
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0178520Z   enableCrossOsArchive: false
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0178670Z   fail-on-cache-miss: false
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0178810Z   lookup-only: false
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0178970Z   save-always: false
+gates	Run actions/cache@v6	2026-10-08T09:24:44.0179090Z ##[endgroup]
+gates	Run actions/cache@v6	2026-10-08T09:24:44.1897610Z Cache hit for: electron-macOS-ARM64-58d73a0cb230a97b1f192552ca7fcb33562d88e8beff0b4cfb560d61c0dbe217
+gates	Run actions/cache@v6	2026-10-08T09:24:45.2496990Z Received 176160768 of 221350177 (79.6%), 167.3 MBs/sec
+gates	Run actions/cache@v6	2026-10-08T09:24:45.4787880Z Received 221350177 of 221350177 (100.0%), 171.2 MBs/sec
+gates	Run actions/cache@v6	2026-10-08T09:24:45.4791910Z Cache Size: ~211 MB (221350177 B)
+gates	Run actions/cache@v6	2026-10-08T09:24:45.4839030Z [command]/opt/homebrew/bin/gtar -xf /Users/runner/work/_temp/9097c199-6d8d-4bed-9a5b-c310bea466da/cache.tzst -P -C /Users/runner/work/Assessment-Assistant/Assessment-Assistant --delay-directory-restore --use-compress-program unzstd
+gates	Run actions/cache@v6	2026-10-08T09:24:45.7250460Z Cache restored successfully
+gates	Run actions/cache@v6	2026-10-08T09:24:45.7362790Z Cache restored from key: electron-macOS-ARM64-58d73a0cb230a97b1f192552ca7fcb33562d88e8beff0b4cfb560d61c0dbe217
+gates	Run actions/cache@v6	﻿2026-10-08T09:24:45.8888380Z ##[group]Run actions/cache@v6
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8888600Z with:
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8888730Z   path: native-module/target
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8889160Z   key: cargo-target-macOS-ARM64-rustc-1.98.1-(48a229cea-2026-09-01)-e36cf2eb43312119caf49ee0020d56b83fea98b5f98f489d7ccddc5174866b37
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8889740Z   restore-keys: cargo-target-macOS-ARM64-rustc-1.98.1-(48a229cea-2026-09-01)-
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8890140Z   enableCrossOsArchive: false
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8890310Z   fail-on-cache-miss: false
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8890460Z   lookup-only: false
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8890600Z   save-always: false
+gates	Run actions/cache@v6	2026-10-08T09:24:45.8890730Z ##[endgroup]
+gates	Run actions/cache@v6	2026-10-08T09:24:46.0804590Z Cache hit for: cargo-target-macOS-ARM64-rustc-1.98.1-(48a229cea-2026-09-01)-e36cf2eb43312119caf49ee0020d56b83fea98b5f98f489d7ccddc5174866b37
+gates	Run actions/cache@v6	2026-10-08T09:24:47.0733030Z Received 200367697 of 200367697 (100.0%), 204.2 MBs/sec
+gates	Run actions/cache@v6	2026-10-08T09:24:47.0733980Z Cache Size: ~191 MB (200367697 B)
+gates	Run actions/cache@v6	2026-10-08T09:24:47.0779590Z [command]/opt/homebrew/bin/gtar -xf /Users/runner/work/_temp/9eaa19f7-e853-4637-a7f8-4bc87267a70c/cache.tzst -P -C /Users/runner/work/Assessment-Assistant/Assessment-Assistant --delay-directory-restore --use-compress-program unzstd
+gates	Run actions/cache@v6	2026-10-08T09:24:48.2352420Z Cache restored successfully
+gates	Run actions/cache@v6	2026-10-08T09:24:48.2449800Z Cache restored from key: cargo-target-macOS-ARM64-rustc-1.98.1-(48a229cea-2026-09-01)-e36cf2eb43312119caf49ee0020d56b83fea98b5f98f489d7ccddc5174866b37
+gates	Run npm ci	﻿2026-10-08T09:24:48.2561030Z ##[group]Run npm ci
+gates	Run npm ci	2026-10-08T09:24:48.2561260Z [36;1mnpm ci[0m
+gates	Run npm ci	2026-10-08T09:24:48.2588740Z shell: /bin/bash -e {0}
+gates	Run npm ci	2026-10-08T09:24:48.2589020Z ##[endgroup]
+gates	Run npm ci	2026-10-08T09:24:49.0662370Z npm warn ERESOLVE overriding peer dependency
+gates	Run npm ci	2026-10-08T09:24:49.0665760Z npm warn While resolving: react-reconciler@0.29.2
+gates	Run npm ci	2026-10-08T09:24:49.0666170Z npm warn Found: react@19.2.6
+gates	Run npm ci	2026-10-08T09:24:49.0666380Z npm warn node_modules/react
+gates	Run npm ci	2026-10-08T09:24:49.0666790Z npm warn   react@"^19.2.6" from the root project
+gates	Run npm ci	2026-10-08T09:24:49.0667150Z npm warn   35 more (@radix-ui/react-collection, ...)
+gates	Run npm ci	2026-10-08T09:24:49.0667380Z npm warn
+gates	Run npm ci	2026-10-08T09:24:49.0667630Z npm warn Could not resolve dependency:
+gates	Run npm ci	2026-10-08T09:24:49.0668070Z npm warn peer react@"^18.3.1" from react-reconciler@0.29.2
+gates	Run npm ci	2026-10-08T09:24:49.0668450Z npm warn node_modules/ink/node_modules/react-reconciler
+gates	Run npm ci	2026-10-08T09:24:49.0669250Z npm warn   react-reconciler@"^0.29.0" from ink@5.2.1
+gates	Run npm ci	2026-10-08T09:24:49.0669500Z npm warn   node_modules/ink
+gates	Run npm ci	2026-10-08T09:24:49.0669730Z npm warn
+gates	Run npm ci	2026-10-08T09:24:49.0670010Z npm warn Conflicting peer dependency: react@18.3.1
+gates	Run npm ci	2026-10-08T09:24:49.0670360Z npm warn node_modules/react
+gates	Run npm ci	2026-10-08T09:24:49.0670670Z npm warn   peer react@"^18.3.1" from react-reconciler@0.29.2
+gates	Run npm ci	2026-10-08T09:24:49.0671070Z npm warn   node_modules/ink/node_modules/react-reconciler
+gates	Run npm ci	2026-10-08T09:24:49.0671400Z npm warn     react-reconciler@"^0.29.0" from ink@5.2.1
+gates	Run npm ci	2026-10-08T09:24:49.0671640Z npm warn     node_modules/ink
+gates	Run npm ci	2026-10-08T09:24:50.3927010Z npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+gates	Run npm ci	2026-10-08T09:24:50.4478100Z npm warn deprecated npmlog@6.0.2: This package is no longer supported.
+gates	Run npm ci	2026-10-08T09:24:50.7636060Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+gates	Run npm ci	2026-10-08T09:24:50.8184840Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+gates	Run npm ci	2026-10-08T09:24:51.3853270Z npm warn deprecated are-we-there-yet@3.0.1: This package is no longer supported.
+gates	Run npm ci	2026-10-08T09:24:51.3859790Z npm warn deprecated gauge@4.0.4: This package is no longer supported.
+gates	Run npm ci	2026-10-08T09:24:51.6195750Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+gates	Run npm ci	2026-10-08T09:24:51.6337950Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+gates	Run npm ci	2026-10-08T09:24:51.9216920Z npm warn deprecated @npmcli/move-file@2.0.1: This functionality has been moved to @npmcli/fs
+gates	Run npm ci	2026-10-08T09:24:52.4786380Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+gates	Run npm ci	2026-10-08T09:24:52.4876540Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+gates	Run npm ci	2026-10-08T09:24:52.5578170Z npm warn deprecated @npmcli/move-file@1.1.2: This functionality has been moved to @npmcli/fs
+gates	Run npm ci	2026-10-08T09:24:52.7839350Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+gates	Run npm ci	2026-10-08T09:24:52.8608210Z npm warn deprecated glob@8.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+gates	Run npm ci	2026-10-08T09:24:53.0155080Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+gates	Run npm ci	2026-10-08T09:24:53.8324210Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+gates	Run npm ci	2026-10-08T09:24:54.0333280Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+gates	Run npm ci	2026-10-08T09:24:55.4840740Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+gates	Run npm ci	2026-10-08T09:24:55.5374860Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+gates	Run npm ci	2026-10-08T09:24:55.6341600Z npm warn deprecated electron-rebuild@3.2.9: Please use @electron/rebuild moving forward.  There is no API change, just a package name change
+gates	Run npm ci	2026-10-08T09:25:07.2636010Z 
+gates	Run npm ci	2026-10-08T09:25:07.2636450Z added 1408 packages, and audited 1410 packages in 19s
+gates	Run npm ci	2026-10-08T09:25:07.2636660Z 
+gates	Run npm ci	2026-10-08T09:25:07.2636860Z 336 packages are looking for funding
+gates	Run npm ci	2026-10-08T09:25:07.2637090Z   run `npm fund` for details
+gates	Run npm ci	2026-10-08T09:25:07.3337090Z 
+gates	Run npm ci	2026-10-08T09:25:07.3337790Z 71 vulnerabilities (8 low, 15 moderate, 45 high, 3 critical)
+gates	Run npm ci	2026-10-08T09:25:07.3338090Z 
+gates	Run npm ci	2026-10-08T09:25:07.3338280Z To address issues that do not require attention, run:
+gates	Run npm ci	2026-10-08T09:25:07.3338570Z   npm audit fix
+gates	Run npm ci	2026-10-08T09:25:07.3338680Z 
+gates	Run npm ci	2026-10-08T09:25:07.3338920Z To address all issues possible (including breaking changes), run:
+gates	Run npm ci	2026-10-08T09:25:07.3339400Z   npm audit fix --force
+gates	Run npm ci	2026-10-08T09:25:07.3339560Z 
+gates	Run npm ci	2026-10-08T09:25:07.3339740Z Some issues need review, and may require choosing
+gates	Run npm ci	2026-10-08T09:25:07.3340040Z a different dependency.
+gates	Run npm ci	2026-10-08T09:25:07.3340180Z 
+gates	Run npm ci	2026-10-08T09:25:07.3340300Z Run `npm audit` for details.
+gates	Native setup	﻿2026-10-08T09:25:07.4167030Z ##[group]Run set -o pipefail
+gates	Native setup	2026-10-08T09:25:07.4167290Z [36;1mset -o pipefail[0m
+gates	Native setup	2026-10-08T09:25:07.4167510Z [36;1m# Outside the checkout, so the gates see a clean tree.[0m
+gates	Native setup	2026-10-08T09:25:07.4167790Z [36;1mmkdir -p "$RUNNER_TEMP/native-artifact"[0m
+gates	Native setup	2026-10-08T09:25:07.4168110Z [36;1mnpm run setup:native 2>&1 | tee "$RUNNER_TEMP/native-artifact/setup-native.log"[0m
+gates	Native setup	2026-10-08T09:25:07.4200120Z shell: /bin/bash -e {0}
+gates	Native setup	2026-10-08T09:25:07.4200290Z ##[endgroup]
+gates	Native setup	2026-10-08T09:25:07.5473420Z 
+gates	Native setup	2026-10-08T09:25:07.5473890Z > natively@2.7.0 setup:native
+gates	Native setup	2026-10-08T09:25:07.5474270Z > node scripts/margin/setup-native.mjs
+gates	Native setup	2026-10-08T09:25:07.5474420Z 
+gates	Native setup	2026-10-08T09:25:07.5811590Z 
+gates	Native setup	2026-10-08T09:25:07.5811940Z [setup:native] 1/5 Electron 43.1.0 binary
+gates	Native setup	2026-10-08T09:25:08.3554940Z 
+gates	Native setup	2026-10-08T09:25:08.3555630Z [setup:native] 2/5 sharp prebuilt check
+gates	Native setup	2026-10-08T09:25:09.2711470Z 
+gates	Native setup	2026-10-08T09:25:09.2711980Z [setup:native] 3/5 rebuild better-sqlite3 and keytar for Electron
+gates	Native setup	2026-10-08T09:25:09.3180600Z Searching dependency tree
+gates	Native setup	2026-10-08T09:25:09.4430880Z Building modules: better-sqlite3, keytar, sqlite3
+gates	Native setup	2026-10-08T09:25:28.0258510Z ✔ Rebuild Complete
+gates	Native setup	2026-10-08T09:25:28.0294620Z 
+gates	Native setup	2026-10-08T09:25:28.0294960Z [setup:native] 4/5 build native-module
+gates	Native setup	2026-10-08T09:25:28.0608070Z Building for macOS (darwin) for current architecture only: aarch64-apple-darwin
+gates	Native setup	2026-10-08T09:25:28.0802490Z Using clang runtime path: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin
+gates	Native setup	2026-10-08T09:25:28.0803090Z > rustup target add aarch64-apple-darwin
+gates	Native setup	2026-10-08T09:25:28.1372530Z info: component rust-std is up to date
+gates	Native setup	2026-10-08T09:25:28.1404250Z 
+gates	Native setup	2026-10-08T09:25:28.1404710Z --- Building for aarch64-apple-darwin ---
+gates	Native setup	2026-10-08T09:25:28.1405270Z > npx napi build --platform --target aarch64-apple-darwin --release
+gates	Native setup	2026-10-08T09:25:33.7567620Z    Compiling natively-audio v0.1.0 (/Users/runner/work/Assessment-Assistant/Assessment-Assistant/native-module)
+gates	Native setup	2026-10-08T09:25:36.6710820Z     Finished `release` profile [optimized] target(s) in 3.01s
+gates	Native setup	2026-10-08T09:25:37.0243380Z   Fixing dylib path: /Users/runner/work/Assessment-Assistant/Assessment-Assistant/native-module/target/aarch64-apple-darwin/release/deps/libnatively_audio.dylib -> @loader_path/libnatively_audio.dylib
+gates	Native setup	2026-10-08T09:25:37.3473420Z Fixed dylib paths in: index.darwin-arm64.node
+gates	Native setup	2026-10-08T09:25:37.3480440Z Verified native artifacts:
+gates	Native setup	2026-10-08T09:25:37.3480750Z - index.darwin-arm64.node
+gates	Native setup	2026-10-08T09:25:37.3490890Z 
+gates	Native setup	2026-10-08T09:25:37.3491300Z [setup:native] 5/5 patch dev Electron Info.plist
+gates	Native setup	2026-10-08T09:25:37.3726240Z [patch-electron-plist] Added NSScreenCaptureUsageDescription.
+gates	Native setup	2026-10-08T09:25:37.3727020Z [patch-electron-plist] NSAudioCaptureUsageDescription already present — skipping.
+gates	Native setup	2026-10-08T09:25:37.3729870Z [patch-electron-plist] Updated NSMicrophoneUsageDescription text.
+gates	Native setup	2026-10-08T09:25:37.3730320Z [patch-electron-plist] Info.plist patched successfully.
+gates	Native setup	2026-10-08T09:25:37.3739600Z 
+gates	Native setup	2026-10-08T09:25:37.3739750Z [setup:native] done
+gates	Collect the native module	﻿2026-10-08T09:25:37.4056100Z ##[group]Run cd "$RUNNER_TEMP"
+gates	Collect the native module	2026-10-08T09:25:37.4056310Z [36;1mcd "$RUNNER_TEMP"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4056480Z [36;1mif [ "$NO_CACHE" = true ]; then[0m
+gates	Collect the native module	2026-10-08T09:25:37.4056710Z [36;1m  # From scratch means cargo compiled cidre in this run.[0m
+gates	Collect the native module	2026-10-08T09:25:37.4057020Z [36;1m  grep -E '^\s*Compiling cidre v' native-artifact/setup-native.log[0m
+gates	Collect the native module	2026-10-08T09:25:37.4057330Z [36;1mfi[0m
+gates	Collect the native module	2026-10-08T09:25:37.4057570Z [36;1mcp "$GITHUB_WORKSPACE/native-module/index.darwin-arm64.node" native-artifact/[0m
+gates	Collect the native module	2026-10-08T09:25:37.4057850Z [36;1m{[0m
+gates	Collect the native module	2026-10-08T09:25:37.4057980Z [36;1m  echo "commit: $GITHUB_SHA"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4058240Z [36;1m  echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4058490Z [36;1m  echo "no_cache: $NO_CACHE"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4058680Z [36;1m  echo "rustc: $(rustc -V)"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4058890Z [36;1m  echo "xcode: $(xcodebuild -version | tr '\n' ' ')"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4059270Z [36;1m  echo "cidre compiled in this run: $(grep -cE '^\s*Compiling cidre v' native-artifact/setup-native.log || true)"[0m
+gates	Collect the native module	2026-10-08T09:25:37.4059720Z [36;1m  shasum -a 256 native-artifact/index.darwin-arm64.node[0m
+gates	Collect the native module	2026-10-08T09:25:37.4060000Z [36;1m  file native-artifact/index.darwin-arm64.node[0m
+gates	Collect the native module	2026-10-08T09:25:37.4060230Z [36;1m} > native-artifact/BUILD-INFO.txt[0m
+gates	Collect the native module	2026-10-08T09:25:37.4060430Z [36;1mcat native-artifact/BUILD-INFO.txt[0m
+gates	Collect the native module	2026-10-08T09:25:37.4088080Z shell: /bin/bash -e {0}
+gates	Collect the native module	2026-10-08T09:25:37.4088220Z env:
+gates	Collect the native module	2026-10-08T09:25:37.4088340Z   NO_CACHE: false
+gates	Collect the native module	2026-10-08T09:25:37.4088530Z ##[endgroup]
+gates	Collect the native module	2026-10-08T09:25:37.5320150Z commit: 831234342e5059029afed6a0fecec5393ebfeefa
+gates	Collect the native module	2026-10-08T09:25:37.5320620Z run: 37756383369 (attempt 1)
+gates	Collect the native module	2026-10-08T09:25:37.5320800Z no_cache: false
+gates	Collect the native module	2026-10-08T09:25:37.5321040Z rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+gates	Collect the native module	2026-10-08T09:25:37.5321330Z xcode: Xcode 16.4 Build version 16F6 
+gates	Collect the native module	2026-10-08T09:25:37.5321570Z cidre compiled in this run: 0
+gates	Collect the native module	2026-10-08T09:25:37.5322110Z 33e827897d1c2a633c2ee885b17a598ec9b259aba7305e528528f25cb4ed4e4e  native-artifact/index.darwin-arm64.node
+gates	Collect the native module	2026-10-08T09:25:37.5322790Z native-artifact/index.darwin-arm64.node: Mach-O 64-bit dynamically linked shared library arm64
+gates	Run actions/upload-artifact@v7	﻿2026-10-08T09:25:37.5461770Z ##[group]Run actions/upload-artifact@v7
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5461990Z with:
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5462160Z   name: margin-native-831234342e5059029afed6a0fecec5393ebfeefa
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5462420Z   path: /Users/runner/work/_temp/native-artifact/
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5462640Z   retention-days: 30
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5462810Z   if-no-files-found: warn
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5462970Z   compression-level: 6
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5463110Z   overwrite: false
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5463240Z   include-hidden-files: false
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5463390Z   archive: true
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.5463500Z ##[endgroup]
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.6602200Z With the provided path, there will be 3 files uploaded
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.6602840Z Artifact name is valid!
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.6603420Z Root directory input is valid!
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.8620380Z Uploading artifact: margin-native-831234342e5059029afed6a0fecec5393ebfeefa.zip
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:37.8648260Z Beginning upload of artifact content to blob storage
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.0018300Z Uploaded bytes 425284
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.0168650Z Finished uploading artifact content to blob storage!
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.0169240Z SHA256 digest of uploaded artifact is bdc1c2dfea4298cd36800904071c18fd51c44ea847b9e15ae38b2d7853023a2d
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.0169620Z Finalizing artifact upload
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.2417250Z Artifact margin-native-831234342e5059029afed6a0fecec5393ebfeefa successfully finalized. Artifact ID 11539324896
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.2422000Z Artifact margin-native-831234342e5059029afed6a0fecec5393ebfeefa has been successfully uploaded! Final size is 425284 bytes. Artifact ID is 11539324896
+gates	Run actions/upload-artifact@v7	2026-10-08T09:25:38.2429210Z Artifact download URL: https://github.com/xbz123/Assessment-Assistant/actions/runs/37756383369/artifacts/11539324896
+gates	Run gates against the newest local ticket evidence	﻿2026-10-08T09:25:38.2690380Z ##[group]Run ref=$(node -e "
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2690810Z [36;1mref=$(node -e "[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2691130Z [36;1m  const fs = require('fs');[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2691850Z [36;1m  const dirs = fs.readdirSync('docs/margin/evidence').filter((d) => /^AG-\d+$/.test(d));[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2692620Z [36;1m  dirs.sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)));[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2693240Z [36;1m  console.log('docs/margin/evidence/' + dirs.at(-1));[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2693700Z [36;1m")[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2694010Z [36;1mecho "reference: $ref"[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2694550Z [36;1mnode scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2695450Z [36;1m  --note "GitHub Actions run 37756383369 (attempt 1) on macos-15, no_cache=false, compared with $ref"[0m
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2753330Z shell: /bin/bash -e {0}
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.2753720Z ##[endgroup]
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:38.3408270Z reference: docs/margin/evidence/AG-20
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:39.2134140Z [gates] clean-dist ... exit 0 PASS (0s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:40.2786480Z [gates] build-electron ... exit 0 PASS (1s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:44.3874300Z [gates] vite-build ... exit 0 PASS (4s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:46.9511160Z [gates] tsc-renderer ... exit 0 PASS (3s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:25:48.4442840Z [gates] tsc-electron ... exit 0 PASS (1s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:09.9575330Z [gates] provenance ... exit 0 PASS (22s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:11.4089980Z [gates] retired ... exit 0 PASS (1s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:11.4394420Z [gates] preload-contract ... exit 0 PASS (0s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:11.4850960Z [gates] ipc-channels ... exit 0 PASS (0s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:11.6960010Z [gates] guard-selftest ... exit 0 PASS (0s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:17.8625890Z [gates] tests ... exit 0 PASS (6s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:26:39.3167800Z [gates] regression ... exit 0 PASS (21s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:27:06.5665230Z [gates] storage ... exit 0 PASS (27s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:27:43.8614880Z [gates] startup ... exit 0 PASS (37s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:27:43.8740790Z [gates] diff-check ... exit 0 PASS (0s)
+gates	Run gates against the newest local ticket evidence	2026-10-08T09:27:43.8742720Z [gates] all passed; summary: ci-evidence/summary.json
+gates	Check release identity contract (CI only; no packaging)	﻿2026-10-08T09:27:43.8829840Z ##[group]Run set -o pipefail
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8830170Z [36;1mset -o pipefail[0m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8830510Z [36;1mnode scripts/build-electron.js 2>&1 | tee ci-evidence/identity-release-build.log[0m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8830940Z [36;1mnode_modules/.bin/vite build 2>&1 | tee ci-evidence/identity-release-renderer.log[0m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8831540Z [36;1mnode scripts/margin/isolation/run-node.mjs --test electron/margin/__tests__/appIdentity.test.mjs 2>&1 | tee ci-evidence/identity-release-contract.log[0m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8863380Z shell: /bin/bash -e {0}
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8863550Z env:
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8863690Z   MARGIN_APP_VARIANT: release
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:43.8863850Z ##[endgroup]
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:45.0288500Z [build-electron] Done in 1085ms
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:45.2064380Z [36mvite v5.4.21 [32mbuilding for production...[36m[39m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:45.2310520Z transforming...
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:48.6220440Z [32m✓[39m 3862 modules transformed.
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:48.8663540Z rendering chunks...
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.1566150Z [1m[33m[plugin:vite:reporter][39m[22m [33m[plugin vite:reporter] 
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.1568100Z (!) /Users/runner/work/Assessment-Assistant/Assessment-Assistant/src/lib/sttErrorMapper.ts is dynamically imported by /Users/runner/work/Assessment-Assistant/Assessment-Assistant/src/components/NativelyInterface.tsx but also statically imported by /Users/runner/work/Assessment-Assistant/Assessment-Assistant/src/components/ui/RollingTranscript.tsx, dynamic import will not move module into another chunk.
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.1569380Z [39m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.1865440Z computing gzip size...
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2249020Z [2mdist/[22m[32mindex.html                                        [39m[1m[2m    1.17 kB[22m[1m[22m[2m │ gzip:   0.66 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2249790Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size3-Regular-CTq5MqoE.woff          [39m[1m[2m    4.42 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2250520Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size4-Regular-Dl5lxZxV.woff2         [39m[1m[2m    4.93 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2251250Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size2-Regular-Dy4dx90m.woff2         [39m[1m[2m    5.21 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2251950Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size1-Regular-mCD8mA8B.woff2         [39m[1m[2m    5.47 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2252650Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size4-Regular-BF-4gkZK.woff          [39m[1m[2m    5.98 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2253350Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size2-Regular-oD1tc_U0.woff          [39m[1m[2m    6.19 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2254250Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size1-Regular-C195tn64.woff          [39m[1m[2m    6.50 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2255140Z [2mdist/[22m[2massets/[22m[32mKaTeX_Caligraphic-Regular-Di6jR-x-.woff2   [39m[1m[2m    6.91 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2256370Z [2mdist/[22m[2massets/[22m[32mKaTeX_Caligraphic-Bold-Dq_IR9rO.woff2      [39m[1m[2m    6.91 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2257210Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size3-Regular-DgpXs0kz.ttf           [39m[1m[2m    7.59 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2258100Z [2mdist/[22m[2massets/[22m[32mKaTeX_Caligraphic-Regular-CTRA-rTL.woff    [39m[1m[2m    7.66 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2258840Z [2mdist/[22m[2massets/[22m[32mKaTeX_Caligraphic-Bold-BEiXGLvX.woff       [39m[1m[2m    7.72 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2259590Z [2mdist/[22m[2massets/[22m[32mKaTeX_Script-Regular-D3wIWfF6.woff2        [39m[1m[2m    9.64 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2260350Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Regular-DDBCnlJ7.woff2     [39m[1m[2m   10.34 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2261080Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size4-Regular-DWFBv043.ttf           [39m[1m[2m   10.36 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2261840Z [2mdist/[22m[2massets/[22m[32mKaTeX_Script-Regular-D5yQViql.woff         [39m[1m[2m   10.59 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2262950Z [2mdist/[22m[2massets/[22m[32mKaTeX_Fraktur-Regular-CTYiF6lA.woff2       [39m[1m[2m   11.32 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2263680Z [2mdist/[22m[2massets/[22m[32mKaTeX_Fraktur-Bold-CL6g_b3V.woff2          [39m[1m[2m   11.35 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2264400Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size2-Regular-B7gKUWhC.ttf           [39m[1m[2m   11.51 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2265130Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Italic-C3H0VqGB.woff2      [39m[1m[2m   12.03 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2265860Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Bold-D1sUS0GD.woff2        [39m[1m[2m   12.22 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2266580Z [2mdist/[22m[2massets/[22m[32mKaTeX_Size1-Regular-Dbsnue_I.ttf           [39m[1m[2m   12.23 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2267350Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Regular-CS6fqUqJ.woff      [39m[1m[2m   12.32 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2268170Z [2mdist/[22m[2massets/[22m[32mKaTeX_Caligraphic-Regular-wX97UBjC.ttf     [39m[1m[2m   12.34 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2269080Z [2mdist/[22m[2massets/[22m[32mKaTeX_Caligraphic-Bold-ATXxdsX0.ttf        [39m[1m[2m   12.37 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2269970Z [2mdist/[22m[2massets/[22m[32mKaTeX_Fraktur-Regular-Dxdc4cR9.woff        [39m[1m[2m   13.21 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2270680Z [2mdist/[22m[2massets/[22m[32mKaTeX_Fraktur-Bold-BsDP51OF.woff           [39m[1m[2m   13.30 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2271940Z [2mdist/[22m[2massets/[22m[32mKaTeX_Typewriter-Regular-CO6r4hn1.woff2    [39m[1m[2m   13.57 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2272820Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Italic-DN2j7dab.woff       [39m[1m[2m   14.11 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2273530Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Bold-DbIhKOiC.woff         [39m[1m[2m   14.41 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2274320Z [2mdist/[22m[2massets/[22m[32mKaTeX_Typewriter-Regular-C0xS9mPB.woff     [39m[1m[2m   16.03 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2275030Z [2mdist/[22m[2massets/[22m[32mKaTeX_Math-BoldItalic-CZnvNsCZ.woff2       [39m[1m[2m   16.40 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2275770Z [2mdist/[22m[2massets/[22m[32mKaTeX_Math-Italic-t53AETM-.woff2           [39m[1m[2m   16.44 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2276470Z [2mdist/[22m[2massets/[22m[32mKaTeX_Script-Regular-C5JkGWo-.ttf          [39m[1m[2m   16.65 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2277170Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-BoldItalic-DxDJ3AOS.woff2       [39m[1m[2m   16.78 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2277880Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Italic-NWA7e6Wa.woff2           [39m[1m[2m   16.99 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2278580Z [2mdist/[22m[2massets/[22m[32mKaTeX_Math-BoldItalic-iY-2wyZ7.woff        [39m[1m[2m   18.67 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2279270Z [2mdist/[22m[2massets/[22m[32mKaTeX_Math-Italic-DA0__PXp.woff            [39m[1m[2m   18.75 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2279980Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-BoldItalic-SpSLRI95.woff        [39m[1m[2m   19.41 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2280710Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Regular-BNo7hRIc.ttf       [39m[1m[2m   19.44 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2281410Z [2mdist/[22m[2massets/[22m[32mKaTeX_Fraktur-Regular-CB_wures.ttf         [39m[1m[2m   19.57 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2282120Z [2mdist/[22m[2massets/[22m[32mKaTeX_Fraktur-Bold-BdnERNNW.ttf            [39m[1m[2m   19.58 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2282790Z [2mdist/[22m[2massets/[22m[32mlogo-zUf9UeVV.webp                         [39m[1m[2m   19.67 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2283460Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Italic-BMLOBm91.woff            [39m[1m[2m   19.68 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2292240Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Italic-YYjJ1zSn.ttf        [39m[1m[2m   22.36 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2293070Z [2mdist/[22m[2massets/[22m[32mKaTeX_SansSerif-Bold-CFMepnvq.ttf          [39m[1m[2m   24.50 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2293750Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Bold-Cx986IdX.woff2             [39m[1m[2m   25.32 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2294430Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Regular-B22Nviop.woff2          [39m[1m[2m   26.27 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2295120Z [2mdist/[22m[2massets/[22m[32mKaTeX_Typewriter-Regular-D3Ib7_Hf.ttf      [39m[1m[2m   27.56 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2295800Z [2mdist/[22m[2massets/[22m[32mKaTeX_AMS-Regular-BQhdFMY1.woff2           [39m[1m[2m   28.08 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2296470Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Bold-Jm3AIy58.woff              [39m[1m[2m   29.91 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2297140Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Regular-Dr94JaBh.woff           [39m[1m[2m   30.77 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2297820Z [2mdist/[22m[2massets/[22m[32mKaTeX_Math-BoldItalic-B3XSjfu4.ttf         [39m[1m[2m   31.20 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2298490Z [2mdist/[22m[2massets/[22m[32mKaTeX_Math-Italic-flOr_0UB.ttf             [39m[1m[2m   31.31 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2299170Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-BoldItalic-DzxPMmG6.ttf         [39m[1m[2m   32.97 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2299980Z [2mdist/[22m[2massets/[22m[32mKaTeX_AMS-Regular-DMm9YOAa.woff            [39m[1m[2m   33.52 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2300650Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Italic-3WenGoN9.ttf             [39m[1m[2m   33.58 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2301330Z [2mdist/[22m[2massets/[22m[32mMasterfont - Celeb MF Medium-QyODFAhU.otf  [39m[1m[2m   45.02 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2302020Z [2mdist/[22m[2massets/[22m[32mMasterfont - Celeb MF Light-DZ7SWwTH.otf   [39m[1m[2m   45.55 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2302730Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Bold-waoOVXN0.ttf               [39m[1m[2m   51.34 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2303520Z [2mdist/[22m[2massets/[22m[32mKaTeX_Main-Regular-ypZvNtVU.ttf            [39m[1m[2m   53.58 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2304230Z [2mdist/[22m[2massets/[22m[32mKaTeX_AMS-Regular-DRggAlZN.ttf             [39m[1m[2m   63.63 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2304900Z [2mdist/[22m[2massets/[22m[32mInter-Light-14LG-y7V.woff2                 [39m[1m[2m  112.59 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2305560Z [2mdist/[22m[2massets/[22m[32mInter-Medium-CDhBSFyE.woff2                [39m[1m[2m  114.35 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2306210Z [2mdist/[22m[2massets/[22m[32micon-CLPrU7Zm.png                          [39m[1m[2m  127.55 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2307090Z [2mdist/[22m[2massets/[22m[32mInterVariable-DiVDrmQJ.woff2               [39m[1m[2m  352.24 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2307800Z [2mdist/[22m[2massets/[22m[32mevin-BgBc3Eq7.png                          [39m[1m[2m  466.74 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2308430Z [2mdist/[22m[2massets/[22m[32mhero-u82bkLM-.webm                         [39m[1m[2m  848.96 kB[22m[1m[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2309150Z [2mdist/[22m[2massets/[22m[35mindex-CEwK_7w4.css                         [39m[1m[2m  153.22 kB[22m[1m[22m[2m │ gzip:  27.72 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2309910Z [2mdist/[22m[2massets/[22m[36mCropper-C0MrH8ae.js                        [39m[1m[2m    4.11 kB[22m[1m[22m[2m │ gzip:   1.72 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2310670Z [2mdist/[22m[2massets/[22m[36mui-Cb6vJ1N7.js                             [39m[1m[2m   69.24 kB[22m[1m[22m[2m │ gzip:  19.15 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2311410Z [2mdist/[22m[2massets/[22m[36mvendor-D4dr3WIt.js                         [39m[1m[2m  135.44 kB[22m[1m[22m[2m │ gzip:  44.76 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2312340Z [2mdist/[22m[2massets/[22m[36mindex.es-fp8emqCp.js                       [39m[1m[2m  150.31 kB[22m[1m[22m[2m │ gzip:  51.48 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2313120Z [2mdist/[22m[2massets/[22m[36mhtml2canvas.esm-CBrSDip1.js                [39m[1m[2m  201.42 kB[22m[1m[22m[2m │ gzip:  48.03 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2313890Z [2mdist/[22m[2massets/[22m[36mindex-u_ch0ghJ.js                          [39m[1m[33m2,167.29 kB[39m[22m[2m │ gzip: 680.99 kB[22m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2314260Z [33m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2314530Z (!) Some chunks are larger than 1000 kB after minification. Consider:
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2314890Z - Using dynamic import() to code-split the application
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2315500Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2316160Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.2316500Z [32m✓ built in 4.01s[39m
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4764240Z [CredentialsManager] No stored credentials found
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4822190Z [CredentialsManager] Initialized
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4822560Z [CredentialsManager] OpenAI API Key updated
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4843020Z [CredentialsManager] Loaded encrypted credentials
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4843330Z [CredentialsManager] Initialized
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4849680Z [SettingsManager] Settings loaded successfully { keys: 1 }
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.4850280Z [SettingsManager] Settings loaded
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6239580Z ✔ build selection defaults to temp and rejects release outside CI (2.148542ms)
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6320410Z ✔ guard first-launch preflight uses the built identity before path setup (5.199833ms)
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6321060Z ✔ bootstrap precedes real credentials/storage imports and settings survive a restart (32.650375ms)
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6321710Z ✔ synthetic protected directories reject reads, writes, alternate APIs and symlink aliases (45.512ms)
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6322290Z ✔ recursive and directory operations refuse parents containing protected data (49.70025ms)
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6323000Z ✔ disguise restores the build name and leaves persisted paths in its own directory (42.008041ms)
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6323400Z ℹ tests 6
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6323520Z ℹ suites 0
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6323660Z ℹ pass 6
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6323780Z ℹ fail 0
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6323910Z ℹ cancelled 0
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6324060Z ℹ skipped 0
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6324190Z ℹ todo 0
+gates	Check release identity contract (CI only; no packaging)	2026-10-08T09:27:49.6324350Z ℹ duration_ms 309.693791
+gates	Run actions/upload-artifact@v7	﻿2026-10-08T09:27:49.6738590Z ##[group]Run actions/upload-artifact@v7
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6738790Z with:
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6738970Z   name: margin-gates-831234342e5059029afed6a0fecec5393ebfeefa
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6739210Z   path: ci-evidence/
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6739350Z   retention-days: 30
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6739490Z   if-no-files-found: warn
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6739640Z   compression-level: 6
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6739780Z   overwrite: false
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6739920Z   include-hidden-files: false
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6740080Z   archive: true
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.6740200Z ##[endgroup]
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.7942880Z With the provided path, there will be 25 files uploaded
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.7945280Z Artifact name is valid!
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:49.7945540Z Root directory input is valid!
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.0122230Z Uploading artifact: margin-gates-831234342e5059029afed6a0fecec5393ebfeefa.zip
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.0122900Z Beginning upload of artifact content to blob storage
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.0796440Z Uploaded bytes 51647
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.0954610Z Finished uploading artifact content to blob storage!
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.0955310Z SHA256 digest of uploaded artifact is 70adf20abefd45ef01bfcf44609c42faf893c12153ed39d574cddaec78df43eb
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.0955790Z Finalizing artifact upload
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.3415710Z Artifact margin-gates-831234342e5059029afed6a0fecec5393ebfeefa successfully finalized. Artifact ID 11540456665
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.3417280Z Artifact margin-gates-831234342e5059029afed6a0fecec5393ebfeefa has been successfully uploaded! Final size is 51647 bytes. Artifact ID is 11540456665
+gates	Run actions/upload-artifact@v7	2026-10-08T09:27:50.3420360Z Artifact download URL: https://github.com/xbz123/Assessment-Assistant/actions/runs/37756383369/artifacts/11540456665
+gates	Post Run actions/cache@v6	﻿2026-10-08T09:27:50.4778960Z Post job cleanup.
+gates	Post Run actions/cache@v6	2026-10-08T09:27:50.5746230Z Cache hit occurred on the primary key cargo-target-macOS-ARM64-rustc-1.98.1-(48a229cea-2026-09-01)-e36cf2eb43312119caf49ee0020d56b83fea98b5f98f489d7ccddc5174866b37, not saving cache.
+gates	Post Run actions/cache@v6	﻿2026-10-08T09:27:50.7840900Z Post job cleanup.
+gates	Post Run actions/cache@v6	2026-10-08T09:27:50.8896900Z Cache hit occurred on the primary key electron-macOS-ARM64-58d73a0cb230a97b1f192552ca7fcb33562d88e8beff0b4cfb560d61c0dbe217, not saving cache.
+gates	Post Run actions/setup-node@v7	﻿2026-10-08T09:27:50.9158940Z Post job cleanup.
+gates	Post Run actions/checkout@v7	﻿2026-10-08T09:27:51.0383400Z Post job cleanup.
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1167100Z [command]/opt/homebrew/bin/git version
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1232890Z git version 2.55.0
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1246890Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/92504bca-98ad-430c-acc6-8e4d989e6936/.gitconfig'
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1254310Z Temporarily overriding HOME='/Users/runner/work/_temp/92504bca-98ad-430c-acc6-8e4d989e6936' before making global git config changes
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1255010Z Adding repository directory to the temporary git global config as a safe directory
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1257870Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/Assessment-Assistant/Assessment-Assistant
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1302900Z Removing SSH command configuration
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1307010Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1350480Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1939360Z Removing HTTP extra header
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1944520Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.1983030Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2537740Z Removing includeIf entries pointing to credentials config files
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2538360Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2574000Z includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2574880Z includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2575450Z includeif.gitdir:/github/workspace/.git.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2575850Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2579030Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2613990Z /Users/runner/work/_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2620540Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git.path \/Users\/runner\/work\/_temp\/git\-credentials\-079f532e\-d7e6\-4b93\-b52d\-31d6bac8c5f8\.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2668270Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2703920Z /Users/runner/work/_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2712900Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/Users/runner/work/Assessment-Assistant/Assessment-Assistant/.git/worktrees/*.path \/Users\/runner\/work\/_temp\/git\-credentials\-079f532e\-d7e6\-4b93\-b52d\-31d6bac8c5f8\.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2754050Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2789000Z /github/runner_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2794100Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-079f532e\-d7e6\-4b93\-b52d\-31d6bac8c5f8\.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2833740Z [command]/opt/homebrew/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2867060Z /github/runner_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2871840Z [command]/opt/homebrew/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-079f532e\-d7e6\-4b93\-b52d\-31d6bac8c5f8\.config
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.2911030Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+gates	Post Run actions/checkout@v7	2026-10-08T09:27:51.3450880Z Removing credentials config '/Users/runner/work/_temp/git-credentials-079f532e-d7e6-4b93-b52d-31d6bac8c5f8.config'
+gates	Complete job	﻿2026-10-08T09:27:51.3528080Z Cleaning up orphan processes
