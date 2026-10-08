@@ -1,0 +1,15 @@
+✔ real bootstrap protects import-time logs and all console exits including stdout/stderr (156.961875ms)
+✔ sanitizer load failure stays closed in every exit and critical handler (66.220458ms)
+✔ sanitizer call failure stays closed in every exit and critical handler (58.532083ms)
+✔ isolated preload never emits raw console arguments even with verbose forwarding (35.566958ms)
+✔ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (1.427834ms)
+✔ sink failures cannot expose data, throw or recurse through console (179.285292ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 744.571167
+

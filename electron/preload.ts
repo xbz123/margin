@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
+
+let verboseLog = false;
+installConsoleLogging(console, (level, line) => {
+  if (verboseLog) ipcRenderer.send('forward-log-to-file', level, line);
+}, args => require('./utils/redactForLog').redactForLog(args));
+ipcRenderer.invoke('get-verbose-logging').then((enabled: boolean) => { verboseLog = enabled === true; }).catch(() => {});
+ipcRenderer.on('verbose-logging-changed', (_event: unknown, enabled: boolean) => { verboseLog = enabled === true; });
 
 // Types for the exposed Electron API
 interface ElectronAPI {
@@ -1446,56 +1454,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('gemini-chat-stream-stop');
   },
 } as ElectronAPI);
-
-// Renderer-side console forwarding to main-process log file.
-// When verbose logging is on, patch console.log/warn/error so that renderer
-// output appears in ~/Documents/natively_debug.log alongside main-process logs.
-(function patchRendererConsole() {
-  let _verbose = false;
-
-  const _origLog = console.log.bind(console);
-  const _origWarn = console.warn.bind(console);
-  const _origError = console.error.bind(console);
-
-  function serialize(...args: any[]): string {
-    return args
-      .map((a) => {
-        if (a instanceof Error) return a.stack || a.message;
-        if (typeof a === 'object') {
-          try {
-            return JSON.stringify(a);
-          } catch {
-            return String(a);
-          }
-        }
-        return String(a);
-      })
-      .join(' ');
-  }
-
-  console.log = (...args: any[]) => {
-    _origLog(...args);
-    if (_verbose) ipcRenderer.send('forward-log-to-file', 'log', serialize(...args));
-  };
-  console.warn = (...args: any[]) => {
-    _origWarn(...args);
-    if (_verbose) ipcRenderer.send('forward-log-to-file', 'warn', serialize(...args));
-  };
-  console.error = (...args: any[]) => {
-    _origError(...args);
-    if (_verbose) ipcRenderer.send('forward-log-to-file', 'error', serialize(...args));
-  };
-
-  // Sync verbose flag from main process at startup
-  ipcRenderer
-    .invoke('get-verbose-logging')
-    .then((v: boolean) => {
-      _verbose = v;
-    })
-    .catch(() => {});
-
-  // Keep flag in sync when the user toggles verbose in settings
-  ipcRenderer.on('verbose-logging-changed', (_event: any, enabled: boolean) => {
-    _verbose = enabled;
-  });
-})();

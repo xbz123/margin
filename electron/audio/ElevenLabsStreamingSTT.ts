@@ -1,8 +1,5 @@
 import { EventEmitter } from 'events';
 import WebSocket from 'ws';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 import { streamingStttWsOptions } from './dnsHelpers';
 
@@ -28,7 +25,6 @@ export class ElevenLabsStreamingSTT extends EventEmitter {
     private isSessionReady = false;
     private languageCode = 'en'; // Default to English
     
-    private debugWriteStream: fs.WriteStream | null = null;
     
     // Chunk buffering properties (250ms @ 16k = 4000 samples)
     private pcmAccumulator: Int16Array[] = [];
@@ -41,16 +37,6 @@ export class ElevenLabsStreamingSTT extends EventEmitter {
         super();
         this.apiKey = apiKey;
         
-        // Open a debug file only in development to avoid disk fill-up in production
-        if (process.env.NODE_ENV === 'development') {
-            try {
-                const debugPath = path.join(os.homedir(), 'elevenlabs_debug.raw');
-                this.debugWriteStream = fs.createWriteStream(debugPath);
-                console.log(`[ElevenLabsStreaming] Audio debug stream opened at: ${debugPath}`);
-            } catch (e) {
-                console.error('[ElevenLabsStreaming] Failed to open debug stream:', e);
-            }
-        }
     }
 
     public setSampleRate(rate: number): void {
@@ -105,10 +91,6 @@ export class ElevenLabsStreamingSTT extends EventEmitter {
         this.buffer = [];
         this.pcmAccumulator = [];
         this.pcmAccumulatorLen = 0;
-        if (this.debugWriteStream) {
-            this.debugWriteStream.end();
-            this.debugWriteStream = null;
-        }
         console.log('[ElevenLabsStreaming] Stopped');
     }
 
@@ -183,11 +165,6 @@ export class ElevenLabsStreamingSTT extends EventEmitter {
                 }
             }
 
-            // Write to debug file
-            if (this.debugWriteStream) {
-                // Use full slice args to avoid copying the whole backing ArrayBuffer
-                this.debugWriteStream.write(Buffer.from(outputS16.buffer, outputS16.byteOffset, outputS16.byteLength));
-            }
 
             // Accumulate
             this.pcmAccumulator.push(outputS16);

@@ -28,8 +28,8 @@ impl SpeakerInput {
                         backend: BackendInput::CoreAudio(input),
                     });
                 }
-                Err(e) => {
-                    println!("[SpeakerInput] CoreAudio Tap initialization failed: {}. Falling back to ScreenCaptureKit.", e);
+                Err(_e) => {
+                    println!("[SpeakerInput] CoreAudio Tap initialization failed. Falling back to ScreenCaptureKit.");
                 }
             }
         } else {

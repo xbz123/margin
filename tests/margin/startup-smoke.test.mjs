@@ -10,8 +10,9 @@
 //   - the guard recorded no outbound attempt.
 // Missing evidence fails the test: the recorder's file, the debug log and the guard
 // log must all exist. As a positive control, one probe exception and one probe
-// rejection are raised in the main process just before quitting; both must show up
-// in the recorder and in the debug log (PLAN.md AG-17 review).
+// rejection are raised in the main process just before quitting; the recorder
+// retains probe text and production file/terminal logs retain exact event counts.
+// Synthetic canaries also exercise real main and renderer console exits.
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:
@@ -23,10 +24,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
+import { assertCriticalEvents } from './logging-evidence.mjs';
 import { makeSandbox, readBlocked, readGuardLog, REPO } from '../../scripts/margin/isolation/env.mjs';
 
 const OBSERVE_MS = 15_000;
 const PROBE = 'MARGIN-SMOKE-PROBE';
+const LOG_CANARY = 'SYNTHETIC_AG23_STARTUP_PRIVATE_LOG_CONTENT';
 const identity = JSON.parse(fs.readFileSync(path.join(REPO, 'dist-electron/app-identity.json'), 'utf8'));
 
 test('the app starts, opens the launcher and settings, stays up, and quits cleanly', async (t) => {
@@ -48,6 +51,23 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
     await settings.waitForLoadState('domcontentloaded');
     const settingsReadyMs = Date.now() - started;
 
+    const rendererLogs = [];
+    const safePayload = JSON.stringify([{ type: 'string', length: LOG_CANARY.length }, { type: 'object' }, { type: 'object' }]);
+    for (const [name, page] of [['launcher', launcher], ['settings', settings]]) {
+      page.on('console', message => rendererLogs.push(message.text()));
+      const safeEvent = page.waitForEvent('console', {
+        predicate: message => message.text() === `console.warn ${safePayload}`, timeout: 10_000,
+      });
+      await page.evaluate(canary => console.warn(canary, { privateText: canary }, new Error(canary)), LOG_CANARY);
+      const message = await safeEvent;
+      assert.equal(message.type(), 'warning', `${name} main-world console really emitted the safe warning`);
+      assert.ok(!rendererLogs.join('\n').includes(LOG_CANARY), `${name} console never exposes synthetic private content`);
+    }
+    await app.evaluate((_, canary) => {
+      console.log(canary, { privateText: canary }, new Error(canary));
+      console.warn(canary, { privateText: canary }, new Error(canary));
+    }, LOG_CANARY);
+
     const windows = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map((w) => ({
       url: w.webContents.getURL().replace(/^.*\?/, '?'),
       visible: w.isVisible(),
@@ -62,6 +82,10 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
       process.getBuiltinModule('path').join(electronApp.getPath('logs'), 'debug.log'));
     const expectedLogFile = path.join(sandbox.home, 'Library/Application Support', identity.name, 'debug.log');
     assert.equal(fs.realpathSync(logFile), fs.realpathSync(expectedLogFile), 'debug log must be exactly the built identity log in the synthetic HOME');
+
+    assert.ok(fs.existsSync(logFile), 'production log exists before probing');
+    assertCriticalEvents(fs.readFileSync(logFile, 'utf8'), []);
+    assertCriticalEvents(output.join(''), []);
 
     // Positive control for both error channels (see the header).
     await app.evaluate((_, probe) => {
@@ -87,10 +111,19 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
 
     assert.ok(fs.existsSync(logFile), `the app's debug log was not written: ${logFile}`);
     const logText = fs.readFileSync(logFile, 'utf8');
-    const critical = [...logText.split('\n'), ...output.join('').split('\n')].filter((l) => /\[CRITICAL\]|Uncaught Exception|Unhandled Rejection/.test(l));
-    assert.equal(critical.filter((l) => /\[CRITICAL\] Uncaught Exception/.test(l) && isProbe(l)).length, 1, `the debug log missed the probe exception:\n${critical.join('\n')}`);
-    assert.equal(critical.filter((l) => /\[CRITICAL\] Unhandled Rejection/.test(l) && isProbe(l)).length, 1, `the debug log missed the probe rejection:\n${critical.join('\n')}`);
-    assert.deepEqual(critical.filter((l) => !isProbe(l)), [], 'no uncaught exception or unhandled rejection in the main process (debug log)');
+    const expectedEvents = ['uncaughtException', 'unhandledRejection'];
+    assertCriticalEvents(logText, expectedEvents);
+    assertCriticalEvents(output.join(''), expectedEvents);
+    assert.ok(!logText.includes(PROBE), 'probe error text is not written to the production file');
+    assert.ok(!output.join('').includes(PROBE), 'probe error text is not written to stdout/stderr');
+    assert.ok(!logText.includes(LOG_CANARY), 'main file contains no console canary text');
+    assert.ok(!output.join('').includes(LOG_CANARY), 'main stdout/stderr contain no console canary text');
+    assert.ok(!rendererLogs.join('\n').includes(LOG_CANARY), 'renderer consoles contain no console canary text');
+    for (const method of ['log', 'warn']) {
+      const safeLine = `console.${method} ${safePayload}`;
+      assert.ok(logText.includes(safeLine), `main ${method} actually reached the file as metadata`);
+      assert.ok(output.join('').includes(safeLine), `main ${method} actually reached stdout/stderr as metadata`);
+    }
 
     const guardLog = readGuardLog(sandbox); // throws if the guard log is missing
     assert.ok(guardLog.some((e) => e.kind === 'guard-loaded' && e.pid === mainPid), `no guard-loaded record from the main process (pid ${mainPid})`);

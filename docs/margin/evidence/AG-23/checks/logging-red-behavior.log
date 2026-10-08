@@ -1,0 +1,123 @@
+✖ real bootstrap protects import-time logs and all console exits including stdout/stderr (143.459458ms)
+✖ sanitizer load failure stays closed in every exit and critical handler (66.4095ms)
+✖ sanitizer call failure stays closed in every exit and critical handler (60.265375ms)
+✖ isolated preload never emits raw console arguments even with verbose forwarding (24.790625ms)
+✖ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (10.778459ms)
+✖ sink failures cannot expose data, throw or recurse through console (55.874125ms)
+ℹ Error: Test "sanitizer call failure stays closed in every exit and critical handler" at electron/margin/__tests__/loggingPrivacy.test.mjs:103:3 generated asynchronous activity after the test ended. This activity created the error "Error: SYNTHETIC_AG23_PRIVATE_TEXT" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 592.966417
+
+✖ failing tests:
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:91:1
+✖ real bootstrap protects import-time logs and all console exits including stdout/stderr (143.459458ms)
+  AssertionError [ERR_ASSERTION]: no synthetic private text in any production log exit
+      at noCanary (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:89:30)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:96:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:103:3
+✖ sanitizer load failure stays closed in every exit and critical handler (66.4095ms)
+  AssertionError [ERR_ASSERTION]: no synthetic private text in any production log exit
+      at noCanary (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:89:30)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:108:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:103:3
+✖ sanitizer call failure stays closed in every exit and critical handler (60.265375ms)
+  Error: SYNTHETIC_AG23_PRIVATE_TEXT
+      at redactForLog (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:67:71)
+      at redactArgsForLog (evalmachine.<anonymous>:77:12)
+      at console.error (evalmachine.<anonymous>:288:28)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:105:15)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:113:1
+✖ isolated preload never emits raw console arguments even with verbose forwarding (24.790625ms)
+  AssertionError [ERR_ASSERTION]: no synthetic private text in any production log exit
+      at noCanary (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:89:30)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:117:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:121:1
+✖ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (10.778459ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(!redactForLog([value]).includes(CANARY))
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:125:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:131:1
+✖ sink failures cannot expose data, throw or recurse through console (55.874125ms)
+  AssertionError [ERR_ASSERTION]: no synthetic private text in any production log exit
+      at noCanary (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:89:30)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/loggingPrivacy.test.mjs:136:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+

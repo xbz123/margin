@@ -66,8 +66,8 @@ impl Resampler {
                         output_samples.push(scaled as i16);
                     }
                 }
-                Err(e) => {
-                    println!("[Resampler] Process error: {}", e);
+                Err(_e) => {
+                    println!("[Resampler] Process error");
                 }
             }
         }

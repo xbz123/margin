@@ -54,7 +54,7 @@ impl SpeakerInput {
         };
 
         let output_uid = output_device.uid()?;
-        println!("[CoreAudioTap] Target device UID: {}", output_uid);
+        println!("[CoreAudioTap] Target device selected");
         let output_uid_ns = ns::String::with_str(&output_uid.to_string());
 
         // 2. Create a device-scoped tap with explicit mute behavior.
@@ -73,7 +73,7 @@ impl SpeakerInput {
         // the device-bound init above. Don't split this from the 14.4 gate at the top of new().
         tap_desc.set_mute_behavior(ca::TapMuteBehavior::Unmuted);
         let tap = tap_desc.create_process_tap()?;
-        println!("[CoreAudioTap] Tap created: {:?}", tap.uid());
+        println!("[CoreAudioTap] Tap created");
 
         let sub_tap = cf::DictionaryOf::with_keys_values(
             &[ca::sub_device_keys::uid()],

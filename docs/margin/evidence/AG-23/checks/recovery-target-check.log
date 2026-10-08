@@ -1,0 +1,38 @@
+[build-electron] Done in 1827ms
+✔ real bootstrap protects import-time logs and all console exits including stdout/stderr (255.298416ms)
+✔ sanitizer load failure stays closed in every exit and critical handler (79.7475ms)
+✔ sanitizer call failure stays closed in every exit and critical handler (81.340083ms)
+✔ isolated preload never emits raw console arguments even with verbose forwarding (40.429416ms)
+✔ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (2.761042ms)
+✔ main-world renderer protects business imports independently of preload (32.37775ms)
+✔ verbose toggling only forwards already-safe metadata (29.269375ms)
+✔ duplicate bundled installers keep one console boundary and controlled events (3.874959ms)
+✔ separate real build bundles share app events through the console marker (66.149125ms)
+✔ critical evidence rejects missing, extra and unknown events and has no payload-prefix trust (64.475375ms)
+✔ real log IPC uses identity logs and hostile forwarded payloads stay opaque (96.932208ms)
+✔ development ElevenLabs construction and audio write never create a PCM debug file (9.777708ms)
+✔ sink failures cannot expose data, throw or recurse through console (427.912375ms)
+✔ recursive inspectors and sinks are dropped without losing later safe events (3.54825ms)
+✔ arbitrary credential and user strings have no preview, pattern or minimum-length exception (9.557167ms)
+✔ objects stay opaque, including private property names and nested content (0.153125ms)
+✔ numbers, bigint, booleans, symbols and functions never print values or descriptions (0.112458ms)
+✔ Errors and cycles cannot disclose message, stack, cause or custom properties (0.119917ms)
+✔ hostile serializers, getters, revoked proxies and array proxies remain safe (0.156041ms)
+✔ SessionTracker logs transcript and assistant message metadata without text snippets (9.855292ms)
+✔ IntelligenceEngine logs interim transcript metadata without text snippets (9.946791ms)
+✔ LLMHelper logs request metadata without prompt or response snippets (26.714792ms)
+✔ STT providers log transcript metadata without transcript text (182.361375ms)
+✔ IPC and meeting summary logs avoid answer and LLM response snippets (29.613792ms)
+✔ get-stored-credentials IPC does not return raw STT API keys (24.06475ms)
+✔ error fallback in get-stored-credentials does not return raw STT keys (1.158875ms)
+✔ renderer settings overlay does not rely on raw STT keys from IPC (18.977875ms)
+✔ STT key fields in IPC response follow masked or boolean-only pattern (1.052042ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1820.344458
+

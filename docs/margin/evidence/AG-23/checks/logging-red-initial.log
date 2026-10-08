@@ -1,0 +1,116 @@
+✖ real bootstrap protects import-time logs and all console exits including stdout/stderr (29.806667ms)
+✖ sanitizer load failure stays closed in every exit and critical handler (0.713333ms)
+✖ sanitizer call failure stays closed in every exit and critical handler (0.8505ms)
+✖ isolated preload never emits raw console arguments even with verbose forwarding (1.811834ms)
+✖ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (0.805791ms)
+✖ sink failures cannot expose data, throw or recurse through console (0.585458ms)
+[isolation] blocked exec: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 154.478208
+
+✖ failing tests:
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:82:1
+✖ real bootstrap protects import-time logs and all console exits including stdout/stderr (29.806667ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at startSyncServiceWorker (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2181:19)
+      at Object.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2222:3)
+      at Module._compile (node:internal/modules/cjs/loader:1829:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+      at Module.load (node:internal/modules/cjs/loader:1552:32)
+      at Module._load (node:internal/modules/cjs/loader:1354:12)
+      at Module.guardedLoad [as _load] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:241:24) {
+    code: 'EMARGINISOLATION'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:94:3
+✖ sanitizer load failure stays closed in every exit and critical handler (0.713333ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at startSyncServiceWorker (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2181:19)
+      at Object.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2222:3)
+      at Module._compile (node:internal/modules/cjs/loader:1829:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+      at Module.load (node:internal/modules/cjs/loader:1552:32)
+      at Module._load (node:internal/modules/cjs/loader:1354:12)
+      at Module.guardedLoad [as _load] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:241:24) {
+    code: 'EMARGINISOLATION'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:94:3
+✖ sanitizer call failure stays closed in every exit and critical handler (0.8505ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at startSyncServiceWorker (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2181:19)
+      at Object.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2222:3)
+      at Module._compile (node:internal/modules/cjs/loader:1829:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+      at Module.load (node:internal/modules/cjs/loader:1552:32)
+      at Module._load (node:internal/modules/cjs/loader:1354:12)
+      at Module.guardedLoad [as _load] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:241:24) {
+    code: 'EMARGINISOLATION'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:104:1
+✖ isolated preload never emits raw console arguments even with verbose forwarding (1.811834ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at startSyncServiceWorker (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2181:19)
+      at Object.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2222:3)
+      at Module._compile (node:internal/modules/cjs/loader:1829:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+      at Module.load (node:internal/modules/cjs/loader:1552:32)
+      at Module._load (node:internal/modules/cjs/loader:1354:12)
+      at Module.guardedLoad [as _load] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:241:24) {
+    code: 'EMARGINISOLATION'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:112:1
+✖ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (0.805791ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at startSyncServiceWorker (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2181:19)
+      at Object.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2222:3)
+      at Module._compile (node:internal/modules/cjs/loader:1829:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+      at Module.load (node:internal/modules/cjs/loader:1552:32)
+      at Module._load (node:internal/modules/cjs/loader:1354:12)
+      at Module.guardedLoad [as _load] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:241:24) {
+    code: 'EMARGINISOLATION'
+  }
+
+test at electron/margin/__tests__/loggingPrivacy.test.mjs:122:1
+✖ sink failures cannot expose data, throw or recurse through console (0.585458ms)
+  Error: [isolation] exec blocked: spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+      at blockedError (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:55:15)
+      at Object.guarded [as spawn] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:184:13)
+      at ensureServiceIsRunning (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:1975:29)
+      at startSyncServiceWorker (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2181:19)
+      at Object.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/esbuild/lib/main.js:2222:3)
+      at Module._compile (node:internal/modules/cjs/loader:1829:14)
+      at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+      at Module.load (node:internal/modules/cjs/loader:1552:32)
+      at Module._load (node:internal/modules/cjs/loader:1354:12)
+      at Module.guardedLoad [as _load] (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:241:24) {
+    code: 'EMARGINISOLATION'
+  }
+[isolation] 1 blocked attempt(s); log: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-Qpueia/isolation.jsonl
+[isolation]   exec spawn /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/@esbuild/darwin-arm64/bin/esbuild
+

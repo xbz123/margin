@@ -11,6 +11,9 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "await Promise.resolve(); await Promise.resolve();", "reason": "Generic microtask draining for two synthetic preload verbose-flag callbacks in independently written AG-23 tests, 2026-10-08; see PROVENANCE.md" },
+    { "line": "stt.isActive = true; stt.isSessionReady = true;", "reason": "Selects the existing audio-write branch on a synthetic ElevenLabs instance without a provider connection in the independently written AG-23 test, 2026-10-08; see PROVENANCE.md" },
+    { "line": "const dirname = path.dirname(fileURLToPath(import.meta.url));", "reason": "Generic Node standard-library resolution of the independently written AG-23 test module directory, 2026-10-08; see PROVENANCE.md" },
     { "line": "const appState = {", "reason": "Generic object literal opener for the independently written AG-22 fake runtime in the behavior test, 2026-10-08; see PROVENANCE.md" },
     { "line": "const context = {", "reason": "Generic object literal opener for independently written AG-22 VM dependency contexts, 2026-10-08; see PROVENANCE.md" },
     { "line": "const source = read('electron/main.ts');", "reason": "Local source read for executing the actual AppState language callback in the independently written AG-22 behavior test, 2026-10-08; see PROVENANCE.md" },

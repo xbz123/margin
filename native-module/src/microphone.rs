@@ -99,15 +99,15 @@ fn resolve_input_device(host: &cpal::Host, device_id: Option<&str>) -> Result<cp
             }
         }
 
-        if let Some((tier, device, matched_name)) = best {
+        if let Some((tier, device, _matched_name)) = best {
             let label = match tier {
                 0 => "exact",
                 1 => "case-insensitive",
                 _ => "fuzzy",
             };
             println!(
-                "[Microphone] Using {} match for input device: requested='{}' matched='{}'",
-                label, requested_id, matched_name
+                "[Microphone] Using {} match for input device",
+                label
             );
             return Ok(device);
         }
@@ -223,8 +223,7 @@ impl MicrophoneStream {
         let channels = config.channels() as usize;
 
         println!(
-            "[Microphone] Device: {}, Rate: {}Hz, Channels: {}, Format: {:?}",
-            device.name().unwrap_or_default(),
+            "[Microphone] Rate: {}Hz, Channels: {}, Format: {:?}",
             sample_rate,
             channels,
             config.sample_format()
@@ -331,7 +330,7 @@ fn build_input_stream(
 ) -> Result<Stream> {
     let err_fn = move |err: cpal::StreamError| {
         let msg = format!("{}", err);
-        eprintln!("[Microphone] Stream error: {}", msg);
+        eprintln!("[Microphone] Stream error");
         // Publish error to err_signal so the DSP thread can forward to JS.
         // First-error-wins; subsequent errors are dropped to avoid log spam.
         if let Ok(mut slot) = err_signal.lock() {

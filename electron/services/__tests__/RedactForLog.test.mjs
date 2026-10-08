@@ -1,106 +1,46 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import fs from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '../../..');
-const read = rel => fs.readFileSync(path.join(repoRoot, rel), 'utf8');
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+const loadRedactor = () => import(pathToFileURL(path.resolve(dirname, '../../../dist-electron/electron/utils/redactForLog.js')).href);
 
-async function loadRedactor() {
-  const distPath = path.resolve(__dirname, '../../../dist-electron/electron/utils/redactForLog.js');
-  return import(pathToFileURL(distPath).href);
-}
-
-test('redactForLog scrubs API keys, bearer tokens, JWTs, and natively/Anthropic key shapes', async () => {
-  const { redactForLog } = await loadRedactor();
-
-  const inputs = [
-    'auth: Bearer abc123def456ghi789jkl0mn',
-    'natively_sk_THIS_SHOULD_BE_HIDDEN',
-    'OpenAI key: sk-abcdefghijklmnopqrstu',
-    'Groq key: gsk_ZZZZZZZZZZZZZZZZZZZZ',
-    'Anthropic: sk-ant-api03-aaaaaaaaaaaaaaaaaaaa',
-    'Google: AIzaAAAAAAAAAAAAAAAAAAAAA',
-    'JWT cookie eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SXXXXXXXXXX',
-  ];
-
-  for (const input of inputs) {
-    const out = redactForLog([input]);
-    assert.ok(out.includes('[REDACTED]'), `expected redaction for: ${input}`);
-    assert.ok(
-      !out.includes('THIS_SHOULD_BE_HIDDEN') &&
-      !out.includes('abc123def456ghi789jkl0mn') &&
-      !out.includes('sk-abcdefghijklmnopqrstu') &&
-      !out.includes('gsk_ZZZZZZZZZZZZZZZZZZZZ') &&
-      !out.includes('sk-ant-api03-aaaaaaaaaaaaaaaaaaaa') &&
-      !out.includes('AIzaAAAAAAAAAAAAAAAAAAAAA') &&
-      !out.includes('SXXXXXXXXXX'),
-      `unexpected raw credential leak in: ${out}`
-    );
+test('arbitrary credential and user strings have no preview, pattern or minimum-length exception', async () => {
+  const { redactForLog, redactValue } = await loadRedactor();
+  for (const text of ['sk-short', 'unknown-key-format', 'x-api-key=SYNTHETIC_SECRET', 'Bearer tiny', 'PRIVATE_TRANSCRIPT', '/synthetic/private/shot.png', 'data:audio/private']) {
+    assert.equal(redactForLog([text]), JSON.stringify([{ type: 'string', length: text.length }]));
+    assert.deepEqual(redactValue(text), { type: 'string', length: text.length });
   }
 });
 
-test('redactForLog removes raw transcript / prompt / reference / screenshot fields and redacts sensitive keys', async () => {
+test('objects stay opaque, including private property names and nested content', async () => {
   const { redactForLog } = await loadRedactor();
-
-  const payload = {
-    transcript: 'CANDIDATE_TRANSCRIPT_CANARY',
-    prompt: 'INTERNAL_PROMPT_CANARY',
-    referenceContent: 'RESUME_CANARY',
-    screenshotPath: '/Users/me/Library/Application Support/.../shot.png',
-    apiKey: 'sk-FOO',
-    Authorization: 'Bearer ANOTHERSECRETTOKEN1234',
-    chunkText: 'CHUNK_CANARY',
-    safeMeta: { count: 12, providerName: 'openai', durationMs: 304 },
-  };
-
-  const out = redactForLog([payload]);
-  // No raw sentinel survives.
-  for (const canary of ['CANDIDATE_TRANSCRIPT_CANARY', 'INTERNAL_PROMPT_CANARY', 'RESUME_CANARY', 'CHUNK_CANARY', 'shot.png', 'sk-FOO', 'ANOTHERSECRETTOKEN1234']) {
-    assert.ok(!out.includes(canary), `canary ${canary} should not leak — got: ${out}`);
-  }
-  // Safe metadata survives.
-  assert.ok(out.includes('"providerName":"openai"'));
-  assert.ok(out.includes('"durationMs":304'));
+  const payload = { PRIVATE_KEY_NAME: 'PRIVATE_CONTENT', safeMeta: { providerName: 'openai', count: 12 } };
+  assert.equal(redactForLog([payload]), '[{"type":"object"}]');
 });
 
-test('redactForLog handles Error objects, arrays, and cyclic references', async () => {
+test('numbers, bigint, booleans, symbols and functions never print values or descriptions', async () => {
   const { redactForLog } = await loadRedactor();
-
-  const err = new Error('failure with token sk-XXXXXXXXXXXXXXXXXXXXX inside message');
-  const out = redactForLog([err]);
-  assert.ok(out.includes('[REDACTED]'));
-  assert.ok(!out.includes('sk-XXXXXXXXXXXXXXXXXXXXX'));
-
-  const cyclic = { name: 'meta' };
-  cyclic.self = cyclic;
-  const cyclicOut = redactForLog([cyclic]);
-  assert.ok(cyclicOut.includes('[Circular]'));
+  assert.equal(redactForLog([123456, 123456n, true, Symbol('PRIVATE_SYMBOL'), function PRIVATE_FUNCTION() {}]),
+    '[{"type":"number"},{"type":"bigint"},{"type":"boolean"},{"type":"symbol"},{"type":"function"}]');
 });
 
-test('main.ts global console wrapper uses redactArgsForLog', () => {
-  const src = read('electron/main.ts');
-
-  assert.match(src, /redactArgsForLog\(\[err\]\)/);
-  assert.match(src, /redactArgsForLog\(\[reason\]\)/);
-  assert.match(src, /console\.log\s*=\s*\(\.\.\.args:\s*any\[\]\)\s*=>\s*\{\s*logToFile\('\[LOG\] '\s*\+\s*redactArgsForLog\(args\)\);/);
-  assert.match(src, /console\.warn\s*=\s*\(\.\.\.args:\s*any\[\]\)\s*=>\s*\{\s*logToFile\('\[WARN\] '\s*\+\s*redactArgsForLog\(args\)\);/);
-  assert.match(src, /console\.error\s*=\s*\(\.\.\.args:\s*any\[\]\)\s*=>\s*\{\s*logToFile\('\[ERROR\] '\s*\+\s*redactArgsForLog\(args\)\);/);
+test('Errors and cycles cannot disclose message, stack, cause or custom properties', async () => {
+  const { redactForLog } = await loadRedactor();
+  const error = new Error('PRIVATE_MESSAGE', { cause: 'PRIVATE_CAUSE' });
+  error.name = 'PRIVATE_ERROR_NAME'; error.code = 'PRIVATE_CODE';
+  const cyclic = {}; cyclic.self = cyclic;
+  assert.equal(redactForLog([error, cyclic]), '[{"type":"object"},{"type":"object"}]');
 });
 
-test('redactForLog is registered as a real module loaded by main.ts', () => {
-  const src = read('electron/main.ts');
-  assert.match(src, /require\('\.\/utils\/redactForLog'\)\.redactForLog/);
-});
-
-test('redactForLog source defines the sensitive-key regex and value patterns', () => {
-  const src = read('electron/utils/redactForLog.ts');
-
-  assert.match(src, /SENSITIVE_KEY_RE\s*=\s*\/\(/);
-  assert.match(src, /REMOVE_VALUE_KEY_RE\s*=\s*\/\(/);
-  assert.match(src, /VALUE_PATTERNS/);
-  assert.match(src, /export function redactForLog\(/);
-  assert.match(src, /export function redactValue\(/);
+test('hostile serializers, getters, revoked proxies and array proxies remain safe', async () => {
+  const { redactForLog } = await loadRedactor();
+  let hooks = 0;
+  const hostile = { get value() { hooks++; throw Error('PRIVATE_GETTER'); }, toJSON() { hooks++; return 'PRIVATE_JSON'; }, toString() { hooks++; return 'PRIVATE_STRING'; } };
+  const proxy = Proxy.revocable({}, {}); proxy.revoke();
+  const array = new Proxy([], { get() { hooks++; return 'PRIVATE_LENGTH'; } });
+  const prototypeTrap = new Proxy({}, { getPrototypeOf() { hooks++; return null; } });
+  assert.equal(redactForLog([hostile, proxy.proxy, array, prototypeTrap]), '[{"type":"object"},{"type":"object"},{"type":"array"},{"type":"object"}]');
+  assert.equal(hooks, 0);
 });

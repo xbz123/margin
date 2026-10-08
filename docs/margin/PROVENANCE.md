@@ -93,6 +93,66 @@ The first source scan matched five occurrences of four generic statements:
 written independently for this branch. Only these exact statements were
 allowlisted; source pools, approved files and exclusions were not broadened.
 
+## AG-23 application log privacy boundary
+
+The shared console installer (`electron/utils/consoleLogging.ts`), main-process
+logging entry (`electron/logging.ts`), renderer entry (`src/logging.ts`), opaque
+payload summarizer and log-evidence helper are written on this branch from
+PLAN's AG-23 requirements. No earlier Margin or restricted upstream logging
+implementation was imported. Existing bootstrap, main, preload, IPC, renderer,
+audio and Rust modules are adapted in place from their versions on this branch;
+their earlier provenance remains recorded by this ledger and Git history.
+
+Application console payloads are reduced to type metadata and string length,
+without string previews, primitive values, object keys, messages or stacks.
+Errors are opaque objects too: no unknown object's prototype is inspected.
+Only code-controlled event labels are retained. Main logging is installed before
+business imports, and file output is enabled only after application identity
+initialization. Renderer main-world and isolated preload consoles each install
+the shared boundary. Sanitizer and sink failures do not fall back to raw
+payloads; verbose mode controls safe forwarding, not payload privacy. The log
+viewer uses the same identity-specific `logs/debug.log` destination.
+
+The raw ElevenLabs development PCM dump and explicit meeting/transcript debug
+prints are removed. Native changes remove dynamic device identifiers/names and
+raw error/panic payloads from application-owned log statements. Returned errors,
+JavaScript error notifications and audio recovery paths remain unchanged.
+This boundary does not claim to intercept arbitrary raw file-descriptor writes,
+Chromium/OS output, third-party-library output or a provider CLI's own logs.
+
+`electron/margin/__tests__/loggingPrivacy.test.mjs` and the replacement behavior
+checks in `electron/services/__tests__/RedactForLog.test.mjs` are written for this
+branch using the installed TypeScript compiler and existing `node:test`/VM
+pattern. External services, paths, processes and payloads are synthetic; the
+built-bundle check uses the current application bundles, not imported fixtures.
+The existing identity harness is adapted to keep its isolated identity tests
+separate from process-wide logging. The startup harness retains its independent
+error recorder and checks exact controlled critical-event counts in production
+file/terminal output without requiring raw probe text there. In the same isolated
+startup, synthetic canaries exercise main-process stdout/stderr and file logging
+and both launcher/settings main-world consoles. Playwright console events must
+contain the expected metadata line, so suppressing all renderer output cannot
+satisfy the check. All captured production exits must exclude the canary text.
+
+These checks are not real-provider, device or keychain acceptance. A pre-existing
+local native binary cannot verify these Rust source changes; new native behavior
+requires a build of the changed source. The eight changed Rust files, including
+the Windows branch, pass installed `rustfmt --emit stdout` parsing with child
+module traversal disabled; this is not a formatting or compilation result.
+macOS native CI does not compile the Windows-specific branch. No new source
+pool, approved file or scanner exclusion
+is added for AG-23.
+
+The first AG-23 source scan found four occurrences of three generic statements.
+`await Promise.resolve(); await Promise.resolve();` drains the synthetic preload's
+two asynchronous verbose-flag callbacks in two tests. `stt.isActive = true;
+stt.isSessionReady = true;` selects the existing audio-write branch on a synthetic
+ElevenLabs instance, without opening a provider connection. `const dirname =
+path.dirname(fileURLToPath(import.meta.url));` resolves the test module's directory
+using Node standard-library APIs. Each statement was independently written for
+this branch; none imports a restricted implementation. Only these exact lines
+are individually allowlisted, not broader files or source pools.
+
 ## AG-21 icon sources and generated assets
 
 Only the following four files are approved from the earlier Margin commit

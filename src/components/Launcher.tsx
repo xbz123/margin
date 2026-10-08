@@ -255,7 +255,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
             try {
                 console.log("[Launcher] Fetching full meeting details...");
                 const fullMeeting = await window.electronAPI.getMeetingDetails(meeting.id);
-                console.log("[Launcher] Got meeting details:", fullMeeting);
                 console.log("[Launcher] Transcript count:", fullMeeting?.transcript?.length);
                 console.log("[Launcher] Usage count:", fullMeeting?.usage?.length);
                 if (fullMeeting) {

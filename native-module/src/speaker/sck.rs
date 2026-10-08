@@ -93,8 +93,8 @@ impl sc::stream::OutputImpl for AudioHandler {
                     }
                 }
             }
-            Err(e) => {
-                println!("[SystemAudio-SCK] Failed to get audio buffer: {:?}", e);
+            Err(_e) => {
+                println!("[SystemAudio-SCK] Failed to get audio buffer");
             }
         }
     }
@@ -130,8 +130,7 @@ impl SpeakerInput {
         if let Some(ref id) = device_id {
             if !id.is_empty() && id != "default" && id != "sck" {
                 eprintln!(
-                    "[SpeakerInput] WARNING: ScreenCaptureKit fallback ignores device_id '{}' — will capture global system audio.",
-                    id
+                    "[SpeakerInput] WARNING: ScreenCaptureKit fallback ignores the selected device — will capture global system audio."
                 );
             }
         }
@@ -150,8 +149,7 @@ impl SpeakerInput {
         sc::ShareableContent::current_with_ch(move |content_opt, error_opt| {
             let result: Result<arc::R<sc::ShareableContent>> = if let Some(e) = error_opt {
                 println!(
-                    "[SpeakerInput] ERROR: ScreenCaptureKit access denied: {:?}",
-                    e
+                    "[SpeakerInput] ERROR: ScreenCaptureKit access denied"
                 );
                 Err(anyhow::anyhow!("ScreenCaptureKit access denied: {:?}", e))
             } else if let Some(c) = content_opt {
@@ -257,7 +255,7 @@ impl SpeakerInput {
 
         stream.start_with_ch(move |err| {
             let result = if let Some(e) = err {
-                println!("[SpeakerInput] ERROR: Stream start FAILED: {:?}", e);
+                println!("[SpeakerInput] ERROR: Stream start FAILED");
                 println!("[SpeakerInput] Check Screen Recording permission in System Settings!");
                 Err(anyhow::anyhow!("SCK start failed: {:?}", e))
             } else {

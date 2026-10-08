@@ -61,6 +61,9 @@ function load(file, electron, main) {
     require(id) {
       if (id === 'electron') return electron;
       if (id === './margin/appIdentity') return load(path.join(REPO, 'dist-electron/electron/margin/appIdentity.js'), electron);
+      // This harness tests identity/storage order; real logging initialization is
+      // covered separately without mutating the node:test runner's console.
+      if (id === './logging') return { installMainLogging: () => () => {} };
       if (id === './main') return main();
       return require(id);
     },

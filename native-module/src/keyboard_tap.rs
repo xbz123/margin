@@ -830,7 +830,7 @@ impl StealthKeyboardTap {
             let join_start = std::time::Instant::now();
             match h.join() {
                 Ok(_) => {}
-                Err(e) => eprintln!("[keyboard_tap] worker panicked during cleanup: {:?}", e),
+                Err(_e) => eprintln!("[keyboard_tap] worker panicked during cleanup"),
             }
             let join_ms = join_start.elapsed().as_millis();
             if join_ms > 100 {

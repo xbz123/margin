@@ -125,7 +125,7 @@ pub struct SystemAudioCapture {
 impl SystemAudioCapture {
     #[napi(constructor)]
     pub fn new(device_id: Option<String>) -> napi::Result<Self> {
-        println!("[SystemAudioCapture] Created (device: {:?})", device_id);
+        println!("[SystemAudioCapture] Created");
 
         Ok(SystemAudioCapture {
             stop_signal: Arc::new(AtomicBool::new(false)),
@@ -167,8 +167,8 @@ impl SystemAudioCapture {
             println!("[SystemAudioCapture] Background init starting...");
             let input = match speaker::SpeakerInput::new(device_id.clone()) {
                 Ok(i) => i,
-                Err(e) => {
-                    println!("[SystemAudioCapture] Init failed: {}. Trying default...", e);
+                Err(_e) => {
+                    println!("[SystemAudioCapture] Init failed. Trying default...");
                     match speaker::SpeakerInput::new(None) {
                         Ok(i) => i,
                         Err(e2) => {
@@ -176,7 +176,7 @@ impl SystemAudioCapture {
                                 "[SystemAudioCapture] FATAL: All init attempts failed: {}",
                                 e2
                             );
-                            eprintln!("{}", msg);
+                            eprintln!("[SystemAudioCapture] FATAL: All init attempts failed");
                             // Notify JS so it can emit 'error' and reset isRecording
                             tsfn.call(
                                 Err(napi::Error::from_reason(msg)),
@@ -195,7 +195,7 @@ impl SystemAudioCapture {
                         "[SystemAudioCapture] FATAL: stream() failed: {}",
                         e
                     );
-                    eprintln!("{}", msg);
+                    eprintln!("[SystemAudioCapture] FATAL: stream() failed");
                     tsfn.call(
                         Err(napi::Error::from_reason(msg)),
                         ThreadsafeFunctionCallMode::NonBlocking,
@@ -358,8 +358,8 @@ impl MicrophoneCapture {
 
         let native_rate = input.sample_rate();
         println!(
-            "[MicrophoneCapture] Initialized. Device: {:?}, Rate: {}Hz",
-            device_id, native_rate
+            "[MicrophoneCapture] Initialized. Rate: {}Hz",
+            native_rate
         );
 
         Ok(MicrophoneCapture {
@@ -460,7 +460,7 @@ impl MicrophoneCapture {
                 if let Ok(mut slot) = err_signal.lock() {
                     if let Some(msg) = slot.take() {
                         let full = format!("[MicrophoneCapture] CPAL error: {}", msg);
-                        eprintln!("{}", full);
+                        eprintln!("[MicrophoneCapture] CPAL error");
                         emitter.flush(&tsfn);
                         tsfn.call(
                             Err(napi::Error::from_reason(full)),
@@ -556,8 +556,8 @@ pub fn get_input_devices() -> Vec<AudioDeviceInfo> {
             .into_iter()
             .map(|(id, name)| AudioDeviceInfo { id, name })
             .collect(),
-        Err(e) => {
-            eprintln!("[get_input_devices] Error: {}", e);
+        Err(_e) => {
+            eprintln!("[get_input_devices] Error");
             Vec::new()
         }
     }
@@ -570,8 +570,8 @@ pub fn get_output_devices() -> Vec<AudioDeviceInfo> {
             .into_iter()
             .map(|(id, name)| AudioDeviceInfo { id, name })
             .collect(),
-        Err(e) => {
-            eprintln!("[get_output_devices] Error: {}", e);
+        Err(_e) => {
+            eprintln!("[get_output_devices] Error");
             Vec::new()
         }
     }

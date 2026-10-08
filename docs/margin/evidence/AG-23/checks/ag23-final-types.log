@@ -1,0 +1,3 @@
+COMMAND: node_modules/.bin/tsc --noEmit -p . && node_modules/.bin/tsc --noEmit -p electron/tsconfig.json
+EXIT: 0
+

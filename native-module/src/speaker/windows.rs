@@ -120,14 +120,14 @@ impl SpeakerInput {
         let device_id = self.device_id;
 
         let capture_thread = thread::spawn(move || {
-            if let Err(e) = Self::capture_audio_loop(
+            if let Err(_e) = Self::capture_audio_loop(
                 producer,
                 waker_clone,
                 data_ready_clone,
                 init_tx,
                 device_id,
             ) {
-                error!("Audio capture loop failed: {}", e);
+                error!("Audio capture loop failed");
             }
         });
 
@@ -245,10 +245,10 @@ impl SpeakerInput {
                     let mut temp_queue = VecDeque::new();
                     // bytes_per_frame for 32-bit float mono = 4 bytes
                     let bytes_per_frame: usize = 4; // 32-bit float, 1 channel
-                    if let Err(e) =
+                    if let Err(_e) =
                         render_client.read_from_device_to_deque(bytes_per_frame, &mut temp_queue)
                     {
-                        error!("Failed to read audio data: {}", e);
+                        error!("Failed to read audio data");
                         continue;
                     }
 

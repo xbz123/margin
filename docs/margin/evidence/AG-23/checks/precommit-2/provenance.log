@@ -1,0 +1,29 @@
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 587141,
+  "addedSubstantiveLines": 6240,
+  "hits": 0,
+  "genericIdiomHits": 86,
+  "allowlistedHits": 137,
+  "filesWithHits": 0,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ]
+}

@@ -510,13 +510,10 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                             <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                                 <div className="space-y-6">
                                     {(() => {
-                                        console.log('Raw Transcript:', meeting.transcript);
                                         const filteredTranscript = meeting.transcript?.filter(entry => {
                                             const isHidden = ['system', 'ai', 'assistant', 'model'].includes(entry.speaker?.toLowerCase());
-                                            if (isHidden) console.log('Filtered out:', entry);
                                             return !isHidden;
                                         }) || [];
-                                        console.log('Filtered Transcript:', filteredTranscript);
 
                                         if (filteredTranscript.length === 0) {
                                             return <p className="text-text-tertiary">No transcript available.</p>;

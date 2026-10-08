@@ -3,53 +3,11 @@ import * as crypto from "crypto"
 import path from "path"
 import fs from "fs"
 import { APP_IDENTITY } from './margin/appIdentity'
+import { logAppEvent } from './utils/consoleLogging';
 if (!app.isPackaged) {
   require('dotenv').config();
 }
 
-// Handle stdout/stderr errors at the process level to prevent EIO crashes
-// This is critical for Electron apps that may have their terminal detached
-process.stdout?.on?.('error', () => { });
-process.stderr?.on?.('error', () => { });
-
-process.on('uncaughtException', (err) => {
-  logToFile('[CRITICAL] Uncaught Exception: ' + redactArgsForLog([err]));
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logToFile('[CRITICAL] Unhandled Rejection: ' + redactArgsForLog([reason]));
-});
-
-// Bootstrap sets the identity and log directory before this module is loaded.
-let _logFile: string | null = null;
-const getLogFile = (): string | null => {
-  if (_logFile) return _logFile;
-  try {
-    _logFile = path.join(app.getPath('logs'), 'debug.log');
-    return _logFile;
-  } catch {
-    // app.ready not yet fired — return null, logToFile will skip silently
-    return null;
-  }
-};
-
-const originalLog = console.log;
-const originalWarn = console.warn;
-const originalError = console.error;
-
-// Lazy redactor import — pulled at first call so this file can boot even if
-// the redactor module fails to load (we fall back to a no-op transform).
-let _redactForLog: ((args: unknown[]) => string) | null = null;
-function redactArgsForLog(args: unknown[]): string {
-  if (!_redactForLog) {
-    try {
-      _redactForLog = require('./utils/redactForLog').redactForLog;
-    } catch {
-      _redactForLog = (xs: unknown[]) => xs.map(a => (a instanceof Error ? a.stack || a.message : (typeof a === 'object' ? JSON.stringify(a) : String(a)))).join(' ');
-    }
-  }
-  return _redactForLog!(args);
-}
 
 /**
  * Wraps a promise with a timeout. If the promise doesn't resolve within `ms`
@@ -74,33 +32,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, tag: string): Promise<T
   });
 }
 
-/** Maximum log file size before rotation (10 MB). */
-const LOG_MAX_BYTES = 10 * 1024 * 1024;
-
-function logToFile(msg: string) {
-  try {
-    const logFile = getLogFile();
-    // If the app isn't ready yet (path not available), skip silently.
-    if (!logFile) return;
-
-    // P2-1: rotate the log file when it exceeds LOG_MAX_BYTES so that long-running
-    // sessions (or meetings with dense transcripts) don't fill the user's disk.
-    // The previous log is kept as .log.1 for one-generation rollover.
-    try {
-      const stat = fs.statSync(logFile);
-      if (stat.size >= LOG_MAX_BYTES) {
-        const rotated = logFile + '.1';
-        if (fs.existsSync(rotated)) fs.unlinkSync(rotated);
-        fs.renameSync(logFile, rotated);
-      }
-    } catch {
-      // statSync throws if the file doesn't exist yet — that's fine
-    }
-    fs.appendFileSync(logFile, new Date().toISOString() + ' ' + msg + '\n');
-  } catch (e) {
-    // Ignore logging errors
-  }
-}
 
 async function ensureMacMicrophoneAccess(context: string): Promise<boolean> {
   if (process.platform !== 'darwin') return true;
@@ -307,26 +238,6 @@ function formatPermissionMessage(reason: PermissionReason, extra?: { device?: st
   }
 }
 
-console.log = (...args: any[]) => {
-  logToFile('[LOG] ' + redactArgsForLog(args));
-  try {
-    originalLog.apply(console, args);
-  } catch { }
-};
-
-console.warn = (...args: any[]) => {
-  logToFile('[WARN] ' + redactArgsForLog(args));
-  try {
-    originalWarn.apply(console, args);
-  } catch { }
-};
-
-console.error = (...args: any[]) => {
-  logToFile('[ERROR] ' + redactArgsForLog(args));
-  try {
-    originalError.apply(console, args);
-  } catch { }
-};
 
 import { initializeIpcHandlers } from "./ipcHandlers"
 import { WindowHelper } from "./WindowHelper"
@@ -4036,7 +3947,7 @@ async function initializeApp() {
     }
   }
 
-  console.log("App is ready")
+  logAppEvent('app-ready');
 
   // PERF: pre-construct STT provider objects so the meeting-start critical
   // path doesn't pay for class init + listener wiring. Runs after all
@@ -4223,7 +4134,7 @@ async function initializeApp() {
 
   // Scrub API keys from memory on quit to minimize exposure window
   app.on("before-quit", (event) => {
-    console.log("App is quitting, cleaning up resources...");
+    logAppEvent('app-quitting');
     appState.setQuitting(true);
 
     // Stop the default-output watcher so the setInterval doesn't keep calling

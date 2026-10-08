@@ -774,7 +774,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('get-log-file-path', async () => {
     try {
-      return path.join(app.getPath('documents'), 'natively_debug.log');
+      return path.join(app.getPath('logs'), 'debug.log');
     } catch {
       return null;
     }
@@ -782,10 +782,10 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('open-log-file', async () => {
     try {
-      const logPath = path.join(app.getPath('documents'), 'natively_debug.log');
+      const logPath = path.join(app.getPath('logs'), 'debug.log');
       // Ensure the file exists before opening
       if (!fs.existsSync(logPath)) {
-        fs.writeFileSync(logPath, '');
+        fs.writeFileSync(logPath, '', { mode: 0o600 });
       }
       await shell.openPath(logPath);
       return { success: true };
