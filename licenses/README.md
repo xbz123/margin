@@ -61,14 +61,28 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 ## Recorded unresolved categories
 
-The current snapshot retains 19 missing exact-version notice candidates. Fifteen
-installed npm candidates may be distributed and have not been excluded by actual
-package evidence: @alcalzone/ansi-tokenize 0.1.3, @npmcli/agent 4.0.0,
+The current snapshot retains 17 missing exact-version notice candidates. Thirteen
+installed npm candidates were observed as included files/metadata in the S17
+temp-app diagnostic (CI 37829181248); they are not excluded:
+@alcalzone/ansi-tokenize 0.1.3, @npmcli/agent 4.0.0,
 dingbat-to-unicode 1.0.1, eastasianwidth 0.2.0, err-code 2.0.3, format 0.2.2,
 highlightjs-vue 1.0.0, react-remove-scroll-bar 2.3.8, screenshot-desktop 1.15.4,
-spdx-exceptions 2.5.0, spdx-license-ids 3.0.23, @tootallnate/once 1.1.2,
+@tootallnate/once 1.1.2,
 stream-events 1.0.5, stubs 3.0.0 and tr46 0.0.3. A declared SPDX identifier is
 recorded, not silently converted into a fabricated package copyright/grant.
+
+Two former missing-text entries, spdx-exceptions 2.5.0 (CC-BY-3.0) and
+spdx-license-ids 3.0.23 (CC0-1.0), now bind their exact-version published license
+declarations to the full official Creative Commons standard terms. Each also
+retains its complete original licensing README from the immutable npm gitHead;
+README attribution alone does not close a missing full-text entry. The actual
+packaged identifier JSON hashes match the installed originals. NOTICE preserves
+the supplied Linux Foundation/Contributors attribution and Kyle Mitchell's
+mechanical-extraction statement without inventing copyright or endorsement.
+CC BY's attribution, retained notices, license/source links and applicable change
+identification remain distribution obligations; CC0 grants no trademark or
+patent rights and does not warrant third-party clearance. These two text bindings
+do not accept a distributable or resolve the other 17 candidates.
 
 The official ansi-tokenize later add-missing-LICENSE text is retained as a
 supplement, not proof that it accompanied 0.1.3. For format, the old installed
@@ -77,7 +91,9 @@ same-version grant from a changing website. react-remove-scroll-bar's published
 gitHead does not resolve in the identified repository; a neighboring version is
 not substituted.
 
-Four Cargo candidates lack full texts: realfft 3.5.0 needs target-linked review;
+Four Cargo candidates lack full texts: realfft 3.5.0 declares only MIT (no Apache
+alternative was found in its exact original manifest/version sources) and needs
+target-linked review;
 oboe/oboe-sys 0.6.1 are Android candidates and r-efi 5.3.0 is a UEFI candidate,
 pending target-graph/artifact exclusion evidence. The 37 missing incompatible
 platform-optional npm paths and two verified dangling aliases are recorded under

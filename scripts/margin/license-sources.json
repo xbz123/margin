@@ -47,6 +47,46 @@
     "closesMissing": true
   },
   {
+    "id": "standard:spdx-exceptions",
+    "version": "2.5.0",
+    "license": "CC-BY-3.0",
+    "url": "https://creativecommons.org/licenses/by/3.0/legalcode.txt",
+    "sha256": "e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76",
+    "role": "official CC BY 3.0 Unported full terms declared by spdx-exceptions 2.5.0; original attribution retained separately",
+    "bind": { "kind": "npm", "name": "spdx-exceptions" },
+    "closesMissing": true
+  },
+  {
+    "id": "attribution:spdx-exceptions",
+    "version": "2.5.0",
+    "license": "CC-BY-3.0",
+    "url": "https://raw.githubusercontent.com/kemitchell/spdx-exceptions.json/3aa64bec339abc6a3eca00c3436aaa7e154b8799/README.md",
+    "gitBlob": "6c927ecc6911929acfeb11617dd067784105d7bb",
+    "sha256": "554b19eee11d2964e9f7b244e47944c08d52ca75539260a04f3227e6c0144513",
+    "role": "exact-version original full README preserving Linux Foundation and Contributors attribution and Kyle Mitchell's mechanical-extraction statement; not a standalone full license",
+    "closesMissing": false
+  },
+  {
+    "id": "standard:spdx-license-ids",
+    "version": "3.0.23",
+    "license": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+    "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+    "role": "official CC0 1.0 Universal full terms declared by spdx-license-ids 3.0.23; original package licensing statement retained separately",
+    "bind": { "kind": "npm", "name": "spdx-license-ids" },
+    "closesMissing": true
+  },
+  {
+    "id": "attribution:spdx-license-ids",
+    "version": "3.0.23",
+    "license": "CC0-1.0",
+    "url": "https://raw.githubusercontent.com/jslicense/spdx-license-ids/a2a975daf48bbc2afdc8e7c304405b44c656fd53/README.md",
+    "gitBlob": "ba650628aeb637a4791007f6b0dde09e8b6a78c7",
+    "sha256": "b4807793db6058c819f76c023362b7d522b3d19c9b41563fcc01c2b2c5b1ccd3",
+    "role": "exact-version original full README preserving the CC0 1.0 Universal licensing statement; no invented copyright",
+    "closesMissing": false
+  },
+  {
     "id": "supplement:ansi-tokenize",
     "version": "0.1.3",
     "license": "MIT",

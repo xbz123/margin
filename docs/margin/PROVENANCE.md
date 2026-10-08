@@ -75,6 +75,28 @@ profile, which grants no external executables; the synthetic path and error
 regressions remain active there. The license verifier, static vendor-composition
 limitations and source-map evidence gaps are unchanged.
 
+The two SPDX-package notice bindings use exact-version published declarations:
+`spdx-exceptions@2.5.0` declares CC-BY-3.0 and `spdx-license-ids@3.0.23` declares
+CC0-1.0. Their official Creative Commons legalcode.txt full texts are pinned by
+SHA-256 in `license-sources.json`; the binding version is the package version,
+not the Creative Commons standard version. Each binding also retains the full
+original licensing README: exceptions commit `3aa64bec339abc6a3eca00c3436aaa7e154b8799`,
+blob `6c927ecc6911929acfeb11617dd067784105d7bb`; ids commit
+`a2a975daf48bbc2afdc8e7c304405b44c656fd53`, blob
+`ba650628aeb637a4791007f6b0dde09e8b6a78c7`. Both README hashes match the installed
+originals. The Linux Foundation/Contributors 2010-2015 statement and Kyle
+Mitchell's mechanical-extraction declaration are preserved, not replaced by
+invented copyright or endorsement. README attachments alone do not close
+missing-full-text entries. The S17 diagnostic observed both packages and their
+unchanged identifier JSON bytes; CI 37829181248 completed evidence collection
+without accepting the package. The four new source attachments add only three
+unique stored texts because the freshly verified official CC0 text is byte-
+identical to an existing copy. Byte deduplication borrows no other package's
+grant: the new CC0 binding retains its own exact-version declaration and official
+source. Only these two former missing-text candidates are removed; the other
+17 missing candidates and separate distribution/vendor/source duties remain.
+No collector, dependency, runtime or package-diagnostic logic changes here.
+
 AG-26's notice collector, package-byte checker, synthetic tests and rewritten
 public documents are written for this branch from PLAN's license/documentation
 contract and Node standard-library APIs. They import no later application
