@@ -1,0 +1,9 @@
+[
+  {
+    "mode": "once",
+    "pid": 45963,
+    "reads": 1,
+    "injected": 1,
+    "exit": { "code": 0, "signal": null }
+  }
+]

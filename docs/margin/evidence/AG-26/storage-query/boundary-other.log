@@ -1,0 +1,30 @@
+exitCode: 1
+signal: null
+console.log [{"type":"string","length":57}]
+console.log [{"type":"string","length":30}]
+console.log [{"type":"string","length":54}]
+console.log [{"type":"string","length":60}]
+console.log [{"type":"string","length":54}]
+[isolation] blocked local-exec: execFileSync defaults
+console.log [{"type":"string","length":60}]
+console.log [{"type":"string","length":60}]
+console.log [{"type":"string","length":71}]
+
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (2167.864042ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2484.055833
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:106:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (2167.864042ms)
+  electronApplication.evaluate: Error: DIAGNOSTIC_NON_CONTEXT_FAILURE
+      at launchApp (<REPO>/tests/margin/launch-app.mjs:67:27)
+      at async launch (<REPO>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<REPO>/tests/margin/meeting-storage.test.mjs:88:3)

@@ -19,6 +19,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
 import { startMockOpenAI } from './mock-openai.mjs';
 import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
@@ -41,10 +42,11 @@ let app;
 let env;
 let mainErrorsLog;
 let mainPid;
+let userDataPath;
 
 // Launches the app and keeps the recorder file and main pid for the after hook.
 async function launch() {
-  ({ app, mainErrorsLog } = await launchApp(sandbox, env));
+  ({ app, mainErrorsLog, userDataPath } = await launchApp(sandbox, env));
   mainPid = app.process().pid;
 }
 
@@ -103,7 +105,7 @@ test.after(async () => {
 
 test('a meeting is saved with a mock summary, survives a restart, and stays deleted', async () => {
   let launcher = await launcherWindow();
-  const dbPath = await app.evaluate(({ app: electronApp }) => process.getBuiltinModule('path').join(electronApp.getPath('userData'), 'natively.db'));
+  const dbPath = path.join(userDataPath, 'natively.db');
   assert.ok(dbPath.startsWith(sandbox.root), `database must live in the sandbox, got ${dbPath}`);
 
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);

@@ -1,0 +1,52 @@
+{
+  "run": 9,
+  "sandbox": "<X2_SANDBOX>",
+  "error": "electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.",
+  "targetRed": true,
+  "rendererState": "complete",
+  "readOnlyRecoveryProbe": {
+    "samePid": 43702,
+    "pathIsolated": true
+  },
+  "pid": 43702,
+  "processAliveBeforeCleanup": true,
+  "mainErrors": [],
+  "durationMs": 1338,
+  "events": [
+    {
+      "atMs": 865,
+      "kind": "launch-return",
+      "pid": 43702
+    },
+    {
+      "atMs": 998,
+      "kind": "launcher-dom-ready"
+    },
+    {
+      "atMs": 1005,
+      "kind": "read-error",
+      "message": "electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.",
+      "processAlive": true,
+      "exitCode": null,
+      "signalCode": null
+    },
+    {
+      "atMs": 1105,
+      "kind": "renderer-still-responsive"
+    },
+    {
+      "atMs": 1107,
+      "kind": "read-only-recovery-probe-ok"
+    },
+    {
+      "atMs": 1243,
+      "kind": "renderer-close"
+    },
+    {
+      "atMs": 1305,
+      "kind": "main-exit",
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+exitCode: 1
+signal: null
+console.log [{"type":"string","length":63}]
+app-quitting []
+console.log [{"type":"string","length":34}]
+console.log [{"type":"string","length":43}]
+console.log [{"type":"string","length":35}]
+console.log [{"type":"string","length":39}]
+console.log [{"type":"string","length":36}]
+console.log [{"type":"string","length":50}]
+console.log [{"type":"string","length":37}]
+console.log [{"type":"string","length":47}]
+console.log [{"type":"string","length":40}]
+console.error [{"type":"string","length":47},{"type":"object"}]
+[46705:1008/231557.657606:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[46705:1008/231557.657627:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+console.error [{"type":"string","length":42},{"type":"object"}]
+[46705:1008/231557.671311:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[46705:1008/231557.671330:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+console.error [{"type":"string","length":42},{"type":"object"}]
+[46705:1008/231557.678649:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[46705:1008/231557.678668:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+console.error [{"type":"string","length":34},{"type":"object"}]
+console.error [{"type":"string","length":55},{"type":"object"}]
+console.log [{"type":"string","length":43}]
+Waiting for the debugger to disconnect...
+[harness] main process exited code=0 signal=null
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (2022.186125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2330.916792
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:106:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (2022.186125ms)
+  electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.
+      at launchApp (<REPO>/tests/margin/launch-app.mjs:67:27)
+      at async launch (<REPO>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<REPO>/tests/margin/meeting-storage.test.mjs:88:3) {
+    name: 'Error'
+  }

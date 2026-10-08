@@ -1,0 +1,98 @@
+{
+  "run": 2,
+  "sandbox": "<X2_SANDBOX>",
+  "error": "electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.",
+  "targetRed": true,
+  "rendererState": "complete",
+  "readOnlyRecoveryProbe": {
+    "samePid": 44194,
+    "pathIsolated": true
+  },
+  "pid": 44194,
+  "processAliveBeforeCleanup": true,
+  "mainErrors": [],
+  "durationMs": 1388,
+  "events": [
+    {
+      "atMs": 905,
+      "kind": "launch-return",
+      "pid": 44194
+    },
+    {
+      "atMs": 905,
+      "kind": "node-context-at-launch"
+    },
+    {
+      "atMs": 906,
+      "kind": "electron-handle-context",
+      "objectId": "-4123302190032055454.1.1"
+    },
+    {
+      "atMs": 1000,
+      "kind": "launcher-dom-ready"
+    },
+    {
+      "atMs": 1001,
+      "kind": "node-protocol-send",
+      "method": "Runtime.callFunctionOn",
+      "objectId": "-4123302190032055454.1.4"
+    },
+    {
+      "atMs": 1003,
+      "kind": "node-protocol-error",
+      "method": "Runtime.callFunctionOn",
+      "objectId": "-4123302190032055454.1.4",
+      "message": "Protocol error (Runtime.callFunctionOn): Promise was collected"
+    },
+    {
+      "atMs": 1005,
+      "kind": "read-error",
+      "message": "electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.",
+      "processAlive": true,
+      "exitCode": null,
+      "signalCode": null
+    },
+    {
+      "atMs": 1107,
+      "kind": "renderer-still-responsive"
+    },
+    {
+      "atMs": 1109,
+      "kind": "node-protocol-send",
+      "method": "Runtime.callFunctionOn",
+      "objectId": "-4123302190032055454.1.4"
+    },
+    {
+      "atMs": 1109,
+      "kind": "node-protocol-reply",
+      "method": "Runtime.callFunctionOn",
+      "objectId": "-4123302190032055454.1.4"
+    },
+    {
+      "atMs": 1110,
+      "kind": "read-only-recovery-probe-ok"
+    },
+    {
+      "atMs": 1112,
+      "kind": "node-protocol-send",
+      "method": "Runtime.callFunctionOn",
+      "objectId": "-4123302190032055454.1.4"
+    },
+    {
+      "atMs": 1179,
+      "kind": "node-protocol-reply",
+      "method": "Runtime.callFunctionOn",
+      "objectId": "-4123302190032055454.1.4"
+    },
+    {
+      "atMs": 1263,
+      "kind": "renderer-close"
+    },
+    {
+      "atMs": 1380,
+      "kind": "main-exit",
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

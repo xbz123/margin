@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "base": "ec1385c0d913fffe4c6a1cc8af1ce66fd9669f0a",
+  "environment": {
+    "node": "v26.0.0",
+    "playwright": "1.60.0",
+    "electron": "43.1.0"
+  },
+  "naturalBaseline": {
+    "runs": 19,
+    "green": 18,
+    "targetRed": 1
+  },
+  "minimized": {
+    "runs": 9,
+    "green": 8,
+    "targetRed": 1,
+    "mainAlive": true,
+    "rendererState": "complete",
+    "readOnlyRecoverySamePid": true,
+    "mainErrors": []
+  },
+  "protocol": {
+    "runs": 2,
+    "targetRedAt": 2,
+    "originalError": "Protocol error (Runtime.callFunctionOn): Promise was collected",
+    "rewrittenError": "electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.",
+    "sameUtilityObjectIdOnRecovery": true,
+    "lifecycleEventsObservedAfterLaunch": 0
+  },
+  "injection": {
+    "oldExactCallSiteExitCode": 1,
+    "newExactCallSiteExitCode": 0,
+    "perNewLaunchQueries": 2,
+    "perNewLaunchInjectedFailures": 1,
+    "launches": 3
+  },
+  "boundaries": {
+    "driverExitCode": 0,
+    "exhausted": {
+      "queryCalls": 10,
+      "expectedTestExitCode": 1
+    },
+    "otherVisibleJavaScriptError": {
+      "queryCalls": 1,
+      "expectedTestExitCode": 1
+    },
+    "deadMain": {
+      "queryCalls": 1,
+      "expectedTestExitCode": 1
+    },
+    "ownedProcessesClosed": true,
+    "initialDriverError": "incorrectly required SIGTERM in signal field; actual Electron termination was exitCode 0 / signal null; corrected to assert actual exit"
+  },
+  "postFixNaturalLoop": {
+    "runs": 20,
+    "green": 20,
+    "targetRed": 0,
+    "exitCode": 0
+  },
+  "fullStorageSuite": "not rerun here; full gate required separately",
+  "scope": "test harness only, no generic evaluate retry or production IPC retry",
+  "files": {
+    "tests/margin/launch-app.mjs": {
+      "baselineSHA256": "0d868029115abf9e514c0a4cef36413487669a5e7a52fca04a93e64edd5b7d9e",
+      "finalSHA256": "5baf60107bd7c3fea2d66de5ebc22d7f48f8412e3dc76c96a3cfcca8537057fc"
+    },
+    "tests/margin/meeting-storage.test.mjs": {
+      "baselineSHA256": "8a44e9f506b8300a9862219e4eb243f1fff7f698ba9805619b8405cf76e7315f",
+      "finalSHA256": "efe193a0e8fd7ee08bf9ba05e0defc4f78d89e1f7fd598679f5e00ac0cb5b9a5"
+    }
+  },
+  "artifacts": [
+    {
+      "file": "natural-red.log",
+      "rawArtifact": "direct-19.log",
+      "rawSHA256": "33872ff47d2b28e9026ef4097b73ec4857259d9e72861f0bcdbacda715f6bea0",
+      "sanitizedSHA256": "977181d0eb3d602ba91cd6b656138da2645d650e567e0fcafd4dd0d7e68c2d1f",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "natural-loop-results.json",
+      "rawArtifact": "direct-loop-results.json",
+      "rawSHA256": "e902408ccbb459ffa2774a24c9db1c225f4fa5c4d6128804a53f2090508f4b03",
+      "sanitizedSHA256": "e902408ccbb459ffa2774a24c9db1c225f4fa5c4d6128804a53f2090508f4b03",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "minimal-red.json",
+      "rawArtifact": "minimal-results.json",
+      "rawSHA256": "6188c4e268b0e4ba768717adecd504ac8f15c7626df413c55f2ca55da7295a84",
+      "sanitizedSHA256": "2a90ff7550cdfd01738884c609885b538fb144f00cb3c30a0d2c3e380e5b977e",
+      "transform": "select final record and redact local paths"
+    },
+    {
+      "file": "protocol-red.json",
+      "rawArtifact": "protocol-results.json",
+      "rawSHA256": "1888fbe1861bd9aa1b50c7495f66d46408408a30071ffe94065a59948d2ed1d1",
+      "sanitizedSHA256": "0ed2b585e67fd9d4437676792e66da0d571f2df80f71f9164765a6553c4f441a",
+      "transform": "select final record and redact local paths"
+    },
+    {
+      "file": "injection-red.log",
+      "rawArtifact": "injection-red.log",
+      "rawSHA256": "823cc17f981619820264336ff06e62045729f5be17376bbb594adcaca4823d95",
+      "sanitizedSHA256": "110132d4e15fcc1041055b843f8d7c5194de4a0daba525cf284b7211d5986ea9",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "injection-red-record.json",
+      "rawArtifact": "injection-red-record.json",
+      "rawSHA256": "0c815bc9e1734b8bc325bf8475148719833ad74f6659d4fcfb3f23b399fd2c6e",
+      "sanitizedSHA256": "0c815bc9e1734b8bc325bf8475148719833ad74f6659d4fcfb3f23b399fd2c6e",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "injection-green.log",
+      "rawArtifact": "injection-green.log",
+      "rawSHA256": "4ac8b23c704e25245c1965b9273966315d1950a1eaef5d0233f08761cddbc67d",
+      "sanitizedSHA256": "4ac8b23c704e25245c1965b9273966315d1950a1eaef5d0233f08761cddbc67d",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "injection-green-records.json",
+      "rawArtifact": "injection-once.json",
+      "rawSHA256": "5d4ba60688ef4dd60f01b0a20d47da0eae8727e159cb7b6eaef57e8d5bae3ac5",
+      "sanitizedSHA256": "5d4ba60688ef4dd60f01b0a20d47da0eae8727e159cb7b6eaef57e8d5bae3ac5",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "boundary-results.json",
+      "rawArtifact": "boundary-results.json",
+      "rawSHA256": "2629c28ce14d3fca247ec380e4cdf7842e2756ee85b5f3fabeca74a9ff20fc1f",
+      "sanitizedSHA256": "2629c28ce14d3fca247ec380e4cdf7842e2756ee85b5f3fabeca74a9ff20fc1f",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "boundary-exhaust.log",
+      "rawArtifact": "boundary-exhaust.log",
+      "rawSHA256": "e9814837e96a9b06129ce782e181a658832fb3c91eda98359546893072de31b7",
+      "sanitizedSHA256": "25e152c40dd14ccd269191aae48965c3f055f50b1dacad3f5f6c3bb838725e76",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "boundary-other.log",
+      "rawArtifact": "boundary-other.log",
+      "rawSHA256": "521e7e4de4a100a90116bd8c343a39d50997f61d1dd78c8e24a1f0712aee4a1b",
+      "sanitizedSHA256": "5522e0db8549ef359168281e0e37a4f608bf8ffe3cb7adc3c767f69629b6401e",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "boundary-dead.log",
+      "rawArtifact": "boundary-dead.log",
+      "rawSHA256": "c7344bb8ea6e8d07306d49fa725a29590b1e706ce57163e929f46f8331f5ebb2",
+      "sanitizedSHA256": "f1bcf1173b5aa928bed9f64a5bd866afdb7576d84ff10601a36cdd328d3ef237",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "diagnostic-driver-initial-failure.log",
+      "rawArtifact": "boundary-driver-initial-failure.log",
+      "rawSHA256": "c9b7faad7c7ea8e2255124e693ac3f56fac445eecca40eaf3fdad8f8caed7863",
+      "sanitizedSHA256": "c9b7faad7c7ea8e2255124e693ac3f56fac445eecca40eaf3fdad8f8caed7863",
+      "transform": "redact local paths"
+    },
+    {
+      "file": "post-fix-loop-results.json",
+      "rawArtifact": "post-fix/direct-loop-results.json",
+      "rawSHA256": "3711f58377dfb73a9a65ac05f937a08fe051d31eaa8150cf6d9415e17cbd558a",
+      "sanitizedSHA256": "3711f58377dfb73a9a65ac05f937a08fe051d31eaa8150cf6d9415e17cbd558a",
+      "transform": "redact local paths"
+    }
+  ]
+}

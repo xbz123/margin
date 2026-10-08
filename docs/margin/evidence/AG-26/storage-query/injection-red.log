@@ -1,0 +1,44 @@
+exitCode: 1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (1624.242667ms)
+✖ <REPO>/tests/margin/meeting-storage.test.mjs (191.849ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2131.261125
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:104:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (1624.242667ms)
+  electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.
+      at TestContext.<anonymous> (<REPO>/tests/margin/meeting-storage.test.mjs:106:28) {
+    name: 'Error'
+  }
+
+test at tests/margin/meeting-storage.test.mjs:89:6
+✖ <REPO>/tests/margin/meeting-storage.test.mjs (191.849ms)
+  AssertionError [ERR_ASSERTION]: no main-process exception during the storage run
+  + actual - expected
+  
+  + [
+  +   'uncaughtException: TypeError: Object has been destroyed'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<REPO>/tests/margin/meeting-storage.test.mjs:101:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7)
+      at async Test.runHook (node:internal/test_runner/test:1117:9)
+      at async after (node:internal/test_runner/test:1159:9)
+      at async Test.run (node:internal/test_runner/test:1227:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'uncaughtException: TypeError: Object has been destroyed' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

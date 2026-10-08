@@ -1,0 +1,20 @@
+exitCode: 1
+signal: null
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (1010.320833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1568.746625
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:104:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (1010.320833ms)
+  electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation.
+      at TestContext.<anonymous> (<REPO>/tests/margin/meeting-storage.test.mjs:106:28) {
+    name: 'Error'
+  }

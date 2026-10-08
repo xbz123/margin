@@ -1,0 +1,135 @@
+[
+  {
+    "run": 1,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5836,
+    "targetRed": false
+  },
+  {
+    "run": 2,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5077,
+    "targetRed": false
+  },
+  {
+    "run": 3,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5403,
+    "targetRed": false
+  },
+  {
+    "run": 4,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5164,
+    "targetRed": false
+  },
+  {
+    "run": 5,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5351,
+    "targetRed": false
+  },
+  {
+    "run": 6,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5190,
+    "targetRed": false
+  },
+  {
+    "run": 7,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5060,
+    "targetRed": false
+  },
+  {
+    "run": 8,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5799,
+    "targetRed": false
+  },
+  {
+    "run": 9,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5338,
+    "targetRed": false
+  },
+  {
+    "run": 10,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5166,
+    "targetRed": false
+  },
+  {
+    "run": 11,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5234,
+    "targetRed": false
+  },
+  {
+    "run": 12,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5255,
+    "targetRed": false
+  },
+  {
+    "run": 13,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5267,
+    "targetRed": false
+  },
+  {
+    "run": 14,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5429,
+    "targetRed": false
+  },
+  {
+    "run": 15,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5567,
+    "targetRed": false
+  },
+  {
+    "run": 16,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5311,
+    "targetRed": false
+  },
+  {
+    "run": 17,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5507,
+    "targetRed": false
+  },
+  {
+    "run": 18,
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 5329,
+    "targetRed": false
+  },
+  {
+    "run": 19,
+    "exitCode": 1,
+    "signal": null,
+    "durationMs": 1754,
+    "targetRed": true
+  }
+]

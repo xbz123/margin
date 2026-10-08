@@ -1,0 +1,35 @@
+[
+  {
+    "mode": "exhaust",
+    "expectedRunFailure": true,
+    "exitCode": 1,
+    "queryCalls": 10,
+    "processExit": {
+      "code": 0,
+      "signal": null
+    },
+    "passed": true
+  },
+  {
+    "mode": "other",
+    "expectedRunFailure": true,
+    "exitCode": 1,
+    "queryCalls": 1,
+    "processExit": {
+      "code": 0,
+      "signal": null
+    },
+    "passed": true
+  },
+  {
+    "mode": "dead",
+    "expectedRunFailure": true,
+    "exitCode": 1,
+    "queryCalls": 1,
+    "processExit": {
+      "code": 0,
+      "signal": null
+    },
+    "passed": true
+  }
+]

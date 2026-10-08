@@ -1,0 +1,10 @@
+Captured output excerpt from the first boundary-driver run:
+[DEBUG-storage-context] {"mode":"exhaust","expectedRunFailure":true,"exitCode":1,"queryCalls":10,"processExit":{"code":0,"signal":null},"passed":true}
+[DEBUG-storage-context] {"mode":"other","expectedRunFailure":true,"exitCode":1,"queryCalls":1,"processExit":{"code":0,"signal":null},"passed":true}
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+null !== 'SIGTERM'
+actual: null
+expected: 'SIGTERM'
+exitCode: 1
+Classification: diagnostic-driver assertion error, not an implementation failure.
+Electron handled SIGTERM with an observed exitCode 0 / signal null. The query had only one call and the owned main had actually exited. The corrected driver checks real process exit, not a mandatory OS signal representation.

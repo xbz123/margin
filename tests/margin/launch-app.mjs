@@ -38,7 +38,7 @@ export function readMainErrors(file, pid) {
 }
 
 // Starts the app in `sandbox` (from makeSandbox) with `extraEnv`. Aborts unless the
-// guard is active in the main process. Returns { app, output, mainErrorsLog } where
+// guard is active in the main process. Returns { app, output, mainErrorsLog, userDataPath } where
 // `output` holds the main process's stdout and stderr so far and `mainErrorsLog` is
 // the file record-main-errors.cjs writes (read it with readMainErrors).
 export async function launchApp(sandbox, extraEnv = {}) {
@@ -58,12 +58,16 @@ export async function launchApp(sandbox, extraEnv = {}) {
   app.process().stderr.on('data', (d) => output.push(String(d)));
   app.process().on('exit', (code, signal) => output.push(`[harness] main process exited code=${code} signal=${signal}`));
 
-  // The first main-process evaluate can race start-up ("Execution context was
-  // destroyed"); retry while the process is alive, and show its output if it died.
-  let guardActive;
+  // Playwright can report "Promise was collected" as a destroyed context. Keep
+  // the guard and userData snapshot in this bounded, read-only startup query;
+  // never retry a caller's evaluate or a state-changing IPC operation.
+  let startup;
   for (let attempt = 1; ; attempt++) {
     try {
-      guardActive = await app.evaluate(() => process.env.MARGIN_ISOLATION_ACTIVE);
+      startup = await app.evaluate(({ app: electronApp }) => ({
+        guardActive: process.env.MARGIN_ISOLATION_ACTIVE,
+        userDataPath: electronApp.getPath('userData'),
+      }));
       break;
     } catch (e) {
       const alive = app.process().exitCode === null && app.process().signalCode === null;
@@ -73,10 +77,11 @@ export async function launchApp(sandbox, extraEnv = {}) {
       }
       await new Promise((r) => setTimeout(r, 1_000));
       console.error(output.join('').split('\n').filter((l) => !l.includes('isolation-debug')).slice(-40).join('\n'));
+      await app.close().catch(() => {});
       throw e;
     }
   }
-  if (guardActive !== '1') {
+  if (startup.guardActive !== '1') {
     await app.close().catch(() => {});
     throw new Error('isolation guard is not active in the Electron main process; aborting');
   }
@@ -89,5 +94,5 @@ export async function launchApp(sandbox, extraEnv = {}) {
     await app.close().catch(() => {});
     throw e;
   }
-  return { app, output, mainErrorsLog };
+  return { app, output, mainErrorsLog, userDataPath: startup.userDataPath };
 }
