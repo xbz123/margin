@@ -1,0 +1,235 @@
+{
+  "pass": true,
+  "newSources": 32,
+  "containers": 20,
+  "validated": [
+    {
+      "id": "attribution:format-readme",
+      "originalSHA256": "e078ab4217332db9ac446cdf23e932eabd21d6db7c239a6495df4d3802251f20",
+      "excerptSHA256": "4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c",
+      "bytes": 113,
+      "verified": true
+    },
+    {
+      "id": "declaration:oboe",
+      "originalSHA256": "7f913d65d89e86e0786c76ba26d9d462d313869d7de222f0b1ed313f8781b0b3",
+      "excerptSHA256": "7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8",
+      "bytes": 155,
+      "verified": true
+    },
+    {
+      "id": "declaration:oboe-sys",
+      "originalSHA256": "57060b5a251d140b7ca2ae993ceba4af6ffb45f94ab83da2a860836003f7bc52",
+      "excerptSHA256": "7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8",
+      "bytes": 155,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-026cab13ef99",
+      "originalSHA256": "281e91e5a959b383fbc5a00db6bd2bcf815e014e25e8f8c07a541168684b5715",
+      "excerptSHA256": "026cab13ef99665b61b64e1736622a6754ff7d5fdb88b00c3e8d70804e215fd6",
+      "bytes": 612,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-098ca21a7be9",
+      "originalSHA256": "860718e77f77e032268de51a6fcb9584dbe57c948392c01f66c6acf78708ff3e",
+      "excerptSHA256": "098ca21a7be9224c03b2c4966bbec5c1b3c7511f391545373c2b450fae6541e4",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-0a482956cdef",
+      "originalSHA256": "7d2922aba66d2d074abd9059d8e30e8410c734bc55f97268f3bac954c8e44170",
+      "excerptSHA256": "0a482956cdefef7b857c207289fcf91b92f4c4003e79fdd0d6e5021d6ec60305",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-0fb76639cf65",
+      "originalSHA256": "1f3feac525af1a27705bdb20c109dd0faf24a2387d718dced73b497c5029229f",
+      "excerptSHA256": "0fb76639cf65ffb51bcc4bdf5c15623ef6cd1c4ae400c99fcf32187123bbc35c",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-1a6d45f82689",
+      "originalSHA256": "76dff8c0554b6025a51db244ca41e1be304e5ea4adb92da3dad50a2317d4d119",
+      "excerptSHA256": "1a6d45f82689dd204ca86c5a6dc8b06244cd1ddd46fb9bdbbc82f0b62fdcdd97",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-4b1d40940061",
+      "originalSHA256": "d6a76e901bbdb1f2c0886a20c3db28fe2f7b9fb98fc36ce9a7fda3c5c0bea837",
+      "excerptSHA256": "4b1d40940061d9a7efc8f532541914320444ffc4b884822e21f5bd4db2694ab3",
+      "bytes": 622,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-53082e800843",
+      "originalSHA256": "ba1acad134878144512f7bb53db4f8990282112e439f2bb19eb750b07ea7b7c1",
+      "excerptSHA256": "53082e800843aed238b7aade7fd4d9927b641988d2db1e66c112c4f5f6074781",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-575ee5739171",
+      "originalSHA256": "a2a70b176abca6369e2e1e592feb5457da6e8466b451dcc70c747db0331c84f0",
+      "excerptSHA256": "575ee5739171b0a546eb044c10ef188f605a1e8c975a728a6072f61ed2658e94",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-75dbadc0b315",
+      "originalSHA256": "6e9aea027556a261927f20ec99e500d2f0b00dea30bc65636880cd0cc4030974",
+      "excerptSHA256": "75dbadc0b3159a276c67a0bf4f5e7fb11b02fec4223eae12aa3a64e195a4fca6",
+      "bytes": 619,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-768f8c738869",
+      "originalSHA256": "1aa4bed772c5188038a7666127cb91684428fd5b442aee5500a3e65eb9647134",
+      "excerptSHA256": "768f8c7388691bf175d55d8107d3bb9cd7c64ac1f74411309d0b138fa9895cb0",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-9d0f46e29c70",
+      "originalSHA256": "202a80acdf601cb902166a9cd76064c6ba32810846d3bcbb6602eb29e81bcaee",
+      "excerptSHA256": "9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14",
+      "bytes": 619,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-a34cd7c49b07",
+      "originalSHA256": "5d5f8b55f00f38bedd38a92c69d33449187479e823c44824a818966512c6a789",
+      "excerptSHA256": "a34cd7c49b07da7319aadce0fee47da135773758afb314667d92ecc29657deb4",
+      "bytes": 619,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-b698582c54bf",
+      "originalSHA256": "0ccd1e998f07aca3159b9105d95e3e86bfeebc3282845ba83a4f53ba13e55cbf",
+      "excerptSHA256": "b698582c54bfdc53aace53dba7612f36ddbb0259cfddd6168604e1e0e56212ee",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-bd681efb8799",
+      "originalSHA256": "583b85936d23237f9a9b9f5d25fac93044914070ae42899ca4193e6d069ce178",
+      "excerptSHA256": "bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65",
+      "bytes": 619,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-f522a5228a4e",
+      "originalSHA256": "3d6e14f4dfe0a86bdb911c4096ee0efe18b960a60938b8ea37471a3bf0f58c26",
+      "excerptSHA256": "f522a5228a4efd49ff1fba81fa2fba84dd5864ae3a85ed3af016abb700aa49f9",
+      "bytes": 619,
+      "verified": true
+    },
+    {
+      "id": "header:google-oboe-ffbf3b8a4286",
+      "originalSHA256": "3fb191df503c34b9ca22f4f7e9e85ae4307f4b2af5aea2e0dc6ac772bc9a0205",
+      "excerptSHA256": "ffbf3b8a42860b5eaa8228cca1c1f328305ad749737bef00ef43520d8f5e48b7",
+      "bytes": 615,
+      "verified": true
+    },
+    {
+      "id": "header:unicode-idna-8.0.0",
+      "originalSHA256": "5e9f5929130b713e698162ac5b60a99ccfb831606686b1c50777cd920b55dee2",
+      "excerptSHA256": "28d7dbb368fbb77523f2aebcf4b619990fce5228cceb24004256a7bcf006f4b1",
+      "bytes": 285,
+      "verified": true
+    },
+    {
+      "id": "standard:format",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "bytes": 1078,
+      "verified": true
+    },
+    {
+      "id": "standard:oboe",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "verified": true
+    },
+    {
+      "id": "standard:oboe-sys",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "verified": true
+    },
+    {
+      "id": "source:google-oboe",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "verified": true
+    },
+    {
+      "id": "attribution:google-oboe",
+      "sha256": "c04aa4049aeb3d8268ae43074ae89fb86ef5a5eb53ec0c453015bc1889bd6ca9",
+      "bytes": 302,
+      "verified": true
+    },
+    {
+      "id": "contributors:google-oboe",
+      "sha256": "3183e3ecdcf1a396e9a04e06d7d833821d9c2109ce916fde9482edd318d279c3",
+      "bytes": 545,
+      "verified": true
+    },
+    {
+      "id": "original:dingbat-to-unicode",
+      "sha256": "1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37",
+      "bytes": 1304,
+      "verified": true
+    },
+    {
+      "id": "original:stream-events",
+      "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
+      "bytes": 1085,
+      "verified": true
+    },
+    {
+      "id": "original:stubs",
+      "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
+      "bytes": 1085,
+      "verified": true
+    },
+    {
+      "id": "original:tr46",
+      "sha256": "eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b",
+      "bytes": 1081,
+      "verified": true
+    },
+    {
+      "id": "terms:unicode-idna-8.0.0",
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "bytes": 1995,
+      "verified": true
+    }
+  ],
+  "counts": {
+    "candidates": 726,
+    "texts": 410,
+    "unresolved": 3
+  },
+  "remaining": [
+    {
+      "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    }
+  ],
+  "otherComponentFields": "unchanged",
+  "excludedAndDeferred": "unchanged",
+  "manifestSHA256": "7aa2faee25cd0ba8b45e982805b519761428b6859d7e28a9d91b579daeb3d47d"
+}

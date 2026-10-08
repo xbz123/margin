@@ -1,0 +1,34 @@
+command: node --test electron/margin/__tests__/licenseInventory.test.mjs
+exitCode: 0
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (46.717917ms)
+✔ README license detection keeps all holders and original surrounding bytes (21.973708ms)
+✔ missing required and compatible optional candidates remain unresolved (38.5565ms)
+✔ installed version cannot borrow a different lock version integrity (14.7595ms)
+✔ cached remote notices require matching integrity and exact Git metadata (30.709875ms)
+✔ missing or substituted Chromium notice cannot pass package checks (41.866042ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (33.002209ms)
+✔ notice symlinks and escaped destinations fail closed (36.726458ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (35.232083ms)
+✔ summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates (32.297083ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (26.655792ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 462.834375

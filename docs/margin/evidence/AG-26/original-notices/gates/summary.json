@@ -1,0 +1,247 @@
+{
+  "startedAt": "2026-10-08T20:58:16.265Z",
+  "head": "ec1385c0d913fffe4c6a1cc8af1ce66fd9669f0a",
+  "uncommittedPaths": 35,
+  "uncommittedPathList": [
+    "M NOTICE",
+    " M docs/margin/PROVENANCE.md",
+    " M licenses/README.md",
+    " M licenses/manifest.json",
+    " M scripts/margin/license-sources.json",
+    "?? docs/margin/evidence/AG-26/original-notices/",
+    "?? licenses/texts/026cab13ef99665b61b64e1736622a6754ff7d5fdb88b00c3e8d70804e215fd6.txt",
+    "?? licenses/texts/098ca21a7be9224c03b2c4966bbec5c1b3c7511f391545373c2b450fae6541e4.txt",
+    "?? licenses/texts/0a482956cdefef7b857c207289fcf91b92f4c4003e79fdd0d6e5021d6ec60305.txt",
+    "?? licenses/texts/0b7cb3792c0467cbe27a5ee796338949cc90e5f7f3c8f9ce5785578ce816eb80.txt",
+    "?? licenses/texts/0fb76639cf65ffb51bcc4bdf5c15623ef6cd1c4ae400c99fcf32187123bbc35c.txt",
+    "?? licenses/texts/1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37.txt",
+    "?? licenses/texts/1a6d45f82689dd204ca86c5a6dc8b06244cd1ddd46fb9bdbbc82f0b62fdcdd97.txt",
+    "?? licenses/texts/2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d.txt",
+    "?? licenses/texts/28d7dbb368fbb77523f2aebcf4b619990fce5228cceb24004256a7bcf006f4b1.txt",
+    "?? licenses/texts/3183e3ecdcf1a396e9a04e06d7d833821d9c2109ce916fde9482edd318d279c3.txt",
+    "?? licenses/texts/4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c.txt",
+    "?? licenses/texts/4b1d40940061d9a7efc8f532541914320444ffc4b884822e21f5bd4db2694ab3.txt",
+    "?? licenses/texts/53082e800843aed238b7aade7fd4d9927b641988d2db1e66c112c4f5f6074781.txt",
+    "?? licenses/texts/575ee5739171b0a546eb044c10ef188f605a1e8c975a728a6072f61ed2658e94.txt",
+    "?? licenses/texts/7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8.txt",
+    "?? licenses/texts/75dbadc0b3159a276c67a0bf4f5e7fb11b02fec4223eae12aa3a64e195a4fca6.txt",
+    "?? licenses/texts/768f8c7388691bf175d55d8107d3bb9cd7c64ac1f74411309d0b138fa9895cb0.txt",
+    "?? licenses/texts/9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14.txt",
+    "?? licenses/texts/a34cd7c49b07da7319aadce0fee47da135773758afb314667d92ecc29657deb4.txt",
+    "?? licenses/texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+    "?? licenses/texts/b698582c54bfdc53aace53dba7612f36ddbb0259cfddd6168604e1e0e56212ee.txt",
+    "?? licenses/texts/bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65.txt",
+    "?? licenses/texts/c04aa4049aeb3d8268ae43074ae89fb86ef5a5eb53ec0c453015bc1889bd6ca9.txt",
+    "?? licenses/texts/cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58.txt",
+    "?? licenses/texts/e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96.txt",
+    "?? licenses/texts/eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b.txt",
+    "?? licenses/texts/f522a5228a4efd49ff1fba81fa2fba84dd5864ae3a85ed3af016abb700aa49f9.txt",
+    "?? licenses/texts/ffbf3b8a42860b5eaa8228cca1c1f328305ad749737bef00ef43520d8f5e48b7.txt",
+    "?? scripts/margin/license-inputs/"
+  ],
+  "reference": "docs/margin/evidence/AG-26/S18/gates",
+  "note": "Exact original notice bindings and explicitly verified later grants; no dependency, runtime or checker changes; three missing candidates remain",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 176,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2076,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 6374,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5321,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2921,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2166,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2251,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 76,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 141,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 904,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 14512,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/tests.log",
+      "tap": "docs/margin/evidence/AG-26/original-notices/gates/tests.tap",
+      "perFile": "docs/margin/evidence/AG-26/original-notices/gates/tests.files.json",
+      "files": 114,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 884,
+        "pass": 878,
+        "fail": 0,
+        "skipped": 6,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 20099,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 20138,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/storage.log",
+      "passed": false
+    },
+    {
+      "id": "startup",
+      "command": "node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 37647,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/startup.log",
+      "passed": true
+    },
+    {
+      "id": "outbound-renderer",
+      "command": "node scripts/margin/isolation/run-node.mjs --allow-exec Electron:esbuild --test --test-timeout=180000 tests/margin/outbound-renderer.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3032,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/outbound-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 50,
+      "log": "docs/margin/evidence/AG-26/original-notices/gates/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-08T21:00:14.161Z",
+  "allPassed": false
+}

@@ -1,0 +1,36 @@
+{
+  "rawRetained": true,
+  "rawLocation": "private local evidence directory",
+  "changes": [
+    {
+      "file": "gates/guard-selftest.log",
+      "rawSHA256": "3e27229b5aa75c11b1c5c7690579219cc07374df33ce0180ace958c17faf0e4f",
+      "storedSHA256": "c5f25b6b559d4eff6a2ed6f67ce9ac5e4beb240e63244c440803db2fa7ab14cd",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/storage.log",
+      "rawSHA256": "c352b3bdf35f7d6f693a665d33b339aaf3d6db536b73b457380411cfdfef7e81",
+      "storedSHA256": "9159f459183963a67f3272cc1217ae1e1151a3afad6538e9c44a9796bb1aa542",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/summary.json",
+      "rawSHA256": "ac1277692ff335cbf1771214a1d34607f819c7e82ea52228d8d9ec0006285743",
+      "storedSHA256": "7c9c1c832b6dc6473e843ee2ad4577bec768c882261f57825d4475e700f95bd4",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/tests.tap",
+      "rawSHA256": "4f5225ce46f1da8f4fd51f48a8cb8f7ac39168283b5aae73b0aa3ec7039374df",
+      "storedSHA256": "2d45735d7720d67c44ad27b508527596b1bd1bb679422ba2ea53a3ae9ad36e7c",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/vite-build.log",
+      "rawSHA256": "a1ed0d3ef905b09e3771ccb3c141d5a8b30b350fd9a1be83734caf2c2e36b9d3",
+      "storedSHA256": "ce287a86b1214f5be6156bd6618f69aff77170524302282b624d86ffaa7c98e1",
+      "transform": "local path prefixes only"
+    }
+  ]
+}

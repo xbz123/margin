@@ -1,0 +1,46 @@
+command: node <PRIVATE_EVIDENCE>/integrity.mjs
+exitCode: 0
+{
+  "base": "ec1385c0d913fffe4c6a1cc8af1ce66fd9669f0a",
+  "passed": true,
+  "candidates": 726,
+  "uniqueTexts": 410,
+  "excluded": 33,
+  "unresolved": [
+    {
+      "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "reason": "no local full notice; retrieve an immutable official license source"
+    }
+  ],
+  "deferred": 2,
+  "sources": 44,
+  "newSources": 32,
+  "closedMissingTextEntries": 7,
+  "newTexts": 28,
+  "deletedTexts": 0,
+  "orphans": 0,
+  "containers": 20,
+  "vendorFiles": 140,
+  "coveredHeaders": 138,
+  "headerGroups": 16,
+  "immutableCodeAndLocks": true,
+  "unicodeOriginalDataVerified": true,
+  "installedUnicodeMappingHashVerified": true,
+  "mappingReproductionVerification": "separate source evidence, not rerun by this integrity check",
+  "hashes": {
+    "scripts/margin/license-sources.json": "510f8dae6eea14217a417ef56484b81d44b3f2dec066e29ad1109822f8cce364",
+    "licenses/manifest.json": "7aa2faee25cd0ba8b45e982805b519761428b6859d7e28a9d91b579daeb3d47d",
+    "licenses/README.md": "4417115752c60aaa4650fdf7f1a6dff45aee874a748d061572d06550b6a013b7",
+    "NOTICE": "c6c2d92b5ed7c5000cde5e1a4f2fbb1e86022f67afa3143c12731cd61173fc99",
+    "docs/margin/PROVENANCE.md": "52d03daf9ad147be7bf4a846c8a7203d629607f4a993cba4d7ee65fd3d9a821b",
+    "scripts/margin/license-inputs/original-notices/coverage.json": "aa51f2c8855e69583c4e4e5520fb3a41a729c14bab98c5b7fa9c7fe75865e968"
+  }
+}

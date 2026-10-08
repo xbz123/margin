@@ -63,22 +63,22 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 382 unique stored texts; 33 excluded paths; 10 unresolved candidates; 2 deferred notices.
+726 candidates; 410 unique stored texts; 33 excluded paths; 3 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
 - cargo:r-efi@5.3.0: MIT OR Apache-2.0 OR LGPL-2.1-or-later (selected MIT)
+- npm:format@0.2.2: MIT
+- cargo:oboe@0.6.1: Apache-2.0
+- cargo:oboe-sys@0.6.1: Apache-2.0
+- npm:dingbat-to-unicode@1.0.1: BSD-2-Clause
+- npm:stream-events@1.0.5: MIT
+- npm:stubs@3.0.0: MIT
+- npm:tr46@0.0.3: MIT
 
 Unresolved candidates:
-- npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode
 - npm:eastasianwidth@0.2.0:node_modules/eastasianwidth
-- npm:format@0.2.2:node_modules/format
 - npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
-- npm:stream-events@1.0.5:node_modules/stream-events
-- npm:stubs@3.0.0:node_modules/stubs
-- npm:tr46@0.0.3:node_modules/tr46
-- cargo:oboe@0.6.1
-- cargo:oboe-sys@0.6.1
 - cargo:realfft@3.5.0
 <!-- margin-license-inventory:end -->
 
@@ -122,17 +122,60 @@ distribution obligations are not resolved by those bindings.
 
 The ansi-tokenize later add-missing-LICENSE supplement was retained at those
 checkpoints, not proof that it accompanied 0.1.3; S18 removes its unreferenced
-supplement. For format, the old installed
-header's copyright/date and external MIT URL are not replaced by an assumed
-same-version grant from a changing website. react-remove-scroll-bar's published
+supplement. format 0.2.2 now retains the exact original README License section
+(Copyright 2010 - 2014 Sami Samhuri) and JavaScript header (Copyright 2010 - 2013
+Sami Samhuri), including their external MIT authorization links, from commit
+`4f898096759776b7c84fa7a25b13c923dadfe46e`. The accompanying fixed SPDX MIT full
+text is standard terminology: its copyright placeholders remain unfilled and
+are not substituted for either original attribution or an invented grant from
+the changing linked website. react-remove-scroll-bar's published
 gitHead does not resolve in the identified repository; a neighboring version is
 not substituted.
 
-Three Cargo candidates lack full texts: realfft 3.5.0 declares only MIT (no Apache
-alternative was found in its exact original manifest/version sources) and needs
-target-linked review;
-oboe/oboe-sys 0.6.1 are Android candidates, pending full wrapper/vendored notice
-and target-graph/artifact review. They are not excluded based on target labels.
+realfft 3.5.0 still lacks full terms and declares only MIT (no Apache alternative
+was found in its exact original manifest/version sources); target-linked review
+remains necessary. oboe/oboe-sys 0.6.1 retain their separate exact wrapper Apache
+declarations at `7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7` and official full
+Apache-2.0 terms. Their Google Oboe gitlink
+`86165b8249bc22b9ef70b69e20323244b6f08d88` retains LICENSE, AUTHORS and
+CONTRIBUTORS plus all 16 distinct leading license comments from the 138 cached
+C++/header files, without replacing Android Open Source Project notices with
+Google or wrapper author metadata. The complete 140-file cache coverage is
+recorded in `scripts/margin/license-inputs/original-notices/coverage.json`.
+That exact tree has no NOTICE; absence is not proof of linked-binary composition
+or fulfillment of any other NOTICE obligation. Target-graph/artifact and native
+distribution review remain open; target labels do not exclude these candidates.
+
+The 20 original-notice input containers hold only verbatim license excerpts and
+an explicit end marker. Each records the complete original source URL/ref,
+file SHA-256, Git blob and byte range. The unchanged collector validates input
+and excerpt hashes and emits only bytes before the marker. It does not
+automatically audit every provenance field or the separate 140-file coverage.
+For C++ headers the range ends immediately after the closing `*/`, excluding
+subsequent non-license separator bytes; no implementation bytes are retained.
+
+dingbat-to-unicode 1.0.1 retains the later 1.0.2 original BSD-2-Clause LICENSE,
+Copyright (c) 2021 Michael Williamson, because the repository owner explicitly
+applied that license to every previous version in issue 1 comment 5740760399.
+stream-events 1.0.5 and stubs 3.0.0 retain later officially merged original MIT
+notices, Copyright (c) 2018 and 2017 Stephen Sawchuk respectively. Their merge
+commits still declare those exact versions and all four installed files of each
+package match the corresponding commit byte-for-byte. These bindings do not
+claim that the original npm tarballs included LICENSE and do not change versions.
+
+tr46 0.0.3 retains the original MIT LICENSE added at same-version commit
+`3a6f29721e7063b9ffd421e461a54beae6170001`, Copyright (c) 2016 Sebastian Mayr.
+Its package.json and index.js match the installed files; the installed generated
+mappingTable.json is reproduced byte-for-byte from official Unicode IDNA 8.0.0
+data using that commit's conversion. The data's original header, Copyright (c)
+1991-2015 Unicode, Inc. and its source/terms links, is retained separately from
+the complete current Unicode License v3, Copyright 1991-2026 Unicode, Inc.
+The current official copyright policy applies v3 to /Public/ Data Files unless
+otherwise indicated; the old header points to terms_of_use without naming a
+different license. This does not claim that v3 was adopted in 2015, rewrite either
+copyright date, or treat a recommendation to upgrade as a retroactive grant.
+The source data and installed mapping are not modified or copied into notices.
+
 Missing incompatible platform-optional npm paths and verified dangling aliases
 are recorded under
 `excluded`, not treated as installed binaries. None of those counts proves the

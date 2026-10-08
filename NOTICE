@@ -74,24 +74,65 @@ Copyright (C) 2022-2023 David Rheinsberg
 Source: https://github.com/r-efi/r-efi/blob/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS
 This retained notice does not establish that r-efi is linked into a packaged app.
 
+format 0.2.2 retains both original declarations and their MIT authorization links:
+Copyright 2010 - 2014 Sami Samhuri sami@samhuri.net (README License section)
+Copyright 2010 - 2013 Sami Samhuri <sami@samhuri.net> (JavaScript header)
+Source: https://github.com/samsonjs/format/tree/4f898096759776b7c84fa7a25b13c923dadfe46e
+The fixed SPDX MIT full terms retain generic copyright placeholders as standard
+terminology only; actual attribution remains in those original declarations.
+
+oboe/oboe-sys 0.6.1 retain separate original Apache-2.0 wrapper declarations and
+official complete Apache terms. No copyright is invented from wrapper authors.
+Source: https://github.com/katyo/oboe-rs/tree/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7
+The exact Google Oboe gitlink retains its LICENSE, AUTHORS and CONTRIBUTORS,
+including Google Inc. in AUTHORS and all 16 original Android Open Source Project
+license comments (2015-2023, with original spelling and whitespace preserved).
+Google attribution does not replace those per-file notices. The exact tree has
+no NOTICE; native target-linked composition and other distribution duties remain
+separate and unresolved.
+Source: https://github.com/google/oboe/tree/86165b8249bc22b9ef70b69e20323244b6f08d88
+
+dingbat-to-unicode 1.0.1 retains Copyright (c) 2021 Michael Williamson and the
+original BSD-2-Clause LICENSE added for 1.0.2, explicitly applied to previous
+versions by the repository owner.
+Source: https://github.com/mwilliamson/dingbat-to-unicode/issues/1#issuecomment-5740760399
+stream-events 1.0.5 retains Copyright (c) 2018 Stephen Sawchuk and its original
+MIT LICENSE officially merged later at 3cfd35ab1a68c9fd41c992428e839ad54dcf8017.
+stubs 3.0.0 retains Copyright (c) 2017 Stephen Sawchuk and its original MIT
+LICENSE officially merged later at 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5.
+Those commits preserve each target version and every installed package file;
+the original npm tarballs are not asserted to have contained those notices.
+
+tr46 0.0.3 retains Copyright (c) 2016 Sebastian Mayr and the original MIT LICENSE
+added at same-version commit 3a6f29721e7063b9ffd421e461a54beae6170001.
+Source: https://github.com/jsdom/tr46/tree/3a6f29721e7063b9ffd421e461a54beae6170001
+Its generated mapping derives byte-for-byte from official Unicode IDNA 8.0.0.
+The original data header retains Copyright (c) 1991-2015 Unicode, Inc. and its
+terms-of-use/documentation links. The separately retained current Unicode
+License v3 keeps Copyright 1991-2026 Unicode, Inc. under the current official
+/Public/ Data Files policy; v3 is not asserted to have been adopted in 2015.
+Data source: https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt
+Current policy: https://www.unicode.org/copyright.html
+Current complete terms: https://www.unicode.org/license.txt
+
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 382 unique stored texts; 33 excluded paths; 10 unresolved candidates; 2 deferred notices.
+726 candidates; 410 unique stored texts; 33 excluded paths; 3 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
 - cargo:r-efi@5.3.0: MIT OR Apache-2.0 OR LGPL-2.1-or-later (selected MIT)
+- npm:format@0.2.2: MIT
+- cargo:oboe@0.6.1: Apache-2.0
+- cargo:oboe-sys@0.6.1: Apache-2.0
+- npm:dingbat-to-unicode@1.0.1: BSD-2-Clause
+- npm:stream-events@1.0.5: MIT
+- npm:stubs@3.0.0: MIT
+- npm:tr46@0.0.3: MIT
 
 Unresolved candidates:
-- npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode
 - npm:eastasianwidth@0.2.0:node_modules/eastasianwidth
-- npm:format@0.2.2:node_modules/format
 - npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
-- npm:stream-events@1.0.5:node_modules/stream-events
-- npm:stubs@3.0.0:node_modules/stubs
-- npm:tr46@0.0.3:node_modules/tr46
-- cargo:oboe@0.6.1
-- cargo:oboe-sys@0.6.1
 - cargo:realfft@3.5.0
 <!-- margin-license-inventory:end -->
 

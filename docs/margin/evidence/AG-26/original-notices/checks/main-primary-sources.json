@@ -1,0 +1,207 @@
+{
+  "scope": "Read-only primary-source verification; no upstream messages or dependency changes",
+  "checkedOn": "2026-10-08",
+  "sources": [
+    {
+      "name": "dingbat-to-unicode",
+      "ref": "9eb2d1d8b8463b7bd3cd125597eabcfa9df42128",
+      "file": "js/LICENSE",
+      "url": "https://raw.githubusercontent.com/mwilliamson/dingbat-to-unicode/9eb2d1d8b8463b7bd3cd125597eabcfa9df42128/js/LICENSE",
+      "bytes": 1304,
+      "sha256": "1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37",
+      "gitBlob": "d4ff421424a98c90222e74f8f174939a5e0adb2b",
+      "installedBytesEqual": null
+    },
+    {
+      "name": "stream-events",
+      "ref": "3cfd35ab1a68c9fd41c992428e839ad54dcf8017",
+      "file": "package.json",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/package.json",
+      "bytes": 791,
+      "sha256": "718c946368167b64a813e57e64ef9230bbe3fadda9d61787159de836e328deb6",
+      "gitBlob": "bd6c778ca32e2e0fe49a8aac26a248e3091c40da",
+      "installedBytesEqual": true,
+      "sourceVersion": "1.0.5"
+    },
+    {
+      "name": "stream-events",
+      "ref": "3cfd35ab1a68c9fd41c992428e839ad54dcf8017",
+      "file": "index.js",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/index.js",
+      "bytes": 514,
+      "sha256": "675c3a636bf0bf96b9a89534fbda2ceab56ed1df6e99528301c9f3c62046658d",
+      "gitBlob": "28d50a6acc8e4d01ef7b7bc94fc7d2f09522eb7d",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "stream-events",
+      "ref": "3cfd35ab1a68c9fd41c992428e839ad54dcf8017",
+      "file": "index.d.ts",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/index.d.ts",
+      "bytes": 183,
+      "sha256": "f8db6877bc50d8258bf01d30b18403e990847a7e8c04c00415c00212ffdbca78",
+      "gitBlob": "56ed748c408f598bc106fd034a85705e4e6c0de2",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "stream-events",
+      "ref": "3cfd35ab1a68c9fd41c992428e839ad54dcf8017",
+      "file": "readme.md",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/readme.md",
+      "bytes": 1540,
+      "sha256": "600cbaaa18ae812f5a929021c1bf4da86973298502445fba99425e28e53d7f26",
+      "gitBlob": "695a7ce18eb5daea7a287d1ebd4d7d5fc1590ca5",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "stream-events",
+      "ref": "3cfd35ab1a68c9fd41c992428e839ad54dcf8017",
+      "file": "LICENSE",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
+      "bytes": 1085,
+      "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
+      "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
+      "installedBytesEqual": null
+    },
+    {
+      "name": "stubs",
+      "ref": "580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5",
+      "file": "package.json",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/package.json",
+      "bytes": 518,
+      "sha256": "1518c8f045c120ba3f789a8b8eae76970de7d936e79f25027f662bef59cea5ae",
+      "gitBlob": "7ced3ab3e689da6a5292bc5d239f955689ea6a4b",
+      "installedBytesEqual": true,
+      "sourceVersion": "3.0.0"
+    },
+    {
+      "name": "stubs",
+      "ref": "580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5",
+      "file": "index.js",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/index.js",
+      "bytes": 725,
+      "sha256": "24f3f5146ea77d185182777718f5995eea40d3b93fe1d62fba515eee3e806854",
+      "gitBlob": "252f34f1d52f136e7c06a36ad3da46b6c20b3f21",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "stubs",
+      "ref": "580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5",
+      "file": "readme.md",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/readme.md",
+      "bytes": 1422,
+      "sha256": "3bf22b70c2f211ca71420f8465c9173f07beca9e4472111c5a8e6d46a1070de9",
+      "gitBlob": "ed07628497a5ef0346a2d9df8d0834a42dc2594f",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "stubs",
+      "ref": "580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5",
+      "file": "test.js",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/test.js",
+      "bytes": 3590,
+      "sha256": "c9390ea2fcecc1d6fb3d0a9e992ae2c104eb39e5317a14c8f4feabfd927830b5",
+      "gitBlob": "cae408e279d478f19b9ef61f7d2cde2bbce80e36",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "stubs",
+      "ref": "580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5",
+      "file": "LICENSE",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
+      "bytes": 1085,
+      "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
+      "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
+      "installedBytesEqual": null
+    },
+    {
+      "name": "tr46",
+      "ref": "3a6f29721e7063b9ffd421e461a54beae6170001",
+      "file": "package.json",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/package.json",
+      "bytes": 732,
+      "sha256": "615087f58ee138fd35c2b414c355b72e36e5919725b8aecc1c34f6a5585b9779",
+      "gitBlob": "b6826da1f7817f97ad6d307d698ad2004807c40a",
+      "installedBytesEqual": true,
+      "sourceVersion": "0.0.3"
+    },
+    {
+      "name": "tr46",
+      "ref": "3a6f29721e7063b9ffd421e461a54beae6170001",
+      "file": "index.js",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/index.js",
+      "bytes": 7567,
+      "sha256": "8194f9425ce9ab06ea9aebcd64a85ec064d95d61bb349f8f1c98762ad256638e",
+      "gitBlob": "9ce12ca2d026fa202f7a0d32e0a7c8526660ed78",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "tr46",
+      "ref": "3a6f29721e7063b9ffd421e461a54beae6170001",
+      "file": ".npmignore",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/.npmignore",
+      "bytes": 40,
+      "sha256": "220244e94c71eccaccee66cac3ccd592f503f4a21caabbde6b92d16ce4434ba1",
+      "gitBlob": "96e9161fde31e9906718f689d5cc135e507a51e1",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "tr46",
+      "ref": "3a6f29721e7063b9ffd421e461a54beae6170001",
+      "file": "lib/.gitkeep",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/lib/.gitkeep",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "installedBytesEqual": true
+    },
+    {
+      "name": "tr46",
+      "ref": "3a6f29721e7063b9ffd421e461a54beae6170001",
+      "file": "scripts/generateMappingTable.js",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/scripts/generateMappingTable.js",
+      "bytes": 1231,
+      "sha256": "7e236cd8f70870ed149068f9b6aa4d382289c2c2f72c71f0bc42c2e0f1beed9f",
+      "gitBlob": "a3808ac672c2d5d35f00699571a89b64db486be2",
+      "installedBytesEqual": null
+    },
+    {
+      "name": "tr46",
+      "ref": "3a6f29721e7063b9ffd421e461a54beae6170001",
+      "file": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/LICENSE.md",
+      "bytes": 1081,
+      "sha256": "eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b",
+      "gitBlob": "e90f20a5cc7763e1ad07e5c15c193c51cdf3182b",
+      "installedBytesEqual": null
+    }
+  ],
+  "dingbatRetroactiveGrant": {
+    "url": "https://github.com/mwilliamson/dingbat-to-unicode/issues/1#issuecomment-5740760399",
+    "id": 5740760399,
+    "author": "mwilliamson",
+    "association": "OWNER",
+    "createdAt": "2026-09-19T09:27:29Z",
+    "updatedAt": "2026-09-19T09:27:29Z",
+    "body": "A licence file has been added to 1.0.2. This licence also applies to any previous versions.\n\nIn the future, please don't keep posting to reiterate the original request: a thumbs up on the original post would suffice. ",
+    "bodySHA256": "93e0ec1c9238eb4a3c9b126ad136c876e712a231bb0cbfff1cf372045d17e08f"
+  },
+  "unicodeMapping": {
+    "version": "8.0.0",
+    "url": "https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt",
+    "bytes": 793222,
+    "sha256": "5e9f5929130b713e698162ac5b60a99ccfb831606686b1c50777cd920b55dee2",
+    "generatedBytes": 260049,
+    "generatedSHA256": "b6b39724dca9011113a08d9d6910204062b58169e98952acdfbd19bf2c31bbff",
+    "installedSHA256": "b6b39724dca9011113a08d9d6910204062b58169e98952acdfbd19bf2c31bbff",
+    "matched": true,
+    "header": "# IdnaMappingTable-8.0.0.txt\n# Date: 2015-05-02 12:42:14 GMT [MD]\n#\n# Unicode IDNA Compatible Preprocessing (UTS #46)\n# Copyright (c) 1991-2015 Unicode, Inc.\n# For terms of use, see http://www.unicode.org/terms_of_use.html\n# For documentation, see http://www.unicode.org/reports/tr46/"
+  },
+  "unicodePolicy": {
+    "url": "https://www.unicode.org/copyright.html",
+    "sha256": "9f83fb0a046180c87d22c2678e79300475125611ac8dfc2da303db6c6b347251",
+    "bytes": 17115,
+    "relevantStatement": "All Unicode Data Files and Unicode Software are subject to the terms and conditions of the free and open-source Unicode License v3 , unless otherwise indicated by specific restriction, permission, or license identified at the point of release or in such software, data file, or other documentation.",
+    "scope": "Current grant covers Public Data Files unless specifically otherwise indicated; old IDNA header links to these terms and original 1991-2015 notice is separately retained"
+  }
+}

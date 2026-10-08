@@ -1,0 +1,34 @@
+command: node --test electron/margin/__tests__/licenseInventory.test.mjs
+exitCode: 0
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (50.40375ms)
+✔ README license detection keeps all holders and original surrounding bytes (21.782208ms)
+✔ missing required and compatible optional candidates remain unresolved (34.602834ms)
+✔ installed version cannot borrow a different lock version integrity (13.579459ms)
+✔ cached remote notices require matching integrity and exact Git metadata (28.904292ms)
+✔ missing or substituted Chromium notice cannot pass package checks (36.393083ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (35.403208ms)
+✔ notice symlinks and escaped destinations fail closed (35.73925ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (29.962709ms)
+✔ summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates (30.042208ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (25.229417ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 455.009125

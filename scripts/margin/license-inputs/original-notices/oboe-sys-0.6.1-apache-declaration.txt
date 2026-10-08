@@ -1,0 +1,2 @@
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-brightgreen.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
+<!-- margin-original-notice-end -->

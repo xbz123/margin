@@ -1,0 +1,11 @@
+{
+  "pass": true,
+  "id": "header:format-js",
+  "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/format.js",
+  "fullBytes": 3335,
+  "fullSHA256": "666bd4da85e596b4e3e119f201ea5c69dae64e2e9f75a5758de777b9550a6155",
+  "originalHeaderBytes": 211,
+  "originalHeaderSHA256": "0b7cb3792c0467cbe27a5ee796338949cc90e5f7f3c8f9ce5785578ce816eb80",
+  "installedEqualsPinnedOfficial": true,
+  "retainedTextEqualsOriginal": true
+}

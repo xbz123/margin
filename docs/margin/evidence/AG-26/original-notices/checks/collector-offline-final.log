@@ -1,0 +1,6 @@
+command: node scripts/margin/collect-licenses.mjs --cargo-root <CARGO_SOURCE_CACHE>
+exitCode: 1
+{"candidates":726,"uniqueTexts":410,"excluded":33,"unresolved":3,"deferred":2}
+npm:eastasianwidth@0.2.0:node_modules/eastasianwidth: no local full notice; retrieve an immutable official license source
+npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar: no local full notice; retrieve an immutable official license source
+cargo:realfft@3.5.0: no local full notice; retrieve an immutable official license source

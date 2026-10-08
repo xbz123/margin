@@ -1,0 +1,9 @@
+command: git diff --cached --check
+exitCode: 2
+licenses/texts/4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c.txt:2: leftover conflict marker
+scripts/margin/license-inputs/original-notices/format-0.2.2-readme-license.txt:2: leftover conflict marker
+
+The original upstream Markdown title underline is exactly seven equals signs.
+No merge conflict is present. The license bytes are not edited to satisfy Git.
+This staged check includes newly added files, unlike the earlier unstaged check.
+The commit command did not run because this check failed first.

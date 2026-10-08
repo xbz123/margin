@@ -1,0 +1,15 @@
+{
+  "pass": true,
+  "wrapperRef": "7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7",
+  "vendorGitlink": {
+    "path": "sys/oboe",
+    "mode": "160000",
+    "type": "commit",
+    "sha": "86165b8249bc22b9ef70b69e20323244b6f08d88"
+  },
+  "cacheFilesMatchOfficialGitBlobs": 140,
+  "originalHeaders": 138,
+  "distinctOriginalHeaderBytes": 16,
+  "noticePaths": [],
+  "scope": "Crate-source license coverage only; not binary linked-set or complete AG-26 acceptance"
+}

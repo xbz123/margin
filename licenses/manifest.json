@@ -3,7 +3,7 @@
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
   "packageLockSHA256": "2bfe2588c86d235892a0fc60c5d1937743f2db147d393452ff0d177143f05999",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
-  "sourceConfigSHA256": "8a63e2a7a4fef3fe2b83c255f8aa7d66662d48f3bcc811bd322102485e224d58",
+  "sourceConfigSHA256": "510f8dae6eea14217a417ef56484b81d44b3f2dec066e29ad1109822f8cce364",
   "electronVersion": "43.1.0",
   "components": [
     {
@@ -2932,8 +2932,17 @@
       "license": "BSD-2-Clause",
       "integrity": "sha512-98l0sW87ZT58pU4i61wa2OHwxbiYSbuxsCBozaVnYX2iCnr3bLM3fIes1/ej7h1YdOKuKt/MLs706TVnALA65w==",
       "repo": "mwilliamson/dingbat-to-unicode",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37.txt",
+          "sha256": "1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37",
+          "url": "https://raw.githubusercontent.com/mwilliamson/dingbat-to-unicode/9eb2d1d8b8463b7bd3cd125597eabcfa9df42128/js/LICENSE",
+          "gitBlob": "d4ff421424a98c90222e74f8f174939a5e0adb2b",
+          "origin": "original LICENSE added for 1.0.2, explicitly applied to every previous version by repository owner mwilliamson in issue 1 comment 5740760399 on 2026-09-19; original Copyright (c) 2021 Michael Williamson retained; binding stays 1.0.1, not a claim that its original npm tarball contained this file"
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:dompurify@3.4.4:node_modules/dompurify",
@@ -3665,8 +3674,17 @@
       "license": "MIT",
       "integrity": "sha512-wzsgA6WOq+09wrU1tsJ09udeR/YZRaeArL9e1wPbFg3GG2yDnC2ldKpxs4xunpFF9DgqCqOIra3bc1HWrJ37Ww==",
       "repo": "samsonjs/format",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+          "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+          "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+          "origin": "fixed official SPDX MIT standard full terms; copyright template placeholders remain standard terms only, actual attribution and authorization come from the separately retained original format README and JavaScript declarations; not a substituted copyright grant"
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:formdata-node@4.4.1:node_modules/formdata-node",
@@ -8657,8 +8675,17 @@
       "license": "MIT",
       "integrity": "sha512-E1GUzBSgvct8Jsb3v2X15pjzN1tYebtbLaMg+eBOUOAxgbLoSbT2NS91ckc5lJD1KfLjId+jXJRgo0qnV5Nerg==",
       "repo": "stephenplusplus/stream-events",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d.txt",
+          "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
+          "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
+          "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
+          "origin": "officially merged later original MIT LICENSE at commit 3cfd35ab1a68c9fd41c992428e839ad54dcf8017; package version remains 1.0.5 and all four installed package.json/index.js/index.d.ts/readme.md files match that commit byte-for-byte; original Copyright (c) 2018 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:stream-shift@1.0.3:node_modules/stream-shift",
@@ -8821,8 +8848,17 @@
       "license": "MIT",
       "integrity": "sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==",
       "repo": "stephenplusplus/stubs",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58.txt",
+          "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
+          "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
+          "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
+          "origin": "officially merged later original MIT LICENSE at commit 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5, acknowledged by the owner; package version remains 3.0.0 and all four installed package.json/index.js/readme.md/test.js files match that commit byte-for-byte; original Copyright (c) 2017 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:style-to-js@1.1.21:node_modules/style-to-js",
@@ -9081,8 +9117,17 @@
       "license": "MIT",
       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==",
       "repo": "Sebmaster/tr46.js",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b.txt",
+          "sha256": "eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b",
+          "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/LICENSE.md",
+          "gitBlob": "e90f20a5cc7763e1ad07e5c15c193c51cdf3182b",
+          "origin": "original MIT LICENSE added at same-version commit 3a6f29721e7063b9ffd421e461a54beae6170001 retaining Copyright (c) 2016 Sebastian Mayr; package.json and index.js match installed 0.0.3 bytes, and the installed mappingTable.json is reproduced from official Unicode IDNA 8.0.0 data using that commit's generator; Unicode data attribution and current official terms are retained separately, not a claim that the original npm tarball contained LICENSE"
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:tree-kill@1.2.2:node_modules/tree-kill",
@@ -12370,8 +12415,17 @@
       "repo": "katyo/oboe-rs",
       "vcs": "7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7",
       "directory": "",
-      "texts": [],
-      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory"
+      "texts": [
+        {
+          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+          "origin": "official complete Apache License Version 2.0 terms matching the exact-version wrapper declaration; appendix copyright placeholders remain generic instructions, not an invented wrapper or vendor copyright; vendor notices and target-linked obligations remain separate"
+        }
+      ],
+      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "cargo:oboe-sys@0.6.1",
@@ -12384,8 +12438,17 @@
       "repo": "katyo/oboe-rs",
       "vcs": "7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7",
       "directory": "sys",
-      "texts": [],
-      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory"
+      "texts": [
+        {
+          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+          "origin": "official complete Apache License Version 2.0 terms matching the exact-version wrapper declaration; appendix copyright placeholders remain generic instructions, not an invented wrapper or vendor copyright; vendor notices and target-linked obligations remain separate"
+        }
+      ],
+      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "cargo:once_cell@1.21.3",
@@ -15713,6 +15776,991 @@
         "gitBlob": "979766465b67ec2175015fac89cef8ddbf641978",
         "origin": "original Skia contributors, not an invented wrapper copyright"
       }
+    },
+    {
+      "id": "attribution:format-readme",
+      "version": "0.2.2",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/Readme.md",
+      "localPath": "scripts/margin/license-inputs/original-notices/format-0.2.2-readme-license.txt",
+      "sourceSHA256": "f41c3042612c28b55c91b131f9b249bcc5ed6f4fc7457bdcb5ae6b2e98bd7aa1",
+      "sha256": "4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c",
+      "gitBlob": "3a2258410901eaf4812a8c720ef9fb029f27227d",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-version README License section retaining Copyright 2010 - 2014 Sami Samhuri and its MIT authorization link; no implementation excerpt retained",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/Readme.md",
+        "ref": "4f898096759776b7c84fa7a25b13c923dadfe46e",
+        "fileSHA256": "e078ab4217332db9ac446cdf23e932eabd21d6db7c239a6495df4d3802251f20",
+        "gitBlob": "ed516e69cd7e2434697b3f3f8a889c99fad543ea",
+        "byteRange": {
+          "start": 940,
+          "endExclusive": 1053
+        }
+      },
+      "bind": {
+        "kind": "npm",
+        "name": "format"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c.txt",
+        "sha256": "4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c",
+        "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/Readme.md",
+        "gitBlob": "3a2258410901eaf4812a8c720ef9fb029f27227d",
+        "origin": "original exact-version README License section retaining Copyright 2010 - 2014 Sami Samhuri and its MIT authorization link; no implementation excerpt retained"
+      }
+    },
+    {
+      "id": "header:format-js",
+      "version": "0.2.2",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/format.js",
+      "localPath": "node_modules/format/format.js",
+      "sourceSHA256": "666bd4da85e596b4e3e119f201ea5c69dae64e2e9f75a5758de777b9550a6155",
+      "sha256": "0b7cb3792c0467cbe27a5ee796338949cc90e5f7f3c8f9ce5785578ce816eb80",
+      "gitBlob": "bb3c5ba8bd93f221e9caae013bea1f6349b861f1",
+      "endBefore": ";(function() {",
+      "role": "original exact-version JavaScript header retaining Copyright 2010 - 2013 Sami Samhuri and MIT authorization link; no implementation code retained",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/format.js",
+        "ref": "4f898096759776b7c84fa7a25b13c923dadfe46e",
+        "fileSHA256": "666bd4da85e596b4e3e119f201ea5c69dae64e2e9f75a5758de777b9550a6155",
+        "gitBlob": "772a79745d3431646357b2216b3b1907fbf29304",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 211
+        }
+      },
+      "bind": {
+        "kind": "npm",
+        "name": "format"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/0b7cb3792c0467cbe27a5ee796338949cc90e5f7f3c8f9ce5785578ce816eb80.txt",
+        "sha256": "0b7cb3792c0467cbe27a5ee796338949cc90e5f7f3c8f9ce5785578ce816eb80",
+        "url": "https://raw.githubusercontent.com/samsonjs/format/4f898096759776b7c84fa7a25b13c923dadfe46e/format.js",
+        "gitBlob": "bb3c5ba8bd93f221e9caae013bea1f6349b861f1",
+        "origin": "original exact-version JavaScript header retaining Copyright 2010 - 2013 Sami Samhuri and MIT authorization link; no implementation code retained"
+      }
+    },
+    {
+      "id": "standard:format",
+      "version": "0.2.2",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+      "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "authorityURL": "https://opensource.org/license/mit",
+      "role": "fixed official SPDX MIT standard full terms; copyright template placeholders remain standard terms only, actual attribution and authorization come from the separately retained original format README and JavaScript declarations; not a substituted copyright grant",
+      "bind": {
+        "kind": "npm",
+        "name": "format"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+        "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+        "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+        "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+        "origin": "fixed official SPDX MIT standard full terms; copyright template placeholders remain standard terms only, actual attribution and authorization come from the separately retained original format README and JavaScript declarations; not a substituted copyright grant"
+      }
+    },
+    {
+      "id": "declaration:oboe",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/katyo/oboe-rs/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7/README.md",
+      "localPath": "scripts/margin/license-inputs/original-notices/oboe-0.6.1-apache-declaration.txt",
+      "sourceSHA256": "d31cedeb203ac8aae13b44fd2c3a983f66f1f9777c193ed96717e943d46a9e9f",
+      "sha256": "7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8",
+      "gitBlob": "9fefe333a3c16e7cb079a4ee49010df656071a37",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-version wrapper README Apache-2.0 declaration and authorization link; no copyright is stated in this declaration, author metadata is not substituted for copyright, and vendor notices remain separate",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/katyo/oboe-rs/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7/README.md",
+        "ref": "7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7",
+        "fileSHA256": "7f913d65d89e86e0786c76ba26d9d462d313869d7de222f0b1ed313f8781b0b3",
+        "gitBlob": "2ccc223a1fe2393f337529477520a057791edc88",
+        "byteRange": {
+          "start": 1420,
+          "endExclusive": 1575
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8.txt",
+        "sha256": "7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8",
+        "url": "https://raw.githubusercontent.com/katyo/oboe-rs/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7/README.md",
+        "gitBlob": "9fefe333a3c16e7cb079a4ee49010df656071a37",
+        "origin": "original exact-version wrapper README Apache-2.0 declaration and authorization link; no copyright is stated in this declaration, author metadata is not substituted for copyright, and vendor notices remain separate"
+      }
+    },
+    {
+      "id": "standard:oboe",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "authorityURL": "https://www.apache.org/licenses/LICENSE-2.0",
+      "role": "official complete Apache License Version 2.0 terms matching the exact-version wrapper declaration; appendix copyright placeholders remain generic instructions, not an invented wrapper or vendor copyright; vendor notices and target-linked obligations remain separate",
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+        "origin": "official complete Apache License Version 2.0 terms matching the exact-version wrapper declaration; appendix copyright placeholders remain generic instructions, not an invented wrapper or vendor copyright; vendor notices and target-linked obligations remain separate"
+      }
+    },
+    {
+      "id": "declaration:oboe-sys",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/katyo/oboe-rs/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7/sys/README.md",
+      "localPath": "scripts/margin/license-inputs/original-notices/oboe-sys-0.6.1-apache-declaration.txt",
+      "sourceSHA256": "d31cedeb203ac8aae13b44fd2c3a983f66f1f9777c193ed96717e943d46a9e9f",
+      "sha256": "7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8",
+      "gitBlob": "9fefe333a3c16e7cb079a4ee49010df656071a37",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-version wrapper README Apache-2.0 declaration and authorization link; no copyright is stated in this declaration, author metadata is not substituted for copyright, and vendor notices remain separate",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/katyo/oboe-rs/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7/sys/README.md",
+        "ref": "7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7",
+        "fileSHA256": "57060b5a251d140b7ca2ae993ceba4af6ffb45f94ab83da2a860836003f7bc52",
+        "gitBlob": "b8d4235a68537fcb7b42f234f720ee37bd8fad3b",
+        "byteRange": {
+          "start": 1445,
+          "endExclusive": 1600
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8.txt",
+        "sha256": "7590c71042ef788f60928fa05945924407386dba15edeae4d777d686f72b9ab8",
+        "url": "https://raw.githubusercontent.com/katyo/oboe-rs/7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7/sys/README.md",
+        "gitBlob": "9fefe333a3c16e7cb079a4ee49010df656071a37",
+        "origin": "original exact-version wrapper README Apache-2.0 declaration and authorization link; no copyright is stated in this declaration, author metadata is not substituted for copyright, and vendor notices remain separate"
+      }
+    },
+    {
+      "id": "standard:oboe-sys",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "authorityURL": "https://www.apache.org/licenses/LICENSE-2.0",
+      "role": "official complete Apache License Version 2.0 terms matching the exact-version wrapper declaration; appendix copyright placeholders remain generic instructions, not an invented wrapper or vendor copyright; vendor notices and target-linked obligations remain separate",
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+        "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+        "origin": "official complete Apache License Version 2.0 terms matching the exact-version wrapper declaration; appendix copyright placeholders remain generic instructions, not an invented wrapper or vendor copyright; vendor notices and target-linked obligations remain separate"
+      }
+    },
+    {
+      "id": "source:google-oboe",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/LICENSE",
+      "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "role": "original exact-gitlink Google Oboe complete Apache LICENSE; not a replacement for wrapper declarations or per-file Android copyright notices",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/LICENSE",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 11358
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/LICENSE",
+        "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+        "origin": "original exact-gitlink Google Oboe complete Apache LICENSE; not a replacement for wrapper declarations or per-file Android copyright notices"
+      }
+    },
+    {
+      "id": "attribution:google-oboe",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/AUTHORS",
+      "gitBlob": "6ca313d22a21f2a621eaab08117d7fb562c07aa4",
+      "sha256": "c04aa4049aeb3d8268ae43074ae89fb86ef5a5eb53ec0c453015bc1889bd6ca9",
+      "role": "original exact-gitlink Google Oboe AUTHORS for copyright purposes; Google Inc. attribution does not replace Android Open Source Project per-file notices",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/AUTHORS",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "c04aa4049aeb3d8268ae43074ae89fb86ef5a5eb53ec0c453015bc1889bd6ca9",
+        "gitBlob": "6ca313d22a21f2a621eaab08117d7fb562c07aa4",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 302
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/c04aa4049aeb3d8268ae43074ae89fb86ef5a5eb53ec0c453015bc1889bd6ca9.txt",
+        "sha256": "c04aa4049aeb3d8268ae43074ae89fb86ef5a5eb53ec0c453015bc1889bd6ca9",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/AUTHORS",
+        "gitBlob": "6ca313d22a21f2a621eaab08117d7fb562c07aa4",
+        "origin": "original exact-gitlink Google Oboe AUTHORS for copyright purposes; Google Inc. attribution does not replace Android Open Source Project per-file notices"
+      }
+    },
+    {
+      "id": "contributors:google-oboe",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/CONTRIBUTORS",
+      "gitBlob": "0b77924b90e5090eb522a538042f4ce07eb66143",
+      "sha256": "3183e3ecdcf1a396e9a04e06d7d833821d9c2109ce916fde9482edd318d279c3",
+      "role": "original exact-gitlink Google Oboe CONTRIBUTORS list; not substituted copyright or binary-composition evidence",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/CONTRIBUTORS",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "3183e3ecdcf1a396e9a04e06d7d833821d9c2109ce916fde9482edd318d279c3",
+        "gitBlob": "0b77924b90e5090eb522a538042f4ce07eb66143",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 545
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/3183e3ecdcf1a396e9a04e06d7d833821d9c2109ce916fde9482edd318d279c3.txt",
+        "sha256": "3183e3ecdcf1a396e9a04e06d7d833821d9c2109ce916fde9482edd318d279c3",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/CONTRIBUTORS",
+        "gitBlob": "0b77924b90e5090eb522a538042f4ce07eb66143",
+        "origin": "original exact-gitlink Google Oboe CONTRIBUTORS list; not substituted copyright or binary-composition evidence"
+      }
+    },
+    {
+      "id": "header:google-oboe-026cab13ef99",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/opensles/AudioStreamOpenSLES.cpp",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-026cab13ef99665b61b64e1736622a6754ff7d5fdb88b00c3e8d70804e215fd6.txt",
+      "sourceSHA256": "648084a1e01db6af0e6f0e58ced66747569a16967945c975c22b6bc7cda2cd4a",
+      "sha256": "026cab13ef99665b61b64e1736622a6754ff7d5fdb88b00c3e8d70804e215fd6",
+      "gitBlob": "09f5c6adb2f2ab4239fac853a3325df0559fcca5",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/opensles/AudioStreamOpenSLES.cpp",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "281e91e5a959b383fbc5a00db6bd2bcf815e014e25e8f8c07a541168684b5715",
+        "gitBlob": "9013d61c551cde5bd8d1386541fe2725fed74ff9",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 612
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/026cab13ef99665b61b64e1736622a6754ff7d5fdb88b00c3e8d70804e215fd6.txt",
+        "sha256": "026cab13ef99665b61b64e1736622a6754ff7d5fdb88b00c3e8d70804e215fd6",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/opensles/AudioStreamOpenSLES.cpp",
+        "gitBlob": "09f5c6adb2f2ab4239fac853a3325df0559fcca5",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-098ca21a7be9",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/OboeExtensions.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-098ca21a7be9224c03b2c4966bbec5c1b3c7511f391545373c2b450fae6541e4.txt",
+      "sourceSHA256": "b8681a9f6e7380437e89c7ed1e7dc2822c4bb45252ba36d6262b5ff2544887dd",
+      "sha256": "098ca21a7be9224c03b2c4966bbec5c1b3c7511f391545373c2b450fae6541e4",
+      "gitBlob": "f1def75d01366c383156eacd75dea5a3b3c3243f",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/OboeExtensions.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "860718e77f77e032268de51a6fcb9584dbe57c948392c01f66c6acf78708ff3e",
+        "gitBlob": "3722e77ed6cbddb431c768bed7b6269475e6cf6c",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/098ca21a7be9224c03b2c4966bbec5c1b3c7511f391545373c2b450fae6541e4.txt",
+        "sha256": "098ca21a7be9224c03b2c4966bbec5c1b3c7511f391545373c2b450fae6541e4",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/OboeExtensions.h",
+        "gitBlob": "f1def75d01366c383156eacd75dea5a3b3c3243f",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-0a482956cdef",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/LatencyTuner.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-0a482956cdefef7b857c207289fcf91b92f4c4003e79fdd0d6e5021d6ec60305.txt",
+      "sourceSHA256": "d7d253669664dc87401f764b8c5e5036612eded6fa7e63d97df223d0038f9356",
+      "sha256": "0a482956cdefef7b857c207289fcf91b92f4c4003e79fdd0d6e5021d6ec60305",
+      "gitBlob": "6316362c4e10ba8a9918888ab872b22f4fcd59b1",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/LatencyTuner.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "7d2922aba66d2d074abd9059d8e30e8410c734bc55f97268f3bac954c8e44170",
+        "gitBlob": "8b8404d943778edafd996cddfc4455e9dd6d519d",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/0a482956cdefef7b857c207289fcf91b92f4c4003e79fdd0d6e5021d6ec60305.txt",
+        "sha256": "0a482956cdefef7b857c207289fcf91b92f4c4003e79fdd0d6e5021d6ec60305",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/LatencyTuner.h",
+        "gitBlob": "6316362c4e10ba8a9918888ab872b22f4fcd59b1",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-0fb76639cf65",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/aaudio/AAudioExtensions.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-0fb76639cf65ffb51bcc4bdf5c15623ef6cd1c4ae400c99fcf32187123bbc35c.txt",
+      "sourceSHA256": "655c5cb72e5924f4f257ee9c36530f9bd28e6f150fcc98743714529a2076ab30",
+      "sha256": "0fb76639cf65ffb51bcc4bdf5c15623ef6cd1c4ae400c99fcf32187123bbc35c",
+      "gitBlob": "3759bd196935dace35240907147958be082e8c7b",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/aaudio/AAudioExtensions.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "1f3feac525af1a27705bdb20c109dd0faf24a2387d718dced73b497c5029229f",
+        "gitBlob": "3a9d782d0173657d9b1f0f0d197a87e112d289a3",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/0fb76639cf65ffb51bcc4bdf5c15623ef6cd1c4ae400c99fcf32187123bbc35c.txt",
+        "sha256": "0fb76639cf65ffb51bcc4bdf5c15623ef6cd1c4ae400c99fcf32187123bbc35c",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/aaudio/AAudioExtensions.h",
+        "gitBlob": "3759bd196935dace35240907147958be082e8c7b",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-1a6d45f82689",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStreamBase.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-1a6d45f82689dd204ca86c5a6dc8b06244cd1ddd46fb9bdbbc82f0b62fdcdd97.txt",
+      "sourceSHA256": "10f39f94609bb499ee34a348e97c675c95cf24a0f8d322bb5e008c3e999fc8d3",
+      "sha256": "1a6d45f82689dd204ca86c5a6dc8b06244cd1ddd46fb9bdbbc82f0b62fdcdd97",
+      "gitBlob": "7bf69d8e098cd7f99f56adbcc210eed05f8682c7",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStreamBase.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "76dff8c0554b6025a51db244ca41e1be304e5ea4adb92da3dad50a2317d4d119",
+        "gitBlob": "6222e448072b807eb011452912a4eaad47ce5838",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/1a6d45f82689dd204ca86c5a6dc8b06244cd1ddd46fb9bdbbc82f0b62fdcdd97.txt",
+        "sha256": "1a6d45f82689dd204ca86c5a6dc8b06244cd1ddd46fb9bdbbc82f0b62fdcdd97",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStreamBase.h",
+        "gitBlob": "7bf69d8e098cd7f99f56adbcc210eed05f8682c7",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-4b1d40940061",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/OboeDebug.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-4b1d40940061d9a7efc8f532541914320444ffc4b884822e21f5bd4db2694ab3.txt",
+      "sourceSHA256": "c8ab407e0103b49f50d62b4676246efb8347b7473f675b6ad34f40fb1fcd6d6c",
+      "sha256": "4b1d40940061d9a7efc8f532541914320444ffc4b884822e21f5bd4db2694ab3",
+      "gitBlob": "1c9c2422664b107e387ab62844b55652bc832744",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/OboeDebug.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "d6a76e901bbdb1f2c0886a20c3db28fe2f7b9fb98fc36ce9a7fda3c5c0bea837",
+        "gitBlob": "dc7434c8fa15b5d668d284183ed5cd25978d85d0",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 622
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/4b1d40940061d9a7efc8f532541914320444ffc4b884822e21f5bd4db2694ab3.txt",
+        "sha256": "4b1d40940061d9a7efc8f532541914320444ffc4b884822e21f5bd4db2694ab3",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/OboeDebug.h",
+        "gitBlob": "1c9c2422664b107e387ab62844b55652bc832744",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-53082e800843",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStream.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-53082e800843aed238b7aade7fd4d9927b641988d2db1e66c112c4f5f6074781.txt",
+      "sourceSHA256": "999997f63c4394b9da9e56cd7a75817b6cde05cd88d99597d256e033ce6ba9a9",
+      "sha256": "53082e800843aed238b7aade7fd4d9927b641988d2db1e66c112c4f5f6074781",
+      "gitBlob": "e93f0da89db68e7cfe3c355d6b1358b77f3629cb",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStream.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "ba1acad134878144512f7bb53db4f8990282112e439f2bb19eb750b07ea7b7c1",
+        "gitBlob": "01b8c976675dc5fa02c27b3d831f650ce4bac0ae",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/53082e800843aed238b7aade7fd4d9927b641988d2db1e66c112c4f5f6074781.txt",
+        "sha256": "53082e800843aed238b7aade7fd4d9927b641988d2db1e66c112c4f5f6074781",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStream.h",
+        "gitBlob": "e93f0da89db68e7cfe3c355d6b1358b77f3629cb",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-575ee5739171",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/flowgraph/FlowgraphUtilities.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-575ee5739171b0a546eb044c10ef188f605a1e8c975a728a6072f61ed2658e94.txt",
+      "sourceSHA256": "78f5d1d2091725df44fe228a6e9c60990e6bd0cd69235d40981ff2c8e9bce278",
+      "sha256": "575ee5739171b0a546eb044c10ef188f605a1e8c975a728a6072f61ed2658e94",
+      "gitBlob": "6d73a742822ffee8fdcace53f3f5c26d403b365b",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/flowgraph/FlowgraphUtilities.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "a2a70b176abca6369e2e1e592feb5457da6e8466b451dcc70c747db0331c84f0",
+        "gitBlob": "e277d6e6f7d3f5985c9fb38070d1ab64021f3280",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/575ee5739171b0a546eb044c10ef188f605a1e8c975a728a6072f61ed2658e94.txt",
+        "sha256": "575ee5739171b0a546eb044c10ef188f605a1e8c975a728a6072f61ed2658e94",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/flowgraph/FlowgraphUtilities.h",
+        "gitBlob": "6d73a742822ffee8fdcace53f3f5c26d403b365b",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-75dbadc0b315",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/FixedBlockAdapter.cpp",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-75dbadc0b3159a276c67a0bf4f5e7fb11b02fec4223eae12aa3a64e195a4fca6.txt",
+      "sourceSHA256": "5a21f70c15d155f03455925cd9cee97dd4b3bd8dbbb1c874714afff76b7005c5",
+      "sha256": "75dbadc0b3159a276c67a0bf4f5e7fb11b02fec4223eae12aa3a64e195a4fca6",
+      "gitBlob": "51340f298e0f2fefedc207f10464e937ee4fa68c",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/FixedBlockAdapter.cpp",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "6e9aea027556a261927f20ec99e500d2f0b00dea30bc65636880cd0cc4030974",
+        "gitBlob": "e14c2caadd72e9dd43871d6cbc8bbcfc048594b5",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 619
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/75dbadc0b3159a276c67a0bf4f5e7fb11b02fec4223eae12aa3a64e195a4fca6.txt",
+        "sha256": "75dbadc0b3159a276c67a0bf4f5e7fb11b02fec4223eae12aa3a64e195a4fca6",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/FixedBlockAdapter.cpp",
+        "gitBlob": "51340f298e0f2fefedc207f10464e937ee4fa68c",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-768f8c738869",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/StabilizedCallback.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-768f8c7388691bf175d55d8107d3bb9cd7c64ac1f74411309d0b138fa9895cb0.txt",
+      "sourceSHA256": "7dea0347340f10cc6f353ed99fa7f5a5c9ba714e6daf4d9cd1251caae68487e6",
+      "sha256": "768f8c7388691bf175d55d8107d3bb9cd7c64ac1f74411309d0b138fa9895cb0",
+      "gitBlob": "faafbf2e99aafb6963e42c231fd61c39a0b85e0a",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/StabilizedCallback.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "1aa4bed772c5188038a7666127cb91684428fd5b442aee5500a3e65eb9647134",
+        "gitBlob": "244fdb709e55cc05753232c8edaf36dbb64da3b3",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/768f8c7388691bf175d55d8107d3bb9cd7c64ac1f74411309d0b138fa9895cb0.txt",
+        "sha256": "768f8c7388691bf175d55d8107d3bb9cd7c64ac1f74411309d0b138fa9895cb0",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/StabilizedCallback.h",
+        "gitBlob": "faafbf2e99aafb6963e42c231fd61c39a0b85e0a",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-9d0f46e29c70",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/ResultWithValue.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14.txt",
+      "sourceSHA256": "743a352f92533d56df62928b5c124fd0ac648173364a0f9b8fe9bf56adad2269",
+      "sha256": "9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14",
+      "gitBlob": "a57a35fbd88b3f189660a87a2ea97add11de9cbd",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/ResultWithValue.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "202a80acdf601cb902166a9cd76064c6ba32810846d3bcbb6602eb29e81bcaee",
+        "gitBlob": "fcb1fac14145c50eb969d7f398b6a8b71ca2e09f",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 619
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14.txt",
+        "sha256": "9d0f46e29c70c3c5e1bf9827a8b6f89dd4633da52ce437ab334a833487c84e14",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/ResultWithValue.h",
+        "gitBlob": "a57a35fbd88b3f189660a87a2ea97add11de9cbd",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-a34cd7c49b07",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/OboeExtensions.cpp",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-a34cd7c49b07da7319aadce0fee47da135773758afb314667d92ecc29657deb4.txt",
+      "sourceSHA256": "b9b1fa35a2b0cc6bb6b4711508807557194f65365a6511e8a0af78af820058b8",
+      "sha256": "a34cd7c49b07da7319aadce0fee47da135773758afb314667d92ecc29657deb4",
+      "gitBlob": "8f5b442a8b21b1e473669988091a04abdd3e2ed9",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/OboeExtensions.cpp",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "5d5f8b55f00f38bedd38a92c69d33449187479e823c44824a818966512c6a789",
+        "gitBlob": "57731e89d7e9241e7a747e9c8a744d13531d0dde",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 619
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/a34cd7c49b07da7319aadce0fee47da135773758afb314667d92ecc29657deb4.txt",
+        "sha256": "a34cd7c49b07da7319aadce0fee47da135773758afb314667d92ecc29657deb4",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/OboeExtensions.cpp",
+        "gitBlob": "8f5b442a8b21b1e473669988091a04abdd3e2ed9",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-b698582c54bf",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/AdpfWrapper.cpp",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-b698582c54bfdc53aace53dba7612f36ddbb0259cfddd6168604e1e0e56212ee.txt",
+      "sourceSHA256": "1d5891dca3e366a89852f80a838035bae264fed3a8bdc10ba34f57a5bd927ba1",
+      "sha256": "b698582c54bfdc53aace53dba7612f36ddbb0259cfddd6168604e1e0e56212ee",
+      "gitBlob": "ec0859b304090b50196e07d2b5fcb6d765bd50e0",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/AdpfWrapper.cpp",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "0ccd1e998f07aca3159b9105d95e3e86bfeebc3282845ba83a4f53ba13e55cbf",
+        "gitBlob": "05accdea6f8f60f3d2a03471a9edfd2901d3dd81",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/b698582c54bfdc53aace53dba7612f36ddbb0259cfddd6168604e1e0e56212ee.txt",
+        "sha256": "b698582c54bfdc53aace53dba7612f36ddbb0259cfddd6168604e1e0e56212ee",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/AdpfWrapper.cpp",
+        "gitBlob": "ec0859b304090b50196e07d2b5fcb6d765bd50e0",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-bd681efb8799",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStreamCallback.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65.txt",
+      "sourceSHA256": "6b3c3eabc1f034acbbca217dd3d59837d762ed06906f7d94c8aa0e55825fbc2e",
+      "sha256": "bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65",
+      "gitBlob": "9944a6860e826042034a1cf960c42a118fb5ebbe",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStreamCallback.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "583b85936d23237f9a9b9f5d25fac93044914070ae42899ca4193e6d069ce178",
+        "gitBlob": "8d8e2feb4b163716057cb230de067f26da9d3736",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 619
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65.txt",
+        "sha256": "bd681efb8799978450f2abfdb13bf66aa8e2050c974625bf6ab8e184d4500b65",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/AudioStreamCallback.h",
+        "gitBlob": "9944a6860e826042034a1cf960c42a118fb5ebbe",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-f522a5228a4e",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/DataConversionFlowGraph.cpp",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-f522a5228a4efd49ff1fba81fa2fba84dd5864ae3a85ed3af016abb700aa49f9.txt",
+      "sourceSHA256": "e33e2c4888448cf6ecc9fe703ddccb93623933e1cf86795d0efeb4766a02c8d1",
+      "sha256": "f522a5228a4efd49ff1fba81fa2fba84dd5864ae3a85ed3af016abb700aa49f9",
+      "gitBlob": "90c14dd95a898e31a1d8dcebabc255c022a087e5",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/DataConversionFlowGraph.cpp",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "3d6e14f4dfe0a86bdb911c4096ee0efe18b960a60938b8ea37471a3bf0f58c26",
+        "gitBlob": "374fffd1984ad658d01f43f23efe41f789dc042f",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 619
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/f522a5228a4efd49ff1fba81fa2fba84dd5864ae3a85ed3af016abb700aa49f9.txt",
+        "sha256": "f522a5228a4efd49ff1fba81fa2fba84dd5864ae3a85ed3af016abb700aa49f9",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/src/common/DataConversionFlowGraph.cpp",
+        "gitBlob": "90c14dd95a898e31a1d8dcebabc255c022a087e5",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "header:google-oboe-ffbf3b8a4286",
+      "version": "0.6.1",
+      "license": "Apache-2.0",
+      "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/FullDuplexStream.h",
+      "localPath": "scripts/margin/license-inputs/original-notices/google-oboe-header-ffbf3b8a42860b5eaa8228cca1c1f328305ad749737bef00ef43520d8f5e48b7.txt",
+      "sourceSHA256": "f2c725a9c6827d99cede7789b270fef429f2f7b99679016cb3d9bfbc01fbb90e",
+      "sha256": "ffbf3b8a42860b5eaa8228cca1c1f328305ad749737bef00ef43520d8f5e48b7",
+      "gitBlob": "8ec7c23f9587117dc43526e93140d6e5d1acb5ae",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution",
+      "originalSource": {
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/FullDuplexStream.h",
+        "ref": "86165b8249bc22b9ef70b69e20323244b6f08d88",
+        "fileSHA256": "3fb191df503c34b9ca22f4f7e9e85ae4307f4b2af5aea2e0dc6ac772bc9a0205",
+        "gitBlob": "15d2489a53d44b8f6c91f6f78aed2ae92b094d91",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 615
+        }
+      },
+      "bind": {
+        "kind": "cargo",
+        "name": "oboe-sys"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/ffbf3b8a42860b5eaa8228cca1c1f328305ad749737bef00ef43520d8f5e48b7.txt",
+        "sha256": "ffbf3b8a42860b5eaa8228cca1c1f328305ad749737bef00ef43520d8f5e48b7",
+        "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/FullDuplexStream.h",
+        "gitBlob": "8ec7c23f9587117dc43526e93140d6e5d1acb5ae",
+        "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
+      }
+    },
+    {
+      "id": "original:dingbat-to-unicode",
+      "version": "1.0.1",
+      "license": "BSD-2-Clause",
+      "url": "https://raw.githubusercontent.com/mwilliamson/dingbat-to-unicode/9eb2d1d8b8463b7bd3cd125597eabcfa9df42128/js/LICENSE",
+      "gitBlob": "d4ff421424a98c90222e74f8f174939a5e0adb2b",
+      "sha256": "1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37",
+      "authorizationURL": "https://github.com/mwilliamson/dingbat-to-unicode/issues/1#issuecomment-5740760399",
+      "authorizationStatement": "A licence file has been added to 1.0.2. This licence also applies to any previous versions.",
+      "role": "original LICENSE added for 1.0.2, explicitly applied to every previous version by repository owner mwilliamson in issue 1 comment 5740760399 on 2026-09-19; original Copyright (c) 2021 Michael Williamson retained; binding stays 1.0.1, not a claim that its original npm tarball contained this file",
+      "bind": {
+        "kind": "npm",
+        "name": "dingbat-to-unicode"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37.txt",
+        "sha256": "1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37",
+        "url": "https://raw.githubusercontent.com/mwilliamson/dingbat-to-unicode/9eb2d1d8b8463b7bd3cd125597eabcfa9df42128/js/LICENSE",
+        "gitBlob": "d4ff421424a98c90222e74f8f174939a5e0adb2b",
+        "origin": "original LICENSE added for 1.0.2, explicitly applied to every previous version by repository owner mwilliamson in issue 1 comment 5740760399 on 2026-09-19; original Copyright (c) 2021 Michael Williamson retained; binding stays 1.0.1, not a claim that its original npm tarball contained this file"
+      }
+    },
+    {
+      "id": "original:stream-events",
+      "version": "1.0.5",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
+      "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
+      "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
+      "authorizationURL": "https://github.com/stephenplusplus/stream-events/pull/5",
+      "role": "officially merged later original MIT LICENSE at commit 3cfd35ab1a68c9fd41c992428e839ad54dcf8017; package version remains 1.0.5 and all four installed package.json/index.js/index.d.ts/readme.md files match that commit byte-for-byte; original Copyright (c) 2018 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE",
+      "bind": {
+        "kind": "npm",
+        "name": "stream-events"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d.txt",
+        "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
+        "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
+        "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
+        "origin": "officially merged later original MIT LICENSE at commit 3cfd35ab1a68c9fd41c992428e839ad54dcf8017; package version remains 1.0.5 and all four installed package.json/index.js/index.d.ts/readme.md files match that commit byte-for-byte; original Copyright (c) 2018 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
+      }
+    },
+    {
+      "id": "original:stubs",
+      "version": "3.0.0",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
+      "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
+      "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
+      "authorizationURL": "https://github.com/stephenplusplus/stubs/pull/5#issuecomment-517783963",
+      "role": "officially merged later original MIT LICENSE at commit 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5, acknowledged by the owner; package version remains 3.0.0 and all four installed package.json/index.js/readme.md/test.js files match that commit byte-for-byte; original Copyright (c) 2017 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE",
+      "bind": {
+        "kind": "npm",
+        "name": "stubs"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58.txt",
+        "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
+        "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
+        "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
+        "origin": "officially merged later original MIT LICENSE at commit 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5, acknowledged by the owner; package version remains 3.0.0 and all four installed package.json/index.js/readme.md/test.js files match that commit byte-for-byte; original Copyright (c) 2017 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
+      }
+    },
+    {
+      "id": "original:tr46",
+      "version": "0.0.3",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/LICENSE.md",
+      "gitBlob": "e90f20a5cc7763e1ad07e5c15c193c51cdf3182b",
+      "sha256": "eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b",
+      "role": "original MIT LICENSE added at same-version commit 3a6f29721e7063b9ffd421e461a54beae6170001 retaining Copyright (c) 2016 Sebastian Mayr; package.json and index.js match installed 0.0.3 bytes, and the installed mappingTable.json is reproduced from official Unicode IDNA 8.0.0 data using that commit's generator; Unicode data attribution and current official terms are retained separately, not a claim that the original npm tarball contained LICENSE",
+      "bind": {
+        "kind": "npm",
+        "name": "tr46"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b.txt",
+        "sha256": "eeed1ca176eebad5c73870e233cfff03981fecd319c969475dfa3633036c336b",
+        "url": "https://raw.githubusercontent.com/jsdom/tr46/3a6f29721e7063b9ffd421e461a54beae6170001/LICENSE.md",
+        "gitBlob": "e90f20a5cc7763e1ad07e5c15c193c51cdf3182b",
+        "origin": "original MIT LICENSE added at same-version commit 3a6f29721e7063b9ffd421e461a54beae6170001 retaining Copyright (c) 2016 Sebastian Mayr; package.json and index.js match installed 0.0.3 bytes, and the installed mappingTable.json is reproduced from official Unicode IDNA 8.0.0 data using that commit's generator; Unicode data attribution and current official terms are retained separately, not a claim that the original npm tarball contained LICENSE"
+      }
+    },
+    {
+      "id": "terms:unicode-idna-8.0.0",
+      "version": "8.0.0",
+      "license": "Unicode-3.0",
+      "url": "https://www.unicode.org/license.txt",
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "authorityURL": "https://www.unicode.org/copyright.html",
+      "policySHA256": "9f83fb0a046180c87d22c2678e79300475125611ac8dfc2da303db6c6b347251",
+      "role": "current official Unicode License v3 complete original terms, Copyright 1991-2026 Unicode, Inc. retained unchanged; current official policy covers all /Public/ Data Files unless otherwise indicated, while the IDNA 8.0.0 original header points to terms_of_use without specifying a different license; not a claim that v3 was adopted in 2015",
+      "relatedComponent": {
+        "kind": "npm",
+        "name": "tr46",
+        "version": "0.0.3"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96.txt",
+        "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+        "url": "https://www.unicode.org/license.txt",
+        "gitBlob": "56da58912807030b451a4700687d5bd02c72d6ed",
+        "origin": "current official Unicode License v3 complete original terms, Copyright 1991-2026 Unicode, Inc. retained unchanged; current official policy covers all /Public/ Data Files unless otherwise indicated, while the IDNA 8.0.0 original header points to terms_of_use without specifying a different license; not a claim that v3 was adopted in 2015"
+      }
+    },
+    {
+      "id": "header:unicode-idna-8.0.0",
+      "version": "8.0.0",
+      "license": "Unicode-3.0",
+      "url": "https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt",
+      "localPath": "scripts/margin/license-inputs/original-notices/unicode-idna-8.0.0-data-header.txt",
+      "sourceSHA256": "b48f4ea7f69a1758e2f5e5acab8d40657cf41ef6eee7117f409afe2f11356868",
+      "sha256": "28d7dbb368fbb77523f2aebcf4b619990fce5228cceb24004256a7bcf006f4b1",
+      "gitBlob": "55371f50b786e4ab843f8a3958daee4866370ada",
+      "endBefore": "<!-- margin-original-notice-end -->",
+      "role": "original Unicode IDNA 8.0.0 data header retaining Copyright (c) 1991-2015 Unicode, Inc. and its terms-of-use/documentation links; current Unicode License v3 applicability is established by the separate current official policy, not asserted to have been the license named in 2015; no data-table bytes retained",
+      "originalSource": {
+        "url": "https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt",
+        "ref": "Unicode IDNA 8.0.0",
+        "fileSHA256": "5e9f5929130b713e698162ac5b60a99ccfb831606686b1c50777cd920b55dee2",
+        "gitBlob": "4e46443579f6501bb6431ce6747251bf1fb88cd0",
+        "byteRange": {
+          "start": 0,
+          "endExclusive": 285
+        }
+      },
+      "relatedComponent": {
+        "kind": "npm",
+        "name": "tr46",
+        "version": "0.0.3"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/28d7dbb368fbb77523f2aebcf4b619990fce5228cceb24004256a7bcf006f4b1.txt",
+        "sha256": "28d7dbb368fbb77523f2aebcf4b619990fce5228cceb24004256a7bcf006f4b1",
+        "url": "https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt",
+        "gitBlob": "55371f50b786e4ab843f8a3958daee4866370ada",
+        "origin": "original Unicode IDNA 8.0.0 data header retaining Copyright (c) 1991-2015 Unicode, Inc. and its terms-of-use/documentation links; current Unicode License v3 applicability is established by the separate current official policy, not asserted to have been the license named in 2015; no data-table bytes retained"
+      }
     }
   ],
   "excluded": [
@@ -15882,39 +16930,11 @@
   ],
   "unresolved": [
     {
-      "id": "npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
       "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
       "reason": "no local full notice; retrieve an immutable official license source"
     },
     {
-      "id": "npm:format@0.2.2:node_modules/format",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
       "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "npm:stream-events@1.0.5:node_modules/stream-events",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "npm:stubs@3.0.0:node_modules/stubs",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "npm:tr46@0.0.3:node_modules/tr46",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "cargo:oboe@0.6.1",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "cargo:oboe-sys@0.6.1",
       "reason": "no local full notice; retrieve an immutable official license source"
     },
     {

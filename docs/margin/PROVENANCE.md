@@ -122,7 +122,8 @@ only these two missing-text entries (17 to 15), and change no candidate or
 excluded identity. The collector/checker logic, dependencies, runtime, CI and
 package-diagnostic logic are unchanged. Neither this binding nor the platform
 labels exclude r-efi/Oboe candidates or close native static-composition and
-distribution obligations; oboe/oboe-sys and realfft still lack full notices.
+distribution obligations; at that checkpoint oboe/oboe-sys and realfft still
+lacked full notices.
 
 ### AG-26 S18 dependency-scope reduction
 
@@ -165,6 +166,77 @@ attribution does not assert current manifest or Resources inclusion. All remaini
 source bindings retain exact identity/hash checks. Native vendored composition,
 remaining missing notices, corresponding-source/relinking duties, and acceptance
 of a newly packaged artifact are separate unresolved obligations.
+
+### AG-26 original-notice supplements
+
+Twenty-six source entries supplement format 0.2.2 and oboe/oboe-sys 0.6.1.
+format retains its exact commit `4f898096759776b7c84fa7a25b13c923dadfe46e`
+README License section (Copyright 2010 - 2014 Sami Samhuri) and JavaScript
+header (Copyright 2010 - 2013 Sami Samhuri), including the original MIT links.
+The complete fixed official SPDX MIT text supplies standard terms, leaving its
+copyright template placeholders unfilled; it neither replaces those original
+declarations nor claims the changing linked website is a same-version grant.
+
+Each Oboe wrapper keeps its own original Apache declaration at commit
+`7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7` and a separate exact-version
+binding to the full official Apache-2.0 text. Author metadata does not become
+a copyright notice; the Apache appendix placeholders remain standard
+instructions. The wrapper's Google Oboe gitlink
+`86165b8249bc22b9ef70b69e20323244b6f08d88` supplies its own complete
+LICENSE/AUTHORS/CONTRIBUTORS. Google Inc. attribution does not replace the
+Android Open Source Project's 16 distinct original Apache license comments.
+
+All 140 cached vendor files match the exact Git tree blobs: 138 C++/header files
+retain their complete leading license comments, and the remaining two README
+files contain no additional copyright/license declarations. The exact tree is
+not truncated and has no NOTICE. The source-byte inventory and 16-group mapping
+are in `scripts/margin/license-inputs/original-notices/coverage.json`; these
+checks are not a static-link, target-graph or distributed-binary determination.
+The header range is byte zero through the closing `*/` inclusive; subsequent
+non-license separator bytes are excluded without normalizing the comment.
+
+Twenty repository-local input containers hold only original licensing bytes
+followed by an explicit marker, never implementation source. Each container's
+source URL/ref, complete source SHA-256/Git blob and exact byte range are
+recorded. The unchanged collector checks input and extracted-text hashes,
+copies only bytes before the marker, and retains its strict canonical component
+identity checks. The extra provenance fields and 140-file coverage are audited
+separately, not falsely represented as automatic collector checks.
+
+Three additional sources retain later official notices without changing package
+versions. dingbat-to-unicode's owner explicitly applies the 1.0.2 license to all
+previous versions in issue 1 comment 5740760399; its original Copyright (c) 2021
+Michael Williamson BSD-2-Clause LICENSE is bound to 1.0.1. stream-events PR 5
+merge `3cfd35ab1a68c9fd41c992428e839ad54dcf8017` keeps version 1.0.5 and all
+four installed files byte-identical; stubs PR 5 merge
+`580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5` keeps version 3.0.0 and all four
+installed files byte-identical. Both retain their original Stephen Sawchuk MIT
+copyrights (2018 and 2017). This does not assert LICENSE was in the original npm
+tarballs.
+
+tr46 0.0.3's original MIT LICENSE at same-version commit
+`3a6f29721e7063b9ffd421e461a54beae6170001` keeps Copyright (c) 2016 Sebastian
+Mayr. The installed package.json and index.js match that commit; the installed
+mappingTable.json (SHA-256
+`b6b39724dca9011113a08d9d6910204062b58169e98952acdfbd19bf2c31bbff`)
+is reproduced using its documented converter from the official Unicode IDNA
+8.0.0 data (793222 bytes, SHA-256
+`5e9f5929130b713e698162ac5b60a99ccfb831606686b1c50777cd920b55dee2`).
+The original data header keeps Copyright (c) 1991-2015 Unicode, Inc. and its
+terms-of-use/source links. The current complete Unicode License v3 (1995 bytes,
+SHA-256 `e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96`)
+retains Copyright 1991-2026 Unicode, Inc. unchanged. The current official policy
+applies v3 to /Public/ Data Files unless another license is indicated; the 8.0
+header refers to terms_of_use without naming a different license. This current
+coverage does not assert v3 was adopted in 2015 or interpret an upgrade advice
+as a retroactive grant. Only the header, not data rows or implementation, enters
+the new notice input container. The policy and mapping reproduction are separate
+source evidence, not claimed as automatic collector validation.
+
+These 32 new source entries close only seven missing-text entries; dependencies,
+lockfiles, collector/checker/runtime/tests/CI code and candidate/excluded
+identities are unchanged. Other missing notices and native composition, corresponding-source,
+relinking, NOTICE and actual package acceptance obligations remain open.
 
 AG-26's notice collector, package-byte checker, synthetic tests and rewritten
 public documents are written for this branch from PLAN's license/documentation
