@@ -17,6 +17,8 @@
 //     later failure cannot switch providers (that would duplicate output), so
 //     we end the stream gracefully with whatever was already delivered.
 
+import { rethrowProviderScopeError } from './ProviderRouter';
+
 export type VisionErrorClass =
   | 'auth'        // 401/403/quota/invalid-or-expired key — will not self-heal
   | 'rate'        // 429 rate limit
@@ -274,6 +276,8 @@ export async function* runStreamingVisionFallback(
             });
             next = await Promise.race([nextChunk, stall]);
           } catch (drainErr: any) {
+            if (abortSignal?.aborted) return;
+            rethrowProviderScopeError(drainErr);
             warn(`[Vision] ${provider.name} interrupted mid-stream after commit: ${drainErr?.message || drainErr}`);
             return; // partial answer already delivered; do not duplicate via another provider
           } finally {
@@ -283,10 +287,11 @@ export async function* runStreamingVisionFallback(
           if (typeof next.value === 'string' && next.value.length > 0) yield next.value;
         }
       } catch (err: any) {
+        // An outer cancel isn't a provider failure or a policy refusal.
+        if (abortSignal?.aborted) return;
+        rethrowProviderScopeError(err);
         // A throw after commit (e.g. consumer .throw()) must NOT trigger fallback.
         if (committed) return;
-        // An outer cancel mid-attempt isn't the provider's fault — don't penalize it.
-        if (abortSignal?.aborted) return;
 
         // Pre-commit failure → safe to retry / fall back silently.
         const timedOut = ctrl.signal.aborted;

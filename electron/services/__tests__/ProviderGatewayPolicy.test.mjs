@@ -77,7 +77,7 @@ test('LLMHelper guards every outbound provider with assertOutboundScopes', () =>
 test('LLMHelper passes data scopes and policy to routeLLMProviders for fallback rotation', () => {
   const src = read('electron/LLMHelper.ts');
 
-  assert.match(src, /dataScopes: outboundScopes/);
+  assert.match(src, /dataScopes: this\.scopesForPayload\(cloudUserContent, cloudImagePaths\)/);
   assert.match(src, /scopePolicy,/);
 });
 

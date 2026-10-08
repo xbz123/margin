@@ -6,6 +6,10 @@
   "approvedFiles": [],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "const policy = { transcript: false };", "reason": "One-field synthetic test policy for default chat denial; written for this branch (review 8), 2026-10-08" },
+    { "line": "signal?.throwIfAborted();", "reason": "Native AbortSignal method; written for this branch to recheck cancellation after a cache wait (review 8), 2026-10-08; see PROVENANCE.md" },
+    { "line": "lastError = error;", "reason": "Generic catch assignment retaining the last sequential provider error; written for this branch (review 8), 2026-10-08" },
+    { "line": "throw lastError;", "reason": "Generic rethrow of the retained error; written for this branch (review 8), 2026-10-08" },
     { "line": "app.whenReady().then(async () => {", "reason": "Standard Electron startup idiom; written for this branch (X2 self-test), 2026-10-07" },
     { "line": "await new Promise((r) => server.listen(0, '127.0.0.1', r));", "reason": "Standard Node loopback test-server idiom; written for this branch (X2), 2026-10-07" },
     { "line": "const i = args.indexOf(name);", "reason": "Generic argument parsing; written for this branch (X1), 2026-10-07" },

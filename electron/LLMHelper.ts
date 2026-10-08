@@ -29,7 +29,7 @@ import {
   type VisionStreamProvider,
   type VisionHealthEntry,
 } from "./llm/visionStreamFallback"
-import { assertProviderDataScopes, getDeniedDataScopes, routeWithScopeFallback, ProviderRouter, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
+import { assertProviderDataScopes, getDeniedDataScopes, routeWithScopeFallback, ProviderRouter, ProviderScopeError, rethrowProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
 import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { createProviderRateLimiters, RateLimiter } from './services/RateLimiter';
 import { CodexCliConfig, CodexCliService, DEFAULT_CODEX_CLI_CONFIG } from './services/CodexCliService';
@@ -193,28 +193,29 @@ export class LLMHelper {
     // Initialize Groq client if API key provided
     if (groqApiKey) {
       this.groqApiKey = groqApiKey
-      this.groqClient = new Groq({ apiKey: groqApiKey })
+      // Only application retries may resend: each one rechecks the data scopes.
+      this.groqClient = new Groq({ apiKey: groqApiKey, maxRetries: 0 })
       console.log(`[LLMHelper] Groq client initialized with model: ${GROQ_MODEL}`)
     }
 
     // Initialize OpenAI client if API key provided
     if (openaiApiKey) {
       this.openaiApiKey = openaiApiKey
-      this.openaiClient = new OpenAI({ apiKey: openaiApiKey, baseURL: devOpenAIBaseUrl() })
+      this.openaiClient = new OpenAI({ apiKey: openaiApiKey, baseURL: devOpenAIBaseUrl(), maxRetries: 0 })
       console.log(`[LLMHelper] OpenAI client initialized with model: ${OPENAI_MODEL}`)
     }
 
     // Initialize Claude client if API key provided
     if (claudeApiKey) {
       this.claudeApiKey = claudeApiKey
-      this.claudeClient = new Anthropic({ apiKey: claudeApiKey })
+      this.claudeClient = new Anthropic({ apiKey: claudeApiKey, maxRetries: 0 })
       console.log(`[LLMHelper] Claude client initialized with model: ${CLAUDE_MODEL}`)
     }
 
     // Initialize DeepSeek client if API key provided (OpenAI-compatible)
     if (deepseekApiKey) {
       this.deepseekApiKey = deepseekApiKey
-      this.deepseekClient = new OpenAI({ apiKey: deepseekApiKey, baseURL: DEEPSEEK_BASE_URL })
+      this.deepseekClient = new OpenAI({ apiKey: deepseekApiKey, baseURL: DEEPSEEK_BASE_URL, maxRetries: 0 })
       console.log(`[LLMHelper] DeepSeek client initialized with model: ${DEEPSEEK_MODEL}`)
     }
 
@@ -248,7 +249,7 @@ export class LLMHelper {
   }
 
   public setGroqApiKey(apiKey: string) {
-    this.groqClient = new Groq({ apiKey });
+    this.groqClient = new Groq({ apiKey, maxRetries: 0 });
     this._groqLocalDisabled = false;
     this.visionHealth.delete('groq'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] Groq API Key updated.");
@@ -256,14 +257,14 @@ export class LLMHelper {
 
   public setOpenaiApiKey(apiKey: string) {
     this.openaiApiKey = apiKey;
-    this.openaiClient = new OpenAI({ apiKey, baseURL: devOpenAIBaseUrl() });
+    this.openaiClient = new OpenAI({ apiKey, baseURL: devOpenAIBaseUrl(), maxRetries: 0 });
     this.visionHealth.delete('openai'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] OpenAI API Key updated.");
   }
 
   public setClaudeApiKey(apiKey: string) {
     this.claudeApiKey = apiKey;
-    this.claudeClient = new Anthropic({ apiKey });
+    this.claudeClient = new Anthropic({ apiKey, maxRetries: 0 });
     this.visionHealth.delete('claude'); // fresh key → retry immediately, skip auth cooldown
     console.log("[LLMHelper] Claude API Key updated.");
   }
@@ -277,7 +278,7 @@ export class LLMHelper {
       return;
     }
     this.deepseekApiKey = trimmed;
-    this.deepseekClient = new OpenAI({ apiKey: trimmed, baseURL: DEEPSEEK_BASE_URL });
+    this.deepseekClient = new OpenAI({ apiKey: trimmed, baseURL: DEEPSEEK_BASE_URL, maxRetries: 0 });
     console.log("[LLMHelper] DeepSeek API Key updated.");
   }
 
@@ -498,8 +499,8 @@ export class LLMHelper {
     // Codex CLI sends the prompt to OpenAI, so it is a cloud provider like the others:
     // every Codex call goes through here or streamWithCodexCli (PLAN.md AG-17 review).
     if (!this.codexCliConfig.enabled) throw new Error('Codex CLI transport is disabled.');
-    this.assertOutboundScopes('codex', userContent, imagePaths);
     const model = this.getSelectedCodexCliModel(fastMode);
+    this.assertOutboundScopes('codex', userContent, imagePaths);
     return CodexCliService.run(this.codexCliConfig.path, {
       prompt: this.buildCodexCliPrompt(userContent, systemPrompt),
       model,
@@ -514,8 +515,8 @@ export class LLMHelper {
 
   private async *streamWithCodexCli(userContent: string, systemPrompt?: string, fastMode = false, imagePaths?: string[], signal?: AbortSignal): AsyncGenerator<string, void, unknown> {
     if (!this.codexCliConfig.enabled) throw new Error('Codex CLI transport is disabled.');
-    this.assertOutboundScopes('codex', userContent, imagePaths); // see generateWithCodexCli
     const model = this.getSelectedCodexCliModel(fastMode);
+    this.assertOutboundScopes('codex', userContent, imagePaths); // see generateWithCodexCli
     yield* CodexCliService.stream(this.codexCliConfig.path, {
       prompt: this.buildCodexCliPrompt(userContent, systemPrompt),
       model,
@@ -641,6 +642,7 @@ export class LLMHelper {
       try {
         return await fn();
       } catch (e: any) {
+        rethrowProviderScopeError(e);
         const msg = e.message || '';
         const status = e.status ?? e.statusCode ?? 0;
         // Retryable: 503 overloaded (Gemini), 529 overloaded (Claude), 429 rate-limit (OpenAI/Claude), 500 transient
@@ -907,6 +909,7 @@ CRITICAL RULES:
       return { text: text, timestamp: Date.now() };
 
     } catch (error: any) {
+      rethrowProviderScopeError(error);
       console.error("Error analyzing image files:", error);
       return {
         text: `I couldn't analyze the screen right now (${error.message}). Please try again.`,
@@ -947,6 +950,7 @@ ANSWER DIRECTLY:`;
           if (text && text.trim().length > 0) return this.processResponse(text);
           console.warn('[LLMHelper] Codex CLI suggestion empty, falling back.');
         } catch (e: any) {
+          rethrowProviderScopeError(e);
           console.warn(`[LLMHelper] Codex CLI suggestion failed: ${e.message}. Falling back.`);
         }
       }
@@ -1133,7 +1137,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         groq: buildMessage(finalGroqPrompt),
       };
       const contextScopes = context ? ['transcript' as ProviderDataScope, ...this.inferContextScopes(context)] : [];
-      const outboundScopes = this.scopesForPayload(message, imagePaths, contextScopes);
       const scopePolicy = this.getProviderScopePolicy();
       const deniedOutboundScopes = this.getDeniedOutboundScopes(message, imagePaths, contextScopes);
       const shouldOmitContext = deniedOutboundScopes.some(scope => scope === 'transcript' || scope === 'profile_history' || scope === 'post_call_summary');
@@ -1163,6 +1166,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         }
       }
       if (cloudContext) for (const scope of this.inferContextScopes(cloudContext)) requestStore.scopes.add(scope);
+      this.assertOutboundScopes('chat', cloudUserContent, cloudImagePaths);
 
       // System prompts for OpenAI/Claude/Codex CLI (skipped if skipSystemPrompt)
       const openaiSystemPrompt = skipSystemPrompt ? undefined : this.injectLanguageInstruction(OPENAI_SYSTEM_PROMPT);
@@ -1179,6 +1183,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         try {
           return await this.generateWithCodexCli(cloudUserContent, openaiSystemPrompt, true);
         } catch (e: any) {
+          rethrowProviderScopeError(e);
           console.warn("[LLMHelper] Codex CLI Fast Text failed, falling back to standard fast routing:", e.message);
         }
       }
@@ -1190,6 +1195,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           // CACHE: pass system separately so Groq prefix-cache hits across turns.
           return await this.generateWithGroq(cloudUserContent, GROQ_MODEL, skipSystemPrompt ? undefined : finalGroqPrompt);
         } catch (e: any) {
+          rethrowProviderScopeError(e);
           console.warn("[LLMHelper] Groq Fast Text failed, falling back to standard routing:", e.message);
           if (typeof e?.message === 'string' && /401|invalid[_\s-]api[_\s-]key/i.test(e.message)) {
             this._groqLocalDisabled = true;
@@ -1265,7 +1271,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           claude: textClaude,
           deepseek: this.isDeepseekModel(this.currentModelId) ? this.currentModelId : DEEPSEEK_MODEL,
         },
-        dataScopes: outboundScopes,
+        dataScopes: this.scopesForPayload(cloudUserContent, cloudImagePaths),
         scopePolicy,
       });
 
@@ -1335,7 +1341,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
             }
             console.warn(`[LLMHelper] ⚠️ ${provider.name} returned empty response`);
           } catch (error: any) {
-            if (error instanceof ProviderScopeError) throw error; // a refusal stops the chain
+            rethrowProviderScopeError(error);
             console.warn(`[LLMHelper] ⚠️ ${provider.name} failed: ${error.message}`);
           }
         }
@@ -1346,6 +1352,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       return "I apologize, but I couldn't generate a response. Please try again.";
 
     } catch (error: any) {
+      rethrowProviderScopeError(error);
       console.error("[LLMHelper] Critical Error in chatWithGemini:", error);
 
       if (error.message.includes("503") || error.message.includes("overloaded")) {
@@ -1473,6 +1480,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           console.warn(`[LLMHelper] ⚠️ ${provider.name} returned empty response`);
           lastFailureByProvider.set(provider.name, 'empty response');
         } catch (error: any) {
+          rethrowProviderScopeError(error);
           const reason = (error?.message ?? String(error)).toString().slice(0, 240);
           console.warn(`[LLMHelper] ⚠️ Structured generation: ${provider.name} failed: ${reason}`);
           lastFailureByProvider.set(provider.name, reason);
@@ -1911,6 +1919,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         }
         console.warn(`[LLMHelper] ⚠️ [Codex CLI] returned empty response, falling back to cloud tiers.`);
       } catch (e: any) {
+        rethrowProviderScopeError(e);
         console.warn(`[LLMHelper] ⚠️ [Codex CLI] failed: ${e.message}. Falling back to cloud tiers.`);
       }
     }
@@ -1954,6 +1963,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           }
           console.warn(`[LLMHelper] ⚠️ [${providerName}] returned empty response (attempt ${attempt})`);
         } catch (err: any) {
+          rethrowProviderScopeError(err);
           console.warn(`[LLMHelper] ⚠️ [${providerName}] attempt ${attempt} failed: ${err.message}`);
 
           // Event-driven discovery: trigger on 404 / model-not-found errors
@@ -2016,7 +2026,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
    * TEXT-ONLY FALLBACK CHAIN:
    * 1. Groq (llama-3.3-70b-versatile) - Primary
    * 2. Gemini Flash - 1st fallback
-   * 3. Gemini Flash + Pro parallel - 2nd fallback
+   * 3. Gemini Flash then Pro - 2nd fallback
    * 4. Gemini Flash retries (max 3) - Last resort
    *
    * MULTIMODAL: Gemini-only (existing logic)
@@ -2207,6 +2217,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           console.log(`[LLMHelper] ✅ ${provider.name} stream completed successfully`);
           return; // SUCCESS — exit immediately
         } catch (err: any) {
+          rethrowProviderScopeError(err);
           console.warn(`[LLMHelper] ⚠️ ${provider.name} failed: ${err.message}`);
           // Continue to next provider
         }
@@ -2440,6 +2451,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           yield chunk;
         }
       } catch (visionErr: any) {
+        if (abortSignal?.aborted) return;
+        rethrowProviderScopeError(visionErr);
         // Only surface a graceful message if NOTHING was streamed — once the
         // chain commits to a provider it yields tokens and won't throw here.
         console.error('[LLMHelper] Vision fallback chain exhausted:', visionErr?.message || visionErr);
@@ -2467,7 +2480,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           yield* this.streamWithCodexCli(userContent, finalSystemPrompt, true, undefined, abortSignal);
           return;
         } catch (e: any) {
-          if (e instanceof ProviderScopeError) throw e; // a refusal is not a provider failure
+          rethrowProviderScopeError(e);
           console.warn("[LLMHelper] Codex CLI Fast Text streaming failed, falling back:", e.message);
         }
       }
@@ -2483,7 +2496,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           yield* this.streamWithGroq(userContent, groqModelId, finalGroqSystem, abortSignal);
           return;
         } catch (e: any) {
-          if (e instanceof ProviderScopeError) throw e; // a refusal is not a provider failure
+          rethrowProviderScopeError(e);
           console.warn("[LLMHelper] Groq Fast Text streaming failed, falling back:", e.message);
           if (typeof e?.message === 'string' && /401|invalid[_\s-]api[_\s-]key/i.test(e.message)) {
             this._groqLocalDisabled = true;
@@ -2563,7 +2576,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
 
       // Race strategy (default)
-      yield* this.streamWithGeminiParallelRace(userContent, imagePaths, finalSystemPrompt, abortSignal);
+      yield* this.streamWithGeminiFallback(userContent, imagePaths, finalSystemPrompt, abortSignal);
       return;
     }
 
@@ -2953,6 +2966,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         config: buildConfig(cacheName),
       });
     } catch (err: any) {
+      rethrowProviderScopeError(err);
       // The cache may have expired between getOrCreate() and this call. If we
       // see a cache-related error, drop the entry and retry with systemInstruction.
       const msg = String(err?.message || err);
@@ -2990,42 +3004,28 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   }
 
   /**
-   * Race Flash and Pro streams, return whichever succeeds first.
-   * Optional `systemInstruction` is forwarded to both racers so the static
-   * system prompt is separated from `fullMessage` (cache-friendly).
+   * Try Flash, then Pro. A scope refusal ends the request before another model starts.
    */
-  private async * streamWithGeminiParallelRace(fullMessage: string, imagePaths?: string[], systemInstruction?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
+  private async * streamWithGeminiFallback(fullMessage: string, imagePaths?: string[], systemInstruction?: string, abortSignal?: AbortSignal): AsyncGenerator<string, void, unknown> {
     if (!this.client) throw new Error("Gemini client not initialized");
-
-    // BUG-1 fix: use a shared AbortController so the winning model cancels the loser.
-    // Previously, both Flash AND Pro ran to full completion — only the winner's response
-    // was used, but the loser's entire API call (tokens + compute) was silently wasted.
-    // Note: the Google GenAI SDK does not expose AbortSignal on generateContent, so the
-    // underlying HTTP call for the loser still runs to completion. We cancel our WAIT
-    // for the result — the HTTP connection is released when the SDK call eventually settles.
-    // Timing reference: Flash ≤15s (≤30s with images), Pro ≤30s.
-    if (abortSignal?.aborted) return;
-    const raceController = new AbortController();
-
-    const race = async (model: string): Promise<string> => {
-      const result = await this.collectStreamResponse(fullMessage, model, imagePaths, AbortSignal.any([raceController.signal, abortSignal].filter(Boolean) as AbortSignal[]), systemInstruction);
-      // This model won — signal the other to stop waiting for its result.
-      raceController.abort(new Error(`${model} won the race`));
-      return result;
-    };
-
-    let result: string;
-    try {
-      result = await Promise.any([race(GEMINI_FLASH_MODEL), race(GEMINI_PRO_MODEL)]);
-    } catch (agg: any) {
-      // Promise.any throws AggregateError when ALL promises reject.
-      // agg.message is always the unhelpful 'All promises were rejected' —
-      // unwrap individual errors so the caller's catch logs Flash+Pro failure details.
-      const details = Array.isArray(agg.errors)
-        ? agg.errors.map((e: any) => e?.message ?? String(e)).join(' | ')
-        : agg.message;
-      throw new Error(`Both Gemini models failed in parallel race: ${details}`);
+    let result: string | undefined;
+    const failures: string[] = [];
+    // ponytail: sequential fallback avoids a surviving parallel send after refusal;
+    // revisit speculative execution only with a shared cancellation contract.
+    for (const model of [GEMINI_FLASH_MODEL, GEMINI_PRO_MODEL]) {
+      if (abortSignal?.aborted) return;
+      const deadline = AbortSignal.timeout(30_000);
+      const signal = abortSignal ? AbortSignal.any([abortSignal, deadline]) : deadline;
+      try {
+        result = await this.withTimeout(this.collectStreamResponse(fullMessage, model, imagePaths, signal, systemInstruction), 30_000, model);
+        break;
+      } catch (error: any) {
+        if (abortSignal?.aborted) return;
+        rethrowProviderScopeError(error);
+        failures.push(`${model}: ${error.message}`);
+      }
     }
+    if (result === undefined) throw new Error(`Both Gemini models failed: ${failures.join(' | ')}`);
 
     // Yield in chunks to simulate incremental streaming UX.
     const chunkSize = 10;
@@ -3036,15 +3036,14 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   }
 
   /**
-   * Collect full response from a Gemini model (non-streaming, used by parallel race).
-   * Accepts an AbortSignal so the losing model can be cancelled by the winner.
+   * Collect a Gemini response with cancellation while waiting for it.
    * Timing reference: Flash 10-15s (up to 30s with images), Pro up to 30s.
    */
   private async collectStreamResponse(fullMessage: string, model: string, imagePaths?: string[], signal?: AbortSignal, systemInstruction?: string): Promise<string> {
     if (!this.client) throw new Error("Gemini client not initialized");
     this.assertOutboundScopes('gemini', fullMessage, imagePaths);
 
-    // Bail immediately if already cancelled (e.g. the other model already won).
+    // Bail immediately if already cancelled.
     if (signal?.aborted) throw new Error(`Gemini ${model} request cancelled before start`);
 
     const contents: any[] = [{ text: fullMessage }];
@@ -3082,6 +3081,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // The Google GenAI SDK does not natively support AbortSignal on generateContent,
     // so we implement manual cancellation via Promise.race.
     const callWithConfig = (useCacheName: string | null) => {
+      signal?.throwIfAborted();
       this.assertOutboundScopes('gemini', fullMessage, imagePaths);
       return this.client!.models.generateContent({
         model,
@@ -3113,6 +3113,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     try {
       response = await runOnce(cacheName);
     } catch (err: any) {
+      rethrowProviderScopeError(err);
       // If the explicit cache turned stale between getOrCreate and the call,
       // drop it and retry with systemInstruction. Aborts re-throw unchanged.
       const msg = String(err?.message || err);
@@ -3255,6 +3256,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         console.log(`[LLMHelper] ✅ Mode-specific Groq stream completed`);
         return; // Success - done
       } catch (err: any) {
+        rethrowProviderScopeError(err);
         console.warn(`[LLMHelper] ⚠️ Groq mode-specific failed: ${err.message}, falling back to Gemini`);
       }
     }
@@ -3296,17 +3298,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     });
   }
 
-  /**
-   * ROBUST GENERATION STRATEGY (SPECULATIVE PARALLEL EXECUTION)
-   * 1. Attempt with original model (Flash).
-   * 2. If it fails/empties:
-   *    - IMMEDIATELY launch two requests in parallel:
-   *      a) Retry Flash (Attempt 2)
-   *      b) Start Pro (Backup)
-   * 3. Return whichever finishes successfully first (prioritizing Flash if both fast).
-   * 4. If both fail, try Flash one last time (Attempt 3).
-   * 5. If that fails, throw error.
-   */
+  // Keep the existing four attempts, but serialize them so a refusal is terminal.
   private async generateWithFallback(client: GoogleGenAI, args: any): Promise<any> {
     this.assertGeminiContents(args?.contents);
     const originalModel = args.model;
@@ -3322,72 +3314,20 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       return false;
     };
 
-    // 1. Initial Attempt (Flash)
-    try {
-      await this.rateLimiters.gemini.acquire();
-      this.assertGeminiContents(args?.contents); // again right before sending
-      const response = await client.models.generateContent({
-        ...args,
-        model: originalModel
-      });
-      if (isValidResponse(response)) return response;
-      console.warn(`[LLMHelper] Initial ${originalModel} call returned empty/invalid response.`);
-    } catch (error: any) {
-      console.warn(`[LLMHelper] Initial ${originalModel} call failed: ${error.message}`);
-    }
-
-    console.log(`[LLMHelper] 🚀 Triggering Speculative Parallel Retry (Flash + Pro)...`);
-
-    // 2. Parallel Execution (Retry Flash vs Pro)
-    // We create promises for both but treat them carefully
-    const flashRetryPromise = (async () => {
-      // Small delay before retry to let system settle? No, user said "immediately"
+    let lastError: unknown;
+    for (const model of [originalModel, originalModel, GEMINI_PRO_MODEL, originalModel]) {
       try {
         await this.rateLimiters.gemini.acquire();
-        this.assertGeminiContents(args?.contents); // again right before sending
-        const res = await client.models.generateContent({ ...args, model: originalModel });
-        if (isValidResponse(res)) return { type: 'flash', res };
-        throw new Error("Empty Flash Response");
-      } catch (e) { throw e; }
-    })();
-
-    const proBackupPromise = (async () => {
-      try {
-        // Pro might be slower, but it's the robust backup
-        await this.rateLimiters.gemini.acquire();
-        this.assertGeminiContents(args?.contents); // again right before sending
-        const res = await client.models.generateContent({ ...args, model: GEMINI_PRO_MODEL });
-        if (isValidResponse(res)) return { type: 'pro', res };
-        throw new Error("Empty Pro Response");
-      } catch (e) { throw e; }
-    })();
-
-    // 3. Race / Fallback Logic
-    try {
-      // We want Flash if it succeeds, but will accept Pro if Flash fails
-      // If Flash finishes first and success -> return Flash
-      // If Pro finishes first -> wait for Flash? Or return Pro?
-      // User said: "if the gemini 3 flash again fails the gemini 3 pro response can be immediatly displayed"
-      // This implies we prioritize Flash's *result*, but if Flash fails, we want Pro.
-
-      // We use Promise.any to get the first *successful* result
-      const winner = await Promise.any([flashRetryPromise, proBackupPromise]);
-      console.log(`[LLMHelper] Parallel race won by: ${winner.type}`);
-      return winner.res;
-
-    } catch (aggregateError) {
-      console.warn(`[LLMHelper] Both parallel retry attempts failed.`);
+        this.assertGeminiContents(args?.contents);
+        const response = await client.models.generateContent({ ...args, model });
+        if (isValidResponse(response)) return response;
+        throw new Error(`Empty response from ${model}`);
+      } catch (error) {
+        rethrowProviderScopeError(error);
+        lastError = error;
+      }
     }
-
-    // 4. Last Resort: Flash Final Retry
-    console.log(`[LLMHelper] ⚠️ All parallel attempts failed. Trying Flash one last time...`);
-    try {
-      this.assertGeminiContents(args?.contents); // again right before sending
-      return await client.models.generateContent({ ...args, model: originalModel });
-    } catch (finalError) {
-      console.error(`[LLMHelper] Final retry failed.`);
-      throw finalError;
-    }
+    throw lastError;
   }
 
   private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, operationName: string): Promise<T> {
@@ -3463,7 +3403,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           return this.processResponse(text);
         }
       } catch (e: any) {
-        if (e instanceof ProviderScopeError) throw e;
+        rethrowProviderScopeError(e);
         console.warn(`[LLMHelper] ⚠️ Codex CLI summary failed: ${e.message}. Falling back...`);
       }
     }
@@ -3494,7 +3434,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           return this.processResponse(text);
         }
       } catch (e: any) {
-        if (e instanceof ProviderScopeError) throw e;
+        rethrowProviderScopeError(e);
         console.warn(`[LLMHelper] ⚠️ Groq summary failed: ${e.message}. Falling back to Gemini...`);
       }
     } else {
@@ -3519,7 +3459,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           return this.processResponse(text);
         }
       } catch (e: any) {
-        if (e instanceof ProviderScopeError) throw e;
+        rethrowProviderScopeError(e);
         console.warn(`[LLMHelper] ⚠️ Gemini Flash attempt ${attempt}/3 failed: ${e.message}`);
         if (attempt < 3) {
           await new Promise(r => setTimeout(r, 1000 * attempt)); // Linear backoff
@@ -3557,7 +3497,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
             return this.processResponse(text);
           }
         } catch (e: any) {
-          if (e instanceof ProviderScopeError) throw e;
+          rethrowProviderScopeError(e);
           console.warn(`[LLMHelper] ⚠️ Gemini Pro attempt ${attempt} failed: ${e.message}`);
           // Aggressive backoff for Pro: 2s, 4s, 8s, 16s, 32s
           const backoff = 2000 * Math.pow(2, attempt - 1);

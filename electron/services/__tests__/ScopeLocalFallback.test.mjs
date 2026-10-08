@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
 import { createRequire } from 'node:module';
+import ts from 'typescript';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
@@ -163,6 +164,217 @@ for (const entry of ['generate', 'stream']) {
 // throws, so an allowed call proves the check sits in front of the send.
 const SEND_STUB = 'send-stub-reached';
 
+// Keep the real SDK request/retry machinery; replace only its HTTP transport.
+// A retryable response closes the scope before the SDK's retry timer can fire.
+for (const construction of ['constructor', 'key update']) {
+  for (const provider of ['groq', 'openai', 'claude', 'deepseek']) {
+    test(`${provider} ${construction}: SDK cannot resend after scope revocation`, async () => {
+      const LLMHelper = loadBuiltLLMHelper();
+      const self = construction === 'constructor'
+        ? new LLMHelper(undefined, 'test-only', 'test-only', 'test-only', 'test-only')
+        : new LLMHelper();
+      if (construction === 'key update') {
+        const setters = { groq: 'setGroqApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' };
+        self[setters[provider]]('test-only');
+      }
+      const policy = {};
+      self.getProviderScopePolicy = () => policy;
+      self.withTimeout = promise => promise;
+      self.rateLimiters[provider] = { acquire: async () => {} };
+      const client = self[`${provider}Client`];
+      let requests = 0;
+      client.fetch = async () => {
+        requests++;
+        policy.transcript = false;
+        return new Response(JSON.stringify({ error: { message: 'retryable test failure', type: 'server_error' } }), {
+          status: 500, headers: { 'content-type': 'application/json', 'retry-after-ms': '1' },
+        });
+      };
+      const calls = {
+        groq: () => self.generateWithGroq('SCOPE_SENTINEL'),
+        openai: () => self.generateWithOpenai('SCOPE_SENTINEL'),
+        claude: () => self.generateWithClaude('SCOPE_SENTINEL'),
+        deepseek: () => self.generateWithDeepseek('SCOPE_SENTINEL'),
+      };
+      await assert.rejects(calls[provider]);
+      assert.equal(requests, 1, 'no hidden SDK replay after the scope closes');
+      assert.equal(client.maxRetries, 0);
+    });
+  }
+}
+
+test('vision denial is terminal without retries, health penalty or fallback', async () => {
+  const { ProviderScopeError } = await loadRouter();
+  const { runStreamingVisionFallback, DEFAULT_VISION_FALLBACK_CONFIG } = await import(pathToFileURL(path.join(repoRoot, 'dist-electron/electron/llm/visionStreamFallback.js')).href);
+  const denied = new ProviderScopeError('test', ['screenshots']);
+  const health = new Map();
+  const attempts = [];
+  const providers = ['first', 'backup'].map(id => ({ id, name: id, isLocal: false, priority: 0,
+    open: async function* () { attempts.push(id); throw denied; },
+  }));
+  const hooks = { sleep: async () => { attempts.push('backoff'); }, warn: () => { attempts.push('provider warning'); } };
+  await assert.rejects(async () => {
+    for await (const _ of runStreamingVisionFallback(providers, { ...DEFAULT_VISION_FALLBACK_CONFIG, cleanupTimeoutMs: 1 }, health, hooks)) { /* drain */ }
+  }, error => error === denied);
+  assert.deepEqual(attempts, ['first']);
+  assert.equal(health.size, 0);
+});
+
+test('Gemini fallback preserves refusal without starting a speculative sibling', async () => {
+  const { ProviderScopeError } = await loadRouter();
+  const denied = new ProviderScopeError('gemini', ['transcript']);
+  const attempted = [];
+  const self = helperWith({}, { client: {}, collectStreamResponse: async (_, model) => {
+    attempted.push(model);
+    if (attempted.length === 1) throw denied;
+    return 'must not become an answer';
+  } });
+  await assert.rejects(async () => {
+    for await (const _ of self.streamWithGeminiFallback('QUESTION')) { /* drain */ }
+  }, error => error === denied);
+  assert.equal(attempted.length, 1);
+});
+
+test('Gemini sequential fallback retains ordinary failure and cancellation behavior', async () => {
+  const attempted = [];
+  const self = helperWith({}, { client: {}, collectStreamResponse: async (_, model) => {
+    attempted.push(model);
+    if (attempted.length === 1) throw new Error('provider unavailable');
+    return 'BACKUP_RESULT';
+  } });
+  let answer = '';
+  for await (const chunk of self.streamWithGeminiFallback('QUESTION')) answer += chunk;
+  assert.equal(answer, 'BACKUP_RESULT');
+  assert.equal(attempted.length, 2);
+  const cancelled = new AbortController();
+  self.collectStreamResponse = async () => { cancelled.abort(); throw new Error('cancelled'); };
+  await drain(self.streamWithGeminiFallback('QUESTION', undefined, undefined, cancelled.signal));
+});
+
+test('an aborted Gemini collection cannot send after its cache wait', async () => {
+  const controller = new AbortController();
+  let sends = 0;
+  const self = helperWith({}, {
+    client: { models: { generateContent: async () => { sends++; return { text: 'ANSWER' }; } } },
+    geminiPromptCache: { getOrCreate: async () => { controller.abort(); return null; } },
+  });
+  await assert.rejects(() => self.collectStreamResponse('QUESTION', 'test', undefined, controller.signal, 'SYSTEM'));
+  assert.equal(sends, 0);
+});
+
+const drain = async (stream) => { for await (const _ of stream) { /* drain */ } };
+
+test('prompt wrappers propagate a refusal instead of inventing an answer', async () => {
+  loadBuiltLLMHelper();
+  const { ProviderScopeError, rethrowProviderScopeError } = await loadRouter();
+  const denied = new ProviderScopeError('test', ['transcript']);
+  assert.throws(() => rethrowProviderScopeError(new AggregateError([new Error('ordinary'), new AggregateError([denied])])), error => error === denied);
+  const helper = {
+    getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: true }),
+    fitContextForCurrentModel: text => text,
+    getPromptTier: () => 'standard',
+    deniedDataScopes: () => [],
+    chat: async () => { throw denied; },
+    streamChat: async function* () { throw denied; },
+  };
+  const require = createRequire(import.meta.url);
+  for (const name of ['WhatToAnswer', 'CodeHint', 'Brainstorm', 'Answer', 'Recap', 'FollowUp', 'Clarify', 'Assist', 'FollowUpQuestions']) {
+    const className = `${name}LLM`;
+    const Class = require(path.join(repoRoot, `dist-electron/electron/llm/${className}.js`))[className];
+    const wrapper = new Class(helper);
+    for (const method of ['generate', 'generateStream']) {
+      if (typeof wrapper[method] !== 'function') continue;
+      const args = name === 'CodeHint' ? [undefined, 'QUESTION', 'transcript', 'CONTEXT'] : ['QUESTION'];
+      await assert.rejects(async () => {
+        const result = wrapper[method](...args);
+        if (method === 'generateStream') await drain(result); else await result;
+      }, error => error === denied, `${className}.${method}`);
+    }
+  }
+});
+
+test('WhatToSay emits the refusal and rejects without a fabricated answer', async () => {
+  loadBuiltLLMHelper();
+  const { ProviderScopeError } = await loadRouter();
+  const { IntelligenceEngine } = createRequire(import.meta.url)(path.join(repoRoot, 'dist-electron/electron/IntelligenceEngine.js'));
+  const denied = new ProviderScopeError('test', ['transcript']);
+  const events = [];
+  const engine = Object.assign(Object.create(IntelligenceEngine.prototype), {
+    session: { getFormattedContext: () => 'CONTEXT' },
+    answerLLM: { generate: async () => { throw denied; } },
+    emit: (...args) => events.push(args),
+    setMode: mode => events.push(['mode', mode]),
+  });
+  await assert.rejects(() => engine.runWhatShouldISay('QUESTION'), error => error === denied);
+  assert.deepEqual(events, [['mode', 'what_to_say'], ['error', denied, 'what_to_say'], ['mode', 'idle']]);
+});
+
+test('default chat routing refuses transcript denial but can send without denied context', async () => {
+  const LLMHelper = loadBuiltLLMHelper();
+  const policy = { transcript: false };
+  const messages = [];
+  const self = Object.assign(new LLMHelper(), {
+    currentModelId: 'gemini-test', groqClient: {},
+    getProviderScopePolicy: () => policy,
+    generateWithGroq: async message => { messages.push(message); return 'ANSWER'; },
+  });
+  await assert.rejects(() => self.chatWithGemini('QUESTION'), { name: 'ProviderScopeError' });
+  assert.equal(messages.length, 0);
+  policy.transcript = true;
+  policy.profile_history = false;
+  assert.equal(await self.chatWithGemini('QUESTION', undefined, 'MEETING: SECRET_HISTORY'), 'ANSWER');
+  assert.deepEqual(messages, ['QUESTION']);
+});
+const denialRoutes = [
+  ['non-streaming chat', self => self.chatWithGemini('QUESTION')],
+  ['fast Codex chat', self => { self.groqFastTextMode = true; self.codexCliConfig.enabled = true; return self.chatWithGemini('QUESTION'); }],
+  ['fast Groq chat', self => { self.groqFastTextMode = true; self.currentModelId = 'llama-3.3-70b-versatile'; return self.chatWithGemini('QUESTION'); }],
+  ['structured fallback', self => self.generateContentStructured('QUESTION')],
+  ['non-streaming vision', self => self.generateWithVisionFallback('SYSTEM', 'QUESTION', NO_IMAGE)],
+  ['Codex vision', self => { self.codexCliConfig.enabled = true; return self.generateWithVisionFallback('SYSTEM', 'QUESTION', NO_IMAGE); }],
+  ['streaming text fallback', self => drain(self.streamChatWithGemini('QUESTION'))],
+  ['streaming vision outer boundary', self => drain(self.streamChat('QUESTION', NO_IMAGE))],
+  ['mode-specific fallback', self => drain(self.streamWithGroqOrGemini('QUESTION', 'QUESTION'))],
+];
+for (const [name, run] of denialRoutes) {
+  test(`${name}: a scope refusal stops at the first provider`, async () => {
+    const LLMHelper = loadBuiltLLMHelper();
+    const { ProviderScopeError } = await loadRouter();
+    const denied = new ProviderScopeError('test', ['transcript']);
+    const calls = [];
+    const self = Object.assign(new LLMHelper(), {
+      currentModelId: 'gpt-5.4', codexCliConfig: { enabled: false, model: 'test' },
+      openaiClient: {}, claudeClient: {}, client: {},
+      groqClient: { chat: { completions: { create: async () => { calls.push('groq send'); throw denied; } } } },
+      getProviderScopePolicy: () => ({}),
+      delay: async () => { calls.push('backoff'); },
+    });
+    for (const method of ['generateWithCodexCli', 'generateWithGroq', 'generateWithOpenai', 'generateWithClaude', 'generateWithDeepseek', 'generateWithGroqMultimodal']) {
+      self[method] = async () => { calls.push(method); throw denied; };
+    }
+    for (const method of ['streamWithCodexCli', 'streamWithGroq', 'streamWithOpenai', 'streamWithClaude', 'streamVisionWithFallback']) {
+      self[method] = async function* () { calls.push(method); throw denied; };
+    }
+    await assert.rejects(() => run(self), error => error === denied);
+    assert.equal(calls.length, 1, JSON.stringify(calls));
+  });
+}
+
+for (const refuseAt of [1, 2]) {
+  test(`robust Gemini fallback keeps refusal type at rate-limit wait ${refuseAt}`, async () => {
+    const policy = {};
+    let waits = 0;
+    let sends = 0;
+    const self = helperWith(policy, {
+      rateLimiters: { gemini: { acquire: async () => { if (++waits === refuseAt) policy.transcript = false; } } },
+    });
+    const client = { models: { generateContent: async () => { sends++; throw new Error('server failed'); } } };
+    await assert.rejects(() => self.generateWithFallback(client, { model: 'test', contents: [{ text: 'QUESTION' }] }), { name: 'ProviderScopeError' });
+    assert.equal(sends, refuseAt - 1);
+    assert.equal(waits, refuseAt, 'no subsequent retry cycle after a refusal');
+  });
+}
+
 function helperWith(policy, fields) {
   const LLMHelper = loadBuiltLLMHelper();
   const noLimit = { acquire: async () => {} };
@@ -227,34 +439,53 @@ test('chatWithGemini with Claude selected does not send a transcript-bearing mes
   assert.doesNotMatch(String(denied.result), /TRANSCRIPT_SENTINEL/);
 });
 
-// Static sweep: every call in LLMHelper.ts that sends to a cloud provider must have a
-// scope check earlier in the same method, with nothing that can wait or run later in
-// between (no `await`, `yield` or function boundary, PLAN.md AG-17 seventh review): a
-// scope turned off while the request waited must stop the send. Wrapping a send in
-// `await this.withTimeout(` is allowed. A new send without such a check fails here.
-test('every cloud send in LLMHelper.ts is preceded by a scope check in its method', () => {
-  const lines = read('electron/LLMHelper.ts').split('\n');
-  const SEND = /\.chat\.completions\.create\(|\.models\.generateContent(?:Stream)?\(|\.messages\.(?:create|stream)\(|CodexCliService\.(?:run|stream)\(/;
-  const METHOD = /^ {2}(?:public |private |protected )?(?:static )?(?:async )?(?:\* ?)?[A-Za-z_]\w*\s*\(/;
-  const CHECK = /assertOutboundScopes\(|assertGeminiContents\(|getDeniedDataScopes\(\[/;
+// Syntax guard for the enumerated SDK methods, not a proof about arbitrary callees,
+// aliases, SDK internals or data provenance. Runtime tests cover SDK retries separately.
+function scanSends(source) {
+  const tree = ts.createSourceFile('send.ts', source, ts.ScriptTarget.Latest, true);
   const sends = [];
-  lines.forEach((line, i) => {
-    if (!SEND.test(line) || /^\s*(?:\/\/|\*)/.test(line)) return;
-    let start = i;
-    while (start > 0 && !METHOD.test(lines[start])) start--;
-    let check = i - 1;
-    while (check > start && !CHECK.test(lines[check])) check--;
-    const checked = CHECK.test(lines[check]);
-    const before = line.slice(0, line.search(SEND));
-    const waits = lines.slice(check + 1, i)
-      .filter((l) => !/^\s*(?:\/\/|\*)/.test(l) && !/^\s*(?:const \w+ = )?await this\.withTimeout\($/.test(l))
-      .filter((l) => /\bawait\b|\byield\b|=>/.test(l));
-    if (/=>/.test(before)) waits.push(line.trim());
-    sends.push({ line: i + 1, method: lines[start].trim().slice(0, 60), checked, waits });
+  const walk = (node, visit) => { visit(node); ts.forEachChild(node, child => walk(child, visit)); };
+  walk(tree, call => {
+    if (!ts.isCallExpression(call) || !/(?:\.chat\.completions\.create|\.models\.generateContent(?:Stream)?|\.messages\.(?:create|stream)|CodexCliService\.(?:run|stream))$/.test(call.expression.getText(tree))) return;
+    let statement = call;
+    while (statement.parent && !ts.isBlock(statement.parent) && !ts.isSourceFile(statement.parent)) statement = statement.parent;
+    const siblings = statement.parent?.statements ?? [];
+    const previous = siblings[siblings.indexOf(statement) - 1];
+    const checked = previous && ts.isExpressionStatement(previous) && ts.isCallExpression(previous.expression)
+      && /^this\.(?:assertOutboundScopes|assertGeminiContents)$/.test(previous.expression.expression.getText(tree));
+    let waits = false;
+    walk(statement, node => {
+      // Awaiting the send's result (or its withTimeout wrapper) is fine. Waiting
+      // before invocation, including inside an argument, is not.
+      const containsSend = node.pos <= call.pos && node.end >= call.end;
+      if ((ts.isAwaitExpression(node) || ts.isYieldExpression(node)) && !containsSend && node.pos < call.end) waits = true;
+      if (ts.isFunctionLike(node)) waits = true;
+    });
+    sends.push({ line: tree.getLineAndCharacterOfPosition(call.getStart(tree)).line + 1, checked: !!checked, waits });
   });
-  assert.ok(sends.length >= 20, `found only ${sends.length} sends; the pattern no longer matches the code`);
-  assert.deepEqual(sends.filter((s) => !s.checked), [], 'sends without a scope check');
-  assert.deepEqual(sends.filter((s) => s.waits.length > 0).map((s) => ({ line: s.line, waits: s.waits })), [], 'sends whose check is separated from them by a wait');
+  return sends;
+}
+
+test('every enumerated SDK send immediately follows a scope check without a syntactic wait', () => {
+  const sends = scanSends(read('electron/LLMHelper.ts'));
+  assert.ok(sends.length >= 20);
+  assert.deepEqual(sends.filter(send => !send.checked || send.waits), []);
+});
+
+test('send syntax guard rejects deferred closures and awaited arguments', () => {
+  const check = 'this.assertOutboundScopes("test", "text");';
+  const send = 'this.openaiClient.chat.completions.create({});';
+  for (const unsafe of [
+    `${check} const later = function () { return ${send} };`,
+    `${check} const later = () => ${send}`,
+    `${check} await wait(); ${send}`,
+    `${check} this.openaiClient.chat.completions.create(await body());`,
+    `${check} this.openaiClient.chat.completions.create({\n content: await body()\n });`,
+    `if (allowed) { ${check} } ${send}`,
+  ]) {
+    assert.ok(scanSends(unsafe).some(send => !send.checked || send.waits), unsafe);
+  }
+  assert.deepEqual(scanSends(`${check} await this.withTimeout(${send.slice(0, -1)}, 1000);`).map(({ checked, waits }) => ({ checked, waits })), [{ checked: true, waits: false }]);
 });
 
 // Fourth review (PLAN.md AG-17): the static sweep only shows that a check comes
@@ -451,7 +682,6 @@ test('chatWithGemini keeps the scopes of its context for every send', async () =
     ...claudeClient((body) => { requests.push(body); throw new Error(SEND_STUB); }),
     rateLimiters: { claude: { acquire: async () => { policy.post_call_summary = false; } }, groq: { acquire: async () => {} }, gemini: { acquire: async () => {} }, openai: { acquire: async () => {} }, deepseek: { acquire: async () => {} } },
   });
-  const result = await self.chatWithGemini('QUESTION', undefined, 'MEETING: Weekly sync\n\nSUMMARY:\nSUMMARY_SENTINEL');
+  await assert.rejects(() => self.chatWithGemini('QUESTION', undefined, 'MEETING: Weekly sync\n\nSUMMARY:\nSUMMARY_SENTINEL'), { name: 'ProviderScopeError', message: /Data scope denied/ });
   assert.equal(requests.length, 0, 'the context was allowed at the start, but not when Claude was about to be asked');
-  assert.doesNotMatch(String(result), /SUMMARY_SENTINEL/);
 });

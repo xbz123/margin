@@ -1,0 +1,192 @@
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+[LLMHelper] OpenAI client initialized with model: gpt-5.4
+[LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+[LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+[LLMHelper] OpenAI client initialized with model: gpt-5.4
+[LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+[LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+(node:22293) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ transcript scope denial omits transcript from cloud calls (9.5335ms)
+✔ LLMHelper infers auxiliary context scopes before cloud routing (0.521ms)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (4.187333ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (131.679416ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.399125ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (1.098584ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.373458ms)
+✔ groq constructor: SDK cannot resend after scope revocation (22.675959ms)
+[LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+[LLMHelper] OpenAI client initialized with model: gpt-5.4
+[LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+[LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ openai constructor: SDK cannot resend after scope revocation (405.594792ms)
+[LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+[LLMHelper] OpenAI client initialized with model: gpt-5.4
+[LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+[LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ claude constructor: SDK cannot resend after scope revocation (405.851416ms)
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] Groq API Key updated.
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] OpenAI API Key updated.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ deepseek constructor: SDK cannot resend after scope revocation (405.425792ms)
+✔ groq key update: SDK cannot resend after scope revocation (2.351167ms)
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] Claude API Key updated.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ openai key update: SDK cannot resend after scope revocation (404.811ms)
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] DeepSeek API Key updated.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ claude key update: SDK cannot resend after scope revocation (406.277667ms)
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] ⚡️ Fast Text Mode Active. Routing to Codex CLI...
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] ⚡️ Groq Fast Text Mode Active. Routing to Groq...
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] 🧠 Structured generation: trying OpenAI (gpt-5.4)...
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] 🚀 [OpenAI (gpt-5.4)] attempt 1/3...
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] 🚀 [Codex CLI] Attempting (test, 1 image(s))...
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] streamChatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] 🚀 Attempting OpenAI (gpt-5.4)...
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] No API key provided. Client will be uninitialized until key is set.
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] Calling gemini-test...
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] Critical Error in chatWithGemini: Error: send-stub-reached
+    at Object.stream (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:332:85)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77290:51
+    at LLMHelper.withRetry (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:323:24)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77288:12)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76942:18
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] ⚠️ Groq mode-specific failed: send-stub-reached, falling back to Gemini
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Gemini Flash for summary...
+[LLMHelper] ⚡️ Fast Text Mode Active (Streaming). Routing to Codex CLI...
+[LLMHelper] ⚡️ Groq Fast Text Mode Active (Streaming). Routing to local Groq...
+[LLMHelper] Codex CLI Fast Text streaming failed, falling back: codex failed
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+✔ deepseek key update: SDK cannot resend after scope revocation (405.6955ms)
+✔ vision denial is terminal without retries, health penalty or fallback (8.552125ms)
+✔ Gemini fallback preserves refusal without starting a speculative sibling (0.933834ms)
+✔ Gemini sequential fallback retains ordinary failure and cancellation behavior (0.841ms)
+✖ an aborted Gemini collection cannot send after its rate-limit wait (1.529ms)
+✔ non-streaming chat: a scope refusal stops at the first provider (2.082ms)
+✔ fast Codex chat: a scope refusal stops at the first provider (0.529291ms)
+✔ fast Groq chat: a scope refusal stops at the first provider (0.425958ms)
+✔ structured fallback: a scope refusal stops at the first provider (0.633667ms)
+✔ non-streaming vision: a scope refusal stops at the first provider (0.883167ms)
+✔ Codex vision: a scope refusal stops at the first provider (0.30575ms)
+✔ streaming text fallback: a scope refusal stops at the first provider (0.8725ms)
+✔ streaming vision outer boundary: a scope refusal stops at the first provider (0.911208ms)
+✔ mode-specific fallback: a scope refusal stops at the first provider (0.395125ms)
+✔ robust Gemini fallback keeps refusal type at rate-limit wait 1 (0.419666ms)
+✔ robust Gemini fallback keeps refusal type at rate-limit wait 2 (0.130042ms)
+✔ Claude sends nothing when the transcript or screenshot scope is denied (0.420167ms)
+✔ Groq multimodal sends nothing when the transcript or screenshot scope is denied (0.278166ms)
+✔ Gemini contents sends nothing when the transcript or screenshot scope is denied (0.324541ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (5.620625ms)
+✔ every enumerated SDK send immediately follows a scope check without a syntactic wait (47.878083ms)
+✔ send syntax guard rejects deferred closures and awaited arguments (1.012875ms)
+✔ generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied (0.683917ms)
+✔ generateWithPro sends nothing when the transcript scope is denied (0.173584ms)
+✔ generateWithFlash sends nothing when the transcript scope is denied (0.442875ms)
+✔ generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied (0.192625ms)
+✔ streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied (0.183541ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.812542ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (6.857875ms)
+✔ the meeting chat context carries the scopes of what it contains (1.83075ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.089042ms)
+✔ meeting summaries stop the fallback chain when a scope is turned off during it (0.529291ms)
+✔ streamChat re-checks its scopes before each send, also after waiting (1.039208ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.361458ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 47
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2988.551084
+
+✖ failing tests:
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:254:1
+✖ an aborted Gemini collection cannot send after its rate-limit wait (1.529ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:261:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

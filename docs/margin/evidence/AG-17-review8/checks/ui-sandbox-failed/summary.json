@@ -1,0 +1,73 @@
+{
+  "startedAt": "2026-10-08T00:39:20.885Z",
+  "head": "987fd6efd15224a07f7dd0ce6e1748baff2224b8",
+  "uncommittedPaths": 21,
+  "uncommittedPathList": [
+    "M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    " M electron/IntelligenceEngine.ts",
+    " M electron/LLMHelper.ts",
+    " M electron/llm/AnswerLLM.ts",
+    " M electron/llm/AssistLLM.ts",
+    " M electron/llm/BrainstormLLM.ts",
+    " M electron/llm/ClarifyLLM.ts",
+    " M electron/llm/CodeHintLLM.ts",
+    " M electron/llm/FollowUpLLM.ts",
+    " M electron/llm/FollowUpQuestionsLLM.ts",
+    " M electron/llm/ProviderRouter.ts",
+    " M electron/llm/RecapLLM.ts",
+    " M electron/llm/WhatToAnswerLLM.ts",
+    " M electron/llm/visionStreamFallback.ts",
+    " M electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+    " M electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    " M src/components/MeetingDetails.tsx",
+    " M tests/margin/meeting-storage.test.mjs",
+    "?? docs/margin/evidence/AG-17-review8/"
+  ],
+  "reference": "docs/margin/evidence/AG-17-review7",
+  "steps": [
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 9274,
+      "log": "../../../../../../../tmp/margin-review8-ui-check/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2610,
+      "log": "../../../../../../../tmp/margin-review8-ui-check/regression.log",
+      "passed": false
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1304,
+      "log": "../../../../../../../tmp/margin-review8-ui-check/storage.log",
+      "passed": false
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1117,
+      "log": "../../../../../../../tmp/margin-review8-ui-check/startup.log",
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-08T00:39:35.191Z",
+  "allPassed": false
+}

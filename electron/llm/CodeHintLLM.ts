@@ -1,4 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
+import { rethrowProviderScopeError } from "./ProviderRouter";
 import { CODE_HINT_PROMPT, buildCodeHintMessage } from "./prompts";
 import { TINY_CODE_HINT_PROMPT } from "./tinyPrompts";
 
@@ -41,6 +42,7 @@ export class CodeHintLLM {
                 promptOverride
             );
         } catch (error) {
+            rethrowProviderScopeError(error);
             console.error("[CodeHintLLM] Stream failed:", error);
             yield "I couldn't analyze the screenshot. Make sure your code is visible and try again.";
         }

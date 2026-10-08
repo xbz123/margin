@@ -1,0 +1,152 @@
+{
+  "startedAt": "2026-10-08T00:36:32.790Z",
+  "head": "987fd6efd15224a07f7dd0ce6e1748baff2224b8",
+  "uncommittedPaths": 19,
+  "uncommittedPathList": [
+    "M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    " M electron/IntelligenceEngine.ts",
+    " M electron/LLMHelper.ts",
+    " M electron/llm/AnswerLLM.ts",
+    " M electron/llm/AssistLLM.ts",
+    " M electron/llm/BrainstormLLM.ts",
+    " M electron/llm/ClarifyLLM.ts",
+    " M electron/llm/CodeHintLLM.ts",
+    " M electron/llm/FollowUpLLM.ts",
+    " M electron/llm/FollowUpQuestionsLLM.ts",
+    " M electron/llm/ProviderRouter.ts",
+    " M electron/llm/RecapLLM.ts",
+    " M electron/llm/WhatToAnswerLLM.ts",
+    " M electron/llm/visionStreamFallback.ts",
+    " M electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    " M src/components/MeetingDetails.tsx",
+    " M tests/margin/meeting-storage.test.mjs"
+  ],
+  "reference": "docs/margin/evidence/AG-17-review7",
+  "steps": [
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 16221,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13216,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 12307,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/provenance.log",
+      "passed": false
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 20581,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 967,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1618,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs electron/test/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 71063,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/tests.log",
+      "tap": "../../../../../../../tmp/margin-review8-precommit-v2/tests.tap",
+      "perFile": "../../../../../../../tmp/margin-review8-precommit-v2/tests.files.json",
+      "files": 104,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 767,
+        "pass": 761,
+        "fail": 1,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 1,
+        "inherited": 0,
+        "new": [
+          "electron/services/__tests__/ProviderGatewayPolicy.test.mjs :: LLMHelper passes data scopes and policy to routeLLMProviders for fallback rotation"
+        ],
+        "resolved": []
+      },
+      "passed": false
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 164,
+      "log": "../../../../../../../tmp/margin-review8-precommit-v2/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-08T00:38:48.986Z",
+  "allPassed": false
+}

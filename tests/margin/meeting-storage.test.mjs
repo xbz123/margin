@@ -437,6 +437,7 @@ test('a meeting edit that fails to save is rolled back and reported', async () =
   await patchOnce('get-meeting-details', { result: null });
   await rename('RENAMED_MEETING_GONE');
   await waitFor(async () => /no longer exists/.test(await alertText()), 'the missing-meeting notice', 10_000);
+  assert.equal(await titleText(), 'RENAMED_SAVED', 'a deleted meeting does not leave an unsaved title on screen');
 
   // 7. Only the latest edit's response acts: a slow failure of an earlier edit, answered
   // after a later edit was saved, changes nothing.

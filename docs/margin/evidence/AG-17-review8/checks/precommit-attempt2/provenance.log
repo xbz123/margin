@@ -1,0 +1,16 @@
+
+electron/services/__tests__/ScopeLocalFallback.test.mjs: 1 hit(s)
+  314: const policy = { transcript: false };
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128299,
+  "restrictedLineKeys": 587141,
+  "addedSubstantiveLines": 5171,
+  "hits": 1,
+  "genericIdiomHits": 61,
+  "allowlistedHits": 114,
+  "filesWithHits": 1,
+  "binariesToReviewByHand": []
+}

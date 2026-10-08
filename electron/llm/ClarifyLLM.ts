@@ -1,4 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
+import { rethrowProviderScopeError } from "./ProviderRouter";
 import { CLARIFY_MODE_PROMPT } from "./prompts";
 import { TINY_CLARIFY_PROMPT } from "./tinyPrompts";
 
@@ -22,6 +23,7 @@ export class ClarifyLLM {
             for await (const chunk of stream) fullResponse += chunk;
             return fullResponse.trim();
         } catch (error) {
+            rethrowProviderScopeError(error);
             console.error("[ClarifyLLM] Generation failed:", error);
             return "";
         }
@@ -37,6 +39,7 @@ export class ClarifyLLM {
             const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
             yield* this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
         } catch (error) {
+            rethrowProviderScopeError(error);
             console.error("[ClarifyLLM] Streaming generation failed:", error);
         }
     }

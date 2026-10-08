@@ -1,0 +1,116 @@
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (546.851458ms)
+✖ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (0.505125ms)
+✖ the meeting chat follows the post_call_summary and profile_history scopes (0.053959ms)
+✖ a meeting edit that fails to save is rolled back and reported (0.041208ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (0.044917ms)
+✖ /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs (0.561917ms)
+ℹ Error: Test hook "before" at tests/margin/meeting-storage.test.mjs:75:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/meeting-storage.test.mjs:75:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/meeting-storage.test.mjs:75:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1037.014166
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:104:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (546.851458ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/record-main-errors.cjs /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=25799
+    - [pid=25799] <kill>
+    - [pid=25799] <will force kill>
+    - [pid=25799] exception while trying to kill process: Error: kill EPERM
+    - [pid=25799] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=25799] starting temporary directories cleanup
+    - [pid=25799] finished temporary directories cleanup
+  
+      at async launchApp (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/launch-app.mjs:46:15)
+      at async launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:47:29)
+      at async TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:86:3)
+
+test at tests/margin/meeting-storage.test.mjs:202:1
+✖ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (0.505125ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/record-main-errors.cjs /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=25799
+    - [pid=25799] <kill>
+    - [pid=25799] <will force kill>
+    - [pid=25799] exception while trying to kill process: Error: kill EPERM
+    - [pid=25799] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=25799] starting temporary directories cleanup
+    - [pid=25799] finished temporary directories cleanup
+  
+      at async launchApp (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/launch-app.mjs:46:15)
+      at async launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:47:29)
+      at async TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:86:3)
+
+test at tests/margin/meeting-storage.test.mjs:241:1
+✖ the meeting chat follows the post_call_summary and profile_history scopes (0.053959ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/record-main-errors.cjs /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=25799
+    - [pid=25799] <kill>
+    - [pid=25799] <will force kill>
+    - [pid=25799] exception while trying to kill process: Error: kill EPERM
+    - [pid=25799] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=25799] starting temporary directories cleanup
+    - [pid=25799] finished temporary directories cleanup
+  
+      at async launchApp (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/launch-app.mjs:46:15)
+      at async launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:47:29)
+      at async TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:86:3)
+
+test at tests/margin/meeting-storage.test.mjs:352:1
+✖ a meeting edit that fails to save is rolled back and reported (0.041208ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/record-main-errors.cjs /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=25799
+    - [pid=25799] <kill>
+    - [pid=25799] <will force kill>
+    - [pid=25799] exception while trying to kill process: Error: kill EPERM
+    - [pid=25799] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=25799] starting temporary directories cleanup
+    - [pid=25799] finished temporary directories cleanup
+  
+      at async launchApp (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/launch-app.mjs:46:15)
+      at async launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:47:29)
+      at async TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:86:3)
+
+test at tests/margin/meeting-storage.test.mjs:459:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (0.044917ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs -r /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/record-main-errors.cjs /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=25799
+    - [pid=25799] <kill>
+    - [pid=25799] <will force kill>
+    - [pid=25799] exception while trying to kill process: Error: kill EPERM
+    - [pid=25799] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=25799] starting temporary directories cleanup
+    - [pid=25799] finished temporary directories cleanup
+  
+      at async launchApp (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/launch-app.mjs:46:15)
+      at async launch (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:47:29)
+      at async TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:86:3)
+
+test at tests/margin/meeting-storage.test.mjs:89:6
+✖ /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs (0.561917ms)
+  Error: isolation log missing: /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-sqLcX7/tmp/margin-isolation-meeting-storage-TwuOzW/isolation.jsonl (the guard did not load or could not write)
+      at readGuardLog (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/env.mjs:54:42)
+      at readBlocked (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/env.mjs:65:10)
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:92:29)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7)
+      at async Test.runHook (node:internal/test_runner/test:1117:9)
+      at async after (node:internal/test_runner/test:1159:9)
+      at async Test.run (node:internal/test_runner/test:1227:7)

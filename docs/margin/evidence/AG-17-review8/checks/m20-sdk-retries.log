@@ -1,0 +1,228 @@
+mutation: m20-sdk-retries
+replacements: 8
+command: node scripts/margin/isolation/run-node.mjs --test --test-reporter=tap --test-name-pattern=SDK cannot resend electron/services/__tests__/ScopeLocalFallback.test.mjs
+exit: 1
+signal: null
+TAP version 13
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# (node:24231) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# Subtest: groq constructor: SDK cannot resend after scope revocation
+not ok 1 - groq constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 1134.294334
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+  ...
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# Subtest: openai constructor: SDK cannot resend after scope revocation
+not ok 2 - openai constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 473.761917
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# Subtest: claude constructor: SDK cannot resend after scope revocation
+not ok 3 - claude constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 475.812708
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Groq API Key updated.
+# Subtest: deepseek constructor: SDK cannot resend after scope revocation
+not ok 4 - deepseek constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 421.162917
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] OpenAI API Key updated.
+# Subtest: groq key update: SDK cannot resend after scope revocation
+not ok 5 - groq key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 15.956667
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Claude API Key updated.
+# Subtest: openai key update: SDK cannot resend after scope revocation
+not ok 6 - openai key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 414.421625
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] DeepSeek API Key updated.
+# Subtest: claude key update: SDK cannot resend after scope revocation
+not ok 7 - claude key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 431.554167
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# Subtest: deepseek key update: SDK cannot resend after scope revocation
+not ok 8 - deepseek key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 419.766292
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:171:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    no hidden SDK replay after the scope closes
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:200:14)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 0
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5135.271042
+

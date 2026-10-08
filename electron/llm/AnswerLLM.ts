@@ -1,4 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
+import { rethrowProviderScopeError } from "./ProviderRouter";
 import { UNIVERSAL_ANSWER_PROMPT } from "./prompts";
 import { TINY_ANSWER_PROMPT } from "./tinyPrompts";
 
@@ -25,6 +26,7 @@ export class AnswerLLM {
             return fullResponse.trim();
 
         } catch (error) {
+            rethrowProviderScopeError(error);
             console.error("[AnswerLLM] Generation failed:", error);
             return "";
         }

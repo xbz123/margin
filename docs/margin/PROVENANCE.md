@@ -21,6 +21,14 @@ Notes:
 
 ## Ledger
 
+Stage 1 review 8 is written on this branch from the scope-refusal behavior requirements.
+The old Margin branch was inspected as a behavior reference, not copied. Four source
+scanner matches are generic JavaScript: `signal?.throwIfAborted();` (the native
+AbortSignal cancellation check), `lastError = error;` and `throw lastError;` (retain
+and rethrow the final sequential-attempt error), and `const policy = { transcript: false };`
+(one-field synthetic test policy). These exact lines are individually
+allowlisted in the scanner configuration; matching them is not evidence of copying.
+
 Rows are added as code is brought in. "Check" is what was done to confirm the source.
 
 | Item on this branch | Source | Basis | Check | Commit |

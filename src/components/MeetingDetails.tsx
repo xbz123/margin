@@ -213,10 +213,6 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
             console.error('[MeetingDetails] Failed to reload the meeting after a failed save:', err);
         }
         if (!isLatest()) return;
-        if (!stored && !reloadFailed) {
-            setSaveError({ field, message: 'This change could not be saved: the meeting no longer exists.' });
-            return;
-        }
         const source = stored ?? previous;
         setMeeting(prev => restoreField(prev, source, field));
         if (field === 'actionItems') {
@@ -227,7 +223,9 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
             const length = source.detailedSummary?.keyPoints?.length ?? 0;
             setKeyPointKeys(prev => (prev.length === length ? prev : Array.from({ length }, () => genMessageId())));
         }
-        setSaveError({ field, message: 'This change could not be saved.' });
+        setSaveError({ field, message: !stored && !reloadFailed
+            ? 'This change could not be saved: the meeting no longer exists.'
+            : 'This change could not be saved.' });
     };
 
     // Applies an edit to the latest state and saves it.

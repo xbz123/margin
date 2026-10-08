@@ -1,0 +1,18 @@
+
+electron/LLMHelper.ts: 3 hit(s)
+  3084: signal?.throwIfAborted();
+  3327: lastError = error;
+  3330: throw lastError;
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128299,
+  "restrictedLineKeys": 587141,
+  "addedSubstantiveLines": 5155,
+  "hits": 3,
+  "genericIdiomHits": 60,
+  "allowlistedHits": 111,
+  "filesWithHits": 1,
+  "binariesToReviewByHand": []
+}

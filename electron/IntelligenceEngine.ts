@@ -4,6 +4,7 @@
 
 import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
+import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
@@ -395,7 +396,7 @@ export class IntelligenceEngine extends EventEmitter {
     /**
      * MODE 2: What Should I Say (Primary)
      * Manual trigger - uses clean transcript pipeline for question inference
-     * NEVER returns null - always provides a usable response
+     * Scope refusals reach the error boundary, never become a suggested answer.
      */
     async runWhatShouldISay(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { speculative?: boolean; skipCooldown?: boolean; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
         const now = Date.now();
@@ -573,6 +574,7 @@ export class IntelligenceEngine extends EventEmitter {
             if (isSpeculative) { this.speculativeText = null; this.speculativeTextExpiry = Infinity; }
             this.emit('error', error as Error, 'what_to_say');
             this.setMode('idle');
+            rethrowProviderScopeError(error);
             return "Could you repeat that? I want to make sure I address your question properly.";
         }
     }
