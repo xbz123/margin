@@ -1,0 +1,153 @@
+{
+  "baseline": "3cdb2b054c27ba8510af10864a20956bf8ad3d4e",
+  "branch": "codex/margin-agpl-migration",
+  "head": "3cdb2b054c27ba8510af10864a20956bf8ad3d4e",
+  "scope": "S19-B only; approved-metadata-MIT for exact react-remove-scroll-bar@2.3.8 and realfft@3.5.0; not legal/native/distribution acceptance",
+  "commands": [
+    {
+      "phase": "baseline preimage replay (same frozen cases)",
+      "exitCode": 1,
+      "tests": 52,
+      "pass": 16,
+      "fail": 36,
+      "log": "red-preimage-frozen.log"
+    },
+    {
+      "phase": "X2 frozen target test",
+      "exitCode": 0,
+      "tests": 52,
+      "pass": 52,
+      "fail": 0,
+      "log": "green-target-frozen.log"
+    },
+    {
+      "phase": "inventory generation",
+      "exitCode": 0,
+      "log": "generated-inventory.log"
+    },
+    {
+      "phase": "X2 offline/idempotence/bundle evidence",
+      "exitCode": 0,
+      "log": "generated-verification-frozen.log"
+    },
+    {
+      "phase": "node --check collector and target tests; git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "counts": {
+    "candidates": 726,
+    "texts": 413,
+    "excluded": 33,
+    "unresolved": 0,
+    "deferred": 2
+  },
+  "preserved": {
+    "texts": 411,
+    "unrelatedComponents": 724,
+    "previousAttachments": 45,
+    "orphanTexts": 0
+  },
+  "notRun": [
+    "full gates (parent-owned)",
+    "npm ci",
+    "native rebuild",
+    "GUI/formal Margin",
+    "real providers/keys/devices/data",
+    "CI",
+    "S19-C",
+    "stage/commit/push"
+  ],
+  "files": [
+    {
+      "file": "NOTICE",
+      "sha256": "e0f2957085227c32eadbcbcd0b2113e670f8ccf67aaffb93c2abbbd9a2b12070"
+    },
+    {
+      "file": "docs/margin/PROVENANCE.md",
+      "sha256": "0057571245a9452d5c3438a90ba5eed5ad7cd9346c3e34733bfbac618badaec6"
+    },
+    {
+      "file": "licenses/README.md",
+      "sha256": "a1696372108e8a9858059bfbab8800b033c2eaf8114e3ed3ad03ec9a4a2edfdb"
+    },
+    {
+      "file": "licenses/manifest.json",
+      "sha256": "96c339eb603e0afcf11c6f43e687d6cadda21688b9b03d5b79bda90d8927dfbe"
+    },
+    {
+      "file": "scripts/margin/collect-licenses.mjs",
+      "sha256": "5cbca6ce116bea16690048f16b24196d6da6a96e5b4affef841016a81db9df78"
+    },
+    {
+      "file": "scripts/margin/license-sources.json",
+      "sha256": "bb381ac036740d6841c3132b15ba25cca3958be0ca8da931863ac198948430d4"
+    },
+    {
+      "file": "electron/margin/__tests__/licenseInventory.test.mjs",
+      "sha256": "d209ff1860db50a3ad581de1b0a04f519ebc845c7c097db89bc859560c87d00b"
+    },
+    {
+      "file": "scripts/margin/license-inputs/metadata/react-remove-scroll-bar-2.3.8.txt",
+      "sha256": "323c0e8aaf3d042220fe250db2a0e726d4b7db3fad856239d5e11371cc7d13f9"
+    },
+    {
+      "file": "scripts/margin/license-inputs/metadata/realfft-3.5.0.txt",
+      "sha256": "8ac0727908084a60bdab8b09da9f9a113b6bf7465f5d4c1c49ea87f1ae5efd3b"
+    },
+    {
+      "file": "licenses/texts/e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0.txt",
+      "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0"
+    },
+    {
+      "file": "licenses/texts/d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de.txt",
+      "sha256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de"
+    }
+  ],
+  "rawEvidence": [
+    {
+      "file": "official-archive-integrity.json",
+      "sha256": "255bd8d5a88ae5f32b6a35316910c54f32862a3d40d06c56f23cb66449889627"
+    },
+    {
+      "file": "red-category.log",
+      "sha256": "1bba2063575404650ab376a5f3443743df3b24abb830c4ce14585ae864aeef42"
+    },
+    {
+      "file": "green-category-attempt1.log",
+      "sha256": "94c34472f10b4f4ace12b7fed78946625768a9f83f4626320ed9059244829e57"
+    },
+    {
+      "file": "green-category.log",
+      "sha256": "81c3fdb0f1ecda5557821a8411fd4b98fda28ae61b03d2fcb753806ae0c8ffbb"
+    },
+    {
+      "file": "target-tests-attempt1.log",
+      "sha256": "1b43df914807e497be7afc27419e1ab986d85564861f198edc3c8562f405f5db"
+    },
+    {
+      "file": "green-target-tests.log",
+      "sha256": "0fdac19d89ac45fe6fd4bf9b5b0907f093a88cc51e7e5b9e3e35b0c17bebfe5b"
+    },
+    {
+      "file": "red-preimage-target-tests.log",
+      "sha256": "61cdb0900becf50b8ad5453a9adb3e5b3a9e1aabdeb0f57f64d54fa3600d4023"
+    },
+    {
+      "file": "red-preimage-frozen.log",
+      "sha256": "c70d82a7ba86e850abb8ada3556004626cecfd4be4366931fdad223f8e2c50c4"
+    },
+    {
+      "file": "green-target-frozen.log",
+      "sha256": "316b85bddc4687a7cc4aa13eba8a989fd282224ae1855070fd365bd6562d7f94"
+    },
+    {
+      "file": "generated-inventory.log",
+      "sha256": "79765145d6229d0201faec1674fe7a1c759c2c43f1141560c09877c457d1ca21"
+    },
+    {
+      "file": "generated-verification-frozen.log",
+      "sha256": "363b258ac4716e16c3645c2950c4ef03a8f54df6321fb6314e7a27002ffa8281"
+    }
+  ]
+}

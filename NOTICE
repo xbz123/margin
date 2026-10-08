@@ -117,7 +117,7 @@ Current complete terms: https://www.unicode.org/license.txt
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 411 unique stored texts; 33 excluded paths; 2 unresolved candidates; 2 deferred notices.
+726 candidates; 413 unique stored texts; 33 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -130,10 +130,11 @@ Current supplemental notice bindings:
 - npm:stream-events@1.0.5: MIT
 - npm:stubs@3.0.0: MIT
 - npm:tr46@0.0.3: MIT
+- npm:react-remove-scroll-bar@2.3.8: MIT (published MIT metadata + standard terms; not a complete original notice)
+- cargo:realfft@3.5.0: MIT (published MIT metadata + standard terms; not a complete original notice)
 
 Unresolved candidates:
-- npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
-- cargo:realfft@3.5.0
+None recorded; separate distribution obligations still require review.
 <!-- margin-license-inventory:end -->
 
 Candidate coverage is not proof of the actual distributed set or fulfillment of

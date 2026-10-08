@@ -1,0 +1,37 @@
+{
+  "pass": true,
+  "baseline": "3cdb2b05",
+  "frozenFiles": 11,
+  "unchangedComponents": 724,
+  "unchangedAttachments": 45,
+  "storedTexts": 413,
+  "unresolved": 0,
+  "exclusionsUnchanged": true,
+  "deferredUnchanged": true,
+  "dependenciesAndLocksUnchanged": true,
+  "standardSHA256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+  "standardCopyrightPlaceholdersUnmodified": true,
+  "checks": [
+    {
+      "name": "react-remove-scroll-bar",
+      "version": "2.3.8",
+      "archiveSHA256": "ccc872d7a2dc007cbf9d755f30d56b8d80eabdbe22c44c95a709129bfdc46f01",
+      "archiveIntegrityVerified": true,
+      "regularRelativeMembers": 27,
+      "metadataBytes": 2221,
+      "metadataSHA256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+      "storedAndContainerBytesMatch": true
+    },
+    {
+      "name": "realfft",
+      "version": "3.5.0",
+      "archiveSHA256": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+      "archiveIntegrityVerified": true,
+      "regularRelativeMembers": 11,
+      "metadataBytes": 990,
+      "metadataSHA256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+      "storedAndContainerBytesMatch": true
+    }
+  ],
+  "scope": "Approved candidate evidence only, not native/source/distribution acceptance"
+}

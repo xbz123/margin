@@ -911,5 +911,79 @@
       "version": "0.0.3"
     },
     "closesMissing": false
+  },
+  {
+    "id": "metadata:react-remove-scroll-bar",
+    "version": "2.3.8",
+    "license": "MIT",
+    "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
+    "localPath": "scripts/margin/license-inputs/metadata/react-remove-scroll-bar-2.3.8.txt",
+    "sourceSHA256": "323c0e8aaf3d042220fe250db2a0e726d4b7db3fad856239d5e11371cc7d13f9",
+    "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+    "endBefore": "<!-- margin-metadata-end -->",
+    "archiveMember": "package/package.json",
+    "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
+    "role": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice.",
+    "bind": {
+      "kind": "npm",
+      "name": "react-remove-scroll-bar"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "standard:metadata-react-remove-scroll-bar",
+    "version": "2.3.8",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+    "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+    "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+    "authorityURL": "https://opensource.org/license/mit",
+    "role": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged.",
+    "evidenceCategory": "approved-metadata-MIT",
+    "metadataSourceId": "metadata:react-remove-scroll-bar",
+    "metadataSHA256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+    "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
+    "bind": {
+      "kind": "npm",
+      "name": "react-remove-scroll-bar"
+    },
+    "closesMissing": true
+  },
+  {
+    "id": "metadata:realfft",
+    "version": "3.5.0",
+    "license": "MIT",
+    "url": "https://static.crates.io/crates/realfft/realfft-3.5.0.crate",
+    "localPath": "scripts/margin/license-inputs/metadata/realfft-3.5.0.txt",
+    "sourceSHA256": "8ac0727908084a60bdab8b09da9f9a113b6bf7465f5d4c1c49ea87f1ae5efd3b",
+    "sha256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+    "endBefore": "<!-- margin-metadata-end -->",
+    "archiveMember": "realfft-3.5.0/Cargo.toml.orig",
+    "artifactChecksum": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+    "role": "Exact published realfft-3.5.0/Cargo.toml.orig bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice.",
+    "bind": {
+      "kind": "cargo",
+      "name": "realfft"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "standard:metadata-realfft",
+    "version": "3.5.0",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+    "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+    "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+    "authorityURL": "https://opensource.org/license/mit",
+    "role": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged.",
+    "evidenceCategory": "approved-metadata-MIT",
+    "metadataSourceId": "metadata:realfft",
+    "metadataSHA256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+    "artifactChecksum": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+    "bind": {
+      "kind": "cargo",
+      "name": "realfft"
+    },
+    "closesMissing": true
   }
 ]

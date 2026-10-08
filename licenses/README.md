@@ -63,7 +63,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 411 unique stored texts; 33 excluded paths; 2 unresolved candidates; 2 deferred notices.
+726 candidates; 413 unique stored texts; 33 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -76,10 +76,11 @@ Current supplemental notice bindings:
 - npm:stream-events@1.0.5: MIT
 - npm:stubs@3.0.0: MIT
 - npm:tr46@0.0.3: MIT
+- npm:react-remove-scroll-bar@2.3.8: MIT (published MIT metadata + standard terms; not a complete original notice)
+- cargo:realfft@3.5.0: MIT (published MIT metadata + standard terms; not a complete original notice)
 
 Unresolved candidates:
-- npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar
-- cargo:realfft@3.5.0
+None recorded; separate distribution obligations still require review.
 <!-- margin-license-inventory:end -->
 
 A declared SPDX identifier is recorded, not silently converted into a fabricated
@@ -98,6 +99,20 @@ four byte comparisons are recorded in license-sources.json; those extra
 provenance fields are checked separately, not automatically by the collector.
 This closes only the new 0.3.0 missing-text entry, not an old-version grant,
 native obligations or distribution acceptance.
+
+S19-B separately accepts `approved-metadata-MIT` evidence only for the exact
+published artifacts react-remove-scroll-bar 2.3.8 and realfft 3.5.0. Both READMEs
+contain short MIT declarations, but no complete original license/copyright
+notice was located. Their verbatim published package.json/Cargo.toml.orig bytes
+and fixed official SPDX MIT standard terms are retained together in the
+verified inventory. Exact identity, published artifact integrity, original and
+installed metadata hashes, and fixed standard text/ref are checked fail-closed;
+metadata alone cannot close an entry. Author fields are not copyright statements,
+and standard copyright placeholders remain unchanged. This weaker evidence
+category is not an original complete notice, copyright grant, legal verdict or
+native/distribution acceptance. S19-C and separate native/source/relinking
+obligations remain open; the S17 diagnostic still stops before signing and has
+acceptance=false.
 
 At checkpoints 45b11c5b and 3ac02ece, spdx-exceptions 2.5.0 (CC-BY-3.0) and
 spdx-license-ids 3.0.23 (CC0-1.0) bound their exact-version published license
@@ -143,10 +158,11 @@ the changing linked website. react-remove-scroll-bar's published
 gitHead does not resolve in the identified repository; a neighboring version is
 not substituted.
 
-realfft 3.5.0 still lacks full terms and declares only MIT (no Apache alternative
-was found in its exact original manifest/version sources); target-linked review
-remains necessary. oboe/oboe-sys 0.6.1 retain their separate exact wrapper Apache
-declarations at `7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7` and official full
+realfft 3.5.0 still lacks a complete original notice and declares only MIT (no
+Apache alternative was found in its exact original manifest/version sources);
+S19-B records the weaker metadata-plus-standard-terms category above, while
+target-linked review remains necessary. oboe/oboe-sys 0.6.1 retain their separate
+exact wrapper Apache declarations at `7ea2b9b3bc9cdfa9ed4cbfeafdcafb47b3fac4e7` and official full
 Apache-2.0 terms. Their Google Oboe gitlink
 `86165b8249bc22b9ef70b69e20323244b6f08d88` retains LICENSE, AUTHORS and
 CONTRIBUTORS plus all 16 distinct leading license comments from the 138 cached

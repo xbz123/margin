@@ -1,0 +1,81 @@
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (102.311834ms)
+✔ README license detection keeps all holders and original surrounding bytes (34.590084ms)
+✔ missing required and compatible optional candidates remain unresolved (60.423292ms)
+✔ installed version cannot borrow a different lock version integrity (18.573041ms)
+✔ cached remote notices require matching integrity and exact Git metadata (55.466417ms)
+✔ missing or substituted Chromium notice cannot pass package checks (66.838833ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (54.362ms)
+✔ notice symlinks and escaped destinations fail closed (65.234ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (53.827125ms)
+✔ summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates (55.483334ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (43.353917ms)
+✔ approved exact MIT metadata and standard terms remain a separate evidence category (174.31825ms)
+▶ metadata acceptance rejects unapproved identities and incomplete or changed evidence
+  ✔ npm: missing category cannot use the ordinary binding (51.763875ms)
+  ✔ npm: wrong package (37.756125ms)
+  ✔ npm: wrong version (40.254125ms)
+  ✔ npm: missing approval artifact pin (39.671958ms)
+  ✔ npm: changed approval artifact pin (37.717834ms)
+  ✔ npm: missing current artifact pin (39.125416ms)
+  ✔ npm: changed current artifact pin (42.536541ms)
+  ✔ npm: missing metadata pin (41.916375ms)
+  ✔ npm: changed metadata pin (44.196458ms)
+  ✔ npm: changed installed metadata bytes (47.302875ms)
+  ✔ npm: changed original metadata even with updated container hashes (46.661959ms)
+  ✔ npm: metadata license mismatch (50.109167ms)
+  ✔ npm: missing original declaration (58.79675ms)
+  ✔ npm: missing SPDX hash (41.138291ms)
+  ✔ npm: changed SPDX reference (46.700709ms)
+  ✔ npm: replaced SPDX text with matching invented hashes (43.559959ms)
+  ✔ cargo: missing category cannot use the ordinary binding (49.141542ms)
+  ✔ cargo: wrong package (39.932292ms)
+  ✔ cargo: wrong version (46.14ms)
+  ✔ cargo: missing approval artifact pin (39.872583ms)
+  ✔ cargo: changed approval artifact pin (43.556792ms)
+  ✔ cargo: missing current artifact pin (48.484833ms)
+  ✔ cargo: changed current artifact pin (47.38725ms)
+  ✔ cargo: missing metadata pin (44.356791ms)
+  ✔ cargo: changed metadata pin (40.650167ms)
+  ✔ cargo: changed installed metadata bytes (47.299792ms)
+  ✔ cargo: changed original metadata even with updated container hashes (50.619667ms)
+  ✔ cargo: metadata license mismatch (45.654208ms)
+  ✔ cargo: missing original declaration (42.310583ms)
+  ✔ cargo: missing SPDX hash (43.665166ms)
+  ✔ cargo: changed SPDX reference (47.092458ms)
+  ✔ cargo: replaced SPDX text with matching invented hashes (55.290709ms)
+✔ metadata acceptance rejects unapproved identities and incomplete or changed evidence (1443.483792ms)
+✖ metadata alone and a remaining unrelated missing notice cannot pass inventory checks (100.305166ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 45
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2459.307875
+
+✖ failing tests:
+
+test at electron/margin/__tests__/licenseInventory.test.mjs:316:1
+✖ metadata alone and a remaining unrelated missing notice cannot pass inventory checks (100.305166ms)
+  Error: supplemental notice not cached: standard:metadata-react-remove-scroll-bar
+      at collect (file://<WORKTREE>/scripts/margin/collect-licenses.mjs:313:32)
+      at TestContext.<anonymous> (file://<WORKTREE>/electron/margin/__tests__/licenseInventory.test.mjs:328:26)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

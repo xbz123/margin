@@ -19,6 +19,56 @@ const officialRepos = {
   'cidre-macros': 'yury/cidre',
 };
 
+// S19-B accepts this weaker evidence only for these exact published artifacts.
+const metadataMIT = {
+  'npm:react-remove-scroll-bar@2.3.8': {
+    artifactIntegrity: 'sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==',
+    metadataSHA256: 'e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0',
+  },
+  'cargo:realfft@3.5.0': {
+    artifactChecksum: 'f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677',
+    metadataSHA256: 'd72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de',
+  },
+};
+const metadataMITCategory = 'approved-metadata-MIT';
+const fixedMIT = {
+  url: 'https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt',
+  sha256: 'b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5',
+  gitBlob: 'd817195dad53ec992418c28ffca5fbd1cd86502a',
+};
+
+function verifiedMITMetadata(source, component, attachments, root, cargoRoot, output) {
+  const policy = metadataMIT[component.kind + ':' + component.name + '@' + component.version];
+  if (!policy || source.evidenceCategory !== metadataMITCategory || source.license !== 'MIT' ||
+      source.metadataSHA256 !== policy.metadataSHA256 || source.localPath ||
+      Object.entries(fixedMIT).some(([key, value]) => source[key] !== value)) throw new Error('metadata-MIT approval mismatch: ' + source.id);
+  const artifactField = component.kind === 'npm' ? 'artifactIntegrity' : 'artifactChecksum';
+  const componentField = component.kind === 'npm' ? 'integrity' : 'checksum';
+  if (source[artifactField] !== policy[artifactField] || component[componentField] !== policy[artifactField]) throw new Error('metadata-MIT artifact mismatch: ' + source.id);
+  const declarations = attachments.filter(item => item.id === source.metadataSourceId);
+  const metadata = declarations[0];
+  if (declarations.length !== 1 || metadata.id !== 'metadata:' + component.name || metadata.closesMissing !== false ||
+      metadata.bind?.kind !== component.kind || metadata.bind?.name !== component.name ||
+      metadata.version !== component.version || metadata.license !== 'MIT' ||
+      metadata[artifactField] !== policy[artifactField] || metadata.sha256 !== policy.metadataSHA256) throw new Error('metadata-MIT declaration mismatch: ' + source.id);
+  const bytes = fs.readFileSync(path.join(output, metadata.text.file));
+  const metadataPath = component.kind === 'npm'
+    ? path.join(root, component.location, 'package.json')
+    : path.join(cargoRoot, component.name + '-' + component.version, 'Cargo.toml.orig');
+  if (!fs.lstatSync(metadataPath).isFile()) throw new Error('metadata-MIT installed metadata must be a regular non-symlink file');
+  const installed = fs.readFileSync(metadataPath);
+  if (sha256(bytes) !== policy.metadataSHA256 || sha256(installed) !== policy.metadataSHA256 || !bytes.equals(installed)) throw new Error('metadata-MIT bytes changed: ' + source.id);
+  let declared;
+  if (component.kind === 'npm') declared = JSON.parse(bytes);
+  else {
+    const block = bytes.toString('utf8').split(/^\[package\]\s*$/m)[1]?.split(/^\[/m)[0];
+    if (!block) throw new Error('metadata-MIT original Cargo package section missing');
+    declared = Object.fromEntries(['name', 'version', 'license'].map(key => [key, JSON.parse(block.match(new RegExp('^' + key + ' = ("[^\\n]+")$', 'm'))?.[1] ?? 'null')]));
+  }
+  if (declared.name !== component.name || declared.version !== component.version || declared.license !== 'MIT') throw new Error('metadata-MIT identity/license mismatch: ' + source.id);
+  return metadata.text;
+}
+
 export function noticeFiles(root) {
   const result = [];
   function visit(dir) {
@@ -156,7 +206,7 @@ async function remoteNotices(component, addText) {
 export function inventorySummary(manifest) {
   const texts = new Set([...manifest.components.flatMap((item) => item.texts), ...manifest.attachments.map((item) => item.text)].map((item) => item.file));
   const bindings = manifest.attachments.filter((item) => item.bind && item.closesMissing).map((item) =>
-    `- ${item.bind.kind}:${item.bind.name}@${item.version}: ${item.license}${item.selectedLicense ? ` (selected ${item.selectedLicense})` : ''}`);
+    `- ${item.bind.kind}:${item.bind.name}@${item.version}: ${item.license}${item.selectedLicense ? ` (selected ${item.selectedLicense})` : ''}${item.evidenceCategory === metadataMITCategory ? ' (published MIT metadata + standard terms; not a complete original notice)' : ''}`);
   const unresolved = manifest.unresolved.map((item) => `- ${item.id}`);
   return [
     'Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.',
@@ -270,11 +320,18 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
     if ((source.sha256 && sha256(bytes) !== source.sha256) || (source.gitBlob && blob !== source.gitBlob)) throw new Error(`supplemental license hash mismatch: ${source.id}`);
     const attachment = { ...source, text: addText(bytes, { url: source.url, gitBlob: blob, origin: source.role }) };
     attachments.push(attachment);
+  }
+  // Resolve supplemental bindings after loading declarations, independent of source order.
+  for (const source of attachments) {
     if (source.bind && source.closesMissing) {
       const component = components.find((item) => item.kind === source.bind.kind && item.name === source.bind.name && item.version === source.version && item.license === source.license);
       if (!component) throw new Error(`canonical license binding identity mismatch: ${source.id}`);
-      component.texts.push(attachment.text);
-      component.noticeBasis = 'exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant';
+      if (source.evidenceCategory === metadataMITCategory || metadataMIT[component.kind + ':' + component.name + '@' + component.version]) {
+        component.texts.push(verifiedMITMetadata(source, component, attachments, root, cargoRoot, output));
+        component.evidenceCategory = metadataMITCategory;
+        component.noticeBasis = 'published MIT metadata + fixed official standard terms; not a complete original notice/copyright grant, legal verdict or native distribution acceptance';
+      } else component.noticeBasis = 'exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant';
+      component.texts.push(source.text);
     }
   }
   for (const component of components) {

@@ -1,0 +1,238 @@
+[
+  {
+    "kind": "npm",
+    "name": "react-remove-scroll-bar",
+    "version": "2.3.8",
+    "archiveURL": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
+    "archiveSHA256": "ccc872d7a2dc007cbf9d755f30d56b8d80eabdbe22c44c95a709129bfdc46f01",
+    "integrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
+    "pathsCheckedBeforeExtraction": true,
+    "entries": [
+      {
+        "path": "package/dist/es2015/component.js",
+        "type": "File",
+        "bytes": 3395
+      },
+      {
+        "path": "package/dist/es2019/component.js",
+        "type": "File",
+        "bytes": 2811
+      },
+      {
+        "path": "package/dist/es5/component.js",
+        "type": "File",
+        "bytes": 3807
+      },
+      {
+        "path": "package/dist/es2015/constants.js",
+        "type": "File",
+        "bytes": 375
+      },
+      {
+        "path": "package/dist/es2019/constants.js",
+        "type": "File",
+        "bytes": 383
+      },
+      {
+        "path": "package/dist/es5/constants.js",
+        "type": "File",
+        "bytes": 571
+      },
+      {
+        "path": "package/dist/es2015/index.js",
+        "type": "File",
+        "bytes": 332
+      },
+      {
+        "path": "package/dist/es2019/index.js",
+        "type": "File",
+        "bytes": 332
+      },
+      {
+        "path": "package/dist/es5/index.js",
+        "type": "File",
+        "bytes": 1186
+      },
+      {
+        "path": "package/dist/es2015/utils.js",
+        "type": "File",
+        "bytes": 998
+      },
+      {
+        "path": "package/dist/es2019/utils.js",
+        "type": "File",
+        "bytes": 949
+      },
+      {
+        "path": "package/dist/es5/utils.js",
+        "type": "File",
+        "bytes": 1156
+      },
+      {
+        "path": "package/constants/package.json",
+        "type": "File",
+        "bytes": 234
+      },
+      {
+        "path": "package/package.json",
+        "type": "File",
+        "bytes": 2221
+      },
+      {
+        "path": "package/README.md",
+        "type": "File",
+        "bytes": 1716
+      },
+      {
+        "path": "package/dist/es2015/component.d.ts",
+        "type": "File",
+        "bytes": 415
+      },
+      {
+        "path": "package/dist/es2019/component.d.ts",
+        "type": "File",
+        "bytes": 415
+      },
+      {
+        "path": "package/dist/es5/component.d.ts",
+        "type": "File",
+        "bytes": 415
+      },
+      {
+        "path": "package/dist/es2015/constants.d.ts",
+        "type": "File",
+        "bytes": 415
+      },
+      {
+        "path": "package/dist/es2019/constants.d.ts",
+        "type": "File",
+        "bytes": 415
+      },
+      {
+        "path": "package/dist/es5/constants.d.ts",
+        "type": "File",
+        "bytes": 415
+      },
+      {
+        "path": "package/dist/es2015/index.d.ts",
+        "type": "File",
+        "bytes": 332
+      },
+      {
+        "path": "package/dist/es2019/index.d.ts",
+        "type": "File",
+        "bytes": 332
+      },
+      {
+        "path": "package/dist/es5/index.d.ts",
+        "type": "File",
+        "bytes": 332
+      },
+      {
+        "path": "package/dist/es2015/utils.d.ts",
+        "type": "File",
+        "bytes": 328
+      },
+      {
+        "path": "package/dist/es2019/utils.d.ts",
+        "type": "File",
+        "bytes": 328
+      },
+      {
+        "path": "package/dist/es5/utils.d.ts",
+        "type": "File",
+        "bytes": 328
+      }
+    ],
+    "metadataMember": "package/package.json",
+    "metadataSHA256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+    "metadataBytes": 2221,
+    "installedBytesEqualPublished": true,
+    "noFullNoticeFile": true,
+    "readmeSHA256": "486442209236ffa3893312e508694699a6b8834d30a2f9c083c1f3379983e4f9",
+    "shortMITDeclaration": {
+      "statement": "# License\nMIT",
+      "byteStart": 1702,
+      "byteEndExclusive": 1715
+    },
+    "limit": "Short MIT declarations exist; no complete original notice/copyright information was found. Author metadata is not a copyright grant."
+  },
+  {
+    "kind": "cargo",
+    "name": "realfft",
+    "version": "3.5.0",
+    "archiveURL": "https://static.crates.io/crates/realfft/realfft-3.5.0.crate",
+    "archiveSHA256": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+    "checksum": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+    "pathsCheckedBeforeExtraction": true,
+    "entries": [
+      {
+        "path": "realfft-3.5.0/.cargo_vcs_info.json",
+        "type": "File",
+        "bytes": 94
+      },
+      {
+        "path": "realfft-3.5.0/.github/workflows/publish.yml",
+        "type": "File",
+        "bytes": 493
+      },
+      {
+        "path": "realfft-3.5.0/.github/workflows/run_tests.yml",
+        "type": "File",
+        "bytes": 1299
+      },
+      {
+        "path": "realfft-3.5.0/.gitignore",
+        "type": "File",
+        "bytes": 19
+      },
+      {
+        "path": "realfft-3.5.0/Cargo.lock",
+        "type": "File",
+        "bytes": 19740
+      },
+      {
+        "path": "realfft-3.5.0/Cargo.toml",
+        "type": "File",
+        "bytes": 1521
+      },
+      {
+        "path": "realfft-3.5.0/Cargo.toml.orig",
+        "type": "File",
+        "bytes": 990
+      },
+      {
+        "path": "realfft-3.5.0/README.md",
+        "type": "File",
+        "bytes": 6576
+      },
+      {
+        "path": "realfft-3.5.0/benches/realfft.rs",
+        "type": "File",
+        "bytes": 4261
+      },
+      {
+        "path": "realfft-3.5.0/examples/concurrency.rs",
+        "type": "File",
+        "bytes": 679
+      },
+      {
+        "path": "realfft-3.5.0/src/lib.rs",
+        "type": "File",
+        "bytes": 38711
+      }
+    ],
+    "metadataMember": "realfft-3.5.0/Cargo.toml.orig",
+    "metadataSHA256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+    "metadataBytes": 990,
+    "installedBytesEqualPublished": true,
+    "noFullNoticeFile": true,
+    "readmeSHA256": "1e92c54e7fa08298d2a34ea9aa63b85626c47519873a91cd1028f234e1221608",
+    "shortMITDeclaration": {
+      "statement": "License: MIT",
+      "byteStart": 6563,
+      "byteEndExclusive": 6575
+    },
+    "limit": "Short MIT declarations exist; no complete original notice/copyright information was found. Author metadata is not a copyright grant."
+  }
+]

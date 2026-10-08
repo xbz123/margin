@@ -3,7 +3,7 @@
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
   "packageLockSHA256": "1caabfb79bb72a927eaee58a4d5925635ded0de4e4d20148ba43f860bac52dd9",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
-  "sourceConfigSHA256": "26832b267bf1d86dae219eae40794d639b5806a9b95ff0a96fc057c84ef7de54",
+  "sourceConfigSHA256": "bb381ac036740d6841c3132b15ba25cca3958be0ca8da931863ac198948430d4",
   "electronVersion": "43.1.0",
   "components": [
     {
@@ -7888,8 +7888,25 @@
       "license": "MIT",
       "integrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
       "repo": "theKashey/react-remove-scroll-bar",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0.txt",
+          "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+          "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
+          "gitBlob": "fbbae9a73f966bc351a8f0ce073dddb4c4cbc9fb",
+          "origin": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice."
+        },
+        {
+          "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+          "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+          "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+          "origin": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged."
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "evidenceCategory": "approved-metadata-MIT",
+      "noticeBasis": "published MIT metadata + fixed official standard terms; not a complete original notice/copyright grant, legal verdict or native distribution acceptance"
     },
     {
       "id": "npm:react-style-singleton@2.2.3:node_modules/react-style-singleton",
@@ -12915,8 +12932,25 @@
       "repo": "HEnquist/realfft",
       "vcs": "d0d4eee0525fd27c96c8a046d6d107acd5ed84a6",
       "directory": "",
-      "texts": [],
-      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory"
+      "texts": [
+        {
+          "file": "texts/d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de.txt",
+          "sha256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+          "url": "https://static.crates.io/crates/realfft/realfft-3.5.0.crate",
+          "gitBlob": "4f97bcb19ab83654fd803b1e789a19012ac4ffd0",
+          "origin": "Exact published realfft-3.5.0/Cargo.toml.orig bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice."
+        },
+        {
+          "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+          "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+          "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+          "origin": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged."
+        }
+      ],
+      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory",
+      "evidenceCategory": "approved-metadata-MIT",
+      "noticeBasis": "published MIT metadata + fixed official standard terms; not a complete original notice/copyright grant, legal verdict or native distribution acceptance"
     },
     {
       "id": "cargo:redox_syscall@0.5.18",
@@ -16821,6 +16855,108 @@
         "gitBlob": "55371f50b786e4ab843f8a3958daee4866370ada",
         "origin": "original Unicode IDNA 8.0.0 data header retaining Copyright (c) 1991-2015 Unicode, Inc. and its terms-of-use/documentation links; current Unicode License v3 applicability is established by the separate current official policy, not asserted to have been the license named in 2015; no data-table bytes retained"
       }
+    },
+    {
+      "id": "metadata:react-remove-scroll-bar",
+      "version": "2.3.8",
+      "license": "MIT",
+      "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
+      "localPath": "scripts/margin/license-inputs/metadata/react-remove-scroll-bar-2.3.8.txt",
+      "sourceSHA256": "323c0e8aaf3d042220fe250db2a0e726d4b7db3fad856239d5e11371cc7d13f9",
+      "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+      "endBefore": "<!-- margin-metadata-end -->",
+      "archiveMember": "package/package.json",
+      "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
+      "role": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice.",
+      "bind": {
+        "kind": "npm",
+        "name": "react-remove-scroll-bar"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0.txt",
+        "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+        "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
+        "gitBlob": "fbbae9a73f966bc351a8f0ce073dddb4c4cbc9fb",
+        "origin": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice."
+      }
+    },
+    {
+      "id": "standard:metadata-react-remove-scroll-bar",
+      "version": "2.3.8",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+      "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "authorityURL": "https://opensource.org/license/mit",
+      "role": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged.",
+      "evidenceCategory": "approved-metadata-MIT",
+      "metadataSourceId": "metadata:react-remove-scroll-bar",
+      "metadataSHA256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
+      "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
+      "bind": {
+        "kind": "npm",
+        "name": "react-remove-scroll-bar"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+        "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+        "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+        "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+        "origin": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged."
+      }
+    },
+    {
+      "id": "metadata:realfft",
+      "version": "3.5.0",
+      "license": "MIT",
+      "url": "https://static.crates.io/crates/realfft/realfft-3.5.0.crate",
+      "localPath": "scripts/margin/license-inputs/metadata/realfft-3.5.0.txt",
+      "sourceSHA256": "8ac0727908084a60bdab8b09da9f9a113b6bf7465f5d4c1c49ea87f1ae5efd3b",
+      "sha256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+      "endBefore": "<!-- margin-metadata-end -->",
+      "archiveMember": "realfft-3.5.0/Cargo.toml.orig",
+      "artifactChecksum": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+      "role": "Exact published realfft-3.5.0/Cargo.toml.orig bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice.",
+      "bind": {
+        "kind": "cargo",
+        "name": "realfft"
+      },
+      "closesMissing": false,
+      "text": {
+        "file": "texts/d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de.txt",
+        "sha256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+        "url": "https://static.crates.io/crates/realfft/realfft-3.5.0.crate",
+        "gitBlob": "4f97bcb19ab83654fd803b1e789a19012ac4ffd0",
+        "origin": "Exact published realfft-3.5.0/Cargo.toml.orig bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice."
+      }
+    },
+    {
+      "id": "standard:metadata-realfft",
+      "version": "3.5.0",
+      "license": "MIT",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+      "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "authorityURL": "https://opensource.org/license/mit",
+      "role": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged.",
+      "evidenceCategory": "approved-metadata-MIT",
+      "metadataSourceId": "metadata:realfft",
+      "metadataSHA256": "d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de",
+      "artifactChecksum": "f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677",
+      "bind": {
+        "kind": "cargo",
+        "name": "realfft"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+        "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+        "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
+        "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+        "origin": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged."
+      }
     }
   ],
   "excluded": [
@@ -16988,16 +17124,7 @@
       "reason": "verified dangling react-query lock alias; not an installed component"
     }
   ],
-  "unresolved": [
-    {
-      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "cargo:realfft@3.5.0",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    }
-  ],
+  "unresolved": [],
   "deferred": [
     {
       "sourcePath": "node_modules/electron/dist/LICENSE",

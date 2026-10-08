@@ -1,0 +1,678 @@
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":4,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":4,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (72.004083ms)
+✔ README license detection keeps all holders and original surrounding bytes (28.645333ms)
+✔ missing required and compatible optional candidates remain unresolved (59.609541ms)
+✔ installed version cannot borrow a different lock version integrity (19.438542ms)
+✔ cached remote notices require matching integrity and exact Git metadata (50.1615ms)
+✔ missing or substituted Chromium notice cannot pass package checks (60.399458ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (45.740083ms)
+✔ notice symlinks and escaped destinations fail closed (56.709459ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (51.419708ms)
+✔ summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates (51.547208ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (39.571791ms)
+✖ approved exact MIT metadata and standard terms remain a separate evidence category (48.514709ms)
+▶ metadata acceptance rejects unapproved identities and incomplete or changed evidence
+  ✖ npm: missing category cannot use the ordinary binding (44.485459ms)
+  ✖ npm: wrong package (50.180708ms)
+  ✖ npm: wrong version (47.308292ms)
+  ✖ npm: missing approval artifact pin (56.473542ms)
+  ✖ npm: changed approval artifact pin (48.792875ms)
+  ✖ npm: missing current artifact pin (52.524333ms)
+  ✖ npm: changed current artifact pin (46.441833ms)
+  ✖ npm: missing metadata pin (46.221417ms)
+  ✖ npm: changed metadata pin (43.4795ms)
+  ✖ npm: changed installed metadata bytes (45.89825ms)
+  ✖ npm: installed metadata is a file symlink (46.973834ms)
+  ✖ npm: changed original metadata even with updated container hashes (58.887333ms)
+  ✔ npm: metadata license mismatch (42.5235ms)
+  ✖ npm: missing original declaration (52.029792ms)
+  ✖ npm: missing SPDX hash (40.242791ms)
+  ✖ npm: missing SPDX Git blob (42.13575ms)
+  ✔ npm: changed SPDX Git blob (39.532125ms)
+  ✖ npm: changed SPDX reference (45.657458ms)
+  ✖ npm: replaced SPDX text with matching invented hashes (56.327541ms)
+  ✖ cargo: missing category cannot use the ordinary binding (47.660541ms)
+  ✖ cargo: wrong package (54.973334ms)
+  ✖ cargo: wrong version (54.207916ms)
+  ✖ cargo: missing approval artifact pin (61.200042ms)
+  ✖ cargo: changed approval artifact pin (51.997833ms)
+  ✖ cargo: missing current artifact pin (51.109416ms)
+  ✖ cargo: changed current artifact pin (50.688542ms)
+  ✖ cargo: missing metadata pin (51.395ms)
+  ✖ cargo: changed metadata pin (57.479292ms)
+  ✖ cargo: changed installed metadata bytes (54.475917ms)
+  ✖ cargo: installed metadata is a file symlink (51.504125ms)
+  ✖ cargo: changed original metadata even with updated container hashes (54.676417ms)
+  ✔ cargo: metadata license mismatch (45.960042ms)
+  ✖ cargo: missing original declaration (50.891625ms)
+  ✖ cargo: missing SPDX hash (49.013916ms)
+  ✖ cargo: missing SPDX Git blob (49.153042ms)
+  ✔ cargo: changed SPDX Git blob (41.074708ms)
+  ✖ cargo: changed SPDX reference (49.310333ms)
+  ✖ cargo: replaced SPDX text with matching invented hashes (55.948584ms)
+✖ metadata acceptance rejects unapproved identities and incomplete or changed evidence (1892.235042ms)
+✔ metadata alone and a remaining unrelated missing notice cannot pass inventory checks (279.524583ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 16
+ℹ fail 36
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2883.628541
+
+✖ failing tests:
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:230:1
+✖ approved exact MIT metadata and standard terms remain a separate evidence category (48.514709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - 'approved-metadata-MIT'
+  
+      at TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:236:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'approved-metadata-MIT',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing category cannot use the ordinary binding (44.485459ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: wrong package (50.180708ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: wrong version (47.308292ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing approval artifact pin (56.473542ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: changed approval artifact pin (48.792875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing current artifact pin (52.524333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: changed current artifact pin (46.441833ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing metadata pin (46.221417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: changed metadata pin (43.4795ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: changed installed metadata bytes (45.89825ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: installed metadata is a file symlink (46.973834ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: changed original metadata even with updated container hashes (58.887333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing original declaration (52.029792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing SPDX hash (40.242791ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: missing SPDX Git blob (42.13575ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: changed SPDX reference (45.657458ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ npm: replaced SPDX text with matching invented hashes (56.327541ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing category cannot use the ordinary binding (47.660541ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: wrong package (54.973334ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: wrong version (54.207916ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing approval artifact pin (61.200042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: changed approval artifact pin (51.997833ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing current artifact pin (51.109416ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: changed current artifact pin (50.688542ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing metadata pin (51.395ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: changed metadata pin (57.479292ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: changed installed metadata bytes (54.475917ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: installed metadata is a file symlink (51.504125ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: changed original metadata even with updated container hashes (54.676417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing original declaration (50.891625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing SPDX hash (49.013916ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: missing SPDX Git blob (49.153042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: changed SPDX reference (49.310333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at ../../../../../../..<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:84
+✖ cargo: replaced SPDX text with matching invented hashes (55.948584ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:323:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file://<PRIVATE_EVIDENCE>/preimage-target-tests.mjs:313:76)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /metadata-MIT|canonical license binding|local license source|supplemental license hash/,
+    operator: 'rejects',
+    diff: 'simple'
+  }

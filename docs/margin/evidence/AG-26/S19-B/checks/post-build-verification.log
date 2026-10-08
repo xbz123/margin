@@ -1,0 +1,21 @@
+{"candidates":726,"uniqueTexts":413,"excluded":33,"unresolved":0,"deferred":2}
+{
+  "baseline": "3cdb2b054c27ba8510af10864a20956bf8ad3d4e",
+  "candidates": 726,
+  "uniqueTexts": 413,
+  "excluded": 33,
+  "unresolved": 0,
+  "deferred": 2,
+  "previousTextsPreserved": 411,
+  "unrelatedComponentsUnchanged": 724,
+  "previousAttachmentsUnchanged": 45,
+  "orphanTexts": 0,
+  "metadataMatchesOfficialArchive": true,
+  "offlineRegenerationByteIdempotent": true,
+  "normalVerifier": {
+    "checkedNotices": 989,
+    "candidateInventoryOnly": true
+  },
+  "tamperedMetadataRejected": true,
+  "syntheticResources": "<private-evidence>/synthetic-resources-w5BxMY"
+}

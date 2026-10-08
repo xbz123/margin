@@ -1,0 +1,82 @@
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":4,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":4,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (83.735958ms)
+✔ README license detection keeps all holders and original surrounding bytes (35.270417ms)
+✔ missing required and compatible optional candidates remain unresolved (71.482417ms)
+✔ installed version cannot borrow a different lock version integrity (20.7445ms)
+✔ cached remote notices require matching integrity and exact Git metadata (55.682292ms)
+✔ missing or substituted Chromium notice cannot pass package checks (73.246042ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (57.3595ms)
+✔ notice symlinks and escaped destinations fail closed (94.699709ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (64.812542ms)
+✔ summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates (57.755083ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (39.709958ms)
+✔ approved exact MIT metadata and standard terms remain a separate evidence category (207.197625ms)
+▶ metadata acceptance rejects unapproved identities and incomplete or changed evidence
+  ✔ npm: missing category cannot use the ordinary binding (40.610333ms)
+  ✔ npm: wrong package (37.664958ms)
+  ✔ npm: wrong version (46.142417ms)
+  ✔ npm: missing approval artifact pin (44.283ms)
+  ✔ npm: changed approval artifact pin (42.063208ms)
+  ✔ npm: missing current artifact pin (45.923459ms)
+  ✔ npm: changed current artifact pin (43.841375ms)
+  ✔ npm: missing metadata pin (39.645416ms)
+  ✔ npm: changed metadata pin (40.046667ms)
+  ✔ npm: changed installed metadata bytes (43.187542ms)
+  ✔ npm: installed metadata is a file symlink (37.644833ms)
+  ✔ npm: changed original metadata even with updated container hashes (44.726166ms)
+  ✔ npm: metadata license mismatch (40.851125ms)
+  ✔ npm: missing original declaration (38.592042ms)
+  ✔ npm: missing SPDX hash (34.250625ms)
+  ✔ npm: missing SPDX Git blob (36.502958ms)
+  ✔ npm: changed SPDX Git blob (41.125542ms)
+  ✔ npm: changed SPDX reference (35.561625ms)
+  ✔ npm: replaced SPDX text with matching invented hashes (37.365208ms)
+  ✔ cargo: missing category cannot use the ordinary binding (42.115333ms)
+  ✔ cargo: wrong package (39.888375ms)
+  ✔ cargo: wrong version (42.81825ms)
+  ✔ cargo: missing approval artifact pin (39.586375ms)
+  ✔ cargo: changed approval artifact pin (35.699792ms)
+  ✔ cargo: missing current artifact pin (41.13625ms)
+  ✔ cargo: changed current artifact pin (38.991708ms)
+  ✔ cargo: missing metadata pin (47.5585ms)
+  ✔ cargo: changed metadata pin (40.676416ms)
+  ✔ cargo: changed installed metadata bytes (41.170625ms)
+  ✔ cargo: installed metadata is a file symlink (39.505375ms)
+  ✔ cargo: changed original metadata even with updated container hashes (40.221709ms)
+  ✔ cargo: metadata license mismatch (41.391875ms)
+  ✔ cargo: missing original declaration (33.23ms)
+  ✔ cargo: missing SPDX hash (42.332125ms)
+  ✔ cargo: missing SPDX Git blob (33.819625ms)
+  ✔ cargo: changed SPDX Git blob (34.465ms)
+  ✔ cargo: changed SPDX reference (49.142375ms)
+  ✔ cargo: replaced SPDX text with matching invented hashes (43.304833ms)
+✔ metadata acceptance rejects unapproved identities and incomplete or changed evidence (1540.434417ms)
+✔ metadata alone and a remaining unrelated missing notice cannot pass inventory checks (264.320208ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2798.657917

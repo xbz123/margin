@@ -1,0 +1,39 @@
+{
+  "rawRetained": true,
+  "gateSteps": 16,
+  "actualExitCodesAllZero": true,
+  "counts": {
+    "tests": 925,
+    "pass": 919,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "changes": [
+    {
+      "file": "gates/guard-selftest.log",
+      "rawSHA256": "8e044c72908a0e821f0a408a78a938f7931cc018aa8433087895b5c65b8ecd18",
+      "storedSHA256": "4c67f9f79d3db1650499456405ae228fbde494799d6a0a8420f946e171a1a405",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/summary.json",
+      "rawSHA256": "f496443b74d64ee476139db4615e500130bbba2b2855e449f96a4cdb5911f1d8",
+      "storedSHA256": "21a7ac0a5e5bc50c207744534e69005b0a8b7e1619d3042832ed62aacd66dbe9",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/tests.tap",
+      "rawSHA256": "b4d7f00af45582bf7f0f43768131489b12146070d9cfbb26ea6c8c2b3c6b4691",
+      "storedSHA256": "e05564e985ffe573aaf4a0d2d9938797e96ee10ae38806a7345f83a95ea1f4f9",
+      "transform": "local path prefixes only"
+    },
+    {
+      "file": "gates/vite-build.log",
+      "rawSHA256": "730558d53ae082b752421bc562991d4dc528c7cb0f4987beb524c789309b2b61",
+      "storedSHA256": "e1ca947d6308a6ce0e1859daf79c6150242dbeafa7dee367f44f367accfeba99",
+      "transform": "local path prefixes only"
+    }
+  ]
+}

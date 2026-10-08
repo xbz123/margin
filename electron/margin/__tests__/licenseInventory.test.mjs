@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
-import { collect, cargoPackages, embeddedMIT, sha256, inventorySummary } from '../../../scripts/margin/collect-licenses.mjs';
+import { ROOT, collect, cargoPackages, embeddedMIT, sha256, inventorySummary } from '../../../scripts/margin/collect-licenses.mjs';
 
 const { verifyBundle } = createRequire(import.meta.url)('../../../scripts/margin/license-bundle.cjs');
 const json = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -198,4 +198,149 @@ test('missing or duplicated inventory markers fail rather than overwrite legal p
   write(options.root, 'NOTICE', duplicate);
   await assert.rejects(collect(options), /missing\/ambiguous inventory summary markers: NOTICE/);
   assert.equal(fs.readFileSync(path.join(options.root, 'NOTICE'), 'utf8'), duplicate);
+});
+
+function metadataFixture(t, kind) {
+  const options = fixture(t);
+  const sources = json(path.join(ROOT, 'scripts/margin/license-sources.json'));
+  const standard = sources.find(item => item.evidenceCategory === 'approved-metadata-MIT' && item.bind.kind === kind);
+  const metadata = sources.find(item => item.id === standard.metadataSourceId);
+  const container = fs.readFileSync(path.join(ROOT, metadata.localPath), 'utf8');
+  const original = container.slice(0, container.indexOf(metadata.endBefore));
+  write(options.root, metadata.localPath, container);
+  const name = standard.bind.name;
+  const version = standard.version;
+  const installedMetadata = kind === 'npm' ? 'node_modules/' + name + '/package.json' : 'cargo-cache/' + name + '-' + version + '/Cargo.toml.orig';
+  write(options.root, installedMetadata, original);
+  if (kind === 'npm') {
+    const lock = json(path.join(options.root, 'package-lock.json'));
+    lock.packages['node_modules/' + name] = { version, integrity: standard.artifactIntegrity };
+    write(options.root, 'package-lock.json', lock);
+  } else {
+    write(options.root, 'cargo-cache/' + name + '-' + version + '/Cargo.toml', original);
+    write(options.root, 'native-module/Cargo.lock', 'version = 4\n[[package]]\nname = "' + name + '"\nversion = "' + version + '"\nsource = "registry+synthetic"\nchecksum = "' + standard.artifactChecksum + '"\n');
+  }
+  const file = 'texts/' + standard.sha256 + '.txt';
+  write(options.root, 'licenses/' + file, fs.readFileSync(path.join(ROOT, 'licenses', file), 'utf8'));
+  write(options.root, 'scripts/margin/license-sources.json', [metadata, standard]);
+  write(options.root, 'licenses/manifest.json', { attachments: [{ ...standard, text: { file, sha256: standard.sha256 } }] });
+  return { ...options, metadata, standard, installedMetadata, sources: [metadata, standard] };
+}
+
+test('approved exact MIT metadata and standard terms remain a separate evidence category', async (t) => {
+  for (const kind of ['npm', 'cargo']) {
+    const options = metadataFixture(t, kind);
+    const result = await collect(options);
+    assert.deepEqual(result.unresolved, []);
+    const component = result.components.find(item => item.kind === kind && item.name === options.standard.bind.name);
+    assert.equal(component.evidenceCategory, 'approved-metadata-MIT');
+    assert.equal(component.texts.length, 2);
+    assert.match(inventorySummary(result), /published MIT metadata \+ standard terms; not a complete original notice/);
+    assert.equal(verifyBundle(copyResources(options.root), options.root).candidateInventoryOnly, true);
+    write(options.root, 'scripts/margin/license-sources.json', [...options.sources].reverse());
+    const reordered = await collect(options);
+    assert.deepEqual(reordered.components, result.components);
+    assert.deepEqual(reordered.unresolved, []);
+  }
+});
+
+test('metadata acceptance rejects unapproved identities and incomplete or changed evidence', async (t) => {
+  const cases = [
+    ['missing category cannot use the ordinary binding', o => { delete o.standard.evidenceCategory; }],
+    ['wrong package', o => { o.standard.bind = { kind: 'npm', name: 'example' }; o.standard.version = '1.0.0'; }],
+    ['wrong version', (o, kind) => {
+      o.standard.version = o.metadata.version = '9.0.0';
+      const name = o.standard.bind.name;
+      if (kind === 'npm') {
+        const pkg = json(path.join(o.root, o.installedMetadata)); pkg.version = '9.0.0';
+        write(o.root, o.installedMetadata, pkg);
+        const lock = json(path.join(o.root, 'package-lock.json')); lock.packages['node_modules/' + name].version = '9.0.0';
+        write(o.root, 'package-lock.json', lock);
+      } else {
+        fs.renameSync(path.join(o.cargoRoot, name + '-3.5.0'), path.join(o.cargoRoot, name + '-9.0.0'));
+        write(o.root, 'native-module/Cargo.lock', fs.readFileSync(path.join(o.root, 'native-module/Cargo.lock'), 'utf8').replace('3.5.0', '9.0.0'));
+      }
+    }],
+    ['missing approval artifact pin', (o, kind) => { delete o.standard[kind === 'npm' ? 'artifactIntegrity' : 'artifactChecksum']; }],
+    ['changed approval artifact pin', (o, kind) => { o.standard[kind === 'npm' ? 'artifactIntegrity' : 'artifactChecksum'] = 'changed'; }],
+    ['missing current artifact pin', (o, kind) => {
+      if (kind === 'npm') {
+        const lock = json(path.join(o.root, 'package-lock.json')); delete lock.packages['node_modules/' + o.standard.bind.name].integrity;
+        write(o.root, 'package-lock.json', lock);
+      } else write(o.root, 'native-module/Cargo.lock', fs.readFileSync(path.join(o.root, 'native-module/Cargo.lock'), 'utf8').replace(/^checksum = .*\n/m, ''));
+    }],
+    ['changed current artifact pin', (o, kind) => {
+      if (kind === 'npm') {
+        const lock = json(path.join(o.root, 'package-lock.json')); lock.packages['node_modules/' + o.standard.bind.name].integrity = 'changed';
+        write(o.root, 'package-lock.json', lock);
+      } else write(o.root, 'native-module/Cargo.lock', fs.readFileSync(path.join(o.root, 'native-module/Cargo.lock'), 'utf8').replace(/^checksum = .*$/m, 'checksum = "changed"'));
+    }],
+    ['missing metadata pin', o => { delete o.standard.metadataSHA256; }],
+    ['changed metadata pin', o => { o.standard.metadataSHA256 = 'changed'; }],
+    ['changed installed metadata bytes', o => { write(o.root, o.installedMetadata, fs.readFileSync(path.join(o.root, o.installedMetadata), 'utf8') + '\n'); }],
+    ['installed metadata is a file symlink', o => {
+      const file = path.join(o.root, o.installedMetadata);
+      fs.renameSync(file, file + '.original');
+      fs.symlinkSync(path.basename(file) + '.original', file);
+    }],
+    ['changed original metadata even with updated container hashes', o => {
+      const container = fs.readFileSync(path.join(o.root, o.metadata.localPath), 'utf8');
+      const changed = '\n' + container;
+      write(o.root, o.metadata.localPath, changed);
+      o.metadata.sourceSHA256 = sha256(Buffer.from(changed));
+      o.metadata.sha256 = sha256(Buffer.from('\n' + container.slice(0, container.indexOf(o.metadata.endBefore))));
+    }],
+    ['metadata license mismatch', (o, kind) => {
+      if (kind === 'npm') {
+        const pkg = json(path.join(o.root, o.installedMetadata)); pkg.license = 'Apache-2.0'; write(o.root, o.installedMetadata, pkg);
+      } else {
+        const file = 'cargo-cache/realfft-3.5.0/Cargo.toml';
+        write(o.root, file, fs.readFileSync(path.join(o.root, file), 'utf8').replace('license = "MIT"', 'license = "Apache-2.0"'));
+      }
+    }],
+    ['missing original declaration', o => { o.sources = [o.standard]; }],
+    ['missing SPDX hash', o => { delete o.standard.sha256; }],
+    ['missing SPDX Git blob', o => { delete o.standard.gitBlob; }],
+    ['changed SPDX Git blob', o => { o.standard.gitBlob = '0'.repeat(40); }],
+    ['changed SPDX reference', o => { o.standard.url = 'https://example.invalid/other-MIT.txt'; }],
+    ['replaced SPDX text with matching invented hashes', o => {
+      const bytes = Buffer.from('Synthetic substituted standard text, not MIT\n');
+      o.standard.sha256 = sha256(bytes);
+      o.standard.gitBlob = crypto.createHash('sha1').update('blob ' + bytes.length + '\0').update(bytes).digest('hex');
+      o.standardBytes = bytes.toString('utf8');
+    }],
+  ];
+  for (const kind of ['npm', 'cargo']) for (const [name, mutate] of cases) await t.test(kind + ': ' + name, async (st) => {
+    const options = metadataFixture(st, kind);
+    const cached = json(path.join(options.root, 'licenses/manifest.json')).attachments[0].text;
+    options.standardBytes = fs.readFileSync(path.join(options.root, 'licenses', cached.file), 'utf8');
+    mutate(options, kind);
+    write(options.root, 'scripts/margin/license-sources.json', options.sources);
+    const hash = sha256(Buffer.from(options.standardBytes));
+    const file = 'texts/' + hash + '.txt';
+    write(options.root, 'licenses/' + file, options.standardBytes);
+    write(options.root, 'licenses/manifest.json', { attachments: [{ ...options.standard, text: { file, sha256: hash } }] });
+    await assert.rejects(collect(options), /metadata-MIT|canonical license binding|local license source|supplemental license hash/);
+  });
+});
+
+test('metadata alone and a remaining unrelated missing notice cannot pass inventory checks', async (t) => {
+  for (const kind of ['npm', 'cargo']) {
+    const options = metadataFixture(t, kind);
+    const cachedStandard = json(path.join(options.root, 'licenses/manifest.json')).attachments[0];
+    write(options.root, 'scripts/margin/license-sources.json', [options.metadata]);
+    const metadataOnly = await collect(options);
+    assert.equal(metadataOnly.unresolved.length, 1);
+    assert.throws(() => verifyBundle(copyResources(options.root), options.root), /unresolved notice candidates: 1/);
+    write(options.root, 'scripts/margin/license-sources.json', options.sources);
+    write(options.root, 'licenses/manifest.json', { ...metadataOnly, attachments: [...metadataOnly.attachments, cachedStandard] });
+    const lock = json(path.join(options.root, 'package-lock.json'));
+    lock.packages['node_modules/unapproved'] = { version: '1.0.0', integrity: 'synthetic-other-artifact' };
+    write(options.root, 'package-lock.json', lock);
+    write(options.root, 'node_modules/unapproved/package.json', { name: 'unapproved', version: '1.0.0', license: 'MIT' });
+    const result = await collect(options);
+    assert.deepEqual(result.unresolved.map(item => item.id), ['npm:unapproved@1.0.0:node_modules/unapproved']);
+    fs.rmSync(path.join(options.root, 'synthetic-resources'), { recursive: true });
+    assert.throws(() => verifyBundle(copyResources(options.root), options.root), /unresolved notice candidates: 1/);
+  }
 });

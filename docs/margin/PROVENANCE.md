@@ -183,6 +183,63 @@ package acceptance still rejects the inventory. Native composition,
 corresponding-source/relinking duties, fresh no-cache CI and actual artifact
 review remain separate requirements; this local check is not AG-26 acceptance.
 
+### AG-26 S19-B restricted published MIT metadata evidence
+
+S19-B introduces `approved-metadata-MIT` only for
+`react-remove-scroll-bar@2.3.8` and `realfft@3.5.0`, without changing dependencies,
+lockfiles, runtime, CI or package-diagnostic behavior. This is a deliberately
+weaker category: a published MIT metadata declaration plus fixed official
+standard terms, not a recovered complete original notice, copyright grant,
+legal verdict or native/distribution acceptance.
+
+The exact npm archive at
+`https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz`
+matches lock integrity
+`sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==`
+and archive SHA-256
+`ccc872d7a2dc007cbf9d755f30d56b8d80eabdbe22c44c95a709129bfdc46f01`.
+Its complete 2221-byte `package/package.json`, SHA-256
+`e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0`, is retained
+verbatim and matches installed metadata. The exact crate at
+`https://static.crates.io/crates/realfft/realfft-3.5.0.crate` matches Cargo.lock
+checksum/archive SHA-256
+`f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677`.
+Its complete 990-byte `realfft-3.5.0/Cargo.toml.orig`, SHA-256
+`d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de`, is retained
+verbatim and matches the installed original manifest. Both archive entry lists
+were checked for unsafe/duplicate paths and links before separate temporary
+extraction; no package code or install scripts were executed.
+
+Both original READMEs express a short MIT declaration: npm byte range
+[1702,1715) is `# License` followed by `MIT`; crate range [6563,6575) is
+`License: MIT`. Neither archive supplies a complete original license/copyright
+notice file. The published npm gitHead's unresolved source and a later
+add-LICENSE change are not used to give 2.3.8 an original grant. Package author
+fields are not converted into copyright statements. Official SPDX MIT at commit
+`d46e94e2c78ceede1cfc63cfa0396472d2798d4c`, Git blob
+`d817195dad53ec992418c28ffca5fbd1cd86502a`, SHA-256
+`b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5`, retains its
+unfilled copyright placeholders; its bytes already existed in the inventory.
+
+The collector restricts approval to these two exact identities/artifact pins,
+checks current artifact integrity/checksum and original/installed metadata
+bytes, verifies the declared name/version/MIT license and fixed SPDX URL/hash/
+Git blob, and requires the explicit evidence category. Missing category cannot
+fall through to the ordinary binding. Metadata attachments alone do not close
+missing entries; both metadata texts become hash-checked bundle notice inputs.
+Binding resolves after all attachments load, independently of source order.
+
+Regeneration keeps 726 candidates, 33 exclusions and two deferred Electron
+notices; the two retained original metadata texts raise unique texts from 411
+to 413 and reduce unresolved notice candidates from two to zero. All previous
+411 text bytes and unrelated component/source/deferred records remain intact.
+The normal byte verifier can pass only with `candidateInventoryOnly:true`;
+tampered/missing evidence or any unrelated unresolved notice still rejects.
+The S17 diagnostic's mandatory pre-signing stop and acceptance=false are
+unchanged. S19-C, actual native vendored composition, source/relinking duties,
+fresh no-cache CI and actual artifact review remain separate open gates; this
+does not mark AG-26 or distribution acceptance complete.
+
 ### AG-26 S18 dependency-scope reduction
 
 S18 removes only the root production declarations for `tap`, `sqlite3` and
