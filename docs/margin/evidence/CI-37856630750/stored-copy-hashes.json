@@ -1,0 +1,185 @@
+{
+  "rawArtifactsRetained": true,
+  "files": [
+    {
+      "file": "gates/build-electron.log",
+      "rawSHA256": "a49434f48f041004010d366a5949257326b419d24f826c3ad92b607ba1402b80",
+      "storedSHA256": "a49434f48f041004010d366a5949257326b419d24f826c3ad92b607ba1402b80",
+      "transform": "none"
+    },
+    {
+      "file": "gates/clean-dist.log",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/diff-check.log",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/guard-selftest.log",
+      "rawSHA256": "b7edda7b8c4d9d09de40687dabbd8dc718f4648466aee738ad0a93d2ba2290a8",
+      "storedSHA256": "b7edda7b8c4d9d09de40687dabbd8dc718f4648466aee738ad0a93d2ba2290a8",
+      "transform": "none"
+    },
+    {
+      "file": "gates/identity-release-build.log",
+      "rawSHA256": "519ade0bc073ab0d4f1c5899a2bb5a9da3262ca180fb93b3bd9a52b46ea1b5a6",
+      "storedSHA256": "519ade0bc073ab0d4f1c5899a2bb5a9da3262ca180fb93b3bd9a52b46ea1b5a6",
+      "transform": "none"
+    },
+    {
+      "file": "gates/identity-release-contract.log",
+      "rawSHA256": "5205c715bef074cf628082a64d982d4c908385eb778563fb0f09e6a3c19acbb9",
+      "storedSHA256": "5205c715bef074cf628082a64d982d4c908385eb778563fb0f09e6a3c19acbb9",
+      "transform": "none"
+    },
+    {
+      "file": "gates/identity-release-renderer.log",
+      "rawSHA256": "b872556292976f3fe087de9723cc4dc1182f207cb37ddc6e5a8270a11c7f2533",
+      "storedSHA256": "b872556292976f3fe087de9723cc4dc1182f207cb37ddc6e5a8270a11c7f2533",
+      "transform": "none"
+    },
+    {
+      "file": "gates/ipc-channels.gaps.txt",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/ipc-channels.log",
+      "rawSHA256": "e4d9ebcc192b141581c20afd622aa5d06e252e66f1240277ad9328e460a90031",
+      "storedSHA256": "e4d9ebcc192b141581c20afd622aa5d06e252e66f1240277ad9328e460a90031",
+      "transform": "none"
+    },
+    {
+      "file": "gates/outbound-renderer.log",
+      "rawSHA256": "67eb4321c3953a482383125fb63a7ebf52066309f2fa85ba81b676c22309ac4a",
+      "storedSHA256": "67eb4321c3953a482383125fb63a7ebf52066309f2fa85ba81b676c22309ac4a",
+      "transform": "none"
+    },
+    {
+      "file": "gates/preload-contract.gaps.txt",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/preload-contract.log",
+      "rawSHA256": "21d0d0c23909033f30a43ebd46ac4b97f3c66bcfbc534c33dae0425c9e181b25",
+      "storedSHA256": "21d0d0c23909033f30a43ebd46ac4b97f3c66bcfbc534c33dae0425c9e181b25",
+      "transform": "none"
+    },
+    {
+      "file": "gates/provenance.log",
+      "rawSHA256": "738f62679521bc30429f6a5db2f663becb43aae35da0a2608ac825749399d638",
+      "storedSHA256": "738f62679521bc30429f6a5db2f663becb43aae35da0a2608ac825749399d638",
+      "transform": "none"
+    },
+    {
+      "file": "gates/regression.log",
+      "rawSHA256": "5faf2440210c231272472b2e67e866e2f2feae97bea7f3cb9b79f990f1f43adb",
+      "storedSHA256": "5faf2440210c231272472b2e67e866e2f2feae97bea7f3cb9b79f990f1f43adb",
+      "transform": "none"
+    },
+    {
+      "file": "gates/retired.log",
+      "rawSHA256": "3ffa5d71a016387f1096fa284d6a001b42bd779ffeefbff100d3ffe7c96d44de",
+      "storedSHA256": "3ffa5d71a016387f1096fa284d6a001b42bd779ffeefbff100d3ffe7c96d44de",
+      "transform": "none"
+    },
+    {
+      "file": "gates/startup.log",
+      "rawSHA256": "f1ff86add07399df317b73d5288fdf78ac9b625d2c5b52babf036474c8c44a5f",
+      "storedSHA256": "f1ff86add07399df317b73d5288fdf78ac9b625d2c5b52babf036474c8c44a5f",
+      "transform": "none"
+    },
+    {
+      "file": "gates/storage.log",
+      "rawSHA256": "51e938c3ed40aaae88cb90a89779d21fe3ead64ffb1b46199203fa10f6d2c00e",
+      "storedSHA256": "51e938c3ed40aaae88cb90a89779d21fe3ead64ffb1b46199203fa10f6d2c00e",
+      "transform": "none"
+    },
+    {
+      "file": "gates/summary.json",
+      "rawSHA256": "19039ba3dbcc561746b954ce72cef8a49c3ed7dd250477925be18b4356d0abff",
+      "storedSHA256": "19039ba3dbcc561746b954ce72cef8a49c3ed7dd250477925be18b4356d0abff",
+      "transform": "none"
+    },
+    {
+      "file": "gates/test-failures.txt",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/tests.files.json",
+      "rawSHA256": "78d85f40f296c1707d51b3a7738d28fe46337f0f9b589d70612f48544b0f22cc",
+      "storedSHA256": "78d85f40f296c1707d51b3a7738d28fe46337f0f9b589d70612f48544b0f22cc",
+      "transform": "none"
+    },
+    {
+      "file": "gates/tests.log",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/tests.tap",
+      "rawSHA256": "6f98feaed035997f507be320a274fb75937fc50fcf604b953adcffccd001cc43",
+      "storedSHA256": "6f98feaed035997f507be320a274fb75937fc50fcf604b953adcffccd001cc43",
+      "transform": "none"
+    },
+    {
+      "file": "gates/tsc-electron.diagnostics.txt",
+      "rawSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "none"
+    },
+    {
+      "file": "gates/tsc-electron.log",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/tsc-renderer.log",
+      "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "transform": "terminal whitespace normalization only"
+    },
+    {
+      "file": "gates/vite-build.log",
+      "rawSHA256": "8a64acec807580ef35d53e69cd066e4e0e32b881f399d85d30e2ada4115906d5",
+      "storedSHA256": "8a64acec807580ef35d53e69cd066e4e0e32b881f399d85d30e2ada4115906d5",
+      "transform": "none"
+    },
+    {
+      "file": "inventory/build-electron.log",
+      "rawSHA256": "68c4a654efba7ff8f604797ae4ce0a621970afb2120a44ef1c26005b520a82fa",
+      "storedSHA256": "68c4a654efba7ff8f604797ae4ce0a621970afb2120a44ef1c26005b520a82fa",
+      "transform": "none"
+    },
+    {
+      "file": "inventory/diagnostic-run.json",
+      "rawSHA256": "4e40bd2407e69141b3305d596723d4cb3d00f684a9a0d8d17d30dc32f20b74c2",
+      "storedSHA256": "4e40bd2407e69141b3305d596723d4cb3d00f684a9a0d8d17d30dc32f20b74c2",
+      "transform": "none"
+    },
+    {
+      "file": "inventory/electron-builder.log",
+      "rawSHA256": "47f016681fdf60e66cae0b0de8518300e46468b53b3706f2efbcaeaa1542ed03",
+      "storedSHA256": "47f016681fdf60e66cae0b0de8518300e46468b53b3706f2efbcaeaa1542ed03",
+      "transform": "none"
+    },
+    {
+      "file": "inventory/vite-build.log",
+      "rawSHA256": "c94b721785069dad97e1c31e7b75ca850e64aa96f2682a73fe46a41d3c83845f",
+      "storedSHA256": "c94b721785069dad97e1c31e7b75ca850e64aa96f2682a73fe46a41d3c83845f",
+      "transform": "none"
+    }
+  ]
+}

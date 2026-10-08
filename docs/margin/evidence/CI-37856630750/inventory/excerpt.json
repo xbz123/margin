@@ -1,0 +1,62 @@
+{
+  "kind": "derived verification excerpt, not complete inventory",
+  "pass": true,
+  "source": {
+    "run": 37856630750,
+    "commit": "eaf759dad50bbe25f4c2c4a78dcdf7261b37e465",
+    "inventoryBytes": 44624761,
+    "inventorySHA256": "d2b86d187be831392190a7d6a9354b2ee4833daa2e6e7bf87ddc34f581f02de0",
+    "workflowBytes": 104846,
+    "workflowSHA256": "57cac248ca4fbfeec0858ad0f11fa874872bd44d87ec5a3fe844449545584564"
+  },
+  "acceptance": false,
+  "cleanCheckout": true,
+  "gateSteps": 16,
+  "unitCounts": {
+    "tests": 925,
+    "pass": 919,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "normalVerification": {
+    "passed": true,
+    "result": {
+      "checkedNotices": 989,
+      "candidateInventoryOnly": true
+    }
+  },
+  "expectedStopVerified": true,
+  "entries": 40513,
+  "packageMetadataRecords": 609,
+  "candidates": 726,
+  "uniqueLicenseFilesVerified": 415,
+  "metadataEvidenceCategory": "approved-metadata-MIT",
+  "addedPackagePaths": [
+    "Resources/licenses/texts/d72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de.txt",
+    "Resources/licenses/texts/e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0.txt"
+  ],
+  "removedPackagePaths": [],
+  "native": {
+    "count": 23,
+    "allArm64": true,
+    "projectNativeSHA256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603",
+    "fromScratchCidreEvidence": true
+  },
+  "mapGaps": 1412,
+  "artifacts": [
+    {
+      "name": "inventory",
+      "id": 11584861277,
+      "bytes": 3154149,
+      "sha256": "68f8f82ca5280c9578b784997924a5a28851a4e597acd422f1a52f2bf9973c48"
+    },
+    {
+      "name": "gates",
+      "id": 11584811708,
+      "bytes": 58700,
+      "sha256": "84d637d5f09f428f35d5e12b91fed6e09f6300a9488d7587669c4081dc2f0c58"
+    }
+  ]
+}

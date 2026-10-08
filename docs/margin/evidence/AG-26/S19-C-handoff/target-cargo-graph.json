@@ -1,0 +1,1336 @@
+{
+  "target": "aarch64-apple-darwin",
+  "method": "cargo metadata --locked --offline --filter-platform; reachable non-dev resolve edges from workspace root, including build/proc-macro candidates",
+  "rawMetadataSHA256": "c8ba9a38bf3225d949bd2ce719db0bc913bf271802a4896cb33183a79578022c",
+  "allMetadataPackages": 115,
+  "reachableNonDevCandidates": 115,
+  "oboeReachable": [],
+  "realfftReachable": [
+    {
+      "name": "realfft",
+      "version": "3.5.0",
+      "license": "MIT",
+      "features": [
+        "default"
+      ],
+      "procMacro": false
+    }
+  ],
+  "webrtcReachable": [
+    {
+      "name": "webrtc-vad",
+      "version": "0.4.0",
+      "license": "MIT",
+      "features": [],
+      "procMacro": false
+    }
+  ],
+  "entries": [
+    {
+      "name": "aho-corasick",
+      "version": "1.1.4",
+      "license": "Unlicense OR MIT",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "anyhow",
+      "version": "1.0.100",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "autocfg",
+      "version": "1.5.0",
+      "license": "Apache-2.0 OR MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "bindgen",
+      "version": "0.72.1",
+      "license": "BSD-3-Clause",
+      "features": [
+        "runtime"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "bitflags",
+      "version": "2.10.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "bitflags",
+      "version": "1.3.2",
+      "license": "MIT/Apache-2.0",
+      "features": [
+        "default"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "block2",
+      "version": "0.5.1",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "bytemuck",
+      "version": "1.25.0",
+      "license": "Zlib OR Apache-2.0 OR MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "bytes",
+      "version": "1.11.0",
+      "license": "MIT",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "cc",
+      "version": "1.2.54",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "parallel"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "cexpr",
+      "version": "0.6.0",
+      "license": "Apache-2.0/MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "cidre",
+      "version": "0.11.10",
+      "license": "MIT",
+      "features": [
+        "am",
+        "app",
+        "async",
+        "at",
+        "av",
+        "av_kit",
+        "ax",
+        "blocks",
+        "ca",
+        "cat",
+        "cblas",
+        "cf",
+        "cg",
+        "ci",
+        "cl",
+        "cm",
+        "cmio",
+        "compression",
+        "core_audio",
+        "core_motion",
+        "ct",
+        "cv",
+        "da",
+        "default",
+        "dispatch",
+        "full",
+        "gc",
+        "half",
+        "iio",
+        "io_kit",
+        "io_surface",
+        "ios_10_0",
+        "ios_10_2",
+        "ios_11_0",
+        "ios_11_1",
+        "ios_12_0",
+        "ios_13_0",
+        "ios_14_0",
+        "ios_14_1",
+        "ios_14_2",
+        "ios_14_5",
+        "ios_15_0",
+        "ios_15_4",
+        "ios_16_0",
+        "ios_16_4",
+        "ios_17_0",
+        "ios_17_2",
+        "ios_17_4",
+        "ios_18_0",
+        "ios_2_0",
+        "ios_3_0",
+        "ios_3_1",
+        "ios_4_0",
+        "ios_5_0",
+        "ios_6_0",
+        "ios_7_0",
+        "ios_8_0",
+        "ios_8_3",
+        "ios_9_0",
+        "ios_9_3",
+        "maccatalyst_13_0",
+        "maccatalyst_13_1",
+        "maccatalyst_14_0",
+        "maccatalyst_15_0",
+        "maccatalyst_15_4",
+        "maccatalyst_16_0",
+        "maccatalyst_16_1",
+        "maccatalyst_17_0",
+        "maccatalyst_17_4",
+        "maccatalyst_18_0",
+        "macos_10_0",
+        "macos_10_10",
+        "macos_10_11",
+        "macos_10_12",
+        "macos_10_13",
+        "macos_10_14",
+        "macos_10_15",
+        "macos_10_4",
+        "macos_10_5",
+        "macos_10_6",
+        "macos_10_7",
+        "macos_10_8",
+        "macos_10_9",
+        "macos_11_0",
+        "macos_11_3",
+        "macos_12_0",
+        "macos_12_1",
+        "macos_12_3",
+        "macos_12_7",
+        "macos_13_0",
+        "macos_13_1",
+        "macos_13_3",
+        "macos_14_0",
+        "macos_14_2",
+        "macos_14_4",
+        "macos_15_0",
+        "mc",
+        "ml",
+        "mlc",
+        "mps",
+        "mpsg",
+        "mt",
+        "mtk",
+        "mtl",
+        "nl",
+        "ns",
+        "nw",
+        "objc",
+        "private",
+        "sc",
+        "sec",
+        "simd",
+        "sn",
+        "tvos_10_0",
+        "tvos_11_0",
+        "tvos_11_2",
+        "tvos_12_0",
+        "tvos_13_0",
+        "tvos_14_0",
+        "tvos_14_5",
+        "tvos_15_0",
+        "tvos_16_0",
+        "tvos_17_0",
+        "tvos_17_2",
+        "tvos_17_4",
+        "tvos_18_0",
+        "tvos_7_0",
+        "tvos_8_0",
+        "tvos_9_0",
+        "ui",
+        "un",
+        "ut",
+        "vdsp",
+        "vimage",
+        "visionos_1_0",
+        "visionos_1_1",
+        "visionos_1_2",
+        "visionos_2_0",
+        "vn",
+        "vt",
+        "watchos_10_0",
+        "watchos_10_2",
+        "watchos_10_5",
+        "watchos_11_0",
+        "watchos_1_0",
+        "watchos_2_0",
+        "watchos_3_0",
+        "watchos_4_0",
+        "watchos_5_0",
+        "watchos_6_0",
+        "watchos_7_0",
+        "watchos_7_3",
+        "watchos_8_0",
+        "wc",
+        "wk",
+        "xpc"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "cidre-macros",
+      "version": "0.3.0",
+      "license": "MIT",
+      "features": [],
+      "procMacro": true
+    },
+    {
+      "name": "clang-sys",
+      "version": "1.8.1",
+      "license": "Apache-2.0",
+      "features": [
+        "clang_10_0",
+        "clang_11_0",
+        "clang_3_5",
+        "clang_3_6",
+        "clang_3_7",
+        "clang_3_8",
+        "clang_3_9",
+        "clang_4_0",
+        "clang_5_0",
+        "clang_6_0",
+        "clang_7_0",
+        "clang_8_0",
+        "clang_9_0",
+        "libloading",
+        "runtime"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "convert_case",
+      "version": "0.11.0",
+      "license": "MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "core-foundation",
+      "version": "0.10.1",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "link"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "core-foundation-sys",
+      "version": "0.8.7",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "link"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "core-graphics",
+      "version": "0.24.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "link"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "core-graphics-types",
+      "version": "0.2.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "link"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "coreaudio-rs",
+      "version": "0.11.3",
+      "license": "MIT/Apache-2.0",
+      "features": [
+        "audio_toolbox",
+        "audio_unit",
+        "core_audio"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "coreaudio-sys",
+      "version": "0.2.17",
+      "license": "MIT",
+      "features": [
+        "audio_toolbox",
+        "audio_unit",
+        "core_audio"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "cpal",
+      "version": "0.15.3",
+      "license": "Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "crossbeam-utils",
+      "version": "0.8.21",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "ctor",
+      "version": "0.6.3",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "__no_warn_on_missing_unsafe",
+        "default",
+        "dtor",
+        "proc_macro"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "ctor-proc-macro",
+      "version": "0.0.7",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "default"
+      ],
+      "procMacro": true
+    },
+    {
+      "name": "dasp_sample",
+      "version": "0.11.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "dtor",
+      "version": "0.1.1",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "__no_warn_on_missing_unsafe",
+        "proc_macro"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "dtor-proc-macro",
+      "version": "0.0.6",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "default"
+      ],
+      "procMacro": true
+    },
+    {
+      "name": "either",
+      "version": "1.15.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "errno",
+      "version": "0.3.14",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "find-msvc-tools",
+      "version": "0.1.8",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "foreign-types",
+      "version": "0.5.0",
+      "license": "MIT/Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "foreign-types-macros",
+      "version": "0.2.3",
+      "license": "MIT/Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": true
+    },
+    {
+      "name": "foreign-types-shared",
+      "version": "0.3.1",
+      "license": "MIT/Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "futures",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "async-await",
+        "default",
+        "executor",
+        "futures-executor",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-channel",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "futures-sink",
+        "sink",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-core",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-executor",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-io",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-macro",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": true
+    },
+    {
+      "name": "futures-sink",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-task",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "futures-util",
+      "version": "0.3.32",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "async-await",
+        "async-await-macro",
+        "channel",
+        "futures-channel",
+        "futures-io",
+        "futures-macro",
+        "futures-sink",
+        "io",
+        "memchr",
+        "sink",
+        "slab",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "getrandom",
+      "version": "0.2.17",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "glob",
+      "version": "0.3.3",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "half",
+      "version": "2.7.1",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "itertools",
+      "version": "0.13.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "jobserver",
+      "version": "0.1.34",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "libc",
+      "version": "0.2.180",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "libloading",
+      "version": "0.9.0",
+      "license": "ISC",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "libloading",
+      "version": "0.8.9",
+      "license": "ISC",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "lock_api",
+      "version": "0.4.14",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "atomic_usize",
+        "default"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "mach2",
+      "version": "0.4.3",
+      "license": "BSD-2-Clause OR MIT OR Apache-2.0",
+      "features": [
+        "default"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "memchr",
+      "version": "2.7.6",
+      "license": "Unlicense OR MIT",
+      "features": [
+        "alloc",
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "minimal-lexical",
+      "version": "0.2.1",
+      "license": "MIT/Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "mio",
+      "version": "1.1.1",
+      "license": "MIT",
+      "features": [
+        "net",
+        "os-ext",
+        "os-poll"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "napi",
+      "version": "3.8.3",
+      "license": "MIT",
+      "features": [
+        "default",
+        "dyn-symbols",
+        "napi1",
+        "napi2",
+        "napi3",
+        "napi4"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "napi-build",
+      "version": "2.3.1",
+      "license": "MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "napi-derive",
+      "version": "3.5.2",
+      "license": "MIT",
+      "features": [
+        "ctor",
+        "default",
+        "strict",
+        "type-def"
+      ],
+      "procMacro": true
+    },
+    {
+      "name": "napi-derive-backend",
+      "version": "5.0.2",
+      "license": "MIT",
+      "features": [
+        "semver",
+        "strict",
+        "type-def"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "napi-sys",
+      "version": "3.2.1",
+      "license": "MIT",
+      "features": [
+        "dyn-symbols",
+        "napi1",
+        "napi2",
+        "napi3",
+        "napi4"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "natively-audio",
+      "version": "0.1.0",
+      "license": null,
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "nohash-hasher",
+      "version": "0.2.0",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "nom",
+      "version": "7.1.3",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "num-complex",
+      "version": "0.4.6",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "num-integer",
+      "version": "0.1.46",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "num-traits",
+      "version": "0.2.19",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "i128",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc-sys",
+      "version": "0.3.5",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2",
+      "version": "0.5.2",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-app-kit",
+      "version": "0.2.2",
+      "license": "MIT",
+      "features": [
+        "NSResponder",
+        "NSWindow",
+        "alloc",
+        "bitflags",
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-core-data",
+      "version": "0.2.2",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "bitflags",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-core-image",
+      "version": "0.2.2",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-encode",
+      "version": "4.1.0",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-foundation",
+      "version": "0.2.2",
+      "license": "MIT",
+      "features": [
+        "NSArray",
+        "NSCoder",
+        "NSData",
+        "NSDate",
+        "NSDictionary",
+        "NSError",
+        "NSGeometry",
+        "NSNotification",
+        "NSObjCRuntime",
+        "NSObject",
+        "NSString",
+        "NSURL",
+        "NSUndoManager",
+        "NSValue",
+        "alloc",
+        "bitflags",
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-metal",
+      "version": "0.2.2",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "bitflags",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "objc2-quartz-core",
+      "version": "0.2.2",
+      "license": "MIT",
+      "features": [
+        "alloc",
+        "bitflags",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "once_cell",
+      "version": "1.21.3",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "default",
+        "race",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "parking_lot",
+      "version": "0.12.5",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "parking_lot_core",
+      "version": "0.9.12",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "pin-project-lite",
+      "version": "0.2.16",
+      "license": "Apache-2.0 OR MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "portable-atomic",
+      "version": "1.13.0",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "require-cas",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "portable-atomic-util",
+      "version": "0.2.4",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "alloc",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "ppv-lite86",
+      "version": "0.2.21",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "simd",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "primal-check",
+      "version": "0.3.4",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "proc-macro2",
+      "version": "1.0.106",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "proc-macro"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "quote",
+      "version": "1.0.44",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "proc-macro"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "rand",
+      "version": "0.8.5",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "default",
+        "getrandom",
+        "libc",
+        "rand_chacha",
+        "std",
+        "std_rng"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "rand_chacha",
+      "version": "0.3.1",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "rand_core",
+      "version": "0.6.4",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "getrandom",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "realfft",
+      "version": "3.5.0",
+      "license": "MIT",
+      "features": [
+        "default"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "regex",
+      "version": "1.12.2",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std",
+        "unicode-perl"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "regex-automata",
+      "version": "0.4.13",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "alloc",
+        "meta",
+        "nfa-pikevm",
+        "nfa-thompson",
+        "std",
+        "syntax",
+        "unicode-perl",
+        "unicode-word-boundary"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "regex-syntax",
+      "version": "0.8.8",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "std",
+        "unicode-perl"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "ringbuf",
+      "version": "0.4.8",
+      "license": "MIT/Apache-2.0",
+      "features": [
+        "alloc",
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "rubato",
+      "version": "0.16.2",
+      "license": "MIT",
+      "features": [
+        "default",
+        "fft_resampler",
+        "num-complex",
+        "realfft"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "rustc-hash",
+      "version": "2.1.1",
+      "license": "Apache-2.0 OR MIT",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "rustfft",
+      "version": "6.4.1",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "avx",
+        "default",
+        "neon",
+        "sse"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "scopeguard",
+      "version": "1.2.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "semver",
+      "version": "1.0.27",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "shlex",
+      "version": "1.3.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "default",
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "signal-hook-registry",
+      "version": "1.4.8",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "slab",
+      "version": "0.4.11",
+      "license": "MIT",
+      "features": [
+        "std"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "smallvec",
+      "version": "1.15.1",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "socket2",
+      "version": "0.6.2",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "all"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "strength_reduce",
+      "version": "0.2.4",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "syn",
+      "version": "2.0.114",
+      "license": "MIT OR Apache-2.0",
+      "features": [
+        "clone-impls",
+        "default",
+        "derive",
+        "extra-traits",
+        "fold",
+        "full",
+        "parsing",
+        "printing",
+        "proc-macro",
+        "visit",
+        "visit-mut"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "tokio",
+      "version": "1.49.0",
+      "license": "MIT",
+      "features": [
+        "bytes",
+        "io-util",
+        "libc",
+        "macros",
+        "mio",
+        "net",
+        "process",
+        "rt",
+        "rt-multi-thread",
+        "signal-hook-registry",
+        "socket2",
+        "time",
+        "tokio-macros",
+        "windows-sys"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "tokio-macros",
+      "version": "2.6.0",
+      "license": "MIT",
+      "features": [],
+      "procMacro": true
+    },
+    {
+      "name": "transpose",
+      "version": "0.2.3",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "unicode-ident",
+      "version": "1.0.22",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "unicode-segmentation",
+      "version": "1.12.0",
+      "license": "MIT OR Apache-2.0",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "webrtc-vad",
+      "version": "0.4.0",
+      "license": "MIT",
+      "features": [],
+      "procMacro": false
+    },
+    {
+      "name": "zerocopy",
+      "version": "0.8.35",
+      "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+      "features": [
+        "derive",
+        "simd",
+        "zerocopy-derive"
+      ],
+      "procMacro": false
+    },
+    {
+      "name": "zerocopy-derive",
+      "version": "0.8.35",
+      "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+      "features": [],
+      "procMacro": true
+    }
+  ],
+  "limitation": "Target dependency closure, not final static link map; build-only and macro candidates are not asserted embedded in the binary"
+}

@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "scope": "Private S19-C evidence and proposed source-schema reuse only; not applied inventory, final link-map or distribution acceptance",
+  "crate": {
+    "url": "https://static.crates.io/crates/webrtc-vad/webrtc-vad-0.4.0.crate",
+    "sha256": "39a1e40fd6ca90be95459152a2537f2ba4286ee1b13073f7ebcaa74fc94e3008",
+    "bytes": 944774,
+    "entries": 69,
+    "pathSafetyCheckedBeforeMemberRead": true,
+    "links": 0,
+    "extractedWholeArchive": false
+  },
+  "wrapper": {
+    "ref": "04c4f43a6a585835135f18150aef80427e1b651d",
+    "treeURL": "https://api.github.com/repos/kaegi/webrtc-vad/git/trees/04c4f43a6a585835135f18150aef80427e1b651d?recursive=1",
+    "buildSHA256": "ae827c2a8616267fc24c5430747d4d22928cacb1440155cb63c40180eacc27b2",
+    "buildGitBlob": "a176c346063e34e8927b4367addead8628aeac42",
+    "buildSourceURL": "https://raw.githubusercontent.com/kaegi/webrtc-vad/04c4f43a6a585835135f18150aef80427e1b651d/build.rs"
+  },
+  "libfvad": {
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "treeURL": "https://api.github.com/repos/dpirch/libfvad/git/trees/aa3c662c9c1291128eb1756b7566c2594d317813?recursive=1",
+    "notices": {
+      "AUTHORS": {
+        "path": "AUTHORS",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/AUTHORS",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 3158,
+        "fullSourceSHA256": "cd9bea3aacbdb2a25763835e029f0ea34198dfc35687616a6ce29e7db1b6114a",
+        "fullSourceGitBlob": "755536743a07cba40d8e06241c3e2065b2d2e378",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/AUTHORS",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "LICENSE": {
+        "path": "LICENSE",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/LICENSE",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 1543,
+        "fullSourceSHA256": "78b16d4e803975e0c5d826339c607d0676192a40e2c510c10b2cb4ab4cde416a",
+        "fullSourceGitBlob": "c7fdbae0125db0a7d2df471be92fa4c0e39a8fbe",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/LICENSE",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "PATENTS": {
+        "path": "PATENTS",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/PATENTS",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 1388,
+        "fullSourceSHA256": "01462e2068d1a04c2274f3389773014c14ed9bc3446b28303543bd3e3c064145",
+        "fullSourceGitBlob": "190607ac2619bcb28f5c3af61a2fda3953364f7c",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/PATENTS",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      }
+    }
+  },
+  "coverageFile": "coverage.json",
+  "compiledCFiles": [
+    "src/signal_processing/division_operations.c",
+    "src/signal_processing/get_scaling_square.c",
+    "src/signal_processing/resample_48khz.c",
+    "src/signal_processing/resample_by_2_internal.c",
+    "src/signal_processing/resample_fractional.c",
+    "src/signal_processing/spl_inl.c",
+    "src/signal_processing/energy.c",
+    "src/vad/vad_core.c",
+    "src/vad/vad_filterbank.c",
+    "src/vad/vad_gmm.c",
+    "src/vad/vad_sp.c",
+    "src/fvad.c"
+  ],
+  "productionCHFiles": 21,
+  "uniqueHeaderTexts": 5,
+  "headers": [
+    {
+      "sha256": "faf358a8bb762ee2e9dbb3e9403d0e6bfb049f5e7018bf19f4a5c68d1b3a6b00",
+      "gitBlob": "612eae6e7495ee92ea822be3e2a0545ee392bd1c",
+      "bytes": 449,
+      "representative": {
+        "path": "include/fvad.h",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/include/fvad.h",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 2632,
+        "fullSourceSHA256": "bdde03a590c819ae7967f6737d33e43efa7ceb86448185788a6217d4ad7ff416",
+        "fullSourceGitBlob": "159e6408f11f5ca45c76169b40453eba4727b0dc",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/include/fvad.h",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 449
+      },
+      "coveredFiles": [
+        "include/fvad.h",
+        "src/fvad.c"
+      ]
+    },
+    {
+      "sha256": "54630480628d00a9b319337201c7c34a3ea041be2bec13806c47121d912bc93b",
+      "gitBlob": "dcc7f37376a03bd07ed526c786abe971f800dbd3",
+      "bytes": 370,
+      "representative": {
+        "path": "src/common.h",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/common.h",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 1081,
+        "fullSourceSHA256": "9d5a991e13bf73bd93a7e2e101db719da9e14086e5f1b1bbf63b082e524daee3",
+        "fullSourceGitBlob": "f9d6f0f7198f42ed09594fc6f554c15eed8250f0",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/common.h",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 370
+      },
+      "coveredFiles": [
+        "src/common.h"
+      ]
+    },
+    {
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef",
+      "bytes": 412,
+      "representative": {
+        "path": "src/signal_processing/division_operations.c",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/division_operations.c",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 833,
+        "fullSourceSHA256": "fb57461a7bcbfffecc3e4a8c641c4183e2ab427685cb3b3ad7d737dda3cb6d56",
+        "fullSourceGitBlob": "29504dd6c84c54a1bf8f8cddfc9e04a3f3194c1c",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/division_operations.c",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 412
+      },
+      "coveredFiles": [
+        "src/signal_processing/division_operations.c",
+        "src/signal_processing/energy.c",
+        "src/signal_processing/get_scaling_square.c",
+        "src/signal_processing/resample_48khz.c",
+        "src/signal_processing/resample_by_2_internal.c",
+        "src/signal_processing/resample_by_2_internal.h",
+        "src/signal_processing/resample_fractional.c",
+        "src/signal_processing/spl_inl.h",
+        "src/vad/vad_gmm.c",
+        "src/vad/vad_gmm.h",
+        "src/vad/vad_sp.h"
+      ]
+    },
+    {
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4",
+      "bytes": 412,
+      "representative": {
+        "path": "src/signal_processing/signal_processing_library.h",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/signal_processing_library.h",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 3089,
+        "fullSourceSHA256": "806fc377bf6486bca6f9df366f68421801d377d025c87af13348d2a383b9ecbd",
+        "fullSourceGitBlob": "5cee30b91893ae1f2bb30375e1368a8fcda8b8f4",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/signal_processing_library.h",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 412
+      },
+      "coveredFiles": [
+        "src/signal_processing/signal_processing_library.h",
+        "src/vad/vad_core.c",
+        "src/vad/vad_core.h",
+        "src/vad/vad_filterbank.c",
+        "src/vad/vad_filterbank.h",
+        "src/vad/vad_sp.c"
+      ]
+    },
+    {
+      "sha256": "082029abf8ec38f1d4d083ca344e3551273fc8b53fb613ea930f330ba5a9fa98",
+      "gitBlob": "35142408da7f006650764fa585cf37015823d0cb",
+      "bytes": 412,
+      "representative": {
+        "path": "src/signal_processing/spl_inl.c",
+        "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/spl_inl.c",
+        "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+        "fullSourceBytes": 1011,
+        "fullSourceSHA256": "6f17afe654639115b46197ffc03f30af5e8297701025039e5b3623f2e3608835",
+        "fullSourceGitBlob": "6d1702353f88bc6d33b0dfa1af9215762e467b45",
+        "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/spl_inl.c",
+        "publishedMatchesOfficial": true,
+        "cacheMatchesPublished": true
+      },
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 412
+      },
+      "coveredFiles": [
+        "src/signal_processing/spl_inl.c"
+      ]
+    }
+  ],
+  "proposedSourceEntries": 6,
+  "proposedAdditionalUniqueTexts": 6,
+  "sourceSchema": "Existing localPath/sourceSHA256/sha256/gitBlob/endBefore/originalSource/bind/closesMissing:false; unchanged collector can emit attachments and existing verifier hashes them",
+  "notRun": [
+    "collector",
+    "inventory regeneration",
+    "build.rs",
+    "native build",
+    "npm ci",
+    "upstream scripts",
+    "real app/providers/data"
+  ]
+}

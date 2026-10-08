@@ -47,8 +47,11 @@ normal verifier checks 989 notice references and returns
 See `checks/post-build-verification.log`. This normal candidate check now passes
 under S19-B, but cannot establish complete native-license/source coverage.
 
-Fresh no-cache CI, clean native build and S17 actual-package checks remain due
-for this checkpoint. S17 must still stop before signing, report acceptance=false
-and upload text only. Native nested notices, corresponding sources and usable
-replacement/re-signing instructions remain S19-C work; AG-25 and Claude read-only
-review remain open. No application/native binary or Release is distributed here.
+Fresh no-cache CI `37856630750` subsequently passed on checkpoint `eaf759da`,
+including a clean native build and independent S17 actual-package verification;
+see `../../CI-37856630750/`. All 415 notice files match. S17 still stops before
+signing, reports acceptance=false and uploads text only. Native nested notices,
+corresponding sources and usable replacement/re-signing instructions remain
+S19-C work, now handed off per S20 without implementation; AG-25 and Claude
+read-only review remain open. No application/native binary or Release is
+distributed here.

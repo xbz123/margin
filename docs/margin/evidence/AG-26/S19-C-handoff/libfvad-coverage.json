@@ -1,0 +1,401 @@
+[
+  {
+    "path": "include/fvad.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/include/fvad.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2632,
+    "fullSourceSHA256": "bdde03a590c819ae7967f6737d33e43efa7ceb86448185788a6217d4ad7ff416",
+    "fullSourceGitBlob": "159e6408f11f5ca45c76169b40453eba4727b0dc",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/include/fvad.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 449,
+      "bytes": 449,
+      "sha256": "faf358a8bb762ee2e9dbb3e9403d0e6bfb049f5e7018bf19f4a5c68d1b3a6b00",
+      "gitBlob": "612eae6e7495ee92ea822be3e2a0545ee392bd1c"
+    }
+  },
+  {
+    "path": "src/common.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/common.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1081,
+    "fullSourceSHA256": "9d5a991e13bf73bd93a7e2e101db719da9e14086e5f1b1bbf63b082e524daee3",
+    "fullSourceGitBlob": "f9d6f0f7198f42ed09594fc6f554c15eed8250f0",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/common.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 370,
+      "bytes": 370,
+      "sha256": "54630480628d00a9b319337201c7c34a3ea041be2bec13806c47121d912bc93b",
+      "gitBlob": "dcc7f37376a03bd07ed526c786abe971f800dbd3"
+    }
+  },
+  {
+    "path": "src/fvad.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/fvad.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2381,
+    "fullSourceSHA256": "bb308ba90e7311344664bfbcb9da4f82e188c2aa9de9f525897674a92d3bfdd2",
+    "fullSourceGitBlob": "096057d705863cc1fa6f523f7291dc77b0cd7568",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/fvad.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 449,
+      "bytes": 449,
+      "sha256": "faf358a8bb762ee2e9dbb3e9403d0e6bfb049f5e7018bf19f4a5c68d1b3a6b00",
+      "gitBlob": "612eae6e7495ee92ea822be3e2a0545ee392bd1c"
+    }
+  },
+  {
+    "path": "src/signal_processing/division_operations.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/division_operations.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 833,
+    "fullSourceSHA256": "fb57461a7bcbfffecc3e4a8c641c4183e2ab427685cb3b3ad7d737dda3cb6d56",
+    "fullSourceGitBlob": "29504dd6c84c54a1bf8f8cddfc9e04a3f3194c1c",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/division_operations.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/energy.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/energy.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1088,
+    "fullSourceSHA256": "fef67abfc5708274799f5a3fdb3df4fa91a950dd6a98ffdaf9738b32fccfef1a",
+    "fullSourceGitBlob": "2c477304a5bea95943440f0c3d424e8467f16d6c",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/energy.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/get_scaling_square.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/get_scaling_square.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1308,
+    "fullSourceSHA256": "edbd3619857bc3aa9ddfcbf1201a6c907a61bece038fce41afe3589c1a4bc277",
+    "fullSourceGitBlob": "18031315032b8117696ddc42196e17469a74dc4b",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/get_scaling_square.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/resample_48khz.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/resample_48khz.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2041,
+    "fullSourceSHA256": "65f9c0333bfa40c197486a4e63c9d444be8f0089d6e041b6d42d3fcbb6390f5c",
+    "fullSourceGitBlob": "2f016809189fc0d66713f71e8cd3b0b634f18abf",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/resample_48khz.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/resample_by_2_internal.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/resample_by_2_internal.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 9976,
+    "fullSourceSHA256": "f7ab177a112a5f4093abde5b483973da5338a0913b7347bcff10eb5c731503ac",
+    "fullSourceGitBlob": "473cc2674a4c47a59bfe5bcd0b0ba8f58410cd00",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/resample_by_2_internal.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/resample_by_2_internal.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/resample_by_2_internal.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1314,
+    "fullSourceSHA256": "1b4b66058aa8a64601a0beb01bf8fc112387b3c6a2db9ec1e9fadc37096b982b",
+    "fullSourceGitBlob": "205ac0913dd6a4906e5f2016fface81d5962422f",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/resample_by_2_internal.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/resample_fractional.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/resample_fractional.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2340,
+    "fullSourceSHA256": "ed4ac3498d41e3ad466f25cf291f23a57a29a5c4c248ccc9312407f32eff26be",
+    "fullSourceGitBlob": "642ca25a8f868dcfb56a13210fe89c829d719086",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/resample_fractional.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/signal_processing/signal_processing_library.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/signal_processing_library.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 3089,
+    "fullSourceSHA256": "806fc377bf6486bca6f9df366f68421801d377d025c87af13348d2a383b9ecbd",
+    "fullSourceGitBlob": "5cee30b91893ae1f2bb30375e1368a8fcda8b8f4",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/signal_processing_library.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4"
+    }
+  },
+  {
+    "path": "src/signal_processing/spl_inl.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/spl_inl.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1011,
+    "fullSourceSHA256": "6f17afe654639115b46197ffc03f30af5e8297701025039e5b3623f2e3608835",
+    "fullSourceGitBlob": "6d1702353f88bc6d33b0dfa1af9215762e467b45",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/spl_inl.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "082029abf8ec38f1d4d083ca344e3551273fc8b53fb613ea930f330ba5a9fa98",
+      "gitBlob": "35142408da7f006650764fa585cf37015823d0cb"
+    }
+  },
+  {
+    "path": "src/signal_processing/spl_inl.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/spl_inl.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2360,
+    "fullSourceSHA256": "56125f099bf55b2bb64a6fc2182936c6d897a6ffc6926134db9033ae061e5acd",
+    "fullSourceGitBlob": "ded1e93671344e28403df2867d82a3161e436a9d",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/signal_processing/spl_inl.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/vad/vad_core.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_core.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 26026,
+    "fullSourceSHA256": "9c03adc9935290921f04c6858124cdd0362979a6ad889ef214826917aac03489",
+    "fullSourceGitBlob": "27e88eff977669f457bef178dfe8de6a829cc19d",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_core.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4"
+    }
+  },
+  {
+    "path": "src/vad/vad_core.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_core.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 3760,
+    "fullSourceSHA256": "4a012292a1e15cda3f24772f30e6df8927bdc55a28ca65102dc72dc77c6f7520",
+    "fullSourceGitBlob": "137ed1538233478b6112942c968b775ecc4a7fcc",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_core.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4"
+    }
+  },
+  {
+    "path": "src/vad/vad_filterbank.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_filterbank.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 13914,
+    "fullSourceSHA256": "c44eb10c2a70810cef6720a7846ea3638e933cf1ed85affaac2dba0e6927210d",
+    "fullSourceGitBlob": "5e31cd8d7ed10298c8fc9aecefb0d4a183c80517",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_filterbank.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4"
+    }
+  },
+  {
+    "path": "src/vad/vad_filterbank.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_filterbank.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1791,
+    "fullSourceSHA256": "3c0704f9d917fabd927a228175edefd4934351ab8229292969b54217a30ab793",
+    "fullSourceGitBlob": "2701608a17081ff3ba8498cd6f4e2a058a745ea3",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_filterbank.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4"
+    }
+  },
+  {
+    "path": "src/vad/vad_gmm.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_gmm.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2995,
+    "fullSourceSHA256": "f45eeafdbea7491301e7eb57a7cbb2a720dc43f9e256e3f8fa944f0d3f0e6067",
+    "fullSourceGitBlob": "fbf21b8eb1f370a52acfb23c33bed0a6083a3e5e",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_gmm.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/vad/vad_gmm.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_gmm.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 1415,
+    "fullSourceSHA256": "a9c51c01dae8eed13b17507b9f2e1a6ec248297f4372124f0b59ace88f46d16f",
+    "fullSourceGitBlob": "5b4609edafba04dcbf954657c7d309b00cd7fbf9",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_gmm.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  },
+  {
+    "path": "src/vad/vad_sp.c",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_sp.c",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 5673,
+    "fullSourceSHA256": "9b7718a283c04c13caeb1c4174d63cc6de9a7c02dad05c65d2cbc5df2686a059",
+    "fullSourceGitBlob": "802ca08ae0822be282208d854232afa7d70f8b8b",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_sp.c",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": true,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+      "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4"
+    }
+  },
+  {
+    "path": "src/vad/vad_sp.h",
+    "sourceURL": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/vad/vad_sp.h",
+    "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+    "fullSourceBytes": 2031,
+    "fullSourceSHA256": "5de6fc001a838f8cd9acab67c082695a8ed37c8f905bf3abac122c5edb17f041",
+    "fullSourceGitBlob": "55319ec44680510a5db2faf8488db48160e62792",
+    "publishedMember": "webrtc-vad-0.4.0/resources/libfvad/src/vad/vad_sp.h",
+    "publishedMatchesOfficial": true,
+    "cacheMatchesPublished": true,
+    "compiledC": false,
+    "header": {
+      "start": 0,
+      "endExclusive": 412,
+      "bytes": 412,
+      "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+      "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef"
+    }
+  }
+]

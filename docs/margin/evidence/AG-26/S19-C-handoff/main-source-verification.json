@@ -1,0 +1,160 @@
+{
+  "checkedOn": "2026-10-09",
+  "scope": "Independent read-only source feasibility checks; not closure or legal verdict",
+  "rows": [
+    {
+      "kind": "tree",
+      "url": "https://api.github.com/repos/Brooooooklyn/canvas/git/trees/dda1b258dac667b4c66b94bbd4d70aa79ea4503a?recursive=1",
+      "sha256": "31ac368f1c13227dd98e564aa68bf39a4e59d0f9b45bac1aef10947e55aba3d4",
+      "observed": {
+        "truncated": false,
+        "lockOrVendorOrSBOM": [],
+        "gitlinks": [
+          {
+            "path": "depot_tools",
+            "sha": "6a51a435aa4e2c8430adf1c7722112337e0dc6bc"
+          },
+          {
+            "path": "skia",
+            "sha": "1fdbea293a53b270e3f5e74c92cc6670d68412ff"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "lockHistory",
+      "url": "https://api.github.com/repos/Brooooooklyn/canvas/commits?path=Cargo.lock&sha=dda1b258dac667b4c66b94bbd4d70aa79ea4503a&per_page=1",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "observed": {
+        "count": 0
+      }
+    },
+    {
+      "kind": "artifacts",
+      "url": "https://api.github.com/repos/Brooooooklyn/canvas/actions/runs/17693234724/artifacts",
+      "sha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c",
+      "observed": {
+        "total_count": 0
+      }
+    },
+    {
+      "kind": "release",
+      "url": "https://api.github.com/repos/Brooooooklyn/canvas/releases/tags/v0.1.80",
+      "sha256": "59edc358048f25871089229d6036f18c806569a746520f74abded807f891cd4e",
+      "observed": {
+        "assets": [
+          {
+            "name": "skia.android-arm64.node",
+            "digest": "sha256:3529c0c344bcb986cc7013d3a093045de2009749538de3b73bf88c118f9d4828"
+          },
+          {
+            "name": "skia.darwin-arm64.node",
+            "digest": "sha256:b6b2f5cc20d4d536c1b5768ba41ef6c83fcd289f4cc435d9aac5e2185e0b655c"
+          },
+          {
+            "name": "skia.darwin-x64.node",
+            "digest": "sha256:083cadcf6abe5ae5d727caea9a08bec56388eb5dd24b43f66050011a92a8669b"
+          },
+          {
+            "name": "skia.linux-arm-gnueabihf.node",
+            "digest": "sha256:0425c80aa8315d816fe3d16a9a53761ad1c61ac37c9fab9cfcc748a5e230864f"
+          },
+          {
+            "name": "skia.linux-arm64-gnu.node",
+            "digest": "sha256:c3e4d0f97840c2fec0550cb3b85328b6cbe3f489e470d21c4089412e6dfee7e7"
+          },
+          {
+            "name": "skia.linux-arm64-musl.node",
+            "digest": "sha256:ccef3e03974c95dcdb2e514b0c84a89681f52f22b895a36fd23c1c7eeddc6727"
+          },
+          {
+            "name": "skia.linux-riscv64-gnu.node",
+            "digest": "sha256:61f4afba39647724bbf48485ae3fd57479494205c63c9efcda4306c129ed0402"
+          },
+          {
+            "name": "skia.linux-x64-gnu.node",
+            "digest": "sha256:7607cda801e86bee96d88b685766e7d22b707128de25134147f68192304220c5"
+          },
+          {
+            "name": "skia.linux-x64-musl.node",
+            "digest": "sha256:f84fb53d2362daac1bc17bf7af0e3a3e970231ada84f5e5fae84b03639561448"
+          },
+          {
+            "name": "skia.win32-x64-msvc.node",
+            "digest": "sha256:30646342fc284109aa9542155287d37147c97132d5168cf621f851a9c69e0c99"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "producer",
+      "url": "https://api.github.com/repos/Brooooooklyn/canvas/actions/runs/17296030504/attempts/2",
+      "sha256": "339e059c3ecc2f078a75aa2ba0b6f36270d8849c8094346ef431df4bfc6388b7",
+      "observed": {
+        "head_sha": "89a12f3f41ebdc1449aeb712003ef562255cb03c",
+        "conclusion": "success"
+      }
+    },
+    {
+      "kind": "decoded-not-cryptographically-verified-attestation",
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@napi-rs%2fcanvas-darwin-arm64@0.1.80",
+      "sha256": "9787836820cc542a8063d7ba5fcba74970c848d441be18dc74aee44b082ada29",
+      "subject": [
+        {
+          "name": "pkg:npm/%40napi-rs/canvas-darwin-arm64@0.1.80",
+          "digest": {
+            "sha512": "3bae003d14d7454880cf43fc804ae47c4af7962a4b26033aa63013c1abd9db679b863625fd251ba60334c5c58f40134c3f59f6f5a7c00bf52ce4f5f5be0f8935"
+          }
+        }
+      ],
+      "predicate": {
+        "buildDefinition": {
+          "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+          "externalParameters": {
+            "workflow": {
+              "ref": "refs/heads/main",
+              "repository": "https://github.com/Brooooooklyn/canvas",
+              "path": ".github/workflows/CI.yaml"
+            }
+          },
+          "internalParameters": {
+            "github": {
+              "event_name": "push",
+              "repository_id": "291390714",
+              "repository_owner_id": "3468483"
+            }
+          },
+          "resolvedDependencies": [
+            {
+              "uri": "git+https://github.com/Brooooooklyn/canvas@refs/heads/main",
+              "digest": {
+                "gitCommit": "dda1b258dac667b4c66b94bbd4d70aa79ea4503a"
+              }
+            }
+          ]
+        },
+        "runDetails": {
+          "builder": {
+            "id": "https://github.com/actions/runner/github-hosted"
+          },
+          "metadata": {
+            "invocationId": "https://github.com/Brooooooklyn/canvas/actions/runs/17693234724/attempts/2"
+          }
+        }
+      }
+    },
+    {
+      "kind": "librsvg-official-source",
+      "archiveURL": "https://download.gnome.org/sources/librsvg/2.61/librsvg-2.61.2.tar.xz",
+      "checksumURL": "https://download.gnome.org/sources/librsvg/2.61/librsvg-2.61.2.sha256sum",
+      "archiveSHA256": "4644d83623dd61cc4479c2b3c372e1da2b281552ebc90035c8d1ac502eb1dc00",
+      "archiveBytes": 6758744,
+      "lockURL": "https://raw.githubusercontent.com/GNOME/librsvg/569c2c2b755c367f49128c66c0c890b69e41b2e0/Cargo.lock",
+      "lockSHA256": "be3f2fee7c8eaa0aefe81871c50079cebc60feb9edbbd59a6c8d7aaa44b0d3da",
+      "lockBytes": 84058,
+      "lockedPackages": 356,
+      "equalsFixedGitLock": true,
+      "producerEditedLockReconstructed": false
+    }
+  ]
+}
