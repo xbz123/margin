@@ -1,0 +1,35 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4858.286292ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (595.924959ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5128.287042ms)
+✖ a meeting edit that fails to save is rolled back and reported (3019.507292ms)
+✔ startup recovery of an unprocessed meeting follows the profile_history scope (7371.748625ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21463.685042
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:352:1
+✖ a meeting edit that fails to save is rolled back and reported (3019.507292ms)
+  AssertionError [ERR_ASSERTION]: a deleted meeting does not leave an unsaved title on screen
+  + actual - expected
+  
+  + 'RENAMED_MEETING_GONE'
+  - 'RENAMED_SAVED'
+             ^
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:440:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'RENAMED_MEETING_GONE',
+    expected: 'RENAMED_SAVED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
