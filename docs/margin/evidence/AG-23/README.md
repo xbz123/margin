@@ -1,8 +1,9 @@
 # AG-23 application log privacy
 
-Implementation and final local gates passed; fresh CI and Claude's read-only
-review remain pending. Dependencies were unchanged. No real provider, device or
-keychain acceptance is claimed.
+Implementation and final local/CI gates passed on source `ca7ff686`;
+[CI 37789252078](../CI-37789252078/README.md) raw evidence was verified.
+Claude's read-only review remains pending. Dependencies were unchanged. No real
+provider, device or keychain acceptance is claimed.
 
 Application-owned console payloads contain types and string lengths only, never
 string previews, primitive values, arbitrary object keys, error messages or
@@ -39,6 +40,7 @@ complete gates passed. None of these failed runs is counted as acceptance.
 
 Eight changed Rust files passed rustfmt parsing without formatting or rebuilding
 the native module. The local native binary is unchanged; this run does not verify
-the new Rust binary. macOS CI compilation and AG-25 artifact verification remain
-required; Windows-specific code was parsed but not compiled. No app was installed,
+the new Rust binary. macOS CI compiled the changed crate successfully; AG-25
+artifact verification remains required. Windows-specific code was parsed but not
+compiled. No app was installed,
 formal Margin was not launched, and no release was published.
