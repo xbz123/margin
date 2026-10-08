@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-状态：**阶段 1 出口验收通过（源码 `c43b10e9`）；阶段 2 未开始**。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
+状态：**阶段 1 出口验收通过（源码 `c43b10e9`）；阶段 2 的启动条件已满足（S13），尚未开始**。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
 本文件是本分支的执行依据：实验、验收、ticket 和依赖都以这里为准。
 
@@ -31,12 +31,23 @@
 | S4 | 阶段顺序：0 记录 → 1 最小核心 → 2 身份与安全 → 3 回答 → 4 音频 → 5 上下文与会议 → 6 设置与发布资料 | 用户初始任务 |
 | S5 | 提交推送到 `origin/codex/margin-agpl-migration`（私有仓库），不建 PR 或 Release | 用户，2026-10-07 |
 | S6 | 退役以下功能，删除代码和入口，不只是隐藏：premium、natively-api、遥测、自动更新、RAG/embedding、Ollama、本地 STT 与模型下载、手机镜像、日历、cURL 模板、画像（Profile Intelligence）、premium 模式、动态动作、联网搜索、OCR、跟进邮件、捐赠与支持弹窗 | 用户初始任务；旧 Margin 计划第 1 节 |
-| S7 | 应用身份为 `Margin` / `io.github.xbz123.margin`，数据目录 `~/Library/Application Support/Margin`；不读取旧 Natively 或 ai assistant 的数据 | 旧 Margin 计划第 2 节 |
+| S7 | 应用身份为 `Margin` / `io.github.xbz123.margin`，数据目录 `~/Library/Application Support/Margin`；不读取旧 Natively 或 ai assistant 的数据。开发和测试期间用临时身份，见 S15 | 旧 Margin 计划第 2 节 |
 | S8 | 测试不得读写真实用户数据或真实密钥，不得调用付费服务，不得采集真实会议 | 用户初始任务 |
 | S9 | 阶段 1–2 不做实机验收：不授予屏幕录制或麦克风权限，不用真实 key，不访问真实钥匙串 | 由 S8 推出 |
 | S10 | D2–D4 按第 3 节的建议执行；D1 由 X3 的结果决定 | 用户，2026-10-07 |
-| S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 当时仍等用户，同日已定案（S12）。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256 | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
+| S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`（开发期按 S15 只启动临时身份的变体）。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 当时仍等用户，同日已定案（S12）。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256 | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
 | S12 | 决定 1 定案：默认回答提示词（`DEFAULT_ANSWER_PROMPT_SUFFIX`，`electron/llm/prompts.ts`）暂时保留。阶段 3 能用真实模型评估时（按 D2 授权）再决定是否删除，评估放在 AG-33。按决定 1 暂留的其他提示词文字（`prompts.ts` 中 Profile Intelligence 的描述、`tinyPrompts.ts` 中关于本地模型的一句）一并留到那时处理 | 用户，2026-10-08 |
+| S13 | 阶段 2 的启动条件（第 7 节）已满足。"阶段 1 出口的 Astra 只读复查通过"按以下两项视为满足：Astra 对第八轮修复源码的只读审查没有未处理的发现（`AG-17-review8/checks/source-review.md`，所审差异的指纹与 `c43b10e9` 一致）；Claude 第九轮独立验收通过（`AG-17-review9/`）。出口第 1 条的 CI 证据为 `37709440574` | 用户，2026-10-08 |
+| S14 | 分工：第八轮复查起，复查发现的问题由 Codex 修复；阶段 2 起，ticket 由 Codex 派发 `gpt-6.1-sol` 执行。Claude 只读复查，不改代码（用户明确要求时只改文档） | 用户，2026-10-08 |
+| S15 | 开发和测试期间应用名用临时名 `temp`，不用正式身份 `Margin`，避免与本机已安装的 Margin 冲突。细则见下 | 用户，2026-10-08 |
+
+**S15 细则**。本机已安装的 Margin 与 S7 的正式身份完全相同：包标识 `io.github.xbz123.margin`，数据目录 `~/Library/Application Support/Margin` 已存在。Electron 按应用名取钥匙串条目 `<应用名> Safe Storage`，按包标识取偏好设置。用正式身份在本机运行，会碰到已安装应用的数据、偏好和钥匙串，也可能打开的是已安装的那个应用。因此：
+- 本机所有构建、测试和运行都用临时身份：应用名和 `productName` 为 `temp`，包标识 `io.github.xbz123.temp`，数据目录名 `temp`（测试时在合成 HOME 内），钥匙串条目对应 `temp Safe Storage`（测试时仍用 mock 钥匙串）。
+- 身份只在一处定义（AG-20 实现），构建时选择变体，默认是临时身份。正式身份 `Margin` / `io.github.xbz123.margin` 也在那里定义，但本机任何构建和运行都不用它。
+- 正式身份只在 CI 上打包和检查，CI 机器上没有已安装的 Margin。本机对正式身份的产物只做只读检查（读 `Info.plist`、列出包内容、`codesign --verify`），不启动、不用 Finder 或 `open` 打开，检查完删除。本机启动冒烟用临时身份的产物，只直接执行包内的可执行文件，带合成 HOME 和 mock 钥匙串。
+- 第一次以临时身份运行前，先确认隔离守卫按新应用名把 appData 和 userData 指向合成 HOME（`scripts/margin/isolation/guard.cjs` 按应用名计算 userData）。
+- 任何时候发现读写了真实的 `~/Library/Application Support/Margin`、`io.github.xbz123.margin` 的偏好设置或 `Margin Safe Storage` 钥匙串条目，立即停止并报告，不自行清理或还原。
+- 何时在本机改用正式身份，留到发布前（AG-62）由用户决定。在此之前不安装、不覆盖、不启动已安装的 Margin。
 
 ## 3. 待定决策
 
@@ -293,10 +304,10 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 
 ### 阶段 2 出口验收
 
-1. **身份**：打包产物 `Info.plist` 中，`CFBundleName` 和 `CFBundleDisplayName` 为 `Margin`，`CFBundleIdentifier` 为 `io.github.xbz123.margin`。
-2. **数据隔离**：在合成 HOME 中预先放好 `Natively`、`natively`、`natively-local`、`ai assistant` 这几个目录。验证：
+1. **身份**：打包产物 `Info.plist` 中，`CFBundleName` 和 `CFBundleDisplayName` 为 `Margin`，`CFBundleIdentifier` 为 `io.github.xbz123.margin`。这是正式身份的变体，在 CI 上检查；临时身份的变体对应为 `temp` 和 `io.github.xbz123.temp`，两个变体都要检查（S15）。
+2. **数据隔离**：在合成 HOME 中预先放好 `Natively`、`natively`、`natively-local`、`ai assistant`、`Margin`（代表已安装的 Margin，S15）这几个目录。验证：
    - 用一个文件访问守卫证明，进程对这些目录**没有任何读写**（只看内容和 mtime 不变不够）；
-   - 新版只创建 `Margin` 目录；
+   - 新版只创建自己身份的目录（开发期为 `temp`，S15）；
    - 重启后设置能恢复；
    - 凭据路径是在导入时就固定的（`electron/services/CredentialsManager.ts:10`），要证明名称和路径在这个模块加载之前已设定好。
 3. **凭据**：用假的 `safeStorage` 测以下情形：
@@ -310,7 +321,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
    - 错误对象和堆栈也要脱敏；
    - 用户内容（转写、提问）按 AG-23 定的规则处理；
    - 脱敏器加载失败时不能退回原文（`electron/main.ts:89`）；
-   - 日志只写在 `Margin` 的数据目录下。
+   - 日志只写在应用自己的数据目录下（开发期为 `temp`，S15）。
 5. **出站**：
    - 出站地址清单测试通过；
    - 自动发起的请求只到用户已配置的服务商官方地址或用户填写的地址；
@@ -323,7 +334,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
    - 逐一检查 asar、`asar.unpacked` 和 `Resources`：没有模型文件、`sqlite-vec`、`onnx`、`premium`；
    - 所有原生库的架构正确；
    - `codesign --verify --deep --strict` 通过；
-   - 本机只对下载下来的 `Margin.app` 做启动冒烟，不安装。
+   - 本机只对下载下来的临时身份产物做启动冒烟，不安装；正式身份的 `Margin.app` 在本机只做只读检查，不启动（S15）。
 7. **许可与声明**：
    - `LICENSE` 保持 AGPLv3；
    - `package.json` 的 `license` 字段按 D4 设定，lockfile 的元数据同步；
@@ -495,6 +506,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
   - `electron/main.ts` 的启动部分（`setName`、`userData`、日志路径）。这里必须在任何存储或凭据模块加载之前完成。
   - 托盘提示、伪装（disguise）恢复名、窗口标题、logo 的 alt 文本，以及界面上能看到的 "Natively" 字样。
   - 内部类名和环境变量前缀不改。
+  - 按 S15 把应用身份集中在一处定义：开发期的临时身份 `temp` / `io.github.xbz123.temp`（默认）和正式身份 `Margin` / `io.github.xbz123.margin`，构建时选择。
 - **验证**：启动顺序测试；合成 HOME 加文件访问守卫的测试。`Info.plist` 与 AG-25 一起验证。
 
 **AG-21 图标**
@@ -536,15 +548,15 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 
 **AG-25 构建与打包（在 CI 上，按 S11）**
 
-- **结果**：满足阶段 2 出口验收第 6 条。CI 产出 `Margin.app` 作为 workflow 产物（不是 Release）；本机只验证下载下来的产物。
+- **结果**：满足阶段 2 出口验收第 6 条。CI 产出临时身份和正式身份两个 `.app` 作为 workflow 产物（不是 Release，S15）；本机只验证下载下来的产物。
 - **范围**：
   - `package.json` 的 `build` 字段和 `scripts`；
   - 新建 `scripts/build-local.cjs`：清空输出目录 → 构建 → arm64 打包 → ad hoc 签名 → 检查包内容。CI 调用它，本机不打包；
   - `ad-hoc-sign.js`；
-  - `.github/workflows/margin-gates.yml` 增加打包步骤，上传 `Margin.app` 和检查结果；
-  - 新建下载脚本：用 `gh run download` 取某次运行的原生模块产物（`margin-native-<sha>`）或 `Margin.app` 产物，核对 `BUILD-INFO.txt` 中的 sha256 后再使用。本机开发的原生模块从此改用 CI 产物，不再用 X3 复制来的 cargo 缓存；
+  - `.github/workflows/margin-gates.yml` 增加打包步骤，按 S15 产出临时身份和正式身份两个变体，上传两个 `.app` 和检查结果；
+  - 新建下载脚本：用 `gh run download` 取某次运行的原生模块产物（`margin-native-<sha>`）或 `.app` 产物，核对 `BUILD-INFO.txt` 中的 sha256 后再使用。本机开发的原生模块从此改用 CI 产物，不再用 X3 复制来的 cargo 缓存；
   - workflow 产物默认保留 30 天，到期后需要重新运行。
-- **复核**：阶段 2 出口由本票负责联合验收，再由 Astra 只读复核。
+- **复核**：阶段 2 出口由本票负责联合验收，再由 Claude 只读复查（S14）。
 
 **AG-26 许可证、声明和文档**
 
@@ -589,7 +601,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 ```
 X2 ─────────────┐
 AG-08 → AG-10 → AG-11 → AG-12 ─┴→ L0 → X3 启动部分
-                                   L0 + X4 → AG-09 → AG-13 → AG-14 → AG-15 → AG-16 → AG-17 → 阶段 1 出口 → Astra 复核 → 阶段 2
+                                   L0 + X4 → AG-09 → AG-13 → AG-14 → AG-15 → AG-16 → AG-17 → 阶段 1 出口 → 复核（S13）→ 阶段 2
 X1 → G2（AG-10 起每张 ticket 都要过）
 ```
 
@@ -601,7 +613,9 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 - AG-13 必须排在 AG-14 之前，因为模式代码依赖 RAG。
 - AG-17 中处理 Electron 版本的那一步要等 X3 和 D1。
 
-**阶段 2**：满足以下两条才开始（S11）：阶段 1 出口的 Astra 只读复查通过；出口第 1 条有当前提交上不使用缓存的 CI 证据。
+**阶段 2**：满足以下两条才开始（S11）：阶段 1 出口的 Astra 只读复查通过；出口第 1 条有当前提交上不使用缓存的 CI 证据。**两条均已满足**（S13，2026-10-08）。
+
+阶段 2 的 ticket 默认串行执行。上面允许并行的 ticket，要并行时各用一个工作树，并另外征得用户同意。
 
 阶段 2 内部的顺序：
 
@@ -615,9 +629,9 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 | 谁 | 做什么 |
 | --- | --- |
-| 实现者 | 跑 G1–G7 和本 ticket 的检查 |
-| 主线程（Claude） | AG-09 就绪后，每张 ticket 集成后跑 AG-09 回归；阶段末跑出口验收 |
-| Codex（gpt-6-astra） | 阶段出口时只读复核：读 diff，逐条核对出口验收，只报告不改代码；对来源有疑问的引入项做抽查 |
+| 实现者（阶段 2 起为 Codex 派发的 `gpt-6.1-sol`，S14） | 跑 G1–G7、本 ticket 的检查和 AG-09 回归；每张 ticket 提交前确认原工作区 `git status --short` 为空、分支仍是 `codex/ai-assistant-refactor` |
+| Codex | 派发和集成 ticket，阶段末组织出口验收；修复复查发现的问题（S14） |
+| Claude | 每张 ticket 完成后和阶段出口时只读复查：读 diff 和原始证据，逐条核对，只报告不改代码；对来源有疑问的引入项做抽查。阶段 1 及以前由 Claude 实现、Astra 复核，见第 8、9 节 |
 
 真实服务和实机验收要等 D2 授权。
 
@@ -645,8 +659,8 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-15 | 完成 | 见 AG-15 提交 | 见下文 AG-15 记录。证据：`docs/margin/evidence/AG-15/summary.json`，对照 `AG-14/`；`install-check.log` 为 `npm ci` 后的模型与依赖检查 |
 | AG-16 | 完成 | 见 AG-16 提交 | 见下文 AG-16 记录。证据：`docs/margin/evidence/AG-16/summary.json`，对照 `AG-15/`；另有 `install-check.log`、`validateImagePath.log` |
 | AG-17 | 完成 | 见 AG-17 提交 | 见下文 AG-17 记录。Electron 43.1.0；两个 `tsc` 退出 0；基线遗留的 20 条测试失败全部处理（5 个用例跳过并写明原因）；证据：`docs/margin/evidence/AG-17/summary.json`，对照 `AG-16/` |
-| 阶段 1 出口 / Astra 复核 | 第七轮复核修复完成，待 Astra 再次复查 | `2e71066b`、`94a10fb1`、`02d4cb2e`、`4523c762`、`4bd2eb00`、`d26a9937`、`fa70efc8`、`9a7dcf1c` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"；第二轮（`2e71066b`）、第三轮（`c8365b63`）、第四轮（`8f7ceda2`）、第五轮（`5c30ec84`）、第六轮（`b80c9440`）、第七轮（`fb058c35`）复查结论都是"仍需进一步修复"。七轮的发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。在提交后的干净树上重新验收：第 2–7 条通过；第 1 条按 S11 以不使用缓存的 CI 运行 `37706465030`（`d70e585d`，代码与 `9a7dcf1c` 相同）为准，通过。证据：`docs/margin/evidence/AG-17-review7/summary.json`（`9a7dcf1c`，0 个未提交路径），对照 `AG-17-review6/` |
-| AG-20–26 | 待开始 | | 等阶段 1 出口 |
+| 阶段 1 出口 / 复核 | 通过（2026-10-08） | `2e71066b`、`94a10fb1`、`02d4cb2e`、`4523c762`、`4bd2eb00`、`d26a9937`、`fa70efc8`、`9a7dcf1c`、`c43b10e9` | 第一轮复核（`e9b25ec3`）结论"修复后可接受"；第二轮到第八轮复查（`2e71066b`、`c8365b63`、`8f7ceda2`、`5c30ec84`、`b80c9440`、`fb058c35`、`987fd6ef`）结论都是"仍需进一步修复"，发现均已处理（见第 9 节；远程 Markdown 图片按复查意见转入 AG-24）。第八轮修复后（`c43b10e9`）在干净树上重新验收：第 2–7 条通过，证据 `docs/margin/evidence/AG-17-review8/gates/summary.json`（0 个未提交路径）；第 1 条按 S11 以不使用缓存的 CI 运行 `37709440574` 为准，通过。Claude 第九轮独立验收通过（`AG-17-review9/`）；阶段 2 的启动条件按 S13 满足。未验证的事项及去向见"阶段 1 出口验收"下的表 |
+| AG-20–26 | 可以开始 | | 启动条件已满足（S13）。按 S14 由 Codex 派发 `gpt-6.1-sol` 执行，从 AG-20 开始；开发期应用身份用 `temp`（S15） |
 
 ### AG-10 记录（2026-10-07）
 
@@ -1377,7 +1391,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
    - **处理**：没有使用。这些 key 会把请求发往外部服务商，不符合 S8、S9（阶段 1–2 不用真实 key）和本会话的操作规则。本记录不含 key 的值。已建议用户立即撤销。真实服务的验收按 D2 在阶段 3 起单独安排，由用户自己在应用设置里填写 key。
    - **证据限制**：这是过程陈述，没有独立的审计证据能证明 key 从未被使用或写入（第五轮复查第 6 条）。可核对的部分：2026-10-08 用两个 key 的开头字符搜索，本仓库所有分支的提交历史、工作区（不含 `node_modules`）和会话记忆目录里都没有；所有测试都在隔离守卫下运行，守卫拦截外连。key 仍留在用户的对话记录里。
 
-**下一步**：本轮在阶段 1 验收收尾，不执行阶段 2（AG-20–26）；阶段 2 依其既定范围另行推进。决定 1 已定（S12）。
+**下一步**：阶段 2 从 AG-20 开始，按 S14 由 Codex 派发 `gpt-6.1-sol` 执行；开发期应用身份按 S15 用 `temp`。决定 1 已定（S12）。
 
 ## 9. 评审记录
 
