@@ -1,0 +1,6 @@
+Derived workflow-log excerpt; original bytes/hash are recorded in inventory/excerpt.json.
+gates	Native setup	2026-10-08T20:20:28.5048460Z    Compiling cidre v0.11.10
+gates	Collect the native module	2026-10-08T20:20:56.4852940Z cidre compiled in this run: 1
+gates	Collect the native module	2026-10-08T20:20:56.4853710Z 71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603  native-artifact/index.darwin-arm64.node
+gates	Run gates against the newest local ticket evidence	2026-10-08T20:20:56.4925710Z   --note "GitHub Actions run 37838491368 (attempt 1) on macos-15, no_cache=true, compared with $ref"
+gates	Inventory a formed temp app (CI diagnostic only; always not accepted)	2026-10-08T20:25:09.0045230Z {"diagnosticSucceeded":true,"acceptance":false,"status":"blocked/not-accepted"}

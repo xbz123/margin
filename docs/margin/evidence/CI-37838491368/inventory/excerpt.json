@@ -1,0 +1,383 @@
+{
+  "kind": "derived excerpt, not complete inventory",
+  "source": {
+    "run": 37838491368,
+    "commit": "44377a0129844d48349c26316a6c2b4971ab3380",
+    "inventoryBytes": 44616041,
+    "inventorySHA256": "2fd88233ff0c3b60bfe528491d49f2d4615927cb85aec527585fa7ae88a90e4f",
+    "workflowBytes": 104843,
+    "workflowSHA256": "644c26f5f2043089128641fe31300413cbed9424451ba68b3ce1498abceaa513"
+  },
+  "acceptance": false,
+  "s18Checks": "passed; not AG-26 or complete AG-25 acceptance",
+  "gateSteps": 16,
+  "cleanCheckout": true,
+  "unitCounts": {
+    "tests": 884,
+    "pass": 878,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "normalVerification": {
+    "passed": false,
+    "error": "unresolved notice candidates: 10; inspect the package before distribution"
+  },
+  "expectedStopVerified": true,
+  "entries": 40482,
+  "packageMetadataRecords": 609,
+  "candidates": 726,
+  "absence": [
+    {
+      "name": "tap",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "sqlite3",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "screenshot-desktop",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "@alcalzone/ansi-tokenize",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "@npmcli/agent",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "err-code",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    },
+    {
+      "name": "@tootallnate/once",
+      "pathEntries": 0,
+      "metadata": 0,
+      "sourceMaps": 0
+    }
+  ],
+  "retained": [
+    {
+      "name": "better-sqlite3",
+      "metadata": [
+        {
+          "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/package.json",
+          "location": "node_modules/better-sqlite3",
+          "name": "better-sqlite3",
+          "version": "12.11.1",
+          "source": "filesystem",
+          "sha256": "35f5841195912569932e7816ca09d03f6567a9c37a6668d4fdd450314d46e24b"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/better-sqlite3/package.json",
+          "location": "node_modules/better-sqlite3",
+          "name": "better-sqlite3",
+          "version": "12.11.1",
+          "source": "asar",
+          "sha256": "35f5841195912569932e7816ca09d03f6567a9c37a6668d4fdd450314d46e24b"
+        }
+      ]
+    },
+    {
+      "name": "keytar",
+      "metadata": [
+        {
+          "path": "Resources/app.asar.unpacked/node_modules/keytar/package.json",
+          "location": "node_modules/keytar",
+          "name": "keytar",
+          "version": "7.9.0",
+          "source": "filesystem",
+          "sha256": "01669e30d6ab8090eec8461ebbce8d65828e0e9b182021b603ad42e87820027c"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/keytar/package.json",
+          "location": "node_modules/keytar",
+          "name": "keytar",
+          "version": "7.9.0",
+          "source": "asar",
+          "sha256": "01669e30d6ab8090eec8461ebbce8d65828e0e9b182021b603ad42e87820027c"
+        }
+      ]
+    },
+    {
+      "name": "eastasianwidth",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/eastasianwidth/package.json",
+          "location": "node_modules/eastasianwidth",
+          "name": "eastasianwidth",
+          "version": "0.2.0",
+          "source": "asar",
+          "sha256": "86d054d8b1aad44de1483244189328b6eb92d84c018103564a78969eec67c86d"
+        }
+      ]
+    }
+  ],
+  "native": [
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Helpers/chrome_crashpad_handler",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Mantle.framework/Versions/A/Mantle",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/ReactiveObjC.framework/Versions/A/ReactiveObjC",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Squirrel",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/temp Helper (GPU).app/Contents/MacOS/temp Helper (GPU)",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/temp Helper (Plugin).app/Contents/MacOS/temp Helper (Plugin)",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/temp Helper (Renderer).app/Contents/MacOS/temp Helper (Renderer)",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/temp Helper.app/Contents/MacOS/temp Helper",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "MacOS/temp",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@napi-rs/canvas-darwin-arm64/skia.darwin-arm64.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/test_extension.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    }
+  ],
+  "projectNativeSHA256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603",
+  "removedNativePaths": [
+    "Resources/app.asar.unpacked/node_modules/@typescript/native-preview-darwin-arm64/lib/tsgo",
+    "Resources/app.asar.unpacked/node_modules/sqlite3/build/Release/node_sqlite3.node"
+  ],
+  "newNativePaths": [],
+  "mapErrorCounts": {
+    "mapped output not observed in package": 1412
+  },
+  "unresolved": [
+    {
+      "id": "npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:format@0.2.2:node_modules/format",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:stream-events@1.0.5:node_modules/stream-events",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:stubs@3.0.0:node_modules/stubs",
+      "observation": "included-files"
+    },
+    {
+      "id": "npm:tr46@0.0.3:node_modules/tr46",
+      "observation": "included-files"
+    },
+    {
+      "id": "cargo:oboe@0.6.1",
+      "observation": "unknown"
+    },
+    {
+      "id": "cargo:oboe-sys@0.6.1",
+      "observation": "unknown"
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "observation": "unknown"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11577400707,
+      "name": "margin-gates-44377a0129844d48349c26316a6c2b4971ab3380",
+      "size_in_bytes": 57527,
+      "digest": "sha256:a187f9d980266a5a4cff17b32e5678e0c19653098a329b0559dbe36390be53e4"
+    },
+    {
+      "id": 11577255966,
+      "name": "margin-package-inventory-44377a0129844d48349c26316a6c2b4971ab3380",
+      "size_in_bytes": 3152489,
+      "digest": "sha256:ac2be769c64ba7ccb5ceff8877fbd9957858f3c5b407c2e8d10042c0e62acdef"
+    }
+  ]
+}

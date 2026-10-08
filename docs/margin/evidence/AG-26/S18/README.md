@@ -1,4 +1,9 @@
-# S18 dependency reduction: local checkpoint, CI acceptance pending
+# S18 dependency reduction: implementation and required verification passed
+
+The local checkpoint below was committed as `44377a01`. Its required no-cache
+CI `37838491368` subsequently passed; actual package and artifact checks are in
+`evidence/CI-37838491368/`. S18's defined verification is complete, pending the
+user's independent read-only review. AG-26 and full AG-25 remain incomplete.
 
 This separate change follows the seven approved S18 conditions. Its working-tree
 base is `3ac02ece`. Only the root production declarations tap, sqlite3 and
@@ -81,9 +86,9 @@ Check records replace local evidence paths with `<local-evidence>`. This evidenc
 does not claim a fresh installation on the local machine: physical old packages
 remain installed, and the required no-cache CI must install from the reduced lock.
 
-Next: run this implementation commit through no-cache CI npm ci, native setup,
-all gates and the S17-style text-only package diagnostic. Verify actual absence
-of the three roots and five removed notice candidates, retained shared packages,
-native architectures, the expected diagnostic stop and artifact upload scope.
-Until then S18 is not accepted. Even successful S18 validation will not accept
-AG-26, full AG-25, native vendor/source obligations or the Claude stage-exit review.
+At the local checkpoint, no-cache CI and a new package diagnostic were pending.
+Those checks subsequently passed on the exact implementation commit, including
+clean installation/native build, all gates, removal and shared-package evidence,
+native architecture/hash checks, expected stop and text-only upload scope. See
+CI 37838491368. This does not accept AG-26, full AG-25, native vendor/source
+obligations or the Claude stage-exit review.

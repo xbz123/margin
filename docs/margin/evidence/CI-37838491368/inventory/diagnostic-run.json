@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "acceptance": false,
+  "status": "blocked/not-accepted",
+  "diagnosticSucceeded": true,
+  "commands": [
+    {
+      "name": "build-electron",
+      "command": "node",
+      "args": [
+        "scripts/build-electron.js"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "vite-build",
+      "command": "vite",
+      "args": [
+        "build"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "electron-builder",
+      "command": "electron-builder",
+      "args": [
+        "--dir",
+        "--mac",
+        "--arm64",
+        "--publish",
+        "never",
+        "--config",
+        "scripts/margin/package-inventory.config.cjs"
+      ],
+      "exitCode": 1,
+      "signal": null,
+      "error": null
+    }
+  ]
+}
