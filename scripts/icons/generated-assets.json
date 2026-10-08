@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "path": "scripts/icons/app-icon.svg",
+      "sha256": "8850149d0cfeae965fc2d1d13072a7c575730af19466a7d7c4a196dd48659436"
+    },
+    {
+      "path": "scripts/icons/app-icon-small.svg",
+      "sha256": "59b9cb1869c56c6b02500d1e89755943ac64e21a29d39a0113ca2919a8c46166"
+    },
+    {
+      "path": "scripts/icons/glyph.svg",
+      "sha256": "568b114d38c909cadfd036325c1b5860790cf2324725e90607fa6c29453ba5ab"
+    },
+    {
+      "path": "scripts/icons/generate.mjs",
+      "sha256": "4a3e8845615afd9a6e245462866ccb4cf2d9d102b92b07c4b1cec6555e67470e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "assets/icon.png",
+      "bytes": 16555,
+      "sha256": "3f6575cc4b67562fb834bf80b2ab382325bcfea50610ead80ad81d619b911b60"
+    },
+    {
+      "path": "assets/icons/png/icon_1024x1024.png",
+      "bytes": 44173,
+      "sha256": "ae8911f003b7e404dcbed67ef58a8a6cf66789c4b81b03b5f6417bc0b484cef1"
+    },
+    {
+      "path": "assets/icons/png/icon_128x128.png",
+      "bytes": 2394,
+      "sha256": "70616ef6dd336dbc8662aa7a0fcda781ee3081199ddc9928296ce21f76a84fef"
+    },
+    {
+      "path": "assets/icons/png/icon_16x16.png",
+      "bytes": 319,
+      "sha256": "6655c3b88e66bc6041308d55091973bdbf9de6d441ac59af21f9625f14684924"
+    },
+    {
+      "path": "assets/icons/png/icon_256x256.png",
+      "bytes": 6241,
+      "sha256": "21ff4d43bf992da3c33dce9fd3a5173beceb0950c64708f67a638413ef92581a"
+    },
+    {
+      "path": "assets/icons/png/icon_32x32.png",
+      "bytes": 505,
+      "sha256": "f171c63ff3c999ad82167faffc5753572e771bd52f05bd4c7913ad9996b16514"
+    },
+    {
+      "path": "assets/icons/png/icon_512x512.png",
+      "bytes": 16555,
+      "sha256": "3f6575cc4b67562fb834bf80b2ab382325bcfea50610ead80ad81d619b911b60"
+    },
+    {
+      "path": "assets/icons/png/icon_64x64.png",
+      "bytes": 953,
+      "sha256": "4d767839b087403bdb21b539cc39047e5ece3ceb8bcd952b6f362ab8bb0eaf0a"
+    },
+    {
+      "path": "assets/icons/win/icon.ico",
+      "bytes": 11744,
+      "sha256": "ea1361066e7dbc797b8404de7871be5aebea96e351c2e1d97a799cd0051f27a2"
+    },
+    {
+      "path": "assets/iconTemplate.png",
+      "bytes": 197,
+      "sha256": "6ec6421fe05e3148c778a5cfd1d7fc1db5eb46f8d0a5c6e25e566e196054a2a6"
+    },
+    {
+      "path": "assets/iconTemplate@2x.png",
+      "bytes": 296,
+      "sha256": "452bcc613821aa4c07214f028cfdfbeeb3ff558724d14884c5fa72254176e97f"
+    },
+    {
+      "path": "assets/margin.icns",
+      "bytes": 128447,
+      "sha256": "8321e67082be57f19fa4d80920551e09626a281e4d76a9ceaca3790e7c0dcab4"
+    },
+    {
+      "path": "src/assets/logo.png",
+      "bytes": 5689,
+      "sha256": "8504472f11883406b6aac7cfcd01c2cb6c389e8ea73917870472e952383a98d5"
+    },
+    {
+      "path": "src/assets/logo.webp",
+      "bytes": 1884,
+      "sha256": "3973d6b2a4939ec2240d19e2ed5723d4040d00d369c88d1ed3ae74ec44d6a0a3"
+    },
+    {
+      "path": "src/components/icon.png",
+      "bytes": 5689,
+      "sha256": "8504472f11883406b6aac7cfcd01c2cb6c389e8ea73917870472e952383a98d5"
+    }
+  ]
+}

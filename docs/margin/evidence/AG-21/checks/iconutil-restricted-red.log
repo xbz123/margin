@@ -1,0 +1,51 @@
+/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-PAP7VY/tmp/margin-icon-L1TVCO/margin.iconset:Invalid Iconset.
+/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-PAP7VY/tmp/margin-icon-L1TVCO/margin.iconset:Invalid Iconset.
+node:internal/errors:998
+  const err = new Error(message);
+              ^
+
+Error: Command failed: iconutil -c icns /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-PAP7VY/tmp/margin-icon-L1TVCO/margin.iconset -o /var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-PAP7VY/tmp/margin-icon-L1TVCO/margin.icns
+/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-PAP7VY/tmp/margin-icon-L1TVCO/margin.iconset:Invalid Iconset.
+/var/folders/1k/d8x0x94s27g81fbsdbnhsfy00000gn/T/margin-isolation-node-PAP7VY/tmp/margin-icon-L1TVCO/margin.iconset:Invalid Iconset.
+
+    at genericNodeError (node:internal/errors:998:15)
+    at wrappedFn (node:internal/errors:543:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at guarded (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:186:17)
+    at file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/icons/generate.mjs:43:3 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    Buffer(0) [Uint8Array] [],
+    Buffer(266) [Uint8Array] [
+       47, 118,  97, 114,  47, 102, 111, 108, 100, 101, 114, 115,
+       47,  49, 107,  47, 100,  56, 120,  48, 120,  57,  52, 115,
+       50,  55, 103,  56,  49, 102,  98, 115, 100,  98, 110, 104,
+      115, 102, 121,  48,  48,  48,  48,  48, 103, 110,  47,  84,
+       47, 109,  97, 114, 103, 105, 110,  45, 105, 115, 111, 108,
+       97, 116, 105, 111, 110,  45, 110, 111, 100, 101,  45,  80,
+       65,  80,  55,  86,  89,  47, 116, 109, 112,  47, 109,  97,
+      114, 103, 105, 110,  45, 105,  99, 111, 110,  45,  76,  49,
+       84,  86,  67,  79,
+      ... 166 more items
+    ]
+  ],
+  pid: 72853,
+  stdout: Buffer(0) [Uint8Array] [],
+  stderr: Buffer(266) [Uint8Array] [
+     47, 118,  97, 114,  47, 102, 111, 108, 100, 101, 114, 115,
+     47,  49, 107,  47, 100,  56, 120,  48, 120,  57,  52, 115,
+     50,  55, 103,  56,  49, 102,  98, 115, 100,  98, 110, 104,
+    115, 102, 121,  48,  48,  48,  48,  48, 103, 110,  47,  84,
+     47, 109,  97, 114, 103, 105, 110,  45, 105, 115, 111, 108,
+     97, 116, 105, 111, 110,  45, 110, 111, 100, 101,  45,  80,
+     65,  80,  55,  86,  89,  47, 116, 109, 112,  47, 109,  97,
+    114, 103, 105, 110,  45, 105,  99, 111, 110,  45,  76,  49,
+     84,  86,  67,  79,
+    ... 166 more items
+  ]
+}
+
+Node.js v26.0.0

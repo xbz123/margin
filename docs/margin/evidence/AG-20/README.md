@@ -44,4 +44,6 @@ CI [37756383369](../CI-37756383369/README.md) passed `npm ci`, all temp gates,
 then built the release identity and passed its 6/6 fake-Electron contract checks
 without launching a release app. Raw evidence was downloaded and verified.
 Actual two-variant Info.plist, package content and signature checks remain in AG-25.
-Claude's read-only review is still required before moving to the next ticket.
+Claude's read-only review remains pending. On 2026-10-08 the user requested
+continued phase 2 work, consistent with the earlier per-ticket-or-phase-exit
+review arrangement; subsequent implementation does not imply that review passed.

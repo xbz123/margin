@@ -239,16 +239,16 @@ export class WindowHelper {
         if (mode === 'none') {
           if (isMac) {
             return app.isPackaged
-              ? path.join(process.resourcesPath, 'natively.icns')
-              : path.resolve(__dirname, '../../assets/natively.icns');
+              ? path.join(process.resourcesPath, 'margin.icns')
+              : path.join(app.getAppPath(), 'assets/margin.icns');
           } else if (isWin) {
             return app.isPackaged
               ? path.join(process.resourcesPath, 'assets/icons/win/icon.ico')
-              : path.resolve(__dirname, '../../assets/icons/win/icon.ico');
+              : path.join(app.getAppPath(), 'assets/icons/win/icon.ico');
           } else {
             return app.isPackaged
-              ? path.join(process.resourcesPath, 'icon.png')
-              : path.resolve(__dirname, '../../assets/icon.png');
+              ? path.join(process.resourcesPath, 'assets/icon.png')
+              : path.join(app.getAppPath(), 'assets/icon.png');
           }
         }
 

@@ -55,8 +55,8 @@
         "to": "assets/"
       },
       {
-        "from": "assets/natively.icns",
-        "to": "natively.icns"
+        "from": "assets/margin.icns",
+        "to": "margin.icns"
       }
     ],
     "mac": {
@@ -77,7 +77,7 @@
           ]
         }
       ],
-      "icon": "assets/natively.icns",
+      "icon": "assets/margin.icns",
       "identity": null,
       "hardenedRuntime": false
     },

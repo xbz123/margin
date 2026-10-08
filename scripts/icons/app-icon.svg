@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- macOS icon grid: 824px body centred on a 1024 canvas. Artwork below is
+       drawn in 100-unit body space. Two text lines beside a margin rule: the
+       overlay's two transcript lanes, kept deliberately generic so the icon
+       reads as an ordinary notes utility in Dock, Finder and privacy lists. -->
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-color="#000" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <g transform="translate(100 100) scale(8.24)">
+    <rect width="100" height="100" rx="22.5" fill="#F4F2EE" filter="url(#shadow)"/>
+    <rect x="0.15" y="0.15" width="99.7" height="99.7" rx="22.4" fill="none" stroke="#000" stroke-opacity="0.08" stroke-width="0.3"/>
+    <line x1="24" y1="20" x2="24" y2="80" stroke="#D3D1C7" stroke-width="3" stroke-linecap="round"/>
+    <rect x="33" y="33" width="46" height="11" rx="5.5" fill="#8050D4"/>
+    <rect x="33" y="54" width="31" height="11" rx="5.5" fill="#B4B2A9"/>
+  </g>
+</svg>

@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Natively logomark — "N" letterform inscribed in a circle.
+ * Margin two-line glyph from scripts/icons/glyph.svg.
  * Rendered as inline SVG so it inherits `color` (currentColor) and
  * can be styled freely with className.
  */
@@ -12,54 +12,16 @@ export const NativelyLogoMark: React.FC<{
     <svg
         width={size}
         height={size}
-        viewBox="0 0 100 100"
+        viewBox="0 0 22 22"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={className}
         aria-hidden="true"
     >
-        {/* Outer circle */}
-        <circle
-            cx="50"
-            cy="50"
-            r="47"
-            stroke="currentColor"
-            strokeWidth="5"
-        />
-
-        {/*
-          The "N" lettermark — three strokes:
-            Left vertical bar
-            Diagonal stroke (top-left → bottom-right)
-            Right vertical bar
-          All strokes use round caps and joins to keep it crisp at small sizes.
-        */}
-
-        {/* Left vertical bar */}
-        <line
-            x1="26" y1="22"
-            x2="26" y2="78"
-            stroke="currentColor"
-            strokeWidth="9"
-            strokeLinecap="round"
-        />
-
-        {/* Diagonal */}
-        <line
-            x1="26" y1="22"
-            x2="74" y2="78"
-            stroke="currentColor"
-            strokeWidth="9"
-            strokeLinecap="round"
-        />
-
-        {/* Right vertical bar */}
-        <line
-            x1="74" y1="22"
-            x2="74" y2="78"
-            stroke="currentColor"
-            strokeWidth="9"
-            strokeLinecap="round"
-        />
+        <g fill="currentColor">
+            <rect x="3.2" y="3" width="1.6" height="16" rx="0.8" />
+            <rect x="7" y="6" width="12" height="3.4" rx="1.7" />
+            <rect x="7" y="12.5" width="8" height="3.4" rx="1.7" />
+        </g>
     </svg>
 );

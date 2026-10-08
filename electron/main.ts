@@ -3496,39 +3496,11 @@ export class AppState {
   public showTray(): void {
     if (this.tray) return;
 
-    // Try to find a template image first for macOS
     const resourcesPath = app.isPackaged ? process.resourcesPath : app.getAppPath();
-
-    // Potential paths for tray icon
-    const templatePath = path.join(resourcesPath, 'assets', 'iconTemplate.png');
-    const defaultIconPath = app.isPackaged
-      ? path.join(resourcesPath, 'src/components/icon.png')
-      : path.join(app.getAppPath(), 'src/components/icon.png');
-
-    let iconToUse = defaultIconPath;
-
-    // Check if template exists (sync check is fine for startup/rare toggle)
-    try {
-      if (require('fs').existsSync(templatePath)) {
-        iconToUse = templatePath;
-        console.log('[Tray] Using template icon:', templatePath);
-      } else {
-        // Also check src/components for dev
-        const devTemplatePath = path.join(app.getAppPath(), 'src/components/iconTemplate.png');
-        if (require('fs').existsSync(devTemplatePath)) {
-          iconToUse = devTemplatePath;
-          console.log('[Tray] Using dev template icon:', devTemplatePath);
-        } else {
-          console.log('[Tray] Template icon not found, using default:', defaultIconPath);
-        }
-      }
-    } catch (e) {
-      console.error('[Tray] Error checking for icon:', e);
-    }
-
-    const trayIcon = nativeImage.createFromPath(iconToUse).resize({ width: 16, height: 16 });
-    // IMPORTANT: specific template settings for macOS if needed, but 'Template' in name usually suffices
-    trayIcon.setTemplateImage(iconToUse.endsWith('Template.png'));
+    const iconToUse = path.join(resourcesPath, 'assets', process.platform === 'darwin' ? 'iconTemplate.png' : 'icons/png/icon_16x16.png');
+    // createFromPath keeps the generated 16pt image and its 32px @2x companion.
+    const trayIcon = nativeImage.createFromPath(iconToUse);
+    trayIcon.setTemplateImage(process.platform === 'darwin');
 
     this.tray = new Tray(trayIcon)
     this.tray.setToolTip(APP_IDENTITY.name)
@@ -3857,15 +3829,15 @@ export class AppState {
         appName = APP_IDENTITY.name;
         if (isMac) {
           iconPath = app.isPackaged
-            ? path.join(process.resourcesPath, "natively.icns")
-            : path.join(app.getAppPath(), "assets/natively.icns");
+            ? path.join(process.resourcesPath, "margin.icns")
+            : path.join(app.getAppPath(), "assets/margin.icns");
         } else if (isWin) {
           iconPath = app.isPackaged
             ? path.join(process.resourcesPath, "assets/icons/win/icon.ico")
             : path.join(app.getAppPath(), "assets/icons/win/icon.ico");
         } else {
           iconPath = app.isPackaged
-            ? path.join(process.resourcesPath, "icon.png")
+            ? path.join(process.resourcesPath, "assets/icon.png")
             : path.join(app.getAppPath(), "assets/icon.png");
         }
         break;

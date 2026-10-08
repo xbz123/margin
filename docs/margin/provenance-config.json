@@ -3,9 +3,17 @@
   "restrictedRefPrefixes": ["refs/remotes/upstream/"],
   "restrictedExtraRefs": ["f326de04e50678ae63689cdabac491ec366e5c28"],
   "approvedLineKeyFiles": [],
-  "approvedFiles": [],
+  "approvedFiles": [
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/app-icon.svg" },
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/app-icon-small.svg" },
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/glyph.svg" },
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/generate.mjs" }
+  ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "? path.join(process.resourcesPath, \"assets/icon.png\")", "reason": "Standard path join to the existing package.json assets/ extraResources destination; independently corrected for AG-21 Linux icon restore, 2026-10-08; see PROVENANCE.md" },
+    { "line": "for (const platform of ['darwin', 'win32', 'linux']) {", "reason": "Generic for-of loop enumerating Node platform identifiers in the independently written AG-21 icon consumer test, 2026-10-08; see PROVENANCE.md" },
+    { "line": "schemaVersion: 1,", "reason": "Generic initial version field of the independently written AG-21 generated-asset manifest, 2026-10-08; see PROVENANCE.md" },
     { "line": "const policy = { transcript: false };", "reason": "One-field synthetic test policy for default chat denial; written for this branch (review 8), 2026-10-08" },
     { "line": "signal?.throwIfAborted();", "reason": "Native AbortSignal method; written for this branch to recheck cancellation after a cache wait (review 8), 2026-10-08; see PROVENANCE.md" },
     { "line": "lastError = error;", "reason": "Generic catch assignment retaining the last sequential provider error; written for this branch (review 8), 2026-10-08" },
