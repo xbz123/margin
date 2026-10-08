@@ -41,6 +41,29 @@ prefixes reproduced the six matches, and the two exact standard/generic strings
 were documented. `checks/fresh-pool-red/` and `fresh-pool-green/` retain both
 verdicts. No application or diagnostic logic changed in that source-review fix.
 
+## Second CI attempt and native-tool correction
+
+Run `37826073783` on `a7168997` passed all 16 code gates and the six release-
+identity contract cases. Its temp app formed, and the normal license verifier
+still rejected 19 candidates. The inventory failed closed on three parenthesized
+Helper names misinterpreted by otool-classic as archive members. The raw small
+files, hash-bound excerpt and large-artifact retention boundary are documented
+in `../CI-37826073783/`; all 15 unresolved npm candidates were positively
+observed, while four Cargo candidates remain unknown.
+
+The tool's documented `-m` option fixed an actual same-path system Mach-O
+reproduction without changing its bytes. The diagnostic applies that option
+through its small inspection seam; failures still make collection incomplete.
+`checks/otool-*.log` preserves red/green results with workspace/sandbox paths
+redacted. The explicit-X2-otool run passed all nine targeted tests. The default
+unit guard skips that real-tool case (no external executable grant) but runs
+the synthetic argument/path/error regression. It is not an untested case: its
+separate authorized result is retained. The corrected local full run is under
+`otool-fix/`: all 16 steps exited zero, 882 tests / 876 passes / zero failures /
+six skips (five existing plus this separately executed real-tool case). AG-09,
+storage, startup and renderer passed. Fresh CI must still validate the corrected
+actual-package diagnostic before it is called complete.
+
 Further CI results will be recorded after verification. Actual
 static-library composition, complete notices/source obligations, dual-identity
 packaging, signatures, verified download and isolated temp-package startup are

@@ -1,0 +1,934 @@
+{
+  "kind": "derived excerpt, not the complete inventory",
+  "source": {
+    "run": 37826073783,
+    "artifactId": 11571681850,
+    "zipSHA256": "ec56caf8b962f9d3f17811981d71a3172e60933cb5da8955a519ac33a2c00227",
+    "inventoryBytes": 50487681,
+    "inventorySHA256": "19578c06bf625088cbafdb50448c5911002721676b48c1173c11b65ef78d42f1"
+  },
+  "commit": "a7168997baee2e91b631436bbba773a18a2da828",
+  "acceptance": false,
+  "collectionComplete": false,
+  "normalVerification": {
+    "passed": false,
+    "error": "unresolved notice candidates: 19; inspect the package before distribution"
+  },
+  "entryCount": 49322,
+  "packageMetadataCount": 1080,
+  "nativeCount": 25,
+  "inventoryErrors": [
+    {
+      "path": "Frameworks/temp Helper (GPU).app/Contents/MacOS/temp Helper (GPU)",
+      "error": "otool inventory tool failed",
+      "exitCode": 1,
+      "signal": null
+    },
+    {
+      "path": "Frameworks/temp Helper (Plugin).app/Contents/MacOS/temp Helper (Plugin)",
+      "error": "otool inventory tool failed",
+      "exitCode": 1,
+      "signal": null
+    },
+    {
+      "path": "Frameworks/temp Helper (Renderer).app/Contents/MacOS/temp Helper (Renderer)",
+      "error": "otool inventory tool failed",
+      "exitCode": 1,
+      "signal": null
+    }
+  ],
+  "mapErrorCounts": {
+    "mapped output not observed in package": 2388
+  },
+  "observationCounts": {
+    "included-files": 846,
+    "unknown": 221,
+    "bundle-source-map-only": 1
+  },
+  "unresolvedCandidates": [
+    {
+      "id": "npm:@alcalzone/ansi-tokenize@0.1.3:node_modules/@alcalzone/ansi-tokenize",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/@alcalzone/ansi-tokenize/package.json",
+          "location": "node_modules/@alcalzone/ansi-tokenize",
+          "name": "@alcalzone/ansi-tokenize",
+          "version": "0.1.3",
+          "source": "asar",
+          "sha256": "916f8d955d1bebd9ef109acc4ce161a5b987cb9743f0241c9fb530a47addde6e"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/@alcalzone/ansi-tokenize/build/ansiCodes.js",
+          "logicalPath": "node_modules/@alcalzone/ansi-tokenize/build/ansiCodes.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1409,
+          "unpacked": false,
+          "sha256": "e3f0dfb77b30dccf8020a614e7464acf5e95180a58d8bf9311400640fce0587c"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/@alcalzone/ansi-tokenize/build/ansiCodes.js.map",
+          "logicalPath": "node_modules/@alcalzone/ansi-tokenize/build/ansiCodes.js.map",
+          "container": "asar",
+          "type": "file",
+          "size": 1816,
+          "unpacked": false,
+          "sha256": "600083dab555742720db53a6536655e5f6955f70757cb3eb0f752def34b2bc44"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/@alcalzone/ansi-tokenize/build/diff.js",
+          "logicalPath": "node_modules/@alcalzone/ansi-tokenize/build/diff.js",
+          "container": "asar",
+          "type": "file",
+          "size": 792,
+          "unpacked": false,
+          "sha256": "c09eb8facef61470ccbf6f21e412a8eacf4251e96fad0c500d2a711969e9bf1a"
+        }
+      ],
+      "bundleSourceCount": 7
+    },
+    {
+      "id": "npm:@npmcli/agent@4.0.0:node_modules/@npmcli/agent",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/@npmcli/agent/package.json",
+          "location": "node_modules/@npmcli/agent",
+          "name": "@npmcli/agent",
+          "version": "4.0.0",
+          "source": "asar",
+          "sha256": "362c5ef2e3685a108e7745fd860fd3d055a766d047c682d44e92b67ed5376d07"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/@npmcli/agent/lib/agents.js",
+          "logicalPath": "node_modules/@npmcli/agent/lib/agents.js",
+          "container": "asar",
+          "type": "file",
+          "size": 5930,
+          "unpacked": false,
+          "sha256": "1cf43ea63fa71a1a992a15e335ffec4ae3029711d933f382521f828f63aadb71"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/@npmcli/agent/lib/dns.js",
+          "logicalPath": "node_modules/@npmcli/agent/lib/dns.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1250,
+          "unpacked": false,
+          "sha256": "58a0abcfb7ab16ece73a1fea304b8cb4539f650c4f2726e2d5980c285a96351b"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/@npmcli/agent/lib/errors.js",
+          "logicalPath": "node_modules/@npmcli/agent/lib/errors.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1394,
+          "unpacked": false,
+          "sha256": "f4ee0f8a8ac25830be4a902246059d260e5254ba9e2e766eef84972eeb66926d"
+        }
+      ],
+      "bundleSourceCount": 1
+    },
+    {
+      "id": "npm:dingbat-to-unicode@1.0.1:node_modules/dingbat-to-unicode",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/dingbat-to-unicode/package.json",
+          "location": "node_modules/dingbat-to-unicode",
+          "name": "dingbat-to-unicode",
+          "version": "1.0.1",
+          "source": "asar",
+          "sha256": "964e59168f19478e37ea779368c9123dbeb8d4012f13309df8425f970f8e0d89"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/dingbat-to-unicode/dist/dingbats.js",
+          "logicalPath": "node_modules/dingbat-to-unicode/dist/dingbats.js",
+          "container": "asar",
+          "type": "file",
+          "size": 136204,
+          "unpacked": false,
+          "sha256": "0d84e7079c2aabbae705184e6dc90bab19d98fd696d8d76bfa199381cd8f6897"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/dingbat-to-unicode/dist/index.js",
+          "logicalPath": "node_modules/dingbat-to-unicode/dist/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1671,
+          "unpacked": false,
+          "sha256": "5ef4a8b5aaacec85213b0be89202751b6a490f4630edbfebc452969f5f9d3051"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/dingbat-to-unicode/package.json",
+          "logicalPath": "node_modules/dingbat-to-unicode/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 691,
+          "unpacked": false,
+          "sha256": "964e59168f19478e37ea779368c9123dbeb8d4012f13309df8425f970f8e0d89"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:eastasianwidth@0.2.0:node_modules/eastasianwidth",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/eastasianwidth/package.json",
+          "location": "node_modules/eastasianwidth",
+          "name": "eastasianwidth",
+          "version": "0.2.0",
+          "source": "asar",
+          "sha256": "86d054d8b1aad44de1483244189328b6eb92d84c018103564a78969eec67c86d"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/eastasianwidth/eastasianwidth.js",
+          "logicalPath": "node_modules/eastasianwidth/eastasianwidth.js",
+          "container": "asar",
+          "type": "file",
+          "size": 12067,
+          "unpacked": false,
+          "sha256": "2672ae17e3d91c246546bf3d56e78c95570eec79381ec143f41d45ec498bccab"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/eastasianwidth/package.json",
+          "logicalPath": "node_modules/eastasianwidth/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 349,
+          "unpacked": false,
+          "sha256": "86d054d8b1aad44de1483244189328b6eb92d84c018103564a78969eec67c86d"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:err-code@2.0.3:node_modules/err-code",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/err-code/package.json",
+          "location": "node_modules/err-code",
+          "name": "err-code",
+          "version": "2.0.3",
+          "source": "asar",
+          "sha256": "efee77bccfa2e8fe023289c00873c92471401d876fd8ddf09faafda3ccf18464"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/err-code/.editorconfig",
+          "logicalPath": "node_modules/err-code/.editorconfig",
+          "container": "asar",
+          "type": "file",
+          "size": 179,
+          "unpacked": false,
+          "sha256": "11d51d79c3c77de54d65b5d8bb3aef11dcc44ba7346379bf4d6e2b1dea7512cf"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/err-code/.eslintrc.json",
+          "logicalPath": "node_modules/err-code/.eslintrc.json",
+          "container": "asar",
+          "type": "file",
+          "size": 127,
+          "unpacked": false,
+          "sha256": "40a49a05cd0651e460fbad5728dcc2268ec93add68266efc045d1df5f18eead1"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/err-code/bower.json",
+          "logicalPath": "node_modules/err-code/bower.json",
+          "container": "asar",
+          "type": "file",
+          "size": 589,
+          "unpacked": false,
+          "sha256": "df976fe4bf93ac8ff560126417996ebb67c60fb31e1b1ce38ed83ede7b859978"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:format@0.2.2:node_modules/format",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/format/package.json",
+          "location": "node_modules/format",
+          "name": "format",
+          "version": "0.2.2",
+          "source": "asar",
+          "sha256": "f2416eec82bec7c62425b7741da1f3e48f61ff2a8db2f9e0da61f3e5dcc9d884"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/format/Makefile",
+          "logicalPath": "node_modules/format/Makefile",
+          "container": "asar",
+          "type": "file",
+          "size": 224,
+          "unpacked": false,
+          "sha256": "3c1f4d704fdbb9dbc834f746eeb64b85b97d5804b62b68c9c267abf78ecb8235"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/format/component.json",
+          "logicalPath": "node_modules/format/component.json",
+          "container": "asar",
+          "type": "file",
+          "size": 259,
+          "unpacked": false,
+          "sha256": "5ab8431f57ad013b01616a0f699ebd361cf7f19f3575ac83e562501e81ca8c34"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/format/format-min.js",
+          "logicalPath": "node_modules/format/format-min.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1025,
+          "unpacked": false,
+          "sha256": "9d3d2e8f6d6066992eebe8aef621c05a426849fb7f8ccbdf0783e350752aced6"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:highlightjs-vue@1.0.0:node_modules/highlightjs-vue",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/highlightjs-vue/package.json",
+          "location": "node_modules/highlightjs-vue",
+          "name": "highlightjs-vue",
+          "version": "1.0.0",
+          "source": "asar",
+          "sha256": "01a2d9a36cd6cc8656e6bc3517c7d7668665449cf1ccd46bfd4149411822c4da"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/highlightjs-vue/dist/highlightjs-vue.cjs.js",
+          "logicalPath": "node_modules/highlightjs-vue/dist/highlightjs-vue.cjs.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1597,
+          "unpacked": false,
+          "sha256": "42019127d38cb52c3d90493eb528edfef2b29a77861667e784e2e9b087007d7b"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/highlightjs-vue/dist/highlightjs-vue.esm.js",
+          "logicalPath": "node_modules/highlightjs-vue/dist/highlightjs-vue.esm.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1572,
+          "unpacked": false,
+          "sha256": "69f5ea2ef09df52771d053777ce8689f2a63c689327cb13c846b7fdee7f7c058"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/highlightjs-vue/dist/highlightjs-vue.umd.js",
+          "logicalPath": "node_modules/highlightjs-vue/dist/highlightjs-vue.umd.js",
+          "container": "asar",
+          "type": "file",
+          "size": 1823,
+          "unpacked": false,
+          "sha256": "d2fbf5fc4c8e3afb107da59e67f1b1ccb4bc334c32efc321c609fd644de68c8f"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/react-remove-scroll-bar/package.json",
+          "location": "node_modules/react-remove-scroll-bar",
+          "name": "react-remove-scroll-bar",
+          "version": "2.3.8",
+          "source": "asar",
+          "sha256": "854164372cd34e186ae5aeddb6f62fa841583c235199aa4db60bf9dafd1ed1cd"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/react-remove-scroll-bar/constants/package.json",
+          "logicalPath": "node_modules/react-remove-scroll-bar/constants/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 234,
+          "unpacked": false,
+          "sha256": "9b557c166960d4a096abc83259b8787a4072516f666856f8cf51656e38ed904b"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/react-remove-scroll-bar/dist/es2015/component.js",
+          "logicalPath": "node_modules/react-remove-scroll-bar/dist/es2015/component.js",
+          "container": "asar",
+          "type": "file",
+          "size": 3395,
+          "unpacked": false,
+          "sha256": "3baec61523006aedf14321423427b0c50aa17bfe48faf344bebff9d883149f29"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/react-remove-scroll-bar/dist/es2015/constants.js",
+          "logicalPath": "node_modules/react-remove-scroll-bar/dist/es2015/constants.js",
+          "container": "asar",
+          "type": "file",
+          "size": 375,
+          "unpacked": false,
+          "sha256": "1c73582ef730bbca1d536a6995c7eea438dcd0632fee2856337627e44b5872e2"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:screenshot-desktop@1.15.4:node_modules/screenshot-desktop",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/screenshot-desktop/package.json",
+          "location": "node_modules/screenshot-desktop",
+          "name": "screenshot-desktop",
+          "version": "1.15.4",
+          "source": "asar",
+          "sha256": "af167e6e60ea111a67ca52e61f08a1501be0050690bf9df3676944973bdae906"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/screenshot-desktop/index.js",
+          "logicalPath": "node_modules/screenshot-desktop/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 420,
+          "unpacked": false,
+          "sha256": "125c1a517628169f4e66e0e237d201be226afb5c704a684aee5155de69281685"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/screenshot-desktop/lib/darwin/index.js",
+          "logicalPath": "node_modules/screenshot-desktop/lib/darwin/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 6235,
+          "unpacked": false,
+          "sha256": "9c6b72c494adf42c535edda93173e7bccb6435103f4250b0a231f65c0b738dd1"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/screenshot-desktop/lib/linux/index.js",
+          "logicalPath": "node_modules/screenshot-desktop/lib/linux/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 5814,
+          "unpacked": false,
+          "sha256": "14fad808532c42c35be60a130c681ee9e935e3117d08a94c4a6f19f68bab4fdb"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:spdx-exceptions@2.5.0:node_modules/spdx-exceptions",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/spdx-exceptions/package.json",
+          "location": "node_modules/spdx-exceptions",
+          "name": "spdx-exceptions",
+          "version": "2.5.0",
+          "source": "asar",
+          "sha256": "24241b83f206787e3bdfacb2e19712cc256f09b336186201b4145bde4c52482b"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/spdx-exceptions/deprecated.json",
+          "logicalPath": "node_modules/spdx-exceptions/deprecated.json",
+          "container": "asar",
+          "type": "file",
+          "size": 31,
+          "unpacked": false,
+          "sha256": "bf84cb52b5bc8e2b1e6b4341765204d23b7bbce74b06ae8aec1cfee7f76faa24"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/spdx-exceptions/index.json",
+          "logicalPath": "node_modules/spdx-exceptions/index.json",
+          "container": "asar",
+          "type": "file",
+          "size": 1731,
+          "unpacked": false,
+          "sha256": "26144efbe0f61f41b0f8751e266b8b828ac53eb3f28f9041620442892228e92b"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/spdx-exceptions/package.json",
+          "logicalPath": "node_modules/spdx-exceptions/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 285,
+          "unpacked": false,
+          "sha256": "24241b83f206787e3bdfacb2e19712cc256f09b336186201b4145bde4c52482b"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:spdx-license-ids@3.0.23:node_modules/spdx-license-ids",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/spdx-license-ids/package.json",
+          "location": "node_modules/spdx-license-ids",
+          "name": "spdx-license-ids",
+          "version": "3.0.23",
+          "source": "asar",
+          "sha256": "1e6c336f0cc97d0505ebb45f8093c260343d7268c7bb684a5cccebec09ff6023"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/spdx-license-ids/deprecated.json",
+          "logicalPath": "node_modules/spdx-license-ids/deprecated.json",
+          "container": "asar",
+          "type": "file",
+          "size": 512,
+          "unpacked": false,
+          "sha256": "29c9e630daa0adc09dec96ddeb6f81d1046210e81824bebda6486250450fb130"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/spdx-license-ids/index.json",
+          "logicalPath": "node_modules/spdx-license-ids/index.json",
+          "container": "asar",
+          "type": "file",
+          "size": 11283,
+          "unpacked": false,
+          "sha256": "d5ef45aff38fd904a68c563bf5814172bb0caa656220be820b3a81601e637241"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/spdx-license-ids/package.json",
+          "logicalPath": "node_modules/spdx-license-ids/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 301,
+          "unpacked": false,
+          "sha256": "1e6c336f0cc97d0505ebb45f8093c260343d7268c7bb684a5cccebec09ff6023"
+        }
+      ],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:@tootallnate/once@1.1.2:node_modules/sqlite3/node_modules/@tootallnate/once",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/@tootallnate/once/package.json",
+          "location": "node_modules/@tootallnate/once",
+          "name": "@tootallnate/once",
+          "version": "1.1.2",
+          "source": "asar",
+          "sha256": "d548706742a7c8d92d68a9c5832a4059df5854cc87cb6cfba1fab494f6713112"
+        }
+      ],
+      "sampleFiles": [],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "npm:stream-events@1.0.5:node_modules/stream-events",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/stream-events/package.json",
+          "location": "node_modules/stream-events",
+          "name": "stream-events",
+          "version": "1.0.5",
+          "source": "asar",
+          "sha256": "a924273a8e716a8cb7560cf2968231ea72c35a5bdf46c20d41af1892ef4d3ce2"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/stream-events/index.js",
+          "logicalPath": "node_modules/stream-events/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 514,
+          "unpacked": false,
+          "sha256": "675c3a636bf0bf96b9a89534fbda2ceab56ed1df6e99528301c9f3c62046658d"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/stream-events/package.json",
+          "logicalPath": "node_modules/stream-events/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 549,
+          "unpacked": false,
+          "sha256": "a924273a8e716a8cb7560cf2968231ea72c35a5bdf46c20d41af1892ef4d3ce2"
+        }
+      ],
+      "bundleSourceCount": 9
+    },
+    {
+      "id": "npm:stubs@3.0.0:node_modules/stubs",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/stubs/package.json",
+          "location": "node_modules/stubs",
+          "name": "stubs",
+          "version": "3.0.0",
+          "source": "asar",
+          "sha256": "1ffa61df6ecabb343eabe6b5137821a13c9fed9c660fbcc6da1fcd797367fdc9"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/stubs/index.js",
+          "logicalPath": "node_modules/stubs/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 725,
+          "unpacked": false,
+          "sha256": "24f3f5146ea77d185182777718f5995eea40d3b93fe1d62fba515eee3e806854"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/stubs/package.json",
+          "logicalPath": "node_modules/stubs/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 360,
+          "unpacked": false,
+          "sha256": "1ffa61df6ecabb343eabe6b5137821a13c9fed9c660fbcc6da1fcd797367fdc9"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/stubs/test.js",
+          "logicalPath": "node_modules/stubs/test.js",
+          "container": "asar",
+          "type": "file",
+          "size": 3590,
+          "unpacked": false,
+          "sha256": "c9390ea2fcecc1d6fb3d0a9e992ae2c104eb39e5317a14c8f4feabfd927830b5"
+        }
+      ],
+      "bundleSourceCount": 9
+    },
+    {
+      "id": "npm:tr46@0.0.3:node_modules/tr46",
+      "observation": "included-files",
+      "metadata": [
+        {
+          "path": "Resources/app.asar/node_modules/tr46/package.json",
+          "location": "node_modules/tr46",
+          "name": "tr46",
+          "version": "0.0.3",
+          "source": "asar",
+          "sha256": "bb7b622deed9936ada577a7ea52a59cee5162825305a45b1be2278907d899bf1"
+        }
+      ],
+      "sampleFiles": [
+        {
+          "path": "Resources/app.asar/node_modules/tr46/index.js",
+          "logicalPath": "node_modules/tr46/index.js",
+          "container": "asar",
+          "type": "file",
+          "size": 7567,
+          "unpacked": false,
+          "sha256": "8194f9425ce9ab06ea9aebcd64a85ec064d95d61bb349f8f1c98762ad256638e"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/tr46/lib/mappingTable.json",
+          "logicalPath": "node_modules/tr46/lib/mappingTable.json",
+          "container": "asar",
+          "type": "file",
+          "size": 260049,
+          "unpacked": false,
+          "sha256": "b6b39724dca9011113a08d9d6910204062b58169e98952acdfbd19bf2c31bbff"
+        },
+        {
+          "path": "Resources/app.asar/node_modules/tr46/package.json",
+          "logicalPath": "node_modules/tr46/package.json",
+          "container": "asar",
+          "type": "file",
+          "size": 431,
+          "unpacked": false,
+          "sha256": "bb7b622deed9936ada577a7ea52a59cee5162825305a45b1be2278907d899bf1"
+        }
+      ],
+      "bundleSourceCount": 26
+    },
+    {
+      "id": "cargo:oboe@0.6.1",
+      "observation": "unknown",
+      "metadata": [],
+      "sampleFiles": [],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "cargo:oboe-sys@0.6.1",
+      "observation": "unknown",
+      "metadata": [],
+      "sampleFiles": [],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "cargo:r-efi@5.3.0",
+      "observation": "unknown",
+      "metadata": [],
+      "sampleFiles": [],
+      "bundleSourceCount": 0
+    },
+    {
+      "id": "cargo:realfft@3.5.0",
+      "observation": "unknown",
+      "metadata": [],
+      "sampleFiles": [],
+      "bundleSourceCount": 0
+    }
+  ],
+  "unknownNpm": [
+    "npm:@emnapi/runtime@1.10.0:node_modules/@emnapi/runtime",
+    "npm:@types/dom-mediacapture-record@1.0.22:node_modules/@types/dom-mediacapture-record",
+    "npm:@types/react@19.2.14:node_modules/@types/react",
+    "npm:@types/react-dom@19.2.3:node_modules/@types/react-dom",
+    "npm:object-assign@4.1.1:node_modules/object-assign",
+    "npm:react-dom@18.3.1:node_modules/tcompare/node_modules/react-dom",
+    "npm:zod@4.4.3:node_modules/zod"
+  ],
+  "bundleOnly": [
+    "npm:dotenv@17.4.2:node_modules/dotenv"
+  ],
+  "native": [
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
+      "sha256": "746cda437b411c3b9f5e6f77e2c0fd4096243b4e71e709a2df9daa7dfb57eef0",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Helpers/chrome_crashpad_handler",
+      "sha256": "9a4859742f79a065b31601482b5e9fd61acf5ae9455e779584b7dabdb66fb534",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib",
+      "sha256": "8664b824b6569890e94bd5b370cbe2ecefa4202ec701068f6a033f113d3df08b",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib",
+      "sha256": "d210a2e4b52cb44fd9bb5cabc890bc3f2d271477b44592a1492e0e21012ff9be",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib",
+      "sha256": "0a0a294de6c6c2be69b734a9db5bec9b8638f42fc68423a5fcfe40aade9940c1",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib",
+      "sha256": "0cb37261bf61d52cc9d05bfbc6e53b86e3ff3f497da35a26d953660a23e30fa7",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Mantle.framework/Versions/A/Mantle",
+      "sha256": "2eeff12d1c8cb38837602b47a2808ae9ec849b9edc3c8879757a46e9ae960e24",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/ReactiveObjC.framework/Versions/A/ReactiveObjC",
+      "sha256": "298232f881e94ebc1752a0a6811fd76c2ce21fb8dfaefd213e3abd53dd152b7c",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt",
+      "sha256": "34710dbe8916b8029e2a979281adb1f74f6c9cab269f1ef2a1d20066e7d4e201",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Squirrel",
+      "sha256": "36b55c092751d1a4e309f9d1817ace9f5fba4888512c79c2105c14d213aead74",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Frameworks/temp Helper (GPU).app/Contents/MacOS/temp Helper (GPU)",
+      "sha256": "82bc7c96bf1745a711ed3d999d3842bb43f50759219d0e61784822f4fe4580ac",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 1,
+      "dynamicLinksError": "error: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: <runner-temp>/margin-package-inventory/package/mac-arm64/temp.app/Contents/Frameworks/temp Helper (GPU).app/Contents/MacOS/temp Helper  (No such file or directory)\n"
+    },
+    {
+      "path": "Frameworks/temp Helper (Plugin).app/Contents/MacOS/temp Helper (Plugin)",
+      "sha256": "3f9bf2e18eabbc39faae2137a6f58ff5f58e7e2493f792fab889bcca6abb333f",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 1,
+      "dynamicLinksError": "error: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: <runner-temp>/margin-package-inventory/package/mac-arm64/temp.app/Contents/Frameworks/temp Helper (Plugin).app/Contents/MacOS/temp Helper  (No such file or directory)\n"
+    },
+    {
+      "path": "Frameworks/temp Helper (Renderer).app/Contents/MacOS/temp Helper (Renderer)",
+      "sha256": "b4cfad0ade30c64c1c6a3288ba045143d4a7c285b5122e7d8a34b5ea90bac8ae",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 1,
+      "dynamicLinksError": "error: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: <runner-temp>/margin-package-inventory/package/mac-arm64/temp.app/Contents/Frameworks/temp Helper (Renderer).app/Contents/MacOS/temp Helper  (No such file or directory)\n"
+    },
+    {
+      "path": "Frameworks/temp Helper.app/Contents/MacOS/temp Helper",
+      "sha256": "1c9d6ace328a43d2461b1514f5974ae981eb4920013d1dae1f6fe36c31c0d223",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "MacOS/temp",
+      "sha256": "69cb21f64c53c751678957803b2d82d2d5d7f054afd570267eda21179cbff136",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
+      "sha256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node",
+      "sha256": "05dba5ee40609b0ac94e14e591c515b3d9bd813ff5939625ff9a4bb78eb7c628",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib",
+      "sha256": "ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@napi-rs/canvas-darwin-arm64/skia.darwin-arm64.node",
+      "sha256": "b6b2f5cc20d4d536c1b5768ba41ef6c83fcd289f4cc435d9aac5e2185e0b655c",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@typescript/native-preview-darwin-arm64/lib/tsgo",
+      "sha256": "4aa325bb0d6e6e102ee9e5414a8edc7bb9e988d9055e6c197c2d26839e4cd396",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",
+      "sha256": "0b6fc1dc4dce7557351620197e26c5699dc3d873b22bdece73bb8d9c01f9746b",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "sha256": "0b6fc1dc4dce7557351620197e26c5699dc3d873b22bdece73bb8d9c01f9746b",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/test_extension.node",
+      "sha256": "7e41e40cf1c81692bc2230850f4eadcff14e0e8534e1ee57628543d74048dbf2",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node",
+      "sha256": "6c32c41c0e5a9e546616607b0383eada5bb646d0164324f20baab59d5b7963fa",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/sqlite3/build/Release/node_sqlite3.node",
+      "sha256": "e476b3077cee91f9e8a679e7d8303fb6e5e0c5815c25aa06033159ae533857c6",
+      "architecture": {
+        "exitCode": 0,
+        "output": "arm64\n"
+      },
+      "dynamicLinksExit": 0
+    }
+  ]
+}

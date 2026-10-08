@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const asar = require('@electron/asar');
-const { assertDiagnosticEnv, collectInventory, classifyCandidates, assertTextArtifacts, nativeToolErrors, expectedStop } = require('../../../scripts/margin/package-inventory.cjs');
+const { assertDiagnosticEnv, collectInventory, classifyCandidates, assertTextArtifacts, nativeToolErrors, inspectDynamicLinks, expectedStop } = require('../../../scripts/margin/package-inventory.cjs');
 const root = path.resolve(import.meta.dirname, '../../..');
 
 function write(base, name, value) {
@@ -107,6 +108,49 @@ test('missing native architecture or links is a collection error, not a complete
   const errors = nativeToolErrors('Frameworks/synthetic', { status: 1 }, { status: null, signal: 'SIGTERM' });
   assert.deepEqual(errors.map((item) => item.error), ['lipo inventory tool failed', 'otool inventory tool failed']);
   assert.ok(errors.every((item) => item.path === 'Frameworks/synthetic'));
+});
+
+test('helper paths disable archive-member parsing without changing input and preserve real errors', async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-otool-synthetic-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'Helper (GPU)');
+  const bytes = Buffer.from('synthetic native metadata bytes, never executed');
+  fs.writeFileSync(file, bytes);
+  let inspected;
+  const execute = (command, args) => {
+    assert.equal(command, '/usr/bin/otool');
+    inspected = args.at(-1);
+    assert.deepEqual(fs.readFileSync(inspected), bytes);
+    return !args.includes('-m') ? { status: 1, stdout: '', stderr: 'archive member path misparsed' } :
+      { status: 0, stdout: inspected + ':\nsynthetic link\n', stderr: '' };
+  };
+  const result = await inspectDynamicLinks(file, execute);
+  assert.equal(result.status, 0);
+  assert.equal(inspected, file);
+  assert.deepEqual(fs.readFileSync(file), bytes);
+  assert.equal(result.stdout, file + ':\nsynthetic link\n');
+  const plain = path.join(directory, 'Helper');
+  fs.copyFileSync(file, plain);
+  assert.equal((await inspectDynamicLinks(plain, execute)).status, 0);
+  assert.equal(inspected, plain);
+  const failure = await inspectDynamicLinks(file, () => ({ status: 1, stdout: '', stderr: 'synthetic malformed Mach-O' }));
+  assert.equal(failure.status, 1);
+  assert.equal(nativeToolErrors('original-path', { status: 0 }, failure).length, 1);
+});
+
+const metadataToolsAllowed = process.platform === 'darwin' && process.env.MARGIN_ISOLATION_ALLOW_EXEC?.split(':').includes('otool');
+test('real otool reads a parenthesized same-byte system Mach-O copy without executing it', { skip: !metadataToolsAllowed }, async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-otool-real-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'Helper (GPU)');
+  fs.copyFileSync('/usr/bin/true', file);
+  const original = fs.readFileSync(file);
+  const digest = crypto.createHash('sha256').update(original).digest('hex');
+  const result = await inspectDynamicLinks(file);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /libSystem/);
+  assert.deepEqual(fs.readFileSync(file), original);
+  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'), digest);
 });
 
 test('upload files are text-only and workflow never uploads diagnostic package paths', (t) => {

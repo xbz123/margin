@@ -192,7 +192,7 @@ async function collectInventory({ app, root, manifest, nativeTools = true }) {
       }
       if (!type.stdout.includes('Mach-O')) continue;
       const architecture = spawnSync('/usr/bin/lipo', ['-archs', file], options);
-      const links = spawnSync('/usr/bin/otool', ['-L', file], options);
+      const links = inspectDynamicLinks(file);
       inventoryErrors.push(...nativeToolErrors(entry.path, architecture, links));
       native.push({ path: entry.path, file: scrub(type.stdout.trim(), root),
         architecture: { exitCode: architecture.status, output: scrub((architecture.stdout ?? '') + (architecture.stderr ?? ''), root) },
@@ -210,6 +210,12 @@ async function collectInventory({ app, root, manifest, nativeTools = true }) {
 function nativeToolErrors(relative, architecture, links) {
   return [['lipo', architecture], ['otool', links]].filter(([, result]) => result.status !== 0 || result.error || result.signal)
     .map(([tool, result]) => ({ path: relative, error: `${tool} inventory tool failed`, exitCode: result.status, signal: result.signal ?? null }));
+}
+
+function inspectDynamicLinks(file, execute = spawnSync) {
+  const options = { encoding: 'utf8', timeout: 10000, maxBuffer: 4 * 1024 * 1024 };
+  // These are individual Mach-O files; helper basenames are not archive members.
+  return execute('/usr/bin/otool', ['-m', '-L', file], options);
 }
 
 function assertTextArtifacts(directory) {
@@ -301,5 +307,5 @@ async function run() {
   return record.diagnosticSucceeded ? 0 : 1;
 }
 
-module.exports = { assertDiagnosticEnv, collectInventory, classifyCandidates, assertTextArtifacts, nativeToolErrors, expectedStop, afterPack, run };
+module.exports = { assertDiagnosticEnv, collectInventory, classifyCandidates, assertTextArtifacts, nativeToolErrors, inspectDynamicLinks, expectedStop, afterPack, run };
 if (require.main === module) run().then((code) => { process.exitCode = code; }).catch((error) => { console.error(scrub(error.message)); process.exitCode = 1; });

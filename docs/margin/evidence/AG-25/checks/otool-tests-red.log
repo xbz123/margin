@@ -1,0 +1,56 @@
+✔ actual asar/unpacked/resources/frameworks have size and hashes without exporting contents (61.537875ms)
+✔ no metadata or a nonmatching build map never proves component absence (44.957ms)
+✔ an incomplete formed package retains observed files and cannot yield a successful stop (17.245167ms)
+✔ CI-only entry rejects local/push/wrong identity and signing inputs (0.426667ms)
+✔ only an exact nonzero diagnostic receipt is successful; ordinary failures remain failures (0.0875ms)
+✔ missing native architecture or links is a collection error, not a complete inventory (0.136333ms)
+✖ helper paths disable archive-member parsing without changing input and preserve real errors (3.663ms)
+✖ real otool reads a parenthesized same-byte system Mach-O copy without executing it (27.08725ms)
+✔ upload files are text-only and workflow never uploads diagnostic package paths (6.796875ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 7
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 294.372292
+
+✖ failing tests:
+
+test at electron/margin/__tests__/packageInventory.test.mjs:113:1
+✖ helper paths disable archive-member parsing without changing input and preserve real errors (3.663ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file://<workspace>/electron/margin/__tests__/packageInventory.test.mjs:128:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/margin/__tests__/packageInventory.test.mjs:142:1
+✖ real otool reads a parenthesized same-byte system Mach-O copy without executing it (27.08725ms)
+  AssertionError [ERR_ASSERTION]: error: /Library/Developer/CommandLineTools/usr/bin/otool-classic: can't open file: <synthetic-sandbox>  (No such file or directory)
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file://<workspace>/electron/margin/__tests__/packageInventory.test.mjs:150:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

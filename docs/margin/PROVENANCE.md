@@ -59,6 +59,22 @@ is independently written standard module/CLI dispatch. Only these two exact
 lines were approved. No source-import permission or path exclusion was expanded;
 the failing CI and local red/green scans remain recorded as evidence.
 
+The diagnostic's parenthesized-helper path fix is written on this branch from the
+failed CI tool output and a minimized read-only system Mach-O reproduction.
+`otool-classic` treats a basename ending in `(member)` as archive-member syntax.
+The installed tool's help documents `-m` to disable that syntax: `-L` failed on
+the `helper (GPU)` path, while `-m -L` succeeded on that exact same path with
+unchanged SHA-256. The diagnostic now passes this official option when reading
+individual Mach-O files, without copying, renaming or changing package inputs.
+The small `inspectDynamicLinks` seam preserves timeout, exit/error handling and
+original-path reporting. Real tool failures still make the inventory incomplete.
+The regression cases were red before this fix and green afterward, including
+an X2 run allowing only `otool` to read a synthetic copy of a system Mach-O
+without executing it. That real-tool case is skipped in the default guard
+profile, which grants no external executables; the synthetic path and error
+regressions remain active there. The license verifier, static vendor-composition
+limitations and source-map evidence gaps are unchanged.
+
 AG-26's notice collector, package-byte checker, synthetic tests and rewritten
 public documents are written for this branch from PLAN's license/documentation
 contract and Node standard-library APIs. They import no later application

@@ -1,7 +1,10 @@
 # AG-26 partial implementation evidence
 
 Status: local implementation checks passed, but license closure is incomplete.
-There is no AG-26 commit, fresh CI acceptance or stage-2 exit acceptance.
+At this original evidence checkpoint there was no AG-26 commit or fresh CI.
+S17 subsequently included these prerequisites in source checkpoint `c49fb86d`;
+CI `37826073783` passed their code gates but the normal package license verifier
+still rejected 19 candidates. There is no AG-26 or stage-2 exit acceptance.
 The working tree is based on `30b9fb24`; `checks/notice-hashes.json` identifies
 the frozen scripts, test, package metadata and inventory by SHA-256.
 

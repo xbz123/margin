@@ -1,0 +1,17 @@
+✔ actual asar/unpacked/resources/frameworks have size and hashes without exporting contents (64.264208ms)
+✔ no metadata or a nonmatching build map never proves component absence (48.115ms)
+✔ an incomplete formed package retains observed files and cannot yield a successful stop (18.120917ms)
+✔ CI-only entry rejects local/push/wrong identity and signing inputs (0.433083ms)
+✔ only an exact nonzero diagnostic receipt is successful; ordinary failures remain failures (0.085875ms)
+✔ missing native architecture or links is a collection error, not a complete inventory (0.138292ms)
+✔ helper paths disable archive-member parsing without changing input and preserve real errors (5.010917ms)
+﹣ real otool reads a parenthesized same-byte system Mach-O copy without executing it (0.039333ms) # SKIP
+✔ upload files are text-only and workflow never uploads diagnostic package paths (6.784416ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 267.539791
