@@ -64,7 +64,20 @@ six skips (five existing plus this separately executed real-tool case). AG-09,
 storage, startup and renderer passed. Fresh CI must still validate the corrected
 actual-package diagnostic before it is called complete.
 
-Further CI results will be recorded after verification. Actual
+## Completed S17 diagnostic
+
+Run `37829181248` on `f8c2dec0` passed all 16 code gates (882 tests, 876 passes,
+six documented skips), the six release-identity contract cases, and the actual
+package diagnostic. All 25 native architecture/link inspections succeeded;
+the unique pre-signing stop receipt was independently matched against the raw
+builder log. The normal license verifier still rejected 19 candidates, and
+`acceptance` remains false. Only the two text workflow artifacts were produced.
+Verified raw small files, an explicitly derived full-hash-bound excerpt and
+retention details are in `../CI-37829181248/`. This completes S17 evidence
+collection, not complete AG-25 or the stage exit. Work returns to AG-26's actual
+distributed-component notice obligations without removing dependencies.
+
+Actual
 static-library composition, complete notices/source obligations, dual-identity
 packaging, signatures, verified download and isolated temp-package startup are
 still pending. Claude's independent read-only stage review is also pending.
