@@ -1,0 +1,49 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4384.263167ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (607.650541ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5188.964125ms)
+✖ a meeting edit that fails to save is rolled back and reported (31736.063084ms)
+✔ startup recovery of an unprocessed meeting follows the profile_history scope (7373.507583ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49845.967375
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:352:1
+✖ a meeting edit that fails to save is rolled back and reported (31736.063084ms)
+  locator.click: Timeout 30000ms exceeded.
+  Call log:
+    - waiting for locator('p').filter({ hasText: 'KP_ONE_EDITED' }).first()
+      - locator resolved to <p spellcheck="false" contenteditable="false" data-placeholder="Type a key point..." class="↵                outline-none min-w-[10px] cursor-text transition-colors duration-200↵                bg-transparent↵                ↵                text-sm text-text-secondary leading-relaxed -ml-2 px-2 rounded-sm transition-colors↵            ">KP_ONE_EDITED</p>
+    - attempting click action
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> from <div>…</div> subtree intercepts pointer events
+      - retrying click action
+      - waiting 20ms
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> from <div>…</div> subtree intercepts pointer events
+      - retrying click action
+        - waiting 100ms
+      56 × waiting for element to be visible, enabled and stable
+         - element is visible, enabled and stable
+         - scrolling into view if needed
+         - done scrolling
+         - <div>…</div> from <div>…</div> subtree intercepts pointer events
+       - retrying click action
+         - waiting 500ms
+  
+      at editKeyPoint (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:388:14)
+      at TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:416:9) {
+    name: 'TimeoutError'
+  }

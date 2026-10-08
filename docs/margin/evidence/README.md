@@ -65,6 +65,7 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `CI-37700866188/` | Raw evidence of the uncached GitHub Actions run on `fd47de32` (code of `d26a9937`): the evidence for phase 1 exit item 1 under S11; see its README |
 | `AG-17-review6/` | The fixes for the sixth Astra review, on the committed, clean tree of `fa70efc8`, compared with `AG-17-review5/`. `checks/` holds the one-off and mutation check outputs, the earlier failing runs of the new storage case, and the checks run before the commit (see its README) |
 | `CI-37703373985/` | Raw evidence of the uncached GitHub Actions run on `78015838` (code of `fa70efc8`): the evidence for phase 1 exit item 1 under S11; see its README |
+| `AG-17-review7/` | The fixes for the seventh Astra review, on the committed, clean tree of `9a7dcf1c`, compared with `AG-17-review6/`. `checks/` holds the one-off and mutation check outputs, the earlier runs of the new cases, and the checks run before the commit (see its README) |
 
 Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
 The `regression`, `storage` and `startup` steps need a display session (they launch the app

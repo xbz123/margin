@@ -1,0 +1,145 @@
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] Calling gemini-test...
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] Critical Error in chatWithGemini: Error: send-stub-reached
+    at Object.stream (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:182:85)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77274:51
+    at LLMHelper.withRetry (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:173:24)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77272:12)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76928:18
+[LLMHelper] Critical Error in chatWithGemini: ProviderScopeError: Provider claude blocked by data scope policy: transcript
+    at assertProviderDataScopes (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:75231:11)
+    at LLMHelper.assertOutboundScopes (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76038:5)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77251:10)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76928:29
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)
+    at LLMHelper.chatWithGemini (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76824:30)
+    at ask (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:221:30)
+    at sendWith (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:184:28)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:225:24)
+    at async Test.run (node:internal/test_runner/test:1208:7) {
+  provider: 'claude',
+  deniedScopes: [ 'transcript' ]
+}
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] Initial gemini-test call failed: send-stub-reached
+[LLMHelper] 🚀 Triggering Speculative Parallel Retry (Flash + Pro)...
+[LLMHelper] ⚠️ All parallel attempts failed. Trying Flash one last time...
+[LLMHelper] Both parallel retry attempts failed.
+[LLMHelper] Final retry failed.
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] ⚠️ Groq mode-specific failed: send-stub-reached, falling back to Gemini
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Gemini Flash for summary...
+[LLMHelper] ⚠️ Gemini Flash attempt 1/3 failed: flash failed
+(node:8334) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ transcript scope denial omits transcript from cloud calls (1.415375ms)
+✔ LLMHelper infers auxiliary context scopes before cloud routing (0.416417ms)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (2.107ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (111.582125ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.39275ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (0.611292ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.34675ms)
+✔ Claude sends nothing when the transcript or screenshot scope is denied (0.574041ms)
+✔ Groq multimodal sends nothing when the transcript or screenshot scope is denied (0.304875ms)
+✔ Gemini contents sends nothing when the transcript or screenshot scope is denied (0.483125ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (6.795792ms)
+✔ every cloud send in LLMHelper.ts is preceded by a scope check in its method (1.894083ms)
+✔ generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied (0.799792ms)
+✔ generateWithPro sends nothing when the transcript scope is denied (0.1915ms)
+✔ generateWithFlash sends nothing when the transcript scope is denied (0.135875ms)
+✔ generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied (0.251708ms)
+✔ streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied (0.225792ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (1.021417ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (1.973834ms)
+✔ the meeting chat context carries the scopes of what it contains (0.522542ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.107084ms)
+[LLMHelper] ⚠️ Gemini Flash attempt 2/3 failed: Provider gemini blocked by data scope policy: profile_history
+[LLMHelper] ⚠️ Gemini Flash attempt 3/3 failed: Provider gemini blocked by data scope policy: profile_history
+[LLMHelper] ⚠️ Flash exhausted. Switching to Gemini Pro for robust retry...
+[LLMHelper] 🔄 Gemini Pro Attempt 1/5...
+[LLMHelper] ⚡️ Fast Text Mode Active (Streaming). Routing to Codex CLI...
+[LLMHelper] ⚡️ Groq Fast Text Mode Active (Streaming). Routing to local Groq...
+[LLMHelper] Codex CLI Fast Text streaming failed, falling back: codex failed
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+[LLMHelper] Critical Error in chatWithGemini: ProviderScopeError: Provider claude blocked by data scope policy: post_call_summary
+    at assertProviderDataScopes (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:75231:11)
+    at LLMHelper.assertOutboundScopes (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76038:5)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77273:14
+    at LLMHelper.withRetry (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:173:24)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77272:12)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76928:18 {
+  provider: 'claude',
+  deniedScopes: [ 'post_call_summary' ]
+}
+✔ meeting summaries stop the fallback chain when a scope is turned off during it (3008.725625ms)
+✔ streamChat re-checks its scopes before each send, also after waiting (5.130167ms)
+✔ chatWithGemini keeps the scopes of its context for every send (1.785708ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3260.012292

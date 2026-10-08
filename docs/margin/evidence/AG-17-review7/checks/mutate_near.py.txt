@@ -1,0 +1,9 @@
+import sys
+# Replaces `old` with `new` where `old` is the last occurrence before the unique `anchor`.
+p, anchor, old, new = sys.argv[1:5]
+s = open(p, encoding='utf-8').read()
+assert s.count(anchor) == 1, (p, anchor, s.count(anchor))
+a = s.index(anchor)
+i = s.rindex(old, 0, a)
+assert a - i < 400, (p, 'old is too far from the anchor', a - i)
+open(p, 'w', encoding='utf-8').write(s[:i] + new + s[i + len(old):])

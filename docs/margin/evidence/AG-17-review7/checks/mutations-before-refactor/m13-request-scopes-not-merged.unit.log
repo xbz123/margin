@@ -1,0 +1,176 @@
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] Calling gemini-test...
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] Critical Error in chatWithGemini: Error: send-stub-reached
+    at Object.stream (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:182:85)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77274:51
+    at LLMHelper.withRetry (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:173:24)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77272:12)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76928:18
+[LLMHelper] Critical Error in chatWithGemini: ProviderScopeError: Provider claude blocked by data scope policy: transcript
+    at assertProviderDataScopes (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:75231:11)
+    at LLMHelper.assertOutboundScopes (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76038:5)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77251:10)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76928:29
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)
+    at LLMHelper.chatWithGemini (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76824:30)
+    at ask (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:221:30)
+    at sendWith (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:184:28)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:225:24)
+    at async Test.run (node:internal/test_runner/test:1208:7) {
+  provider: 'claude',
+  deniedScopes: [ 'transcript' ]
+}
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: Provider gemini blocked by data scope policy: transcript
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] Initial gemini-test call failed: send-stub-reached
+[LLMHelper] Both parallel retry attempts failed.
+[LLMHelper] 🚀 Triggering Speculative Parallel Retry (Flash + Pro)...
+[LLMHelper] ⚠️ All parallel attempts failed. Trying Flash one last time...
+[LLMHelper] Final retry failed.
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] ⚠️ Groq mode-specific failed: send-stub-reached, falling back to Gemini
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+[LLMHelper] Critical Error in chatWithGemini: Error: send-stub-reached
+    at Object.stream (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:449:60)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77274:51
+    at LLMHelper.withRetry (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:173:24)
+    at LLMHelper.generateWithClaude (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:77272:12)
+    at async /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:76928:18
+(node:8312) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ transcript scope denial omits transcript from cloud calls (18.795834ms)
+✔ LLMHelper infers auxiliary context scopes before cloud routing (0.567625ms)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (8.19825ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (135.141125ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.368167ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (0.598167ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.337791ms)
+✔ Claude sends nothing when the transcript or screenshot scope is denied (0.539792ms)
+✔ Groq multimodal sends nothing when the transcript or screenshot scope is denied (0.295459ms)
+✔ Gemini contents sends nothing when the transcript or screenshot scope is denied (0.451583ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (6.682875ms)
+✔ every cloud send in LLMHelper.ts is preceded by a scope check in its method (1.8985ms)
+✔ generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied (0.829167ms)
+✔ generateWithPro sends nothing when the transcript scope is denied (0.20775ms)
+✔ generateWithFlash sends nothing when the transcript scope is denied (0.146625ms)
+✔ generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied (0.247792ms)
+✔ streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied (0.236042ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (1.062125ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (14.009833ms)
+✔ the meeting chat context carries the scopes of what it contains (3.395334ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.126334ms)
+✖ meeting summaries stop the fallback chain when a scope is turned off during it (0.836208ms)
+✖ streamChat re-checks its scopes before each send, also after waiting (0.598208ms)
+✖ chatWithGemini keeps the scopes of its context for every send (0.341667ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 21
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 312.57675
+
+✖ failing tests:
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:366:1
+✖ meeting summaries stop the fallback chain when a scope is turned off during it (0.836208ms)
+  AssertionError [ERR_ASSERTION]: profile_history: no summary
+  
+  'SUMMARY' !== ''
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:379:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'SUMMARY',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:398:1
+✖ streamChat re-checks its scopes before each send, also after waiting (0.598208ms)
+  AssertionError [ERR_ASSERTION]: ["profile_history"]: expected a scope error, got null
+  + actual - expected
+  
+  + undefined
+  - 'ProviderScopeError'
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:417:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'ProviderScopeError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:445:1
+✖ chatWithGemini keeps the scopes of its context for every send (0.341667ms)
+  AssertionError [ERR_ASSERTION]: the context was allowed at the start, but not when Claude was about to be asked
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/ScopeLocalFallback.test.mjs:453:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

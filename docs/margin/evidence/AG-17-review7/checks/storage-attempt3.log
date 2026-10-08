@@ -1,0 +1,49 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4255.903083ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (584.308583ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5195.646166ms)
+✖ a meeting edit that fails to save is rolled back and reported (32624.056ms)
+✔ startup recovery of an unprocessed meeting follows the profile_history scope (7544.583042ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50732.962625
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:352:1
+✖ a meeting edit that fails to save is rolled back and reported (32624.056ms)
+  locator.click: Timeout 30000ms exceeded.
+  Call log:
+    - waiting for locator('h1[contenteditable]').first()
+      - locator resolved to <h1 spellcheck="false" contenteditable="false" data-placeholder="Type here..." class="↵                outline-none min-w-[10px] cursor-text transition-colors duration-200↵                bg-transparent↵                ↵                text-3xl font-bold text-text-primary tracking-tight -ml-2 px-2 py-1 rounded-md transition-colors↵            ">RENAMED_SAVED</h1>
+    - attempting click action
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> intercepts pointer events
+      - retrying click action
+      - waiting 20ms
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> intercepts pointer events
+      - retrying click action
+        - waiting 100ms
+      56 × waiting for element to be visible, enabled and stable
+         - element is visible, enabled and stable
+         - scrolling into view if needed
+         - done scrolling
+         - <div>…</div> intercepts pointer events
+       - retrying click action
+         - waiting 500ms
+  
+      at rename (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:380:17)
+      at TestContext.<anonymous> (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/meeting-storage.test.mjs:430:9) {
+    name: 'TimeoutError'
+  }
