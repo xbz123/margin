@@ -1,7 +1,9 @@
 # AG-22 transactional credential saves
 
-Implementation and final local gates passed; fresh CI and Claude's read-only
-review remain pending. No real keychain, provider or device acceptance is claimed.
+Implementation and final local/CI gates passed on source `2db88817`;
+[CI 37767107984](../CI-37767107984/README.md) raw evidence was verified.
+Claude's read-only review remains pending. No real keychain, provider or device
+acceptance is claimed.
 
 All 22 setters persist an encrypted candidate before replacing memory. Failed
 encryption, write or rename preserves the prior state. Unread ciphertext locks
