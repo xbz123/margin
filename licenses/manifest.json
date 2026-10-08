@@ -3,7 +3,7 @@
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
   "packageLockSHA256": "fd5611991a9e95336134966980a88da56e9343b78dcc50c9f60d9b6c2a696751",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
-  "sourceConfigSHA256": "0a430da2a08074c1fc22d6968a26d9bf008f019564fa93f6ceb27731d0ecdc5e",
+  "sourceConfigSHA256": "18a580a377ee815747826800106b775e826d442dc9c18bc10e7ded892c67400b",
   "electronVersion": "43.1.0",
   "components": [
     {
@@ -7395,8 +7395,17 @@
       "license": "CC0-1.0",
       "integrity": "sha512-PDEfEF102G23vHmPhLyPboFCD+BkMGu+GuJe2d9/eH4FsCwvgBpnc9n0pGE+ffKdph38s6foEZiEjdgHdzp+IA==",
       "repo": "highlightjs/highlightjs-vue",
-      "texts": [],
-      "basis": "installed non-dev lock candidate"
+      "texts": [
+        {
+          "file": "texts/a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499.txt",
+          "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+          "url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+          "gitBlob": "0e259d42c996742e9e3cba14c677129b2c1b6311",
+          "origin": "official CC0 1.0 Universal full terms declared by highlightjs-vue 1.0.0; original package licensing README retained separately"
+        }
+      ],
+      "basis": "installed non-dev lock candidate",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:html-entities@2.6.0:node_modules/html-entities",
@@ -19290,8 +19299,17 @@
       "repo": "r-efi/r-efi",
       "vcs": "97b55bed1c2c91dcbf787674849f05337ff80b33",
       "directory": "",
-      "texts": [],
-      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory"
+      "texts": [
+        {
+          "file": "texts/ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7.txt",
+          "sha256": "ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7",
+          "url": "https://raw.githubusercontent.com/r-efi/r-efi/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS",
+          "gitBlob": "7397b2bd6a8580d51fe7b23783f8f1a05fa70291",
+          "origin": "exact-version original complete AUTHORS with full MIT grant, all three copyright statements, author list and alternative-license notices; MIT selected without replacing the declared OR expression"
+        }
+      ],
+      "basis": "Cargo.lock candidate across all target platforms; not linked-binary inventory",
+      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "cargo:rand@0.8.5",
@@ -22235,6 +22253,65 @@
       }
     },
     {
+      "id": "standard:highlightjs-vue",
+      "version": "1.0.0",
+      "license": "CC0-1.0",
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "role": "official CC0 1.0 Universal full terms declared by highlightjs-vue 1.0.0; original package licensing README retained separately",
+      "bind": {
+        "kind": "npm",
+        "name": "highlightjs-vue"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499.txt",
+        "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+        "gitBlob": "0e259d42c996742e9e3cba14c677129b2c1b6311",
+        "origin": "official CC0 1.0 Universal full terms declared by highlightjs-vue 1.0.0; original package licensing README retained separately"
+      }
+    },
+    {
+      "id": "attribution:highlightjs-vue",
+      "version": "1.0.0",
+      "license": "CC0-1.0",
+      "url": "https://raw.githubusercontent.com/highlightjs/highlightjs-vue/2a0d197ec24ba70e019e12a13bd42f006124506a/README.md",
+      "gitBlob": "756b1af32b484403f747d57a5b79bd927865c553",
+      "sha256": "80f9f8e1bc56298613fa5b2ee0b57ab040f319ce052b076d54c0f96f75c02d2b",
+      "role": "exact-version original full README preserving the CC0 1.0 Universal licensing declaration; no invented copyright",
+      "closesMissing": false,
+      "text": {
+        "file": "texts/80f9f8e1bc56298613fa5b2ee0b57ab040f319ce052b076d54c0f96f75c02d2b.txt",
+        "sha256": "80f9f8e1bc56298613fa5b2ee0b57ab040f319ce052b076d54c0f96f75c02d2b",
+        "url": "https://raw.githubusercontent.com/highlightjs/highlightjs-vue/2a0d197ec24ba70e019e12a13bd42f006124506a/README.md",
+        "gitBlob": "756b1af32b484403f747d57a5b79bd927865c553",
+        "origin": "exact-version original full README preserving the CC0 1.0 Universal licensing declaration; no invented copyright"
+      }
+    },
+    {
+      "id": "original:r-efi",
+      "version": "5.3.0",
+      "license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+      "selectedLicense": "MIT",
+      "url": "https://raw.githubusercontent.com/r-efi/r-efi/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS",
+      "gitBlob": "7397b2bd6a8580d51fe7b23783f8f1a05fa70291",
+      "sha256": "ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7",
+      "role": "exact-version original complete AUTHORS with full MIT grant, all three copyright statements, author list and alternative-license notices; MIT selected without replacing the declared OR expression",
+      "bind": {
+        "kind": "cargo",
+        "name": "r-efi"
+      },
+      "closesMissing": true,
+      "text": {
+        "file": "texts/ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7.txt",
+        "sha256": "ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7",
+        "url": "https://raw.githubusercontent.com/r-efi/r-efi/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS",
+        "gitBlob": "7397b2bd6a8580d51fe7b23783f8f1a05fa70291",
+        "origin": "exact-version original complete AUTHORS with full MIT grant, all three copyright statements, author list and alternative-license notices; MIT selected without replacing the declared OR expression"
+      }
+    },
+    {
       "id": "supplement:ansi-tokenize",
       "version": "0.1.3",
       "license": "MIT",
@@ -22545,10 +22622,6 @@
       "reason": "no local full notice; retrieve an immutable official license source"
     },
     {
-      "id": "npm:highlightjs-vue@1.0.0:node_modules/highlightjs-vue",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
       "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
       "reason": "no local full notice; retrieve an immutable official license source"
     },
@@ -22578,10 +22651,6 @@
     },
     {
       "id": "cargo:oboe-sys@0.6.1",
-      "reason": "no local full notice; retrieve an immutable official license source"
-    },
-    {
-      "id": "cargo:r-efi@5.3.0",
       "reason": "no local full notice; retrieve an immutable official license source"
     },
     {

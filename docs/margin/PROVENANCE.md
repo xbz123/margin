@@ -93,9 +93,36 @@ without accepting the package. The four new source attachments add only three
 unique stored texts because the freshly verified official CC0 text is byte-
 identical to an existing copy. Byte deduplication borrows no other package's
 grant: the new CC0 binding retains its own exact-version declaration and official
-source. Only these two former missing-text candidates are removed; the other
-17 missing candidates and separate distribution/vendor/source duties remain.
+source. At that point, only these two former missing-text candidates were removed;
+17 missing candidates and separate distribution/vendor/source duties remained.
 No collector, dependency, runtime or package-diagnostic logic changes here.
+
+Two further exact-version notice bindings use the same source configuration.
+`highlightjs-vue@1.0.0` declares CC0-1.0 in its published package and licensing
+README. The official CC0 full terms are retained, together with its complete
+README at npm gitHead `2a0d197ec24ba70e019e12a13bd42f006124506a`, blob
+`756b1af32b484403f747d57a5b79bd927865c553`, SHA-256
+`80f9f8e1bc56298613fa5b2ee0b57ab040f319ce052b076d54c0f96f75c02d2b`.
+The README bytes match the installed/published originals. No copyright is
+invented from author metadata. The CC0 terms reuse identical stored bytes, not
+another package's authorization.
+
+`r-efi@5.3.0` retains its complete original AUTHORS from crate commit
+`97b55bed1c2c91dcbf787674849f05337ff80b33`, blob
+`7397b2bd6a8580d51fe7b23783f8f1a05fa70291`, SHA-256
+`ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7`.
+The immutable source and cached crate are byte-identical. This original contains
+the full MIT grant and disclaimer; MIT is explicitly selected in the source
+attachment, while the declared `MIT OR Apache-2.0 OR LGPL-2.1-or-later` identity
+is unchanged. The three copyright statements (Red Hat 2017-2023, Microsoft
+2019-2023, David Rheinsberg 2022-2023), all authors and alternative-license notices
+remain in the original full text. No generic template or borrowed Apache terms
+replace it. These three source attachments add only two unique texts, remove
+only these two missing-text entries (17 to 15), and change no candidate or
+excluded identity. The collector/checker logic, dependencies, runtime, CI and
+package-diagnostic logic are unchanged. Neither this binding nor the platform
+labels exclude r-efi/Oboe candidates or close native static-composition and
+distribution obligations; oboe/oboe-sys and realfft still lack full notices.
 
 AG-26's notice collector, package-byte checker, synthetic tests and rewritten
 public documents are written for this branch from PLAN's license/documentation

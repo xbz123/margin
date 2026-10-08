@@ -1,0 +1,28 @@
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (57.306167ms)
+✔ README license detection keeps all holders and original surrounding bytes (25.519792ms)
+✔ missing required and compatible optional candidates remain unresolved (42.6345ms)
+✔ installed version cannot borrow a different lock version integrity (17.368292ms)
+✔ cached remote notices require matching integrity and exact Git metadata (39.471292ms)
+✔ missing or substituted Chromium notice cannot pass package checks (55.654916ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (39.933083ms)
+✔ notice symlinks and escaped destinations fail closed (56.257291ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (42.535ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 488.358792

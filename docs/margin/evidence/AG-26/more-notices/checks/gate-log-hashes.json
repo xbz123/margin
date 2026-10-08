@@ -1,0 +1,117 @@
+[
+  {
+    "file": "build-electron.log",
+    "rawSHA256": "6dcc01435601b772a76a2db3f9d5e04bc95faf0b5c694bb2d2f47a2f77b6dcef",
+    "storedSHA256": "6dcc01435601b772a76a2db3f9d5e04bc95faf0b5c694bb2d2f47a2f77b6dcef"
+  },
+  {
+    "file": "clean-dist.log",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "diff-check.log",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "guard-selftest.log",
+    "rawSHA256": "587e79a6e47dda651b15bed22dd90528f117b33dc637c54b8bdf278954c9012d",
+    "storedSHA256": "d1c68a6d04b1a898e371a0747d184e74f43c617281dbbe7b9c61699eef15e415"
+  },
+  {
+    "file": "ipc-channels.gaps.txt",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "ipc-channels.log",
+    "rawSHA256": "e4d9ebcc192b141581c20afd622aa5d06e252e66f1240277ad9328e460a90031",
+    "storedSHA256": "e4d9ebcc192b141581c20afd622aa5d06e252e66f1240277ad9328e460a90031"
+  },
+  {
+    "file": "outbound-renderer.log",
+    "rawSHA256": "88bc873d51d04d731c670aa57c5984fc822003b64194d35cd06bb5faac81ebea",
+    "storedSHA256": "88bc873d51d04d731c670aa57c5984fc822003b64194d35cd06bb5faac81ebea"
+  },
+  {
+    "file": "preload-contract.gaps.txt",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "preload-contract.log",
+    "rawSHA256": "21d0d0c23909033f30a43ebd46ac4b97f3c66bcfbc534c33dae0425c9e181b25",
+    "storedSHA256": "21d0d0c23909033f30a43ebd46ac4b97f3c66bcfbc534c33dae0425c9e181b25"
+  },
+  {
+    "file": "provenance.log",
+    "rawSHA256": "d456bf1e0e69cd1c8158aa64fbbd9afdf708b9bf0561ae95b8275ef01a099899",
+    "storedSHA256": "d456bf1e0e69cd1c8158aa64fbbd9afdf708b9bf0561ae95b8275ef01a099899"
+  },
+  {
+    "file": "regression.log",
+    "rawSHA256": "f18ea3357d1ce137284624957448c56c31266be9147e411be5c3427cbc1541e6",
+    "storedSHA256": "f18ea3357d1ce137284624957448c56c31266be9147e411be5c3427cbc1541e6"
+  },
+  {
+    "file": "retired.log",
+    "rawSHA256": "3ffa5d71a016387f1096fa284d6a001b42bd779ffeefbff100d3ffe7c96d44de",
+    "storedSHA256": "3ffa5d71a016387f1096fa284d6a001b42bd779ffeefbff100d3ffe7c96d44de"
+  },
+  {
+    "file": "startup.log",
+    "rawSHA256": "447a8da8c6c4daf11a62384f8c2568ed71cbcc94adccc806e238d98fb06e4d37",
+    "storedSHA256": "447a8da8c6c4daf11a62384f8c2568ed71cbcc94adccc806e238d98fb06e4d37"
+  },
+  {
+    "file": "storage.log",
+    "rawSHA256": "9516f4b9c476a01af6644c48444641e7b0bbebd883c37853355d3894c633b3d4",
+    "storedSHA256": "9516f4b9c476a01af6644c48444641e7b0bbebd883c37853355d3894c633b3d4"
+  },
+  {
+    "file": "summary.json",
+    "rawSHA256": "d9a17f8ee1a45f673e1b228b3e440bb3348a1b16a77993b7b424174a3c2b7630",
+    "storedSHA256": "d9a17f8ee1a45f673e1b228b3e440bb3348a1b16a77993b7b424174a3c2b7630"
+  },
+  {
+    "file": "test-failures.txt",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "tests.files.json",
+    "rawSHA256": "cd082c3ced4dc907727f2f74650e6cb6c790793d27294571a979e81a938c98b9",
+    "storedSHA256": "cd082c3ced4dc907727f2f74650e6cb6c790793d27294571a979e81a938c98b9"
+  },
+  {
+    "file": "tests.log",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "tests.tap",
+    "rawSHA256": "ea883de590f6aaf32c5f26814f5a5eb81c983dc0db2408a8a771f01b9f90df3b",
+    "storedSHA256": "bc11e6b7b789b41b61e9e7be4321756a5ec002d72544386dfb40a07b45bd7761"
+  },
+  {
+    "file": "tsc-electron.diagnostics.txt",
+    "rawSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "storedSHA256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "file": "tsc-electron.log",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "tsc-renderer.log",
+    "rawSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "storedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "vite-build.log",
+    "rawSHA256": "bcfbd54793215d43956b6ea07c7013907a2fa53cf628c235481318ef51e1272a",
+    "storedSHA256": "de840a7eb1291fc7c2751030f6b40b807a56dd3da0eb8e3ab1375c9d9dc3f77f"
+  }
+]

@@ -1,0 +1,13 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4472.830416ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (683.985833ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5253.037875ms)
+✔ a meeting edit that fails to save is rolled back and reported (5172.114375ms)
+✔ startup recovery of an unprocessed meeting follows the profile_history scope (7943.467166ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24042.783833

@@ -61,12 +61,12 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 ## Recorded unresolved categories
 
-The current snapshot retains 17 missing exact-version notice candidates. Thirteen
+The current snapshot retains 15 missing exact-version notice candidates. Twelve
 installed npm candidates were observed as included files/metadata in the S17
 temp-app diagnostic (CI 37829181248); they are not excluded:
 @alcalzone/ansi-tokenize 0.1.3, @npmcli/agent 4.0.0,
 dingbat-to-unicode 1.0.1, eastasianwidth 0.2.0, err-code 2.0.3, format 0.2.2,
-highlightjs-vue 1.0.0, react-remove-scroll-bar 2.3.8, screenshot-desktop 1.15.4,
+react-remove-scroll-bar 2.3.8, screenshot-desktop 1.15.4,
 @tootallnate/once 1.1.2,
 stream-events 1.0.5, stubs 3.0.0 and tr46 0.0.3. A declared SPDX identifier is
 recorded, not silently converted into a fabricated package copyright/grant.
@@ -82,7 +82,23 @@ mechanical-extraction statement without inventing copyright or endorsement.
 CC BY's attribution, retained notices, license/source links and applicable change
 identification remain distribution obligations; CC0 grants no trademark or
 patent rights and does not warrant third-party clearance. These two text bindings
-do not accept a distributable or resolve the other 17 candidates.
+did not accept a distributable or resolve the other candidates.
+
+highlightjs-vue 1.0.0 similarly binds its exact-version CC0 declaration to the
+official full terms and retains its complete original README at npm gitHead
+2a0d197ec24ba70e019e12a13bd42f006124506a. Its README bytes match the installed
+package; author metadata is not converted into a copyright statement. The
+official CC0 bytes share storage, not another package's authorization.
+
+r-efi 5.3.0's complete original AUTHORS at commit
+97b55bed1c2c91dcbf787674849f05337ff80b33 contains a full MIT grant and disclaimer.
+It matches the cached crate byte-for-byte. MIT is selected in the source binding
+while the manifest preserves MIT OR Apache-2.0 OR LGPL-2.1-or-later. The full
+AUTHORS retains all three original copyright statements, the author list, and
+the Apache/LGPL alternative notices. No generic MIT template is substituted and
+no Apache/LGPL selection or target-linked claim is made. These two further text
+bindings remove only their missing-text entries; the 15 other candidates and
+separate distribution obligations remain unresolved.
 
 The official ansi-tokenize later add-missing-LICENSE text is retained as a
 supplement, not proof that it accompanied 0.1.3. For format, the old installed
@@ -91,11 +107,12 @@ same-version grant from a changing website. react-remove-scroll-bar's published
 gitHead does not resolve in the identified repository; a neighboring version is
 not substituted.
 
-Four Cargo candidates lack full texts: realfft 3.5.0 declares only MIT (no Apache
+Three Cargo candidates lack full texts: realfft 3.5.0 declares only MIT (no Apache
 alternative was found in its exact original manifest/version sources) and needs
 target-linked review;
-oboe/oboe-sys 0.6.1 are Android candidates and r-efi 5.3.0 is a UEFI candidate,
-pending target-graph/artifact exclusion evidence. The 37 missing incompatible
+oboe/oboe-sys 0.6.1 are Android candidates, pending full wrapper/vendored notice
+and target-graph/artifact review. They are not excluded based on target labels.
+The 37 missing incompatible
 platform-optional npm paths and two verified dangling aliases are recorded under
 `excluded`, not treated as installed binaries. None of those counts proves the
 actual package set.

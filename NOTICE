@@ -48,6 +48,26 @@ License: https://creativecommons.org/publicdomain/zero/1.0/legalcode
 CC0 does not grant trademark or patent rights or guarantee clearance of other
 persons' rights. This application does not claim endorsement by SPDX or its authors.
 
+highlightjs-vue 1.0.0 declares Creative Commons Zero 1.0 Universal. Its original
+licensing README and the official CC0 full text are retained with exact sources
+and hashes in licenses/manifest.json. The README matches the published package;
+no copyright year or grant is invented from its author metadata.
+Source: https://github.com/highlightjs/highlightjs-vue/tree/2a0d197ec24ba70e019e12a13bd42f006124506a
+License: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+CC0 does not grant trademark or patent rights or guarantee third-party clearance.
+No endorsement by highlightjs-vue or its authors is claimed.
+
+r-efi 5.3.0 declares MIT OR Apache-2.0 OR LGPL-2.1-or-later. MIT is selected for
+this notice binding; the original OR expression is retained in the manifest.
+Its complete original AUTHORS includes the full MIT permission and disclaimer,
+the author list, and the original Apache/LGPL alternative-license notices.
+The original copyright statements are retained:
+Copyright (C) 2017-2023 Red Hat, Inc.
+Copyright (C) 2019-2023 Microsoft Corporation
+Copyright (C) 2022-2023 David Rheinsberg
+Source: https://github.com/r-efi/r-efi/blob/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS
+This retained notice does not establish that r-efi is linked into a packaged app.
+
 Candidate coverage is not proof of the actual distributed set or fulfillment of
 copyleft corresponding-source/relinking obligations. licenses/README.md records
 the remaining distribution-review boundary.
