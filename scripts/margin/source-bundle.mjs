@@ -26,7 +26,10 @@ const out = path.resolve(process.argv[2]);
 if (fs.existsSync(out)) throw new Error(`refusing existing output: ${out}`);
 for (const dir of ['npm', 'cargo', 'electron']) fs.mkdirSync(path.join(out, dir), { recursive: true });
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
-const status = execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' }).trim();
+// Build outputs are untracked or ignored; a tracked change would mean the build used
+// something other than the commit, so it is kept as a diff and reported.
+const status = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: ROOT, encoding: 'utf8' }).split('\n').filter(Boolean);
+const trackedChanges = status.filter((line) => !line.startsWith('??'));
 const json = (file) => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
 const sha = (algorithm, bytes, encoding = 'hex') => crypto.createHash(algorithm).update(bytes).digest(encoding);
 
@@ -53,7 +56,7 @@ async function pool(items, limit, task) {
 }
 
 const manifest = { schemaVersion: 1, commit, run: `${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`,
-  cleanTree: status === '', scope: 'Private CI corresponding-source artifact for this commit; not a public offer or legal verdict.', files: [] };
+  cleanTree: trackedChanges.length === 0, trackedChanges, untracked: status.filter((line) => line.startsWith('??')).map((line) => line.slice(3)), scope: 'Private CI corresponding-source artifact for this commit; not a public offer or legal verdict.', files: [] };
 const record = (relative, extra = {}) => {
   const bytes = fs.readFileSync(path.join(out, relative));
   manifest.files.push({ path: relative, bytes: bytes.length, sha256: sha('sha256', bytes), ...extra });
@@ -63,6 +66,11 @@ const record = (relative, extra = {}) => {
 const appArchive = `app-${commit}.tar.gz`;
 execFileSync('git', ['archive', '--format=tar.gz', `--prefix=margin-${commit}/`, '-o', path.join(out, appArchive), commit], { cwd: ROOT });
 record(appArchive, { kind: 'app', note: 'git archive of the built commit' });
+
+if (trackedChanges.length) {
+  fs.writeFileSync(path.join(out, 'working-tree.diff'), execFileSync('git', ['diff', 'HEAD'], { cwd: ROOT, maxBuffer: 256 * 1024 * 1024 }));
+  record('working-tree.diff', { kind: 'app', note: 'tracked changes present when the bundle was made' });
+}
 
 // 2. npm packages of the notice inventory, by their locked tarball and integrity.
 const lock = json('package-lock.json');
@@ -126,4 +134,4 @@ manifest.files.sort((a, b) => a.path.localeCompare(b.path));
 fs.writeFileSync(path.join(out, 'MANIFEST.json'), JSON.stringify(manifest, null, 2) + '\n');
 const manifestSHA = sha('sha256', fs.readFileSync(path.join(out, 'MANIFEST.json')));
 fs.writeFileSync(path.join(out, 'BUILD-INFO.txt'), `commit: ${commit}\nrun: ${manifest.run}\n${manifestSHA}  MANIFEST.json\n`);
-console.log(JSON.stringify({ commit, cleanTree: manifest.cleanTree, counts: manifest.counts, bytes: manifest.files.reduce((n, item) => n + item.bytes, 0) }));
+console.log(JSON.stringify({ commit, cleanTree: manifest.cleanTree, trackedChanges, untracked: manifest.untracked.length, counts: manifest.counts, bytes: manifest.files.reduce((n, item) => n + item.bytes, 0) }));

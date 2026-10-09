@@ -19,6 +19,8 @@ smoke() {
   echo "rebuilt: $(shasum -a 256 "$NEW" | cut -d' ' -f1)"
   echo "rebuilt archs: $(lipo -archs "$NEW")"
   echo "rebuilt install name: $(otool -D "$NEW" | tail -1)"
+  echo "shipped uuid: $(dwarfdump --uuid "$LIB" | awk '{print $2}')"
+  echo "rebuilt uuid: $(dwarfdump --uuid "$NEW" | awk '{print $2}')"
 } > "$OUT/identity.txt"
 otool -L "$NEW" > "$OUT/rebuilt-otool-L.txt"
 # Symbols sharp imports that the shipped libvips provides must all be in the rebuild.
@@ -44,4 +46,7 @@ smoke after
 cat "$OUT/identity.txt" "$OUT/signature.txt" "$OUT/before.json" "$OUT/after.json" "$OUT/after.loaded.txt"
 echo "symbols sharp needs that the rebuild lacks: $(wc -l < "$OUT/missing-in-rebuilt.txt" | tr -d ' ')"
 [ ! -s "$OUT/missing-in-rebuilt.txt" ]
+# dyld loaded the shipped library before and the rebuilt one after.
+grep -qF "<$(dwarfdump --uuid "$NEW" | awk '{print $2}')>" "$OUT/after.loaded.txt"
+grep -qF "<$(grep '^shipped uuid:' "$OUT/identity.txt" | cut -d' ' -f3)>" "$OUT/before.loaded.txt"
 cmp -s <(jq -S . "$OUT/before.json") <(jq -S . "$OUT/after.json")

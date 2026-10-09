@@ -67,7 +67,9 @@ jobs:
       - name: Toolchain versions
         id: tools
         run: |
-          node -v; npm -v; rustc -V; cargo -V; xcodebuild -version
+          node -v; npm -v; xcodebuild -version
+          # The native module builds with the toolchain pinned in native-module/rust-toolchain.toml.
+          cd native-module && rustup toolchain install && rustc -V && cargo -V
           echo "rustc=$(rustc -V | tr ' ' '-')" >> "$GITHUB_OUTPUT"
 
       - if: ${{ !inputs.no_cache }}
@@ -113,7 +115,7 @@ jobs:
             echo "commit: $GITHUB_SHA"
             echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"
             echo "no_cache: $NO_CACHE"
-            echo "rustc: $(rustc -V)"
+            echo "rustc: $(cd "$GITHUB_WORKSPACE/native-module" && rustc -V)"
             echo "xcode: $(xcodebuild -version | tr '\n' ' ')"
             echo "cidre compiled in this run: $(grep -cE '^\s*Compiling cidre v' native-artifact/setup-native.log || true)"
             shasum -a 256 native-artifact/index.darwin-arm64.node

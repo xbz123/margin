@@ -45,11 +45,29 @@ other dependencies have their own source/notice requirements. No unverified
 source hosting, written offer or universal relinking support is promised here.
 
 S21 removed the unused canvas native package and its bundled Skia; they are no
-longer distributed. Rust wrapper texts do not replace vendored
-C notices, including libfvad BSD terms and PATENTS, or prove the target-specific
-linked set. These limits remain until native build provenance and package
-contents are checked. The license-only collector downloads no full source
-archives or new implementation files.
+longer distributed.
+
+The native module's linked inputs are read from the ld64 map of each CI link
+(`link-set.json` in the `margin-native-<commit>` artifact, S19-C): Cargo crates,
+Rust standard library crates and macOS system libraries; no separate C archive is
+linked. libfvad's C files are compiled into the webrtc-vad crate, whose LICENSE,
+PATENTS, debian/copyright, the libfvad AUTHORS and its five distinct original file
+headers are included. Generic code of one crate can be compiled into another's
+objects, so notices are kept for every crate compiled for macOS arm64, not only
+those the map lists. The standard library is built by rustc 1.98.1 (pinned in
+`native-module/rust-toolchain.toml`); the Rust COPYRIGHT and MIT terms, and the
+MIT terms of hashbrown, gimli, addr2line, object and rustc-demangle at the versions
+its `library/Cargo.lock` records, are included. Squirrel.Mac, ReactiveObjC and
+Mantle, which every Electron macOS app ships but `LICENSES.chromium.html` does not
+list, are included at the commits Electron 43.1.0 pins.
+
+Corresponding source for one CI build is kept as the private workflow artifact
+`margin-source-<commit>` (the commit's archive, every npm tarball and crate checked
+against the lockfiles, and Electron's ffmpeg at the pinned revision with its patch),
+and the libvips rebuild sources as `margin-libvips-sources-<commit>`. Workflow
+artifacts expire; making source available alongside a release is decided before
+distribution (S19 item 3). The license-only collector itself downloads no source
+archives or implementation files.
 
 ## Package acceptance
 
@@ -63,7 +81,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-699 candidates; 397 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
+699 candidates; 401 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0

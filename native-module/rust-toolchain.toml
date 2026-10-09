@@ -1,0 +1,6 @@
+# The Rust standard library is statically linked into the native module, and its
+# notices in licenses/ are for this exact release (PLAN S19-C). CI builds with it.
+[toolchain]
+channel = "1.98.1"
+profile = "minimal"
+targets = ["aarch64-apple-darwin"]
