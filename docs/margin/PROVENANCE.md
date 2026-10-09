@@ -303,6 +303,16 @@ imported. Generic one-line idioms the provenance check matched are registered in
   smoke script and the replacement/re-sign check. The recipe itself is run
   unchanged from a clean clone.
 - `scripts/margin/source-bundle.mjs`: the S19-C corresponding-source artifact.
+- `scripts/margin/asar-smoke.mjs` and the `appPath` option of
+  `tests/margin/launch-app.mjs`: the local launch smoke of a downloaded temp
+  package's own app.asar in the repository's Electron under the X2 guard.
+- `native-module/rust-toolchain.toml` pins rustc 1.98.1, the release whose
+  standard library the native module links. Its notices are the Rust
+  `COPYRIGHT` and `LICENSE-MIT` at tag 1.98.1 (`48a229ce`) and the
+  `LICENSE-MIT` of hashbrown 0.17.1, gimli 0.32.3, addr2line 0.25.1, object
+  0.37.3 and rustc-demangle 0.1.27 (the versions its `library/Cargo.lock`
+  records; each file is identical in the checksum-verified crate and at the
+  crate's source commit).
 - Notice inputs: libfvad AUTHORS and its five distinct original file headers
   (each byte range verified against the published webrtc-vad 0.4.0 crate, whose
   sha256 matches Cargo.lock, and the local cache); the MIT licenses of

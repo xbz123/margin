@@ -40,15 +40,16 @@ export function readMainErrors(file, pid) {
 // Starts the app in `sandbox` (from makeSandbox) with `extraEnv`. Aborts unless the
 // guard is active in the main process. Returns { app, output, mainErrorsLog, userDataPath } where
 // `output` holds the main process's stdout and stderr so far and `mainErrorsLog` is
-// the file record-main-errors.cjs writes (read it with readMainErrors).
-export async function launchApp(sandbox, extraEnv = {}) {
+// the file record-main-errors.cjs writes (read it with readMainErrors). `appPath`
+// defaults to the repository build; AG-25 passes a downloaded package's app.asar.
+export async function launchApp(sandbox, extraEnv = {}, { appPath = REPO } = {}) {
   const mainErrorsLog = path.join(sandbox.root, 'main-errors.jsonl');
   const app = await _electron.launch({
     executablePath: ELECTRON,
     // Playwright deletes NODE_OPTIONS and preloads its own loader with -r, so the
     // isolation guard must be passed the same way or it would not load at all. The
     // exception recorder is loaded the same way, before the app code.
-    args: ['-r', GUARD, '-r', RECORDER, REPO, ...CHROMIUM_SWITCHES],
+    args: ['-r', GUARD, '-r', RECORDER, appPath, ...CHROMIUM_SWITCHES],
     cwd: sandbox.work,
     env: isolatedEnv(sandbox, { MARGIN_MAIN_ERRORS_LOG: mainErrorsLog, ...extraEnv }),
     timeout: 60_000,

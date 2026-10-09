@@ -1,0 +1,38 @@
+MARGIN_APP_VARIANT=temp node scripts/build-local.cjs
+MARGIN_APP_VARIANT=release node scripts/build-local.cjs
+shell: /bin/bash -e {0}
+##[endgroup]
+{"variant":"temp","passed":false,"zip":"temp-temp-arm64.zip","sha256":"b2f42c2d40e31467a0208392ec81acb0f6a38f79ae0b3738c4a206f65c8c2bfe"}
+[
+  {
+    "id": "forbidden-content",
+    "passed": false,
+    "detail": {
+      "matches": [
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/client",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/client/Client.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/client/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/api/resources/models",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/api/resources/models/client",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/api/resources/models/client/Client.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/api/resources/models/client/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/api/resources/models/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/serialization/resources/models",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/serialization/resources/models/client",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/serialization/resources/models/client/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/serialization/resources/models/client/list.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/dist/serialization/resources/models/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/serialization/resources/models",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/serialization/resources/models/client",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/serialization/resources/models/client/index.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/serialization/resources/models/client/list.js",
+        "Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/serialization/resources/models/index.js"
+      ],
+      "count": 20,
+      "scanned": 38683
+    }
+  }
+]
+##[error]Process completed with exit code 1.

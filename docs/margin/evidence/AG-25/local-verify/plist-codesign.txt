@@ -1,0 +1,8 @@
+io.github.xbz123.temp
+temp
+temp
+temp codesign ok
+io.github.xbz123.margin
+Margin
+Margin
+release codesign ok

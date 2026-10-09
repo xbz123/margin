@@ -81,3 +81,22 @@ Actual
 static-library composition, complete notices/source obligations, dual-identity
 packaging, signatures, verified download and isolated temp-package startup are
 still pending. Claude's independent read-only stage review is also pending.
+
+## Full AG-25 under S21 (Claude, 2026-10-09)
+
+The pending items above are done by Claude under S21 and self-accepted; Astra's
+independent acceptance is still to come.
+
+- `gates-local/`: local gates on the uncommitted checkpoint before `59426500`
+  (16/16 exit 0; 845 tests, 839 pass, 6 existing skips). The failed first local
+  run (provenance hits and a stale `TestDiscovery` expectation after the test
+  cleanup) is not kept; both causes are fixed in the same commit.
+- CI: run 37868935310 failed on a false forbidden-content match
+  (`../CI-37868935310/`); run 37870671533 on the fix passed; run 37871598165 on the
+  final code commit `46e5c0cc` passed all three jobs and is the accepted CI
+  evidence (`../CI-37871598165/`).
+- `local-verify/`: download with sha256 checks, the CI native module installed
+  locally, read-only checks of both packages, deletion of the release copy, and the
+  guarded launch smoke of the temp package's own code.
+- `gates-final/`: local gates with the CI native module after the documentation and
+  local-check tooling commit.

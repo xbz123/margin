@@ -1,0 +1,10 @@
+{
+  "exit": 0,
+  "output": "{\"vips\":\"8.17.3\",\"webp\":\"webp\",\"width\":4,\"svgFirstPixel\":[0,0,255]}",
+  "loaded": [
+    "dyld[38859]: <43BC947D-E6CB-3FC0-8C98-B0C566F42F94> <app>/Contents/Resources/app.asar.unpacked/node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node",
+    "dyld[38859]: <52C60631-3689-3C30-8D36-2631F40386D7> <app>/Contents/Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib"
+  ],
+  "guardActive": true,
+  "blocked": []
+}
