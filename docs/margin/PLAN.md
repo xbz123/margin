@@ -48,6 +48,7 @@
 | S21 | 阶段 2 剩余部分改由 Claude 实现并自验收，之后由用户安排 Codex Astra 独立验收；本条在阶段 2 剩余范围内取代 S14 的分工和 S20 的"不改动"。批准内容：删除 AG-13 后已无调用方的 `pdf-parse`（连带 `@napi-rs/canvas`/Skia、`pdfjs-dist`）和 `mammoth`；修复 Claude 复查发现的 P1（跳转/新窗口）、P2（凭据读取失败的提示与恢复）、P3（界面残留名称）及 AG-62 备注；在 CI 上按固定配方从源码重编一次 libvips 作为替换路线证据；可删除过度测试和相关冗余代码。细则见下 | 用户，2026-10-09，对 Claude 方案逐项回复"可以删除""接下来你来处理""同意"及"目前的建议都同意" |
 | S22 | 包内改用 CI 按固定配方 `20b5e899` 重编的 libvips-cpp，不再分发 npm 预编译版本；草稿目录可以清空。随之：打包前在 CI 上用重编库替换预编译库，包检查拒绝预编译版本的 sha256；补齐 28 个静态链接库和 librsvg 实际编译的 169 个 crate 的原始许可（`scripts/margin/libvips/notices.json`）；重编结果与记录的下载、librsvg `Cargo.lock`、编译清单或 rustc 1.98.1 不一致时 CI 失败；替换检查改为把包内库换成预编译版本再重新签名 | 用户，2026-10-09，回复"改用重编的 libvips，草稿目录可以清掉" |
 | S23 | 批准五个精确版本的 crate 用"Cargo.toml 声明＋标准 SPDX 正文"作为许可证据：block 0.1.6、objc_id 0.1.1、objc-foundation 0.1.1（MIT），fxhash 0.2.1、mac 0.1.1（声明为 MIT 与 Apache-2.0 双许可，记录取 Apache-2.0）。它们本身和上游仓库都没有许可文件，在 librsvg 编译集合中，上游预编译版本同样包含。不补版权人，不自动扩展到其他包或其他版本；版本变化时 CI 的漂移检查会失败，需要重新决定 | 用户，2026-10-09，对 Astra 阶段 2 验收第 2 项回复"批准这五项" |
+| S24 | 本机安装 Xcode 16.4（与 CI 相同）和 rustup，在本机从零重新编译原生模块，取代 D5 和 S11 中"本机不装 Xcode"及第 5 条"本机不为原生模块运行 setup:native"。rustup 由 Homebrew 安装（keg-only，不进 PATH，不改 shell 配置），工具链按 `native-module/rust-toolchain.toml` 装官方 1.98.1；Xcode 需用户本人用 Apple ID 下载并执行需要管理员密码的步骤（选择开发者目录、接受许可）。本机编译在草稿目录的干净克隆中进行，与 CI 的 `71f9cf8e…` 比对，不覆盖工作树中已核对的模块，除非另行决定。S9、S15 不变：本机仍不打包、不启动打包后的二进制、不运行正式身份 | 用户，2026-10-09，回复"安装 xcode，rustup，进行重新编译"，并选择 Xcode 16.4 |
 
 **S21 细则**：
 
