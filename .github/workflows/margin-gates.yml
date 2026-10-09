@@ -160,21 +160,26 @@ jobs:
           node_modules/.bin/vite build 2>&1 | tee ci-evidence/identity-release-renderer.log
           node scripts/margin/isolation/run-node.mjs --test electron/margin/__tests__/appIdentity.test.mjs 2>&1 | tee ci-evidence/identity-release-contract.log
 
-      - name: Package the temp and release apps (AG-25; workflow artifacts only)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_apps }}
-        run: |
-          set -o pipefail
-          MARGIN_APP_VARIANT=temp node scripts/build-local.cjs
-          MARGIN_APP_VARIANT=release node scripts/build-local.cjs
+      # The packaging steps run independently of each other's result (not after a
+      # cancel) so one run reports every failing check; the job still fails.
+      - name: Package the temp app (AG-25; workflow artifacts only)
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
+        run: MARGIN_APP_VARIANT=temp node scripts/build-local.cjs
 
-      - name: Launch both packaged apps in a throwaway home (CI only)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_apps }}
-        run: |
-          node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/temp/builder/mac-arm64/temp.app" temp io.github.xbz123.temp "$RUNNER_TEMP/margin-package/temp/launch.json"
-          node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/release/builder/mac-arm64/Margin.app" Margin io.github.xbz123.margin "$RUNNER_TEMP/margin-package/release/launch.json"
+      - name: Package the release app (AG-25; workflow artifacts only)
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
+        run: MARGIN_APP_VARIANT=release node scripts/build-local.cjs
+
+      - name: Launch the packaged temp app in a throwaway home (CI only)
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
+        run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/temp/builder/mac-arm64/temp.app" temp io.github.xbz123.temp "$RUNNER_TEMP/margin-package/temp/launch.json"
+
+      - name: Launch the packaged release app in a throwaway home (CI only)
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
+        run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/release/builder/mac-arm64/Margin.app" Margin io.github.xbz123.margin "$RUNNER_TEMP/margin-package/release/launch.json"
 
       - name: Corresponding source bundle (S19-C; private artifact)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_apps }}
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
         run: node scripts/margin/source-bundle.mjs "$RUNNER_TEMP/margin-source"
 
       - name: Upload the temp app
@@ -206,7 +211,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload the source bundle
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_apps }}
+        if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
         uses: actions/upload-artifact@v7
         with:
           name: margin-source-${{ github.sha }}
@@ -281,7 +286,7 @@ jobs:
 
   libvips-replace:
     needs: [gates, libvips]
-    if: github.event_name == 'workflow_dispatch' && inputs.libvips_rebuild && inputs.package_apps
+    if: ${{ !cancelled() && needs.libvips.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.libvips_rebuild && inputs.package_apps }}
     runs-on: macos-15
     timeout-minutes: 20
     steps:

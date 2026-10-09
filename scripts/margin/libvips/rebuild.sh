@@ -35,17 +35,26 @@ while read -r name version; do
     [ -f "$crate" ] && cp "$crate" "$OUT/sources/librsvg-crates/"
   done
 done < <(awk '/^name = /{gsub(/"/,"",$3); n=$3} /^version = /{gsub(/"/,"",$3); print n, $3}' deps/rsvg/Cargo.lock)
+# The registry crates Cargo actually compiled for librsvg (the only Rust build after
+# cargo-c is installed; path crates end in "(<dir>)"); each must have its .crate kept.
+awk '/Installed package `cargo-c/{f=1} f && $1 == "Compiling" && NF == 3 {sub(/^v/, "", $3); print $2, $3}' "$OUT/build.log" \
+  | sort -u > "$OUT/sources/librsvg-compiled.txt"
+missing=0
+while read -r name version; do
+  [ -f "$OUT/sources/librsvg-crates/$name-$version.crate" ] || { echo "compiled crate not kept: $name $version" >&2; missing=$((missing + 1)); }
+done < "$OUT/sources/librsvg-compiled.txt"
+[ "$missing" = 0 ] && [ -s "$OUT/sources/librsvg-compiled.txt" ]
 
 {
   echo "recipe: $RECIPE"
   echo "commit: $GITHUB_SHA"
   echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"
   echo "rustc: $(deps/cargo/bin/rustc -V)"
-  echo "cargo-c: $(deps/cargo/bin/cargo cinstall --version 2>/dev/null | head -1)"
+  echo "cargo-c: $(grep -o 'Installed package `cargo-c [^`]*' "$OUT/build.log" | cut -d' ' -f4)"
   echo "meson: $(meson --version)"
   echo "clang: $(clang --version | head -1)"
   echo "xcode: $(xcodebuild -version | tr '\n' ' ')"
-  echo "librsvg crates locked: $(grep -c '^name = ' deps/rsvg/Cargo.lock), kept: $(ls "$OUT/sources/librsvg-crates" | wc -l | tr -d ' ')"
+  echo "librsvg crates locked: $(grep -c '^name = ' deps/rsvg/Cargo.lock), kept: $(ls "$OUT/sources/librsvg-crates" | wc -l | tr -d ' '), compiled from the registry: $(wc -l < "$OUT/sources/librsvg-compiled.txt" | tr -d ' ') (all kept)"
   shasum -a 256 sharp-libvips-darwin-arm64v8.tar.gz
 } > "$OUT/BUILD-INFO.txt"
 cp sharp-libvips-darwin-arm64v8.tar.gz "$OUT/"

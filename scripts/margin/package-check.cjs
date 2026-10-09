@@ -11,8 +11,11 @@ const asar = require('@electron/asar');
 
 const MACHO = new Set(['feedface', 'cefaedfe', 'feedfacf', 'cffaedfe', 'cafebabe', 'bebafeca']);
 // Retired or removed content that must not reach the package (PLAN §5 G3 and S21).
+// Models are matched where upstream shipped them (extraResources resources/models
+// to Resources/models) or the app's own resources/models, not any SDK path such
+// as @elevenlabs/elevenlabs-js/api/resources/models.
 const FORBIDDEN = [
-  /(^|\/)resources\/models(\/|$)/i, /\.onnx$/i, /(^|\/)onnxruntime[^/]*(\/|$)/i, /(^|\/)sqlite-vec[^/]*(\/|$)/i,
+  /^Resources\/(app\.asar(\.unpacked)?\/(resources\/)?)?models(\/|$)/,/\.onnx$/i, /(^|\/)onnxruntime[^/]*(\/|$)/i, /(^|\/)sqlite-vec[^/]*(\/|$)/i,
   /(^|\/)premium(\/|$)/i, /(^|\/)natively-api(\/|$)/i, /eng\.traineddata$/i, /\.gguf$/i,
   /(^|\/)@napi-rs\/canvas[^/]*(\/|$)/, /(^|\/)pdf-parse(\/|$)/, /(^|\/)pdfjs-dist(\/|$)/, /(^|\/)mammoth(\/|$)/,
 ];

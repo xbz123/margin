@@ -6,6 +6,9 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { linkSet, classify } from '../../../scripts/margin/native-link-set.mjs';
 import { readBuildInfo, verifyDirectory } from '../../../scripts/margin/download-ci-artifact.mjs';
+import { createRequire } from 'node:module';
+
+const { FORBIDDEN } = createRequire(import.meta.url)('../../../scripts/margin/package-check.cjs');
 
 // AG-25 / S19-C helpers. The real map, artifacts and package exist only on CI; these
 // cases pin the parsing those checks rely on.
@@ -55,4 +58,17 @@ test('artifact files are used only when every BUILD-INFO sha256 matches', () => 
   fs.writeFileSync(path.join(dir, 'index.darwin-arm64.node'), 'tampered');
   assert.throws(() => verifyDirectory(dir), /sha256 mismatch/);
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('forbidden content matches shipped model locations and removed packages, not SDK resource names', () => {
+  const forbidden = (entry) => FORBIDDEN.some((re) => re.test(entry));
+  for (const entry of ['Resources/models/silero_vad.onnx', 'Resources/app.asar/resources/models/x.bin',
+    'Resources/app.asar.unpacked/node_modules/@napi-rs/canvas-darwin-arm64/skia.darwin-arm64.node',
+    'Resources/app.asar/node_modules/pdf-parse/index.js', 'Resources/app.asar/node_modules/mammoth/lib/index.js']) {
+    assert.equal(forbidden(entry), true, entry);
+  }
+  for (const entry of ['Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/index.js',
+    'Resources/app.asar/node_modules/@anthropic-ai/sdk/resources/models.js', 'Resources/app.asar/dist-electron/electron/ModelSelectorWindowHelper.js']) {
+    assert.equal(forbidden(entry), false, entry);
+  }
 });
