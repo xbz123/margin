@@ -1,0 +1,3 @@
+before: signature valid
+after replacement: signature invalid until re-signed (expected)
+after ad hoc re-sign: signature valid

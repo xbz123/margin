@@ -1,0 +1,59 @@
+[isolation] blocked socket: example.com:443
+[isolation] blocked socket: example.com:443
+[isolation] blocked socket: 93.184.215.14:443
+[isolation] blocked dns: example.com
+[isolation] blocked dns: example.com
+[isolation] blocked socket: example.com:443
+[isolation] blocked exec: spawnSync curl
+[isolation] blocked exec: execSync curl
+[isolation] blocked exec: execSync (shell syntax) echo hi && curl https://example.com
+[isolation] blocked exec: spawnSync with shell:true echo
+[isolation] blocked exec: spawnSync /bin/sh
+[isolation] blocked local-exec: execFileSync defaults
+[isolation] blocked keychain: keytar.setPassword
+✔ guard is active and the environment is clean (1.1375ms)
+✔ fetch to a public host is blocked (13.373584ms)
+✔ https.get to a public host is blocked (2.592458ms)
+✔ raw TCP to a public IP is blocked (1.124417ms)
+✔ DNS lookups for public names are blocked (0.902292ms)
+✔ WebSocket (ws package) to a public host is blocked (19.339458ms)
+✔ child processes are blocked unless allowed (13.530125ms)
+✔ node, simple utilities and sandbox-local test doubles may run (48.978166ms)
+✔ keytar is replaced by an in-memory stub (0.544958ms)
+[isolation] blocked watched-port: 127.0.0.1:11434
+[isolation] blocked watched-port: localhost:11434
+[isolation] blocked watched-port: 127.0.0.1:11434
+✔ loopback traffic still works (12.409916ms)
+✔ watched loopback ports (the retired Ollama port) are blocked and recorded (2.620333ms)
+[isolation] blocked device: native audio module wrapped (index.js)
+[isolation] blocked device: native audio module wrapped (index.darwin-arm64.node)
+✔ native module exports audio and window helpers but no license functions (93.789958ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 179.159167
+
+--- stderr ---
+[isolation] 18 blocked attempt(s); log: /var/folders/nj/vtw8zd2j31d1gdrtntc5y4600000gn/T/margin-isolation-node-n30GdX/isolation.jsonl
+[isolation]   device native audio module wrapped (index.js)
+[isolation]   device native audio module wrapped (index.darwin-arm64.node)
+[isolation]   socket example.com:443
+[isolation]   socket example.com:443
+[isolation]   socket 93.184.215.14:443
+[isolation]   dns example.com
+[isolation]   dns example.com
+[isolation]   socket example.com:443
+[isolation]   exec spawnSync curl
+[isolation]   exec execSync curl
+[isolation]   exec execSync (shell syntax) echo hi && curl https://example.com
+[isolation]   exec spawnSync with shell:true echo
+[isolation]   exec spawnSync /bin/sh
+[isolation]   local-exec execFileSync defaults
+[isolation]   keychain keytar.setPassword
+[isolation]   watched-port 127.0.0.1:11434
+[isolation]   watched-port localhost:11434
+[isolation]   watched-port 127.0.0.1:11434

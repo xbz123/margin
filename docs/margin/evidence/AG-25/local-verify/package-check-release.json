@@ -63,7 +63,16 @@
       "detail": {
         "matches": [],
         "count": 0,
-        "scanned": 38688
+        "scanned": 38798
+      }
+    },
+    {
+      "id": "libvips-rebuilt",
+      "passed": true,
+      "detail": {
+        "packaged": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
+        "expected": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
+        "upstreamPrebuilt": "ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d"
       }
     },
     {
@@ -78,9 +87,9 @@
       "id": "codesign-verify",
       "passed": true,
       "detail": [
-        "--validated:<download>/x-release/Margin.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.",
-        "<download>/x-release/Margin.app: valid on disk",
-        "<download>/x-release/Margin.app: satisfies its Designated Requirement"
+        "--validated:<app>/Contents/Frameworks/Electron Framework.framework/Versions/Current/.",
+        "<app>: valid on disk",
+        "<app>: satisfies its Designated Requirement"
       ]
     },
     {
@@ -96,7 +105,7 @@
       "id": "license-files",
       "passed": true,
       "detail": {
-        "checkedNotices": 968,
+        "checkedNotices": 1316,
         "candidateInventoryOnly": true
       }
     }
@@ -175,7 +184,7 @@
     {
       "path": "MacOS/Margin",
       "archs": "arm64",
-      "sha256": "a288a0d8cd5ff5faaae8e8a69472aaf30bdd8a066e4b8f79fa6052b188a51a87"
+      "sha256": "4667abb80ead78580bcd48aaff5b487ce30ef3ba86260aa782acb8fd13f1beae"
     },
     {
       "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
@@ -190,7 +199,7 @@
     {
       "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib",
       "archs": "arm64",
-      "sha256": "ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d"
+      "sha256": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e"
     },
     {
       "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",
