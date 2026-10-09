@@ -189,7 +189,7 @@ jobs:
         if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
         run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/release/builder/mac-arm64/Margin.app" Margin io.github.xbz123.margin "$RUNNER_TEMP/margin-package/release/launch.json"
 
-      - name: Corresponding source bundle (S19-C; private artifact)
+      - name: Corresponding source bundle (S19-C; workflow artifact)
         if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
         run: node scripts/margin/source-bundle.mjs "$RUNNER_TEMP/margin-source"
 
@@ -207,13 +207,14 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
-      - name: Upload the release app
+      # The repository is public (S25), so the release identity's zip is not uploaded:
+      # only its reports, launch result and BUILD-INFO (which still records the zip's sha256).
+      - name: Upload the release app reports
         if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
         uses: actions/upload-artifact@v7
         with:
           name: margin-app-release-${{ github.sha }}
           path: |
-            ${{ runner.temp }}/margin-package/release/*.zip
             ${{ runner.temp }}/margin-package/release/*.json
             ${{ runner.temp }}/margin-package/release/*.log
             ${{ runner.temp }}/margin-package/release/BUILD-INFO.txt

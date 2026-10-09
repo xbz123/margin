@@ -4,7 +4,9 @@
 // uses it. With --install-native the verified CI native module replaces the local
 // one (PLAN S11 item 5: local development stops using the X3 cargo cache build).
 //   node scripts/margin/download-ci-artifact.mjs --run <id> --name <artifact> --out <dir>
-//     [--commit <sha>] [--install-native]
+//     [--commit <sha>] [--install-native] [--repo <owner/name>]
+// CI runs in the public xbz123/margin since S25; runs before it are in the private
+// xbz123/Assessment-Assistant (--repo).
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -12,7 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const REPO = 'xbz123/Assessment-Assistant';
+const REPO = 'xbz123/margin';
 
 export function readBuildInfo(text) {
   const fields = {};
@@ -44,9 +46,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const run = arg('--run');
   const name = arg('--name');
   const out = arg('--out') && path.resolve(arg('--out'));
-  if (!run || !name || !out) throw new Error('usage: --run <id> --name <artifact> --out <dir> [--commit <sha>] [--install-native]');
+  if (!run || !name || !out) throw new Error('usage: --run <id> --name <artifact> --out <dir> [--commit <sha>] [--install-native] [--repo <owner/name>]');
   if (fs.existsSync(out) && fs.readdirSync(out).length) throw new Error(`refusing non-empty output: ${out}`);
-  execFileSync('gh', ['run', 'download', run, '--repo', REPO, '--name', name, '--dir', out], { stdio: 'inherit' });
+  execFileSync('gh', ['run', 'download', run, '--repo', arg('--repo') ?? REPO, '--name', name, '--dir', out], { stdio: 'inherit' });
   const info = verifyDirectory(out, { commit: arg('--commit') });
   console.log(JSON.stringify({ verified: info.files, commit: info.fields.commit, run: info.fields.run }));
   if (process.argv.includes('--install-native')) {
