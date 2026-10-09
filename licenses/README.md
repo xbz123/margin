@@ -28,6 +28,24 @@ icon sets than the renderer uses requires their terms too.
 
 ## Native and copyleft boundary
 
+**Shipped libvips (S22).** The package carries libvips-cpp 8.17.3 rebuilt on CI
+from the unchanged sharp-libvips recipe `20b5e899`, installed in place of the npm
+prebuilt before packaging; the package checks reject the prebuilt's sha256. The
+recipe pins the same component versions as the npm package (`versions.json` is
+compared). Every archive the build downloaded, the crates compiled for librsvg and
+librsvg's resolved `Cargo.lock` are kept per run (`margin-libvips-sources-<commit>`),
+and CI fails if a later build drifts from the recorded one
+(`scripts/margin/libvips/expected-sources.tsv`, `librsvg-Cargo.lock`,
+`librsvg-compiled.txt`, rustc 1.98.1). The original license files of the 28
+statically linked libraries and of the 169 crates are in
+`scripts/margin/libvips/notices.json` with their archive and member. Ten crates
+publish no license file: five are taken from their source commit or crate file
+header (cssparser-color, selectors, zune-core, zune-jpeg) or a license the author
+added later (malloc_buf); for block, objc_id, objc-foundation, fxhash and mac
+neither the crate nor its repository has one, so their Cargo.toml declaration is
+kept with the standard SPDX terms and no copyright is supplied. The text below
+describes the npm prebuilt, which is no longer shipped.
+
 @img/sharp-libvips-darwin-arm64@1.2.4 declares LGPL-3.0-or-later. Its README lists
 bundled dependencies under several licenses. The wrapper's Apache-2.0 LICENSE
 is **not** the license of the whole binary. Exact wrapper tag v1.2.4 records
@@ -64,7 +82,7 @@ list, are included at the commits Electron 43.1.0 pins.
 Corresponding source for one CI build is kept as the private workflow artifact
 `margin-source-<commit>` (the commit's archive, every npm tarball and crate checked
 against the lockfiles, and Electron's ffmpeg at the pinned revision with its patch),
-and the libvips rebuild sources as `margin-libvips-sources-<commit>`. Workflow
+and the sources of the shipped libvips rebuild as `margin-libvips-sources-<commit>`. Workflow
 artifacts expire; making source available alongside a release is decided before
 distribution (S19 item 3). The license-only collector itself downloads no source
 archives or implementation files.
@@ -81,7 +99,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-699 candidates; 401 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
+699 candidates; 511 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0

@@ -326,6 +326,20 @@ imported. Generic one-line idioms the provenance check matched are registered in
   `E2EParityEvidence`. `build-electron.js` bundles every `.ts` under
   `electron/`, so the deleted scripts were shipped inside the app.
 
+### S22 shipped libvips rebuild (Claude, 2026-10-09)
+
+- `scripts/margin/libvips/install-rebuilt.mjs`, `fetch-prebuilt.mjs`,
+  `notice-inputs.py` and the drift checks in `rebuild.sh`: written for this
+  branch. `notice-inputs.py` only reads the recorded source archives and crates.
+- `scripts/margin/license-inputs/libvips/*.txt`: verbatim license files of the
+  libraries and crates statically linked into the shipped libvips-cpp, each
+  bound in `scripts/margin/libvips/notices.json` to its archive URL, archive
+  sha256 and member path (crates: the librsvg `Cargo.lock` checksum). Third-party
+  license text, not implementation code.
+- `scripts/margin/libvips/librsvg-Cargo.lock`, `librsvg-compiled.txt` and
+  `expected-sources.tsv`: records of run 37871598165's rebuild, used as the
+  drift reference.
+
 ### S21 dependency removal
 
 S21 removes the root production declarations `pdf-parse` and `mammoth`. Their

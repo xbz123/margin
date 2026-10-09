@@ -31,6 +31,7 @@ function verifyBundle(resources, sourceRoot) {
   if (pkg.license !== 'AGPL-3.0-only' || lock.packages[''].license !== pkg.license) throw new Error('application license metadata mismatch');
   if (hash(fs.readFileSync(path.join(sourceRoot, 'package-lock.json'))) !== manifest.packageLockSHA256 || hash(fs.readFileSync(path.join(sourceRoot, 'native-module/Cargo.lock'))) !== manifest.cargoLockSHA256) throw new Error('notice inventory is stale for current lockfiles');
   if (manifest.sourceConfigSHA256 && hash(fs.readFileSync(path.join(sourceRoot, 'scripts/margin/license-sources.json'))) !== manifest.sourceConfigSHA256) throw new Error('supplemental notice sources changed');
+  if (manifest.libvipsNoticesSHA256 && hash(fs.readFileSync(path.join(sourceRoot, 'scripts/margin/libvips/notices.json'))) !== manifest.libvipsNoticesSHA256) throw new Error('libvips notice sources changed');
   const electron = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'node_modules/electron/package.json')));
   if (electron.version !== manifest.electronVersion) throw new Error('Electron version differs from notice inventory');
   const notices = [...manifest.components.flatMap((item) => item.texts), ...(manifest.attachments ?? []).map((item) => item.text), ...manifest.deferred];

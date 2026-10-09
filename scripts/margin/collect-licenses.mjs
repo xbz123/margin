@@ -293,7 +293,12 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
   }
   const attachments = [];
   const sourcesFile = path.join(root, 'scripts/margin/license-sources.json');
-  const sourceConfig = fs.existsSync(sourcesFile) ? readJSON(sourcesFile) : [];
+  // S22: notices of the rebuilt libvips-cpp Margin ships (scripts/margin/libvips/notice-inputs.py).
+  const libvipsFile = path.join(root, 'scripts/margin/libvips/notices.json');
+  const libvipsNotices = fs.existsSync(libvipsFile) ? readJSON(libvipsFile) : null;
+  const sourceConfig = [...(fs.existsSync(sourcesFile) ? readJSON(sourcesFile) : []),
+    ...(libvipsNotices ? [...libvipsNotices.entries, ...libvipsNotices.supplements] : [])];
+  if (new Set(sourceConfig.map((source) => source.id)).size !== sourceConfig.length) throw new Error('duplicate supplemental notice id');
   for (const source of sourceConfig) {
     const previous = old?.attachments?.find((item) => item.id === source.id && item.url === source.url && item.version === source.version && item.license === source.license && item.role === source.role);
     let bytes;
@@ -302,10 +307,12 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
       if (!sourceFile.startsWith(path.resolve(root) + path.sep)) throw new Error('local license source escapes repository');
       const original = fs.readFileSync(sourceFile);
       if (sha256(original) !== source.sourceSHA256) throw new Error('local license source changed');
-      const text = original.toString('utf8');
-      const end = text.indexOf(source.endBefore);
-      if (end <= 0) throw new Error('license header boundary not found');
-      bytes = Buffer.from(text.slice(0, end));
+      if (source.endBefore) {
+        const text = original.toString('utf8');
+        const end = text.indexOf(source.endBefore);
+        if (end <= 0) throw new Error('license header boundary not found');
+        bytes = Buffer.from(text.slice(0, end));
+      } else bytes = original; // a verbatim original file
     } else if (previous) {
       bytes = fs.readFileSync(path.join(output, previous.text.file));
       if (sha256(bytes) !== previous.text.sha256) throw new Error('stored supplemental notice changed');
@@ -355,7 +362,7 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
     const sourcePath = `node_modules/electron/dist/${file}`;
     return { sourcePath, file: `electron/${file}`, sha256: sha256(fs.readFileSync(path.join(root, sourcePath))), origin: `Electron ${electron.version} installed distribution`, sourceURL: `https://github.com/electron/electron/releases/tag/v${electron.version}` };
   });
-  const manifest = { schemaVersion: 1, scope: 'Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.', packageLockSHA256: sha256(fs.readFileSync(path.join(root, 'package-lock.json'))), cargoLockSHA256: sha256(fs.readFileSync(path.join(root, 'native-module/Cargo.lock'))), sourceConfigSHA256: fs.existsSync(sourcesFile) ? sha256(fs.readFileSync(sourcesFile)) : null, electronVersion: electron.version, components, attachments, excluded, unresolved, deferred };
+  const manifest = { schemaVersion: 1, scope: 'Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.', packageLockSHA256: sha256(fs.readFileSync(path.join(root, 'package-lock.json'))), cargoLockSHA256: sha256(fs.readFileSync(path.join(root, 'native-module/Cargo.lock'))), sourceConfigSHA256: fs.existsSync(sourcesFile) ? sha256(fs.readFileSync(sourcesFile)) : null, libvipsNoticesSHA256: libvipsNotices ? sha256(fs.readFileSync(libvipsFile)) : null, electronVersion: electron.version, components, attachments, excluded, unresolved, deferred };
   fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   refreshInventorySummaries(root, manifest);
   console.log(JSON.stringify({ candidates: components.length, uniqueTexts: texts.size, excluded: excluded.length, unresolved: unresolved.length, deferred: deferred.length }));

@@ -37,7 +37,10 @@ step('electron-builder', path.join(ROOT, 'node_modules/.bin/electron-builder'),
   ['--dir', '--mac', '--arm64', '--publish', 'never', '--config', 'scripts/margin/package.config.cjs']);
 
 const app = path.join(out, 'builder', 'mac-arm64', `${identity.name}.app`);
-const report = checkPackage(app, identity, { sourceRoot: ROOT });
+// S22: the rebuilt libvips installed by scripts/margin/libvips/install-rebuilt.mjs.
+const installed = JSON.parse(fs.readFileSync(path.join(process.env.RUNNER_TEMP, 'libvips-installed.json'), 'utf8'));
+const report = checkPackage(app, identity, { sourceRoot: ROOT, libvipsSHA256: installed.rebuiltSHA256 });
+report.libvips = installed;
 report.commit = process.env.GITHUB_SHA;
 report.run = `${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`;
 fs.writeFileSync(path.join(out, 'package-checks.json'), JSON.stringify(report, null, 2) + '\n');

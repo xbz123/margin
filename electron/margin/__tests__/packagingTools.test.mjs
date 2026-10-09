@@ -72,3 +72,18 @@ test('forbidden content matches shipped model locations and removed packages, no
     assert.equal(forbidden(entry), false, entry);
   }
 });
+
+test('every libvips notice input exists with its recorded hash and source archive', () => {
+  const notices = JSON.parse(fs.readFileSync(new URL('../../../scripts/margin/libvips/notices.json', import.meta.url), 'utf8'));
+  const entries = [...notices.entries, ...notices.supplements];
+  assert.ok(entries.length > 300);
+  assert.equal(new Set(entries.map((entry) => entry.id)).size, entries.length);
+  for (const entry of entries) {
+    const bytes = fs.readFileSync(new URL(`../../../${entry.localPath}`, import.meta.url));
+    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), entry.sha256, entry.id);
+    assert.match(entry.url, /^https:\/\//, entry.id);
+  }
+  const compiled = fs.readFileSync(new URL('../../../scripts/margin/libvips/librsvg-compiled.txt', import.meta.url), 'utf8').trim().split('\n');
+  const covered = new Set(entries.filter((entry) => entry.id.startsWith('librsvg-crate:')).map((entry) => entry.id.split(':')[1]));
+  assert.deepEqual(compiled.map((line) => line.replace(' ', '@')).filter((crate) => !covered.has(crate)), []);
+});

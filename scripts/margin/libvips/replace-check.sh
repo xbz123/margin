@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# CI only (PLAN S19-C): proves a user can replace the LGPL libvips-cpp library in a
-# packaged temp app with one built from source, re-sign ad hoc and keep working.
-#   scripts/margin/libvips/replace-check.sh <unzipped temp.app> <rebuilt dylib> <output dir>
+# CI only (PLAN S19-C, S22): proves a user can replace the LGPL libvips-cpp library
+# in a packaged temp app with another build, re-sign ad hoc and keep working. The
+# package ships the rebuild; the replacement is the npm package's prebuilt.
+#   scripts/margin/libvips/replace-check.sh <unzipped temp.app> <replacement dylib> <output dir>
 set -euo pipefail
 [ "${GITHUB_ACTIONS:-}" = true ] || { echo "GitHub Actions only" >&2; exit 1; }
 APP="$1"; NEW="$2"; OUT="$3"
@@ -16,19 +17,19 @@ smoke() {
 }
 {
   echo "shipped: $(shasum -a 256 "$LIB" | cut -d' ' -f1)"
-  echo "rebuilt: $(shasum -a 256 "$NEW" | cut -d' ' -f1)"
-  echo "rebuilt archs: $(lipo -archs "$NEW")"
-  echo "rebuilt install name: $(otool -D "$NEW" | tail -1)"
+  echo "replacement: $(shasum -a 256 "$NEW" | cut -d' ' -f1)"
+  echo "replacement archs: $(lipo -archs "$NEW")"
+  echo "replacement install name: $(otool -D "$NEW" | tail -1)"
   echo "shipped uuid: $(dwarfdump --uuid "$LIB" | awk '{print $2}')"
-  echo "rebuilt uuid: $(dwarfdump --uuid "$NEW" | awk '{print $2}')"
+  echo "replacement uuid: $(dwarfdump --uuid "$NEW" | awk '{print $2}')"
 } > "$OUT/identity.txt"
-otool -L "$NEW" > "$OUT/rebuilt-otool-L.txt"
-# Symbols sharp imports that the shipped libvips provides must all be in the rebuild.
+otool -L "$NEW" > "$OUT/replacement-otool-L.txt"
+# Symbols sharp imports that the shipped libvips provides must all be in the replacement.
 nm -u "$NODE" | sort -u > "$OUT/sharp-undefined.txt"
 nm -gU "$LIB" | awk '{print $3}' | sort -u > "$OUT/shipped-exports.txt"
-nm -gU "$NEW" | awk '{print $3}' | sort -u > "$OUT/rebuilt-exports.txt"
+nm -gU "$NEW" | awk '{print $3}' | sort -u > "$OUT/replacement-exports.txt"
 comm -12 "$OUT/sharp-undefined.txt" "$OUT/shipped-exports.txt" > "$OUT/sharp-needs-from-libvips.txt"
-comm -23 "$OUT/sharp-needs-from-libvips.txt" "$OUT/rebuilt-exports.txt" > "$OUT/missing-in-rebuilt.txt"
+comm -23 "$OUT/sharp-needs-from-libvips.txt" "$OUT/replacement-exports.txt" > "$OUT/missing-in-replacement.txt"
 echo "sharp imports from libvips: $(wc -l < "$OUT/sharp-needs-from-libvips.txt" | tr -d ' ')" >> "$OUT/identity.txt"
 
 codesign --verify --deep --strict "$APP" && echo "before: signature valid" >> "$OUT/signature.txt"
@@ -44,9 +45,9 @@ codesign --verify --deep --strict "$APP" && echo "after ad hoc re-sign: signatur
 [ "$(shasum -a 256 "$LIB" | cut -d' ' -f1)" = "$(shasum -a 256 "$NEW" | cut -d' ' -f1)" ] || { echo "replacement not in place" >&2; exit 1; }
 smoke after
 cat "$OUT/identity.txt" "$OUT/signature.txt" "$OUT/before.json" "$OUT/after.json" "$OUT/after.loaded.txt"
-echo "symbols sharp needs that the rebuild lacks: $(wc -l < "$OUT/missing-in-rebuilt.txt" | tr -d ' ')"
-[ ! -s "$OUT/missing-in-rebuilt.txt" ]
-# dyld loaded the shipped library before and the rebuilt one after.
+echo "symbols sharp needs that the replacement lacks: $(wc -l < "$OUT/missing-in-replacement.txt" | tr -d ' ')"
+[ ! -s "$OUT/missing-in-replacement.txt" ]
+# dyld loaded the shipped library before and the replacement after.
 grep -qF "<$(dwarfdump --uuid "$NEW" | awk '{print $2}')>" "$OUT/after.loaded.txt"
 grep -qF "<$(grep '^shipped uuid:' "$OUT/identity.txt" | cut -d' ' -f3)>" "$OUT/before.loaded.txt"
 cmp -s <(jq -S . "$OUT/before.json") <(jq -S . "$OUT/after.json")

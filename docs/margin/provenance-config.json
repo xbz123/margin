@@ -170,6 +170,9 @@
     { "line": "const env = {", "reason": "Generic environment object for the AG-25 packaged launch check, independently written for this branch by Claude, 2026-10-09" },
     { "line": "const deadline = Date.now() + 60_000;", "reason": "Generic timeout for the AG-25 packaged launch check, independently written for this branch by Claude, 2026-10-09" },
     { "line": "node --input-type=module -e \"", "reason": "Node CLI flag used by the AG-25 workflow artifact verification step, independently written for this branch by Claude, 2026-10-09" },
-    { "line": "const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');", "reason": "Generic ESM repository root for AG-25/S19-C scripts, independently written for this branch by Claude, 2026-10-09" }
+    { "line": "const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');", "reason": "Generic ESM repository root for AG-25/S19-C scripts, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');", "reason": "Generic ESM repository root for the S22 libvips scripts one directory deeper, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const result = {", "reason": "Generic object literal opening in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "console.log(JSON.stringify(result));", "reason": "Generic JSON result print in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" }
   ]
 }

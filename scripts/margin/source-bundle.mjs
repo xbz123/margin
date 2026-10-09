@@ -128,7 +128,10 @@ manifest.electron = {
   chromiumSource: `https://chromium.googlesource.com/chromium/src/+/refs/tags/${chromium}`, ffmpegRevision: ffmpeg,
   note: 'Electron is shipped unmodified from its release; its full source and Chromium build system are at the URLs above. ffmpeg is the LGPL library inside it (libffmpeg.dylib) and is included here with Electron\'s patch.',
 };
-manifest.libvips = { artifact: `margin-libvips-sources-${commit}`, note: 'sources the libvips rebuild downloaded in the same run, with their own manifest.tsv' };
+manifest.libvips = {
+  artifact: `margin-libvips-sources-${commit}`, binary: `margin-libvips-${commit}`, recipe: 'https://github.com/lovell/sharp-libvips/tree/20b5e899954907a3039d6e3d4c200aaa0ec52c4c',
+  note: 'corresponding source of the libvips-cpp this package ships (S22): the recipe archive, every archive and patch it downloaded with manifest.tsv, and the crates compiled for librsvg with its Cargo.lock; the build log and the built tarball are in the binary artifact',
+};
 manifest.counts = Object.fromEntries(['app', 'npm', 'cargo', 'electron-ffmpeg', 'electron-ffmpeg-patch'].map((kind) => [kind, manifest.files.filter((item) => item.kind === kind).length]));
 manifest.files.sort((a, b) => a.path.localeCompare(b.path));
 fs.writeFileSync(path.join(out, 'MANIFEST.json'), JSON.stringify(manifest, null, 2) + '\n');

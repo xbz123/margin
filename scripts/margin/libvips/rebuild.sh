@@ -59,3 +59,17 @@ done < "$OUT/sources/librsvg-compiled.txt"
 } > "$OUT/BUILD-INFO.txt"
 cp sharp-libvips-darwin-arm64v8.tar.gz "$OUT/"
 cat "$OUT/BUILD-INFO.txt"
+
+# S22: Margin ships this library and its notices (scripts/margin/libvips/notices.json)
+# were made from one recorded build. Fail if this build drifted from it: the
+# downloads (except the rustup installer and the recipe's THIRD-PARTY-NOTICES.md,
+# fetched from moving URLs), librsvg's resolved Cargo.lock, the crates compiled
+# for it, or the Rust release whose standard library it links.
+REF="$GITHUB_WORKSPACE/scripts/margin/libvips"
+drift=0
+awk -F'\t' '$3 != "THIRD-PARTY-NOTICES.md" && $3 != "rustup-init" && $3 != "sh.rustup.rs" {print $1"\t"$3"\t"$4}' "$OUT/sources/manifest.tsv" \
+  | diff "$REF/expected-sources.tsv" - || { echo "recipe downloads differ from expected-sources.tsv" >&2; drift=1; }
+diff "$REF/librsvg-Cargo.lock" "$OUT/sources/librsvg-Cargo.lock" > /dev/null || { echo "librsvg Cargo.lock differs from the recorded one" >&2; drift=1; }
+diff "$REF/librsvg-compiled.txt" "$OUT/sources/librsvg-compiled.txt" || { echo "librsvg compiled crates differ" >&2; drift=1; }
+deps/cargo/bin/rustc -V | grep -q '^rustc 1\.98\.1 ' || { echo "librsvg built with $(deps/cargo/bin/rustc -V), notices are for 1.98.1" >&2; drift=1; }
+[ "$drift" = 0 ] && echo "no drift from the recorded build"
