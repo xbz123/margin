@@ -175,6 +175,7 @@
     { "line": "const result = {", "reason": "Generic object literal opening in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" },
     { "line": "console.log(JSON.stringify(result));", "reason": "Generic JSON result print in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" },
     { "line": "return Promise.resolve();", "reason": "Generic resolved promise when the preload refuses openExternal without user activation (stage 2 acceptance review), independently written for this branch by Claude, 2026-10-09" },
-    { "line": "const report = {", "reason": "Generic object literal opening in the local sharp smoke report (stage 2 acceptance review), independently written for this branch by Claude, 2026-10-09" }
+    { "line": "const report = {", "reason": "Generic object literal opening in the local sharp smoke report (stage 2 acceptance review), independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const bytes = fs.readFileSync(file);", "reason": "Generic file read in scripts/margin/package-inventory.cjs, written for this branch on 2026-10-08 (c49fb86d); upstream main added the same line in a test on 2026-10-10" }
   ]
 }

@@ -335,6 +335,10 @@ imported. Generic one-line idioms the provenance check matched are registered in
   this branch from Codex Astra's review findings, not from upstream code.
 - Two generic lines are allowlisted in `provenance-config.json`:
   `return Promise.resolve();` and `const report = {`.
+- `const bytes = fs.readFileSync(file);` in `scripts/margin/package-inventory.cjs`
+  (written for this branch on 2026-10-08, `c49fb86d`) is allowlisted after upstream
+  main added the same generic line in a test on 2026-10-10, found by the S24 local
+  run's fresh upstream fetch.
 
 ### S22 shipped libvips rebuild (Claude, 2026-10-09)
 
