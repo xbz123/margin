@@ -157,6 +157,19 @@
     { "line": "return { action: 'deny' };", "reason": "Documented Electron deny result for child windows in the AG-24 follow-up navigation policy, independently written for this branch by Claude, 2026-10-09" },
     { "line": "event.preventDefault();", "reason": "Generic event cancellation for refused navigation in the AG-24 follow-up policy, independently written for this branch by Claude, 2026-10-09" },
     { "line": "const [busy, setBusy] = useState(false);", "reason": "Generic React busy flag in the AG-24 follow-up credential recovery banner, independently written for this branch by Claude, 2026-10-09" },
-    { "line": "setBusy(true);", "reason": "Generic React busy flag in the AG-24 follow-up credential recovery banner, independently written for this branch by Claude, 2026-10-09" }
+    { "line": "setBusy(true);", "reason": "Generic React busy flag in the AG-24 follow-up credential recovery banner, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const FORBIDDEN = [", "reason": "Constant list of forbidden package paths in the AG-25 package check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "return files;", "reason": "Generic return of a directory walk in the AG-25 package check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const fd = fs.openSync(file, 'r');", "reason": "Generic Node file open for a Mach-O magic read in the AG-25 package check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "} finally { fs.closeSync(fd); }", "reason": "Generic Node file close in the AG-25 package check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const ROOT = path.resolve(__dirname, '..');", "reason": "Generic repository root for the AG-25 CI build script, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "].join('\\n'));", "reason": "Generic line join in the AG-25 BUILD-INFO writer, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "process.exitCode = 1;", "reason": "Generic failing exit code in the AG-25 CI build script, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "#!/usr/bin/env bash", "reason": "Standard bash shebang of the S19-C libvips CI scripts, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "mkdir -p \"$OUT\"", "reason": "Generic output directory creation in the S19-C libvips replacement check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const env = {", "reason": "Generic environment object for the AG-25 packaged launch check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const deadline = Date.now() + 60_000;", "reason": "Generic timeout for the AG-25 packaged launch check, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "node --input-type=module -e \"", "reason": "Node CLI flag used by the AG-25 workflow artifact verification step, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');", "reason": "Generic ESM repository root for AG-25/S19-C scripts, independently written for this branch by Claude, 2026-10-09" }
   ]
 }

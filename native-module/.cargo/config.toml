@@ -1,5 +1,8 @@
 [target.x86_64-apple-darwin]
-rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup", "-C", "link-arg=-Wl,-map,target/natively-audio-x86_64-apple-darwin.map"]
 
+# The linker map lists every object file and the symbols kept in the shipped
+# binary; scripts/margin/native-link-set.mjs reads it to prove the linked set
+# (PLAN S19-C). It does not change the binary.
 [target.aarch64-apple-darwin]
-rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup", "-C", "link-arg=-Wl,-map,target/natively-audio-aarch64-apple-darwin.map"]

@@ -969,5 +969,197 @@
       "name": "realfft"
     },
     "closesMissing": true
+  },
+  {
+    "id": "authors:libfvad",
+    "version": "0.4.0",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/AUTHORS",
+    "localPath": "scripts/margin/license-inputs/original-notices/libfvad-AUTHORS.txt",
+    "sourceSHA256": "49403d5a0e1896ea276c22de56fc55fe832a048dbec3f3d9ee56b7585cc387bf",
+    "sha256": "cd9bea3aacbdb2a25763835e029f0ea34198dfc35687616a6ce29e7db1b6114a",
+    "gitBlob": "755536743a07cba40d8e06241c3e2065b2d2e378",
+    "endBefore": "<!-- margin-original-notice-end -->",
+    "role": "original exact-gitlink libfvad AUTHORS list naming the WebRTC project authors referred to by every vendored file header; bundled in webrtc-vad 0.4.0 resources/libfvad and compiled into the native module; not substituted copyright",
+    "originalSource": {
+      "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/AUTHORS",
+      "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+      "fileSHA256": "cd9bea3aacbdb2a25763835e029f0ea34198dfc35687616a6ce29e7db1b6114a",
+      "gitBlob": "755536743a07cba40d8e06241c3e2065b2d2e378",
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 3158
+      }
+    },
+    "bind": {
+      "kind": "cargo",
+      "name": "webrtc-vad"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "header:libfvad-faf358a8bb76",
+    "version": "0.4.0",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/include/fvad.h",
+    "localPath": "scripts/margin/license-inputs/original-notices/libfvad-header-faf358a8bb762ee2e9dbb3e9403d0e6bfb049f5e7018bf19f4a5c68d1b3a6b00.txt",
+    "sourceSHA256": "a2940e3cc6c34ad5a78eaf6f4b63cf05d7e060c4b7b132d9a19e63b0975082f6",
+    "sha256": "faf358a8bb762ee2e9dbb3e9403d0e6bfb049f5e7018bf19f4a5c68d1b3a6b00",
+    "gitBlob": "612eae6e7495ee92ea822be3e2a0545ee392bd1c",
+    "endBefore": "<!-- margin-original-notice-end -->",
+    "role": "original exact-gitlink libfvad license comment through closing */, shared by 2 vendored file(s): include/fvad.h, src/fvad.c; original years and whitespace retained, no implementation bytes",
+    "originalSource": {
+      "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/include/fvad.h",
+      "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+      "fileSHA256": "bdde03a590c819ae7967f6737d33e43efa7ceb86448185788a6217d4ad7ff416",
+      "gitBlob": "159e6408f11f5ca45c76169b40453eba4727b0dc",
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 449
+      }
+    },
+    "bind": {
+      "kind": "cargo",
+      "name": "webrtc-vad"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "header:libfvad-54630480628d",
+    "version": "0.4.0",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/common.h",
+    "localPath": "scripts/margin/license-inputs/original-notices/libfvad-header-54630480628d00a9b319337201c7c34a3ea041be2bec13806c47121d912bc93b.txt",
+    "sourceSHA256": "c59ffa63e16393f57de3fb430a4c122c59eb9a464822262e728752d608d5c83d",
+    "sha256": "54630480628d00a9b319337201c7c34a3ea041be2bec13806c47121d912bc93b",
+    "gitBlob": "dcc7f37376a03bd07ed526c786abe971f800dbd3",
+    "endBefore": "<!-- margin-original-notice-end -->",
+    "role": "original exact-gitlink libfvad license comment through closing */, shared by 1 vendored file(s): src/common.h; original years and whitespace retained, no implementation bytes",
+    "originalSource": {
+      "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/common.h",
+      "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+      "fileSHA256": "9d5a991e13bf73bd93a7e2e101db719da9e14086e5f1b1bbf63b082e524daee3",
+      "gitBlob": "f9d6f0f7198f42ed09594fc6f554c15eed8250f0",
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 370
+      }
+    },
+    "bind": {
+      "kind": "cargo",
+      "name": "webrtc-vad"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "header:libfvad-e6b35aebb56a",
+    "version": "0.4.0",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/division_operations.c",
+    "localPath": "scripts/margin/license-inputs/original-notices/libfvad-header-e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8.txt",
+    "sourceSHA256": "ca937648aae361efbcb36198e0f746c98817542e20a777e640436e427d2c8fb2",
+    "sha256": "e6b35aebb56af3ff91bf7652cbe334d49180e4b46fa084cc38bf9c7e72893ad8",
+    "gitBlob": "22cf79786e767623edf4bb872357c9e2c09778ef",
+    "endBefore": "<!-- margin-original-notice-end -->",
+    "role": "original exact-gitlink libfvad license comment through closing */, shared by 11 vendored file(s): src/signal_processing/division_operations.c, src/signal_processing/energy.c, src/signal_processing/get_scaling_square.c, src/signal_processing/resample_48khz.c, src/signal_processing/resample_by_2_internal.c, src/signal_processing/resample_by_2_internal.h, src/signal_processing/resample_fractional.c, src/signal_processing/spl_inl.h, src/vad/vad_gmm.c, src/vad/vad_gmm.h, src/vad/vad_sp.h; original years and whitespace retained, no implementation bytes",
+    "originalSource": {
+      "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/division_operations.c",
+      "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+      "fileSHA256": "fb57461a7bcbfffecc3e4a8c641c4183e2ab427685cb3b3ad7d737dda3cb6d56",
+      "gitBlob": "29504dd6c84c54a1bf8f8cddfc9e04a3f3194c1c",
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 412
+      }
+    },
+    "bind": {
+      "kind": "cargo",
+      "name": "webrtc-vad"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "header:libfvad-224099a83710",
+    "version": "0.4.0",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/signal_processing_library.h",
+    "localPath": "scripts/margin/license-inputs/original-notices/libfvad-header-224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a.txt",
+    "sourceSHA256": "2a6520a6853012ad0c6650c3df1a05ebdb863a6038941bc661f75f248bfff033",
+    "sha256": "224099a83710b8e181762aac4e221476063aadcf20c7bfa0d8df14ece9e39b2a",
+    "gitBlob": "13e20abcd49af21d4d5580b7e70c7e08499c53b4",
+    "endBefore": "<!-- margin-original-notice-end -->",
+    "role": "original exact-gitlink libfvad license comment through closing */, shared by 6 vendored file(s): src/signal_processing/signal_processing_library.h, src/vad/vad_core.c, src/vad/vad_core.h, src/vad/vad_filterbank.c, src/vad/vad_filterbank.h, src/vad/vad_sp.c; original years and whitespace retained, no implementation bytes",
+    "originalSource": {
+      "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/signal_processing_library.h",
+      "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+      "fileSHA256": "806fc377bf6486bca6f9df366f68421801d377d025c87af13348d2a383b9ecbd",
+      "gitBlob": "5cee30b91893ae1f2bb30375e1368a8fcda8b8f4",
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 412
+      }
+    },
+    "bind": {
+      "kind": "cargo",
+      "name": "webrtc-vad"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "header:libfvad-082029abf8ec",
+    "version": "0.4.0",
+    "license": "BSD-3-Clause",
+    "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/spl_inl.c",
+    "localPath": "scripts/margin/license-inputs/original-notices/libfvad-header-082029abf8ec38f1d4d083ca344e3551273fc8b53fb613ea930f330ba5a9fa98.txt",
+    "sourceSHA256": "21cfe65cab53688f8b3d73e4128805143a4393a8e2a0331d14fca7f4815a1853",
+    "sha256": "082029abf8ec38f1d4d083ca344e3551273fc8b53fb613ea930f330ba5a9fa98",
+    "gitBlob": "35142408da7f006650764fa585cf37015823d0cb",
+    "endBefore": "<!-- margin-original-notice-end -->",
+    "role": "original exact-gitlink libfvad license comment through closing */, shared by 1 vendored file(s): src/signal_processing/spl_inl.c; original years and whitespace retained, no implementation bytes",
+    "originalSource": {
+      "url": "https://raw.githubusercontent.com/dpirch/libfvad/aa3c662c9c1291128eb1756b7566c2594d317813/src/signal_processing/spl_inl.c",
+      "ref": "aa3c662c9c1291128eb1756b7566c2594d317813",
+      "fileSHA256": "6f17afe654639115b46197ffc03f30af5e8297701025039e5b3623f2e3608835",
+      "gitBlob": "6d1702353f88bc6d33b0dfa1af9215762e467b45",
+      "byteRange": {
+        "start": 0,
+        "endExclusive": 412
+      }
+    },
+    "bind": {
+      "kind": "cargo",
+      "name": "webrtc-vad"
+    },
+    "closesMissing": false
+  },
+  {
+    "id": "electron-framework:squirrel.mac",
+    "version": "0e5d146ba13101a1302d59ea6e6e0b3cace4ae38",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/Squirrel/Squirrel.Mac/0e5d146ba13101a1302d59ea6e6e0b3cace4ae38/LICENSE",
+    "gitBlob": "a700c741bf13f34ccf26e93d3d3c46166acff591",
+    "sha256": "6f240e244a105d6366bc898ac9c67460624c9052839d4b988c6dbe4c571008b3",
+    "role": "original LICENSE of Squirrel/Squirrel.Mac at the commit pinned by Electron 43.1.0 DEPS (squirrel.mac_version); covers Squirrel.framework and its ShipIt helper shipped unmodified inside every Electron macOS app; not listed in Electron's LICENSES.chromium.html",
+    "closesMissing": false
+  },
+  {
+    "id": "electron-framework:reactiveobjc",
+    "version": "74ab5baccc6f7202c8ac69a8d1e152c29dc1ea76",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/ReactiveCocoa/ReactiveObjC/74ab5baccc6f7202c8ac69a8d1e152c29dc1ea76/LICENSE.md",
+    "gitBlob": "49bc37468d432900e63a13929c4ca0bdf39f04cc",
+    "sha256": "095fec1a3d6ad029fe0661fa6092a272d50af016b1771992e0bba9b2a73e7763",
+    "role": "original LICENSE.md of ReactiveCocoa/ReactiveObjC at the commit pinned by Electron 43.1.0 DEPS (reactiveobjc_version); covers ReactiveObjC.framework shipped unmodified inside every Electron macOS app; not listed in Electron's LICENSES.chromium.html",
+    "closesMissing": false
+  },
+  {
+    "id": "electron-framework:mantle",
+    "version": "2a8e2123a3931038179ee06105c9e6ec336b12ea",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/Mantle/Mantle/2a8e2123a3931038179ee06105c9e6ec336b12ea/LICENSE.md",
+    "gitBlob": "4e9825ac272bdbab7e56f9bc5b27fb583144dfc7",
+    "sha256": "285eede6f638adc9c352be7d66134611e5ea95044095a84de9867fb864e66eab",
+    "role": "original LICENSE.md of Mantle/Mantle at the commit pinned by Electron 43.1.0 DEPS (mantle_version); covers Mantle.framework shipped unmodified inside every Electron macOS app; not listed in Electron's LICENSES.chromium.html",
+    "closesMissing": false
   }
 ]

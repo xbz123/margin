@@ -101,6 +101,11 @@ exports.default = async function (context) {
     // ── Step 2: Ad-hoc sign the application (DEV / local distribution only) ──
     // Resolve the path to the entitlements file so V8 gets JIT memory permissions
     const entitlementsPath = path.join(context.packager.info.projectDir, 'build', 'entitlements.mac.plist');
+    // The baseline has no entitlements file. Without the hardened runtime they have
+    // no effect on an ad hoc signature, so sign without them rather than fail (AG-25).
+    const hasEntitlements = fs.existsSync(entitlementsPath);
+    const entitlementsOpt = hasEntitlements ? `--entitlements "${entitlementsPath}" ` : '';
+    if (!hasEntitlements) console.log('[Ad-Hoc Signing] No build/entitlements.mac.plist; signing without entitlements.');
     
     // ── Step 2a: Sign the main app bundle with --deep first ──
     // --deep recurses into nested Mach-O binaries (frameworks, helpers, .node files).
@@ -114,7 +119,7 @@ exports.default = async function (context) {
         // --deep: sign nested code (frameworks, helpers, .dylib, .node)
         // --entitlements: attach entitlements to the top-level app bundle
         // --sign -: ad-hoc signature
-        execSync(`codesign --force --deep ${hardenedOpt}--entitlements "${entitlementsPath}" --sign - "${appPath}"`, { stdio: 'inherit' });
+        execSync(`codesign --force --deep ${hardenedOpt}${entitlementsOpt}--sign - "${appPath}"`, { stdio: 'inherit' });
         console.log('[Ad-Hoc Signing] Successfully signed the application with entitlements.');
     } catch (error) {
         console.error('[Ad-Hoc Signing] Failed to sign the application:', error);
@@ -127,7 +132,7 @@ exports.default = async function (context) {
     // so the entitlements (JIT / library-validation) are preserved on the native
     // module binary. (Screen/system-audio access is pure TCC — no entitlement.)
     const unpackedNativeDir = path.join(appPath, 'Contents', 'Resources', 'app.asar.unpacked', 'native-module');
-    if (fs.existsSync(unpackedNativeDir)) {
+    if (hasEntitlements && fs.existsSync(unpackedNativeDir)) {
         const files = fs.readdirSync(unpackedNativeDir);
         for (const file of files) {
             if (file.endsWith('.node')) {

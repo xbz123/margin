@@ -282,6 +282,40 @@ source bindings retain exact identity/hash checks. Native vendored composition,
 remaining missing notices, corresponding-source/relinking duties, and acceptance
 of a newly packaged artifact are separate unresolved obligations.
 
+### AG-25 / S19-C packaging and native notices (Claude, 2026-10-09)
+
+All new code here is written for this branch; no upstream or old-Margin code is
+imported. Generic one-line idioms the provenance check matched are registered in
+`provenance-config.json` with reasons.
+
+- `scripts/build-local.cjs`, `scripts/margin/package.config.cjs`,
+  `package-check.cjs`, `packaged-launch.mjs`, `download-ci-artifact.mjs`:
+  CI-only packaging of both identities, package checks, launch check in a
+  throwaway home, and download with sha256 verification.
+- `scripts/ad-hoc-sign.js` (upstream): the baseline never had the
+  `build/entitlements.mac.plist` it passes to codesign, so signing failed.
+  Without the hardened runtime entitlements have no effect on an ad hoc
+  signature; the script now signs without them when the file is absent.
+- `native-module/.cargo/config.toml`: adds `-Wl,-map` so every link writes an
+  ld64 map; `scripts/margin/native-link-set.mjs` reads the live inputs from it.
+- `scripts/margin/libvips/`: a curl wrapper that keeps every download of the
+  sharp-libvips recipe `20b5e899` with its sha256, the rebuild driver, a sharp
+  smoke script and the replacement/re-sign check. The recipe itself is run
+  unchanged from a clean clone.
+- `scripts/margin/source-bundle.mjs`: the S19-C corresponding-source artifact.
+- Notice inputs: libfvad AUTHORS and its five distinct original file headers
+  (each byte range verified against the published webrtc-vad 0.4.0 crate, whose
+  sha256 matches Cargo.lock, and the local cache); the MIT licenses of
+  Squirrel.Mac `0e5d146b`, ReactiveObjC `74ab5bac` and Mantle `2a8e2123`, the
+  commits Electron 43.1.0's DEPS pins for the frameworks every Electron macOS
+  app ships but `LICENSES.chromium.html` does not list.
+- Removed as dead or redundant (S21 item 3): `electron/test/` (five live-API
+  scripts that read `.env` keys, a loader and a test of regexes for the retired
+  modes eval), `electron/db/seedDemo.ts` and `test-db.ts` (placeholders), and
+  the source-string tests `CredentialStorage`, `PostCallSummarySafety` and
+  `E2EParityEvidence`. `build-electron.js` bundles every `.ts` under
+  `electron/`, so the deleted scripts were shipped inside the app.
+
 ### S21 dependency removal
 
 S21 removes the root production declarations `pdf-parse` and `mammoth`. Their

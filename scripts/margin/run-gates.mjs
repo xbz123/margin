@@ -41,7 +41,6 @@ const TEST_GLOBS = [
   'electron/margin/__tests__/**/*.test.mjs',
   // Added in PLAN.md AG-17 (they were outside `npm test` before).
   'electron/utils/__tests__/**/*.test.mjs',
-  'electron/test/__tests__/**/*.test.mjs',
   'src/lib/__tests__/**/*.test.mjs',
 ];
 

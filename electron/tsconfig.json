@@ -17,9 +17,5 @@
   "include": [
     "**/*.ts",
     "**/*.js"
-  ],
-  "exclude": [
-    "db/seedDemo.ts",
-    "db/test-db.ts"
   ]
 }

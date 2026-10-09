@@ -63,7 +63,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-699 candidates; 388 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
+699 candidates; 397 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
