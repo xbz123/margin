@@ -322,7 +322,9 @@ test('after a chat request fails before streaming, the next answer is shown once
   await failNextChatStreamSetup();
   const before = mock.chatRequests().length;
   const search = launcher.locator('input[placeholder="Search or ask anything..."]');
-  await search.click();
+  // Focus, not click: once the pill has focus its backdrop (z-90) covers the input
+  // (z-40), so a click times out if the input was focused first (CI 38000301350).
+  await search.focus();
   await search.fill('Launcher question that fails');
   await search.press('ArrowDown');
   await search.press('Enter');

@@ -4,10 +4,10 @@
   "restrictedExtraRefs": ["f326de04e50678ae63689cdabac491ec366e5c28"],
   "approvedLineKeyFiles": [],
   "approvedFiles": [
-    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/app-icon.svg" },
-    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/app-icon-small.svg" },
-    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/glyph.svg" },
-    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/generate.mjs" }
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/app-icon.svg", "blob": "2ed3dff8702b205f5778d790cafe2f30959b97ec", "copy": "docs/margin/approved-sources/cbb92b8a/scripts/icons/app-icon.svg" },
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/app-icon-small.svg", "blob": "23f3c0c24040af4b8c8203700f5e1bd8f0d533b0", "copy": "docs/margin/approved-sources/cbb92b8a/scripts/icons/app-icon-small.svg" },
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/glyph.svg", "blob": "85ca117c975155b7df33f9f91154bc5a3b86f3a9", "copy": "docs/margin/approved-sources/cbb92b8a/scripts/icons/glyph.svg" },
+    { "ref": "cbb92b8ae1a310ae1af3323d45b2990757d781d9", "path": "scripts/icons/generate.mjs", "blob": "098beb1d465ffb28bd2804f32e2d954f5ca1e545", "copy": "docs/margin/approved-sources/cbb92b8a/scripts/icons/generate.mjs" }
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [

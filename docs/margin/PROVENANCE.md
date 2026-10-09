@@ -718,6 +718,14 @@ was copied from the earlier branch, and the commit as a whole is not approved.
 | `scripts/icons/glyph.svg` | `85ca117c975155b7df33f9f91154bc5a3b86f3a9` | Margin-authored rule and two bars; whitespace-only blank line normalized |
 | `scripts/icons/generate.mjs` | `098beb1d465ffb28bd2804f32e2d954f5ca1e545` | Adapted on this branch: URL decoding with `fileURLToPath`, output-directory creation, precise temporary-directory cleanup on failure, removal of unused output copies, lossless WebP and a SHA-256 manifest |
 
+The public repository `xbz123/margin` holds only this branch (PLAN S25), so the
+earlier commit is not there. The four original files are checked in unchanged
+under `docs/margin/approved-sources/cbb92b8a/` (outside the scanned paths), and
+`provenance-config.json` records each one's blob id. `provenance-check.mjs` reads
+the approved lines from these copies after checking that each copy hashes to its
+blob id and, where the commit is present, that the file at the commit does too.
+The approved pool is unchanged (128,377 line keys).
+
 The inline geometry in `src/components/NativelyLogoMark.tsx` comes from the
 approved `glyph.svg`, with `currentColor` replacing the fixed black fill. The
 internal component name is retained. Consumer-path and Retina tray changes and

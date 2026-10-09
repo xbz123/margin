@@ -105,6 +105,22 @@ const restrictedRefs = [
   ...config.restrictedExtraRefs.map(resolve),
 ];
 
+// Individually reviewed files from other commits (PROVENANCE.md). Such a commit may be
+// missing from a clone: the public repository holds only this branch (PLAN S25). So
+// each entry names a checked-in copy and its git blob id. The copy must hash to that
+// id, and so must the file at the commit whenever the commit is present.
+function approvedFileText({ ref, path: p, blob, copy }) {
+  const file = path.join(ROOT, copy);
+  const copyBlob = git('hash-object', '--no-filters', file).trim();
+  if (copyBlob !== blob) throw new Error(`approved copy ${copy} is ${copyBlob}, not ${blob}`);
+  if (spawnSync('git', ['cat-file', '-e', `${ref}^{commit}`], { cwd: ROOT }).status === 0) {
+    const atRef = git('rev-parse', `${ref}:${p}`).trim();
+    if (atRef !== blob) throw new Error(`${ref}:${p} is ${atRef}, not ${blob}`);
+  }
+  return fs.readFileSync(file, 'utf8');
+}
+const approvedFileTexts = config.approvedFiles.map(approvedFileText);
+
 const approved = cached('approved', { approvedRefs, extra: config.approvedFiles, ext: TEXT_EXT.source, MIN_LEN }, () => {
   const { pool } = blobPool(approvedRefs, []);
   // Extra approved sources: line-key files checked in next to the config, and
@@ -112,7 +128,7 @@ const approved = cached('approved', { approvedRefs, extra: config.approvedFiles,
   for (const f of config.approvedLineKeyFiles) {
     for (const k of fs.readFileSync(path.join(ROOT, f), 'utf8').split('\n')) if (k) pool.add(k);
   }
-  for (const { ref, path: p } of config.approvedFiles) addLines(pool, git('show', `${ref}:${p}`));
+  for (const text of approvedFileTexts) addLines(pool, text);
   return pool;
 });
 

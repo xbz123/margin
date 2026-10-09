@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- 16-32px variant of app-icon.svg: heavier rule and bars so they survive
+       downsampling. No shadow at these sizes. -->
+  <g transform="translate(100 100) scale(8.24)">
+    <rect width="100" height="100" rx="22.5" fill="#F4F2EE"/>
+    <rect x="0.4" y="0.4" width="99.2" height="99.2" rx="22.2" fill="none" stroke="#000" stroke-opacity="0.14" stroke-width="0.8"/>
+    <line x1="23" y1="20" x2="23" y2="80" stroke="#C9C6BB" stroke-width="5" stroke-linecap="round"/>
+    <rect x="33" y="30" width="48" height="14" rx="7" fill="#8050D4"/>
+    <rect x="33" y="54" width="32" height="14" rx="7" fill="#B4B2A9"/>
+  </g>
+</svg>
