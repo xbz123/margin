@@ -43,7 +43,9 @@ publish no license file: five are taken from their source commit or crate file
 header (cssparser-color, selectors, zune-core, zune-jpeg) or a license the author
 added later (malloc_buf); for block, objc_id, objc-foundation, fxhash and mac
 neither the crate nor its repository has one, so their Cargo.toml declaration is
-kept with the standard SPDX terms and no copyright is supplied. The text below
+kept with the standard SPDX terms and no copyright is supplied. The user accepted
+this for exactly these five versions (PLAN S23); it does not extend to other
+packages or versions. The text below
 describes the npm prebuilt, which is no longer shipped.
 
 @img/sharp-libvips-darwin-arm64@1.2.4 declares LGPL-3.0-or-later. Its README lists
