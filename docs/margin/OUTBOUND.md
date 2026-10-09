@@ -159,21 +159,32 @@ User-clicked links are not automatic resources. `navigationPolicy.ts`, installed
 in bootstrap before `main` and any window, handles every webContents: renderer
 navigation is allowed only to the app's own `dist/index.html` (or the dev server
 origin in an unpackaged development run); child windows are always denied and
-webview attachment is refused. A refused navigation or window.open whose URL is
-https without userinfo, or the macOS settings scheme on macOS, is handed to the
-default browser; everything else (http, file, mailto, custom schemes) is dropped.
-The open-external IPC uses the same rule, replacing the earlier Gmail-only
-allowlist, so help and key-page links now open. The menu's Electron link and the
+webview attachment is refused. Since the stage 2 acceptance review, a refused
+navigation or window.open opens nothing: Electron does not tell the main process
+whether a user gesture caused it, so a script could otherwise open links on its
+own. The browser opens only through the open-external IPC, which the preload sends
+in two cases: a trusted click (or middle click) on a link that leaves the page and
+that the page did not handle itself, and `electronAPI.openExternal` called while
+the frame has transient user activation. Scripts can create neither trusted
+events nor user activation. The main process then opens the URL only when it is
+https without userinfo, or the macOS settings scheme on macOS; everything else
+(http, file, mailto, custom schemes) is dropped. The menu's Electron link and the
 accessibility settings deep link call `shell` directly with fixed URLs.
 
-The outbound-renderer gate checks this in the real launcher window: the page URL
-and preload API survive, no window is created, a loopback page receives no
-request from the refused navigations (a main-process positive control does reach
-it), and exactly the three followed https links are recorded. The isolation guard
-replaces `shell.openExternal` with a recorder of kind `external-open`, so
-followed links are counted apart from automatic requests and never reach the
-real browser. The same test fails without the policy
-(`evidence/AG-24-followup/navigation-red-without-policy.log`).
+The outbound-renderer gate checks this in the real launcher window. Real input
+(Playwright's clicks) on two https links, a button calling `openExternal`, an http
+link, a mailto link and a link the page handles itself records exactly the three
+expected `external-open` entries. After the click activation has expired,
+script-driven window.open, synthetic link clicks, `openExternal` and a location
+change record none. The page URL and preload API survive, no window is created,
+and a loopback page receives no request from the refused navigations (a
+main-process positive control does reach it). The isolation guard replaces
+`shell.openExternal` with a recorder of kind `external-open`, so followed links
+are counted apart from automatic requests and never reach the real browser.
+With the earlier policy (refused navigations handed to the browser) the test
+fails with the three automatic URLs recorded
+(`evidence/stage2-review/navigation-red-old-policy.log`); the first version of
+the policy is in `evidence/AG-24-followup/navigation-red-without-policy.log`.
 Native sources have no application-owned HTTP after the retired functionality.
 
 Codex run/stream checks scopes before spawn. Prompt stdin/image args, its own

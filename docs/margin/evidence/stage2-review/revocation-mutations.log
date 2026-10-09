@@ -1,0 +1,19 @@
+== remove line 93058 -> generateContent:
+✖ generateContent: revocation during the retry backoff stops the retry, with allowed control (938.003042ms)
+ℹ pass 0
+ℹ fail 1
+✖ failing tests:
+✖ generateContent: revocation during the retry backoff stops the retry, with allowed control (938.003042ms)
+== remove line 93683 -> generateContentStructured:
+✖ generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls (107.488042ms)
+ℹ pass 0
+ℹ fail 1
+✖ failing tests:
+✖ generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls (107.488042ms)
+== remove line 95170 -> streamWithGroqOrGemini:
+✖ streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls (103.115833ms)
+ℹ pass 0
+ℹ fail 1
+✖ failing tests:
+✖ streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls (103.115833ms)
+restored

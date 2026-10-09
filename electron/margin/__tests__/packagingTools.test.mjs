@@ -6,6 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { linkSet, classify } from '../../../scripts/margin/native-link-set.mjs';
 import { readBuildInfo, verifyDirectory } from '../../../scripts/margin/download-ci-artifact.mjs';
+import { judge as judgeSharpSmoke } from '../../../scripts/margin/libvips/sharp-smoke-local.mjs';
 import { createRequire } from 'node:module';
 
 const { FORBIDDEN } = createRequire(import.meta.url)('../../../scripts/margin/package-check.cjs');
@@ -86,4 +87,20 @@ test('every libvips notice input exists with its recorded hash and source archiv
   const compiled = fs.readFileSync(new URL('../../../scripts/margin/libvips/librsvg-compiled.txt', import.meta.url), 'utf8').trim().split('\n');
   const covered = new Set(entries.filter((entry) => entry.id.startsWith('librsvg-crate:')).map((entry) => entry.id.split(':')[1]));
   assert.deepEqual(compiled.map((line) => line.replace(' ', '@')).filter((crate) => !covered.has(crate)), []);
+});
+
+test('the local sharp smoke fails unless sharp ran on the package libvips under an active guard', () => {
+  const saved = JSON.parse(fs.readFileSync(new URL('../../../docs/margin/evidence/AG-25/local-verify/sharp-smoke-temp.json', import.meta.url), 'utf8'));
+  const rebuilt = '57E6BFB0-8E4E-3F1F-A3AB-1DD593CAC71C';
+  assert.deepEqual(judgeSharpSmoke(saved, rebuilt), { passed: true, failed: [] });
+  const fail = (change, uuid = rebuilt) => judgeSharpSmoke({ ...saved, ...change }, uuid);
+  // The acceptance review's case: the child exits 1 with no output (invalid package).
+  assert.deepEqual(fail({ exit: 1, output: '', loaded: [] }).failed, ['sharp-smoke exited 1', 'no sharp result', 'the package libvips was not loaded']);
+  assert.deepEqual(fail({ exit: null }).failed, ['sharp-smoke exited null'], 'Electron could not be spawned');
+  assert.deepEqual(fail({ output: '{"vips":"8.17.3"}' }).failed, ['incomplete sharp result']);
+  assert.deepEqual(fail({ guardActive: false }).failed, ['guard not active']);
+  assert.deepEqual(fail({ blocked: [{ kind: 'net' }] }).failed, ['guard blocked 1 attempts']);
+  assert.deepEqual(judgeSharpSmoke(saved, '52C60631-3689-3C30-8D36-2631F40386D7').failed, ['loaded libvips is not 52C60631-3689-3C30-8D36-2631F40386D7']);
+  const elsewhere = saved.loaded.map((line) => line.replace('<app>/Contents/Resources/app.asar.unpacked', '/repo'));
+  assert.deepEqual(fail({ loaded: elsewhere }).failed, ['the package libvips was not loaded', 'another libvips was loaded']);
 });

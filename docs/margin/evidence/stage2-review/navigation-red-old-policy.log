@@ -1,0 +1,36 @@
+✖ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8619.252792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9087.37075
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:74:1
+✖ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8619.252792ms)
+  AssertionError [ERR_ASSERTION]: automatic navigation and window.open do not open the browser
+  + actual - expected
+  
+    [
+      'https://links.example/api-clicked',
+      'https://links.example/clicked',
+      'https://links.example/clicked-new-tab',
+  +   'https://links.example/followed',
+  +   'https://links.example/new-tab',
+  +   'https://links.example/opened'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/outbound-renderer.test.mjs:146:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'https://links.example/api-clicked', 'https://links.example/clicked', 'https://links.example/clicked-new-tab', 'https://links.example/followed', 'https://links.example/new-tab', 'https://links.example/opened' ],
+    expected: [ 'https://links.example/api-clicked', 'https://links.example/clicked', 'https://links.example/clicked-new-tab' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

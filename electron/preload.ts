@@ -9,6 +9,25 @@ installConsoleLogging(console, (level, line) => {
 ipcRenderer.invoke('get-verbose-logging').then((enabled: boolean) => { verboseLog = enabled === true; }).catch(() => {});
 ipcRenderer.on('verbose-logging-changed', (_event: unknown, enabled: boolean) => { verboseLog = enabled === true; });
 
+// The only ways a renderer opens the browser (navigationPolicy refuses window.open
+// and navigation without opening anything). A trusted click on a link that leaves
+// the page, not handled by the page itself, is opened here; scripts cannot create
+// trusted events. openExternal below needs the frame's transient user activation,
+// which only real input grants. The main process still checks the URL.
+const userActivated = () => navigator.userActivation?.isActive === true;
+function openClickedLink(event: MouseEvent): void {
+  if (!event.isTrusted || event.defaultPrevented || (event.type === 'click' ? event.button !== 0 : event.button !== 1)) return;
+  const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+  if (!(link instanceof HTMLAnchorElement) || link.hasAttribute('download')) return;
+  const target = new URL(link.href);
+  const here = new URL(window.location.href);
+  if (target.protocol === here.protocol && target.host === here.host && target.pathname === here.pathname && target.search === here.search) return;
+  event.preventDefault();
+  void ipcRenderer.invoke('open-external', link.href).catch(() => {});
+}
+window.addEventListener('click', openClickedLink);
+window.addEventListener('auxclick', openClickedLink);
+
 // Types for the exposed Electron API
 interface ElectronAPI {
   updateContentDimensions: (dimensions: { width: number; height: number }) => Promise<void>;
@@ -694,7 +713,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('settings:open-tab', subscription);
     };
   },
-  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+  openExternal: (url: string) => {
+    if (userActivated()) return ipcRenderer.invoke('open-external', url);
+    console.warn('[Navigation] Refused openExternal without user activation');
+    return Promise.resolve();
+  },
   // UX2: in-app TCC repair. Returns { ok, bundleId, results, promptRelaunch, message }.
   // Renderer should show the `message` and prompt the user to fully quit and reopen.
   repairTccPermissions: () => ipcRenderer.invoke('repair-tcc-permissions'),

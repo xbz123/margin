@@ -5,8 +5,11 @@ import { fileURLToPath } from 'node:url';
 // Every window shows the app's own page next to the preload API. A renderer
 // navigation elsewhere would load foreign content beside that API, and a child
 // window would be an unconfigured Electron window. Both are refused for every
-// webContents. A link the user follows opens in the default browser when
-// isExternalLink accepts it; anything else is dropped.
+// webContents, and neither opens the browser: Electron does not say whether a
+// user gesture caused them, so a script could open links without the user. The
+// browser opens only through the open-external IPC, which the preload sends for a
+// trusted click on a link or for openExternal while the frame has user activation
+// (electron/preload.ts), and then only when isExternalLink accepts the URL.
 
 const DEV_ORIGIN = 'http://localhost:5180';
 
@@ -42,14 +45,14 @@ export async function openExternalLink(url: string): Promise<boolean> {
 
 export function installNavigationPolicy(): void {
   app.on('web-contents-created', (_event, contents) => {
-    contents.setWindowOpenHandler(({ url }) => {
-      void openExternalLink(url);
+    contents.setWindowOpenHandler(() => {
+      console.warn('[Navigation] Refused window.open');
       return { action: 'deny' };
     });
     contents.on('will-navigate', (event) => {
       if (isAppPage(event.url)) return;
       event.preventDefault();
-      void openExternalLink(event.url);
+      console.warn('[Navigation] Refused navigation away from the app page');
     });
     contents.on('will-attach-webview', (event) => event.preventDefault());
   });

@@ -1,0 +1,13 @@
+{
+  "exit": 1,
+  "output": "",
+  "loaded": [],
+  "guardActive": true,
+  "blocked": [],
+  "passed": false,
+  "failed": [
+    "sharp-smoke exited 1",
+    "no sharp result",
+    "the package libvips was not loaded"
+  ]
+}

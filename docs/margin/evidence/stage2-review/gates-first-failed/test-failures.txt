@@ -1,0 +1,2 @@
+electron/margin/__tests__/loggingPrivacy.test.mjs :: isolated preload never emits raw console arguments even with verbose forwarding
+electron/margin/__tests__/loggingPrivacy.test.mjs :: verbose toggling only forwards already-safe metadata

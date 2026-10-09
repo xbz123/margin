@@ -71,7 +71,7 @@ test('all nine Markdown callers and streaming sanitize block image loads in a re
   assert.deepEqual(outbound, [], 'same egress classification as the existing startup harness');
 });
 
-test('app windows refuse foreign navigation and child windows; only followed https links go to the browser', async () => {
+test('app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser', async () => {
   let requests = 0;
   const server = http.createServer((req, res) => { requests++; res.end('<p>synthetic page</p>'); });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -94,7 +94,36 @@ test('app windows refuse foreign navigation and child windows; only followed htt
     }, `${local}/control`);
     assert.equal(requests, 1);
 
+    const externalOpens = () => readBlocked(sandbox).filter(record => record.kind === 'external-open').map(record => record.detail).sort();
+    const clicked = ['https://links.example/api-clicked', 'https://links.example/clicked', 'https://links.example/clicked-new-tab'];
+
+    // User clicks first (Playwright then waits on the refused navigations below).
+    // Playwright sends real input events, which are trusted and grant user activation.
+    // Only the https links and openExternal from a click handler reach the browser;
+    // a link the page handles itself is left to the page.
     await page.evaluate(({ local }) => {
+      const box = document.createElement('div');
+      box.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:flex-start;background:#fff';
+      const add = (id, href, target) => { const a = document.createElement('a'); a.id = id; a.href = href; a.textContent = id; if (target) a.target = target; box.append(a); return a; };
+      add('clicked', 'https://links.example/clicked');
+      add('clicked-new-tab', 'https://links.example/clicked-new-tab', '_blank');
+      add('clicked-local', `${local}/clicked`);
+      add('clicked-mail', 'mailto:someone@example.com');
+      add('handled', 'https://links.example/handled').addEventListener('click', event => event.preventDefault());
+      const button = document.createElement('button'); button.id = 'api'; button.textContent = 'api';
+      button.addEventListener('click', () => window.electronAPI.openExternal('https://links.example/api-clicked'));
+      box.append(button);
+      document.body.append(box);
+    }, { local });
+    for (const id of ['clicked', 'clicked-new-tab', 'clicked-local', 'clicked-mail', 'handled', 'api']) await page.click(`#${id}`);
+    await page.waitForTimeout(500);
+    assert.deepEqual(externalOpens(), clicked);
+
+    // Automatic: script without user activation (the clicks' transient activation
+    // has to expire first; Chromium keeps it for 5 s), synthetic (untrusted) clicks
+    // and a location change. None may open the browser.
+    await page.waitForFunction(() => !navigator.userActivation.isActive, null, { timeout: 15_000 });
+    const activated = await page.evaluate(({ local }) => {
       const follow = (href, target) => { const a = document.createElement('a'); a.href = href; if (target) a.target = target; document.body.append(a); a.click(); a.remove(); };
       window.open('https://links.example/opened');
       window.open(`${local}/window-open`);
@@ -103,17 +132,18 @@ test('app windows refuse foreign navigation and child windows; only followed htt
       follow('https://links.example/new-tab', '_blank');
       follow(`${local}/followed`);
       follow('mailto:someone@example.com');
+      window.electronAPI.openExternal('https://links.example/api-without-click');
+      window.location.href = `${local}/assigned`;
+      return navigator.userActivation.isActive;
     }, { local });
-    await page.waitForTimeout(500);
-    await page.evaluate(local => { window.location.href = `${local}/assigned`; }, local);
-    await page.waitForTimeout(500);
+    assert.equal(activated, false, 'the automatic attempts ran without user activation');
+    await page.waitForTimeout(1000);
 
     assert.equal(page.url(), startUrl, 'the app page was not replaced');
     assert.equal(await page.evaluate(() => typeof window.electronAPI), 'object');
     assert.equal(await windowCount(), before, 'no child window was created');
     assert.equal(requests, 1, 'no refused navigation or window reached the loopback page');
-    const opened = readBlocked(sandbox).filter(record => record.kind === 'external-open').map(record => record.detail).sort();
-    assert.deepEqual(opened, ['https://links.example/followed', 'https://links.example/new-tab', 'https://links.example/opened']);
+    assert.deepEqual(externalOpens(), clicked, 'automatic navigation and window.open do not open the browser');
   } finally {
     if (app) await app.close();
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

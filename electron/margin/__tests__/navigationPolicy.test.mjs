@@ -15,6 +15,7 @@ const ts = require('typescript');
 function policy({ packaged = true, env = 'production', platform = 'darwin', fail = false } = {}) {
   const opened = [];
   const warnings = [];
+  const created = [];
   const module = { exports: {} };
   const source = fs.readFileSync(path.join(REPO, 'electron/services/navigationPolicy.ts'), 'utf8');
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText, {
@@ -23,13 +24,16 @@ function policy({ packaged = true, env = 'production', platform = 'darwin', fail
     process: { env: { NODE_ENV: env }, platform },
     require(id) {
       if (id === 'electron') return {
-        app: { getAppPath: () => '/Applications/temp.app/Contents/Resources/app.asar', isPackaged: packaged },
+        app: {
+          getAppPath: () => '/Applications/temp.app/Contents/Resources/app.asar', isPackaged: packaged,
+          on: (name, listener) => { if (name === 'web-contents-created') created.push(listener); },
+        },
         shell: { openExternal: async url => { if (fail) throw Error('synthetic'); opened.push(url); } },
       };
       return require(id);
     },
   });
-  return { ...module.exports, opened, warnings };
+  return { ...module.exports, opened, warnings, created };
 }
 
 test('only the bundled page counts as the app page; the dev origin only in an unpackaged dev run', () => {
@@ -58,4 +62,26 @@ test('links open externally only for https without userinfo, or macOS settings o
   const windows = policy({ platform: 'win32' });
   assert.equal(await windows.openExternalLink('x-apple.systempreferences:com.apple.preference.security'), false, 'issue #252');
   assert.equal(await policy({ fail: true }).openExternalLink('https://example.com/'), false, 'a shell failure is reported, not thrown');
+});
+
+test('window.open and navigation away from the app page are refused without opening the browser', async () => {
+  const p = policy();
+  p.installNavigationPolicy();
+  const handlers = {};
+  const contents = { setWindowOpenHandler: handler => { handlers.open = handler; }, on: (name, listener) => { handlers[name] = listener; } };
+  for (const listener of p.created) listener({}, contents);
+  for (const url of ['https://links.example/opened', 'x-apple.systempreferences:com.apple.preference.security']) {
+    assert.equal(handlers.open({ url, disposition: 'foreground-tab' }).action, 'deny', url);
+    let prevented = false;
+    handlers['will-navigate']({ url, preventDefault: () => { prevented = true; } });
+    assert.equal(prevented, true, url);
+  }
+  let appPagePrevented = false;
+  handlers['will-navigate']({ url: 'file:///Applications/temp.app/Contents/Resources/app.asar/dist/index.html?window=overlay', preventDefault: () => { appPagePrevented = true; } });
+  assert.equal(appPagePrevented, false, 'the app page itself still loads');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(p.opened, [], 'only the open-external IPC opens the browser');
+  const attach = { prevented: false, preventDefault() { this.prevented = true; } };
+  handlers['will-attach-webview'](attach);
+  assert.equal(attach.prevented, true);
 });

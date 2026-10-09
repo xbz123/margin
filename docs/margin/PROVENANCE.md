@@ -326,6 +326,16 @@ imported. Generic one-line idioms the provenance check matched are registered in
   `E2EParityEvidence`. `build-electron.js` bundles every `.ts` under
   `electron/`, so the deleted scripts were shipped inside the app.
 
+### Stage 2 acceptance review fixes (Claude, 2026-10-09)
+
+- The trusted-click link handler and the user-activation check for
+  `openExternal` in `electron/preload.ts`, the refusal-only handlers in
+  `electron/services/navigationPolicy.ts`, the verdict in
+  `scripts/margin/libvips/sharp-smoke-local.mjs` and the added tests: written for
+  this branch from Codex Astra's review findings, not from upstream code.
+- Two generic lines are allowlisted in `provenance-config.json`:
+  `return Promise.resolve();` and `const report = {`.
+
 ### S22 shipped libvips rebuild (Claude, 2026-10-09)
 
 - `scripts/margin/libvips/install-rebuilt.mjs`, `fetch-prebuilt.mjs`,

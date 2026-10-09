@@ -61,7 +61,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
   const context = vm.createContext({ console, process: fakeProcess, Buffer, setTimeout, clearTimeout, URL, Request,
     fetch: () => Promise.resolve(new Response('synthetic')),
     document: { documentElement: { setAttribute() {} }, getElementById() {} },
-    localStorage: { getItem: () => null }, window: { electronAPI: {} },
+    localStorage: { getItem: () => null }, window: { electronAPI: {}, addEventListener() {} },
     __MARGIN_APP_IDENTITY__: { variant: 'temp', name: 'temp', appId: 'synthetic.temp' } });
   const load = fileName => {
     if (cache.has(fileName)) return cache.get(fileName).exports;
