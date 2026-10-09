@@ -8,9 +8,12 @@ jobs only run with those inputs). All three jobs succeeded: gates 7.5 min, libvi
 conclusion and every artifact's size and API digest. The two runs before it are
 described in `../CI-37868935310/`.
 
-The workflow artifacts are private and expire (apps 14 days; native, sources,
-libvips and gates 30 days). This directory keeps the small records; the
-binaries were downloaded and checked locally (`../AG-25/local-verify/`).
+The workflow artifacts were private and were deleted on 2026-10-09 at the
+user's request to stay within the storage quota, together with those of runs
+37868935310 and 37870671533. This directory keeps the small records; the
+binaries were downloaded and checked locally before that
+(`../AG-25/local-verify/`). Under S22 the package now ships the rebuilt libvips;
+that build's run supersedes this one as the packaging evidence.
 
 ## gates job
 

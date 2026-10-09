@@ -14,7 +14,8 @@ source manifest. All matched.
 
 - **Native module (S11 item 5).** `--install-native` replaced the local
   `native-module/index.darwin-arm64.node` (the X3 cargo-cache build, sha256
-  `b29eefde…`, kept as a backup in the scratchpad) with the verified CI build
+  `b29eefde…`; its scratchpad backup was deleted with the scratchpad on
+  2026-10-09 at the user's request) with the verified CI build
   `71f9cf8e…`. The final local gate run (`../gates-final/`) uses it.
 - **Source bundle** (`source-bundle-verify.json`): all 592 files listed in
   `MANIFEST.json` match their size and sha256, and no file is unlisted. The app

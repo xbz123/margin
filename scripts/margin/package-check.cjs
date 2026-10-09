@@ -7,7 +7,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
-const asar = require('@electron/asar');
 
 const MACHO = new Set(['feedface', 'cefaedfe', 'feedfacf', 'cffaedfe', 'cafebabe', 'bebafeca']);
 // Retired or removed content that must not reach the package (PLAN §5 G3 and S21).
@@ -69,6 +68,9 @@ function checkPackage(app, identity, { sourceRoot, libvipsSHA256 } = {}) {
   add('executable-name', fs.existsSync(path.join(contents, 'MacOS', identity.name)), { expected: `MacOS/${identity.name}` });
   add('no-update-config', !fs.existsSync(path.join(resources, 'app-update.yml')), 'electron-builder writes app-update.yml only for a publish target');
 
+  // Loaded here so the constants above can be read without node_modules
+  // (the libvips-replace CI job imports them before any npm install).
+  const asar = require('@electron/asar');
   const archive = path.join(resources, 'app.asar');
   const asarPaths = asar.listPackage(archive).map((entry) => entry.replace(/^\//, ''));
   const packaged = JSON.parse(asar.extractFile(archive, 'package.json').toString('utf8'));
