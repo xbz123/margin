@@ -1,0 +1,9 @@
+/usr/bin/otool
+/usr/bin/install_name_tool
+/usr/bin/ld
+/usr/bin/cc
+/opt/homebrew/bin/node
+/opt/homebrew/opt/rustup/bin/cargo
+/opt/homebrew/bin/cargo
+build exit 0
+1

@@ -1,0 +1,9 @@
+commit: 06751c9567824cc8089cf4a4b3e047b33a3550d1
+run: local (S24, Claude, 2026-10-09), PATH limited to rustup, Homebrew and system tools
+rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+xcode: Xcode 16.4 Build version 16F6 
+macOS: 26.6.2 25G83
+cidre compiled in this run: 1
+44377f023f8a4dd6662d3f174927fe72fe1aab45ad497ecfc656d935835a4209  native-artifact-clean-path/index.darwin-arm64.node
+b63f9260d9719f0b9a480c592631a0280e7a31938a9ab13acf14096910fa90a4  native-artifact-clean-path/natively-audio-aarch64-apple-darwin.map
+ff178df42ce1a86f457cbd3740f94ab50d7b3a9171216157b74f73bfa9cf2659  native-artifact-clean-path/link-set.json

@@ -65,3 +65,6 @@ did not change.
 
 Items 3–9 are the evidence a CI run with `package_apps=true` would add for
 `9af26551`; item 1 is what `no_cache=true` would add.
+
+Items 1 and 2 were later covered on this machine with Xcode 16.4 and rustup
+(PLAN S24, `../S24-local-native/`).

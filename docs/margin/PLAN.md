@@ -1763,3 +1763,13 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 4. **[P2] 等待期间撤销的行为证据不全。** 为 `generateContent`（重试退避中撤销）、`generateContentStructured`（限流、重试退避、轮换退避中撤销）、`streamWithGroqOrGemini`（Groq 限流中、转 Gemini 前撤销）补行为用例，各带允许对照。在构建产物中逐一删去对应的发送前检查，三个用例都失败（`revocation-mutations.log`），恢复后通过。
 
 首次门禁（`gates-first-failed/`）失败两处：两行通用代码的来源扫描命中（已登记于 `provenance-config.json` 和 PROVENANCE），以及日志隐私测试的假 `window` 缺 `addEventListener`（preload 新增了点击监听）。修正后完整门禁（`gates/`）16/16 通过，853 测试、847 通过、6 个既有跳过。
+
+### S24 本机从零编译原生模块（Claude，2026-10-09）
+
+Xcode 16.4（16F6，与 CI 相同，只经 `DEVELOPER_DIR` 使用，系统开发者目录仍是命令行工具）和 rustup 的 1.98.1。图形界面在 macOS 26 上被系统拦下，命令行可以用。在草稿目录的干净克隆里按 CI 的 gates 作业执行，记录见 `evidence/S24-local-native/`：
+
+- 第一次 cidre 构建失败：缺 `CoreSimulator.framework`，用户以管理员身份运行 `xcodebuild -runFirstLaunch` 后通过。
+- shell 的 PATH 中 anaconda 的 cctools-port 排在系统工具前，`build-native.js` 调用的 `install_name_tool` 给模块写了假签名；PATH 只留 rustup、Homebrew 和系统工具重编后，大小（1,150,760 字节）、链接器签名、导出符号、去掉构建路径后的字符串和链接集合都与 CI `37944613051` 相同，门禁 16/16 通过（853 测试、847 通过、6 个既有跳过）。
+- 字节仍不同（本机 `44377f02…`，CI `71f9cf8e…`），原因只有两个，换机器无法消除：嵌入了构建路径（23 条 cargo 注册表路径和模块自身的 install name），以及 cidre 从运行中的系统链接 `MobileDevice.framework`，记录的是宿主 macOS 的版本（CI 1818.13.1，本机 1827.120.2）。逐字节一致需要与 runner 相同的 macOS。
+- 本机编出的 better-sqlite3 和 keytar 也改用 Xcode 编译。工作树里仍是已核对的 CI 模块 `71f9cf8e…`，未替换。
+- 首次重新拉取上游时发现上游 main 新增了与本分支相同的一行通用代码，已登记（`06751c95`），否则下次 CI 会失败。

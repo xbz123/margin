@@ -1,0 +1,10 @@
+v26.0.0
+11.12.1
+Xcode 16.4
+Build version 16F6
+DEVELOPER_DIR=/Applications/Xcode-16.4.app/Contents/Developer
+/Applications/Xcode-16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+15.5
+1.98.1-aarch64-apple-darwin (overridden by '/private/tmp/claude-501/-Users-mac-code-Natively/6fe54d19-a1b1-4a96-8ec7-9e385ee0a09f/scratchpad/s24/repo/native-module/rust-toolchain.toml')
+rustc 1.98.1 (48a229cea 2026-09-01)
+cargo 1.98.1 (797e8a9bc 2026-08-05)
