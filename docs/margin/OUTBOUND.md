@@ -155,11 +155,25 @@ so CSP cannot conceal a component/sanitizer regression.
 The `outbound-renderer` step is part of the ordinary run-gates sequence (and its
 CI callers), running serially under X2 with only Electron/esbuild exec allowed.
 
-User-clicked links are not automatic resources. open-external IPC retains its
-existing Gmail /mail/ and macOS settings allowlist. Other help/key-page requests
-may be blocked by that allowlist; no broader success is claimed. Markdown anchors,
-menu Electron link and accessibility settings shell calls are separate inventory
-items; unified navigation/window-open behavior is not implemented in this ticket.
+User-clicked links are not automatic resources. `navigationPolicy.ts`, installed
+in bootstrap before `main` and any window, handles every webContents: renderer
+navigation is allowed only to the app's own `dist/index.html` (or the dev server
+origin in an unpackaged development run); child windows are always denied and
+webview attachment is refused. A refused navigation or window.open whose URL is
+https without userinfo, or the macOS settings scheme on macOS, is handed to the
+default browser; everything else (http, file, mailto, custom schemes) is dropped.
+The open-external IPC uses the same rule, replacing the earlier Gmail-only
+allowlist, so help and key-page links now open. The menu's Electron link and the
+accessibility settings deep link call `shell` directly with fixed URLs.
+
+The outbound-renderer gate checks this in the real launcher window: the page URL
+and preload API survive, no window is created, a loopback page receives no
+request from the refused navigations (a main-process positive control does reach
+it), and exactly the three followed https links are recorded. The isolation guard
+replaces `shell.openExternal` with a recorder of kind `external-open`, so
+followed links are counted apart from automatic requests and never reach the
+real browser. The same test fails without the policy
+(`evidence/AG-24-followup/navigation-red-without-policy.log`).
 Native sources have no application-owned HTTP after the retired functionality.
 
 Codex run/stream checks scopes before spawn. Prompt stdin/image args, its own

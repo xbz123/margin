@@ -70,6 +70,10 @@ function load(file, electron, main) {
         electron.events.push('outbound-import');
         return { installOutboundFetchPolicy() { electron.events.push('outbound-policy'); } };
       }
+      if (id === './services/navigationPolicy') {
+        assert.equal(electron.app.name, identity.name, 'identity precedes the navigation policy');
+        return { installNavigationPolicy() { electron.events.push('navigation-policy'); } };
+      }
       if (id === './main') return main();
       return require(id);
     },
@@ -106,6 +110,7 @@ test('bootstrap precedes real credentials/storage imports and settings survive a
     let storage;
     load(path.join(REPO, 'electron/bootstrap.ts'), electron, () => {
       assert.ok(electron.events.includes('outbound-policy'), 'fetch policy is installed before main/storage imports');
+      assert.ok(electron.events.includes('navigation-policy'), 'navigation policy is installed before main creates any window');
       const { CredentialsManager } = load(path.join(REPO, 'dist-electron/electron/services/CredentialsManager.js'), electron);
       const { SettingsManager } = load(path.join(REPO, 'dist-electron/electron/services/SettingsManager.js'), electron);
       const credentials = CredentialsManager.getInstance();

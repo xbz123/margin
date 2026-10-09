@@ -1,4 +1,4 @@
-import type { CredentialSaveResult, ServiceAccountSelectionResult } from './credentialSave';
+import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from './credentialSave';
 
 export interface ElectronAPI {
   updateContentDimensions: (dimensions: {
@@ -89,6 +89,8 @@ export interface ElectronAPI {
   setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setClaudeApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  getCredentialLoadStatus: () => Promise<CredentialLoadStatus>
+  discardUnreadableCredentials: () => Promise<CredentialDiscardResult>
   getStoredCredentials: () => Promise<{ hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; googleServiceAccountPath: string | null; sttProvider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; hasDeepgramKey: boolean; hasElevenLabsKey: boolean; hasAzureKey: boolean; azureRegion: string; hasIbmWatsonKey: boolean; ibmWatsonRegion: string; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttDeepgramKey?: string; sttElevenLabsKey?: string; sttAzureKey?: string; sttIbmKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>

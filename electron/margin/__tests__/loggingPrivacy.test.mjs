@@ -48,7 +48,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
     isPackaged: true, setName() {}, setPath() {}, setAppUserModelId() {},
     setAppLogsPath() { enabled = true; },
     getPath(name) { if (name === 'logs' && fileFault === 'path') throw Error(CANARY); return name === 'logs' ? (enabled ? '/synthetic/temp' : '/synthetic/wrong-log-root') : '/synthetic'; },
-    requestSingleInstanceLock: () => false, exit() {},
+    requestSingleInstanceLock: () => false, exit() {}, on() {},
   };
   const electron = {
     app, contextBridge: { exposeInMainWorld() {} },
@@ -89,7 +89,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
       if (id.startsWith('.')) {
         const resolved = path.posix.normalize(path.posix.join(path.posix.dirname(fileName), id)) + '.ts';
         if (['electron/bootstrap.ts', 'electron/main.ts', 'electron/logging.ts', 'electron/utils/consoleLogging.ts',
-          'electron/utils/redactForLog.ts', 'electron/margin/appIdentity.ts', 'electron/services/outbound.ts', 'src/logging.ts'].includes(resolved)) return load(resolved);
+          'electron/utils/redactForLog.ts', 'electron/margin/appIdentity.ts', 'electron/services/outbound.ts', 'electron/services/navigationPolicy.ts', 'src/logging.ts'].includes(resolved)) return load(resolved);
         if (id === './WindowHelper') console.log(CANARY, new Error(CANARY)); // actual import boundary
         if (id === './App') console.log(CANARY); // actual renderer business import boundary
         return {};

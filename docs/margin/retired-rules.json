@@ -7,7 +7,8 @@
     "AG-14",
     "AG-15",
     "AG-16",
-    "AG-17"
+    "AG-17",
+    "S21"
   ],
   "scanRoots": [
     "electron",
@@ -1316,6 +1317,26 @@
       "ticket": "AG-17",
       "kind": "host",
       "value": "groq.com/favicon.svg"
+    },
+    {
+      "ticket": "S21",
+      "kind": "dep",
+      "value": "pdf-parse"
+    },
+    {
+      "ticket": "S21",
+      "kind": "dep",
+      "value": "pdfjs-dist"
+    },
+    {
+      "ticket": "S21",
+      "kind": "dep",
+      "value": "@napi-rs/canvas"
+    },
+    {
+      "ticket": "S21",
+      "kind": "dep",
+      "value": "mammoth"
     }
   ]
 }

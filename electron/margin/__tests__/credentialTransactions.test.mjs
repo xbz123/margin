@@ -51,6 +51,11 @@ function storage() {
     },
     renameSync(from, to) { if (fault === 'rename') throw Error('synthetic rename'); files.set(to, files.get(from)); files.delete(from); },
     unlinkSync: file => files.delete(file),
+    linkSync(from, to) {
+      if (fault === 'link') throw Error('synthetic link');
+      if (files.has(to)) throw Error('synthetic EEXIST');
+      files.set(to, files.get(from));
+    },
   };
   const safeStorage = {
     isEncryptionAvailable: () => fault !== 'unavailable',
@@ -98,6 +103,52 @@ for (const fault of ['unavailable', 'encrypt', 'write', 'rename', 'decrypt', 'pa
     }
   });
 }
+
+test('unreadable credentials are offered for discard only after a decrypt or parse failure', () => {
+  for (const fault of ['decrypt', 'parse']) {
+    const disk = storage();
+    disk.setFault(fault);
+    const manager = disk.boot();
+    const original = disk.files.get(disk.filename);
+    assert.deepEqual(plain(manager.getLoadStatus()), { ok: false, code: 'decrypt_failed', message: manager.getLoadStatus().message, canDiscard: true });
+    disk.setFault(undefined);
+    const discarded = manager.discardUnreadableCredentials();
+    assert.equal(discarded.ok, true);
+    assert.match(discarded.backupName, /^credentials\.enc\.unreadable-[0-9T-]+Z$/);
+    assert.equal(disk.files.has(disk.filename), false, 'the original name is free for a new store');
+    assert.deepEqual(disk.files.get(`/synthetic/${discarded.backupName}`), original, 'the backup keeps the original bytes');
+    assert.deepEqual(plain(manager.getLoadStatus()), { ok: true });
+    assert.equal(manager.setOpenaiApiKey('synthetic-new').ok, true, 'saving works again after the discard');
+    assert.equal(disk.boot().getOpenaiApiKey(), 'synthetic-new');
+    assert.deepEqual(disk.files.get(`/synthetic/${discarded.backupName}`), original, 'a later save leaves the backup alone');
+  }
+  for (const fault of ['read', 'unavailable']) {
+    const disk = storage();
+    disk.setFault(fault);
+    const manager = disk.boot();
+    const before = new Map(disk.files);
+    assert.equal(manager.getLoadStatus().canDiscard, false, `${fault} may succeed later, so it is not discardable`);
+    assert.equal(manager.discardUnreadableCredentials().ok, false);
+    assert.deepEqual(disk.files, before);
+    assert.equal(manager.setOpenaiApiKey('synthetic-new').ok, false, 'saving stays blocked');
+  }
+  const healthy = storage().boot();
+  assert.deepEqual(plain(healthy.getLoadStatus()), { ok: true });
+  assert.equal(healthy.discardUnreadableCredentials().ok, false, 'a readable store is never discarded');
+});
+
+test('a failed backup during discard keeps the unreadable file and the save block', () => {
+  const disk = storage();
+  disk.setFault('decrypt');
+  const manager = disk.boot();
+  const before = new Map(disk.files);
+  disk.setFault('link');
+  assert.equal(manager.discardUnreadableCredentials().ok, false);
+  assert.deepEqual(disk.files, before);
+  assert.equal(manager.getLoadStatus().canDiscard, true);
+  disk.setFault(undefined);
+  assert.equal(manager.setOpenaiApiKey('synthetic-new').ok, false);
+});
 
 test('all 22 setters commit only after persistence and can be read after restart', () => {
   const disk = storage();
@@ -575,4 +626,37 @@ test('storage failures cross the real manager, IPC, preload and renderer without
     assert.equal(subject.changes.get('setSavedStatus').openai, false, fault);
     assert.equal(subject.changes.get('setCredentialNotice'), result.message, fault);
   }
+});
+
+test('a decrypt failure reaches settings, and only a confirmed discard crosses IPC and preload', async () => {
+  const disk = storage();
+  disk.setFault('decrypt');
+  const manager = disk.boot();
+  disk.setFault(undefined);
+  const original = disk.files.get(disk.filename);
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }) };
+  const handlers = { 'credentials-load-status': handler('credentials-load-status', context), 'credentials-discard-unreadable': handler('credentials-discard-unreadable', context) };
+  const bridge = name => expression('electron/preload.ts', node => ts.isArrowFunction(node) && ts.isPropertyAssignment(node.parent)
+    && node.parent.name.getText() === name, { ipcRenderer: { invoke: (channel, ...args) => handlers[channel]({}, ...args) } });
+  const electronAPI = { getCredentialLoadStatus: bridge('getCredentialLoadStatus'), discardUnreadableCredentials: bridge('discardUnreadableCredentials') };
+  const status = await electronAPI.getCredentialLoadStatus();
+  assert.equal(status.code, 'decrypt_failed');
+  assert.equal(status.canDiscard, true);
+
+  const declined = ui('src/components/settings/CredentialLoadBanner.tsx', 'discard', undefined, { confirm: () => false, window: { electronAPI } });
+  await declined.fn();
+  assert.deepEqual(disk.files.get(disk.filename), original, 'declining the confirmation changes nothing');
+  assert.equal(declined.changes.size, 0);
+
+  const confirmed = ui('src/components/settings/CredentialLoadBanner.tsx', 'discard', undefined, { window: { electronAPI } });
+  await confirmed.fn();
+  assert.equal(disk.files.has(disk.filename), false);
+  assert.deepEqual(plain(confirmed.changes.get('setStatus')), { ok: true });
+  assert.match(confirmed.changes.get('setResult'), /backed up as credentials\.enc\.unreadable-/);
+  assert.deepEqual(plain(await electronAPI.getCredentialLoadStatus()), { ok: true });
+
+  const again = ui('src/components/settings/CredentialLoadBanner.tsx', 'discard', undefined, { window: { electronAPI } });
+  await again.fn();
+  assert.equal(again.changes.get('setResult'), 'There are no unreadable credentials to discard.');
+  assert.equal(again.changes.has('setStatus'), false);
 });

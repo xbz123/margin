@@ -13,6 +13,7 @@ import {
 import { AboutSection } from './AboutSection';
 import { HelpSettings } from './settings/HelpSettings';
 import { AIProvidersSettings } from './settings/AIProvidersSettings';
+import { CredentialLoadBanner } from './settings/CredentialLoadBanner';
 import { SkillsSettings } from './settings/SkillsSettings';
 import { NativelyLogoMark } from './NativelyLogoMark';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1422,6 +1423,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
                         {/* Content */}
                         <div className="flex-1 bg-bg-main overflow-y-auto p-8 relative">
+                            <CredentialLoadBanner />
                             {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{credentialNotice}</p>}
                             {activeTab === 'general' && (
                                 <div className="space-y-6 animated fadeIn">

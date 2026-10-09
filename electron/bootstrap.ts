@@ -7,4 +7,5 @@ const enableFileLogging = installMainLogging();
 initializeAppIdentity();
 enableFileLogging();
 require('./services/outbound').installOutboundFetchPolicy();
+require('./services/navigationPolicy').installNavigationPolicy();
 require('./main');

@@ -7,7 +7,7 @@ import { app, safeStorage } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
-import type { CredentialSaveResult } from '../../src/types/credentialSave';
+import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
 import { regionalSttEndpoint, openAiSttEndpoint } from './outbound';
 import { GoogleServiceAccount, loadGoogleServiceAccount, validateGoogleServiceAccount } from './googleServiceAccount';
 
@@ -53,6 +53,8 @@ export class CredentialsManager {
     private loadFailure: Extract<CredentialSaveResult, { ok: false }> | undefined = {
         ok: false, code: 'decrypt_failed', message: 'Credentials have not been loaded. Restart the application before saving.',
     };
+    // Set only when an existing file was read and could not be decrypted or parsed.
+    private unreadableOnDisk = false;
 
     private constructor() {
         // Load on construction after app ready
@@ -293,6 +295,40 @@ export class CredentialsManager {
         return this.saveCredentials({ [key]: modelId });
     }
 
+    public getLoadStatus(): CredentialLoadStatus {
+        if (!this.loadFailure) return { ok: true };
+        return { ...this.loadFailure, canDiscard: this.unreadableOnDisk };
+    }
+
+    /**
+     * Recovery after a decrypt failure, confirmed by the user in settings: the
+     * unreadable file is moved aside unchanged (hard link, then unlink of the
+     * original name) and an empty store becomes usable. Refused in every other
+     * state, so it never removes a file that could still be read.
+     */
+    public discardUnreadableCredentials(): CredentialDiscardResult {
+        if (!this.loadFailure || !this.unreadableOnDisk) {
+            return { ok: false, message: 'There are no unreadable credentials to discard.' };
+        }
+        const backupName = `credentials.enc.unreadable-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+        const backupPath = path.join(path.dirname(CREDENTIALS_PATH), backupName);
+        try {
+            fs.linkSync(CREDENTIALS_PATH, backupPath);
+        } catch {
+            return { ok: false, message: 'The unreadable credentials could not be backed up, so they were kept.' };
+        }
+        try {
+            fs.unlinkSync(CREDENTIALS_PATH);
+        } catch {
+            try { fs.unlinkSync(backupPath); } catch { /* the original is still in place */ }
+            return { ok: false, message: 'The unreadable credentials could not be set aside, so they were kept.' };
+        }
+        this.scrubMemory();
+        this.unreadableOnDisk = false;
+        this.loadFailure = undefined;
+        return { ok: true, backupName };
+    }
+
     public clearAll(): void {
         this.scrubMemory();
         if (fs.existsSync(CREDENTIALS_PATH)) {
@@ -357,6 +393,9 @@ export class CredentialsManager {
     }
 
     private loadCredentials(): CredentialSaveResult {
+        // Only bytes that were read and then failed to decrypt or parse count as
+        // unreadable; a failed read may succeed later and is never discardable.
+        let readBytes = false;
         try {
             if (fs.existsSync(CREDENTIALS_PATH)) {
                 if (!safeStorage.isEncryptionAvailable()) {
@@ -366,6 +405,7 @@ export class CredentialsManager {
                 }
 
                 const encrypted = fs.readFileSync(CREDENTIALS_PATH);
+                readBytes = true;
                 const decrypted = safeStorage.decryptString(encrypted);
                 const parsed = JSON.parse(decrypted);
                 if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
@@ -376,6 +416,7 @@ export class CredentialsManager {
                 this.credentials = {};
             }
             this.loadFailure = undefined;
+            this.unreadableOnDisk = false;
             // Legacy plaintext is never read or used as a fallback.
             const plaintextPath = CREDENTIALS_PATH + '.json';
             if (fs.existsSync(plaintextPath)) {
@@ -390,7 +431,8 @@ export class CredentialsManager {
             return { ok: true };
         } catch {
             this.scrubMemory();
-            this.loadFailure = { ok: false, code: 'decrypt_failed', message: 'Stored credentials could not be read. The original file was kept and saving is blocked until it can be loaded.' };
+            this.unreadableOnDisk = readBytes;
+            this.loadFailure = { ok: false, code: 'decrypt_failed', message: 'Stored credentials could not be read. The original file was kept and saving is blocked until it can be loaded or discarded.' };
             return this.loadFailure;
         }
     }

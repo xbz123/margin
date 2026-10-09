@@ -92,10 +92,6 @@ no NOTICE; native target-linked composition and other distribution duties remain
 separate and unresolved.
 Source: https://github.com/google/oboe/tree/86165b8249bc22b9ef70b69e20323244b6f08d88
 
-dingbat-to-unicode 1.0.1 retains Copyright (c) 2021 Michael Williamson and the
-original BSD-2-Clause LICENSE added for 1.0.2, explicitly applied to previous
-versions by the repository owner.
-Source: https://github.com/mwilliamson/dingbat-to-unicode/issues/1#issuecomment-5740760399
 stream-events 1.0.5 retains Copyright (c) 2018 Stephen Sawchuk and its original
 MIT LICENSE officially merged later at 3cfd35ab1a68c9fd41c992428e839ad54dcf8017.
 stubs 3.0.0 retains Copyright (c) 2017 Stephen Sawchuk and its original MIT
@@ -117,7 +113,7 @@ Current complete terms: https://www.unicode.org/license.txt
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 413 unique stored texts; 33 excluded paths; 0 unresolved candidates; 2 deferred notices.
+699 candidates; 388 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -125,7 +121,6 @@ Current supplemental notice bindings:
 - npm:format@0.2.2: MIT
 - cargo:oboe@0.6.1: Apache-2.0
 - cargo:oboe-sys@0.6.1: Apache-2.0
-- npm:dingbat-to-unicode@1.0.1: BSD-2-Clause
 - npm:eastasianwidth@0.3.0: MIT
 - npm:stream-events@1.0.5: MIT
 - npm:stubs@3.0.0: MIT

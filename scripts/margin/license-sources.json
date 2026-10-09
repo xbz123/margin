@@ -765,22 +765,6 @@
     "closesMissing": false
   },
   {
-    "id": "original:dingbat-to-unicode",
-    "version": "1.0.1",
-    "license": "BSD-2-Clause",
-    "url": "https://raw.githubusercontent.com/mwilliamson/dingbat-to-unicode/9eb2d1d8b8463b7bd3cd125597eabcfa9df42128/js/LICENSE",
-    "gitBlob": "d4ff421424a98c90222e74f8f174939a5e0adb2b",
-    "sha256": "1013cef4b629a3c7eaf737c110fb5bebbf3abbc16e154d769468d71c3653fa37",
-    "authorizationURL": "https://github.com/mwilliamson/dingbat-to-unicode/issues/1#issuecomment-5740760399",
-    "authorizationStatement": "A licence file has been added to 1.0.2. This licence also applies to any previous versions.",
-    "role": "original LICENSE added for 1.0.2, explicitly applied to every previous version by repository owner mwilliamson in issue 1 comment 5740760399 on 2026-09-19; original Copyright (c) 2021 Michael Williamson retained; binding stays 1.0.1, not a claim that its original npm tarball contained this file",
-    "bind": {
-      "kind": "npm",
-      "name": "dingbat-to-unicode"
-    },
-    "closesMissing": true
-  },
-  {
     "id": "original:eastasianwidth",
     "version": "0.3.0",
     "license": "MIT",

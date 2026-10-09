@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
-import type { CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
+import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
 
 let verboseLog = false;
 installConsoleLogging(console, (level, line) => {
@@ -67,6 +67,8 @@ interface ElectronAPI {
   setClaudeApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<CredentialSaveResult>;
+  getCredentialLoadStatus: () => Promise<CredentialLoadStatus>;
+  discardUnreadableCredentials: () => Promise<CredentialDiscardResult>;
   getStoredCredentials: () => Promise<{
     hasGeminiKey: boolean;
     hasGroqKey: boolean;
@@ -750,6 +752,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setClaudeApiKey: (apiKey: string) => ipcRenderer.invoke('set-claude-api-key', apiKey),
   setDeepseekApiKey: (apiKey: string) => ipcRenderer.invoke('set-deepseek-api-key', apiKey),
   getStoredCredentials: () => ipcRenderer.invoke('get-stored-credentials'),
+  getCredentialLoadStatus: () => ipcRenderer.invoke('credentials-load-status'),
+  discardUnreadableCredentials: () => ipcRenderer.invoke('credentials-discard-unreadable'),
 
   // Permissions
   checkPermissions: () => ipcRenderer.invoke('permissions:check'),

@@ -17,6 +17,8 @@ import { CHAT_MODE_PROMPT } from './llm/prompts';
 import { buildMeetingChatContext } from './services/meetingChatContext';
 import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { outboundAxios as axios, regionalSttEndpoint, openAiSttEndpoint } from './services/outbound';
+import { openExternalLink } from './services/navigationPolicy';
+import { APP_IDENTITY } from './margin/appIdentity';
 import { loadGoogleServiceAccount, googleSpeechClientOptions } from './services/googleServiceAccount';
 
 export function initializeIpcHandlers(appState: AppState): void {
@@ -407,7 +409,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           const identityHit = CREATOR_PROBE_RE.test(message)
             ? 'I was developed by Evin John.'
             : IDENTITY_PROBE_RE.test(message)
-              ? "I'm Natively, an AI assistant."
+              ? `I'm ${APP_IDENTITY.name}, an AI assistant.`
               : null;
           if (identityHit) {
             if (recordInSession) intelligenceManager.addTranscript(
@@ -977,6 +979,18 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // Get stored API keys (masked for UI display)
+  // A credential file that could not be decrypted blocks every save (AG-22). Settings
+  // shows that state and offers a confirmed discard that keeps a backup.
+  safeHandle('credentials-load-status', async () => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return CredentialsManager.getInstance().getLoadStatus();
+  });
+
+  safeHandle('credentials-discard-unreadable', async () => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return CredentialsManager.getInstance().discardUnreadableCredentials();
+  });
+
   safeHandle('get-stored-credentials', async () => {
     try {
       const { CredentialsManager } = require('./services/CredentialsManager');
@@ -1881,7 +1895,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       results,
       promptRelaunch: anyOk,
       message: anyOk
-        ? 'Permissions reset. Quit Natively completely (Cmd+Q) and reopen — macOS will ask you to grant Microphone and Screen Recording again. Approve both to restore audio capture.'
+        ? `Permissions reset. Quit ${APP_IDENTITY.name} completely (Cmd+Q) and reopen — macOS will ask you to grant Microphone and Screen Recording again. Approve both to restore audio capture.`
         : `Permission reset failed for ${bundleId}. ${results
             .filter((r) => !r.ok)
             .map((r) => `${r.service}: ${r.output}`)
@@ -1889,36 +1903,14 @@ export function initializeIpcHandlers(appState: AppState): void {
     };
   });
 
+  // Same rule as followed links and window.open (navigationPolicy): https, or the
+  // macOS settings scheme on macOS only (issue #252: unknown schemes on Windows).
   safeHandle('open-external', async (event, url: string) => {
-    try {
-      if (typeof url !== 'string') {
-        console.warn('[IPC] Blocked invalid open-external request', { reason: 'non-string' });
-        return;
-      }
-
-      const parsed = new URL(url);
-      const allowedWebUrl =
-        parsed.protocol === 'https:' &&
-        parsed.hostname === 'mail.google.com' &&
-        parsed.pathname === '/mail/';
-      // x-apple.systempreferences is a macOS-only URI scheme. Allowing it on
-      // Windows let renderer regressions hand Windows shell an unknown
-      // protocol → Microsoft Store popup (issue #252). Gate the allowlist on
-      // the actual platform so the IPC layer is the last line of defense.
-      const allowedSystemSettingsUrl =
-        parsed.protocol === 'x-apple.systempreferences:' && process.platform === 'darwin';
-
-      if (allowedWebUrl || allowedSystemSettingsUrl) {
-        await shell.openExternal(url);
-      } else {
-        console.warn('[IPC] Blocked open-external request', {
-          protocol: parsed.protocol,
-          hostname: parsed.hostname,
-        });
-      }
-    } catch {
-      console.warn('[IPC] Invalid URL in open-external');
+    if (typeof url !== 'string') {
+      console.warn('[IPC] Blocked invalid open-external request', { reason: 'non-string' });
+      return;
     }
+    await openExternalLink(url);
   });
 
   // ==========================================

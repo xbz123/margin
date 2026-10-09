@@ -298,6 +298,15 @@ function installChromiumGuard(electron) {
     };
   } catch (e) { record('permission', `cannot stub desktopCapturer.getSources: ${e.message}`); }
 
+  // A followed link must never reach the real default browser. Record it instead, as
+  // its own kind, so user-opened links are counted apart from automatic requests.
+  // (Contract tests pass a fake electron without shell.)
+  if (electron.shell) {
+    try {
+      electron.shell.openExternal = async (url) => { record('external-open', String(url)); };
+    } catch (e) { record('permission', `cannot stub shell.openExternal: ${e.message}`); }
+  }
+
   const allowedUrl = (url) => {
     if (/^(file|data|blob|devtools|chrome|chrome-extension|about):/i.test(url)) return true;
     try {

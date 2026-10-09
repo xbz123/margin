@@ -282,6 +282,29 @@ source bindings retain exact identity/hash checks. Native vendored composition,
 remaining missing notices, corresponding-source/relinking duties, and acceptance
 of a newly packaged artifact are separate unresolved obligations.
 
+### S21 dependency removal
+
+S21 removes the root production declarations `pdf-parse` and `mammoth`. Their
+only caller in the baseline was the mode reference-file parser in
+`electron/ipcHandlers.ts` (`a786910e`), deleted with the mode system in AG-13
+(`5c17d80d`). After AG-13 no file under `electron`, `src`, `scripts` or `tests`
+imports `pdf-parse`, `pdfjs-dist`, `@napi-rs/canvas` or `mammoth`, statically
+or through `require`; `npm ls` showed `pdf-parse` as the only path to
+`@napi-rs/canvas` and `pdfjs-dist`. Removing it takes `@napi-rs/canvas` and its
+bundled Skia out of the package, which closes the canvas part of S19-C without
+recovering its missing historical dependency records.
+
+`npm uninstall --offline` with install scripts disabled removed 33 lock nodes
+(11 canvas packages, pdf-parse, pdfjs-dist, mammoth and its 19 exclusive nodes)
+and added none. No retained package changed version, resolved source or
+integrity. Three retained nodes became development-only (`@xmldom/xmldom`,
+`core-util-is`, `path-is-absolute`) and the root dependency list lost the two
+entries. npm's key reordering was undone mechanically, keeping parsed values.
+The collector's candidate inventory fell from 726 to 699 (the 24 removed nodes
+installed on this platform plus the three now development-only); the 25 texts
+no longer referenced were deleted with it. G3 rule set S21 forbids the four
+package names in the dependency tree.
+
 ### AG-26 original-notice supplements
 
 Twenty-six source entries supplement format 0.2.2 and oboe/oboe-sys 0.6.1.
@@ -327,7 +350,8 @@ four installed files byte-identical; stubs PR 5 merge
 `580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5` keeps version 3.0.0 and all four
 installed files byte-identical. Both retain their original Stephen Sawchuk MIT
 copyrights (2018 and 2017). This does not assert LICENSE was in the original npm
-tarballs.
+tarballs. (S21 later removed mammoth, and with it dingbat-to-unicode and this
+binding; see "S21 dependency removal" below.)
 
 tr46 0.0.3's original MIT LICENSE at same-version commit
 `3a6f29721e7063b9ffd421e461a54beae6170001` keeps Copyright (c) 2016 Sebastian

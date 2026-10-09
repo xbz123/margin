@@ -70,3 +70,54 @@ test('all nine Markdown callers and streaming sanitize block image loads in a re
   const outbound = readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind));
   assert.deepEqual(outbound, [], 'same egress classification as the existing startup harness');
 });
+
+test('app windows refuse foreign navigation and child windows; only followed https links go to the browser', async () => {
+  let requests = 0;
+  const server = http.createServer((req, res) => { requests++; res.end('<p>synthetic page</p>'); });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const local = `http://127.0.0.1:${server.address().port}`;
+  const sandbox = makeSandbox('ag24-navigation');
+  let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    const page = await windowWithQuery(app, 'window=launcher', 30_000);
+    const startUrl = page.url();
+    const windowCount = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const before = await windowCount();
+
+    // Positive control: the loopback page itself is reachable, so zero requests below
+    // mean the navigations were refused, not that the server was unreachable.
+    await app.evaluate(async ({ BrowserWindow }, url) => {
+      const control = new BrowserWindow({ show: false });
+      await control.loadURL(url);
+      control.destroy();
+    }, `${local}/control`);
+    assert.equal(requests, 1);
+
+    await page.evaluate(({ local }) => {
+      const follow = (href, target) => { const a = document.createElement('a'); a.href = href; if (target) a.target = target; document.body.append(a); a.click(); a.remove(); };
+      window.open('https://links.example/opened');
+      window.open(`${local}/window-open`);
+      window.open('file:///etc/hosts');
+      follow('https://links.example/followed');
+      follow('https://links.example/new-tab', '_blank');
+      follow(`${local}/followed`);
+      follow('mailto:someone@example.com');
+    }, { local });
+    await page.waitForTimeout(500);
+    await page.evaluate(local => { window.location.href = `${local}/assigned`; }, local);
+    await page.waitForTimeout(500);
+
+    assert.equal(page.url(), startUrl, 'the app page was not replaced');
+    assert.equal(await page.evaluate(() => typeof window.electronAPI), 'object');
+    assert.equal(await windowCount(), before, 'no child window was created');
+    assert.equal(requests, 1, 'no refused navigation or window reached the loopback page');
+    const opened = readBlocked(sandbox).filter(record => record.kind === 'external-open').map(record => record.detail).sort();
+    assert.deepEqual(opened, ['https://links.example/followed', 'https://links.example/new-tab', 'https://links.example/opened']);
+  } finally {
+    if (app) await app.close();
+    server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
+  }
+  const outbound = readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec', 'external-open'].includes(record.kind));
+  assert.deepEqual(outbound, [], 'followed links are counted apart from automatic requests, and nothing else left the machine');
+});

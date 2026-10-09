@@ -150,6 +150,13 @@
     { "line": "rateLimiters: { gemini: { acquire: async () => {} } },", "reason": "Synthetic immediate limiter implementing the existing RateLimiter.acquire contract in AG-24 cache behavior tests, independently written for this branch, 2026-10-08" },
     { "line": "} else return null;", "reason": "Generic fail-closed branch in AG-24 STT factory: unknown provider is not implicit Google consent, independently written for this branch, 2026-10-08" },
     { "line": "end() { this.ended = true; }", "reason": "Synthetic stream end recorder in AG-24 STT VM tests, independently written for this branch, 2026-10-08" },
-    { "line": "return config;", "reason": "Return validated Axios interceptor configuration in AG-24 using the installed public Axios API, independently written for this branch, 2026-10-08" }
+    { "line": "return config;", "reason": "Return validated Axios interceptor configuration in AG-24 using the installed public Axios API, independently written for this branch, 2026-10-08" },
+    { "line": "let parsed: URL;", "reason": "Typed local for URL parsing in the AG-24 follow-up navigation policy, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "app.on('web-contents-created', (_event, contents) => {", "reason": "Documented Electron hook installing the AG-24 follow-up navigation policy on every webContents, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "contents.setWindowOpenHandler(({ url }) => {", "reason": "Documented Electron window-open handler in the AG-24 follow-up navigation policy, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "return { action: 'deny' };", "reason": "Documented Electron deny result for child windows in the AG-24 follow-up navigation policy, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "event.preventDefault();", "reason": "Generic event cancellation for refused navigation in the AG-24 follow-up policy, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "const [busy, setBusy] = useState(false);", "reason": "Generic React busy flag in the AG-24 follow-up credential recovery banner, independently written for this branch by Claude, 2026-10-09" },
+    { "line": "setBusy(true);", "reason": "Generic React busy flag in the AG-24 follow-up credential recovery banner, independently written for this branch by Claude, 2026-10-09" }
   ]
 }

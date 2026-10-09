@@ -44,8 +44,8 @@ available by an appropriate license-compliant method before release. MPL and
 other dependencies have their own source/notice requirements. No unverified
 source hosting, written offer or universal relinking support is promised here.
 
-The canvas native package contains Skia-related code; its MIT wrapper alone
-does not close Skia/vendored coverage. Rust wrapper texts do not replace vendored
+S21 removed the unused canvas native package and its bundled Skia; they are no
+longer distributed. Rust wrapper texts do not replace vendored
 C notices, including libfvad BSD terms and PATENTS, or prove the target-specific
 linked set. These limits remain until native build provenance and package
 contents are checked. The license-only collector downloads no full source
@@ -63,7 +63,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-726 candidates; 413 unique stored texts; 33 excluded paths; 0 unresolved candidates; 2 deferred notices.
+699 candidates; 388 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -71,7 +71,6 @@ Current supplemental notice bindings:
 - npm:format@0.2.2: MIT
 - cargo:oboe@0.6.1: Apache-2.0
 - cargo:oboe-sys@0.6.1: Apache-2.0
-- npm:dingbat-to-unicode@1.0.1: BSD-2-Clause
 - npm:eastasianwidth@0.3.0: MIT
 - npm:stream-events@1.0.5: MIT
 - npm:stubs@3.0.0: MIT
@@ -181,9 +180,6 @@ automatically audit every provenance field or the separate 140-file coverage.
 For C++ headers the range ends immediately after the closing `*/`, excluding
 subsequent non-license separator bytes; no implementation bytes are retained.
 
-dingbat-to-unicode 1.0.1 retains the later 1.0.2 original BSD-2-Clause LICENSE,
-Copyright (c) 2021 Michael Williamson, because the repository owner explicitly
-applied that license to every previous version in issue 1 comment 5740760399.
 stream-events 1.0.5 and stubs 3.0.0 retain later officially merged original MIT
 notices, Copyright (c) 2018 and 2017 Stephen Sawchuk respectively. Their merge
 commits still declare those exact versions and all four installed files of each
@@ -209,8 +205,7 @@ are recorded under
 actual package set.
 
 Separately, libvips's bundled dependency texts and corresponding-source/relinking
-route, canvas/Skia's actual static vendored set, and icon-set terms for any whole
-React Icons package distributed still require artifact-level closure. The
-retained Skia root LICENSE/AUTHORS and libvips license table are not complete
-aggregated notices. Missing candidates cause the package-byte hook to fail;
+route, and icon-set terms for any whole React Icons package distributed still
+require artifact-level closure. The retained libvips license table is not a
+complete aggregated notice. Missing candidates cause the package-byte hook to fail;
 even resolving them all would not, by itself, close these separate obligations.

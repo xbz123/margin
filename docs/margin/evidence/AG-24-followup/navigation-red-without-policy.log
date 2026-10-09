@@ -1,0 +1,30 @@
+✖ app windows refuse foreign navigation and child windows; only followed https links go to the browser (3630.043083ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4068.47425
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:74:1
+✖ app windows refuse foreign navigation and child windows; only followed https links go to the browser (3630.043083ms)
+  AssertionError [ERR_ASSERTION]: the app page was not replaced
+  + actual - expected
+  
+  + 'http://127.0.0.1:64538/assigned'
+  - 'file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist/index.html?window=launcher'
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/outbound-renderer.test.mjs:111:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'http://127.0.0.1:64538/assigned',
+    expected: 'file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist/index.html?window=launcher',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
