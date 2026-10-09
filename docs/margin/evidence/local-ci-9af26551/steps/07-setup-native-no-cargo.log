@@ -1,0 +1,21 @@
+
+[setup:native] 1/5 Electron 43.1.0 binary
+
+[setup:native] 2/5 sharp prebuilt check
+[setup:native] clang++ cannot find libc++ headers; using /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1
+
+[setup:native] 3/5 rebuild better-sqlite3 and keytar for Electron
+Searching dependency tree
+Building modules: better-sqlite3, keytar
+✔ Rebuild Complete
+
+[setup:native] 4/5 skipped locally: CI-built native module installed (S11 item 5)
+
+[setup:native] 5/5 patch dev Electron Info.plist
+[patch-electron-plist] Added NSScreenCaptureUsageDescription.
+[patch-electron-plist] NSAudioCaptureUsageDescription already present — skipping.
+[patch-electron-plist] Updated NSMicrophoneUsageDescription text.
+[patch-electron-plist] Info.plist patched successfully.
+
+[setup:native] done
+71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603  native-module/index.darwin-arm64.node

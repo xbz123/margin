@@ -1,0 +1,10 @@
+✔ all nine Markdown callers and streaming sanitize block image loads in a real renderer (2312.093917ms)
+✔ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8386.972541ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11163.729584

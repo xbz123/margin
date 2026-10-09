@@ -1,0 +1,10 @@
+STEP checkout: 0
+STEP upstream: 0
+STEP toolchain: 0
+STEP npm-ci: 0
+STEP native: 0
+STEP gates: 1
+DONE
+STEP setup-native-without-cargo: 0
+STEP gates-2: 0
+DONE2

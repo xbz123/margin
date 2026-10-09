@@ -1,0 +1,18 @@
+reference: docs/margin/evidence/AG-26
+[gates] clean-dist ... exit 0 PASS (0s)
+[gates] build-electron ... exit 0 PASS (2s)
+[gates] vite-build ... exit 0 PASS (8s)
+[gates] tsc-renderer ... exit 0 PASS (4s)
+[gates] tsc-electron ... exit 0 PASS (3s)
+[gates] provenance ... exit 0 PASS (27s)
+[gates] retired ... exit 0 PASS (2s)
+[gates] preload-contract ... exit 0 PASS (0s)
+[gates] ipc-channels ... exit 0 PASS (0s)
+[gates] guard-selftest ... exit 0 PASS (1s)
+[gates] tests ... exit 1 FAIL (17s)
+[gates] regression ... exit 1 FAIL (1s)
+[gates] storage ... exit 1 FAIL (0s)
+[gates] startup ... exit 1 FAIL (0s)
+[gates] outbound-renderer ... exit 1 FAIL (1s)
+[gates] diff-check ... exit 0 PASS (0s)
+[gates] FAILED; summary: ci-evidence/summary.json

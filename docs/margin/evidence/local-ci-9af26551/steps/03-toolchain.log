@@ -1,0 +1,6 @@
+v26.0.0
+11.12.1
+xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools' is a command line tools instance
+rustup: missing
+rustc 1.98.1 (48a229cea 2026-09-01) (Homebrew)
+cargo 1.98.1 (797e8a9bc 2026-08-05) (Homebrew)
