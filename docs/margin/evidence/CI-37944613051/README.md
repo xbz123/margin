@@ -16,7 +16,8 @@ launched) and failed in libvips-replace after 0.3 min:
 `fetch-prebuilt.mjs` reads the prebuilt's sha256 from `package-check.cjs`, which
 loaded `@electron/asar` at the top, and that job installs no `node_modules`.
 `ba9279fa` loads it inside `checkPackage` only; nothing else changed. Its
-artifacts were not downloaded.
+artifacts were not downloaded and were deleted on 2026-10-09 at the user's
+request.
 
 ## libvips job
 
