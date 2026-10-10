@@ -5930,5 +5930,504 @@
       "role": "fixed SPDX Apache-2.0 terms for mac 0.1.1, which declares Apache-2.0 in metadata only; standard placeholders unchanged, no copyright supplied (S22)",
       "closesMissing": false
     }
+  ],
+  "rustStd": [
+    {
+      "id": "rust-std:rust@a30aa9064:COPYRIGHT",
+      "version": "a30aa9064",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/a30aa9064df6a504b6a323c6884a2f4cfbfff666/COPYRIGHT",
+      "localPath": "scripts/margin/license-inputs/libvips/172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af.txt",
+      "sourceSHA256": "172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af",
+      "sha256": "172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af",
+      "gitBlob": "4dad74f234eaaaa3c311ca031216e16fc9c4e940",
+      "role": "original COPYRIGHT of rust-lang/rust at a30aa9064; statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std:rust@a30aa9064:LICENSE-MIT",
+      "version": "a30aa9064",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/a30aa9064df6a504b6a323c6884a2f4cfbfff666/LICENSE-MIT",
+      "localPath": "scripts/margin/license-inputs/libvips/b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1.txt",
+      "sourceSHA256": "b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1",
+      "sha256": "b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1",
+      "gitBlob": "a2070c4be7acd5316f8d0357ca3c12419a2f3c62",
+      "role": "original LICENSE-MIT of rust-lang/rust at a30aa9064; statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std:rust@a30aa9064:LICENSE-APACHE",
+      "version": "a30aa9064",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/a30aa9064df6a504b6a323c6884a2f4cfbfff666/LICENSE-APACHE",
+      "localPath": "scripts/margin/license-inputs/libvips/62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a.txt",
+      "sourceSHA256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "gitBlob": "1b5ec8b78e237b5c3b3d812a7c0a6589d0f7161d",
+      "role": "original LICENSE-APACHE of rust-lang/rust at a30aa9064; statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std:rust@a30aa9064:library/compiler-builtins/LICENSE.txt",
+      "version": "a30aa9064",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/a30aa9064df6a504b6a323c6884a2f4cfbfff666/library/compiler-builtins/LICENSE.txt",
+      "localPath": "scripts/margin/license-inputs/libvips/ab6eec6caf0fa5775e411c7a8bc6a45c4ef2956b0980b157ab74fc5cd62a928b.txt",
+      "sourceSHA256": "ab6eec6caf0fa5775e411c7a8bc6a45c4ef2956b0980b157ab74fc5cd62a928b",
+      "sha256": "ab6eec6caf0fa5775e411c7a8bc6a45c4ef2956b0980b157ab74fc5cd62a928b",
+      "gitBlob": "00ae6140bd54e1b538d833f60438e11ed8be12cf",
+      "role": "original library/compiler-builtins/LICENSE.txt of rust-lang/rust at a30aa9064; statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std:rust@a30aa9064:library/stdarch/LICENSE-MIT",
+      "version": "a30aa9064",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/a30aa9064df6a504b6a323c6884a2f4cfbfff666/library/stdarch/LICENSE-MIT",
+      "localPath": "scripts/margin/license-inputs/libvips/29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21.txt",
+      "sourceSHA256": "29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21",
+      "sha256": "29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21",
+      "gitBlob": "52d82415d8b60cd3c5858c8939fa0d8fae1aeca0",
+      "role": "original library/stdarch/LICENSE-MIT of rust-lang/rust at a30aa9064; statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std:rust@a30aa9064:library/stdarch/LICENSE-APACHE",
+      "version": "a30aa9064",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/a30aa9064df6a504b6a323c6884a2f4cfbfff666/library/stdarch/LICENSE-APACHE",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "role": "original library/stdarch/LICENSE-APACHE of rust-lang/rust at a30aa9064; statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:addr2line@0.27.1:LICENSE-APACHE",
+      "version": "0.27.1",
+      "license": "Apache-2.0 OR MIT",
+      "url": "https://static.crates.io/crates/addr2line/addr2line-0.27.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "archive": {
+        "url": "https://static.crates.io/crates/addr2line/addr2line-0.27.1.crate",
+        "sha256": "e567177890eb1617b1f774005b66b26b2377afd138a2ca37aae7d8f0c81429d4",
+        "member": "addr2line-0.27.1/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the addr2line 0.27.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:addr2line@0.27.1:LICENSE-MIT",
+      "version": "0.27.1",
+      "license": "Apache-2.0 OR MIT",
+      "url": "https://static.crates.io/crates/addr2line/addr2line-0.27.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/e99d88d232bf57d70f0fb87f6b496d44b6653f99f8a63d250a54c61ea4bcde40.txt",
+      "sourceSHA256": "e99d88d232bf57d70f0fb87f6b496d44b6653f99f8a63d250a54c61ea4bcde40",
+      "sha256": "e99d88d232bf57d70f0fb87f6b496d44b6653f99f8a63d250a54c61ea4bcde40",
+      "gitBlob": "3a03f1f850c6499b38e173654bb54e3dcc46c408",
+      "archive": {
+        "url": "https://static.crates.io/crates/addr2line/addr2line-0.27.1.crate",
+        "sha256": "e567177890eb1617b1f774005b66b26b2377afd138a2ca37aae7d8f0c81429d4",
+        "member": "addr2line-0.27.1/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the addr2line 0.27.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:gimli@0.34.0:LICENSE-APACHE",
+      "version": "0.34.0",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/gimli/gimli-0.34.0.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "archive": {
+        "url": "https://static.crates.io/crates/gimli/gimli-0.34.0.crate",
+        "sha256": "1033caf0b349c518623b5396bfb2cf0bddf44f0306d543a250e5743297aafd10",
+        "member": "gimli-0.34.0/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the gimli 0.34.0 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:gimli@0.34.0:LICENSE-MIT",
+      "version": "0.34.0",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/gimli/gimli-0.34.0.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0.txt",
+      "sourceSHA256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0",
+      "sha256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0",
+      "gitBlob": "e69282e381bc07152cc7598f21f3162e4bbb1f22",
+      "archive": {
+        "url": "https://static.crates.io/crates/gimli/gimli-0.34.0.crate",
+        "sha256": "1033caf0b349c518623b5396bfb2cf0bddf44f0306d543a250e5743297aafd10",
+        "member": "gimli-0.34.0/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the gimli 0.34.0 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:miniz_oxide@0.9.1:LICENSE",
+      "version": "0.9.1",
+      "license": "MIT OR Zlib OR Apache-2.0",
+      "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/4108245a1f2df9d4e94df8abed5b4ba0759bb2f9b40a6b939f1be141077ae50b.txt",
+      "sourceSHA256": "4108245a1f2df9d4e94df8abed5b4ba0759bb2f9b40a6b939f1be141077ae50b",
+      "sha256": "4108245a1f2df9d4e94df8abed5b4ba0759bb2f9b40a6b939f1be141077ae50b",
+      "gitBlob": "a1980025c32d27c14c8a2e76b5bec7cbac5fef9c",
+      "archive": {
+        "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+        "sha256": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+        "member": "miniz_oxide-0.9.1/LICENSE"
+      },
+      "role": "original LICENSE of the miniz_oxide 0.9.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:miniz_oxide@0.9.1:LICENSE-APACHE.md",
+      "version": "0.9.1",
+      "license": "MIT OR Zlib OR Apache-2.0",
+      "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594.txt",
+      "sourceSHA256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "gitBlob": "f433b1a53f5b830a205fd2df78e2b34974656c7b",
+      "archive": {
+        "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+        "sha256": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+        "member": "miniz_oxide-0.9.1/LICENSE-APACHE.md"
+      },
+      "role": "original LICENSE-APACHE.md of the miniz_oxide 0.9.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:miniz_oxide@0.9.1:LICENSE-MIT.md",
+      "version": "0.9.1",
+      "license": "MIT OR Zlib OR Apache-2.0",
+      "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/799e9ca9d179295ef372f25d3769cdda7d25bb2668add6a6a1e22d1e4c678b8d.txt",
+      "sourceSHA256": "799e9ca9d179295ef372f25d3769cdda7d25bb2668add6a6a1e22d1e4c678b8d",
+      "sha256": "799e9ca9d179295ef372f25d3769cdda7d25bb2668add6a6a1e22d1e4c678b8d",
+      "gitBlob": "ec71b31cc0ff3e17780f885da6295c85a4ab7d5d",
+      "archive": {
+        "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+        "sha256": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+        "member": "miniz_oxide-0.9.1/LICENSE-MIT.md"
+      },
+      "role": "original LICENSE-MIT.md of the miniz_oxide 0.9.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:miniz_oxide@0.9.1:LICENSE-ZLIB.md",
+      "version": "0.9.1",
+      "license": "MIT OR Zlib OR Apache-2.0",
+      "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39.txt",
+      "sourceSHA256": "0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39",
+      "sha256": "0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39",
+      "gitBlob": "92871cd249d270d8482d75df6852a09796fd0a97",
+      "archive": {
+        "url": "https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate",
+        "sha256": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+        "member": "miniz_oxide-0.9.1/LICENSE-ZLIB.md"
+      },
+      "role": "original LICENSE-ZLIB.md of the miniz_oxide 0.9.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:adler2@2.0.1:LICENSE-0BSD",
+      "version": "2.0.1",
+      "license": "0BSD OR MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/adler2/adler2-2.0.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/861399f8c21c042b110517e76dc6b63a2b334276c8cf17412fc3c8908ca8dc17.txt",
+      "sourceSHA256": "861399f8c21c042b110517e76dc6b63a2b334276c8cf17412fc3c8908ca8dc17",
+      "sha256": "861399f8c21c042b110517e76dc6b63a2b334276c8cf17412fc3c8908ca8dc17",
+      "gitBlob": "89336aaca55db49ae6dda7103d17456235e745a3",
+      "archive": {
+        "url": "https://static.crates.io/crates/adler2/adler2-2.0.1.crate",
+        "sha256": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+        "member": "adler2-2.0.1/LICENSE-0BSD"
+      },
+      "role": "original LICENSE-0BSD of the adler2 2.0.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:adler2@2.0.1:LICENSE-APACHE",
+      "version": "2.0.1",
+      "license": "0BSD OR MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/adler2/adler2-2.0.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb.txt",
+      "sourceSHA256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb",
+      "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb",
+      "gitBlob": "c98d27d4f32d56e56f13de73a08ab44b2947ccf5",
+      "archive": {
+        "url": "https://static.crates.io/crates/adler2/adler2-2.0.1.crate",
+        "sha256": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+        "member": "adler2-2.0.1/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the adler2 2.0.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:adler2@2.0.1:LICENSE-MIT",
+      "version": "2.0.1",
+      "license": "0BSD OR MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/adler2/adler2-2.0.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+      "sourceSHA256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "gitBlob": "31aa79387f27e730e33d871925e152e35e428031",
+      "archive": {
+        "url": "https://static.crates.io/crates/adler2/adler2-2.0.1.crate",
+        "sha256": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+        "member": "adler2-2.0.1/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the adler2 2.0.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:cfg-if@1.0.4:LICENSE-APACHE",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/cfg-if/cfg-if-1.0.4.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "archive": {
+        "url": "https://static.crates.io/crates/cfg-if/cfg-if-1.0.4.crate",
+        "sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+        "member": "cfg-if-1.0.4/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the cfg-if 1.0.4 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:cfg-if@1.0.4:LICENSE-MIT",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/cfg-if/cfg-if-1.0.4.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397.txt",
+      "sourceSHA256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "gitBlob": "39e0ed6602151f235148e6c08413aa7eda5b9038",
+      "archive": {
+        "url": "https://static.crates.io/crates/cfg-if/cfg-if-1.0.4.crate",
+        "sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+        "member": "cfg-if-1.0.4/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the cfg-if 1.0.4 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:hashbrown@0.17.1:LICENSE-APACHE",
+      "version": "0.17.1",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/hashbrown/hashbrown-0.17.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "archive": {
+        "url": "https://static.crates.io/crates/hashbrown/hashbrown-0.17.1.crate",
+        "sha256": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a",
+        "member": "hashbrown-0.17.1/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the hashbrown 0.17.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:hashbrown@0.17.1:LICENSE-MIT",
+      "version": "0.17.1",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/hashbrown/hashbrown-0.17.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2.txt",
+      "sourceSHA256": "ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2",
+      "sha256": "ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2",
+      "gitBlob": "5afc2a7b0acabd34676023f9ebe3912ea2643ac2",
+      "archive": {
+        "url": "https://static.crates.io/crates/hashbrown/hashbrown-0.17.1.crate",
+        "sha256": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a",
+        "member": "hashbrown-0.17.1/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the hashbrown 0.17.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:foldhash@0.2.0:LICENSE",
+      "version": "0.2.0",
+      "license": "Zlib",
+      "url": "https://static.crates.io/crates/foldhash/foldhash-0.2.0.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/b1181a40b2a7b25cf66fd01481713bc1005df082c53ef73e851e55071b102744.txt",
+      "sourceSHA256": "b1181a40b2a7b25cf66fd01481713bc1005df082c53ef73e851e55071b102744",
+      "sha256": "b1181a40b2a7b25cf66fd01481713bc1005df082c53ef73e851e55071b102744",
+      "gitBlob": "2f65b0a366d4a8492175794e3bd3485fdd693c03",
+      "archive": {
+        "url": "https://static.crates.io/crates/foldhash/foldhash-0.2.0.crate",
+        "sha256": "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb",
+        "member": "foldhash-0.2.0/LICENSE"
+      },
+      "role": "original LICENSE of the foldhash 0.2.0 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:libc@0.2.189:LICENSE-APACHE",
+      "version": "0.2.189",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/libc/libc-0.2.189.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a.txt",
+      "sourceSHA256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "gitBlob": "1b5ec8b78e237b5c3b3d812a7c0a6589d0f7161d",
+      "archive": {
+        "url": "https://static.crates.io/crates/libc/libc-0.2.189.crate",
+        "sha256": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2",
+        "member": "libc-0.2.189/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the libc 0.2.189 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:libc@0.2.189:LICENSE-MIT",
+      "version": "0.2.189",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://static.crates.io/crates/libc/libc-0.2.189.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e.txt",
+      "sourceSHA256": "123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e",
+      "sha256": "123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e",
+      "gitBlob": "f4095b2fa2d9b6b96341d85c5e8d4943edf7a079",
+      "archive": {
+        "url": "https://static.crates.io/crates/libc/libc-0.2.189.crate",
+        "sha256": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2",
+        "member": "libc-0.2.189/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the libc 0.2.189 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:memchr@2.8.3:COPYING",
+      "version": "2.8.3",
+      "license": "Unlicense OR MIT",
+      "url": "https://static.crates.io/crates/memchr/memchr-2.8.3.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f.txt",
+      "sourceSHA256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "gitBlob": "bb9c20a094e41b7632d63bcff20c0b4b95e80777",
+      "archive": {
+        "url": "https://static.crates.io/crates/memchr/memchr-2.8.3.crate",
+        "sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+        "member": "memchr-2.8.3/COPYING"
+      },
+      "role": "original COPYING of the memchr 2.8.3 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:memchr@2.8.3:LICENSE-MIT",
+      "version": "2.8.3",
+      "license": "Unlicense OR MIT",
+      "url": "https://static.crates.io/crates/memchr/memchr-2.8.3.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f.txt",
+      "sourceSHA256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "gitBlob": "3b0a5dc09c1e16357459ddc9182a50f360f3cdba",
+      "archive": {
+        "url": "https://static.crates.io/crates/memchr/memchr-2.8.3.crate",
+        "sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+        "member": "memchr-2.8.3/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the memchr 2.8.3 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:memchr@2.8.3:UNLICENSE",
+      "version": "2.8.3",
+      "license": "Unlicense OR MIT",
+      "url": "https://static.crates.io/crates/memchr/memchr-2.8.3.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c.txt",
+      "sourceSHA256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+      "sha256": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c",
+      "gitBlob": "68a49daad8ff7e35068f2b7a97d643aab440eaec",
+      "archive": {
+        "url": "https://static.crates.io/crates/memchr/memchr-2.8.3.crate",
+        "sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+        "member": "memchr-2.8.3/UNLICENSE"
+      },
+      "role": "original UNLICENSE of the memchr 2.8.3 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:object@0.39.1:LICENSE-APACHE",
+      "version": "0.39.1",
+      "license": "Apache-2.0 OR MIT",
+      "url": "https://static.crates.io/crates/object/object-0.39.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "archive": {
+        "url": "https://static.crates.io/crates/object/object-0.39.1.crate",
+        "sha256": "2e5a6c098c7a3b6547378093f5cc30bc54fd361ce711e05293a5cc589562739b",
+        "member": "object-0.39.1/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the object 0.39.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:object@0.39.1:LICENSE-MIT",
+      "version": "0.39.1",
+      "license": "Apache-2.0 OR MIT",
+      "url": "https://static.crates.io/crates/object/object-0.39.1.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/0b74dfa0bcee5c420c6b7f67b4b2658f9ab8388c97b8e733975f2cecbdd668a6.txt",
+      "sourceSHA256": "0b74dfa0bcee5c420c6b7f67b4b2658f9ab8388c97b8e733975f2cecbdd668a6",
+      "sha256": "0b74dfa0bcee5c420c6b7f67b4b2658f9ab8388c97b8e733975f2cecbdd668a6",
+      "gitBlob": "8440c7e95fb8e4966340137f9b95a494a01b0cef",
+      "archive": {
+        "url": "https://static.crates.io/crates/object/object-0.39.1.crate",
+        "sha256": "2e5a6c098c7a3b6547378093f5cc30bc54fd361ce711e05293a5cc589562739b",
+        "member": "object-0.39.1/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the object 0.39.1 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:rustc-demangle@0.1.28:LICENSE-APACHE",
+      "version": "0.1.28",
+      "license": "MIT/Apache-2.0",
+      "url": "https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.28.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "sourceSHA256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "gitBlob": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "archive": {
+        "url": "https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.28.crate",
+        "sha256": "b74b56ffa8bb2830709a538c2cbcae9aa062db0d2a42563bfb09bdaae44020eb",
+        "member": "rustc-demangle-0.1.28/LICENSE-APACHE"
+      },
+      "role": "original LICENSE-APACHE of the rustc-demangle 0.1.28 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    },
+    {
+      "id": "rust-std-crate:rustc-demangle@0.1.28:LICENSE-MIT",
+      "version": "0.1.28",
+      "license": "MIT/Apache-2.0",
+      "url": "https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.28.crate",
+      "localPath": "scripts/margin/license-inputs/libvips/378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397.txt",
+      "sourceSHA256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "gitBlob": "39e0ed6602151f235148e6c08413aa7eda5b9038",
+      "archive": {
+        "url": "https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.28.crate",
+        "sha256": "b74b56ffa8bb2830709a538c2cbcae9aa062db0d2a42563bfb09bdaae44020eb",
+        "member": "rustc-demangle-0.1.28/LICENSE-MIT"
+      },
+      "role": "original LICENSE-MIT of the rustc-demangle 0.1.28 crate (version and checksum from library/Cargo.lock of rust-lang/rust at a30aa9064); statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)",
+      "closesMissing": false
+    }
   ]
 }

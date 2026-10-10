@@ -9,9 +9,12 @@
 # Only reads the archives; nothing is built or executed.
 #   python3 -I scripts/margin/libvips/notice-inputs.py <sources dir>
 #   python3 -I scripts/margin/libvips/notice-inputs.py --supplements
+#   python3 -I scripts/margin/libvips/notice-inputs.py --rust-std
 # The second form adds the notices of the ten compiled crates whose published
 # .crate has no license file (SUPPLEMENTS), fetched from fixed URLs and checked
 # against the sha256 recorded here or, for crates, the librsvg Cargo.lock checksum.
+# The third adds those of the Rust standard library the pinned nightly built
+# (RUST_FILES, STD_CRATES), checked the same way against its library/Cargo.lock.
 import hashlib, io, json, os, re, sys, tarfile, urllib.request
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
@@ -166,6 +169,75 @@ def supplements():
     print(json.dumps({'supplements': len(entries), 'texts': len(os.listdir(INPUTS))}))
 
 
+# The Rust standard library linked through librsvg into libvips-cpp, built by the
+# recipe's pinned nightly (rebuild.sh: nightly-2026-10-09, rustc a30aa906). libvips
+# has no linker map, so every registry dependency of std for aarch64-apple-darwin in
+# that commit's library/Cargo.lock is covered (not the wasm, sgx, hermit, uefi, xous
+# or windows ones, nor build tools and test crates), with the license files of the
+# in-tree compiler-builtins and stdarch (core::arch).
+RUSTC_COMMIT = 'a30aa9064df6a504b6a323c6884a2f4cfbfff666'
+RUST_RAW = f'https://raw.githubusercontent.com/rust-lang/rust/{RUSTC_COMMIT}'
+RUST_FILES = [
+    ('COPYRIGHT', '172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af'),
+    ('LICENSE-MIT', 'b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1'),
+    ('LICENSE-APACHE', '62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a'),
+    ('library/compiler-builtins/LICENSE.txt', 'ab6eec6caf0fa5775e411c7a8bc6a45c4ef2956b0980b157ab74fc5cd62a928b'),
+    ('library/stdarch/LICENSE-MIT', '29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21'),
+    ('library/stdarch/LICENSE-APACHE', 'a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2'),
+]
+STD_LOCK_SHA256 = '45e36114b9fbeb1a778c470ea4e3a6e31b9ac2029de0d9a7077abac757ec0b29'
+STD_CRATES = ['addr2line', 'gimli', 'miniz_oxide', 'adler2', 'cfg-if', 'hashbrown', 'foldhash', 'libc', 'memchr', 'object', 'rustc-demangle']
+
+
+def rust_std():
+    entries = []
+    def entry(id_, version, license, url, data, role, extra=None):
+        text = keep(data)
+        entries.append({'id': id_, 'version': version, 'license': license, 'url': url,
+                        'localPath': f'scripts/margin/license-inputs/libvips/{text}.txt', 'sourceSHA256': text, 'sha256': text,
+                        'gitBlob': git_blob(data), **(extra or {}), 'role': role, 'closesMissing': False})
+    linked = 'statically linked through librsvg into the libvips-cpp Margin ships, as part of the Rust standard library built by nightly-2026-10-09 (rustc a30aa906)'
+    for path, expected in RUST_FILES:
+        data = fetch(f'{RUST_RAW}/{path}')
+        if sha256(data) != expected:
+            raise SystemExit(f'changed: {path}')
+        entry(f'rust-std:rust@{RUSTC_COMMIT[:9]}:{path}', RUSTC_COMMIT[:9], 'MIT OR Apache-2.0', f'{RUST_RAW}/{path}', data,
+              f'original {path} of rust-lang/rust at {RUSTC_COMMIT[:9]}; {linked}')
+    lock = fetch(f'{RUST_RAW}/library/Cargo.lock')
+    if sha256(lock) != STD_LOCK_SHA256:
+        raise SystemExit('changed: library/Cargo.lock')
+    packages = {}
+    for block in lock.decode('utf8').split('[[package]]'):
+        field = lambda k: (re.search(rf'^{k} = "([^"]+)"', block, re.M) or [None, None])[1]
+        if field('checksum'):
+            packages[field('name')] = (field('version'), field('checksum'))
+    for name in STD_CRATES:
+        version, checksum = packages[name]
+        url = CRATE.format(name, version)
+        crate = fetch(url)
+        if sha256(crate) != checksum:
+            raise SystemExit(f'crate checksum mismatch: {name} {version}')
+        top = f'{name}-{version}'
+        with tarfile.open(fileobj=io.BytesIO(crate)) as t:
+            toml = t.extractfile(f'{top}/Cargo.toml').read().decode('utf8')
+            license = (re.search(r'^license\s*=\s*"([^"]+)"', toml, re.M) or [None, 'UNKNOWN'])[1]
+            files = sorted(m.name[len(top) + 1:] for m in t.getmembers()
+                           if m.isfile() and '/' not in m.name[len(top) + 1:] and CRATE_LICENSE.match(m.name[len(top) + 1:]))
+            if not files:
+                raise SystemExit(f'no license file: {name} {version}')
+            for member in files:
+                entry(f'rust-std-crate:{name}@{version}:{member}', version, license, url, t.extractfile(f'{top}/{member}').read(),
+                      f'original {member} of the {name} {version} crate (version and checksum from library/Cargo.lock of rust-lang/rust at {RUSTC_COMMIT[:9]}); {linked}',
+                      {'archive': {'url': url, 'sha256': checksum, 'member': f'{top}/{member}'}})
+    with open(OUT) as f:
+        notices = json.load(f)
+    notices['rustStd'] = entries
+    with open(OUT, 'w') as f:
+        json.dump(notices, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+    print(json.dumps({'rustStd': len(entries), 'texts': len(os.listdir(INPUTS))}))
+
+
 def main(src):
     entries, seen = [], set()
     for line in open(os.path.join(src, 'manifest.tsv')):
@@ -216,13 +288,13 @@ def main(src):
                     'archive': {'url': f'https://static.crates.io/crates/{name}/{name}-{version}.crate', 'sha256': crate_sha, 'member': f'{top}/{member}'},
                     'role': f'original {member} of the {name} {version} crate (checksum in librsvg Cargo.lock), compiled into librsvg inside the libvips-cpp Margin ships (S22)',
                     'closesMissing': False})
-    previous = json.load(open(OUT)).get('supplements', []) if os.path.exists(OUT) else []
+    previous = json.load(open(OUT)) if os.path.exists(OUT) else {}
     with open(OUT, 'w') as f:
         json.dump({'recipe': '20b5e899954907a3039d6e3d4c200aaa0ec52c4c', 'entries': entries, 'cratesWithoutLicenseFile': missing,
-                   'supplements': previous}, f, indent=2, ensure_ascii=False)
+                   'supplements': previous.get('supplements', []), 'rustStd': previous.get('rustStd', [])}, f, indent=2, ensure_ascii=False)
         f.write('\n')
     print(json.dumps({'entries': len(entries), 'texts': len(os.listdir(INPUTS)), 'cratesWithoutLicenseFile': [m['crate'] for m in missing]}))
 
 
 if __name__ == '__main__':
-    supplements() if sys.argv[1] == '--supplements' else main(sys.argv[1])
+    {'--supplements': supplements, '--rust-std': rust_std}.get(sys.argv[1], lambda: main(sys.argv[1]))()

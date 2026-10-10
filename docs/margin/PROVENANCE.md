@@ -340,6 +340,18 @@ imported. Generic one-line idioms the provenance check matched are registered in
   main added the same generic line in a test on 2026-10-10, found by the S24 local
   run's fresh upstream fetch.
 
+### libvips Rust toolchain pin (Claude, 2026-10-10)
+
+- The nightly and build-date pin and the toolchain, mozjpeg and sha256 checks in
+  `scripts/margin/libvips/rebuild.sh`, and the `--rust-std` mode of
+  `notice-inputs.py`: written for this branch.
+- `scripts/margin/license-inputs/libvips/` gains the license files of the Rust
+  standard library built by nightly-2026-10-09: verbatim files of rust-lang/rust
+  at `a30aa906` (COPYRIGHT, LICENSE-MIT, LICENSE-APACHE, compiler-builtins and
+  stdarch licenses) and of eleven crates.io crates, each checked against the
+  sha256 in the script or the checksum in that commit's `library/Cargo.lock`. They
+  are third-party license texts kept as notices, not code.
+
 ### Stage 2 re-acceptance fix (Claude, 2026-10-10)
 
 - The declared-URL check for `openExternal` in `electron/preload.ts`, the

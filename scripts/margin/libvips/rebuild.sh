@@ -7,6 +7,17 @@
 set -euo pipefail
 [ "${GITHUB_ACTIONS:-}" = true ] || { echo "GitHub Actions only" >&2; exit 1; }
 RECIPE=20b5e899954907a3039d6e3d4c200aaa0ec52c4c
+# The recipe installs rustup's newest nightly and builds librsvg, with the Rust
+# standard library it links, by it (nightly-only -Z flags), and mozjpeg writes the
+# build date into the library. Both are pinned to the recorded build, made on
+# 2026-10-09 with nightly-2026-10-09 (rustc a30aa906), so a later run builds the
+# same bytes; the checks at the end fail otherwise.
+RUST_NIGHTLY=nightly-2026-10-09
+RUSTC_COMMIT=a30aa9064df6a504b6a323c6884a2f4cfbfff666
+MOZJPEG_BUILD='mozjpeg version 5.0.0 (build 20261009)'
+LIBVIPS_SHA256=64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e
+export RUSTUP_TOOLCHAIN="$RUST_NIGHTLY" RUSTUP_AUTO_INSTALL=1
+export SOURCE_DATE_EPOCH=1791547200 # 2026-10-09T12:00:00Z
 OUT="$1"
 WORK="$RUNNER_TEMP/libvips-recipe"
 mkdir -p "$OUT/sources"
@@ -45,17 +56,29 @@ while read -r name version; do
 done < "$OUT/sources/librsvg-compiled.txt"
 [ "$missing" = 0 ] && [ -s "$OUT/sources/librsvg-compiled.txt" ]
 
+# The recipe's own toolchain (its RUSTUP_HOME), not the runner's.
+recipe_rustc() { RUSTUP_HOME="$WORK/deps/rustup" CARGO_HOME="$WORK/deps/cargo" deps/cargo/bin/rustc -V; }
+built="$(mktemp -d)"
+tar -xzf sharp-libvips-darwin-arm64v8.tar.gz -C "$built"
+dylib="$(find "$built" -name 'libvips-cpp.*.dylib' -type f)"
+[ -n "$dylib" ] && [ "$(printf '%s\n' "$dylib" | wc -l | tr -d ' ')" = 1 ]
+strings -a "$dylib" > "$built/strings.txt"
+rustc_commits() { grep -o 'rustc/[0-9a-f]\{40\}' "$built/strings.txt" | sort -u | tr '\n' ' '; }
 {
   echo "recipe: $RECIPE"
   echo "commit: $GITHUB_SHA"
   echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"
-  echo "rustc: $(deps/cargo/bin/rustc -V)"
+  echo "rustc (librsvg, recipe toolchain $RUST_NIGHTLY): $(recipe_rustc)"
+  echo "rustc commits embedded in libvips-cpp: $(rustc_commits)"
+  echo "mozjpeg: $(grep -F 'mozjpeg version' "$built/strings.txt")"
+  echo "SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
   echo "cargo-c: $(grep -o 'Installed package `cargo-c [^`]*' "$OUT/build.log" | cut -d' ' -f4)"
   echo "meson: $(meson --version)"
   echo "clang: $(clang --version | head -1)"
   echo "xcode: $(xcodebuild -version | tr '\n' ' ')"
   echo "librsvg crates locked: $(grep -c '^name = ' deps/rsvg/Cargo.lock), kept: $(ls "$OUT/sources/librsvg-crates" | wc -l | tr -d ' '), compiled from the registry: $(wc -l < "$OUT/sources/librsvg-compiled.txt" | tr -d ' ') (all kept)"
   shasum -a 256 sharp-libvips-darwin-arm64v8.tar.gz
+  echo "libvips-cpp: $(shasum -a 256 "$dylib" | cut -d' ' -f1) $(dwarfdump --uuid "$dylib" | cut -d' ' -f2)"
 } > "$OUT/BUILD-INFO.txt"
 cp sharp-libvips-darwin-arm64v8.tar.gz "$OUT/"
 cat "$OUT/BUILD-INFO.txt"
@@ -64,12 +87,16 @@ cat "$OUT/BUILD-INFO.txt"
 # were made from one recorded build. Fail if this build drifted from it: the
 # downloads (except the rustup installer and the recipe's THIRD-PARTY-NOTICES.md,
 # fetched from moving URLs), librsvg's resolved Cargo.lock, the crates compiled
-# for it, or the Rust release whose standard library it links.
+# for it, the Rust nightly that built it and its standard library (read from the
+# library itself), mozjpeg's build date, or the built libvips-cpp itself.
 REF="$GITHUB_WORKSPACE/scripts/margin/libvips"
 drift=0
 awk -F'\t' '$3 != "THIRD-PARTY-NOTICES.md" && $3 != "rustup-init" && $3 != "sh.rustup.rs" {print $1"\t"$3"\t"$4}' "$OUT/sources/manifest.tsv" \
   | diff "$REF/expected-sources.tsv" - || { echo "recipe downloads differ from expected-sources.tsv" >&2; drift=1; }
 diff "$REF/librsvg-Cargo.lock" "$OUT/sources/librsvg-Cargo.lock" > /dev/null || { echo "librsvg Cargo.lock differs from the recorded one" >&2; drift=1; }
 diff "$REF/librsvg-compiled.txt" "$OUT/sources/librsvg-compiled.txt" || { echo "librsvg compiled crates differ" >&2; drift=1; }
-deps/cargo/bin/rustc -V | grep -q '^rustc 1\.98\.1 ' || { echo "librsvg built with $(deps/cargo/bin/rustc -V), notices are for 1.98.1" >&2; drift=1; }
+[[ "$(recipe_rustc)" == "rustc 1.101.0-nightly (${RUSTC_COMMIT:0:9} "* ]] || { echo "recipe toolchain is $(recipe_rustc), not $RUST_NIGHTLY" >&2; drift=1; }
+[ "$(rustc_commits)" = "rustc/$RUSTC_COMMIT " ] || { echo "libvips-cpp has Rust code from $(rustc_commits), notices are for rustc $RUSTC_COMMIT" >&2; drift=1; }
+grep -qxF "$MOZJPEG_BUILD" "$built/strings.txt" || { echo "mozjpeg build string is not '$MOZJPEG_BUILD'" >&2; drift=1; }
+[ "$(shasum -a 256 "$dylib" | cut -d' ' -f1)" = "$LIBVIPS_SHA256" ] || { echo "libvips-cpp is not the recorded build $LIBVIPS_SHA256" >&2; drift=1; }
 [ "$drift" = 0 ] && echo "no drift from the recorded build"

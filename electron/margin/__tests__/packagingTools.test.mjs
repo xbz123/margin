@@ -76,7 +76,7 @@ test('forbidden content matches shipped model locations and removed packages, no
 
 test('every libvips notice input exists with its recorded hash and source archive', () => {
   const notices = JSON.parse(fs.readFileSync(new URL('../../../scripts/margin/libvips/notices.json', import.meta.url), 'utf8'));
-  const entries = [...notices.entries, ...notices.supplements];
+  const entries = [...notices.entries, ...notices.supplements, ...notices.rustStd];
   assert.ok(entries.length > 300);
   assert.equal(new Set(entries.map((entry) => entry.id)).size, entries.length);
   for (const entry of entries) {
@@ -91,7 +91,11 @@ test('every libvips notice input exists with its recorded hash and source archiv
 
 test('the local sharp smoke fails unless sharp ran on the package libvips under an active guard', () => {
   const saved = JSON.parse(fs.readFileSync(new URL('../../../docs/margin/evidence/AG-25/local-verify/sharp-smoke-temp.json', import.meta.url), 'utf8'));
-  const rebuilt = '57E6BFB0-8E4E-3F1F-A3AB-1DD593CAC71C';
+  // The UUID of the rebuild the saved report loaded (the report follows the latest
+  // local check, so it is read from the report, not fixed here).
+  const rebuilt = saved.loaded.map((line) => /<([0-9A-F-]{36})> .*\/libvips-cpp\.[^/]*\.dylib$/.exec(line)?.[1]).find(Boolean);
+  assert.match(rebuilt ?? '', /^[0-9A-F]{8}-/);
+  assert.notEqual(rebuilt, '52C60631-3689-3C30-8D36-2631F40386D7', 'the saved report is of the rebuild, not the prebuilt');
   assert.deepEqual(judgeSharpSmoke(saved, rebuilt), { passed: true, failed: [] });
   const fail = (change, uuid = rebuilt) => judgeSharpSmoke({ ...saved, ...change }, uuid);
   // The acceptance review's case: the child exits 1 with no output (invalid package).

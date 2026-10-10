@@ -297,7 +297,7 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
   const libvipsFile = path.join(root, 'scripts/margin/libvips/notices.json');
   const libvipsNotices = fs.existsSync(libvipsFile) ? readJSON(libvipsFile) : null;
   const sourceConfig = [...(fs.existsSync(sourcesFile) ? readJSON(sourcesFile) : []),
-    ...(libvipsNotices ? [...libvipsNotices.entries, ...libvipsNotices.supplements] : [])];
+    ...(libvipsNotices ? [...libvipsNotices.entries, ...libvipsNotices.supplements, ...(libvipsNotices.rustStd ?? [])] : [])];
   if (new Set(sourceConfig.map((source) => source.id)).size !== sourceConfig.length) throw new Error('duplicate supplemental notice id');
   for (const source of sourceConfig) {
     const previous = old?.attachments?.find((item) => item.id === source.id && item.url === source.url && item.version === source.version && item.license === source.license && item.role === source.role);

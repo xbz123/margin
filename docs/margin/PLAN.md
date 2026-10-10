@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-状态：**阶段 2 由 Claude 实现完毕并自验收通过（S21）；Astra 独立验收（2026-10-09）提出 4 项，两轮复验（2026-10-10）后四项全部关闭，源码与本地验收通过（`fa4ed386`）；当前代码的打包 CI `38042681414` 通过，本机核对一致，但发现 S22 的一个缺陷：包内 libvips 的 Rust 部分是用配方当天的 nightly 编译的，不是记录的 rustc 1.98.1，"rustc 不一致时 CI 失败"的保护从未生效。修复前不签收阶段 2 出口**（第 8 节末"当前代码的打包 CI"）。AG-20–26、AG-24 后续、S19-C 及 S22（包内改用重编的 libvips）均已完成；修复后的提交 `9ef2ed4a` 在公开仓库 `xbz123/margin`（S25）的无缓存 CI `38004311007` 三个作业全部通过，下载产物的本机核对也通过（第 8 节末"阶段 2 修复后的 CI"）。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
+状态：**阶段 2 由 Claude 实现完毕并自验收通过（S21）；Astra 独立验收（2026-10-09）提出 4 项，两轮复验（2026-10-10）后四项全部关闭，源码与本地验收通过（`fa4ed386`）；当前代码的打包 CI `38042681414` 通过，本机核对一致，但发现 S22 的一个缺陷：包内 libvips 的 Rust 部分是用配方当天的 nightly 编译的，不是记录的 rustc 1.98.1，"rustc 不一致时 CI 失败"的保护从未生效。经用户同意已修复（固定 nightly 和构建日期、检查读取库本身、补 nightly 标准库的许可），待 CI 确认重编结果回到 `64bcfea7…`**（第 8 节末"libvips Rust 工具链修复"）。AG-20–26、AG-24 后续、S19-C 及 S22（包内改用重编的 libvips）均已完成；修复后的提交 `9ef2ed4a` 在公开仓库 `xbz123/margin`（S25）的无缓存 CI `38004311007` 三个作业全部通过，下载产物的本机核对也通过（第 8 节末"阶段 2 修复后的 CI"）。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
 本文件是本分支的执行依据：实验、验收、ticket 和依赖都以这里为准。
 
@@ -1470,12 +1470,12 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 1. 对应源码目前只是 workflow 产物，30 天后失效（应用包本身 14 天）。S25 之后它在公开仓库里，任何登录用户都可下载，但仍不是长期提供方式。分发前要决定公开方式（S19 第 3 条）。
 2. 链接映射只是下限：泛型代码会编进调用方的目标文件。因此声明按全部编译集合保留；标准库只覆盖有实际代码的 crate。
 3. 正式身份包在本机启动即退出的保护仍然有效，分发前按 AG-62 处理。
-4. libvips 的许可按记录的那次重编整理。配方下载或 librsvg 依赖有任何变化，CI 都会失败，需要先更新 `scripts/margin/libvips/` 的记录和 `notices.json`。原说"rustc 变化 CI 也会失败"不成立：librsvg 用的是配方当天的 nightly，检查读到的不是它（2026-10-10 发现，见第 8 节末）。block、objc_id、objc-foundation、fxhash、mac 五个 crate 没有任何许可文件，只能附 Cargo.toml 声明的标准正文（S23 批准的限定例外）。
+4. libvips 的许可按记录的那次重编整理。配方下载或 librsvg 依赖有任何变化，CI 都会失败，需要先更新 `scripts/margin/libvips/` 的记录和 `notices.json`。原说"rustc 变化 CI 也会失败"当时不成立：librsvg 用的是配方当天的 nightly，检查读到的不是它（2026-10-10 发现）。现已固定为 nightly-2026-10-09，检查改为读库中嵌入的 rustc 提交、mozjpeg 构建日期和动态库 sha256（见第 8 节末）。block、objc_id、objc-foundation、fxhash、mac 五个 crate 没有任何许可文件，只能附 Cargo.toml 声明的标准正文（S23 批准的限定例外）。
 5. 打包后的二进制只在 CI 上启动；本机按 S9 只在守卫下运行包内代码。
 
 原第 1 条（包内 libvips 无法证明逐字节对应的源码）已由 S22 解决：现在分发的是同次运行从记录源码重编的版本。
 
-**下一步**：修复 libvips 的 Rust 工具链记录与检查（方案待用户决定，见第 8 节末），再跑 CI 刷新打包证据；之后签收阶段 2 出口。若验收提出修复，仍按 S21 处理。S8–S25 的边界和停止条件保持有效。
+**下一步**：CI 确认 libvips 重编回到记录的 `64bcfea7…` 并刷新打包证据后，签收阶段 2 出口。若验收提出修复，仍按 S21 处理。S8–S25 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -1822,3 +1822,12 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - 不受影响的部分：记录的 37 个下载、librsvg 的 `Cargo.lock` 和 169 个编译 crate 没有变化，这些 crate 的许可仍然对应；替换检查和 sharp 结果正常。
 
 待用户决定的修复方向（未实施）：固定配方使用的 nightly 版本（以及 mozjpeg 的构建日期），让检查读取配方实际使用的工具链；按该 nightly 核对标准库及其依赖 crate 的许可和对应源码；之后重跑 CI，确认重编结果可复现。
+
+### libvips Rust 工具链修复（Claude，2026-10-10，用户同意"按这个方向修复并触发 CI"）
+
+- **固定**：`rebuild.sh` 在运行配方前设置 `RUSTUP_TOOLCHAIN=nightly-2026-10-09`（rustc `a30aa906`，即此前四次重编所用）和 `SOURCE_DATE_EPOCH`（2026-10-09 12:00 UTC，mozjpeg 的 CMake 用它生成构建日期）。配方本身不改。
+- **检查**：BUILD-INFO 和漂移检查改用配方自己的 `RUSTUP_HOME` 读取工具链版本，并直接从产出的 libvips-cpp 读取：嵌入的 rustc 提交必须只有 `a30aa906`，mozjpeg 构建串必须是 `build 20261009`，动态库 sha256 必须是记录的 `64bcfea7…`；任一不符，CI 失败。用本地的两份库演练：`64bcfea7` 全部通过；10-10 那份三项都报漂移。
+- **许可**：`notice-inputs.py --rust-std` 按 `a30aa906` 生成 31 条标准库许可条目，写入 `notices.json` 的 `rustStd`：rust-lang/rust 的 COPYRIGHT、MIT、Apache 正文，compiler-builtins 和 stdarch 的许可，以及该提交 `library/Cargo.lock` 中 std 在 macOS arm64 上的全部 crates.io 依赖（addr2line、gimli、miniz_oxide、adler2、cfg-if、hashbrown、foldhash、libc、memchr、object、rustc-demangle）的许可文件。每份按脚本里记录的 sha256 或 Cargo.lock 校验和核对。libvips 没有链接映射，所以全部登记。许可清单重新生成：699 候选、515 份正文（+4）、0 未解决；`collect-licenses.mjs` 读取 `rustStd`。
+- **测试**：`packagingTools` 的 sharp 冒烟判定测试改为从已存报告里读取 UUID（此前写死 `57E6BFB0…`，`b0090ca8` 换成 10-10 那次的报告后会失败）；libvips 许可条目测试包含 `rustStd`。
+- **对应源码**：与原生模块（S19-C）相同，Rust 标准库源码不在源码包里，只记录准确的提交（`a30aa906`）。
+- **待议**：原生模块的标准库许可只含 rust 的 COPYRIGHT 和 MIT 及 5 个 crate；compiler_builtins 在原生链接映射中没有实际代码，但 stdarch 的代码属于 core，它单独的许可文件是否也要补，留待决定。

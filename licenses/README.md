@@ -36,9 +36,18 @@ compared). Every archive the build downloaded, the crates compiled for librsvg a
 librsvg's resolved `Cargo.lock` are kept per run (`margin-libvips-sources-<commit>`),
 and CI fails if a later build drifts from the recorded one
 (`scripts/margin/libvips/expected-sources.tsv`, `librsvg-Cargo.lock`,
-`librsvg-compiled.txt`, rustc 1.98.1). The original license files of the 28
-statically linked libraries and of the 169 crates are in
-`scripts/margin/libvips/notices.json` with their archive and member. Ten crates
+`librsvg-compiled.txt`, and in `rebuild.sh` the Rust toolchain, mozjpeg's build
+date and the built library's sha256). The recipe builds librsvg with a Rust
+nightly; `rebuild.sh` pins it to nightly-2026-10-09 (rustc `a30aa906`), whose
+commit the library embeds, and the build date to 2026-10-09. The original license
+files of the 28 statically linked libraries and of the 169 crates are in
+`scripts/margin/libvips/notices.json` with their archive and member, and so are
+those of the Rust standard library that nightly built: the rust-lang/rust
+COPYRIGHT, MIT and Apache terms and those of compiler-builtins and stdarch at
+`a30aa906`, and the license files of every crates.io dependency of std for macOS
+arm64 in its `library/Cargo.lock` (addr2line, gimli, miniz_oxide, adler2, cfg-if,
+hashbrown, foldhash, libc, memchr, object, rustc-demangle; libvips has no linker
+map, so all of them). Ten crates
 publish no license file: five are taken from their source commit or crate file
 header (cssparser-color, selectors, zune-core, zune-jpeg) or a license the author
 added later (malloc_buf); for block, objc_id, objc-foundation, fxhash and mac
@@ -101,7 +110,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-699 candidates; 511 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
+699 candidates; 515 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
