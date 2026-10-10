@@ -33,7 +33,6 @@ docs/margin/evidence/README.md whitespace
 
 # Third-party notice bytes are hash-verified originals, including their whitespace.
 licenses/texts/*.txt -text -whitespace
-scripts/margin/license-inputs/libvips/*.txt -text -whitespace
 
 # Original Readme headings use seven equals signs; preserve their bytes without conflict-marker false positives.
 licenses/texts/4755231c711c7dfde41435042b01a1687f1082baea6eba68e3f83171f4e7ae2c.txt conflict-marker-size=8

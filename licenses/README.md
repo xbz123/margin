@@ -28,42 +28,11 @@ icon sets than the renderer uses requires their terms too.
 
 ## Native and copyleft boundary
 
-**Shipped libvips (S22).** The package carries libvips-cpp 8.17.3 rebuilt on CI
-from the unchanged sharp-libvips recipe `20b5e899`, installed in place of the npm
-prebuilt before packaging; the package checks reject the prebuilt's sha256. The
-recipe pins the same component versions as the npm package (`versions.json` is
-compared). Every archive the build downloaded, the crates compiled for librsvg and
-librsvg's resolved `Cargo.lock` are kept per run (`margin-libvips-sources-<commit>`),
-and CI fails if a later build drifts from the recorded one
-(`scripts/margin/libvips/expected-sources.tsv`, `librsvg-Cargo.lock`,
-`librsvg-compiled.txt`, and in `rebuild.sh` the rustc commit embedded in the
-built library). The recipe builds librsvg with a Rust nightly; `rebuild.sh` pins
-it to nightly-2026-10-09 (rustc `a30aa906`), whose commit the library embeds, and
-the build date to 2026-10-09, and records the toolchain, mozjpeg's build string
-and the library's sha256 in the run's BUILD-INFO. The original license
-files of the 28 statically linked libraries and of the 169 crates are in
-`scripts/margin/libvips/notices.json` with their archive and member, and so are
-those of the Rust standard library that nightly built: the rust-lang/rust
-COPYRIGHT, MIT and Apache terms and those of compiler-builtins and stdarch at
-`a30aa906`, and the license files of every crates.io dependency of std for macOS
-arm64 in its `library/Cargo.lock` (addr2line, gimli, miniz_oxide, adler2, cfg-if,
-hashbrown, foldhash, libc, memchr, object, rustc-demangle; libvips has no linker
-map, so all of them). Ten crates
-publish no license file: five are taken from their source commit or crate file
-header (cssparser-color, selectors, zune-core, zune-jpeg) or a license the author
-added later (malloc_buf); for block, objc_id, objc-foundation, fxhash and mac
-neither the crate nor its repository has one, so their Cargo.toml declaration is
-kept with the standard SPDX terms and no copyright is supplied. The user accepted
-this for exactly these five versions (PLAN S23); it does not extend to other
-packages or versions. The text below
-describes the npm prebuilt, which is no longer shipped.
-
-@img/sharp-libvips-darwin-arm64@1.2.4 declares LGPL-3.0-or-later. Its README lists
-bundled dependencies under several licenses. The wrapper's Apache-2.0 LICENSE
-is **not** the license of the whole binary. Exact wrapper tag v1.2.4 records
-libvips 8.17.3 and other versions in versions.properties. Libvips's source LICENSE
-is LGPL-2.1; the binary distributor states LGPLv3 through the applicable "any
-later version" clause. Retain these statements and original terms together.
+**No libvips (S34).** Screenshots are resized, encoded and stitched with
+Electron's own `nativeImage`. sharp remains a development tool only (icon
+generation and tests), is a dev dependency and is not packaged; the package checks
+reject any `sharp`, `@img` or libvips path. Margin shipped a CI rebuild of
+libvips-cpp from S22 until S34; its records stay in the Git history.
 
 LGPLv3 incorporates GPLv3 terms. Combined-work distribution needs the applicable
 notices, license copies and a compliant modification/recombination/relinking
@@ -93,10 +62,10 @@ the map, so its terms are not added for the native module. Squirrel.Mac, Reactiv
 Mantle, which every Electron macOS app ships but `LICENSES.chromium.html` does not
 list, are included at the commits Electron 43.1.0 pins.
 
-Corresponding source for one CI build is kept as the private workflow artifact
-`margin-source-<commit>` (the commit's archive, every npm tarball and crate checked
-against the lockfiles, and Electron's ffmpeg at the pinned revision with its patch),
-and the sources of the shipped libvips rebuild as `margin-libvips-sources-<commit>`. Workflow
+Corresponding source for one CI build is kept as the workflow artifact
+`margin-source-<commit>` in the public repository (S25): the commit's archive,
+every npm tarball and crate checked against the lockfiles, and Electron's ffmpeg at
+the pinned revision with its patch. Workflow
 artifacts expire; making source available alongside a release is decided before
 distribution (S19 item 3). The license-only collector itself downloads no source
 archives or implementation files.
@@ -113,7 +82,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-699 candidates; 515 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
+694 candidates; 396 unique stored texts; 2 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -254,8 +223,6 @@ are recorded under
 `excluded`, not treated as installed binaries. None of those counts proves the
 actual package set.
 
-Separately, libvips's bundled dependency texts and corresponding-source/relinking
-route, and icon-set terms for any whole React Icons package distributed still
-require artifact-level closure. The retained libvips license table is not a
-complete aggregated notice. Missing candidates cause the package-byte hook to fail;
+Separately, icon-set terms for any whole React Icons package distributed still
+require artifact-level closure. Missing candidates cause the package-byte hook to fail;
 even resolving them all would not, by itself, close these separate obligations.

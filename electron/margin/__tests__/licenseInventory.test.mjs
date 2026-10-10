@@ -345,26 +345,26 @@ test('metadata alone and a remaining unrelated missing notice cannot pass invent
   }
 });
 
-test('libvips notices keep verbatim bytes, reject changed inputs and bind the packaged inventory', async (t) => {
+test('local supplemental notices keep verbatim bytes, reject changed inputs and bind the packaged inventory', async (t) => {
   const options = fixture(t);
-  const bytes = Buffer.from('Synthetic libvips dependency notice\r\n\xA9 latin-1 byte kept\n', 'latin1');
+  const bytes = Buffer.from('Synthetic dependency notice\r\n\xA9 latin-1 byte kept\n', 'latin1');
   const digest = sha256(bytes);
-  write(options.root, `scripts/margin/license-inputs/libvips/${digest}.txt`, '');
-  fs.writeFileSync(path.join(options.root, `scripts/margin/license-inputs/libvips/${digest}.txt`), bytes);
-  const entry = { id: 'libvips-dep:synthetic@1.0:COPYING', version: '1.0', license: 'MIT', url: 'https://example.invalid/synthetic-1.0.tar.gz',
-    localPath: `scripts/margin/license-inputs/libvips/${digest}.txt`, sourceSHA256: digest, sha256: digest, role: 'synthetic test notice', closesMissing: false };
-  write(options.root, 'scripts/margin/libvips/notices.json', { entries: [entry], supplements: [] });
+  const localPath = `scripts/margin/license-inputs/original-notices/${digest}.txt`;
+  write(options.root, localPath, '');
+  fs.writeFileSync(path.join(options.root, localPath), bytes);
+  const entry = { id: 'original:synthetic@1.0', version: '1.0', license: 'MIT', url: 'https://example.invalid/synthetic-1.0.tar.gz',
+    localPath, sourceSHA256: digest, sha256: digest, role: 'synthetic test notice', closesMissing: false };
+  write(options.root, 'scripts/margin/license-sources.json', [entry]);
   const manifest = await collect(options);
   const attachment = manifest.attachments.find((item) => item.id === entry.id);
   assert.ok(fs.readFileSync(path.join(options.root, 'licenses', attachment.text.file)).equals(bytes));
-  assert.equal(manifest.libvipsNoticesSHA256, sha256(fs.readFileSync(path.join(options.root, 'scripts/margin/libvips/notices.json'))));
   const resources = copyResources(options.root);
   assert.equal(verifyBundle(resources, options.root).candidateInventoryOnly, true);
-  write(options.root, 'scripts/margin/libvips/notices.json', { entries: [{ ...entry, role: 'changed after packaging' }], supplements: [] });
-  assert.throws(() => verifyBundle(resources, options.root), /libvips notice sources changed/);
-  write(options.root, 'scripts/margin/libvips/notices.json', { entries: [entry, entry], supplements: [] });
+  write(options.root, 'scripts/margin/license-sources.json', [{ ...entry, role: 'changed after packaging' }]);
+  assert.throws(() => verifyBundle(resources, options.root), /supplemental notice sources changed/);
+  write(options.root, 'scripts/margin/license-sources.json', [entry, entry]);
   await assert.rejects(collect(options), /duplicate supplemental notice id/);
-  fs.writeFileSync(path.join(options.root, entry.localPath), 'substituted text\n');
-  write(options.root, 'scripts/margin/libvips/notices.json', { entries: [entry], supplements: [] });
+  fs.writeFileSync(path.join(options.root, localPath), 'substituted text\n');
+  write(options.root, 'scripts/margin/license-sources.json', [entry]);
   await assert.rejects(collect(options), /local license source changed/);
 });

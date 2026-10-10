@@ -14,7 +14,7 @@ const source = fs.readFileSync(path.resolve(import.meta.dirname, '../../ipcHandl
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
 
 function handlers(root, queue = []) {
-  const callbacks = new Map(); const sends = [], resets = [], optimizes = [];
+  const callbacks = new Map(); const sends = [], resets = [];
   let task; const startedTasks = [];
   const helper = { beginGenerationTask: (kind, signal) => { task = new GenerationTask({ target: { model: 'synthetic' } }, undefined, undefined, kind, signal); startedTasks.push(task); return task; }, getCurrentGenerationTask: () => task,
     runGeneration: factory => factory(), getTaskMetadata: () => ({ requestId: 'request', provider: 'synthetic', model: 'synthetic', status: 'completed', attempts: sends.length }),
@@ -34,17 +34,16 @@ function handlers(root, queue = []) {
     require(id) {
       if (id === 'electron') return { app: { getPath: () => root }, ipcMain: { removeHandler() {}, handle: (name, callback) => callbacks.set(name, callback), removeAllListeners() {}, on() {} } };
       if (id === './utils/imagePathValidation') return { validateImagePath };
-      if (id === './services/screen/ImageOptimizer') return { getImageOptimizer: () => ({ optimize: async imagePath => { optimizes.push(imagePath); return { path: imagePath }; } }) };
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };
       if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);
       return {};
     },
   });
   module.exports.initializeIpcHandlers({ processingHelper: { getLLMHelper: () => helper }, getIntelligenceManager: () => manager, getScreenshotQueue: () => queue });
-  return { callbacks, sends, startedTasks, resets, optimizes };
+  return { callbacks, sends, startedTasks, resets };
 }
 
-for (const channel of ['generate-code-hint', 'generate-brainstorm']) test(`R3-2 ${channel} validates selected queue once before optimizer or generation and uses canonical symlinks`, async t => {
+for (const channel of ['generate-code-hint', 'generate-brainstorm']) test(`R3-2 ${channel} validates selected queue once before generation and uses canonical symlinks`, async t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'r3-queue-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
   const root = path.join(temp, 'userData'); fs.mkdirSync(root);
   const outside = path.join(temp, 'outside.png'); fs.writeFileSync(outside, 'synthetic');
@@ -53,19 +52,18 @@ for (const channel of ['generate-code-hint', 'generate-brainstorm']) test(`R3-2 
   const alias = path.join(root, 'alias.png'); fs.symlinkSync(image, alias);
   const sender = { id: 1, send() {}, isDestroyed: () => false };
   for (const payload of [undefined, []]) for (const queue of [[escape], Array(6).fill(image)]) {
-    const { callbacks, sends, optimizes } = handlers(root, queue);
+    const { callbacks, sends } = handlers(root, queue);
     await assert.rejects(() => callbacks.get(channel)({ sender }, payload), /Invalid image path/);
-    assert.deepEqual(sends, []); assert.deepEqual(optimizes, []);
+    assert.deepEqual(sends, []);
   }
   for (const payload of [null, '', { length: 0 }, [null], ['']]) {
-    const { callbacks, sends, optimizes } = handlers(root, [image]);
+    const { callbacks, sends } = handlers(root, [image]);
     await assert.rejects(() => callbacks.get(channel)({ sender }, payload), /Invalid image path/);
-    assert.deepEqual(sends, []); assert.deepEqual(optimizes, []);
+    assert.deepEqual(sends, []);
   }
   for (const payload of [undefined, [], [alias]]) {
-    const { callbacks, sends, optimizes } = handlers(root, payload?.length ? [escape] : [alias]);
+    const { callbacks, sends } = handlers(root, payload?.length ? [escape] : [alias]);
     await callbacks.get(channel)({ sender }, payload);
-    assert.deepEqual(optimizes, [fs.realpathSync(image)]);
     assert.deepEqual(Array.from(sends[0][0]), [fs.realpathSync(image)]);
   }
 });

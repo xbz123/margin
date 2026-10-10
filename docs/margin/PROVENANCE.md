@@ -21,6 +21,20 @@ Notes:
 
 ## Ledger
 
+### S34 nativeImage in place of sharp (Claude, 2026-10-11)
+
+- `electron/services/screen/imageCodec.ts`: written for this branch from the X6
+  pilot (`evidence/nativeimage-pilot/`); it uses only Electron's `nativeImage`.
+  `LLMHelper.processImage` and `ScreenshotHelper.stitchImages` call it. No earlier
+  Margin or restricted upstream implementation is imported; the one G2 hit of the
+  first draft (a generic `getSize()` line) was rewritten, not allowlisted.
+- Removed: `ImageOptimizer`, `ImageHashService` (no caller), their test and
+  benchmark, `scripts/ensure-sharp-mac-deps.js`, `scripts/margin/libvips/` and
+  `scripts/margin/license-inputs/libvips/`. sharp is now a dev dependency (icon
+  generation and tests only) and is not packaged. `licenses/manifest.json` was
+  regenerated offline; it drops sharp's packages and the libvips notices, and the
+  119 texts no entry references any more are deleted.
+
 ### Stage 3 W2 review repairs
 
 R3-1, R3-2 and R3-5 are implemented from the review findings and the user's

@@ -24,7 +24,7 @@ on:
         type: string
         default: ''
       package_apps:
-        description: AG-25 temp and release apps with the rebuilt libvips (S22), launch and replacement checks, and the S19-C source bundle (workflow artifacts only)
+        description: AG-25 temp and release apps, their launch checks, and the S19-C source bundle (workflow artifacts only)
         type: boolean
         default: false
 
@@ -33,9 +33,6 @@ permissions:
 
 jobs:
   gates:
-    # With package_apps the packages carry the libvips the libvips job rebuilt (S22),
-    # so this job waits for it; otherwise that job is skipped.
-    needs: [libvips]
     if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[gates]')) }}
     runs-on: macos-15
     timeout-minutes: 75
@@ -82,16 +79,6 @@ jobs:
           restore-keys: cargo-target-${{ runner.os }}-${{ runner.arch }}-${{ steps.tools.outputs.rustc }}-
 
       - run: npm ci
-
-      - if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_apps }}
-        uses: actions/download-artifact@v7
-        with:
-          name: margin-libvips-${{ github.sha }}
-          path: ${{ runner.temp }}/libvips
-
-      - name: Install the rebuilt libvips in place of the prebuilt (S22)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_apps }}
-        run: node scripts/margin/libvips/install-rebuilt.mjs "$RUNNER_TEMP/libvips"
 
       - name: Native setup
         run: |
@@ -233,69 +220,3 @@ jobs:
           name: margin-gates-${{ github.sha }}
           path: ci-evidence/
           retention-days: 30
-
-  libvips:
-    if: github.event_name == 'workflow_dispatch' && inputs.package_apps
-    runs-on: macos-15
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v7
-      - name: Recipe build tools (as the recipe's own CI installs them)
-        run: |
-          pipx install meson
-          brew install automake nasm
-      - name: Rebuild libvips from the fixed recipe, keeping every source
-        run: scripts/margin/libvips/rebuild.sh "$RUNNER_TEMP/libvips-out"
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: margin-libvips-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/libvips-out/*.tar.gz
-            ${{ runner.temp }}/libvips-out/build.log
-            ${{ runner.temp }}/libvips-out/BUILD-INFO.txt
-          retention-days: 30
-          if-no-files-found: warn
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: margin-libvips-sources-${{ github.sha }}
-          path: ${{ runner.temp }}/libvips-out/sources/
-          compression-level: 0
-          retention-days: 30
-          if-no-files-found: warn
-
-  # LGPL relinking route: a user can put another libvips-cpp build into the package
-  # and re-sign it. Uses the npm package's prebuilt as that other build.
-  libvips-replace:
-    needs: [gates]
-    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && inputs.package_apps }}
-    runs-on: macos-15
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v7
-        with:
-          name: margin-app-temp-${{ github.sha }}
-          path: ${{ runner.temp }}/app
-      - name: Verify the app artifact and fetch the npm prebuilt by its lockfile integrity
-        run: |
-          node --input-type=module -e "
-            import { verifyDirectory } from './scripts/margin/download-ci-artifact.mjs';
-            console.log(JSON.stringify(verifyDirectory('$RUNNER_TEMP/app', { commit: process.env.GITHUB_SHA }).files));
-          "
-          node scripts/margin/libvips/fetch-prebuilt.mjs "$RUNNER_TEMP/prebuilt"
-      - name: Replace the shipped libvips with another build, re-sign ad hoc and check sharp
-        run: |
-          set -o pipefail
-          ditto -x -k "$RUNNER_TEMP/app/temp-temp-arm64.zip" "$RUNNER_TEMP/unzipped"
-          scripts/margin/libvips/replace-check.sh "$RUNNER_TEMP/unzipped/temp.app" "$RUNNER_TEMP/prebuilt/libvips-cpp.8.17.3.dylib" "$RUNNER_TEMP/replace" 2>&1 | tee "$RUNNER_TEMP/replace-check.log"
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: margin-libvips-replace-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/replace/
-            ${{ runner.temp }}/replace-check.log
-          retention-days: 30
-          if-no-files-found: warn

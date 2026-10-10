@@ -69,29 +69,6 @@
     "closesMissing": true
   },
   {
-    "id": "source:libvips",
-    "version": "8.17.3",
-    "license": "LGPL-2.1",
-    "url": "https://raw.githubusercontent.com/libvips/libvips/0c9151a4f416d2f8ae20a755db218f6637050eec/LICENSE",
-    "gitBlob": "4362b49151d7b34ef83b3067a8f9c9f877d72a0e",
-    "role": "exact libvips source terms; binary distributor uses applicable or-later clause for LGPLv3"
-  },
-  {
-    "id": "inventory:sharp-libvips",
-    "version": "1.2.4",
-    "license": "multiple; not a replacement for license texts",
-    "url": "https://raw.githubusercontent.com/lovell/sharp-libvips/20b5e899954907a3039d6e3d4c200aaa0ec52c4c/THIRD-PARTY-NOTICES.md",
-    "gitBlob": "7b794812a9a32a2f4b7c1535c9b89a90b613dd7f",
-    "role": "official component license table, NOT complete third-party license texts"
-  },
-  {
-    "id": "versions:sharp-libvips",
-    "version": "1.2.4",
-    "license": "component version metadata only",
-    "url": "https://raw.githubusercontent.com/lovell/sharp-libvips/20b5e899954907a3039d6e3d4c200aaa0ec52c4c/versions.properties",
-    "role": "exact wrapper-tag dependency versions; not proof of the packaged linked set"
-  },
-  {
     "id": "source:skia",
     "version": "1fdbea293a53b270e3f5e74c92cc6670d68412ff",
     "license": "BSD-3-Clause",

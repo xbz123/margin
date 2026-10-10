@@ -32,10 +32,14 @@ app.whenReady().then(async () => {
     return `sqlite ${row.v}`;
   });
 
-  await check('sharp', async () => {
-    const sharp = req('sharp');
-    const png = await sharp({ create: { width: 2, height: 2, channels: 3, background: '#000' } }).png().toBuffer();
-    return `png ${png.length} bytes, libvips ${sharp.versions.vips}`;
+  // Screenshots are resized and encoded with nativeImage since S34 (no sharp).
+  await check('nativeImage', () => {
+    const { nativeImage } = require('electron');
+    const png = nativeImage.createFromBitmap(Buffer.alloc(4 * 4 * 4, 0x80), { width: 4, height: 4 }).toPNG();
+    const jpeg = nativeImage.createFromBuffer(png).resize({ width: 2, height: 2, quality: 'best' }).toJPEG(80);
+    const size = nativeImage.createFromBuffer(jpeg).getSize();
+    if (size.width !== 2 || size.height !== 2) throw new Error(`resized to ${size.width}x${size.height}`);
+    return `png ${png.length} bytes, jpeg ${jpeg.length} bytes`;
   });
 
   await check('native-module', () => {

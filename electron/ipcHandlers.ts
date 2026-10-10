@@ -1968,38 +1968,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  // Shared helper: validate, then run images through the vision-first ImageOptimizer
-  // so downstream provider calls send compressed JPEG payloads instead of raw retina PNGs.
-  // Falls back to the original paths if optimization fails — image input is more important
-  // than payload size, so a Sharp failure must not block the request.
-  async function optimizeImagesForVision(
-    paths: string[],
-    handlerLabel: string,
-    profile: 'fast' | 'balanced' | 'technical' | 'best' = 'technical',
-  ): Promise<string[]> {
-    if (paths.length === 0) return paths;
-    try {
-      const { getImageOptimizer } = require('./services/screen/ImageOptimizer');
-      const optimizer = getImageOptimizer();
-      const optimized: string[] = [];
-      for (const p of paths) {
-        try {
-          const out = await optimizer.optimize(p, { profile, provider: 'openai', cacheKey: p });
-          optimized.push(out.path);
-        } catch (err: any) {
-          console.warn(
-            `[IPC] ${handlerLabel}: image optimization failed for ${p}, using original`,
-            { errorClass: err?.name },
-          );
-          optimized.push(p);
-        }
-      }
-      return optimized;
-    } catch {
-      return paths;
-    }
-  }
-
   safeHandle('generate-code-hint', async (_, imagePaths?: string[], problemStatement?: string) => {
     try {
       // If no explicit images were passed from the frontend, fall back to the
@@ -2011,17 +1979,10 @@ export function initializeIpcHandlers(appState: AppState): void {
         `[IPC] generate-code-hint: using ${resolvedImagePaths.length} image(s) (${imagePaths?.length ? 'explicit' : 'queue fallback'})`,
       );
 
-      // VISION-FIRST: optimize the screenshot(s) with Sharp before they reach the LLM,
-      // using the 'technical' profile so code text stays sharp at 1536px.
-      const optimizedPaths = await optimizeImagesForVision(
-        resolvedImagePaths,
-        'generate-code-hint',
-        'technical',
-      );
-
+      // LLMHelper.processImage shrinks and JPEG-encodes every image it sends.
       const intelligenceManager = appState.getIntelligenceManager();
       const hint = await intelligenceManager.runCodeHint(
-        optimizedPaths.length > 0 ? optimizedPaths : undefined,
+        resolvedImagePaths.length > 0 ? resolvedImagePaths : undefined,
         problemStatement,
       );
       return { hint };
@@ -2041,16 +2002,9 @@ export function initializeIpcHandlers(appState: AppState): void {
         `[IPC] generate-brainstorm: using ${resolvedImagePaths.length} image(s) (${imagePaths?.length ? 'explicit' : 'queue fallback'})`,
       );
 
-      // VISION-FIRST: balanced profile (1280px) — brainstorm doesn't need code-sharp text.
-      const optimizedPaths = await optimizeImagesForVision(
-        resolvedImagePaths,
-        'generate-brainstorm',
-        'balanced',
-      );
-
       const intelligenceManager = appState.getIntelligenceManager();
       const script = await intelligenceManager.runBrainstorm(
-        optimizedPaths.length > 0 ? optimizedPaths : undefined,
+        resolvedImagePaths.length > 0 ? resolvedImagePaths : undefined,
         problemStatement,
       );
       return { script };

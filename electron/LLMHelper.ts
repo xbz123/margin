@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
 import { AsyncLocalStorage } from "async_hooks"
 import { createHash } from "crypto"
-import sharp from "sharp"
+import { toJpeg } from "./services/screen/imageCodec"
 import { ModelVersionManager } from './services/ModelVersionManager'
 import {
   HARD_SYSTEM_PROMPT,
@@ -703,30 +703,22 @@ CRITICAL RULES:
 
 
   /**
-   * NEW: Helper to process image: resize to max 1536px and compress to JPEG 80%
-   * drastically reduces token usage and upload time.
+   * Encodes the image as JPEG (quality 80) at its original resolution: the user wants
+   * screenshots sent unscaled (PLAN S34), and JPEG keeps them well under provider
+   * per-image size limits where a Retina PNG may not.
    */
   private async processImage(path: string): Promise<{ mimeType: string, data: string }> {
     try {
       const imageBuffer = await fs.promises.readFile(path);
 
-      // Resize and compress
-      const processedBuffer = await sharp(imageBuffer)
-        .resize({
-          width: 1536,
-          height: 1536,
-          fit: 'inside', // Maintain aspect ratio, max dimension 1536
-          withoutEnlargement: true
-        })
-        .jpeg({ quality: 80 }) // 80% quality JPEG is much smaller than PNG
-        .toBuffer();
+      const processedBuffer = toJpeg(imageBuffer, 80);
 
       return {
         mimeType: "image/jpeg",
         data: processedBuffer.toString("base64")
       };
     } catch (error) {
-      console.error("[LLMHelper] Failed to process image with sharp:", error);
+      console.error("[LLMHelper] Failed to process image:", error);
       throw new Error('Invalid or unreadable image. The attachment was not sent.');
     }
   }

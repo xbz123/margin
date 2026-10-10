@@ -7,7 +7,7 @@ import fs from "node:fs"
 import { app, desktopCapturer, screen, systemPreferences } from "electron"
 import { v4 as uuidv4 } from "uuid"
 import util from "util"
-import sharp from "sharp"
+import { stitchPng, type StitchPart } from "./services/screen/imageCodec"
 import { exec as execShell } from "child_process"
 
 // Module-level: promisified shell exec created once per process lifetime.
@@ -336,64 +336,27 @@ async function stitchImages(captures: DisplayCapture[], selection: Electron.Rect
   
   console.log(`[ScreenshotHelper] Output dimensions: ${outputWidth}x${outputHeight}`);
   
-  // Process each capture: resize to fit the output scale
-  const composites: sharp.OverlayOptions[] = [];
-  
-  try {
-    for (const capture of captures) {
-      // Calculate where this capture goes in output coordinates (physical pixels)
-      const outputOffsetX = Math.round(capture.intersection.x - selection.x);
-      const outputOffsetY = Math.round(capture.intersection.y - selection.y);
-      
-      // Calculate the target size for this capture in output coordinates
-      const targetWidth = Math.round(capture.intersection.width);
-      const targetHeight = Math.round(capture.intersection.height);
-      
-      // Get current image dimensions
-      const metadata = await sharp(capture.imageBuffer).metadata();
-      const srcWidth = metadata.width || 1;
-      const srcHeight = metadata.height || 1;
-      
-      console.log(`[ScreenshotHelper] Capture at (${outputOffsetX}, ${outputOffsetY}), source: ${srcWidth}x${srcHeight}, target: ${targetWidth}x${targetHeight}`);
-      
-      // Resize the capture to target dimensions to normalize DPI scales
-      const resizedBuffer = await sharp(capture.imageBuffer)
-        .resize(targetWidth, targetHeight, { fit: 'fill' })
-        .png()
-        .toBuffer();
-      
-      composites.push({
-        input: resizedBuffer,
-        left: outputOffsetX,
-        top: outputOffsetY
-      });
-      
-      console.log(`[ScreenshotHelper] Resized capture to ${targetWidth}x${targetHeight}`);
-    }
-  } catch (error) {
-    console.error('[ScreenshotHelper] Error processing capture buffers:', error);
-    throw new Error(`Failed to process screenshot buffers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  // Each capture is resized to its target size in output coordinates (physical pixels),
+  // which normalizes different DPI scales, and placed on a transparent canvas.
+  const parts: StitchPart[] = captures.map(capture => ({
+    bytes: capture.imageBuffer,
+    left: Math.round(capture.intersection.x - selection.x),
+    top: Math.round(capture.intersection.y - selection.y),
+    width: Math.round(capture.intersection.width),
+    height: Math.round(capture.intersection.height),
+  }));
+  for (const part of parts) {
+    console.log(`[ScreenshotHelper] Capture at (${part.left}, ${part.top}), target: ${part.width}x${part.height}`);
   }
-  
-  // Create a transparent canvas of the output size and composite all images
+
   let stitched: Buffer;
   try {
-    stitched = await sharp({
-      create: {
-        width: outputWidth,
-        height: outputHeight,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 }
-      }
-    })
-    .composite(composites)
-    .png()
-    .toBuffer();
+    stitched = stitchPng(parts, outputWidth, outputHeight);
   } catch (error) {
     console.error('[ScreenshotHelper] Error creating stitched image:', error);
     throw new Error(`Failed to create stitched screenshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-  
+
   console.log(`[ScreenshotHelper] Stitched image created: ${outputWidth}x${outputHeight}`);
   
   return stitched;

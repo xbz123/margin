@@ -4,11 +4,11 @@
 
 ## Next actions
 
-- **W3 失败诊断** — 出口 CI 38090230126 的 storage 门禁失败：`meeting-storage.test.mjs:533` 的界面点击被覆盖层挡住。先查清拦截元素，再修测试或代码，然后重跑出口 CI（须用户批准）。由谁做等用户决定（PLAN §9"W3 出口 CI 38090230126"）。
+- **AG-52 删减与覆盖层排查**（Claude，S34）— 会议记录只留本地转写的列表、详情和复制；删除后查清 W3 中挡住历史列表点击的覆盖层（PLAN S33、S34）。
 
 ## Waiting
 
-- **sharp 替换** — 实验结论可行（PLAN §4 X6）；是否删除 sharp 和 libvips 等用户决定。
+- **W3 重跑** — 等 AG-52 删减完成，再请用户批准触发；验收按 S34 修订（只有 gates 作业，包检查 12/12）。
 - **W4 本机核对与阶段 3 签收** — 等 W3 重跑通过；用户要求暂不做本机核对，签收由用户决定。
 - **阶段 4（AG-40 起）** — 等阶段 3 签收和用户允许开始（PLAN §6"阶段 3–6"表）。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
@@ -17,10 +17,11 @@
 
 - 未经真实环境验证：Codex 登录（AG-34）、真实模型服务的兼容性、S29 提示词改动对回答质量的影响。签收时要写明（PLAN S27、S29、W4）。
 - 提示词分层和按场景的附加指令已记入 AG-51，属于后期工作（PLAN S29 第 3 条）。
-- `licenses/README.md` 仍说源码包是 "private workflow artifact"，S25 之后已不准确，尚未修改。
+- 截图截取环节是否为原生像素密度只能用真实屏幕确认（PLAN §9"S34 删除 sharp"）。
 
 ## Done (rolling)
 
+- S34 删除 sharp 和 libvips（2026-10-11）：截图改用 nativeImage、按原图分辨率发送；本地 gates 16/16（`docs/margin/evidence/S34-sharp-removal/gates/`）。
 - S33 范围精简（2026-10-11）：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、`windows-compile.yml` 改为只手动触发；nativeImage 实验见 `docs/margin/evidence/nativeimage-pilot/`。
 - S32（2026-10-11）：引用其他项目时只需确认使用开源协议，不再逐项做许可分析；上游 6 月边界不变（PLAN S32）。
 - W3 出口 CI 38090230126 已记录（2026-10-11）：结论为失败，但除 storage 和因此跳过的身份契约外，其余验收项都通过，产物已下载核对（`docs/margin/evidence/CI-38090230126/`）。

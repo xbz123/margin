@@ -58,6 +58,7 @@
 | S31 | 阶段 3 复查后的两项决定：<br>1. **R3-1 选甲**：服务商的有效地址（origin）变化时，主进程要求同时提供新的 API key，否则拒绝保存，提示"更换地址后请重新输入 API key"，并加回归测试。由 Codex 在 W2 实现。<br>2. **AG-70 并入每票门禁**：`windows-compile.yml` 改为在推送迁移分支时自动运行，只改文档（`docs/**`、`*.md`）的推送不触发；只在公开仓库 `xbz123/margin` 运行，私有仓库收到同样的推送时跳过，不消耗私有仓库的额度。每张改代码的 ticket 推送后，该提交的 Windows 编译检查必须通过，才算过了门禁。因此每票的代码提交都要推送到公开仓库。这一条修改了 S27 第 6 条"ticket 不触发 CI"；macOS 的完整 CI 仍只在阶段出口运行 | 用户，2026-10-10，回复"R3-1 选甲，AG-70 可以加入" |
 | S32 | **引用其他项目的许可要求放宽**：今后的代码引用或借鉴其他项目时，只需确认被引用的代码使用开源协议，记下项目和协议即可，不再逐项做许可兼容性分析。不放宽的部分：不引入 Natively 上游 6 月之后的代码（来源边界，不是许可分析）；已有的自动检查（来源扫描、许可清单与锁文件一致）在触发时仍须通过 | 用户，2026-10-11，"接下来的代码在引用其他项目的时候不需要过分在意许可证的问题，只需要知道引用的代码是使用开源协议即可" |
 | S33 | 按第一性原理和奥卡姆剃刀精简范围（Claude 建议，用户逐条答复）：<br>1. **删除 AG-43**：不做自动回答和双语 Judge，回答只由用户手动触发（AG-42）。<br>2. **删除 Local Context 预热**：AG-50 只做 Local Context 全文输入，旧 Margin 计划中的预热规则全部不实施。<br>3. **AG-52 缩减**：会议记录只保留本地转写的列表、详情和复制；会前设置、自动摘要、标题生成、启动恢复、会议内聊天删除，包括已有实现、IPC、界面和专属测试，以及只为这些功能存在的数据范围（删除前核对调用方）。<br>4. **Windows 推迟**：阶段 7 的 AG-71–73 暂缓，先只发布 macOS，AG-74 改为只发 macOS；`windows-compile.yml` 改为只手动触发，不再是每票门禁。修改 S30 和 S31 第 2 条。<br>5. **sharp 替换先做实验**：结果见 §4 X6；是否删除 sharp 和 libvips 由用户决定。<br>未答复的建议保持原计划：AG-61 的伪装、AG-60 中英双语、四协议和 Codex、数据范围的细分开关 | 用户，2026-10-11，回复"这两个可以删除""接受建议""这部分同意""这部分进行测试实验，然后说明效果" |
+| S34 | W3 重跑前先精简（Claude 建议，用户同意）：<br>1. **删除 sharp 和 libvips**（X6 结论）：截图改用 Electron 的 nativeImage 编码和拼接；sharp 只留作开发依赖（图标生成和测试），不进安装包；删除 libvips 重编、替换检查、源码产物和许可声明。<br>2. **AG-52 删减提前到 W3 重跑之前**：W3 失败的启动恢复测试随之删除；历史列表保留，挡住点击的覆盖层仍要查清。<br>3. **由 Claude 实现**这两项，每步跑本地 gates。<br>4. **截图按原图分辨率发送**：不再缩到 1536 px；Claude 选择仍编码为 JPEG（质量 80），因为 Retina PNG 可能超过部分服务商的单图大小上限。<br>5. **不支持 WebP 和 GIF**：截图只有 PNG 或 JPG，图片校验收窄到这两种 | 用户，2026-10-11，回复"同意这两点"，选择"Claude 直接实现"，"实际使用的时候按照原图分辨率进行发送"，"应该是不需要解析webp和gif格式的" |
 
 **S21 细则**：
 
@@ -308,7 +309,7 @@ X2 只交付隔离工具和它们自己的自测程序（`scripts/margin/isolati
   - 改写三处调用；删 `ImageHashService`；图片校验收窄到 PNG/JPEG。
   - 删除 `sharp` 依赖、`scripts/margin/libvips/`（11 个文件）、`margin-gates.yml` 的 `libvips` 和 `libvips-replace` 作业、gates 作业中的 libvips 步骤、`libvips-rebuilt` 包检查、libvips 许可声明和源码产物、`scripts/ensure-sharp-mac-deps.js`；重新生成 `licenses/manifest.json`。
 - **收益**：安装包约小 15 MB；每次完整 CI 少约 22 分钟；不再有 173 MB 的源码产物，也不用固定 nightly Rust 工具链。
-- **状态**：等用户决定是否执行。
+- **状态**：已按 S34 执行，记录见 §9"S34 删除 sharp"。
 
 ## 5. 验收
 
@@ -699,7 +700,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | --- | --- | --- | --- |
 | W1 只读复查 | Claude | 已完成（§9"阶段 3 复查（Claude）"，R3-1 至 R3-5，无阻断） | 无 |
 | W2 修复与关闭 | Codex 修，Claude 核对关闭 | 已关闭（2026-10-11，§9"W2 关闭核对"）：R3-1、R3-2、R3-5 在 `3e779466` 修复；R3-3 移交阶段 7，R3-4 不改 | W1 的发现清单（实现） |
-| W3 出口 CI | Claude | 运行 38090230126 未通过（2026-10-11）：storage 门禁 1 项界面测试失败，其余验收项通过，正式身份契约因此跳过（§9"W3 出口 CI 38090230126"）；等用户决定修复方式 | W2 已关闭；用户批准触发 CI |
+| W3 出口 CI | Claude | 运行 38090230126 未通过（2026-10-11）：storage 门禁 1 项界面测试失败，其余验收项通过，正式身份契约因此跳过（§9"W3 出口 CI 38090230126"）；S34 决定先删除 sharp 和做 AG-52 删减，再重跑（须用户批准触发） | W2 已关闭；用户批准触发 CI |
 | W4 本机核对与签收 | Claude 核对，用户签收 | 等待 | W3 的产物（验收） |
 
 四项不能并行：W2 要改 W1 复查的代码；W3 要在最终代码上只跑一次；W4 要用 W3 的产物。复查和 CI 期间分支只接受 W2 的修复。阶段 4（AG-40 起）在阶段 3 签收并经用户允许后开始；如要提前并行，须另开工作树并征得用户同意，且不能移动 W3 的提交。
@@ -740,13 +741,13 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 
 **W3 出口 CI**
 - **前提**：用户明确批准触发。公开仓库不计费。
-- **参数**：`xbz123/margin` 的 `margin-gates.yml`，分支 `codex/margin-agpl-migration`，`package_apps=true`。`no_cache=false`：`native-module/` 自 `2c7f1e42` 以来没有变化，依赖和 libvips 配方也没有变化，W2 如有改动须重新核对。
-- **验收**：
-  - 三个作业都成功。
+- **参数**：`xbz123/margin` 的 `margin-gates.yml`，分支 `codex/margin-agpl-migration`，`package_apps=true`。`no_cache=false`：`native-module/` 自 `2c7f1e42` 以来没有变化；S34 只把 sharp 改为开发依赖，原生模块和工具链不变。
+- **验收**（S34 修订：没有 libvips 作业，包检查少了 `libvips-rebuilt` 一项）：
+  - gates 作业成功（S34 起只有这一个作业）。
   - gates 16/16。
   - 正式身份契约 6/6。
-  - 两个身份的包检查都是 13/13。
-  - 原生模块 `0f92a0b1`，libvips `64bcfea7`。
+  - 两个身份的包检查都是 12/12；`forbidden-content` 确认包内没有 sharp、`@img` 或 libvips。
+  - 原生模块 `0f92a0b1`。
   - 包内许可：`license-bundle.cjs` 逐字节比对包内 `licenses/manifest.json` 和源码里的版本，这项通过即确认已含 `rust-sysroot:stdarch`。
 - **证据**：`evidence/CI-<run>/`，结构同 `CI-38057787157`。
 - **停止条件**：作业失败先按常规诊断修复；需要改 W1 范围内的代码时回到 W2。
@@ -1655,7 +1656,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 - **只证明了能编译**：没有运行测试，没有加载这个 `.node`，没有打包，也没有实机运行，这些属于 AG-71 起的工作。
 - **用户决定（S31）**：并入每票门禁。工作流已改为推送时自动运行，只在公开仓库运行。
 
-**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行，是否执行等用户决定。S8–S33 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；下一步由 Claude 做 AG-52 删减并查清覆盖层，然后重跑 W3（须用户批准）。S8–S34 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2144,3 +2145,30 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
   - 如果只是测试的问题：修测试，跑一次本地门禁。
   - 如果是界面被遮挡：按 W3 的停止条件回到 W2 修代码。
   - 修完后重跑出口 CI，须用户批准。原生模块和依赖不变时，仍用 `no_cache=false`。
+
+### S34 删除 sharp（Claude，2026-10-11，用户同意并选择"Claude 直接实现"）
+
+- **新增** `electron/services/screen/imageCodec.ts`，只用 Electron 的 nativeImage：
+  - `toJpeg`：按原图分辨率编码为 JPEG。`LLMHelper.processImage` 用它，质量 80，不再缩到 1536 px（S34 第 4 条）。
+  - `stitchPng`：多显示器拼接。先把每块截图缩放到目标尺寸，再逐行复制像素到透明画布。`ScreenshotHelper.stitchImages` 用它。
+- **删除**：
+  - `ImageOptimizer`：它只给代码提示和头脑风暴提前压缩一遍，之后 `processImage` 还会再处理一次，因此是多余的。连同它在 `ipcHandlers` 中的调用、测试和基准脚本一起删除。
+  - `ImageHashService`：没有调用方。
+  - `scripts/ensure-sharp-mac-deps.js`。
+  - `scripts/margin/libvips/`（11 个文件）和 `scripts/margin/license-inputs/libvips/`（162 个文件）。
+  - `margin-gates.yml` 的 `libvips`、`libvips-replace` 作业，以及 gates 作业中下载和安装 libvips 的步骤。
+  - 包检查 `libvips-rebuilt`；`setup-native` 的 sharp 检查（步骤改为 4 步）；源码包中的 libvips 段；`license-sources.json` 中 libvips 的 3 条来源。
+- **依赖与许可**：
+  - sharp 移到 devDependencies。锁文件只有 sharp 及其 27 个子包加上 `dev` 标记，其他条目不变。
+  - 许可清单离线重新生成：699 项减为 694 项，少了 sharp、`@img/colour`、`@img/sharp-darwin-arm64`、`@img/sharp-libvips-darwin-arm64`、`@emnapi/runtime`；附件少了 libvips 的 382 条。删除不再被引用的 119 份正文；未解决项 0。
+  - `NOTICE` 删去 libvips 段。`licenses/README.md` 改为说明不再含 libvips，并更正"private workflow artifact"的过时说法。
+- **新增的检查**：
+  - `forbidden-content` 拒绝 sharp、`@img`、libvips 路径。
+  - 隔离自检改为验证 nativeImage 的 PNG→JPEG 编解码。
+  - 回归测试断言截图以原尺寸 JPEG 发出（64×48）。
+  - 许可测试改为验证通用的本地补充声明。
+- **图片校验**收窄为 PNG/JPEG（S34 第 5 条）。
+- **本地 gates**：`evidence/S34-sharp-removal/gates/` 16/16。112 个文件、972 个测试（967 通过、0 失败、5 个既有跳过），比之前少的 9 个测试来自删除的 ImageOptimizer 和 libvips 测试。来源检查 0 命中。
+  - 首轮 `gates-first-failed/` 有 1 个来源命中：`imageCodec.ts` 中的通用写法 `const size = image.getSize();` 与上游受限代码字面相同。已改写，未加白名单。
+  - 本机 storage 5/5，包括 W3 在 CI 上失败的那个点击。
+- **未验证**：`desktopCapturer` 返回的截图是否为原生像素密度（`ScreenshotHelper` 注释如此说明）需要真实屏幕才能确认，截取环节未改动。打包后的效果待 W3 重跑。

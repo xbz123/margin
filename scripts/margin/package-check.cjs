@@ -17,12 +17,9 @@ const FORBIDDEN = [
   /^Resources\/(app\.asar(\.unpacked)?\/(resources\/)?)?models(\/|$)/,/\.onnx$/i, /(^|\/)onnxruntime[^/]*(\/|$)/i, /(^|\/)sqlite-vec[^/]*(\/|$)/i,
   /(^|\/)premium(\/|$)/i, /(^|\/)natively-api(\/|$)/i, /eng\.traineddata$/i, /\.gguf$/i,
   /(^|\/)@napi-rs\/canvas[^/]*(\/|$)/, /(^|\/)pdf-parse(\/|$)/, /(^|\/)pdfjs-dist(\/|$)/, /(^|\/)mammoth(\/|$)/,
+  // S34: images go through Electron's nativeImage; sharp is a development tool only.
+  /(^|\/)sharp(\/|$)/, /(^|\/)@img(\/|$)/, /libvips/i,
 ];
-
-// S22: Margin ships libvips-cpp rebuilt on CI from the sharp-libvips recipe, not the
-// prebuilt in @img/sharp-libvips-darwin-arm64 1.2.4 (this sha256).
-const LIBVIPS = 'Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib';
-const UPSTREAM_LIBVIPS_SHA256 = 'ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d';
 
 const run = (cmd, args) => spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 120_000 });
 const sha256File = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -54,8 +51,7 @@ function plist(app, key) {
 }
 
 // identity: { name, appId } of the variant this app must carry.
-// libvipsSHA256: the rebuilt library this package must carry (from the install record).
-function checkPackage(app, identity, { sourceRoot, libvipsSHA256 } = {}) {
+function checkPackage(app, identity, { sourceRoot } = {}) {
   const checks = [];
   const add = (id, passed, detail) => checks.push({ id, passed: !!passed, detail });
   const contents = path.join(app, 'Contents');
@@ -68,8 +64,6 @@ function checkPackage(app, identity, { sourceRoot, libvipsSHA256 } = {}) {
   add('executable-name', fs.existsSync(path.join(contents, 'MacOS', identity.name)), { expected: `MacOS/${identity.name}` });
   add('no-update-config', !fs.existsSync(path.join(resources, 'app-update.yml')), 'electron-builder writes app-update.yml only for a publish target');
 
-  // Loaded here so the constants above can be read without node_modules
-  // (the libvips-replace CI job imports them before any npm install).
   const asar = require('@electron/asar');
   const archive = path.join(resources, 'app.asar');
   const asarPaths = asar.listPackage(archive).map((entry) => entry.replace(/^\//, ''));
@@ -91,9 +85,6 @@ function checkPackage(app, identity, { sourceRoot, libvipsSHA256 } = {}) {
     const archs = run('/usr/bin/lipo', ['-archs', item.file]);
     native.push({ path: relative(item.file), archs: archs.stdout.trim(), sha256: sha256File(item.file) });
   }
-  const libvips = native.find((entry) => entry.path === LIBVIPS);
-  add('libvips-rebuilt', libvips && libvips.sha256 !== UPSTREAM_LIBVIPS_SHA256 && (!libvipsSHA256 || libvips.sha256 === libvipsSHA256),
-    { packaged: libvips?.sha256 ?? 'missing', expected: libvipsSHA256 ?? 'not given', upstreamPrebuilt: UPSTREAM_LIBVIPS_SHA256 });
   const wrongArch = native.filter((entry) => entry.archs !== 'arm64');
   add('native-arm64', native.length > 0 && wrongArch.length === 0, { count: native.length, wrongArch });
 
@@ -111,7 +102,7 @@ function checkPackage(app, identity, { sourceRoot, libvipsSHA256 } = {}) {
   return { passed: checks.every((check) => check.passed), identity, checks, native };
 }
 
-module.exports = { checkPackage, FORBIDDEN, LIBVIPS, UPSTREAM_LIBVIPS_SHA256 };
+module.exports = { checkPackage, FORBIDDEN };
 
 if (require.main === module) {
   const [app, name, appId, sourceRoot] = process.argv.slice(2);
@@ -119,7 +110,7 @@ if (require.main === module) {
     console.error('usage: package-check.cjs <app> <name> <appId> [sourceRoot]');
     process.exit(2);
   }
-  const report = checkPackage(path.resolve(app), { name, appId }, { sourceRoot: sourceRoot && path.resolve(sourceRoot), libvipsSHA256: process.env.MARGIN_LIBVIPS_SHA256 });
+  const report = checkPackage(path.resolve(app), { name, appId }, { sourceRoot: sourceRoot && path.resolve(sourceRoot) });
   console.log(JSON.stringify(report, null, 2));
   process.exitCode = report.passed ? 0 : 1;
 }

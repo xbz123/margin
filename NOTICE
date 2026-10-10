@@ -25,22 +25,6 @@ Full fixed-version Electron/Chromium notices are copied into licenses/electron
 inside packaged Resources and hash-checked, not replaced by an MIT summary.
 Inter 4.1 retains SIL OFL; React Icons retains package/icon-set notices.
 
-libvips-cpp 8.17.3 in this package is not the prebuilt from
-@img/sharp-libvips-darwin-arm64 1.2.4. Margin's CI builds it from the unchanged
-sharp-libvips recipe at lovell/sharp-libvips commit 20b5e899 with the same
-component versions. It is licensed LGPL-3.0-or-later as a whole and statically
-contains libvips, glib, cairo, pango, librsvg (with the Rust crates it was
-compiled from), harfbuzz, freetype, fontconfig, libheif, aom, libwebp, libtiff,
-libpng, libspng, mozjpeg, libexif, lcms2, libxml2, expat, libarchive, highway,
-libimagequant, cgif, fribidi, pixman, libffi, zlib-ng and proxy-libintl. Their
-original license files are in licenses/ (scripts/margin/libvips/notices.json
-lists each with its source archive and sha256). You may replace
-Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib
-with your own build and re-sign the app ad hoc (codesign --force --deep --sign -).
-Portions of this software are copyright © 2025 The FreeType Project
-(www.freetype.org). All rights reserved. (FreeType 2.14.1, used under the
-FreeType License, docs/FTL.TXT.)
-
 Historical SPDX attribution from checkpoints 45b11c5b and 3ac02ece follows.
 S18 removes these packages and their supplemental sources from the current
 candidate inventory. Original notice texts and metadata remain in those Git
@@ -129,7 +113,7 @@ Current complete terms: https://www.unicode.org/license.txt
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-699 candidates; 515 unique stored texts; 24 excluded paths; 0 unresolved candidates; 2 deferred notices.
+694 candidates; 396 unique stored texts; 2 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0

@@ -283,6 +283,11 @@ test('a screenshot question sends the fixture image to the model', async () => {
   assert.ok(req, 'no request carried the screenshot question');
   const serialized = JSON.stringify(req.body.messages);
   assert.ok(/data:image\/(png|jpeg|webp);base64,/.test(serialized), 'request did not include an image');
+  // S34: LLMHelper.processImage encodes with Electron's nativeImage at the original
+  // resolution; the 64x48 fixture is sent as a 64x48 JPEG.
+  const sent = Buffer.from(serialized.match(/data:image\/jpeg;base64,([A-Za-z0-9+/=]+)/)?.[1] ?? '', 'base64');
+  const metadata = await sharp(sent).metadata();
+  assert.deepEqual([metadata.format, metadata.width, metadata.height], ['jpeg', 64, 48]);
 });
 
 test('generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot', async () => {

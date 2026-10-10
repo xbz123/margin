@@ -64,26 +64,13 @@ test('forbidden content matches shipped model locations and removed packages, no
   const forbidden = (entry) => FORBIDDEN.some((re) => re.test(entry));
   for (const entry of ['Resources/models/silero_vad.onnx', 'Resources/app.asar/resources/models/x.bin',
     'Resources/app.asar.unpacked/node_modules/@napi-rs/canvas-darwin-arm64/skia.darwin-arm64.node',
-    'Resources/app.asar/node_modules/pdf-parse/index.js', 'Resources/app.asar/node_modules/mammoth/lib/index.js']) {
+    'Resources/app.asar/node_modules/pdf-parse/index.js', 'Resources/app.asar/node_modules/mammoth/lib/index.js',
+    'Resources/app.asar/node_modules/sharp/lib/index.js',
+    'Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib']) {
     assert.equal(forbidden(entry), true, entry);
   }
   for (const entry of ['Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/index.js',
     'Resources/app.asar/node_modules/@anthropic-ai/sdk/resources/models.js', 'Resources/app.asar/dist-electron/electron/ModelSelectorWindowHelper.js']) {
     assert.equal(forbidden(entry), false, entry);
   }
-});
-
-test('every libvips notice input exists with its recorded hash and source archive', () => {
-  const notices = JSON.parse(fs.readFileSync(new URL('../../../scripts/margin/libvips/notices.json', import.meta.url), 'utf8'));
-  const entries = [...notices.entries, ...notices.supplements, ...notices.rustStd];
-  assert.ok(entries.length > 300);
-  assert.equal(new Set(entries.map((entry) => entry.id)).size, entries.length);
-  for (const entry of entries) {
-    const bytes = fs.readFileSync(new URL(`../../../${entry.localPath}`, import.meta.url));
-    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), entry.sha256, entry.id);
-    assert.match(entry.url, /^https:\/\//, entry.id);
-  }
-  const compiled = fs.readFileSync(new URL('../../../scripts/margin/libvips/librsvg-compiled.txt', import.meta.url), 'utf8').trim().split('\n');
-  const covered = new Set(entries.filter((entry) => entry.id.startsWith('librsvg-crate:')).map((entry) => entry.id.split(':')[1]));
-  assert.deepEqual(compiled.map((line) => line.replace(' ', '@')).filter((crate) => !covered.has(crate)), []);
 });
