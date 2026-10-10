@@ -344,6 +344,16 @@ const ProviderSelect: React.FC<ProviderSelectProps> = ({ value, options, onChang
     );
 };
 
+// Where to get an API key for each speech provider; the button declares the URL it opens.
+const STT_KEY_URLS: Record<string, string> = {
+    groq: 'https://console.groq.com/keys',
+    openai: 'https://platform.openai.com/api-keys',
+    deepgram: 'https://console.deepgram.com',
+    elevenlabs: 'https://elevenlabs.io/app/settings/api-keys',
+    azure: 'https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeech',
+    ibmwatson: 'https://cloud.ibm.com/catalog/services/speech-to-text'
+};
+
 interface SettingsOverlayProps {
     isOpen: boolean;
     onClose: () => void;
@@ -2402,18 +2412,11 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             )}
                                                         </button>
                                                         <button
+                                                            data-external-url={STT_KEY_URLS[sttProvider]}
                                                             onClick={() => {
-                                                                const urls: Record<string, string> = {
-                                                                    groq: 'https://console.groq.com/keys',
-                                                                    openai: 'https://platform.openai.com/api-keys',
-                                                                    deepgram: 'https://console.deepgram.com',
-                                                                    elevenlabs: 'https://elevenlabs.io/app/settings/api-keys',
-                                                                    azure: 'https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeech',
-                                                                    ibmwatson: 'https://cloud.ibm.com/catalog/services/speech-to-text'
-                                                                };
-                                                                if (urls[sttProvider]) {
+                                                                if (STT_KEY_URLS[sttProvider]) {
                                                                     // @ts-ignore
-                                                                    window.electronAPI?.openExternal(urls[sttProvider]);
+                                                                    window.electronAPI?.openExternal(STT_KEY_URLS[sttProvider]);
                                                                 }
                                                             }}
                                                             className="text-xs text-text-tertiary hover:text-text-primary flex items-center gap-1 transition-colors ml-1"

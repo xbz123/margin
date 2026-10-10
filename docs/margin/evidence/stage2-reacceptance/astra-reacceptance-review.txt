@@ -1,0 +1,56 @@
+阶段2只读复验 — 2026-10-10
+
+范围：8f2590f18364400ce6b99a5b0dbdabd6e6144cfc..95b88e849355acfd622613b56a32f375c7794228。
+结论：上轮四项中三项可关闭；导航问题的原路径已修复，但同一出站要求仍有一个已复现的P2残余边界，暂不无条件签署阶段2通过。
+
+Standards / 规范轴：0项阻塞发现
+
+- sharp-smoke-local 已传播失败退出码。实际给不存在的合成temp.app路径，子进程exit1，包装脚本也exit1，passed=false；既有成功报告在judge单测中仍通过。
+- packagingTools测试保留子进程失败/null、输出不完整、守卫失效、有拦截、UUID不符、加载路径错误的反例。
+- 四个批准图标源文件的快照、记录blob和原提交内容相符；校验在来源缓存使用前执行，未扩大批准行池。
+- S25正式身份上传仅日志/JSON/BUILD-INFO，不含app zip；下载默认仓库改变但完整性检查保留；source bundle的git archive不含.git历史。
+- 非阻塞文案：source-bundle.mjs仍有Private字样，与S25公开workflow状态应同步；不把它当成新泄漏或阶段阻塞。
+
+Spec / 需求轴：1项P2
+
+[P2] 普通点击后的瞬时激活被自动脚本复用
+
+位置：electron/preload.ts:17、716–719；tests/margin/outbound-renderer.test.mjs:122–139。
+要求：docs/margin/PLAN.md:363–365，自动出站限于已配置地址，用户点击外链与自动资源分开。
+
+新的navigationPolicy确实一律拒绝window.open/location导航，不再自动转系统浏览器；可信a链接的处理也检查isTrusted。
+但通用electronAPI.openExternal只检查navigator.userActivation.isActive。这个状态在用户普通点击后的短时间内仍为true，不证明调用者正在处理用户选中的外链。
+
+主线程实际复现：
+1. 在隔离的temp窗口中，用webContents.executeJavaScript(..., false)先安装一个定时脚本和无href、无click handler的普通按钮。初始userActivation=false。
+2. 等待200ms，没有任何external-open。
+3. Playwright真实点击该普通按钮；定时脚本随后调用electronAPI.openExternal('https://automatic.example/after-unrelated-click')。
+4. 守卫记录到external-open。真实浏览器未打开，没有真实网络请求。
+
+这证明最近有过普通交互可以被脚本复用，不等于用户请求打开该URL。现有测试等待激活过期后才测自动调用，漏过此窗口。
+未证明Markdown或其他用户内容能够执行脚本，不声称已出现XSS或真实数据泄漏。
+
+最小修复方向：复用已有的可信外链点击路径，同步按钮/链接调用方，避免暴露可利用整个激活窗口的任意URL通道；若保留API，应与一次明确可信外链动作绑定。补“先安排自动调用，再点击无关控件”应拒绝、真实选择外链仍允许的行为对照。
+
+其他上轮问题
+
+- 五个crate许可批准范围：按PLAN S23记录可关闭。block0.1.6、objc_id0.1.1、objc-foundation0.1.1、fxhash0.2.1、mac0.1.1与现有metadata条目精确相符；仍为限定工程接受规则，不是法律保证。
+- 等待期间撤销：可关闭。新增用例覆盖generateContent重试退避、generateContentStructured限流/重试/轮换、streamWithGroqOrGemini限流/备用切换，均有允许对照。既有变异日志显示删除相应检查会失败，当前完整本地套件通过。
+- 回答回归click改focus保留零请求/恰一请求/答案只显示一次断言，不据此认定新的业务回归；该用例不再独立验证鼠标能点中输入框。
+
+本轮执行和证据
+
+gates/summary.json：当前干净95b88e84，16步实际exit0；853测试，847pass，0fail，6既有skip；AG09 6/6、storage5/5、startup1/1、outbound renderer2/2。
+retired-all.log：261条规则0失败。
+sharp-failure-retest.json：错误输入时外层/子进程均exit1。
+activation-window.mjs与activation-window.log：上述真实renderer残余边界复现。
+license-recheck.json：511份文本hash正确，锁及libvips清单hash匹配，S23五个精确版本一致。
+
+只读范围与限制
+
+没有修改仓库代码、PLAN或依赖；没有提交/推送、远程CI触发、安装、原生重编译或打包，两个工作区仍干净。
+现有CI38004311007的代码为9ef2ed4a，至95b88e84仅文档/证据变化。其新原生模块0f92a0b1与工作树沿用的已核验71f9cf8e不是同一字节；不把同源、字符串/符号相同冒充二进制逐字节相同。
+实际包/源码下载、签名和包内冒烟使用已归档证据，本轮未重新下载大型产物。正式身份本机检查按S25保留较早运行37996030056的报告，未冒称当前公开运行的release zip已下载。
+真实服务、设备、钥匙串、正式发布和长期源码可获得性未在本轮验证。
+
+双轴汇总：规范轴0阻塞；需求轴1项P2残余。修复或由用户明确决定接受该激活窗口边界后，才能关闭这一项；本次不自行降低出口标准。

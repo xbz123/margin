@@ -12,9 +12,22 @@ ipcRenderer.on('verbose-logging-changed', (_event: unknown, enabled: boolean) =>
 // The only ways a renderer opens the browser (navigationPolicy refuses window.open
 // and navigation without opening anything). A trusted click on a link that leaves
 // the page, not handled by the page itself, is opened here; scripts cannot create
-// trusted events. openExternal below needs the frame's transient user activation,
-// which only real input grants. The main process still checks the URL.
-const userActivated = () => navigator.userActivation?.isActive === true;
+// trusted events. openExternal below opens only the URL the clicked control declares
+// (`data-external-url`, or a link's href), and only while that trusted click is still
+// being dispatched: transient user activation outlasts the click, so a timer could
+// otherwise use the activation of an unrelated click. The main process still checks
+// the URL.
+let trustedClick: MouseEvent | null = null;
+window.addEventListener('click', event => { trustedClick = event.isTrusted ? event : null; }, true);
+const normalizedUrl = (url: string): string | null => { try { return new URL(url).href; } catch { return null; } };
+function clickedControlDeclares(url: string): boolean {
+  const click = trustedClick;
+  if (!click || click.eventPhase === Event.NONE || !(click.target instanceof Element)) return false;
+  const control = click.target.closest('[data-external-url], a[href]');
+  const declared = control?.getAttribute('data-external-url') ?? (control instanceof HTMLAnchorElement ? control.href : null);
+  const wanted = normalizedUrl(url);
+  return declared !== null && wanted !== null && normalizedUrl(declared) === wanted;
+}
 function openClickedLink(event: MouseEvent): void {
   if (!event.isTrusted || event.defaultPrevented || (event.type === 'click' ? event.button !== 0 : event.button !== 1)) return;
   const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
@@ -714,8 +727,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
   openExternal: (url: string) => {
-    if (userActivated()) return ipcRenderer.invoke('open-external', url);
-    console.warn('[Navigation] Refused openExternal without user activation');
+    if (clickedControlDeclares(url)) return ipcRenderer.invoke('open-external', url);
+    console.warn('[Navigation] Refused openExternal outside a click on a control that declares the URL');
     return Promise.resolve();
   },
   // UX2: in-app TCC repair. Returns { ok, bundleId, results, promptRelaunch, message }.

@@ -162,6 +162,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                     {hasStoredKey && <span className="ml-2 text-green-500 normal-case">✓ Saved</span>}
                 </label>
                 <button
+                    data-external-url={keyUrl}
                     onClick={() => {
                         // @ts-ignore
                         window.electronAPI?.openExternal(keyUrl);

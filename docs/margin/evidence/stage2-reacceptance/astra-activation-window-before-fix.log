@@ -1,0 +1,10 @@
+{
+  "initialUserActivation": false,
+  "openedBeforeClick": [],
+  "clicked": "non-link button without a URL or click handler",
+  "openedByTimerAfterClick": [
+    "https://automatic.example/after-unrelated-click"
+  ],
+  "realBrowserOpened": false,
+  "realNetworkRequests": false
+}

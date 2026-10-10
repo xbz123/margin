@@ -99,9 +99,14 @@ test('app windows refuse foreign navigation and child windows; only https links 
 
     // User clicks first (Playwright then waits on the refused navigations below).
     // Playwright sends real input events, which are trusted and grant user activation.
-    // Only the https links and openExternal from a click handler reach the browser;
-    // a link the page handles itself is left to the page.
-    await page.evaluate(({ local }) => {
+    // Only the https links and openExternal from the click handler of a control that
+    // declares that URL reach the browser; a link the page handles itself is left to
+    // the page. A handler of a control that declares no URL or another one, and a timer
+    // armed before any input that calls openExternal while a click's activation lasts
+    // (Astra re-acceptance 2026-10-10, first click on a plain button), open nothing.
+    // The controls and the timer are installed without a user gesture (Playwright's
+    // evaluate carries one, which would arm the timer before any click).
+    const setup = local => {
       const box = document.createElement('div');
       box.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:flex-start;background:#fff';
       const add = (id, href, target) => { const a = document.createElement('a'); a.id = id; a.href = href; a.textContent = id; if (target) a.target = target; box.append(a); return a; };
@@ -110,12 +115,34 @@ test('app windows refuse foreign navigation and child windows; only https links 
       add('clicked-local', `${local}/clicked`);
       add('clicked-mail', 'mailto:someone@example.com');
       add('handled', 'https://links.example/handled').addEventListener('click', event => event.preventDefault());
-      const button = document.createElement('button'); button.id = 'api'; button.textContent = 'api';
-      button.addEventListener('click', () => window.electronAPI.openExternal('https://links.example/api-clicked'));
-      box.append(button);
+      const addButton = (id, declared, opens) => {
+        const button = document.createElement('button'); button.id = id; button.textContent = id;
+        if (declared) button.dataset.externalUrl = declared;
+        button.addEventListener('click', () => window.electronAPI.openExternal(opens));
+        box.append(button);
+      };
+      addButton('api', 'https://links.example/api-clicked', 'https://links.example/api-clicked');
+      addButton('api-other-url', 'https://links.example/declared', 'https://links.example/not-declared');
+      addButton('api-undeclared', null, 'https://links.example/undeclared');
+      const plain = document.createElement('button'); plain.id = 'plain'; plain.textContent = 'plain'; box.append(plain);
       document.body.append(box);
-    }, { local });
-    for (const id of ['clicked', 'clicked-new-tab', 'clicked-local', 'clicked-mail', 'handled', 'api']) await page.click(`#${id}`);
+      window.timerAttempts = 0;
+      const timer = setInterval(() => {
+        if (!navigator.userActivation.isActive) return;
+        window.electronAPI.openExternal('https://links.example/timer-after-click');
+        window.electronAPI.openExternal('https://links.example/api-clicked');
+        if (++window.timerAttempts === 20) clearInterval(timer);
+      }, 25);
+      return navigator.userActivation.isActive;
+    };
+    const activeAtSetup = await app.evaluate(({ BrowserWindow }, source) => BrowserWindow.getAllWindows()
+      .find(win => win.webContents.getURL().includes('window=launcher')).webContents.executeJavaScript(source, false),
+    `(${setup})(${JSON.stringify(local)})`);
+    assert.equal(activeAtSetup, false, 'the timer was armed without user activation');
+    await page.waitForTimeout(200);
+    assert.deepEqual(externalOpens(), [], 'nothing opens before the first click');
+    for (const id of ['plain', 'clicked', 'clicked-new-tab', 'clicked-local', 'clicked-mail', 'handled', 'api', 'api-other-url', 'api-undeclared']) await page.click(`#${id}`);
+    await page.waitForFunction(() => window.timerAttempts === 20, null, { timeout: 5_000 });
     await page.waitForTimeout(500);
     assert.deepEqual(externalOpens(), clicked);
 

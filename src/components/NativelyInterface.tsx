@@ -3993,6 +3993,7 @@ Provide only the answer, nothing else.`;
                       return (
                         <>
                           <button
+                            data-external-url={deepLinkUrl ?? undefined}
                             onClick={() => {
                               if (deepLinkUrl) {
                                 window.electronAPI.openExternal(deepLinkUrl);

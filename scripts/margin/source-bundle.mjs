@@ -11,7 +11,8 @@
 //                            Electron, plus Electron's ffmpeg patch
 //   MANIFEST.json            every file with sha256, plus where the libvips sources
 //                            of the same run are kept
-// Private CI artifact only; public availability is a separate decision (S19 item 3).
+// A CI workflow artifact only (in the public repository since S25, kept 30 days); how
+// the source is offered for distribution is a separate decision (S19 item 3).
 //   node scripts/margin/source-bundle.mjs <out>
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,7 +57,7 @@ async function pool(items, limit, task) {
 }
 
 const manifest = { schemaVersion: 1, commit, run: `${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`,
-  cleanTree: trackedChanges.length === 0, trackedChanges, untracked: status.filter((line) => line.startsWith('??')).map((line) => line.slice(3)), scope: 'Private CI corresponding-source artifact for this commit; not a public offer or legal verdict.', files: [] };
+  cleanTree: trackedChanges.length === 0, trackedChanges, untracked: status.filter((line) => line.startsWith('??')).map((line) => line.slice(3)), scope: 'CI workflow corresponding-source artifact for this commit; not a lasting source offer or legal verdict.', files: [] };
 const record = (relative, extra = {}) => {
   const bytes = fs.readFileSync(path.join(out, relative));
   manifest.files.push({ path: relative, bytes: bytes.length, sha256: sha('sha256', bytes), ...extra });

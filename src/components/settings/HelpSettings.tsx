@@ -1019,7 +1019,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>1. Google Cloud STT</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.cloud.google.com/apis/credentials') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://console.cloud.google.com/apis/credentials" onClick={() => { (window as any).electronAPI?.openExternal('https://console.cloud.google.com/apis/credentials') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Uses a Service Account JSON instead of an API Key. You must build a GCP Project, activate the Cloud Speech API, and create a Service Account under IAM. Download the JSON Key, and drag-and-drop it into the box in the Audio Settings.
@@ -1029,7 +1029,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>2. ElevenLabs</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://elevenlabs.io/app/settings/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://elevenlabs.io/app/settings/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://elevenlabs.io/app/settings/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     When creating a Custom API key for the "Conversational AI" streaming integration, you must explicitly enable <strong>convai.conversations.create</strong> and <strong>assistants.list</strong>.
@@ -1041,7 +1041,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>3. Groq</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Provides ultra-fast Whisper responses via LPUs. Starts with <span className={kbdClass}>gsk_</span>. No special permissions required.
@@ -1051,7 +1051,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>4. OpenAI</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Uses standard OpenAI keys (<span className={kbdClass}>sk-</span>). Remember: this Audio key is isolated from your AI Generation key under "AI Providers".
@@ -1061,7 +1061,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>5. Deepgram</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.deepgram.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://console.deepgram.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.deepgram.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Extremely accurate streaming transcription (Nova-2 model). Key is generated on-demand in the Deepgram Console.
@@ -1071,7 +1071,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>6. Azure</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://portal.azure.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://portal.azure.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://portal.azure.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Requires establishing Azure Speech Services. <strong>Important</strong>: You must also specify an Azure Region alongside your key (e.g. <em>eastus</em>, <em>westeurope</em>) or requests will bounce.
@@ -1081,7 +1081,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>7. IBM Watson</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://cloud.ibm.com/catalog/services/speech-to-text') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://cloud.ibm.com/catalog/services/speech-to-text" onClick={() => { (window as any).electronAPI?.openExternal('https://cloud.ibm.com/catalog/services/speech-to-text') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Create a Watson Speech to Text resource in IBM Cloud and generate a set of API credentials.
@@ -1091,7 +1091,7 @@ export const HelpSettings: React.FC = () => {
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>8. Soniox</span>
-                                    <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
                                     Provides high-end medical/law tier transcriptions using their standard dashboard API Key.
@@ -1115,7 +1115,7 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <Zap className="w-3.5 h-3.5 text-orange-500" /> Groq
                                         </span>
-                                        <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
                                     </h5>
                                     <p className="text-[11px] opacity-80 mb-2">Ultra-fast inference using LPU hardware. Default model: <strong>llama-3.3-70b-versatile</strong>.</p>
                                     <span className={kbdClass}>gsk_...</span>
@@ -1125,7 +1125,7 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <SiOpenai className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`} /> OpenAI
                                         </span>
-                                        <button onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
                                     </h5>
                                     <p className="text-[11px] opacity-80 mb-2">Industry standard pipeline. Default models: <strong>gpt-5.4-mini</strong> & <strong>gpt-5.4</strong>.</p>
                                     <span className={kbdClass}>sk-proj-...</span>
@@ -1135,7 +1135,7 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <SiAnthropic className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`} /> Anthropic
                                         </span>
-                                        <button onClick={() => { (window as any).electronAPI?.openExternal('https://console.anthropic.com/settings/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://console.anthropic.com/settings/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.anthropic.com/settings/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
                                     </h5>
                                     <p className="text-[11px] opacity-80 mb-2">Superior coding baseline parameters. Default: <strong>claude-4.6-sonnet</strong>.</p>
                                     <span className={kbdClass}>sk-ant-...</span>
@@ -1145,7 +1145,7 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <SiGoogle className="w-3.5 h-3.5 text-blue-500" /> Google Gemini
                                         </span>
-                                        <button onClick={() => { (window as any).electronAPI?.openExternal('https://aistudio.google.com/app/apikey') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://aistudio.google.com/app/apikey" onClick={() => { (window as any).electronAPI?.openExternal('https://aistudio.google.com/app/apikey') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
                                     </h5>
                                     <p className="text-[11px] opacity-80 mb-2">Immense contextual window. Default model: <strong>gemini-3.1-pro</strong>.</p>
                                     <span className={kbdClass}>AIzaSy...</span>

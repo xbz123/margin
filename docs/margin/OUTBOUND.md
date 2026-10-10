@@ -165,16 +165,23 @@ whether a user gesture caused it, so a script could otherwise open links on its
 own. The browser opens only through the open-external IPC, which the preload sends
 in two cases: a trusted click (or middle click) on a link that leaves the page and
 that the page did not handle itself, and `electronAPI.openExternal` called while
-the frame has transient user activation. Scripts can create neither trusted
-events nor user activation. The main process then opens the URL only when it is
+a trusted click is still being dispatched, for the URL the clicked control declares
+(`data-external-url` on the button, or a link's href). Scripts cannot create
+trusted events. Transient user activation alone is not enough: it lasts about 5 s
+after any click, so a timer could use the activation of an unrelated click (Astra
+re-acceptance, 2026-10-10). The main process then opens the URL only when it is
 https without userinfo, or the macOS settings scheme on macOS; everything else
 (http, file, mailto, custom schemes) is dropped. The menu's Electron link and the
 accessibility settings deep link call `shell` directly with fixed URLs.
 
 The outbound-renderer gate checks this in the real launcher window. Real input
-(Playwright's clicks) on two https links, a button calling `openExternal`, an http
-link, a mailto link and a link the page handles itself records exactly the three
-expected `external-open` entries. After the click activation has expired,
+(Playwright's clicks) on two https links, a button calling `openExternal` with
+the URL it declares, an http link, a mailto link, a link the page handles itself,
+a plain button, and buttons whose handlers call `openExternal` with an undeclared
+URL or with none declared records exactly the three expected `external-open`
+entries; a timer armed without a user gesture before the first click, which calls
+`openExternal` 20 times while that activation lasts (also with the declared URL),
+records none. After the click activation has expired,
 script-driven window.open, synthetic link clicks, `openExternal` and a location
 change record none. The page URL and preload API survive, no window is created,
 and a loopback page receives no request from the refused navigations (a
@@ -185,6 +192,12 @@ With the earlier policy (refused navigations handed to the browser) the test
 fails with the three automatic URLs recorded
 (`evidence/stage2-review/navigation-red-old-policy.log`); the first version of
 the policy is in `evidence/AG-24-followup/navigation-red-without-policy.log`.
+With the activation-only check the timer and both undeclared handlers open the
+browser (`evidence/stage2-reacceptance/navigation-red-before-fix.log`).
+Remaining boundary: a page script that handles the same click itself can still
+open the URL the clicked control declares, as the app's own handler does, and a
+script that can change the page could change a declared URL, as it could change a
+link's href. Without a real click on that control nothing opens.
 Native sources have no application-owned HTTP after the retired functionality.
 
 Codex run/stream checks scopes before spawn. Prompt stdin/image args, its own

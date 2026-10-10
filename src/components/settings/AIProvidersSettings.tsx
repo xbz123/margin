@@ -403,17 +403,6 @@ export const AIProvidersSettings: React.FC = () => {
         }
     };
 
-    const openKeyUrl = (provider: string) => {
-        const urls: Record<string, string> = {
-            gemini: 'https://aistudio.google.com/app/apikey',
-            groq: 'https://console.groq.com/keys',
-            openai: 'https://platform.openai.com/api-keys',
-            claude: 'https://console.anthropic.com/settings/keys'
-        };
-        // @ts-ignore
-        window.electronAPI?.openExternal(urls[provider]);
-    };
-
 
     return (
         <div className="space-y-5 animated fadeIn pb-10">

@@ -1,0 +1,100 @@
+✔ all nine Markdown callers and streaming sanitize block image loads in a real renderer (2667.16225ms)
+✖ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (2787.358084ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5924.932166
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:74:1
+✖ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (2787.358084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+  +   'https://links.example/api-clicked',
+      'https://links.example/clicked',
+      'https://links.example/clicked-new-tab',
+  +   'https://links.example/not-declared',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/timer-after-click',
+  +   'https://links.example/undeclared'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/outbound-renderer.test.mjs:147:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/api-clicked',
+      'https://links.example/api-clicked',       'https://links.example/clicked',
+      'https://links.example/clicked-new-tab',   'https://links.example/not-declared',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/timer-after-click', 'https://links.example/timer-after-click',
+      'https://links.example/undeclared'
+    ],
+    expected: [ 'https://links.example/api-clicked', 'https://links.example/clicked', 'https://links.example/clicked-new-tab' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
