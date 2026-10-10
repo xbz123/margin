@@ -14,7 +14,6 @@ import { X, Monitor, Mic, CheckCircle, AlertCircle, ExternalLink, ArrowRight } f
 
 const STORAGE_KEY  = 'natively_perms_shown_v1';
 const STARTUP_DELAY_MS = 1_400;
-const SCREEN_SETTINGS_URL = 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture';
 
 // ─── Design tokens ────────────────────────────────────────────
 const T = {
@@ -104,7 +103,7 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
     // and the IPC allowlist rejects the URL on non-darwin, refuse to even
     // construct the URL on Windows so a future regression cannot leak it.
     if (platform !== 'darwin') return;
-    window.electronAPI?.openExternal?.(SCREEN_SETTINGS_URL);
+    window.electronAPI?.openExternal?.('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
   };
 
   const handleDismiss = () => {
@@ -232,7 +231,7 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
                       actionLabel="Open Settings"
                       actionIcon={ExternalLink}
                       onAction={openScreenSettings}
-                      actionUrl={platform === 'darwin' ? SCREEN_SETTINGS_URL : undefined}
+                      actionUrl={platform === 'darwin' ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture' : undefined}
                       reduced={reduced}
                     />
                   )}

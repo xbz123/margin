@@ -1,0 +1,1 @@
+electron/services/__tests__/FormatPermissionMessageCrossPlatform.test.mjs :: no renderer file outside src/utils references x-apple.systempreferences without a darwin/isMac gate

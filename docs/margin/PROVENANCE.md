@@ -340,6 +340,19 @@ imported. Generic one-line idioms the provenance check matched are registered in
   main added the same generic line in a test on 2026-10-10, found by the S24 local
   run's fresh upstream fetch.
 
+### Stage 2 re-acceptance fix (Claude, 2026-10-10)
+
+- The declared-URL check for `openExternal` in `electron/preload.ts`, the
+  `data-external-url` attributes on its callers and the timer and undeclared-URL
+  cases of the navigation test: written for this branch from Codex Astra's
+  re-acceptance finding, not from upstream code.
+- `const timer = setInterval(() => {` in the test is allowlisted as a generic line.
+- The first gate run also hit `const STT_KEY_URLS: Record<string, string> = {`: a
+  map of speech-provider key URLs moved out of the button's click handler in
+  `SettingsOverlay.tsx`, and later upstream code in the same file has a line with
+  the same name. It was not allowlisted; the map stays inside the component as
+  `sttKeyUrl`, its entries unchanged from the baseline.
+
 ### S22 shipped libvips rebuild (Claude, 2026-10-09)
 
 - `scripts/margin/libvips/install-rebuilt.mjs`, `fetch-prebuilt.mjs`,
