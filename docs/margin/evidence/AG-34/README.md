@@ -108,5 +108,7 @@ not launch Electron inside the default sandbox. Both failures remain recorded.
 The subsequent runs used normal GUI permission while retaining the X2 guard,
 synthetic HOME, temp identity, fake keychain and no external service access.
 
-No ticket CI was triggered. The phase-exit packaging run remains pending the
-S12/S27 prompt decision so the single exit build can use the settled source.
+No manual ticket CI was triggered. Code and evidence commit `b1ed9fe3` is on the
+private remote; the public branch remains at `49b44e8c` pending explicit approval
+for this upload. The phase-exit packaging run also awaits the S12/S27 prompt
+decision so the single exit build can use the settled source.
