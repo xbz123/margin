@@ -1,157 +1,79 @@
-import { test } from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import path from 'path';
-import { findSafeHandle, sliceSafeHandleBlock } from './ipcTestUtils.mjs';
-import { fileURLToPath } from 'url';
+import os from 'node:os';
+import path from 'node:path';
+import vm from 'node:vm';
+import { createRequire } from 'node:module';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(__dirname, '../../..');
+const require = createRequire(import.meta.url);
+const ts = require('typescript');
+const { validateImagePath } = require('../../../dist-electron/electron/utils/imagePathValidation.js');
+const { GenerationTask } = require('../../../dist-electron/electron/llm/generateTask.js');
+const source = fs.readFileSync(path.resolve(import.meta.dirname, '../../ipcHandlers.ts'), 'utf8');
+const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
 
-function read(relativePath) {
-  return fs.readFileSync(path.join(root, relativePath), 'utf8');
+function handlers(root) {
+  const callbacks = new Map(); const sends = [], resets = [];
+  let task; const startedTasks = [];
+  const helper = { beginGenerationTask: (kind, signal) => { task = new GenerationTask({ target: { model: 'synthetic' } }, undefined, undefined, kind, signal); startedTasks.push(task); return task; }, getCurrentGenerationTask: () => task,
+    runGeneration: factory => factory(), getTaskMetadata: () => ({ requestId: 'request', provider: 'synthetic', model: 'synthetic', status: 'completed', attempts: sends.length }),
+    chatWithGemini: async (...args) => { sends.push(args); return 'answer'; },
+    analyzeImageFiles: async (...args) => { sends.push(args); return 'answer'; },
+    runGenerationStream: factory => factory(), streamChat: async function* (...args) { sends.push(args); yield 'answer'; },
+    deniedDataScopes: () => [],
+  };
+  const manager = { getFormattedContext: () => '', getLastAssistantMessage: () => null, addTranscript() {}, addAssistantMessage() {}, logUsage() {},
+    resetEngine() { resets.push('engine'); }, reset() { resets.push('session'); },
+    runWhatShouldISay: async (...args) => { sends.push(args); return 'answer'; },
+    runCodeHint: async (...args) => { sends.push(args); return 'hint'; },
+    runBrainstorm: async (...args) => { sends.push(args); return 'script'; },
+  };
+  const module = { exports: {} };
+  vm.runInNewContext(compiled, { module, exports: module.exports, console: { log() {}, warn() {}, error() {} }, process: { env: { NODE_ENV: 'test' }, platform: process.platform }, AbortController,
+    require(id) {
+      if (id === 'electron') return { app: { getPath: () => root }, ipcMain: { removeHandler() {}, handle: (name, callback) => callbacks.set(name, callback), removeAllListeners() {}, on() {} } };
+      if (id === './utils/imagePathValidation') return { validateImagePath };
+      if (id === './services/screen/ImageOptimizer') return { getImageOptimizer: () => ({ optimize: async imagePath => ({ path: imagePath }) }) };
+      if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };
+      if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);
+      return {};
+    },
+  });
+  module.exports.initializeIpcHandlers({ processingHelper: { getLLMHelper: () => helper }, getIntelligenceManager: () => manager, getScreenshotQueue: () => [] });
+  return { callbacks, sends, startedTasks, resets };
 }
 
-/**
- * ISSUE 2 (P0): Image path validation for arbitrary paths from renderer
- *
- * The generate-code-hint, generate-brainstorm, generate-what-to-say handlers
- * accept imagePaths from renderer without validating them. Attackers could
- * pass paths like /etc/passwd, private home directories, or Windows drive paths.
- *
- * Fix: Validate all paths are inside app-owned directories (userData/screenshots).
- * Reject path traversal attempts (/../), /etc/passwd, private home paths, etc.
- */
-
-test('generate-code-hint validates imagePaths before using them', () => {
-  const ipcSource = read('electron/ipcHandlers.ts');
-  const engineSource = read('electron/IntelligenceEngine.ts');
-
-  // Find generate-code-hint handler in IPC
-  const handlerStart = findSafeHandle(ipcSource, 'generate-code-hint');
-  assert.ok(handlerStart >= 0, 'generate-code-hint handler should exist');
-
-  // Find generate-brainstorm handler
-  const brainstormStart = findSafeHandle(ipcSource, 'generate-brainstorm');
-  assert.ok(brainstormStart >= 0, 'generate-brainstorm handler should exist');
-
-  // Extract the code-hint handler
-  const codeHintHandler = sliceSafeHandleBlock(ipcSource, 'generate-code-hint');
-
-  // The handler receives imagePaths from renderer and passes them to IntelligenceEngine
-  // It should validate paths before passing them
-
-  // Check that IntelligenceEngine.runCodeHint has path validation
-  const runCodeHintStart = engineSource.indexOf('async runCodeHintInner(');
-  assert.ok(runCodeHintStart >= 0, 'runCodeHint should exist');
-
-  const nextMethod = engineSource.indexOf('\n    async ', runCodeHintStart + 10);
-  const nextMethod2 = engineSource.indexOf('\n    private ', runCodeHintStart + 10);
-  const runCodeHintEnd = [nextMethod, nextMethod2].filter(x => x >= 0).sort((a, b) => a - b)[0];
-  const runCodeHintBody = engineSource.slice(runCodeHintStart, runCodeHintEnd);
-
-  // Should have path validation
-  const hasValidation =
-    /validateImagePath|isValidPath|checkPathSafety|isOwnedPath|isAppPath|isScreenshotDir|startsWith\(.*screenshots/.test(runCodeHintBody) ||
-    /\.\.\/|\.\.\\/.test(runCodeHintBody) === false; // Should NOT allow traversal
-
-  // Check that the handler passes validated or resolved paths to engine
-  assert.ok(hasValidation || /resolvedImagePaths|validatedImagePaths/.test(codeHintHandler),
-    'imagePaths should be validated before passing to IntelligenceEngine');
+test('AG33 actual registered cancellation uses engine-only reset and keeps explicit reset semantics distinct', async () => {
+  const { callbacks, resets } = handlers(os.tmpdir());
+  await callbacks.get('cancel-intelligence-generation')({ sender: {} }); assert.deepEqual(resets, ['engine']);
+  await callbacks.get('reset-intelligence')({ sender: {} }); assert.deepEqual(resets, ['engine', 'session']);
 });
 
-test('generate-brainstorm validates imagePaths before using them', () => {
-  const ipcSource = read('electron/ipcHandlers.ts');
-  const engineSource = read('electron/IntelligenceEngine.ts');
-
-  const handlerStart = findSafeHandle(ipcSource, 'generate-brainstorm');
-  assert.ok(handlerStart >= 0, 'generate-brainstorm handler should exist');
-
-  const brainstormHandler = sliceSafeHandleBlock(ipcSource, 'generate-brainstorm');
-
-  const runBrainstormStart = engineSource.indexOf('async runBrainstormInner(');
-  assert.ok(runBrainstormStart >= 0, 'runBrainstorm should exist');
-
-  // Should validate imagePaths
-  assert.ok(
-    /validateImagePath|isValidPath|checkPathSafety|isOwnedPath|isAppPath/.test(brainstormHandler) ||
-    /resolvedImagePaths|validatedImagePaths/.test(brainstormHandler),
-    'imagePaths should be validated in generate-brainstorm handler');
+test('AG33 actual registered chat handler fixes written/interview task budgets and refuses unknown modes', async () => {
+  const { callbacks, startedTasks, sends } = handlers(os.tmpdir());
+  const invoke = options => callbacks.get('gemini-chat-stream')({ sender: { id: 1, send() {}, isDestroyed: () => false } }, 'QUESTION', undefined, undefined, options);
+  await invoke({ generationKind: 'written' });
+  assert.equal(startedTasks[0].totalDeadline - startedTasks[0].startedAt, 180_000); assert.equal(startedTasks[0].firstTokenDeadline, undefined);
+  await invoke({ generationKind: 'interview' });
+  assert.equal(startedTasks[1].totalDeadline - startedTasks[1].startedAt, 60_000); assert.equal(startedTasks[1].firstTokenDeadline - startedTasks[1].startedAt, 10_000);
+  await assert.rejects(() => invoke({ generationKind: 'unknown' }), /Invalid question mode/);
+  assert.equal(startedTasks.length, 2); assert.equal(sends.length, 2);
 });
 
-test('runWhatShouldISay receives validated imagePaths from IPC handler', () => {
-  const ipcSource = read('electron/ipcHandlers.ts');
-  const engineSource = read('electron/IntelligenceEngine.ts');
-
-  // The runWhatShouldISay method in IntelligenceEngine accepts imagePaths
-  // but validation happens at the IPC layer before calling the engine
-  const methodStart = engineSource.indexOf('async runWhatShouldISayInner(');
-  assert.ok(methodStart >= 0, 'runWhatShouldISay should exist');
-
-  const nextMethod = engineSource.indexOf('\n    async ', methodStart + 10);
-  const nextMethod2 = engineSource.indexOf('\n    private ', methodStart + 10);
-  const methodEnd = [nextMethod, nextMethod2].filter(x => x >= 0).sort((a, b) => a - b)[0];
-  const methodBody = engineSource.slice(methodStart, methodEnd);
-
-  // The method body should accept imagePaths (validation is at IPC layer)
-  assert.ok(/imagePaths\??:?\s*string\[\]/.test(methodBody), 'runWhatShouldISay should accept imagePaths');
-
-  // But the actual validation happens at the IPC handler level
-  const whatToSayHandler = findSafeHandle(ipcSource, 'generate-what-to-say');
-  const handler = sliceSafeHandleBlock(ipcSource, 'generate-what-to-say');
-
-  // The handler should validate imagePaths before calling the engine
-  assert.ok(
-    /validateImagePath|isValidPath|checkPathSafety/.test(handler),
-    'generate-what-to-say IPC handler should validate imagePaths'
-  );
-});
-
-test('image path validation rejects path traversal attempts', () => {
-  const source = read('electron/ipcHandlers.ts');
-
-  // Check for path validation utility
-  const hasPathValidation =
-    /validateImagePath|isValidPath|checkPathSafety|isOwnedPath|validatePath|checkPath/.test(source);
-
-  // The validation should be present
-  assert.ok(hasPathValidation, 'Should have image path validation function');
-});
-
-test('generate-what-to-say rejects malformed image path payloads before OCR or model calls', () => {
-  const ipcSource = read('electron/ipcHandlers.ts');
-  const handler = sliceSafeHandleBlock(ipcSource, 'generate-what-to-say');
-
-  assert.match(handler, /imagePaths\.length > 5/);
-  assert.match(handler, /typeof imagePath !== 'string'/);
-  assert.match(handler, /imagePath\.trim\(\)\.length === 0/);
-  assert.match(handler, /malformed image path payload rejected/);
-  assert.match(handler, /Invalid image path payload/);
-  assert.match(handler, /validatedImagePaths/);
-  assert.match(handler, /runWhatShouldISay\([\s\S]{0,120}validatedImagePaths/);
-});
-
-test('image path validation is applied at IPC handler level', () => {
-  const ipcSource = read('electron/ipcHandlers.ts');
-
-  // Find all handlers that accept imagePaths
-  const generateCodeHint = findSafeHandle(ipcSource, 'generate-code-hint');
-  const generateBrainstorm = findSafeHandle(ipcSource, 'generate-brainstorm');
-  const generateWhatToSay = findSafeHandle(ipcSource, 'generate-what-to-say');
-
-  assert.ok(generateCodeHint >= 0, 'generate-code-hint should exist');
-  assert.ok(generateBrainstorm >= 0, 'generate-brainstorm should exist');
-  assert.ok(generateWhatToSay >= 0, 'generate-what-to-say should exist');
-
-  const codeHintHandler = sliceSafeHandleBlock(ipcSource, 'generate-code-hint');
-  const brainstormHandler = sliceSafeHandleBlock(ipcSource, 'generate-brainstorm');
-  const whatToSayHandler = sliceSafeHandleBlock(ipcSource, 'generate-what-to-say');
-
-  // At least one should have path validation
-  const hasValidation =
-    /validate.*Path|isValid.*Path|check.*Path|resolvedImagePaths/.test(codeHintHandler) ||
-    /validate.*Path|isValid.*Path|check.*Path|resolvedImagePaths/.test(brainstormHandler) ||
-    /validate.*Path|isValid.*Path|check.*Path|resolvedImagePaths/.test(whatToSayHandler);
-
-  assert.ok(hasValidation, 'At least one handler should validate imagePaths');
+for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-say', 'generate-code-hint', 'generate-brainstorm', 'analyze-image-file']) test(`AG33 real registered ${channel} rejects malformed, traversal, missing, sensitive and symlink-escape images before generation`, async t => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ag33-image-handler-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
+  const root = path.join(temp, 'userData'); fs.mkdirSync(root);
+  const outside = path.join(temp, 'outside.png'); fs.writeFileSync(outside, 'synthetic private data');
+  const escape = path.join(root, 'escape.png'); fs.symlinkSync(outside, escape);
+  const { callbacks, sends } = handlers(root); const callback = callbacks.get(channel);
+  const sender = { id: 1, send() {}, isDestroyed: () => false };
+  const invoke = images => channel === 'analyze-image-file' ? callback({ sender }, Array.isArray(images) && images.length === 1 ? images[0] : images) : channel.startsWith('gemini-') ? callback({ sender }, 'QUESTION', images) : channel === 'generate-what-to-say' ? callback({ sender }, 'QUESTION', images) : callback({ sender }, images, 'QUESTION');
+  for (const images of [{ length: 1 }, [null], [''], Array(6).fill(escape), [path.join(root, '../outside.png')], ['/etc/passwd'], ['C:\\Windows\\secret.png'], [path.join(root, 'missing.png')], [escape]]) {
+    try { const result = await invoke(images); assert.equal(result.answer ?? result.hint ?? result.script ?? null, null); assert.match(result.error, /Invalid image path/); }
+    catch (error) { assert.match(error.message, /Invalid image path/); }
+    assert.equal(sends.length, 0);
+  }
+  const image = path.join(root, 'legitimate.png'); fs.writeFileSync(image, Buffer.from('iVBORw0KGgo=', 'base64'));
+  await invoke([image]); assert.equal(sends.length, 1, 'an owned screenshot reaches the selected generation entry');
 });

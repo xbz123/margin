@@ -27,6 +27,7 @@ import { createProviderRateLimiters } from './services/RateLimiter';
 import { CodexCliConfig, CodexCliService, DEFAULT_CODEX_CLI_CONFIG } from './services/CodexCliService';
 import { GenerationTask, generateTask, generationTasks, withGenerationTask, awaitGeneration, type GenerationKind } from './llm/generateTask';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../src/types/generationPolicy';
+import { assertModelImageSupport } from '../src/types/modelImageSupport';
 
 type GenerationTargetSnapshot = { target: ModelTarget; client: any; custom: boolean; cli?: CodexCliConfig;
   language: string; customNotes: string; personaPrompt: string; fastMode: boolean };
@@ -87,8 +88,9 @@ export class LLMHelper {
   public getCurrentGenerationTask(): GenerationTask<GenerationTargetSnapshot> | undefined { return generationTasks.getStore(); }
 
   public getTaskMetadata(task: GenerationTask<GenerationTargetSnapshot>) {
-    return { provider: task.actualTarget.cli ? 'codex-cli' : task.actualTarget.target.provider,
-      model: task.actualTarget.target.model, status: task.terminalStatus, attempts: task.sends, partial: task.hasText,
+    return { requestId: task.requestId, provider: task.actualTarget.cli ? 'codex-cli' : task.actualTarget.target.provider,
+      model: task.actualTarget.target.model, status: task.terminalStatus, attempts: task.sends, partial: task.hasText && task.terminalStatus !== 'completed',
+      ...(task.signal.reason?.name === 'GenerationTimeoutError' ? { timeout: task.signal.reason.deadline as 'first-token' | 'total' } : {}),
       usedImageInput: task.imageCount > 0, imageCount: task.imageCount };
   }
 
@@ -96,7 +98,7 @@ export class LLMHelper {
     const inherited = generationTasks.getStore();
     const task = supplied ?? inherited ?? this.beginGenerationTask(kind, signal);
     return (async () => { task.check(); return await awaitGeneration(task, Promise.resolve().then(() => generationTasks.run(task, factory))); })()
-      .catch(error => { task.terminalStatus ??= 'failed'; throw error; })
+      .catch(error => { if (!task.signal.aborted && !['refused', 'incomplete', 'empty'].includes(task.terminalStatus ?? '')) task.terminalStatus = 'failed'; throw error; })
       .finally(() => { if (task !== inherited) task.close(); });
   }
 
@@ -110,7 +112,7 @@ export class LLMHelper {
   public beginGenerationTask(kind: GenerationKind = 'interview', signal?: AbortSignal, primary?: ModelTarget): GenerationTask<GenerationTargetSnapshot> {
     if (this.generationClosed) throw new DOMException('Application quit', 'AbortError');
     const configs = this.providerConfigurations ?? LLM_PRESETS;
-    const snapshot = (target: ModelTarget): GenerationTargetSnapshot => ({ target: { ...target },
+    const snapshot = (target: ModelTarget): GenerationTargetSnapshot => ({ target: { ...target, baseUrl: effectiveProviderConfiguration(target).baseUrl },
       language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', personaPrompt: this.personaPrompt ?? '', fastMode: this.groqFastTextMode,
       custom: effectiveProviderConfiguration(configs[target.provider]).custom,
       client: target.provider === 'gemini' ? this.client : target.provider === 'groq' ? this.groqClient
@@ -120,7 +122,7 @@ export class LLMHelper {
       ? { provider: 'openai' as const, protocol: 'responses' as const, model: this.getSelectedCodexCliModel(this.groqFastTextMode) }
       : resolveModelTarget(this.currentModelId ?? GEMINI_FLASH_MODEL, configs));
     const policy = this.getGenerationPolicy();
-    const backup = kind !== 'compatibility' && policy.backupModel ? resolveModelTarget(policy.backupModel, configs) : undefined;
+    const backup = kind !== 'compatibility' && policy.backupModel ? { ...resolveModelTarget(policy.backupModel, configs), imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor } : undefined;
     if (backup && modelTargetId(backup) === modelTargetId(selected)) throw new Error('Primary and backup model must differ.');
     const task = new GenerationTask({ ...snapshot(selected), ...(cli ? { cli } : {}) }, backup ? snapshot(backup) : undefined, policy, kind, signal);
     this.activeGenerationTasks ??= new Set();
@@ -148,10 +150,11 @@ export class LLMHelper {
       } };
       for await (const event of generateTask(task, (snapshot: GenerationTargetSnapshot, signal, recovery) => (async function* () {
         const { client, custom, target } = snapshot;
-        task.actualTarget = { ...snapshot, target };
+        const imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0) + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
+        if (imageCount) assertModelImageSupport(target);
         if (snapshot.cli) {
           if (!snapshot.cli.enabled) throw new Error('Codex CLI transport is disabled.');
-          self.assertOutboundScopes('codex', userContent, imagePaths); task.claimSend();
+          self.assertOutboundScopes('codex', userContent, imagePaths); task.claimSend(snapshot);
           task.imageCount = imagePaths?.length ?? 0;
           const config = snapshot.cli;
           const args = { prompt: self.buildCodexCliPrompt(userContent, systemInstruction), model: target.model,
@@ -182,7 +185,8 @@ export class LLMHelper {
           },
         }, { client, beforeSend: () => {
           assertProviderDataScopes(target.provider, dataScopes, self.getProviderScopePolicy());
-          task.claimSend();
+          if (imageCount) assertModelImageSupport(target);
+          task.claimSend(snapshot);
           task.imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0)
             + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
         } });
@@ -723,12 +727,7 @@ CRITICAL RULES:
       };
     } catch (error) {
       console.error("[LLMHelper] Failed to process image with sharp:", error);
-      // Fallback to raw read if sharp fails
-      const data = await fs.promises.readFile(path);
-      return {
-        mimeType: "image/png",
-        data: data.toString("base64")
-      };
+      throw new Error('Invalid or unreadable image. The attachment was not sent.');
     }
   }
 

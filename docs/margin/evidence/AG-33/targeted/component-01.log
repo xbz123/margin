@@ -1,0 +1,35 @@
+✘ [ERROR] No loader is configured for ".png" files: src/components/icon.png
+
+    src/components/GlobalChatOverlay.tsx:6:25:
+      6 │ import nativelyIcon from './icon.png';
+        ╵                          ~~~~~~~~~~~~
+
+✖ AG33 real Global and Meeting React overlays preserve partial failure, fence closed callbacks and create a new retry record (207.44025ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 733.862875
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:11:1
+✖ AG33 real Global and Meeting React overlays preserve partial failure, fence closed callbacks and create a new retry record (207.44025ms)
+  Error: Build failed with 1 error:
+  src/components/GlobalChatOverlay.tsx:6:25: ERROR: No loader is configured for ".png" files: src/components/icon.png
+      at failureErrorWithLog (<repo>/node_modules/esbuild/lib/main.js:1472:15)
+      at <repo>/node_modules/esbuild/lib/main.js:945:25
+      at <repo>/node_modules/esbuild/lib/main.js:897:52
+      at buildResponseToResult (<repo>/node_modules/esbuild/lib/main.js:943:7)
+      at <repo>/node_modules/esbuild/lib/main.js:970:16
+      at responseCallbacks.<computed> (<repo>/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (<repo>/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (<repo>/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:509:20)
+      at addChunk (node:internal/streams/readable:564:12) {
+    errors: [ { detail: undefined, id: '', location: [Object], notes: [], pluginName: '', text: 'No loader is configured for ".png" files: src/components/icon.png' } ],
+    warnings: []
+  }

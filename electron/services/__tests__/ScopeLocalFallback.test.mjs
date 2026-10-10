@@ -251,14 +251,14 @@ test('prompt wrappers propagate a refusal instead of inventing an answer', async
 });
 
 test('WhatToSay emits the refusal and rejects without a fabricated answer', async () => {
-  loadBuiltLLMHelper();
+  const LLMHelper = loadBuiltLLMHelper();
   const { ProviderScopeError } = await loadRouter();
   const { IntelligenceEngine } = createRequire(import.meta.url)(path.join(repoRoot, 'dist-electron/electron/IntelligenceEngine.js'));
   const denied = new ProviderScopeError('test', ['transcript']);
   const events = [];
   const engine = Object.assign(Object.create(IntelligenceEngine.prototype), {
-    llmHelper: { runGeneration: factory => factory(), getCurrentGenerationTask: () => undefined },
-    session: { getFormattedContext: () => 'CONTEXT' },
+    llmHelper: Object.assign(Object.create(LLMHelper.prototype), { selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' } }),
+    session: { getFormattedContext: () => 'CONTEXT', pushUsage() {} },
     answerLLM: { generate: async () => { throw denied; } },
     emit: (...args) => events.push(args),
     setMode: mode => events.push(['mode', mode]),
@@ -332,9 +332,11 @@ async function sendWith(policy, makeClient, call) {
   }
 }
 
-const chosen = (provider, protocol, model) => ({ currentModelId: model, selectedTarget: { provider, protocol, model } });
+const chosen = (provider, protocol, model) => ({ currentModelId: model, selectedTarget: { provider, protocol, model,
+  ...(provider === 'gemini' ? { imageSupportConfirmedFor: JSON.stringify([provider, protocol, 'https://generativelanguage.googleapis.com', model]) } : {}),
+} });
 const claudeClient = send => ({ ...chosen('claude', 'messages', 'claude-sonnet-4-6'), claudeClient: { messages: { create: send } } });
-const groqClient = send => ({ ...chosen('groq', 'chat-completions', 'llama-3.3-70b-versatile'), groqClient: { chat: { completions: { create: send } } } });
+const groqClient = send => ({ ...chosen('groq', 'chat-completions', 'synthetic-image-model'), selectedTarget: { provider: 'groq', protocol: 'chat-completions', model: 'synthetic-image-model', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'synthetic-image-model']) }, groqClient: { chat: { completions: { create: send } } } });
 const geminiClient = send => ({ ...chosen('gemini', 'gemini', 'gemini-test'), client: { models: { generateContent: send, generateContentStream: async body => [await send(body)] } } });
 const NO_IMAGE = ['/margin-test/screenshot-synthetic.png'];
 const directSends = [['Claude', claudeClient], ['Groq images', groqClient], ['Gemini images', geminiClient]];

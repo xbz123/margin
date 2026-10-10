@@ -28,7 +28,7 @@ preserved. Nothing patches node_modules or SDK prototypes.
 | LLMHelper Groq via llm/generateOnce (Chat) | Saved API base, otherwise legacy GROQ_BASE_URL host root, otherwise official Groq API | Text/images |
 | LLMHelper OpenAI via llm/generateOnce (Chat or Responses) | Saved API base, otherwise nonpackaged loopback dev override / OPENAI_BASE_URL, otherwise https://api.openai.com/v1 | Text/images; Responses uses store:false |
 | LLMHelper Anthropic via llm/generateOnce (Messages) | Saved API base, otherwise ANTHROPIC_BASE_URL, otherwise https://api.anthropic.com | Text/images |
-| LLMHelper DeepSeek via llm/generateOnce (Chat) | Saved API base, otherwise https://api.deepseek.com; does not borrow OpenAI env | Text |
+| LLMHelper DeepSeek via llm/generateOnce (Chat) | Saved API base, otherwise https://api.deepseek.com; does not borrow OpenAI env | Text/images subject to exact-target capability admission |
 | LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | Saved base, otherwise GOOGLE_GEMINI_BASE_URL, otherwise https://generativelanguage.googleapis.com; explicit API-key v1alpha backend | Text/images/system instructions |
 | ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic/Groq model-list URLs, fetch; custom targets receive no discovery key | Key/config only; startup/background/model-error discovery |
 | utils/modelFetcher, fetch-provider-models IPC | Saved effective target; unfiltered model IDs for compatible targets, no official fallback | User-triggered saved key/config only |
@@ -62,6 +62,27 @@ answer. Authentication, configuration and scope errors do not select a backup.
 Only an eligible pre-text transient or explicit model-unavailable error can
 justify a second attempt. No new endpoint, credential source or automatic
 redirect is introduced by this scheduler.
+
+AG-33 admits image input against the actual model/protocol/effective endpoint
+before each generation attempt, including a backup. Exact official models use
+the small documented capability table; compatible or unknown targets require
+explicit target-bound confirmation. Backup confirmation is independent, including
+for a different model in the same provider slot. A changed target cannot reuse
+the old binding. Known unsupported models cannot be overridden. Explicit server
+image rejection is terminal, not a reason to retry without images or switch
+models; the interface retains the input and attachments.
+
+Renderer image paths are validated by the actual IPC handlers before reaching
+generation: resolve real paths, require a regular image file under app-owned
+userData, reject traversal, missing files and symlink escapes. Image decoding
+failure does not fall back to sending arbitrary raw file bytes as PNG. This
+does not replace scope checks and is not a claim to withstand an independent
+host process replacing files concurrently.
+
+Request identity and the originating webContents accompany generation events;
+queued batches and late completion/error cannot retarget a newer request or a
+different window. Renderer partial results retain terminal/model metadata.
+Cancellation blocks later local work, not data already accepted by a service.
 
 AG-31 adds explicit saved provider/protocol/base/model targets, not a new
 credential source. The five encrypted credential slots remain separate.

@@ -1,0 +1,23 @@
+✖ AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (14.2975ms)
+✔ AG33 real registered gemini-chat-stream rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (9.271625ms)
+✔ AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (7.98225ms)
+✔ AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (7.287875ms)
+✔ AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (7.312334ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 425.625584
+
+✖ failing tests:
+
+test at electron/services/__tests__/ImagePathValidation.test.mjs:44:131
+✖ AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (14.2975ms)
+  TypeError: intelligenceManager.getLastAssistantMessage is not a function
+      at Object.<anonymous> (evalmachine.<anonymous>:552:65)
+      at step (evalmachine.<anonymous>:78:23)
+      at Object.next (evalmachine.<anonymous>:59:53)
+      at fulfilled (evalmachine.<anonymous>:50:58)

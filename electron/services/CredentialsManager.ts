@@ -189,7 +189,14 @@ export class CredentialsManager {
         return this.credentials[`${provider}ApiKey` as keyof StoredCredentials] as string | undefined;
     }
 
-    public getGenerationPolicy(): GenerationPolicy { return validateGenerationPolicy(this.credentials.generationPolicy ?? DEFAULT_GENERATION_POLICY); }
+    public getGenerationPolicy(): GenerationPolicy {
+        const policy = validateGenerationPolicy(this.credentials.generationPolicy ?? DEFAULT_GENERATION_POLICY);
+        if (policy.backupImageSupportConfirmedFor) {
+            const backup = policy.backupModel ? resolveModelTarget(policy.backupModel, this.getProviderConfigurations()) : undefined;
+            if (!backup || !validateProviderConfiguration({ ...backup, imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }).imageSupportConfirmedFor) delete policy.backupImageSupportConfirmedFor;
+        }
+        return policy;
+    }
 
     public setGenerationPolicy(value: GenerationPolicy): CredentialSaveResult {
         const policy = validateGenerationPolicy(value);
@@ -209,6 +216,11 @@ export class CredentialsManager {
             if (selected.provider === config.provider) defaultModel = modelTargetId(config);
         }
         const nextConfigurations = { ...this.getProviderConfigurations(), [config.provider]: config };
+        const generationPolicy = this.getGenerationPolicy();
+        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel) {
+            const backupTarget = resolveModelTarget(generationPolicy.backupModel, nextConfigurations);
+            if (!validateProviderConfiguration({ ...backupTarget, imageSupportConfirmedFor: generationPolicy.backupImageSupportConfirmedFor }).imageSupportConfirmedFor) delete generationPolicy.backupImageSupportConfirmedFor;
+        }
         const nextDefault = defaultModel ?? this.getDefaultModel();
         const backup = this.getGenerationPolicy().backupModel;
         if (backup && !nextDefault.startsWith('codex-cli')
@@ -218,6 +230,7 @@ export class CredentialsManager {
         return this.saveCredentials({
             defaultModel,
             providerConfigurations: { ...this.credentials.providerConfigurations, [config.provider]: config },
+            ...(this.credentials.generationPolicy ? { generationPolicy } : {}),
             [`${config.provider}PreferredModel`]: config.model,
             ...(value.apiKey === undefined ? {} : { [`${config.provider}ApiKey`]: value.apiKey.trim() || undefined }),
         });

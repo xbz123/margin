@@ -1,0 +1,42 @@
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 1 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+(node:6480) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✖ AG33 actual Engine preserves a legitimate short answer and its request metadata (6.801542ms)
+✔ AG33 outer cancellation fences late inner errors, held sentinel text and mode changes (3.630125ms)
+✔ AG33 shared written task records a second-step failure rather than first-step completion (0.7965ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 706.487542
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generationInterfaces.test.mjs:319:1
+✖ AG33 actual Engine preserves a legitimate short answer and its request metadata (6.801542ms)
+  TypeError: Cannot read properties of undefined (reading 'requestId')
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generationInterfaces.test.mjs:326:40)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)

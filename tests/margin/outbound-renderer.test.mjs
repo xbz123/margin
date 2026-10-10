@@ -8,6 +8,87 @@ import ts from 'typescript';
 import { launchApp, windowWithQuery } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
+test('AG33 real Global and Meeting React overlays preserve partial failure, fence closed callbacks and create a new retry record', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
+    import Global from './src/components/GlobalChatOverlay'; import Meeting from './src/components/MeetingChatOverlay';
+    const root = createRoot(document.getElementById('root')); const listeners = []; const calls = [];
+    window.calls = calls; window.listeners = listeners;
+    const subscribe = kind => (callback, owner) => { const item = { kind, callback, owner, live: true }; listeners.push(item); return () => item.live = false; };
+    window.electronAPI = { onGeminiStreamToken: subscribe('token'), onGeminiStreamDone: subscribe('done'), onGeminiStreamError: subscribe('error'),
+      cancelChatStream(owner) { for (const item of listeners.filter(item => item.live && item.owner === owner && item.kind === 'error')) item.callback('Generation cancelled', { requestId: 'cancelled', provider: 'synthetic', model: 'opaque', status: 'cancelled', partial: true, attempts: 1 }); },
+      streamGeminiChat(question, images, context, options) { return new Promise((resolve, reject) => calls.push({ question, options, resolve, reject })); } };
+    window.show = (kind, query = '', isOpen = true) => flushSync(() => root.render(React.createElement(kind === 'global' ? Global : Meeting,
+      { key: kind, isOpen, initialQuery: query, meetingContext: { id: 'synthetic-meeting', title: 'Synthetic' }, onClose: () => {}, onNewQuery: () => {} })));
+    window.emit = (kind, value, metadata, force = false) => { for (const item of [...listeners].filter(item => item.kind === kind && (force || item.live))) item.callback(value, metadata); };
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
+  const sandbox = makeSandbox('ag33-components'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    for (const owner of ['global', 'meeting']) {
+      const created = app.waitForEvent('window');
+      await app.evaluate(async ({ BrowserWindow }) => {
+        const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
+        await win.loadURL('data:text/html,<div id="root"></div>');
+      });
+      const page = await created;
+      await page.addScriptTag({ content: bundle.outputFiles[0].text });
+      await page.evaluate(kind => window.show(kind, 'Partial question'), owner);
+      await page.waitForFunction(() => window.calls.length === 1);
+      assert.equal(await page.evaluate(() => window.calls[0].options.owner), owner);
+      await page.evaluate(() => {
+        window.emit('token', 'Preserved component partial.');
+        window.emit('error', 'Synthetic timeout', { requestId: 'partial', provider: 'synthetic', model: 'actual-backup', status: 'failed', timeout: 'total', partial: true, attempts: 2 });
+        window.calls[0].resolve();
+      });
+      await page.waitForFunction(() => document.body.innerText.includes('Preserved component partial.') && document.body.innerText.includes('timeout:total'));
+      assert.match(await page.locator('[data-generation-status="failed"]').innerText(), /actual-backup/);
+      await page.evaluate(kind => window.show(kind, 'Explicit retry question'), owner);
+      await page.waitForFunction(() => window.calls.length === 2);
+      await page.evaluate(() => {
+        window.emit('token', 'New component retry answer.');
+        // Done has metadata as its first argument, unlike error.
+        window.emit('done', { requestId: 'retry', provider: 'synthetic', model: 'actual-primary', status: 'completed', partial: false, attempts: 1 });
+        window.calls[1].resolve();
+      });
+      await page.waitForFunction(() => document.body.innerText.includes('New component retry answer.'));
+      assert.equal(await page.locator('[data-generation-status="completed"]').count(), 1);
+      assert.equal(await page.locator('[data-generation-status="failed"]').count(), 1, 'retry does not overwrite the partial failure record');
+      await page.evaluate(kind => window.show(kind, 'Close active question'), owner);
+      await page.waitForFunction(() => window.calls.length === 3);
+      await page.evaluate(kind => {
+        window.emit('token', 'Before close partial.');
+        window.show(kind, '', false);
+      }, owner);
+      await page.waitForTimeout(300);
+      await page.evaluate(kind => {
+        // Force delivery even through released subscriptions to test the component's own fence.
+        window.emit('token', 'LATE-CLOSED-TOKEN', undefined, true);
+        window.emit('error', 'LATE-CLOSED-ERROR', undefined, true);
+        window.emit('done', { status: 'completed' }, undefined, true);
+        window.calls[2].reject(Error('LATE-CLOSED-INVOKE'));
+        window.show(kind, 'After close question');
+      }, owner);
+      await page.waitForFunction(() => window.calls.length === 4);
+      const text = await page.locator('body').innerText();
+      assert.doesNotMatch(text, /LATE-CLOSED-/);
+      await page.evaluate(() => { window.emit('token', 'Fresh post-close answer.'); window.emit('done', { requestId: 'after-close', status: 'completed', provider: 'synthetic', model: 'opaque', attempts: 1, partial: false }); window.calls[3].resolve(); });
+      await page.waitForFunction(() => document.body.innerText.includes('Fresh post-close answer.'));
+      assert.equal((await page.locator('body').innerText()).split('Fresh post-close answer.').length - 1, 1);
+      await page.evaluate(kind => window.show(kind, '', false), owner);
+      await page.waitForTimeout(300);
+      await page.evaluate(kind => window.show(kind, 'Delayed close question'), owner);
+      await page.waitForFunction(() => document.body.innerText.includes('Delayed close question'));
+      await page.evaluate(kind => window.show(kind, '', false), owner);
+      await page.waitForTimeout(400);
+      assert.equal(await page.evaluate(() => window.calls.length), 4, 'closing inside the 200ms delay makes no provider invocation');
+      await page.close();
+    }
+  } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('all nine Markdown callers and streaming sanitize block image loads in a real renderer', async () => {
   let callers = 0;
   for (const name of ['NativelyInterface', 'MeetingDetails', 'MeetingChatOverlay']) {

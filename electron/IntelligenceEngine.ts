@@ -80,22 +80,61 @@ export class IntelligenceEngine extends EventEmitter {
     private currentGenerationId: number = 0;
     private activeGenerationController?: AbortController;
     private activeGenerationTask?: GenerationTask<any>;
+    private generationMetadata() {
+        const task = this.llmHelper.getCurrentGenerationTask();
+        return task ? this.llmHelper.getTaskMetadata(task) : undefined;
+    }
+    private recordUsage(entry: any): void {
+        this.session.pushUsage({ ...entry, ...this.generationMetadata() });
+    }
+
+    override emit(event: string | symbol, ...args: any[]): boolean {
+        const task = this.llmHelper?.getCurrentGenerationTask();
+        if (task) {
+            if (task !== this.activeGenerationTask || task.signal.aborted) return false;
+            if (event === 'error') task.errorMessage = args[0]?.message;
+            if (String(event).endsWith('_token')) task.displayedText += String(args[0] ?? '');
+            return super.emit(event, ...args, this.llmHelper.getTaskMetadata(task), task.rendererOwner);
+        }
+        return super.emit(event, ...args);
+    }
 
     private runGenerationRequest(factory: () => Promise<string | null>): Promise<string | null> {
         const inherited = this.llmHelper.getCurrentGenerationTask();
-        if (inherited) {
-            if (this.activeGenerationTask === inherited) return this.llmHelper.runGeneration(factory);
-            this.activeGenerationTask?.controller.abort(new DOMException('Superseded generation', 'AbortError'));
-            this.activeGenerationController?.abort(new DOMException('Superseded generation', 'AbortError'));
-            this.activeGenerationTask = inherited;
-            return this.llmHelper.runGeneration(factory).finally(() => { if (this.activeGenerationTask === inherited) this.activeGenerationTask = undefined; });
-        }
+        if (inherited && this.activeGenerationTask === inherited) return this.llmHelper.runGeneration(factory);
         this.activeGenerationTask?.controller.abort(new DOMException('Superseded generation', 'AbortError'));
         this.activeGenerationController?.abort(new DOMException('Superseded generation', 'AbortError'));
-        const controller = new AbortController();
-        this.activeGenerationController = controller;
-        return this.llmHelper.runGeneration(factory, 'interview', controller.signal).finally(() => {
-            if (this.activeGenerationController === controller) this.activeGenerationController = undefined;
+        const task = inherited ?? this.llmHelper.beginGenerationTask();
+        this.activeGenerationTask = task;
+        let recordedPartial = false;
+        const recordPartial = () => {
+            if (recordedPartial || !task.terminalStatus || task.terminalStatus === 'completed') return;
+            recordedPartial = true;
+            const metadata = this.llmHelper.getTaskMetadata(task);
+            if (task.displayedText.trim()) this.session.addAssistantMessage(task.displayedText, metadata);
+            this.session.pushUsage({ type: 'assist', timestamp: Date.now(), question: 'generation outcome', answer: task.displayedText, ...metadata });
+        };
+        task.signal.addEventListener('abort', recordPartial, { once: true });
+        super.emit('generation_started', this.llmHelper.getTaskMetadata(task), task.rendererOwner);
+        let terminalError: string | undefined;
+        return this.llmHelper.runGeneration(factory, 'interview', undefined, task).then(answer => {
+            task.terminalStatus ??= answer?.trim() ? 'completed' : 'empty';
+            if (task.terminalStatus !== 'completed') recordPartial();
+            return answer;
+        }, error => {
+            terminalError = error?.message ?? 'Generation failed';
+            recordPartial();
+            throw error;
+        }).finally(() => {
+            if (this.activeGenerationTask === task) {
+                // An aborted task cannot call setMode; its owner performs the final cleanup.
+                this.activeGenerationTask = undefined;
+                if (this.activeMode !== 'idle') {
+                    this.activeMode = 'idle';
+                    super.emit('mode_changed', 'idle', this.llmHelper.getTaskMetadata(task), task.rendererOwner);
+                }
+            }
+            super.emit('generation_terminal', { ...this.llmHelper.getTaskMetadata(task), error: terminalError ?? task.errorMessage }, task.rendererOwner);
         });
     }
 
@@ -476,7 +515,7 @@ export class IntelligenceEngine extends EventEmitter {
                 }
                 if (answer) {
                     task?.markVisible(answer);
-                    this.session.addAssistantMessage(answer);
+                    this.session.addAssistantMessage(answer, this.generationMetadata());
                     this.emit('suggested_answer', answer, question || 'inferred', confidence);
                 }
                 this.setMode('idle');
@@ -564,7 +603,7 @@ export class IntelligenceEngine extends EventEmitter {
                     }
                 }
             } } catch (error) {
-                if (pendingDisplay && !isSpeculative) {
+                if (pendingDisplay && !isSpeculative && !task?.signal.aborted && task === this.activeGenerationTask) {
                     task?.markVisible(pendingDisplay);
                     this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
                 }
@@ -584,7 +623,7 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            if (!fullAnswer || fullAnswer.trim().length < 5) {
+            if (!fullAnswer?.trim()) {
                 fullAnswer = "Could you repeat that? I want to make sure I address your question properly.";
             }
 
@@ -609,9 +648,9 @@ export class IntelligenceEngine extends EventEmitter {
                 return fullAnswer;
             }
 
-            this.session.addAssistantMessage(fullAnswer);
+            this.session.addAssistantMessage(fullAnswer, this.generationMetadata());
 
-            this.session.pushUsage({
+            this.recordUsage({
                 type: 'assist',
                 timestamp: Date.now(),
                 question: question || 'What to Answer',
@@ -624,6 +663,7 @@ export class IntelligenceEngine extends EventEmitter {
             return fullAnswer;
 
         } catch (error) {
+            if (task?.signal.aborted || task !== this.activeGenerationTask) throw error;
             if (isSpeculative) { this.speculativeText = null; this.speculativeTextExpiry = Infinity; }
             if ((error as Error)?.name === 'AbortError') throw error;
             // An IPC caller owns its error display; emitting as well can target another window.
@@ -682,7 +722,7 @@ export class IntelligenceEngine extends EventEmitter {
             }
 
             if (!streamAborted && fullRefined) {
-                this.session.addAssistantMessage(fullRefined);
+                this.session.addAssistantMessage(fullRefined, this.generationMetadata());
                 this.emit('refined_answer', fullRefined, intent);
 
                 const intentMap: Record<string, string> = {
@@ -697,7 +737,7 @@ export class IntelligenceEngine extends EventEmitter {
 
                 const displayQuestion = userRequest || intentMap[intent] || `Refining: ${intent}`;
 
-                this.session.pushUsage({
+                this.recordUsage({
                     type: 'followup',
                     timestamp: Date.now(),
                     question: displayQuestion,
@@ -764,9 +804,9 @@ export class IntelligenceEngine extends EventEmitter {
                 // Track recap as an assistant message so "make it shorter" / other
                 // refinements can target it via FollowUpLLM (which reads the last
                 // assistant message).
-                this.session.addAssistantMessage(fullSummary);
+                this.session.addAssistantMessage(fullSummary, this.generationMetadata());
 
-                this.session.pushUsage({
+                this.recordUsage({
                     type: 'chat',
                     timestamp: Date.now(),
                     question: 'Recap Meeting',
@@ -832,9 +872,9 @@ export class IntelligenceEngine extends EventEmitter {
             // Only update history and emit final if not aborted
             if (fullClarification && this.currentGenerationId === generationId) {
                 this.emit('clarify', fullClarification);
-                this.session.addAssistantMessage(fullClarification);
+                this.session.addAssistantMessage(fullClarification, this.generationMetadata());
 
-                this.session.pushUsage({
+                this.recordUsage({
                     type: 'chat',
                     timestamp: Date.now(),
                     question: 'Clarify Question',
@@ -902,7 +942,7 @@ export class IntelligenceEngine extends EventEmitter {
 
             if (fullQuestions && this.currentGenerationId === generationId) {
                 this.emit('follow_up_questions_update', fullQuestions);
-                this.session.pushUsage({
+                this.recordUsage({
                     type: 'followup_questions',
                     timestamp: Date.now(),
                     question: 'Generate Follow-up Questions',
@@ -943,10 +983,10 @@ export class IntelligenceEngine extends EventEmitter {
             const answer = await this.answerLLM.generate(question, context);
 
             if (answer) {
-                this.session.addAssistantMessage(answer);
+                this.session.addAssistantMessage(answer, this.generationMetadata());
                 this.emit('manual_answer_result', answer, question);
 
-                this.session.pushUsage({
+                this.recordUsage({
                     type: 'chat',
                     timestamp: Date.now(),
                     question: question,
@@ -1031,12 +1071,12 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            if (!fullHint || fullHint.trim().length < 5) {
+            if (!fullHint?.trim()) {
                 fullHint = "I couldn't detect any code in the screenshot. Try screenshotting your code editor directly.";
             }
 
-            this.session.addAssistantMessage(fullHint);
-            this.session.pushUsage({
+            this.session.addAssistantMessage(fullHint, this.generationMetadata());
+            this.recordUsage({
                 type: 'assist',
                 timestamp: Date.now(),
                 question: 'Code Hint',
@@ -1084,7 +1124,7 @@ export class IntelligenceEngine extends EventEmitter {
             if (!context.trim() && !resolvedProblem && (!imagePaths || imagePaths.length === 0)) {
                 this.setMode('idle');
                 const msg = "There's nothing to brainstorm right now. Make sure your question is visible or spoken aloud, then try again.";
-                this.session.addAssistantMessage(msg);
+                this.session.addAssistantMessage(msg, this.generationMetadata());
                 this.emit('suggested_answer', msg, 'Brainstorming Approaches', 1.0);
                 return msg;
             }
@@ -1113,12 +1153,12 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            if (!fullResult || fullResult.trim().length < 5) {
+            if (!fullResult?.trim()) {
                 fullResult = "I couldn't generate brainstorm approaches. Make sure your question is visible and try again.";
             }
 
-            this.session.addAssistantMessage(fullResult);
-            this.session.pushUsage({
+            this.session.addAssistantMessage(fullResult, this.generationMetadata());
+            this.recordUsage({
                 type: 'assist',
                 timestamp: Date.now(),
                 question: 'Brainstorm',
@@ -1141,6 +1181,8 @@ export class IntelligenceEngine extends EventEmitter {
     // ============================================
 
     private setMode(mode: IntelligenceMode): void {
+        const task = this.llmHelper.getCurrentGenerationTask();
+        if (task && (task !== this.activeGenerationTask || task.signal.aborted)) return;
         if (this.activeMode !== mode) {
             this.activeMode = mode;
             this.emit('mode_changed', mode);

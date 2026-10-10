@@ -1,0 +1,26 @@
+electron/audio/__tests__/LlmStreamAbortController.test.mjs :: preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream
+electron/audio/__tests__/LlmStreamAbortController.test.mjs :: preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-stream-stop")
+electron/audio/__tests__/TokenBatchFlushNoTrailing.test.mjs :: intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer
+electron/llm/__tests__/generateOnce.test.mjs :: actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer
+electron/llm/__tests__/generateOnce.test.mjs :: selected vision entry preserves terminal results and partial text without a backup send
+electron/llm/__tests__/generateOnce.test.mjs :: suggestion and screenshot wrappers reach the physical Gemini entry with separated content
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: real SDK text/image serialization, saved opaque target, test and model list share one API base
+electron/services/__tests__/IntelligenceEngineCodeHint.test.mjs :: runCodeHint returns stream on supersession and does not emit stale final result
+electron/services/__tests__/IntelligenceEnginePlanner.test.mjs :: handleSuggestionTrigger routes answerable questions to what-to-say executor
+electron/services/__tests__/IntelligenceEnginePlanner.test.mjs :: handleSuggestionTrigger still answers complete technical restatements
+electron/services/__tests__/IntelligenceEngineScreenContext.test.mjs :: runWhatShouldISay passes screenContext and preserves imagePaths
+electron/services/__tests__/IntelligenceEngineScreenContext.test.mjs :: runWhatShouldISay works without screenContext
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay does not suppress near-match real answers
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay hides speculative fallback answers from renderer and history
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay hides speculative real answers from renderer and history
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay still emits and stores real answers
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay suppresses normalized sentinel variants
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay suppresses nothing-actionable sentinel output
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay suppresses nothing-to-capture sentinel output
+electron/services/__tests__/IntelligenceEngineSentinel.test.mjs :: runWhatShouldISay suppresses speculative sentinel output
+electron/services/__tests__/ProviderGatewayPolicy.test.mjs :: selected Gemini nonstream: image-preparation revocation prevents cache and generation
+electron/services/__tests__/ProviderGatewayPolicy.test.mjs :: selected Gemini stream: image-preparation revocation prevents cache and generation
+electron/services/__tests__/ScopeLocalFallback.test.mjs :: Gemini images sends nothing when a declared transcript or screenshot scope is denied
+electron/services/__tests__/ScopeLocalFallback.test.mjs :: Groq images sends nothing when a declared transcript or screenshot scope is denied
+electron/services/__tests__/ScopeLocalFallback.test.mjs :: WhatToSay emits the refusal and rejects without a fabricated answer
+electron/services/__tests__/ScopeLocalFallback.test.mjs :: streaming images: scope refusal stays terminal with an explicit backup

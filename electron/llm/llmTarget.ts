@@ -1,6 +1,7 @@
 import { LLM_PRESETS, type LlmProvider, type ProviderConfiguration, type ModelTarget } from '../../src/types/llmTarget';
 import { validateHttpEndpoint } from '../services/outbound';
 import { devOpenAIBaseUrl } from '../margin/devOverrides';
+import { imageSupportTarget } from '../../src/types/modelImageSupport';
 
 export const PROVIDER_BASE_URLS: Record<LlmProvider, string> = {
   gemini: 'https://generativelanguage.googleapis.com', groq: 'https://api.groq.com/openai/v1',
@@ -19,7 +20,9 @@ export function validateProviderConfiguration(value: ProviderConfiguration): Pro
     baseUrl = parsed.href.replace(/\/+$/, '');
     if (value.protocol === 'gemini' && /\/v\d+(?:alpha|beta)?$/.test(parsed.pathname.replace(/\/+$/, ''))) throw new Error('Gemini base URL must not include an API version; requests use v1alpha.');
   }
-  return { provider: value.provider, protocol: value.protocol, model: value.model.trim(), ...(baseUrl ? { baseUrl } : {}) };
+  const config = { provider: value.provider, protocol: value.protocol, model: value.model.trim(), ...(baseUrl ? { baseUrl } : {}) };
+  if (value.imageSupportConfirmedFor !== undefined && typeof value.imageSupportConfirmedFor !== 'string') throw new Error('Invalid image support confirmation');
+  return { ...config, ...(value.imageSupportConfirmedFor === imageSupportTarget(config) ? { imageSupportConfirmedFor: value.imageSupportConfirmedFor } : {}) };
 }
 
 export function effectiveProviderConfiguration(config: ProviderConfiguration): ProviderConfiguration & { baseUrl: string; custom: boolean } {

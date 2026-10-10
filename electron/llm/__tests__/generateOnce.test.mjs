@@ -32,7 +32,7 @@ const request = (extra = {}) => ({ protocol: 'gemini', purpose: 'answer', model:
 const drain = async (events) => { const result = []; for await (const event of events) result.push(event); return result; };
 const helper = (client, policy = {}, extra = {}) => Object.assign(Object.create(LLMHelper.prototype), {
   client, getProviderScopePolicy: () => policy, personaPrompt: '', customNotes: '',
-  selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' },
+  selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test', imageSupportConfirmedFor: JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', 'gemini-test']) },
   currentModelId: 'gemini-test', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
   groqFastTextMode: false, rateLimiters: { gemini: { acquire: async () => {} } },
   geminiPromptCache: new GeminiPromptCache(), withTimeout: value => value,
@@ -140,14 +140,14 @@ test('selected vision entry preserves terminal results and partial text without 
 test('actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer', async () => {
   for (const state of ['incomplete', 'refused']) {
     const terminal = new GenerationResultError(state, true);
-    const fakeHelper = {
-      runGeneration: factory => factory(), runGenerationStream: factory => factory(),
-      getCurrentGenerationTask: () => undefined,
+    const fakeHelper = Object.assign(Object.create(LLMHelper.prototype), {
+      selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' },
+      runGenerationStream: factory => factory(),
       getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: true }),
       fitContextForCurrentModel: text => text, getPromptTier: () => 'standard', deniedDataScopes: () => [],
       chat: async () => { throw terminal; },
       streamChat: async function* () { yield 'partial'; throw terminal; },
-    };
+    });
     for (const name of ['WhatToAnswer', 'Answer', 'Assist', 'Brainstorm', 'CodeHint', 'Clarify', 'FollowUp', 'FollowUpQuestions', 'Recap']) {
       const className = `${name}LLM`;
       const Class = require(path.join(root, `dist-electron/electron/llm/${className}.js`))[className];
@@ -167,7 +167,7 @@ test('actual prompt wrappers propagate terminal results without adding a fallbac
     const events = [];
     const engine = Object.assign(Object.create(IntelligenceEngine.prototype), {
       llmHelper: fakeHelper,
-      session: { getFormattedContext: () => 'CONTEXT' }, answerLLM: new AnswerLLM(fakeHelper),
+      session: { getFormattedContext: () => 'CONTEXT', pushUsage() {} }, answerLLM: new AnswerLLM(fakeHelper),
       emit: (...args) => events.push(args), setMode: mode => events.push(['mode', mode]),
     });
     await assert.rejects(() => engine.runWhatShouldISay('QUESTION'), error => error === terminal);

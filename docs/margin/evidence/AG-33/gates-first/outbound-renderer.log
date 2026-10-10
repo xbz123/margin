@@ -1,0 +1,11 @@
+✔ AG33 real Global and Meeting React overlays preserve partial failure, fence closed callbacks and create a new retry record (7838.111083ms)
+✔ all nine Markdown callers and streaming sanitize block image loads in a real renderer (2287.228459ms)
+✔ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8858.988291ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19429.642292

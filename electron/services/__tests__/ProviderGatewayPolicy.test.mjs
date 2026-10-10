@@ -53,7 +53,7 @@ function helper(provider = 'gemini', onSend = () => complete(), policy = {}) {
       : { choices: [{ message: { content: 'allowed' }, finish_reason: 'stop' }] };
   };
   const self = Object.assign(Object.create(LLMHelper.prototype), {
-    selectedTarget: { provider, protocol, model }, currentModelId: model, aiResponseLanguage: 'auto',
+    selectedTarget: { provider, protocol, model, ...(provider === 'gemini' ? { imageSupportConfirmedFor: JSON.stringify([provider, protocol, 'https://generativelanguage.googleapis.com', model]) } : {}) }, currentModelId: model, aiResponseLanguage: 'auto',
     personaPrompt: '', customNotes: '', codexCliConfig: { enabled: false },
     getProviderScopePolicy: () => policy, logScopeFallback: () => {}, processResponse: text => text,
     rateLimiters: { [provider]: { acquire: async () => {} } },

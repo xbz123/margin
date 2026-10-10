@@ -105,6 +105,7 @@ interface Message {
   screenshotPreview?: string;
   isCode?: boolean;
   intent?: string;
+  generation?: import('../types/generationMetadata').GenerationMetadata;
 }
 
 interface NativelyInterfaceProps {
@@ -346,6 +347,9 @@ const MessageRow = React.memo(
               </button>
             )}
             {renderMessageText(msg)}
+            {msg.generation && <div className="text-[10px] opacity-60 mt-1" data-generation-status={msg.generation.status}>
+              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status}
+            </div>}
           </div>
         </div>
       </div>
@@ -558,6 +562,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
   // Model Selection State
   const [currentModel, setCurrentModel] = useState<string>('gemini-3-flash-preview');
+  const [questionMode, setQuestionMode] = useState<'interview' | 'written'>('interview');
 
   // Dynamic Action Button Mode (Recap vs Brainstorm)
   const [actionButtonMode, setActionButtonMode] = useState<'recap' | 'brainstorm'>('recap');
@@ -1283,6 +1288,8 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   useEffect(() => {
     if (!window.electronAPI?.onSessionReset) return;
     const unsubscribe = window.electronAPI.onSessionReset(() => {
+      generationEpochRef.current++;
+      manualSubmitInFlightRef.current = false;
       console.log('[NativelyInterface] Resetting session state...');
       setMessages([]);
       answerPanelPinnedRef.current = false;
@@ -1375,6 +1382,10 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     text: '',
     raf: null,
   });
+  const generationMetadataRef = useRef<import('../types/generationMetadata').GenerationMetadata | undefined>(undefined);
+  const submittedChatRef = useRef<{ text: string; paths: string[] } | undefined>(undefined);
+  const generationEpochRef = useRef(0);
+  useEffect(() => () => { generationEpochRef.current++; window.electronAPI.cancelChatStream('natively'); }, []);
 
   // Imperative streaming refs
   const streamingNodeRef   = useRef<HTMLDivElement | null>(null);
@@ -1467,6 +1478,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // creates the row with this id so the late mount finds and merges instead
     // of duplicating.
     const reservedId = genMessageId();
+    const generation = generationMetadataRef.current;
     streamingMsgIdRef.current = reservedId;
     streamingIntentRef.current = intent;
     if (ANSWER_PANEL_INTENTS.has(intent)) {
@@ -1509,7 +1521,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           id: reservedId,
           token,
           intent,
-        });
+        }).map(msg => msg.id === reservedId ? { ...msg, generation } : msg);
       });
     });
     scheduleMarkdownRender();
@@ -1624,16 +1636,19 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       }
       const streamingMsgId =
         activeStreamIntent === intent ? streamingMsgIdRef.current : null;
+      const generation = generationMetadataRef.current;
       flushToken();
-      setMessages((prev) =>
-        finalizeStreamingByIntentMessages(
+      setMessages((prev) => {
+        const result = finalizeStreamingByIntentMessages(
           prev,
           intent,
           text,
           () => genMessageId(),
           streamingMsgId,
-        ),
-      );
+        );
+        const index = result.findLastIndex(msg => msg.id === streamingMsgId || msg.intent === intent);
+        return result.map((msg, i) => i === index ? { ...msg, generation } : msg);
+      });
     },
     [flushToken],
   );
@@ -1818,6 +1833,20 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     );
 
     cleanups.push(
+      window.electronAPI.onIntelligenceGenerationStarted((metadata) => {
+        generationMetadataRef.current = metadata;
+        const id = streamingMsgIdRef.current;
+        setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, generation: metadata } : msg));
+      }),
+      window.electronAPI.onIntelligenceGenerationTerminal((metadata) => {
+        if (generationMetadataRef.current?.requestId !== metadata.requestId) return;
+        generationMetadataRef.current = metadata;
+        const id = streamingMsgIdRef.current;
+        flushToken(); setIsProcessing(false);
+        setMessages(prev => prev.map(msg => msg.generation?.requestId === metadata.requestId || msg.id === id ? { ...msg, isStreaming: false, generation: metadata } : msg));
+      }),
+    );
+    cleanups.push(
       window.electronAPI.onIntelligenceSuggestedAnswerToken((data) => {
         pinAnswerPanel();
         queueToken('what_to_answer', data.token);
@@ -1981,12 +2010,15 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   }, []);
 
   const handleWhatToSay = async () => {
+    if (questionMode === 'written') { await handleManualSubmit(); return; }
     if (!tryBeginOverlayAction('what_to_say')) return;
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
 
-    // Capture and clear attached image context.
+    // Capture attached images; remove them only after a completed answer.
     // Also merge in any screenshot from the capture-and-process shortcut that
     // arrived via pendingCaptureRef before the React state flush (React 18 fix).
     const pending = pendingCaptureRef.current;
@@ -1996,7 +2028,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     }
 
     if (currentAttachments.length > 0) {
-      setAttachedContext([]);
       // Show the attached image in chat
       setMessages((prev) => [
         ...prev,
@@ -2020,11 +2051,13 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         undefined,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
       );
+      if (generationEpochRef.current !== epoch) return;
       setScreenContextStatus(result.screenContextStatus || 'not_available');
       setLatestUsedImageInput(Boolean(result.usedImageInput));
       setLatestVisionProviderUsed(result.visionProviderUsed);
       setLatestVisionModelUsed(result.visionModelUsed);
       setLatestVisionFailureReason(result.visionFailureReason);
+      if (result.answer != null) setAttachedContext(prev => prev.filter(item => !currentAttachments.some(sent => sent.path === item.path)));
       if (result.answer == null) {
         if (streamingTextRef.current) flushToken();
         const feedback =
@@ -2056,6 +2089,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         pinAnswerPanel();
       }
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2067,13 +2101,15 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       pinAnswerPanel();
     } finally {
       endOverlayAction('what_to_say');
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
 
   const handleFollowUp = async (intent: string = 'rephrase') => {
     const actionKey = `follow_up:${intent}`;
     if (!tryBeginOverlayAction(actionKey)) return;
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder(intent);
@@ -2081,6 +2117,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     try {
       await window.electronAPI.generateFollowUp(intent);
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2091,12 +2128,14 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       ]);
     } finally {
       endOverlayAction(actionKey);
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
 
   const handleRecap = async () => {
     if (!tryBeginOverlayAction('recap')) return;
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('recap');
@@ -2104,6 +2143,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     try {
       await window.electronAPI.generateRecap();
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2114,12 +2154,14 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       ]);
     } finally {
       endOverlayAction('recap');
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
 
   const handleFollowUpQuestions = async () => {
     if (!tryBeginOverlayAction('follow_up_questions')) return;
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('follow_up_questions');
@@ -2127,6 +2169,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     try {
       await window.electronAPI.generateFollowUpQuestions();
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2137,12 +2180,14 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       ]);
     } finally {
       endOverlayAction('follow_up_questions');
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
 
   const handleClarify = async () => {
     if (!tryBeginOverlayAction('clarify')) return;
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('clarify');
@@ -2150,6 +2195,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     try {
       await window.electronAPI.generateClarify();
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2160,18 +2206,19 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       ]);
     } finally {
       endOverlayAction('clarify');
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
 
   const handleCodeHint = async () => {
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     pinAnswerPanel();
 
     const currentAttachments = attachedContext;
     if (currentAttachments.length > 0) {
-      setAttachedContext([]);
       // Show the attached image in chat
       setMessages((prev) => [
         ...prev,
@@ -2190,10 +2237,13 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     }
 
     try {
-      await window.electronAPI.generateCodeHint(
+      const result = await window.electronAPI.generateCodeHint(
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
       );
+      if (generationEpochRef.current !== epoch) return;
+      if (result.hint != null) setAttachedContext(prev => prev.filter(item => !currentAttachments.some(sent => sent.path === item.path)));
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2203,19 +2253,20 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         },
       ]);
     } finally {
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
 
   const handleBrainstorm = async () => {
     if (!tryBeginOverlayAction('brainstorm')) return;
+    window.electronAPI.cancelChatStream('natively');
+    const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
 
     const currentAttachments = attachedContext;
     if (currentAttachments.length > 0) {
-      setAttachedContext([]);
       // Show the attached image in chat
       setMessages((prev) => [
         ...prev,
@@ -2234,10 +2285,13 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     }
 
     try {
-      await window.electronAPI.generateBrainstorm(
+      const result = await window.electronAPI.generateBrainstorm(
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
       );
+      if (generationEpochRef.current !== epoch) return;
+      if (result.script != null) setAttachedContext(prev => prev.filter(item => !currentAttachments.some(sent => sent.path === item.path)));
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -2248,7 +2302,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       ]);
     } finally {
       endOverlayAction('brainstorm');
-      setIsProcessing(false);
+      if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
   useEffect(() => {
@@ -2263,11 +2317,18 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     // Stream Done
     cleanups.push(
-      window.electronAPI.onGeminiStreamDone(() => {
+      window.electronAPI.onGeminiStreamDone((generation) => {
+        manualSubmitInFlightRef.current = false;
         const pendingText = streamingTextRef.current;
         const pendingMsgId = streamingMsgIdRef.current;
         flushToken();
         setIsProcessing(false);
+        const submitted = submittedChatRef.current;
+        if (submitted) {
+          setAttachedContext(prev => prev.filter(item => !submitted.paths.includes(item.path)));
+          setInputValue(prev => prev === submitted.text ? '' : prev);
+          submittedChatRef.current = undefined;
+        }
 
         // Calculate latency if we have a start time
         let latency = 0;
@@ -2287,10 +2348,10 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
               text.includes('```') || text.includes('def ') || text.includes('function ');
             if (idx !== -1) {
               const updated = [...prev];
-              updated[idx] = { ...target, text, isStreaming: false, isCode };
+              updated[idx] = { ...target, text, isStreaming: false, isCode, generation };
               return updated;
             }
-            return [...prev.slice(0, -1), { ...target, text, isStreaming: false, isCode }];
+            return [...prev.slice(0, -1), { ...target, text, isStreaming: false, isCode, generation }];
           }
           return prev;
         });
@@ -2299,7 +2360,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     // Stream Error
     cleanups.push(
-      window.electronAPI.onGeminiStreamError((error) => {
+      window.electronAPI.onGeminiStreamError((error, generation) => {
+        manualSubmitInFlightRef.current = false;
+        lastManualSubmitRef.current = null;
+        const pendingId = streamingMsgIdRef.current;
+        const partialText = streamingTextRef.current;
         flushToken();
         setIsProcessing(false);
         requestStartTimeRef.current = null; // Clear timer on error
@@ -2309,12 +2374,14 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           // or just update status.
           // Ideally we want to show the partial response AND the error.
           const lastMsg = prev[prev.length - 1];
-          if (lastMsg && lastMsg.isStreaming) {
+          const index = pendingId ? prev.findIndex(msg => msg.id === pendingId) : -1;
+          if (index !== -1) {
             const updated = [...prev];
-            updated[prev.length - 1] = {
-              ...lastMsg,
+            updated[index] = {
+              ...prev[index],
               isStreaming: false,
-              text: lastMsg.text + `\n\n[Error: ${error}]`,
+              generation,
+              text: (prev[index].text || partialText) + `\n\n[Error: ${error}]`,
             };
             return updated;
           }
@@ -2347,7 +2414,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           .catch((err) => console.error('[NativelyInterface] Failed to send finalizeMicSTT:', err));
 
         const currentAttachments = attachedContext;
-        setAttachedContext([]);
+        submittedChatRef.current = { text: '', paths: currentAttachments.map(item => item.path) };
 
         const question = (
           voiceInputRef.current +
@@ -2493,7 +2560,7 @@ Provide only the answer, nothing else.`;
   };
 
   const handleManualSubmit = async () => {
-    if (!inputValue.trim() && attachedContext.length === 0) return;
+    if (!inputValue.trim() && attachedContext.length === 0 && !pendingCaptureRef.current) return;
 
     const userText = inputValue.trim();
     const nowMs = Date.now();
@@ -2510,13 +2577,15 @@ Provide only the answer, nothing else.`;
       return;
     }
     manualSubmitInFlightRef.current = true;
+    window.electronAPI.cancelIntelligenceGeneration().catch(err => console.error('[NativelyInterface] Cancel generation failed:', err));
+    const epoch = ++generationEpochRef.current;
     lastManualSubmitRef.current = { text: userText, atMs: nowMs };
 
-    const currentAttachments = attachedContext;
+    const pendingCapture = pendingCaptureRef.current;
+    const currentAttachments = pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
+      ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
 
-    // Clear inputs immediately
-    setInputValue('');
-    setAttachedContext([]);
+    submittedChatRef.current = { text: userText, paths: currentAttachments.map(item => item.path) };
 
     // Seal any in-flight streaming rows from a previous turn before we
     // append the new user message + placeholder. Without this, the rAF
@@ -2587,9 +2656,12 @@ Provide only the answer, nothing else.`;
         userText || 'Analyze this screenshot',
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         conversationContext, // Pass context so "answer this" works
+        { generationKind: questionMode },
       );
     } catch (err) {
+      if (generationEpochRef.current !== epoch) return;
       setIsProcessing(false);
+      lastManualSubmitRef.current = null;
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last && last.isStreaming && last.text === '') {
@@ -2610,7 +2682,7 @@ Provide only the answer, nothing else.`;
         ];
       });
     } finally {
-      manualSubmitInFlightRef.current = false;
+      if (generationEpochRef.current === epoch) manualSubmitInFlightRef.current = false;
     }
   };
 
@@ -3152,6 +3224,10 @@ Provide only the answer, nothing else.`;
     processScreenshots: handleWhatToSay,
     resetCancel: async () => {
       if (isProcessing) {
+        window.electronAPI.cancelChatStream('natively');
+        generationEpochRef.current++;
+        manualSubmitInFlightRef.current = false;
+        await window.electronAPI.cancelIntelligenceGeneration();
         setIsProcessing(false);
       } else {
         await window.electronAPI.resetIntelligence();
@@ -3195,6 +3271,10 @@ Provide only the answer, nothing else.`;
     processScreenshots: handleWhatToSay,
     resetCancel: async () => {
       if (isProcessing) {
+        window.electronAPI.cancelChatStream('natively');
+        generationEpochRef.current++;
+        manualSubmitInFlightRef.current = false;
+        await window.electronAPI.cancelIntelligenceGeneration();
         setIsProcessing(false);
       } else {
         await window.electronAPI.resetIntelligence();
@@ -4437,6 +4517,13 @@ Provide only the answer, nothing else.`;
                                     overlay no longer accidentally engage the
                                     tap and break inputs in Settings/Model
                                     Selector windows. */}
+                <label className="flex items-center gap-2 text-xs overlay-text-muted mb-2" data-stealth-ignore="true">
+                  Question mode
+                  <select aria-label="Question mode" value={questionMode} onChange={event => setQuestionMode(event.target.value as 'interview' | 'written')} className="bg-transparent border rounded px-2 py-1">
+                    <option value="interview">Interview</option>
+                    <option value="written">Written</option>
+                  </select>
+                </label>
                 <div className="relative group" data-stealth-engage="true">
                   <input
                     ref={textInputRef}

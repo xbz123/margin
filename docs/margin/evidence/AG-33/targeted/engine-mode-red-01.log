@@ -1,0 +1,83 @@
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[LLMHelper] Switched to Model: gemini-next
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+(node:19157) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✖ AG33 Engine timeout releases its mode and allows the next assist request (8.175916ms)
+✖ AG33 Engine model-switch releases its mode and allows the next assist request (1.225625ms)
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ AG33 old Engine finally cannot reset the newer active request mode (4.937458ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 387.781083
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generationInterfaces.test.mjs:304:49
+✖ AG33 Engine timeout releases its mode and allows the next assist request (8.175916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'what_to_say'
+  - 'idle'
+  
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generationInterfaces.test.mjs:315:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'what_to_say',
+    expected: 'idle',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/llm/__tests__/generationInterfaces.test.mjs:304:49
+✖ AG33 Engine model-switch releases its mode and allows the next assist request (1.225625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'what_to_say'
+  - 'idle'
+  
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generationInterfaces.test.mjs:315:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'what_to_say',
+    expected: 'idle',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

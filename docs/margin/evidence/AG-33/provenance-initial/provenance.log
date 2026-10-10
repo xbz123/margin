@@ -1,0 +1,56 @@
+
+src/components/GlobalChatOverlay.tsx: 6 hit(s)
+  212: if (!current()) return;
+  225: if (!current()) return;
+  228: if (!current()) return;
+  238: if (!current()) return;
+  253: if (!current()) return;
+  278: if (!current()) return;
+
+src/components/MeetingChatOverlay.tsx: 6 hit(s)
+  290: if (!current()) return;
+  308: if (!current()) return;
+  311: if (!current()) return;
+  321: if (!current()) return;
+  336: if (!current()) return;
+  365: if (!current()) return;
+
+src/types/generationMetadata.ts: 3 hit(s)
+  2: requestId: string;
+  6: attempts: number;
+  7: partial: boolean;
+
+electron/IntelligenceEngine.ts: 1 hit(s)
+  126: }).finally(() => {
+
+electron/SessionTracker.ts: 1 hit(s)
+  280: questionContext: this.getLastInterviewerTurn() || 'unknown',
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 615901,
+  "addedSubstantiveLines": 72320,
+  "hits": 17,
+  "genericIdiomHits": 153,
+  "allowlistedHits": 2692,
+  "filesWithHits": 5,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ]
+}

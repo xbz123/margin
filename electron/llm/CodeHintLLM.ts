@@ -20,15 +20,6 @@ export class CodeHintLLM {
         questionSource?: 'screenshot' | 'transcript' | null,
         transcriptContext?: string
     ): AsyncGenerator<string> {
-        // Vision-required + small model lacking image support → fail loud, not malformed.
-        if (imagePaths?.length) {
-            const caps = this.llmHelper.getCapabilities();
-            if (!caps.supportsImages) {
-                yield `The current local model (${caps.name}) doesn't support image input. Switch to a vision-capable model (e.g. llava, llama3.2-vision, gemma3) or use a cloud model.`;
-                return;
-            }
-        }
-
         const message = buildCodeHintMessage(
             questionContext ?? null,
             questionSource ?? null,

@@ -114,7 +114,7 @@ test('real SDK text/image serialization, saved opaque target, test and model lis
     else { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] })); }
   }, async base => {
     for (const [provider, protocol] of [['openai', 'chat-completions'], ['openai', 'responses'], ['claude', 'messages'], ['groq', 'chat-completions'], ['deepseek', 'chat-completions']]) {
-      const config = { provider, protocol, model: 'opaque-model', baseUrl: `${base}/v1/` };
+      const config = { provider, protocol, model: 'opaque-model', baseUrl: `${base}/v1/`, imageSupportConfirmedFor: JSON.stringify([provider, protocol, `${base}/v1`, 'opaque-model']) };
       const helper = new LLMHelper();
       helper.getProviderScopePolicy = () => ({});
       helper.configureProvider(config, `synthetic-${provider}`);

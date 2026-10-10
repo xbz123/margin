@@ -2948,6 +2948,22 @@ export class AppState {
 
   private setupIntelligenceEvents(): void {
     const mainWindow = this.getMainWindow.bind(this)
+    const owners = new Map<string, Electron.WebContents>();
+    const currentByOwner = new Map<number, string>();
+    const send = (channel: string, data: any, metadata?: import('../src/types/generationMetadata').GenerationMetadata) => {
+      const owner = metadata ? owners.get(metadata.requestId) : mainWindow()?.webContents;
+      if (!owner || owner.isDestroyed() || (metadata && currentByOwner.get(owner.id) !== metadata.requestId)) return;
+      owner.send(channel, { ...data, ...metadata });
+    };
+    this.intelligenceManager.on('generation_started', (metadata, owner?: Electron.WebContents) => {
+      owner ??= mainWindow()?.webContents;
+      if (!owner || owner.isDestroyed()) return;
+      const previous = currentByOwner.get(owner.id);
+      if (previous) owners.delete(previous);
+      owners.set(metadata.requestId, owner);
+      currentByOwner.set(owner.id, metadata.requestId);
+      send('intelligence-generation-started', {}, metadata);
+    });
 
     // Sprint 9: time-batched IPC token sends.
     //
@@ -2967,7 +2983,7 @@ export class AppState {
     // 'intelligence-token-batch' channel replaces them. The old channel
     // names + preload bridges are kept (defense-in-depth, no callers).
     type BatchKind = 'suggested_answer' | 'refined_answer' | 'recap' | 'clarify' | 'follow_up_questions';
-    const tokenBatches = new Map<BatchKind, any[]>();
+    const tokenBatches = new Map<string, { kind: BatchKind; items: any[]; metadata: any }>();
     let batchFlushScheduled = false;
     let pendingFlushHandle: NodeJS.Immediate | null = null;
     const flushBatchesNow = () => {
@@ -2978,11 +2994,9 @@ export class AppState {
         pendingFlushHandle = null;
       }
       batchFlushScheduled = false;
-      const win = mainWindow();
-      if (!win) { tokenBatches.clear(); return; }
-      for (const [kind, items] of tokenBatches.entries()) {
+      for (const { kind, items, metadata } of tokenBatches.values()) {
         if (items.length > 0) {
-          win.webContents.send('intelligence-token-batch', { kind, items });
+          send('intelligence-token-batch', { kind, items }, metadata);
         }
       }
       tokenBatches.clear();
@@ -2995,10 +3009,12 @@ export class AppState {
         flushBatchesNow();
       });
     };
-    const queueBatch = (kind: BatchKind, item: any) => {
-      let arr = tokenBatches.get(kind);
-      if (!arr) { arr = []; tokenBatches.set(kind, arr); }
-      arr.push(item);
+    const queueBatch = (kind: BatchKind, item: any, metadata: any) => {
+      if (!metadata?.requestId) return;
+      const key = `${metadata.requestId}:${kind}`;
+      let batch = tokenBatches.get(key);
+      if (!batch) { batch = { kind, items: [], metadata }; tokenBatches.set(key, batch); }
+      batch.items.push({ ...item, ...metadata });
       scheduleBatchFlush();
     };
     // ORDER: every final-answer handler must call this BEFORE its own send so
@@ -3008,109 +3024,84 @@ export class AppState {
     const flushBatchesBeforeFinal = flushBatchesNow;
 
     // Forward intelligence events to renderer
-    this.intelligenceManager.on('assist_update', (insight: string) => {
-      // Send to both if both exist, though mostly overlay needs it
-      const helper = this.getWindowHelper();
-      helper.getLauncherWindow()?.webContents.send('intelligence-assist-update', { insight });
-      helper.getOverlayWindow()?.webContents.send('intelligence-assist-update', { insight });
+    this.intelligenceManager.on('assist_update', (insight: string, metadata) => {
+      send('intelligence-assist-update', { insight }, metadata);
     })
 
-    this.intelligenceManager.on('suggested_answer', (answer: string, question: string, confidence: number) => {
+    this.intelligenceManager.on('suggested_answer', (answer: string, question: string, confidence: number, metadata) => {
       flushBatchesBeforeFinal();
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-suggested-answer', { answer, question, confidence })
-      }
+      send('intelligence-suggested-answer', { answer, question, confidence }, metadata);
 
     })
 
-    this.intelligenceManager.on('suggested_answer_token', (token: string, question: string, confidence: number) => {
+    this.intelligenceManager.on('suggested_answer_token', (token: string, question: string, confidence: number, metadata) => {
       // Sprint 9: batch instead of per-token webContents.send.
-      queueBatch('suggested_answer', { token, question, confidence });
+      queueBatch('suggested_answer', { token, question, confidence }, metadata);
     })
 
-    this.intelligenceManager.on('refined_answer_token', (token: string, intent: string) => {
+    this.intelligenceManager.on('refined_answer_token', (token: string, intent: string, metadata) => {
       // Sprint 9: batch.
-      queueBatch('refined_answer', { token, intent });
+      queueBatch('refined_answer', { token, intent }, metadata);
     })
 
-    this.intelligenceManager.on('refined_answer', (answer: string, intent: string) => {
+    this.intelligenceManager.on('refined_answer', (answer: string, intent: string, metadata) => {
       flushBatchesBeforeFinal();
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-refined-answer', { answer, intent })
-      }
+      send('intelligence-refined-answer', { answer, intent }, metadata);
 
     })
 
-    this.intelligenceManager.on('recap', (summary: string) => {
+    this.intelligenceManager.on('recap', (summary: string, metadata) => {
       flushBatchesBeforeFinal();
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-recap', { summary })
-      }
+      send('intelligence-recap', { summary }, metadata);
     })
 
-    this.intelligenceManager.on('recap_token', (token: string) => {
+    this.intelligenceManager.on('recap_token', (token: string, metadata) => {
       // Sprint 9: batch.
-      queueBatch('recap', { token });
+      queueBatch('recap', { token }, metadata);
     })
 
-    this.intelligenceManager.on('clarify', (clarification: string) => {
+    this.intelligenceManager.on('clarify', (clarification: string, metadata) => {
       flushBatchesBeforeFinal();
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-clarify', { clarification })
-      }
+      send('intelligence-clarify', { clarification }, metadata);
     })
 
-    this.intelligenceManager.on('clarify_token', (token: string) => {
+    this.intelligenceManager.on('clarify_token', (token: string, metadata) => {
       // Sprint 9: batch.
-      queueBatch('clarify', { token });
+      queueBatch('clarify', { token }, metadata);
     })
 
-    this.intelligenceManager.on('follow_up_questions_update', (questions: string) => {
+    this.intelligenceManager.on('follow_up_questions_update', (questions: string, metadata) => {
       flushBatchesBeforeFinal();
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-follow-up-questions-update', { questions })
-      }
+      send('intelligence-follow-up-questions-update', { questions }, metadata);
     })
 
-    this.intelligenceManager.on('follow_up_questions_token', (token: string) => {
+    this.intelligenceManager.on('follow_up_questions_token', (token: string, metadata) => {
       // Sprint 9: batch.
-      queueBatch('follow_up_questions', { token });
+      queueBatch('follow_up_questions', { token }, metadata);
     })
 
-    this.intelligenceManager.on('manual_answer_started', () => {
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-manual-started')
-      }
+    this.intelligenceManager.on('manual_answer_started', (metadata) => {
+      send('intelligence-manual-started', {}, metadata);
     })
 
-    this.intelligenceManager.on('manual_answer_result', (answer: string, question: string) => {
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-manual-result', { answer, question })
-      }
+    this.intelligenceManager.on('manual_answer_result', (answer: string, question: string, metadata) => {
+      send('intelligence-manual-result', { answer, question }, metadata);
 
     })
 
-    this.intelligenceManager.on('mode_changed', (mode: string) => {
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-mode-changed', { mode })
-      }
+    this.intelligenceManager.on('mode_changed', (mode: string, metadata) => {
+      send('intelligence-mode-changed', { mode }, metadata);
     })
 
-    this.intelligenceManager.on('error', (error: Error, mode: string) => {
+    this.intelligenceManager.on('error', (error: Error, mode: string, metadata) => {
       console.error(`[IntelligenceManager] Error in ${mode}:`, error)
-      const win = mainWindow()
-      if (win) {
-        win.webContents.send('intelligence-error', { error: error.message, mode })
-      }
+      send('intelligence-error', { error: error.message, mode }, metadata);
     })
+    this.intelligenceManager.on('generation_terminal', (metadata) => {
+      flushBatchesBeforeFinal();
+      send('intelligence-generation-terminal', {}, metadata);
+      owners.delete(metadata.requestId);
+    });
   }
 
 

@@ -6,6 +6,7 @@ import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, STANDARD_
 import { ProviderCard } from './ProviderCard';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { DEFAULT_GENERATION_POLICY, type GenerationPolicy } from '../../types/generationPolicy';
+import { imageSupportTarget, knownModelImageSupport } from '../../types/modelImageSupport';
 
 const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
 const CODEX_MODEL_REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
@@ -395,7 +396,7 @@ export const AIProvidersSettings: React.FC = () => {
                 <h3 className="text-sm font-bold text-text-primary">Generation limits</h3>
                 <p className="text-xs text-text-secondary">At most two sends per request. Switching manually cancels the current request and keeps its partial output. A backup can receive the same request data and incur additional costs, subject to current privacy settings. First-token timeout ends the request without extra backup time; hidden reasoning may consume that budget before any visible text.</p>
                 <label className="block text-xs text-text-secondary">Backup model
-                    <select className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" value={generationPolicy.backupModel ?? ''} onChange={event => setGenerationPolicy({ ...generationPolicy, backupModel: event.target.value || undefined })}>
+                    <select className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" value={generationPolicy.backupModel ?? ''} onChange={event => setGenerationPolicy({ ...generationPolicy, backupModel: event.target.value || undefined, backupImageSupportConfirmedFor: undefined })}>
                         <option value="">None — retry the same model only for a transient failure</option>
                         {cloudModelOptions.filter(option => option.id !== defaultModel).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
                     </select>
@@ -408,6 +409,18 @@ export const AIProvidersSettings: React.FC = () => {
                     <input className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" type="number" min="0" step="any" value={Number.isFinite(generationPolicy[key]) ? generationPolicy[key] : ''} onChange={event => setGenerationPolicy({ ...generationPolicy, [key]: event.target.value ? Number(event.target.value) : NaN })} />
                 </label>)}
                 <p className="text-xs text-text-secondary">Background summaries and transcript compression: 180 seconds, with no first-token deadline.</p>
+                {(() => {
+                    const match = /^llm-target:(gemini|groq|openai|claude|deepseek):(gemini|chat-completions|responses|messages):(.+)$/.exec(generationPolicy.backupModel ?? '');
+                    if (!match) return null;
+                    const config = { ...providerConfigurations[match[1] as LlmProvider], model: decodeURIComponent(match[3]) };
+                    let binding: string;
+                    try { if (knownModelImageSupport(config) !== undefined) return null; binding = imageSupportTarget(config); } catch { return null; }
+                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label="Backup model supports images"
+                        checked={generationPolicy.backupImageSupportConfirmedFor === binding}
+                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> Backup model supports images
+                        <span className="block text-[10px]">Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.</span>
+                    </label>;
+                })()}
                 <button type="button" disabled={generationPolicySaving} className="text-xs text-accent-primary disabled:opacity-50" onClick={async () => {
                     setGenerationPolicySaving(true); setGenerationPolicyNotice('');
                     try {

@@ -1,0 +1,55 @@
+✔ a typed question streams the mock answer into the overlay (2560.81775ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (8058.767708ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3317.303584ms)
+✔ a screenshot question sends the fixture image to the model (408.026334ms)
+✖ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (138.46925ms)
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (15134.147708ms)
+✔ a provider error is shown and the next question still works (1580.794083ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (2035.417458ms)
+✔ a complete compatible target saved through preload drives a real typed UI question (311.008875ms)
+✖ AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry (15181.350875ms)
+✔ AG33 one webContents delivers chat events only to the owning UI subscription (42.611791ms)
+✖ AG33 a real Written UI question fixes the written deadline, keeps partial on cancel and retries as a separate record (262.0775ms)
+✔ AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder (576.313ms)
+✔ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (21.066375ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 10
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 50214.803542
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:288:1
+✖ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (138.46925ms)
+  page.evaluate: Error: Error invoking remote method 'generate-what-to-say': AbortError: This operation was aborted
+      at TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:291:32)
+
+test at tests/margin/answer-regression.test.mjs:304:1
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (15134.147708ms)
+  page.waitForFunction: Timeout 15000ms exceeded.
+      at TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:320:19) {
+    name: 'TimeoutError'
+  }
+
+test at tests/margin/answer-regression.test.mjs:427:1
+✖ AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry (15181.350875ms)
+  page.waitForFunction: Timeout 15000ms exceeded.
+      at TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:446:19) {
+    name: 'TimeoutError'
+  }
+
+test at tests/margin/answer-regression.test.mjs:465:1
+✖ AG33 a real Written UI question fixes the written deadline, keeps partial on cancel and retries as a separate record (262.0775ms)
+  electronApplication.evaluate: Error: Attempted to register a second handler for 'keybinds:get-all'
+      at IpcMainImpl.handle (node:electron/js2c/browser_init:2:117192)
+      at _KeybindManager.setupIpcHandlers (<repo>/dist-electron/electron/main.js:34085:34)
+      at new _AppState (<repo>/dist-electron/electron/main.js:218847:24)
+      at _AppState.getInstance (<repo>/dist-electron/electron/main.js:220798:32)
+      at eval (eval at evaluate (:302:30), <anonymous>:3:29)
+      at UtilityScript.evaluate (<anonymous>:304:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:467:13)

@@ -1,4 +1,5 @@
 import { LLM_PRESETS, type ProviderConfiguration } from '../../types/llmTarget';
+import { imageSupportTarget, knownModelImageSupport } from '../../types/modelImageSupport';
 import React, { useState, useEffect, useRef } from 'react';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, ChevronDown, Check, RefreshCw } from 'lucide-react';
@@ -95,7 +96,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
 
     const handleSelectModel = async (modelId: string) => {
         setIsDropdownOpen(false);
-        setDraft(prev => ({ ...prev, model: modelId }));
+        setDraft(prev => ({ ...prev, model: modelId, imageSupportConfirmedFor: undefined }));
         setSelectedModel(modelId);
     };
 
@@ -153,22 +154,32 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
             <div className="space-y-2 mb-3">
                 <label className="block text-xs text-text-secondary">API base URL (empty uses the vendor preset)
                     <input aria-label={`${providerName} API base URL`} value={draft.baseUrl ?? ''}
-                        onChange={e => setDraft(prev => ({ ...prev, baseUrl: e.target.value }))}
+                        onChange={e => setDraft(prev => ({ ...prev, baseUrl: e.target.value, imageSupportConfirmedFor: undefined }))}
                         placeholder={providerId === 'gemini' ? 'https://generativelanguage.googleapis.com' : providerId === 'claude' ? 'https://api.anthropic.com' : 'https://service.example/v1'}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
                 {providerId === 'openai' && <label className="block text-xs text-text-secondary">Protocol
-                    <select aria-label="OpenAI protocol" value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'] }))}
+                    <select aria-label="OpenAI protocol" value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], imageSupportConfirmedFor: undefined }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
                         <option value="chat-completions">Chat Completions</option><option value="responses">Responses</option>
                     </select>
                 </label>}
                 <label className="block text-xs text-text-secondary">Model ID
                     <input aria-label={`${providerName} model ID`} value={draft.model}
-                        onChange={e => setDraft(prev => ({ ...prev, model: e.target.value }))}
+                        onChange={e => setDraft(prev => ({ ...prev, model: e.target.value, imageSupportConfirmedFor: undefined }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
                 <p className="text-[10px] text-text-secondary">Use Save to activate the complete configuration. Test and model discovery use only the saved target. Custom addresses may receive your data and API key.</p>
+                {(() => {
+                    let known: boolean | undefined;
+                    try { known = knownModelImageSupport(draft); } catch { return null; }
+                    if (known !== undefined) return <p className="text-[10px] text-text-secondary">Image input: {known ? 'supported' : 'not supported'} by the vendor capability table.</p>;
+                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={`${providerName} model supports images`}
+                        checked={draft.imageSupportConfirmedFor === imageSupportTarget(draft)}
+                        onChange={e => setDraft(prev => ({ ...prev, imageSupportConfirmedFor: e.target.checked ? imageSupportTarget(prev) : undefined }))} /> This model supports images
+                        <span className="block text-[10px] mt-1">Check the provider model documentation yourself before confirming. Applies only to this model, protocol and endpoint; not other or backup models.</span>
+                    </label>;
+                })()}
                 {providerId === 'gemini' && <p className="text-[10px] text-text-secondary">Gemini uses v1alpha for generation and model discovery. Do not include the API version in the base URL.</p>}
             </div>
 

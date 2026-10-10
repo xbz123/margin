@@ -153,26 +153,28 @@ test('preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-s
     // The binding must use .send (not .invoke) because the main-side handler
     // is registered with ipcMain.on, not ipcMain.handle / safeHandle.
     const cancelBindingPattern =
-        /cancelChatStream\s*:\s*\(\s*\)\s*=>\s*\{[\s\S]*?ipcRenderer\.send\s*\(\s*['"]gemini-chat-stream-stop['"]\s*\)/;
+        /const cancelActiveChat\s*=\s*\(owner\s*=\s*'natively'\)\s*=>\s*\{[\s\S]*?ipcRenderer\.send\s*\(\s*['"]gemini-chat-stream-stop['"]\s*\)/;
     assert.ok(
         cancelBindingPattern.test(preloadSrc),
-        "BUG: preload.ts must expose cancelChatStream as () => ipcRenderer.send('gemini-chat-stream-stop'). " +
+        "BUG: preload.ts must expose owner-aware cancelChatStream through ipcRenderer.send('gemini-chat-stream-stop'). " +
         'Using ipcRenderer.invoke would deadlock the renderer (no main-side handle), and any other ' +
         'channel name would silently miss the gemini-chat-stream-stop handler.',
     );
+    assert.match(preloadSrc, /cancelChatStream:\s*cancelActiveChat/);
+    assert.match(preloadSrc, /if \(owner !== activeChatOwner\) return;/, 'only the owning surface can cancel the active chat');
 });
 
 test('preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream', () => {
     // Type-level binding in the preload module's interface.
     assert.ok(
-        /cancelChatStream\s*:\s*\(\s*\)\s*=>\s*void/.test(preloadSrc),
-        'preload.ts ElectronAPI interface must declare `cancelChatStream: () => void`',
+        /cancelChatStream\s*:\s*\(\s*owner\?:\s*string\s*\)\s*=>\s*void/.test(preloadSrc),
+        'preload.ts ElectronAPI interface must declare `cancelChatStream: (owner?: string) => void`',
     );
     // And the renderer-facing type declaration. Without this, renderer
     // callers (e.g., chat-overlay unmount) get a type error and the
     // cancellation path is removed by the build, regressing the bug.
     assert.ok(
-        /cancelChatStream\s*:\s*\(\s*\)\s*=>\s*void/.test(electronDtsSrc),
-        'src/types/electron.d.ts must declare `cancelChatStream: () => void` so renderer code can call it type-safely',
+        /cancelChatStream\s*:\s*\(\s*owner\?:\s*string\s*\)\s*=>\s*void/.test(electronDtsSrc),
+        'src/types/electron.d.ts must declare `cancelChatStream: (owner?: string) => void` so renderer code can call it type-safely',
     );
 });

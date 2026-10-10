@@ -1,0 +1,588 @@
+✔ ipcHandlers tracks active gemini chat streams by sender id (1.21025ms)
+✔ gemini-chat-stream handler supersedes only the current sender and passes signal to streamChat (0.723292ms)
+✔ gemini-chat-stream-stop handler aborts only the requesting sender stream (0.327ms)
+✔ preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-stream-stop") (0.386958ms)
+✔ preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream (0.196333ms)
+✔ clearImmediate semantics match the patch: a queued flush is cancellable, and a re-arm after flush still fires (4.659958ms)
+✔ intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer (0.546584ms)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:17921) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.435625ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.109958ms)
+✔ single response preserves incomplete (no finish) (0.095625ms)
+✔ single response preserves empty (STOP) (0.090833ms)
+✔ single response preserves refused (SAFETY) (0.128583ms)
+✔ single response preserves refused (no finish) (0.075166ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.045375ms)
+✔ final scope refusal retains the original object and never sends (0.411291ms)
+✔ cancel before start and late response cannot produce deltas (0.406ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (5.562458ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (1.49575ms)
+✖ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (20.11475ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.6225ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.785042ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.43375ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (0.927667ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (36.802834ms)
+(node:17922) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+✔ chat-completions preserves completed from actual protocol terminal (2.827542ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.446125ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.314875ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.676791ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.178542ms)
+✔ chat-completions preserves empty from actual protocol terminal (0.120084ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.106667ms)
+✔ chat-completions final scope and cancel checks happen before a physical send (1.455417ms)
+✔ chat-completions late response and consumer return abort the transport (0.271459ms)
+✔ responses preserves completed from actual protocol terminal (0.183042ms)
+✔ responses preserves incomplete from actual protocol terminal (0.291458ms)
+✔ responses preserves failed from actual protocol terminal (0.1215ms)
+✔ responses preserves refused from actual protocol terminal (0.071625ms)
+✔ responses preserves empty from actual protocol terminal (0.072166ms)
+✔ responses preserves incomplete from actual protocol terminal (0.072416ms)
+✔ responses final scope and cancel checks happen before a physical send (0.185666ms)
+✔ responses late response and consumer return abort the transport (0.124083ms)
+✔ messages preserves completed from actual protocol terminal (0.131792ms)
+✔ messages preserves completed from actual protocol terminal (0.056209ms)
+✔ messages preserves incomplete from actual protocol terminal (0.054ms)
+✔ messages preserves incomplete from actual protocol terminal (0.059583ms)
+✔ messages preserves incomplete from actual protocol terminal (0.08325ms)
+✔ messages preserves refused from actual protocol terminal (0.057459ms)
+✔ messages preserves empty from actual protocol terminal (0.052916ms)
+✔ messages preserves incomplete from actual protocol terminal (0.045125ms)
+✔ messages final scope and cancel checks happen before a physical send (0.16875ms)
+✔ messages late response and consumer return abort the transport (0.092917ms)
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+✔ real SDK text/image serialization, saved opaque target, test and model list share one API base (72.219916ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ real OpenAI and Anthropic adapters disable SDK retry on 503 and never follow redirects (11.836875ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ an explicitly selected custom model is the wire model, while connection tests retain the saved model (19.801833ms)
+✔ real three-protocol SDK terminal events remain incomplete/refused when the stream finishes normally (8.264583ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ real SDK cancellation after the server receives the request suppresses all late deltas (3.914875ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ Gemini custom target uses the same v1alpha prefix for generation, test and unfiltered model listing (3.607292ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+✔ meeting summary never discovers an unselected OpenAI target, then uses explicitly selected Responses (2.78075ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: old-model
+[GeminiPromptCache] created cache/new for model=test (6000 chars)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: same
+✔ legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged (6.123708ms)
+✔ hot configuration changes keep active provider, protocol and wire model together (0.793292ms)
+✔ saved Gemini base takes precedence over explicit environment base without adding a second API version (0.217083ms)
+✔ Gemini hot configuration clear never accepts an old in-flight cache (0.485458ms)
+✔ endpoint validation and explicit selection refuse wrong protocol, version and model ambiguity (0.826ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Code hint — question source: screenshot, transcript lines: 0, images: 1
+[IntelligenceEngine] code_hint stream aborted by new generation
+✖ runCodeHint returns stream on supersession and does not emit stale final result (14.987333ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'coding',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 67 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 81 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ handleSuggestionTrigger stays silent for low confidence without emitting or storing history (8.520792ms)
+✔ handleSuggestionTrigger routes recap requests to recap executor (0.734125ms)
+✔ handleSuggestionTrigger routes answerable questions to what-to-say executor (4.894209ms)
+✔ handleSuggestionTrigger routes incomplete technical restatements to clarify executor (0.385917ms)
+✔ handleSuggestionTrigger still answers complete technical restatements (0.622083ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 1,
+  screenOcrAvailable: true,
+  screenOcrTextLength: 43
+}
+[SessionTracker] addAssistantMessage called { length: 49 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 28 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay passes screenContext and preserves imagePaths (17.776ms)
+✔ runWhatShouldISay works without screenContext (0.8305ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 66 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 75 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✖ runWhatShouldISay suppresses nothing-actionable sentinel output (13.183917ms)
+✖ runWhatShouldISay suppresses nothing-to-capture sentinel output (0.54325ms)
+✖ runWhatShouldISay suppresses normalized sentinel variants (0.390208ms)
+✔ runWhatShouldISay does not suppress near-match real answers (0.629375ms)
+✖ runWhatShouldISay suppresses speculative sentinel output (0.391958ms)
+✔ runWhatShouldISay hides speculative real answers from renderer and history (0.502ms)
+✔ runWhatShouldISay hides speculative fallback answers from renderer and history (0.276042ms)
+✔ runWhatShouldISay still emits and stores real answers (0.327875ms)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-backup: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:17927) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (126.314916ms)
+✔ selected Gemini stream: image-preparation revocation prevents cache and generation (3.856375ms)
+✔ selected Gemini stream: cache allowed, inflight revocation and explicit expiry recovery (3.250334ms)
+✔ selected Gemini nonstream: image-preparation revocation prevents cache and generation (0.331458ms)
+✔ selected Gemini nonstream: cache allowed, inflight revocation and explicit expiry recovery (1.272709ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (2.166208ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.218792ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.301791ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.147333ms)
+✔ selected gemini nonstream: final scope recheck after limiter wait (1.6615ms)
+✔ selected gemini stream: final scope recheck after limiter wait (0.814125ms)
+✔ selected groq nonstream: final scope recheck after limiter wait (0.57525ms)
+✔ selected groq stream: final scope recheck after limiter wait (0.624333ms)
+✔ selected openai nonstream: final scope recheck after limiter wait (0.699291ms)
+✔ selected openai stream: final scope recheck after limiter wait (0.658667ms)
+✔ selected claude nonstream: final scope recheck after limiter wait (0.723833ms)
+✔ selected claude stream: final scope recheck after limiter wait (0.547125ms)
+✔ selected deepseek nonstream: final scope recheck after limiter wait (0.927292ms)
+✔ selected deepseek stream: final scope recheck after limiter wait (0.6345ms)
+✔ generateWithPro: final send rechecks after limiter wait (0.655542ms)
+✔ generateWithFlash: final send rechecks after limiter wait (1.587083ms)
+✔ fixed generateContent: retry uses current permissions, with allowed control (0.668292ms)
+✔ structured generation: limiter, same-model retry and explicit backup all recheck scopes (1.726625ms)
+✔ selected Groq stream: limiter and explicit Gemini backup preserve current permissions (1.422041ms)
+✔ SettingsManager exposes providerDataScopes setting (0.8255ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (0.879667ms)
+✔ preload and renderer types expose provider data scope controls (0.960625ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (0.419833ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:17928) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (4.77675ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (124.028792ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.742958ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (4.253375ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (1.107709ms)
+✔ groq constructor: SDK cannot resend after scope revocation (5.579458ms)
+✔ openai constructor: SDK cannot resend after scope revocation (3.983958ms)
+✔ claude constructor: SDK cannot resend after scope revocation (2.84275ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (1.76475ms)
+✔ groq key update: SDK cannot resend after scope revocation (1.298834ms)
+✔ openai key update: SDK cannot resend after scope revocation (1.408709ms)
+✔ claude key update: SDK cannot resend after scope revocation (1.232791ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (2.509209ms)
+✔ vision denial is terminal without another send (0.533459ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (0.639833ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (0.715083ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.274417ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (17.37475ms)
+✖ WhatToSay emits the refusal and rejects without a fabricated answer (3.062583ms)
+✔ default chat routing refuses transcript denial but can omit denied history (0.855334ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (0.381584ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.277ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.288ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.390292ms)
+✔ fixed Pro: scope refusal stays terminal with an explicit backup (0.313334ms)
+✔ fixed Flash: scope refusal stays terminal with an explicit backup (0.286333ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.45875ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.362792ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (0.796208ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (0.637375ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (0.617708ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.5895ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.332334ms)
+✔ generateWithPro refuses transcript denial at the actual send boundary (0.324458ms)
+✔ generateWithFlash refuses transcript denial at the actual send boundary (0.985125ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.502583ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.704584ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (0.557417ms)
+✔ the meeting chat context carries the scopes of what it contains (0.952917ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.08675ms)
+✔ meeting summaries stop the explicit backup when a scope is turned off after the first send (0.822334ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (1.550542ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.3625ms)
+ℹ tests 150
+ℹ suites 0
+ℹ pass 143
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 642.72
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generateOnce.test.mjs:140:1
+✖ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (20.11475ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+        'mode',
+        'what_to_say'
+      ],
+  -   [
+  -     'error',
+  -     GenerationResultError: Generation incomplete after partial output
+  -         at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:142:22)
+  -         at Test.runInAsyncScope (node:async_hooks:226:14)
+  -         at Test.run (node:internal/test_runner/test:1201:25)
+  -         at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+  -         at Test.postRun (node:internal/test_runner/test:1330:19)
+  -         at Test.run (node:internal/test_runner/test:1258:12)
+  -         at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+  -       partial: true,
+  -       status: 'incomplete'
+  -     },
+  -     'what_to_say'
+  -   ],
+  -   [
+  -     'mode',
+  -     'idle'
+  -   ]
+    ]
+  
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:175:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 'mode', 'what_to_say' ] ],
+    expected: [
+      [ 'mode', 'what_to_say' ],
+      [
+        'error',
+        GenerationResultError: Generation incomplete after partial output
+            at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:142:22)
+            at Test.runInAsyncScope (node:async_hooks:226:14)
+            at Test.run (node:internal/test_runner/test:1201:25)
+            at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+            at Test.postRun (node:internal/test_runner/test:1330:19)
+            at Test.run (node:internal/test_runner/test:1258:12)
+            at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+        'what_to_say'
+      ],
+      [ 'mode', 'idle' ]
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/IntelligenceEngineCodeHint.test.mjs:31:1
+✖ runCodeHint returns stream on supersession and does not emit stale final result (14.987333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     answer: '',
+  +     attempts: 0,
+  +     model: 'stub',
+  +     partial: false,
+  +     provider: 'synthetic',
+  +     question: 'generation outcome',
+  +     requestId: '248e7d02-b21a-4757-ab99-24b9890e11bc',
+  +     status: 'empty',
+  +     timestamp: 1791661101862,
+  +     type: 'assist'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/IntelligenceEngineCodeHint.test.mjs:62:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { type: 'assist', timestamp: 1791661101862, question: 'generation outcome', answer: '', requestId: '248e7d02-b21a-4757-ab99-24b9890e11bc', provider: 'synthetic', model: 'stub', status: 'empty', attempts: 0, partial: false } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:38:1
+✖ runWhatShouldISay suppresses nothing-actionable sentinel output (13.183917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     answer: '',
+  +     attempts: 0,
+  +     model: 'stub',
+  +     partial: false,
+  +     provider: 'synthetic',
+  +     question: 'generation outcome',
+  +     requestId: '261f47e3-8b1c-494f-ad7b-b2e64c4b4ad0',
+  +     status: 'empty',
+  +     timestamp: 1791661102026,
+  +     type: 'assist'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:48:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { type: 'assist', timestamp: 1791661102026, question: 'generation outcome', answer: '', requestId: '261f47e3-8b1c-494f-ad7b-b2e64c4b4ad0', provider: 'synthetic', model: 'stub', status: 'empty', attempts: 0, partial: false } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:52:1
+✖ runWhatShouldISay suppresses nothing-to-capture sentinel output (0.54325ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     answer: '',
+  +     attempts: 0,
+  +     model: 'stub',
+  +     partial: false,
+  +     provider: 'synthetic',
+  +     question: 'generation outcome',
+  +     requestId: '52535a6e-edb9-4299-bf00-a3f45b7a0fec',
+  +     status: 'empty',
+  +     timestamp: 1791661102029,
+  +     type: 'assist'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:62:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { type: 'assist', timestamp: 1791661102029, question: 'generation outcome', answer: '', requestId: '52535a6e-edb9-4299-bf00-a3f45b7a0fec', provider: 'synthetic', model: 'stub', status: 'empty', attempts: 0, partial: false } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:66:1
+✖ runWhatShouldISay suppresses normalized sentinel variants (0.390208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     answer: '',
+  +     attempts: 0,
+  +     model: 'stub',
+  +     partial: false,
+  +     provider: 'synthetic',
+  +     question: 'generation outcome',
+  +     requestId: '7548d7d8-d71c-43df-9cfa-2606aaa0507e',
+  +     status: 'empty',
+  +     timestamp: 1791661102029,
+  +     type: 'assist'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:76:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { type: 'assist', timestamp: 1791661102029, question: 'generation outcome', answer: '', requestId: '7548d7d8-d71c-43df-9cfa-2606aaa0507e', provider: 'synthetic', model: 'stub', status: 'empty', attempts: 0, partial: false } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:92:1
+✖ runWhatShouldISay suppresses speculative sentinel output (0.391958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   {
+  +     answer: '',
+  +     attempts: 0,
+  +     model: 'stub',
+  +     partial: false,
+  +     provider: 'synthetic',
+  +     question: 'generation outcome',
+  +     requestId: '5bb28e97-0460-4bae-ba75-027fac6e874d',
+  +     status: 'empty',
+  +     timestamp: 1791661102030,
+  +     type: 'assist'
+  +   }
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/IntelligenceEngineSentinel.test.mjs:102:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { type: 'assist', timestamp: 1791661102030, question: 'generation outcome', answer: '', requestId: '5bb28e97-0460-4bae-ba75-027fac6e874d', provider: 'synthetic', model: 'stub', status: 'empty', attempts: 0, partial: false } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:253:1
+✖ WhatToSay emits the refusal and rejects without a fabricated answer (3.062583ms)
+  ReferenceError: LLMHelper is not defined
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:260:44)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

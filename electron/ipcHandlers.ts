@@ -23,8 +23,18 @@ import { outboundAxios as axios, regionalSttEndpoint, openAiSttEndpoint } from '
 import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { loadGoogleServiceAccount, googleSpeechClientOptions } from './services/googleServiceAccount';
+import { validateImagePath } from './utils/imagePathValidation';
 
 export function initializeIpcHandlers(appState: AppState): void {
+  const validateImages = (value: unknown): string[] | undefined => {
+    if (value === undefined) return undefined;
+    if (!Array.isArray(value) || value.length > 5 || value.some(item => typeof item !== 'string' || !item.trim())) throw new Error('Invalid image path payload');
+    return value.map(imagePath => {
+      const result = validateImagePath(imagePath, app.getPath('userData'));
+      if (!result.isValid) throw new Error(`Invalid image path: ${result.reason}`);
+      return result.resolvedPath!;
+    });
+  };
   const persistCredentials = async (
     save: () => CredentialSaveResult,
     apply?: () => void | Promise<void>,
@@ -55,7 +65,16 @@ export function initializeIpcHandlers(appState: AppState): void {
     listener: (event: any, ...args: any[]) => Promise<any> | any,
   ) => {
     ipcMain.removeHandler(channel);
-    ipcMain.handle(channel, listener);
+    ipcMain.handle(channel, async (event, ...args) => {
+      if (!['generate-assist', 'generate-what-to-say', 'generate-clarify', 'generate-follow-up', 'generate-recap', 'generate-follow-up-questions', 'submit-manual-question', 'generate-code-hint', 'generate-brainstorm'].includes(channel)) return listener(event, ...args);
+      const helper = appState.processingHelper.getLLMHelper();
+      const task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
+      try {
+        const result = await helper.runGeneration(() => listener(event, ...args), 'interview', undefined, task);
+        task.terminalStatus ??= (result as any)?.error ? 'failed' : 'empty';
+        return { ...(result as any), ...helper.getTaskMetadata(task) };
+      } finally { task.close(); }
+    });
   };
 
   const safeOn = (
@@ -270,13 +289,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // IPC handler for analyzing image from file path
   safeHandle('analyze-image-file', async (event, filePath: string) => {
-    // Guard: only allow reading files within the app's own userData directory
-    const userDataDir = app.getPath('userData');
-    const resolved = path.resolve(filePath);
-    if (!resolved.startsWith(userDataDir + path.sep)) {
-      console.warn('[IPC] analyze-image-file: path outside userData rejected:', filePath);
-      throw new Error('Path not allowed');
-    }
+    const resolved = validateImages([filePath])![0];
     try {
       const result = await appState.processingHelper.getLLMHelper().analyzeImageFiles([resolved]);
       return result;
@@ -295,6 +308,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       options?: { skipSystemPrompt?: boolean },
     ) => {
       try {
+        imagePaths = validateImages(imagePaths);
         const result = await appState.processingHelper
           .getLLMHelper()
           .chatWithGemini(message, imagePaths, context, options?.skipSystemPrompt);
@@ -361,7 +375,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; meetingId?: unknown },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; meetingId?: unknown; generationKind?: 'interview' | 'written' },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
@@ -378,9 +392,13 @@ export function initializeIpcHandlers(appState: AppState): void {
       const clientStreamId = options?.clientStreamId;
       try {
         console.log('[IPC] gemini-chat-stream started using LLMHelper.streamChat');
+        imagePaths = validateImages(imagePaths);
         const llmHelper = appState.processingHelper.getLLMHelper();
         myController = new AbortController();
-        chatTask = llmHelper.beginGenerationTask('interview', myController.signal);
+        if (options?.generationKind !== undefined && !['interview', 'written'].includes(options.generationKind)) throw new Error('Invalid question mode');
+        const generationKind = options?.generationKind ?? 'interview';
+        chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal);
+        chatTask.rendererOwner = event.sender;
         chatTask.deferVisibleText = true;
 
         // Meeting chat: the window sends only the meeting id. The context comes from the
@@ -431,8 +449,9 @@ export function initializeIpcHandlers(appState: AppState): void {
               );
               return null;
             }
-            event.sender.send('gemini-stream-token', identityHit, clientStreamId);
-            event.sender.send('gemini-stream-done', clientStreamId);
+            event.sender.send('gemini-stream-token', identityHit, clientStreamId, { ...llmHelper.getTaskMetadata(chatTask), provider: 'application', model: APP_IDENTITY.name });
+            chatTask.terminalStatus = 'completed';
+            event.sender.send('gemini-stream-done', clientStreamId, { ...llmHelper.getTaskMetadata(chatTask), provider: 'application', model: APP_IDENTITY.name });
             if (recordInSession) {
               intelligenceManager.addAssistantMessage(identityHit);
               intelligenceManager.logUsage('chat', message, identityHit);
@@ -497,7 +516,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             false, // skipModeInjection
             declaredScopes, // extraDataScopes
             myController!.signal,
-          ), 'interview', myController.signal, chatTask);
+          ), generationKind, myController.signal, chatTask);
 
           for await (const token of stream) {
             // Bail if a newer stream has taken over (user triggered a new request)
@@ -508,28 +527,34 @@ export function initializeIpcHandlers(appState: AppState): void {
               return null;
             }
             chatTask.markVisible(token);
-            event.sender.send('gemini-stream-token', token, clientStreamId);
+            chatTask.displayedText += token;
+            event.sender.send('gemini-stream-token', token, clientStreamId, llmHelper.getTaskMetadata(chatTask));
             fullResponse += token;
           }
 
           // Final check: only send done if we are still the active stream
           if (_chatStreamsBySender.get(senderId)?.streamId === myStreamId) {
-            event.sender.send('gemini-stream-done', clientStreamId);
+            event.sender.send('gemini-stream-done', clientStreamId, llmHelper.getTaskMetadata(chatTask));
 
             // Update IntelligenceManager with ASSISTANT message after completion
             if (recordInSession && fullResponse.trim().length > 0) {
-              intelligenceManager.addAssistantMessage(fullResponse);
+              intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
               // Log Usage for streaming chat
-              intelligenceManager.logUsage('chat', message, fullResponse);
+              intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
             }
           }
         } catch (streamError: any) {
           console.error('[IPC] Streaming error:', streamError);
+          if (recordInSession && chatTask) {
+            if (fullResponse.trim()) intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
+            intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
+          }
           if (_chatStreamsBySender.get(senderId)?.streamId === myStreamId) {
             event.sender.send(
               'gemini-stream-error',
               streamError.message || 'Unknown streaming error',
               clientStreamId,
+              llmHelper.getTaskMetadata(chatTask),
             );
           }
         }
@@ -1908,13 +1933,15 @@ export function initializeIpcHandlers(appState: AppState): void {
     ) => {
       const helper = appState.processingHelper.getLLMHelper();
       let task: GenerationTask<any> | undefined;
+      let ownsTask = false;
       try {
-        task = helper.beginGenerationTask('interview');
+        const inherited = helper.getCurrentGenerationTask();
+        ownsTask = !inherited;
+        task = inherited ?? helper.beginGenerationTask('interview');
+        task.rendererOwner = _.sender;
+        imagePaths = validateImages(imagePaths);
         let screenContext: any;
         let screenContextStatus: 'not_available' | 'available' | 'failed' = 'not_available';
-        let visionProviderUsed: string | undefined;
-        let visionModelUsed: string | undefined;
-        let visionAttempts: number | undefined;
         let visionFailureReason: string | undefined;
 
         const validatedImagePaths: string[] | undefined = imagePaths?.length ? [] : undefined;
@@ -1981,6 +2008,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           visionModelUsed: metadata.usedImageInput ? metadata.model : undefined,
           visionAttempts: metadata.attempts,
           generationStatus: metadata.status,
+          ...metadata,
           visionFailureReason,
           imageCount: metadata.imageCount,
           usedImageInput: metadata.usedImageInput,
@@ -1994,7 +2022,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           generationStatus: task?.terminalStatus,
         };
       } finally {
-        task?.close();
+        if (ownsTask) task?.close();
       }
     },
   );
@@ -2053,6 +2081,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('generate-code-hint', async (_, imagePaths?: string[], problemStatement?: string) => {
     try {
+      imagePaths = validateImages(imagePaths);
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
       const screenshotQueue = appState.getScreenshotQueue();
@@ -2101,6 +2130,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('generate-brainstorm', async (_, imagePaths?: string[], problemStatement?: string) => {
     try {
+      imagePaths = validateImages(imagePaths);
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
       const screenshotQueue = appState.getScreenshotQueue();
@@ -2226,6 +2256,10 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // Reset intelligence state
+  safeHandle('cancel-intelligence-generation', () => {
+    appState.getIntelligenceManager().resetEngine();
+  });
+
   safeHandle('reset-intelligence', async () => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();

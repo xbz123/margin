@@ -34,7 +34,8 @@ export interface Meeting {
         question?: string;
         answer?: string;
         items?: string[];
-    }>;
+        generation?: import('../../src/types/generationMetadata').GenerationMetadata;
+    } & Partial<import('../../src/types/generationMetadata').GenerationMetadata>>;
     // Calendar was removed (PLAN.md AG-10/AG-16). The column and the 'calendar'
     // source stay so meetings saved by older builds still load.
     calendarEventId?: string;
@@ -471,6 +472,14 @@ export class DatabaseManager {
                         }
                     }
 
+                    const generation = usage.requestId ? {
+                        requestId: usage.requestId, provider: usage.provider, model: usage.model, status: usage.status, attempts: usage.attempts, partial: usage.partial, timeout: usage.timeout,
+                    } : usage.generation;
+                    if (generation?.requestId) metadata = JSON.stringify({
+                        generation,
+                        items: usage.items ?? (Array.isArray(usage.answer) ? usage.answer : undefined),
+                    });
+
                     // Normalization
                     const answerText = Array.isArray(usage.answer) ? null : usage.answer || null;
                     const queryText = usage.question || null;
@@ -616,6 +625,7 @@ export class DatabaseManager {
 
         const usage = usageRows.map(row => {
             let items: string[] | undefined;
+            let generation: import('../../src/types/generationMetadata').GenerationMetadata | undefined;
             let answer = row.ai_response;
 
             if (row.metadata_json) {
@@ -626,6 +636,7 @@ export class DatabaseManager {
                         // Special case: for 'followup_questions', earlier we treated 'answer' as the array in memory
                         // UI expects appropriate field. If type is 'followup_questions', usually answer is null and items has the questions.
                     }
+                    else if (parsed && typeof parsed === 'object') { items = parsed.items; generation = parsed.generation; }
                 } catch (e) { console.warn('[DatabaseManager] Failed to parse metadata_json for interaction:', row?.id, e); }
             }
 
@@ -634,7 +645,8 @@ export class DatabaseManager {
                 timestamp: row.timestamp,
                 question: row.user_query,
                 answer: answer,
-                items: items
+                items: items,
+                generation,
             };
         });
 

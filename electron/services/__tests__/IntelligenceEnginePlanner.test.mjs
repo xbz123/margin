@@ -8,12 +8,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const enginePath = path.resolve(__dirname, '../../../dist-electron/electron/IntelligenceEngine.js');
 const sessionPath = path.resolve(__dirname, '../../../dist-electron/electron/SessionTracker.js');
 const require = createRequire(import.meta.url);
+const electronId = require.resolve('electron');
+const previousElectron = require.cache[electronId];
+require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => '/tmp', isPackaged: false } } };
+let LLMHelper;
+try { ({ LLMHelper } = require('../../../dist-electron/electron/LLMHelper.js')); }
+finally { if (previousElectron) require.cache[electronId] = previousElectron; else delete require.cache[electronId]; }
 
 function makeHelper() {
-  return {
-    runGeneration: factory => factory(), runGenerationStream: factory => factory(), getCurrentGenerationTask: () => undefined,
+  return Object.assign(Object.create(LLMHelper.prototype), {
+    selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'synthetic-test' },
     setNegotiationCoachingHandler() {},
-  };
+  });
 }
 
 async function makeEngine() {

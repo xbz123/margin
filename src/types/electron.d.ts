@@ -214,11 +214,14 @@ export interface ElectronAPI {
   onSessionReset: (callback: () => void) => () => void;
 
   // Streaming listeners
-  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, meetingId?: string }) => Promise<void>
-  onGeminiStreamToken: (callback: (token: string) => void) => () => void
-  onGeminiStreamDone: (callback: () => void) => () => void
-  onGeminiStreamError: (callback: (error: string) => void) => () => void;
-  cancelChatStream: () => void;
+  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, meetingId?: string, owner?: string, generationKind?: 'interview' | 'written' }) => Promise<void>
+  onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void
+  onGeminiStreamDone: (callback: (metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void
+  onGeminiStreamError: (callback: (error: string, metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void;
+  onIntelligenceGenerationStarted: (callback: (metadata: import('./generationMetadata').GenerationMetadata) => void) => () => void;
+  cancelIntelligenceGeneration: () => Promise<void>;
+  onIntelligenceGenerationTerminal: (callback: (metadata: import('./generationMetadata').GenerationMetadata & { error?: string }) => void) => () => void;
+  cancelChatStream: (owner?: string) => void;
 
   // Model Management
   getDefaultModel: () => Promise<{ model: string }>;

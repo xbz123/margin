@@ -1,5 +1,6 @@
 export interface GenerationPolicy {
     backupModel?: string;
+    backupImageSupportConfirmedFor?: string;
     interviewFirstTokenSeconds: number;
     interviewTotalSeconds: number;
     writtenTotalSeconds: number;
@@ -17,5 +18,6 @@ export function validateGenerationPolicy(value: GenerationPolicy): GenerationPol
     }
     if (value.interviewTotalSeconds < value.interviewFirstTokenSeconds) throw new Error('Interview total timeout must not be shorter than the first-token timeout.');
     if (value.backupModel !== undefined && (typeof value.backupModel !== 'string' || !value.backupModel)) throw new Error('Invalid backup model.');
+    if (value.backupImageSupportConfirmedFor !== undefined && typeof value.backupImageSupportConfirmedFor !== 'string') throw new Error('Invalid backup image confirmation.');
     return { ...value };
 }

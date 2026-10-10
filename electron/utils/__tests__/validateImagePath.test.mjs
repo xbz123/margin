@@ -10,7 +10,9 @@
 // ScreenshotHelper writes to <userData>/screenshots and <userData>/extra_screenshots,
 // so this ordering is what unblocks the screenshot → vision pipeline end to end.
 
-import { test, describe } from 'node:test';
+import { test, describe, after } from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -19,7 +21,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const modPath = path.resolve(__dirname, '../../../dist-electron/electron/utils/imagePathValidation.js');
 const { validateImagePath } = await import(pathToFileURL(modPath).href);
 
-const MAC_USER_DATA = '/Users/alice/Library/Application Support/Natively';
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ag33-image-path-'));
+after(() => fs.rmSync(temp, { recursive: true, force: true }));
+const MAC_USER_DATA = path.join(temp, 'Users/alice/Library/Application Support/Natively');
+for (const folder of ['screenshots', 'extra_screenshots']) {
+  fs.mkdirSync(path.join(MAC_USER_DATA, folder), { recursive: true });
+  fs.writeFileSync(path.join(MAC_USER_DATA, folder, 'abc-123.png'), Buffer.from('iVBORw0KGgo=', 'base64'));
+}
 
 describe('validateImagePath — macOS userData ordering (obs 2631)', () => {
   test('allows screenshot path inside userData even though it starts with /Users/', () => {

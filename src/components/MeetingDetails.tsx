@@ -63,6 +63,7 @@ interface Meeting {
         question?: string;
         answer?: string;
         items?: string[];
+        generation?: import('../types/generationMetadata').GenerationMetadata;
     }>;
 }
 
@@ -549,6 +550,11 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                                         )}
 
                                         {/* AI Answer */}
+                                        {interaction.generation && (
+                                            <div className="text-xs text-text-tertiary" data-generation-status={interaction.generation.status}>
+                                                {interaction.generation.provider} · {interaction.generation.model} · {interaction.generation.partial ? 'Incomplete · ' : ''}{interaction.generation.timeout ? `timeout:${interaction.generation.timeout}` : interaction.generation.status}
+                                            </div>
+                                        )}
                                         {interaction.answer && (
                                             <div className="flex items-start gap-4">
                                                 <div className="mt-1 w-6 h-6 rounded-full bg-bg-input flex items-center justify-center border border-border-subtle shrink-0">

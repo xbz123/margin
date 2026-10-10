@@ -1,0 +1,144 @@
+✔ AG33 explicit server image rejection is terminal even with a transient HTTP status (3.757667ms)
+✔ backup before same-model retry (0.421417ms)
+✔ transient without backup (0.207875ms)
+✔ unavailable without backup (0.130708ms)
+✔ auth takes precedence over model code (0.150166ms)
+✔ ordinary 404 is terminal (0.130541ms)
+✔ Retry-After exceeds budget (0.107917ms)
+✔ empty never retries (0.16375ms)
+✔ refused never retries (0.109125ms)
+✔ incomplete never retries (0.135417ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.532667ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.209292ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.354083ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (0.655541ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.069167ms)
+✔ Retry-After above the Node timer limit is not shortened to one millisecond (5.331375ms)
+[LLMHelper] Switched to Model: gemini-new
+[LLMHelper] Switched to Model: gemini-a
+[LLMHelper] Switched to Model: gemini-a
+(node:7734) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (5.184542ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.529083ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.48675ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.615ms)
+✔ real answer interface: SAFETY terminates without backup (1.014542ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.425625ms)
+✔ real answer interface: EMPTY terminates without backup (0.304542ms)
+✔ real answer interface: AUTH terminates without backup (0.3385ms)
+✔ real answer interface: CONFIG terminates without backup (0.306458ms)
+✔ real answer interface: PARTIAL terminates without backup (0.451459ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.721292ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.422583ms)
+✔ permission revoked during limiter stops all later sends (0.478083ms)
+✔ permission revoked during image stops all later sends (0.22125ms)
+✔ permission revoked during cache stops all later sends (0.26575ms)
+✔ permission revoked during retry-after stops all later sends (0.288208ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.449584ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.370584ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.265125ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.691333ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.328541ms)
+✔ reselecting the same canonical target through qualified or raw model id keeps active transport alive (0.428541ms)
+✔ application quit cancels existing tasks and refuses all later generation entries before any send (0.32625ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 19 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[LLMHelper] Switched to Model: codex-cli
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 1 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (34.686708ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.200708ms)
+✔ Groq fast mode preserves the explicitly selected model for both text and images (0.425875ms)
+✔ saved provider connection test ignores the answer backup and sends its own failed target only once (0.271084ms)
+✔ the configured answer backup can itself be connection-tested once without a primary/backup conflict (0.180916ms)
+✔ actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport (2.765625ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry false (0.623ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry true (0.391333ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false (1.225417ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true (0.667375ms)
+✔ compression starts an independent background task inside an interview context and closes that supplied task (1.996667ms)
+✔ actual prompt entry snapshots language and prompt tier before assembly starts (1.7515ms)
+✔ image metadata reflects actual send and screenshot omission, not the validated input list (0.442958ms)
+✔ backup updates and selected provider reconfiguration reject identical targets without changing active state (0.173708ms)
+✔ explicit Codex selector clears stale API selection and snapshots its configured fast model (0.145583ms)
+✔ AG33 actual Engine preserves a legitimate short answer and its request metadata (0.775583ms)
+✔ AG33 outer cancellation fences late inner errors, held sentinel text and mode changes (4.815459ms)
+✔ AG33 shared written task records a second-step failure rather than first-step completion (0.575791ms)
+✔ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (0.493375ms)
+✔ AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden (0.462958ms)
+✔ AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count (0.236666ms)
+[LLMHelper] Failed to process image with sharp: Error: Input buffer contains unsupported image format
+    at Sharp.toBuffer (<repo>/dist-electron/electron/LLMHelper.js:49202:21)
+    at LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93427:32)
+✔ AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes (10.401333ms)
+✔ AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (14.165125ms)
+✔ AG33 real registered gemini-chat-stream rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (8.979375ms)
+✔ AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (7.579084ms)
+✔ AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (7.704708ms)
+✔ AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (7.642875ms)
+▶ validateImagePath — macOS userData ordering (obs 2631)
+  ✔ allows screenshot path inside userData even though it starts with /Users/ (1.76575ms)
+  ✔ allows extra_screenshots path inside userData (1.352625ms)
+  ✔ blocks /Users/ path outside userData (0.448ms)
+  ✔ blocks /etc/ regardless of userData (0.602042ms)
+  ✔ blocks path traversal even when prefix matches userData (0.062209ms)
+  ✔ blocks Windows drive paths (0.0565ms)
+  ✔ rejects empty / non-string input (0.054375ms)
+  ✔ blocks /etc/passwd via realpath resolution (0.429916ms)
+  ✔ blocks Unix home paths via realpath resolution (40.39975ms)
+  ✔ blocks /tmp arbitrary paths via realpath resolution (0.94575ms)
+✔ validateImagePath — macOS userData ordering (obs 2631) (47.048042ms)
+ℹ tests 76
+ℹ suites 1
+ℹ pass 76
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 441.597875

@@ -4,6 +4,7 @@
 
 import { RecapLLM } from './llm';
 import { isVerboseLogging } from './verboseLog';
+import type { GenerationMetadata } from '../src/types/generationMetadata';
 
 export interface TranscriptSegment {
     marker?: string;
@@ -12,6 +13,7 @@ export interface TranscriptSegment {
     timestamp: number;
     final: boolean;
     confidence?: number;
+    generation?: GenerationMetadata;
 }
 
 export interface SuggestionTrigger {
@@ -31,6 +33,7 @@ export interface AssistantResponse {
     text: string;
     timestamp: number;
     questionContext: string;
+    generation?: GenerationMetadata;
 }
 
 export class SessionTracker {
@@ -232,22 +235,14 @@ export class SessionTracker {
     /**
      * Add assistant-generated message to context
      */
-    addAssistantMessage(text: string): void {
+    addAssistantMessage(text: string, generation?: GenerationMetadata): void {
         console.log(`[SessionTracker] addAssistantMessage called`, { length: text.length });
 
         // Natively-style filtering
         if (!text) return;
 
         const cleanText = text.trim();
-        if (cleanText.length < 10) {
-            console.warn(`[SessionTracker] Ignored short message (<10 chars)`);
-            return;
-        }
-
-        if (cleanText.includes("I'm not sure") || cleanText.includes("I can't answer")) {
-            console.warn(`[SessionTracker] Ignored fallback message`);
-            return;
-        }
+        if (!cleanText) return;
 
         this.contextItems.push({
             role: 'assistant',
@@ -261,7 +256,8 @@ export class SessionTracker {
             text: cleanText,
             timestamp: Date.now(),
             final: true,
-            confidence: 1.0
+            confidence: 1.0,
+            generation,
         });
 
         // Compact transcript with summarization instead of losing early context
@@ -276,7 +272,8 @@ export class SessionTracker {
         this.assistantResponseHistory.push({
             text: cleanText,
             timestamp: Date.now(),
-            questionContext: this.getLastInterviewerTurn() || 'unknown'
+            questionContext: this.getLastInterviewerTurn() || 'unknown',
+            generation,
         });
 
         // Keep history bounded (last 10 responses)
@@ -468,12 +465,13 @@ export class SessionTracker {
     /**
      * Public method to log usage from external sources (e.g. IPC direct chat)
      */
-    logUsage(type: string, question: string, answer: string): void {
+    logUsage(type: string, question: string, answer: string, generation?: GenerationMetadata): void {
         this.fullUsage.push({
             type,
             timestamp: Date.now(),
             question,
-            answer
+            answer,
+            ...generation,
         });
     }
 

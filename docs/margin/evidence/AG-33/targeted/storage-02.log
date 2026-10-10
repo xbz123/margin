@@ -1,0 +1,116 @@
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (401.232166ms)
+✖ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (0.350416ms)
+✖ the meeting chat follows the post_call_summary and profile_history scopes (0.036375ms)
+✖ a meeting edit that fails to save is rolled back and reported (0.030041ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (0.034084ms)
+✖ <repo>/tests/margin/meeting-storage.test.mjs (0.63225ms)
+ℹ Error: Test hook "before" at tests/margin/meeting-storage.test.mjs:77:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/meeting-storage.test.mjs:77:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/meeting-storage.test.mjs:77:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 695.280625
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:106:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (401.232166ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=17981
+    - [pid=17981] <kill>
+    - [pid=17981] <will force kill>
+    - [pid=17981] exception while trying to kill process: Error: kill EPERM
+    - [pid=17981] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=17981] starting temporary directories cleanup
+    - [pid=17981] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async launch (<repo>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<repo>/tests/margin/meeting-storage.test.mjs:88:3)
+
+test at tests/margin/meeting-storage.test.mjs:206:1
+✖ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (0.350416ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=17981
+    - [pid=17981] <kill>
+    - [pid=17981] <will force kill>
+    - [pid=17981] exception while trying to kill process: Error: kill EPERM
+    - [pid=17981] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=17981] starting temporary directories cleanup
+    - [pid=17981] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async launch (<repo>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<repo>/tests/margin/meeting-storage.test.mjs:88:3)
+
+test at tests/margin/meeting-storage.test.mjs:245:1
+✖ the meeting chat follows the post_call_summary and profile_history scopes (0.036375ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=17981
+    - [pid=17981] <kill>
+    - [pid=17981] <will force kill>
+    - [pid=17981] exception while trying to kill process: Error: kill EPERM
+    - [pid=17981] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=17981] starting temporary directories cleanup
+    - [pid=17981] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async launch (<repo>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<repo>/tests/margin/meeting-storage.test.mjs:88:3)
+
+test at tests/margin/meeting-storage.test.mjs:357:1
+✖ a meeting edit that fails to save is rolled back and reported (0.030041ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=17981
+    - [pid=17981] <kill>
+    - [pid=17981] <will force kill>
+    - [pid=17981] exception while trying to kill process: Error: kill EPERM
+    - [pid=17981] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=17981] starting temporary directories cleanup
+    - [pid=17981] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async launch (<repo>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<repo>/tests/margin/meeting-storage.test.mjs:88:3)
+
+test at tests/margin/meeting-storage.test.mjs:464:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (0.034084ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=17981
+    - [pid=17981] <kill>
+    - [pid=17981] <will force kill>
+    - [pid=17981] exception while trying to kill process: Error: kill EPERM
+    - [pid=17981] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=17981] starting temporary directories cleanup
+    - [pid=17981] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async launch (<repo>/tests/margin/meeting-storage.test.mjs:49:43)
+      at async TestContext.<anonymous> (<repo>/tests/margin/meeting-storage.test.mjs:88:3)
+
+test at tests/margin/meeting-storage.test.mjs:91:6
+✖ <repo>/tests/margin/meeting-storage.test.mjs (0.63225ms)
+  Error: isolation log missing: <temporary-path> (the guard did not load or could not write)
+      at readGuardLog (file://<repo>/scripts/margin/isolation/env.mjs:66:42)
+      at readBlocked (file://<repo>/scripts/margin/isolation/env.mjs:77:10)
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:94:29)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7)
+      at async Test.runHook (node:internal/test_runner/test:1117:9)
+      at async after (node:internal/test_runner/test:1159:9)
+      at async Test.run (node:internal/test_runner/test:1227:7)

@@ -1,0 +1,570 @@
+✔ ipcHandlers tracks active gemini chat streams by sender id (1.186708ms)
+✔ gemini-chat-stream handler supersedes only the current sender and passes signal to streamChat (0.74275ms)
+✔ gemini-chat-stream-stop handler aborts only the requesting sender stream (0.333709ms)
+✔ preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-stream-stop") (0.375917ms)
+✔ preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream (0.189458ms)
+✔ clearImmediate semantics match the patch: a queued flush is cancellable, and a re-arm after flush still fires (4.780833ms)
+✔ intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer (0.573458ms)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:19309) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.418208ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.118041ms)
+✔ single response preserves incomplete (no finish) (0.10675ms)
+✔ single response preserves empty (STOP) (0.088542ms)
+✔ single response preserves refused (SAFETY) (0.107958ms)
+✔ single response preserves refused (no finish) (0.072667ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.220125ms)
+✔ final scope refusal retains the original object and never sends (0.448125ms)
+✔ cancel before start and late response cannot produce deltas (0.423416ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (5.563375ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (1.515834ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (31.08775ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.554166ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.64325ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.348709ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (0.89775ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (32.149917ms)
+✔ AG33 a written task uses 180 seconds and has no interview first-token deadline (1.888375ms)
+✔ AG33 an abort before an attempt preserves its terminal classification and never sends (0.546541ms)
+✔ AG33 cancellation between attempts preserves status and does not open the backup (1.010792ms)
+✔ AG33 explicit server image rejection is terminal even with a transient HTTP status (0.340042ms)
+✔ backup before same-model retry (0.543ms)
+✔ transient without backup (0.168041ms)
+✔ unavailable without backup (0.111042ms)
+✔ auth takes precedence over model code (0.112333ms)
+✔ ordinary 404 is terminal (0.135791ms)
+✔ Retry-After exceeds budget (0.458375ms)
+✔ empty never retries (0.186583ms)
+✔ refused never retries (0.070042ms)
+✔ incomplete never retries (0.059292ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.516667ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.184ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.371834ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (0.682083ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.070875ms)
+✔ Retry-After above the Node timer limit is not shortened to one millisecond (5.883833ms)
+[LLMHelper] Switched to Model: gemini-new
+[LLMHelper] Switched to Model: gemini-a
+[LLMHelper] Switched to Model: gemini-a
+(node:19311) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it (1.209708ms)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (4.652792ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.622375ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.544ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.662333ms)
+✔ real answer interface: SAFETY terminates without backup (1.067208ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.715834ms)
+✔ real answer interface: EMPTY terminates without backup (0.383584ms)
+✔ real answer interface: AUTH terminates without backup (0.416834ms)
+✔ real answer interface: CONFIG terminates without backup (0.546416ms)
+✔ real answer interface: PARTIAL terminates without backup (0.811875ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.801209ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.523583ms)
+✔ permission revoked during limiter stops all later sends (0.494083ms)
+✔ permission revoked during image stops all later sends (0.243292ms)
+✔ permission revoked during cache stops all later sends (0.277125ms)
+✔ permission revoked during retry-after stops all later sends (0.300375ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.558417ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.397375ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.296458ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.777375ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.246542ms)
+✔ reselecting the same canonical target through qualified or raw model id keeps active transport alive (0.349792ms)
+✔ application quit cancels existing tasks and refuses all later generation entries before any send (0.334ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 19 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (36.581208ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.215458ms)
+✔ Groq fast mode preserves the explicitly selected model for both text and images (0.464333ms)
+✔ saved provider connection test ignores the answer backup and sends its own failed target only once (0.318625ms)
+✔ the configured answer backup can itself be connection-tested once without a primary/backup conflict (0.179625ms)
+✔ actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport (3.1305ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry false (0.830041ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry true (0.443167ms)
+✔ AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result (0.596625ms)
+✔ AG33 actual Engine stores empty even without a visible partial (0.548375ms)
+✔ AG33 actual Engine stores refused even without a visible partial (0.382708ms)
+✔ AG33 actual Engine stores incomplete even without a visible partial (0.374875ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false (1.412334ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true (0.887375ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[LLMHelper] Switched to Model: gemini-next
+✔ AG33 Engine timeout releases its mode and allows the next assist request (2.720875ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 Engine model-switch releases its mode and allows the next assist request (1.186417ms)
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[LLMHelper] Switched to Model: codex-cli
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 1 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 old Engine finally cannot reset the newer active request mode (1.475042ms)
+✔ compression starts an independent background task inside an interview context and closes that supplied task (2.49275ms)
+✔ actual prompt entry snapshots language and prompt tier before assembly starts (2.616292ms)
+✔ image metadata reflects actual send and screenshot omission, not the validated input list (0.624542ms)
+✔ backup updates and selected provider reconfiguration reject identical targets without changing active state (0.212291ms)
+✔ explicit Codex selector clears stale API selection and snapshots its configured fast model (0.182292ms)
+✔ AG33 actual Engine preserves a legitimate short answer and its request metadata (1.37375ms)
+✔ AG33 outer cancellation fences late inner errors, held sentinel text and mode changes (1.709583ms)
+✔ AG33 shared written task records a second-step failure rather than first-step completion (0.555417ms)
+✔ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (0.656ms)
+✔ AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden (0.729459ms)
+✔ AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count (0.26975ms)
+[LLMHelper] Failed to process image with sharp: Error: Input buffer contains unsupported image format
+    at Sharp.toBuffer (<repo>/dist-electron/electron/LLMHelper.js:49202:21)
+    at LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93434:32)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 14 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes (16.047333ms)
+✔ AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning (2.644875ms)
+✔ AG33 partial cancellation records exact target and cancelled status in existing session usage (0.71075ms)
+(node:19312) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+✔ chat-completions preserves completed from actual protocol terminal (1.436083ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.11425ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.116042ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.100167ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.113125ms)
+✔ chat-completions preserves empty from actual protocol terminal (0.108375ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.104917ms)
+✔ chat-completions final scope and cancel checks happen before a physical send (2.045167ms)
+✔ chat-completions late response and consumer return abort the transport (0.322458ms)
+✔ responses preserves completed from actual protocol terminal (0.160083ms)
+✔ responses preserves incomplete from actual protocol terminal (0.09725ms)
+✔ responses preserves failed from actual protocol terminal (0.074708ms)
+✔ responses preserves refused from actual protocol terminal (0.055084ms)
+✔ responses preserves empty from actual protocol terminal (0.062792ms)
+✔ responses preserves incomplete from actual protocol terminal (0.061167ms)
+✔ responses final scope and cancel checks happen before a physical send (0.157333ms)
+✔ responses late response and consumer return abort the transport (0.107375ms)
+✔ messages preserves completed from actual protocol terminal (0.102417ms)
+✔ messages preserves completed from actual protocol terminal (0.080042ms)
+✔ messages preserves incomplete from actual protocol terminal (0.047458ms)
+✔ messages preserves incomplete from actual protocol terminal (0.056959ms)
+✔ messages preserves incomplete from actual protocol terminal (0.077208ms)
+✔ messages preserves refused from actual protocol terminal (0.427125ms)
+✔ messages preserves empty from actual protocol terminal (0.070792ms)
+✔ messages preserves incomplete from actual protocol terminal (0.052708ms)
+✔ messages final scope and cancel checks happen before a physical send (0.185459ms)
+✔ messages late response and consumer return abort the transport (0.100958ms)
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+✔ real SDK text/image serialization, saved opaque target, test and model list share one API base (84.297458ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ real OpenAI and Anthropic adapters disable SDK retry on 503 and never follow redirects (16.789917ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ an explicitly selected custom model is the wire model, while connection tests retain the saved model (22.681667ms)
+✔ real three-protocol SDK terminal events remain incomplete/refused when the stream finishes normally (10.131334ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ real SDK cancellation after the server receives the request suppresses all late deltas (4.816792ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ Gemini custom target uses the same v1alpha prefix for generation, test and unfiltered model listing (4.400041ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+✔ meeting summary never discovers an unselected OpenAI target, then uses explicitly selected Responses (3.010666ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: old-model
+[GeminiPromptCache] created cache/new for model=test (6000 chars)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: same
+✔ legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged (6.266375ms)
+✔ hot configuration changes keep active provider, protocol and wire model together (0.837416ms)
+✔ saved Gemini base takes precedence over explicit environment base without adding a second API version (0.232625ms)
+✔ Gemini hot configuration clear never accepts an old in-flight cache (0.491125ms)
+✔ endpoint validation and explicit selection refuse wrong protocol, version and model ambiguity (0.827292ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Code hint — question source: screenshot, transcript lines: 0, images: 1
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] code_hint stream aborted by new generation
+✔ runCodeHint returns stream on cancellation, preserves its partial record and does not emit stale final result (15.673958ms)
+(node:19313) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'coding',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 67 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 81 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+(node:19314) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ handleSuggestionTrigger stays silent for low confidence without emitting or storing history (6.81725ms)
+✔ handleSuggestionTrigger routes recap requests to recap executor (0.729292ms)
+✔ handleSuggestionTrigger routes answerable questions to what-to-say executor (4.743792ms)
+✔ handleSuggestionTrigger routes incomplete technical restatements to clarify executor (0.391458ms)
+✔ handleSuggestionTrigger still answers complete technical restatements (0.744583ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 1,
+  screenOcrAvailable: true,
+  screenOcrTextLength: 43
+}
+[SessionTracker] addAssistantMessage called { length: 49 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 28 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay passes screenContext and preserves imagePaths (25.477667ms)
+✔ runWhatShouldISay works without screenContext (2.013208ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 66 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 75 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+(node:19316) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ runWhatShouldISay suppresses nothing-actionable sentinel output (19.573917ms)
+✔ runWhatShouldISay suppresses nothing-to-capture sentinel output (0.653291ms)
+✔ runWhatShouldISay suppresses normalized sentinel variants (0.459083ms)
+✔ runWhatShouldISay does not suppress near-match real answers (0.753291ms)
+✔ runWhatShouldISay suppresses speculative sentinel output (0.450542ms)
+✔ runWhatShouldISay hides speculative real answers from renderer and history (0.349583ms)
+✔ runWhatShouldISay hides speculative fallback answers from renderer and history (2.530792ms)
+✔ runWhatShouldISay still emits and stores real answers (1.495667ms)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-backup: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:19317) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (142.926708ms)
+✔ selected Gemini stream: image-preparation revocation prevents cache and generation (4.170375ms)
+✔ selected Gemini stream: cache allowed, inflight revocation and explicit expiry recovery (3.478166ms)
+✔ selected Gemini nonstream: image-preparation revocation prevents cache and generation (0.343584ms)
+✔ selected Gemini nonstream: cache allowed, inflight revocation and explicit expiry recovery (1.238ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (2.037583ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.215459ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.235083ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.143917ms)
+✔ selected gemini nonstream: final scope recheck after limiter wait (1.315708ms)
+✔ selected gemini stream: final scope recheck after limiter wait (1.064833ms)
+✔ selected groq nonstream: final scope recheck after limiter wait (0.720791ms)
+✔ selected groq stream: final scope recheck after limiter wait (0.692375ms)
+✔ selected openai nonstream: final scope recheck after limiter wait (0.829791ms)
+✔ selected openai stream: final scope recheck after limiter wait (0.674959ms)
+✔ selected claude nonstream: final scope recheck after limiter wait (0.75375ms)
+✔ selected claude stream: final scope recheck after limiter wait (0.555084ms)
+✔ selected deepseek nonstream: final scope recheck after limiter wait (0.72925ms)
+✔ selected deepseek stream: final scope recheck after limiter wait (0.497792ms)
+✔ generateWithPro: final send rechecks after limiter wait (0.640708ms)
+✔ generateWithFlash: final send rechecks after limiter wait (0.449667ms)
+✔ fixed generateContent: retry uses current permissions, with allowed control (1.721333ms)
+✔ structured generation: limiter, same-model retry and explicit backup all recheck scopes (1.847334ms)
+✔ selected Groq stream: limiter and explicit Gemini backup preserve current permissions (1.431708ms)
+✔ SettingsManager exposes providerDataScopes setting (0.879792ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (1.018041ms)
+✔ preload and renderer types expose provider data scope controls (1.135291ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (1.257834ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:19318) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (4.064709ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (128.359459ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.869208ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (3.271875ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.726375ms)
+✔ groq constructor: SDK cannot resend after scope revocation (5.708667ms)
+✔ openai constructor: SDK cannot resend after scope revocation (3.761583ms)
+✔ claude constructor: SDK cannot resend after scope revocation (2.683583ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (1.591791ms)
+✔ groq key update: SDK cannot resend after scope revocation (1.167292ms)
+✔ openai key update: SDK cannot resend after scope revocation (1.323959ms)
+✔ claude key update: SDK cannot resend after scope revocation (1.289167ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (2.748625ms)
+✔ vision denial is terminal without another send (0.557084ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (0.685916ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (1.066375ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.311459ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (14.087416ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (3.033041ms)
+✔ default chat routing refuses transcript denial but can omit denied history (0.80025ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (0.409291ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.286917ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.294917ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.372125ms)
+✔ fixed Pro: scope refusal stays terminal with an explicit backup (0.309625ms)
+✔ fixed Flash: scope refusal stays terminal with an explicit backup (0.318ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.308208ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.324875ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (0.7365ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (0.615583ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (0.605166ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.571625ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.31275ms)
+✔ generateWithPro refuses transcript denial at the actual send boundary (0.283ms)
+✔ generateWithFlash refuses transcript denial at the actual send boundary (0.314083ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.381042ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.651125ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (0.544209ms)
+✔ the meeting chat context carries the scopes of what it contains (1.002333ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.105459ms)
+✔ meeting summaries stop the explicit backup when a scope is turned off after the first send (1.050542ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (1.421875ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.340667ms)
+ℹ tests 224
+ℹ suites 0
+ℹ pass 224
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 728.347208

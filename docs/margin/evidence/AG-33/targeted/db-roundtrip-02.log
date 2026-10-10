@@ -1,0 +1,43 @@
+✖ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (345.530208ms)
+✖ <repo>/tests/margin/answer-regression.test.mjs (0.597834ms)
+ℹ Error: Test hook "before" at tests/margin/answer-regression.test.mjs:107:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/answer-regression.test.mjs:107:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/answer-regression.test.mjs:107:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 682.588416
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:510:1
+✖ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (345.530208ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=17996
+    - [pid=17996] <kill>
+    - [pid=17996] <will force kill>
+    - [pid=17996] exception while trying to kill process: Error: kill EPERM
+    - [pid=17996] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=17996] starting temporary directories cleanup
+    - [pid=17996] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:134:6
+✖ <repo>/tests/margin/answer-regression.test.mjs (0.597834ms)
+  Error: isolation log missing: <temporary-path> (the guard did not load or could not write)
+      at readGuardLog (file://<repo>/scripts/margin/isolation/env.mjs:66:42)
+      at readBlocked (file://<repo>/scripts/margin/isolation/env.mjs:77:10)
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:137:29)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7)
+      at async Test.runHook (node:internal/test_runner/test:1117:9)
+      at async after (node:internal/test_runner/test:1159:9)
+      at async Test.run (node:internal/test_runner/test:1227:7)

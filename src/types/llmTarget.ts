@@ -5,6 +5,7 @@ export interface ProviderConfiguration {
   protocol: LlmProtocol;
   baseUrl?: string;
   model: string;
+  imageSupportConfirmedFor?: string;
 }
 export interface ModelTarget extends ProviderConfiguration {}
 export interface ProviderConfigurationSave extends ProviderConfiguration { apiKey?: string }

@@ -1,0 +1,33 @@
+(node:14689) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✖ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (6.13225ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 400.823791
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generationInterfaces.test.mjs:391:1
+✖ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (6.13225ms)
+  AssertionError [ERR_ASSERTION]: a preflight-rejected backup was never physically sent
+  + actual - expected
+  
+  + 'gemini-b'
+  - 'gemini-a'
+            ^
+  
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generationInterfaces.test.mjs:402:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'gemini-b',
+    expected: 'gemini-a',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,5 +1,6 @@
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from '../src/types/llmTarget';
 import type { GenerationPolicy } from '../src/types/generationPolicy';
+import type { GenerationMetadata } from '../src/types/generationMetadata';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
@@ -396,11 +397,14 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; meetingId?: string },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; meetingId?: string; owner?: string; generationKind?: 'interview' | 'written' },
   ) => Promise<void>;
-  onGeminiStreamToken: (callback: (token: string) => void) => () => void;
-  onGeminiStreamDone: (callback: () => void) => () => void;
-  onGeminiStreamError: (callback: (error: string) => void) => () => void;
+  onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void;
+  onGeminiStreamDone: (callback: (metadata?: GenerationMetadata) => void, owner?: string) => () => void;
+  onGeminiStreamError: (callback: (error: string, metadata?: GenerationMetadata) => void, owner?: string) => () => void;
+  onIntelligenceGenerationStarted: (callback: (metadata: GenerationMetadata) => void) => () => void;
+  cancelIntelligenceGeneration: () => Promise<void>;
+  onIntelligenceGenerationTerminal: (callback: (metadata: GenerationMetadata & { error?: string }) => void) => () => void;
 
   onUndetectableChanged: (callback: (state: boolean) => void) => () => void;
   onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
@@ -546,7 +550,7 @@ interface ElectronAPI {
   // the renderer silently discards — wasting provider quota and feeling slow
   // because a subsequent question's first token has to wait for the prior
   // response to drain through the supersession check.
-  cancelChatStream: () => void;
+  cancelChatStream: (owner?: string) => void;
 }
 
 export const PROCESSING_EVENTS = {
@@ -576,7 +580,41 @@ export const PROCESSING_EVENTS = {
 // id are dropped too.
 let chatStreamSeq = 0;
 let activeChatStreamId: number | null = null;
+let activeChatOwner = 'natively';
+let activeChatMetadata: GenerationMetadata | undefined;
+let chatInFlight = false;
 const isActiveChatStream = (id: unknown) => activeChatStreamId !== null && id === activeChatStreamId;
+let activeIntelligenceRequestId: string | null = null;
+let activeIntelligenceMetadata: GenerationMetadata | undefined;
+ipcRenderer.on('intelligence-generation-started', (_event, data: GenerationMetadata) => {
+  if (chatInFlight && activeChatOwner === 'natively') return;
+  activeIntelligenceRequestId = data.requestId;
+  activeIntelligenceMetadata = data;
+});
+ipcRenderer.on('session-reset', () => { activeIntelligenceRequestId = null; activeChatStreamId = null; });
+const intelligenceSubscription = (callback: (data: any) => void) => (_event: any, data: any) => {
+  if (data?.requestId ? data.requestId === activeIntelligenceRequestId : activeIntelligenceRequestId === null) {
+    if (data?.requestId) activeIntelligenceMetadata = data;
+    callback(data);
+  }
+};
+const cancelActiveChat = (owner = 'natively') => {
+  if (owner !== activeChatOwner) return;
+  if (activeChatStreamId !== null && chatInFlight) ipcRenderer.emit('gemini-stream-error', {}, 'Generation cancelled', activeChatStreamId,
+    activeChatMetadata && { ...activeChatMetadata, status: 'cancelled', partial: true });
+  activeChatStreamId = null; chatInFlight = false;
+  ipcRenderer.send('gemini-chat-stream-stop');
+};
+const invokeIntelligence = (channel: string, ...args: any[]) => {
+  if (chatInFlight && activeChatOwner === 'natively') cancelActiveChat();
+  activeIntelligenceRequestId = null;
+  return ipcRenderer.invoke(channel, ...args);
+};
+const cancelActiveIntelligence = () => {
+  if (activeIntelligenceRequestId && activeIntelligenceMetadata && !activeIntelligenceMetadata.status) ipcRenderer.emit('intelligence-generation-terminal', {}, { ...activeIntelligenceMetadata, status: 'cancelled' });
+  activeIntelligenceRequestId = null;
+  activeIntelligenceMetadata = undefined;
+};
 
 contextBridge.exposeInMainWorld('electronAPI', {
   updateContentDimensions: (dimensions: { width: number; height: number }) =>
@@ -989,22 +1027,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Intelligence Mode IPC
-  generateAssist: () => ipcRenderer.invoke('generate-assist'),
+  generateAssist: () => invokeIntelligence('generate-assist'),
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
-  ) => ipcRenderer.invoke('generate-what-to-say', question, imagePaths),
-  generateClarify: () => ipcRenderer.invoke('generate-clarify'),
+  ) => invokeIntelligence('generate-what-to-say', question, imagePaths),
+  generateClarify: () => invokeIntelligence('generate-clarify'),
   generateCodeHint: (imagePaths?: string[], problemStatement?: string) =>
-    ipcRenderer.invoke('generate-code-hint', imagePaths, problemStatement),
+    invokeIntelligence('generate-code-hint', imagePaths, problemStatement),
   generateBrainstorm: (imagePaths?: string[], problemStatement?: string) =>
-    ipcRenderer.invoke('generate-brainstorm', imagePaths, problemStatement),
+    invokeIntelligence('generate-brainstorm', imagePaths, problemStatement),
   generateFollowUp: (intent: string, userRequest?: string) =>
-    ipcRenderer.invoke('generate-follow-up', intent, userRequest),
-  generateFollowUpQuestions: () => ipcRenderer.invoke('generate-follow-up-questions'),
-  generateRecap: () => ipcRenderer.invoke('generate-recap'),
+    invokeIntelligence('generate-follow-up', intent, userRequest),
+  generateFollowUpQuestions: () => invokeIntelligence('generate-follow-up-questions'),
+  generateRecap: () => invokeIntelligence('generate-recap'),
   submitManualQuestion: (question: string) =>
-    ipcRenderer.invoke('submit-manual-question', question),
+    invokeIntelligence('submit-manual-question', question),
   getIntelligenceContext: () => ipcRenderer.invoke('get-intelligence-context'),
   testInjectTranscript: (segment: {
     speaker: string;
@@ -1052,7 +1090,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Intelligence Mode Events
   onIntelligenceAssistUpdate: (callback: (data: { insight: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-assist-update', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-assist-update', subscription);
@@ -1061,7 +1099,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onIntelligenceSuggestedAnswerToken: (
     callback: (data: { token: string; question: string; confidence: number }) => void,
   ) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-suggested-answer-token', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-suggested-answer-token', subscription);
@@ -1070,7 +1108,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onIntelligenceSuggestedAnswer: (
     callback: (data: { answer: string; question: string; confidence: number }) => void,
   ) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-suggested-answer', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-suggested-answer', subscription);
@@ -1078,7 +1116,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   // Sprint 9: time-batched IPC token channel.
   onIntelligenceTokenBatch: (callback: (data: { kind: string; items: any[] }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-token-batch', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-token-batch', subscription);
@@ -1087,56 +1125,56 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onIntelligenceRefinedAnswerToken: (
     callback: (data: { token: string; intent: string }) => void,
   ) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-refined-answer-token', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-refined-answer-token', subscription);
     };
   },
   onIntelligenceRefinedAnswer: (callback: (data: { answer: string; intent: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-refined-answer', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-refined-answer', subscription);
     };
   },
   onIntelligenceRecapToken: (callback: (data: { token: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-recap-token', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-recap-token', subscription);
     };
   },
   onIntelligenceRecap: (callback: (data: { summary: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-recap', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-recap', subscription);
     };
   },
   onIntelligenceClarifyToken: (callback: (data: { token: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-clarify-token', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-clarify-token', subscription);
     };
   },
   onIntelligenceClarify: (callback: (data: { clarification: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-clarify', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-clarify', subscription);
     };
   },
   onIntelligenceFollowUpQuestionsToken: (callback: (data: { token: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-follow-up-questions-token', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-follow-up-questions-token', subscription);
     };
   },
   onIntelligenceFollowUpQuestionsUpdate: (callback: (data: { questions: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-follow-up-questions-update', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-follow-up-questions-update', subscription);
@@ -1150,21 +1188,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
   onIntelligenceManualResult: (callback: (data: { answer: string; question: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-manual-result', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-manual-result', subscription);
     };
   },
   onIntelligenceModeChanged: (callback: (data: { mode: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-mode-changed', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-mode-changed', subscription);
     };
   },
   onIntelligenceError: (callback: (data: { error: string; mode: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
+    const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-error', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-error', subscription);
@@ -1179,35 +1217,56 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Streaming Chat
+  onIntelligenceGenerationStarted: (callback: (metadata: GenerationMetadata) => void) => {
+    const subscription = intelligenceSubscription(callback);
+    ipcRenderer.on('intelligence-generation-started', subscription);
+    return () => { ipcRenderer.removeListener('intelligence-generation-started', subscription); };
+  },
+  onIntelligenceGenerationTerminal: (callback: (metadata: GenerationMetadata & { error?: string }) => void) => {
+    const subscription = intelligenceSubscription(callback);
+    ipcRenderer.on('intelligence-generation-terminal', subscription);
+    return () => { ipcRenderer.removeListener('intelligence-generation-terminal', subscription); };
+  },
+  cancelIntelligenceGeneration: () => {
+    cancelActiveIntelligence();
+    return ipcRenderer.invoke('cancel-intelligence-generation');
+  },
   streamGeminiChat: (
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; meetingId?: string },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; meetingId?: string; owner?: string; generationKind?: 'interview' | 'written' },
   ) => {
     const clientStreamId = ++chatStreamSeq;
+    if (chatInFlight) cancelActiveChat(activeChatOwner);
     activeChatStreamId = clientStreamId;
-    return ipcRenderer.invoke('gemini-chat-stream', message, imagePaths, context, { ...options, clientStreamId });
+    activeChatOwner = options?.owner ?? 'natively';
+    activeChatMetadata = undefined;
+    chatInFlight = true; activeIntelligenceRequestId = null;
+    return ipcRenderer.invoke('gemini-chat-stream', message, imagePaths, context, { ...options, clientStreamId })
+      .finally(() => { if (activeChatStreamId === clientStreamId) chatInFlight = false; });
   },
 
-  onGeminiStreamToken: (callback: (token: string) => void) => {
-    const subscription = (_: any, token: string, id?: number) => { if (isActiveChatStream(id)) callback(token); };
+  onGeminiStreamToken: (callback: (token: string) => void, owner = 'natively') => {
+    const subscription = (_: any, token: string, id?: number, metadata?: GenerationMetadata) => {
+      if (isActiveChatStream(id) && activeChatOwner === owner) { activeChatMetadata = metadata; callback(token); }
+    };
     ipcRenderer.on('gemini-stream-token', subscription);
     return () => {
       ipcRenderer.removeListener('gemini-stream-token', subscription);
     };
   },
 
-  onGeminiStreamDone: (callback: () => void) => {
-    const subscription = (_: any, id?: number) => { if (isActiveChatStream(id)) callback(); };
+  onGeminiStreamDone: (callback: (metadata?: GenerationMetadata) => void, owner = 'natively') => {
+    const subscription = (_: any, id?: number, metadata?: GenerationMetadata) => { if (isActiveChatStream(id) && activeChatOwner === owner) callback(metadata); };
     ipcRenderer.on('gemini-stream-done', subscription);
     return () => {
       ipcRenderer.removeListener('gemini-stream-done', subscription);
     };
   },
 
-  onGeminiStreamError: (callback: (error: string) => void) => {
-    const subscription = (_: any, error: string, id?: number) => { if (isActiveChatStream(id)) callback(error); };
+  onGeminiStreamError: (callback: (error: string, metadata?: GenerationMetadata) => void, owner = 'natively') => {
+    const subscription = (_: any, error: string, id?: number, metadata?: GenerationMetadata) => { if (isActiveChatStream(id) && activeChatOwner === owner) callback(error, metadata); };
     ipcRenderer.on('gemini-stream-error', subscription);
     return () => {
       ipcRenderer.removeListener('gemini-stream-error', subscription);
@@ -1502,8 +1561,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Cancel the in-flight chat stream. See ElectronAPI interface for rationale.
-  cancelChatStream: () => {
-    activeChatStreamId = null;
-    ipcRenderer.send('gemini-chat-stream-stop');
-  },
+  cancelChatStream: cancelActiveChat,
 } as ElectronAPI);

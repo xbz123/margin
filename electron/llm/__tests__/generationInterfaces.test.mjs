@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import os from 'node:os';
 import http from 'node:http';
+import fs from 'node:fs';
 import OpenAI from 'openai';
 
 const require = createRequire(import.meta.url);
@@ -11,22 +12,31 @@ const built = path.resolve(import.meta.dirname, '../../../dist-electron/electron
 const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
 const previous = require.cache[electronId];
 require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => os.tmpdir(), isPackaged: true, getVersion: () => '0.0.0' } } };
-let LLMHelper, WhatToAnswerLLM, ProcessingHelper, IntelligenceEngine, SessionTracker;
+let LLMHelper, WhatToAnswerLLM, ProcessingHelper, IntelligenceEngine, IntelligenceManager, SessionTracker;
 try {
   ({ LLMHelper } = require(built));
   ({ WhatToAnswerLLM } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js')));
   ({ ProcessingHelper } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/ProcessingHelper.js')));
   ({ IntelligenceEngine } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/IntelligenceEngine.js')));
+  ({ IntelligenceManager } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/IntelligenceManager.js')));
   ({ SessionTracker } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/SessionTracker.js')));
 } finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
 
 const packet = (text = 'answer', finishReason = 'STOP') => ({ text, candidates: [{ content: { parts: [{ text }] }, ...(finishReason ? { finishReason } : {}) }] });
 const collect = async source => { let text = ''; for await (const chunk of source) text += chunk; return text; };
 const deferred = () => { let resolve; const promise = new Promise(r => resolve = r); return { promise, resolve }; };
-const target = (model = 'gemini-a') => ({ provider: 'gemini', protocol: 'gemini', model });
-const policy = backupModel => ({ backupModel, interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 });
+const target = (model = 'gemini-a') => ({ provider: 'gemini', protocol: 'gemini', model,
+  imageSupportConfirmedFor: JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', model]) });
+const policy = backupModel => ({ backupModel, ...(backupModel ? { backupImageSupportConfirmedFor: target(decodeURIComponent(backupModel.split(':').at(-1))).imageSupportConfirmedFor } : {}), interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 });
 const selector = model => `llm-target:gemini:gemini:${model}`;
 const expired = () => Object.assign(Error('structured cache error'), { status: 404, error: { details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'CACHED_CONTENT_EXPIRED' }] } });
+
+test('AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it', () => {
+  const session = new SessionTracker(); session.logUsage('chat', 'synthetic', 'retained prior answer'); let resets = 0;
+  const manager = Object.assign(Object.create(IntelligenceManager.prototype), { session, engine: { reset() { resets++; } } });
+  manager.resetEngine(); assert.equal(resets, 1); assert.equal(session.getFullUsage()[0].answer, 'retained prior answer');
+  manager.reset(); assert.equal(resets, 2); assert.equal(session.getFullUsage().length, 0);
+});
 function helper(onSend, scopes = {}) {
   const requests = [];
   const client = { models: {
@@ -175,7 +185,7 @@ test('model switch cannot select configured backup and preserves previous primar
 test('Groq fast mode preserves the explicitly selected model for both text and images', async () => {
   const { self } = helper(); const requests = [];
   self.groqClient = { chat: { completions: { create: async args => { requests.push(args); return { choices: [{ message: { content: 'fast' }, finish_reason: 'stop' }] }; } } } };
-  self.selectedTarget = { provider: 'groq', protocol: 'chat-completions', model: 'groq-other' }; self.currentModelId = 'groq-other'; self.groqFastTextMode = true;
+  self.selectedTarget = { provider: 'groq', protocol: 'chat-completions', model: 'groq-other', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'groq-other']) }; self.currentModelId = 'groq-other'; self.groqFastTextMode = true;
   assert.equal(await self.chatWithGemini('QUESTION'), 'fast');
   assert.equal(requests[0].model, 'groq-other');
   assert.equal(requests[0].max_tokens, 8192); assert.equal(requests[0].temperature, 0.4);
@@ -234,6 +244,39 @@ for (const consumeFirstBudget of [false, true]) test(`actual debug ProcessingHel
   if (!consumeFirstBudget) assert.ok(requests[1].contents.some(part => part.inlineData));
 });
 
+test('AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result', async () => {
+  const first = deferred(), second = deferred(), entered = deferred();
+  const { self } = helper((args, number) => { if (number === 1) { entered.resolve(); return first.promise; } return second.promise; });
+  const events = [], usage = [];
+  const processing = Object.assign(Object.create(ProcessingHelper.prototype), { llmHelper: self, appState: {
+    getMainWindow: () => ({ webContents: { id: 1, send: (...args) => events.push(args) } }), getView: () => 'queue',
+    getScreenshotHelper: () => ({ getScreenshotQueue: () => ['original-image'] }), setView() {}, setProblemInfo() {}, setHasDebugged() {},
+    getIntelligenceManager: () => ({ logUsage: (...args) => usage.push(args) }),
+    PROCESSING_EVENTS: { INITIAL_START: 'start', PROBLEM_EXTRACTED: 'problem', SOLUTION_SUCCESS: 'success', INITIAL_SOLUTION_ERROR: 'error' },
+  } });
+  const old = processing.processScreenshots(); await entered.promise;
+  const fresh = processing.processScreenshots(); const controller = processing.currentProcessingAbortController;
+  await old;
+  assert.equal(processing.currentProcessingAbortController, controller);
+  assert.equal(controller.signal.aborted, false);
+  assert.equal(usage[0][3].status, 'cancelled'); assert.equal(usage[0][3].model, 'gemini-a');
+  first.resolve(packet(JSON.stringify({ code: 'OLD' })));
+  second.resolve(packet(JSON.stringify({ code: 'FRESH' })));
+  await fresh;
+  assert.equal(events.filter(event => event[0] === 'success').length, 1);
+  assert.equal(events.find(event => event[0] === 'success')[1].solution.code, 'FRESH');
+  assert.equal(events.find(event => event[0] === 'success')[1].generation.status, 'completed');
+  assert.equal(usage.at(-1)[3].status, 'completed');
+});
+
+for (const status of ['empty', 'refused', 'incomplete']) test(`AG33 actual Engine stores ${status} even without a visible partial`, async () => {
+  const { self } = helper(() => packet('', status === 'empty' ? 'STOP' : status === 'refused' ? 'SAFETY' : 'MAX_TOKENS'));
+  const session = new SessionTracker(), engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
+  await engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true }).catch(() => {});
+  const entry = session.getFullUsage().at(-1);
+  assert.equal(entry.status, status); assert.equal(entry.model, 'gemini-a'); assert.equal(entry.partial, false);
+});
+
 for (const visible of [false, true]) test(`actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible ${visible}`, async t => {
   t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 100_000 });
   const waiting = deferred(); const release = deferred();
@@ -256,6 +299,44 @@ for (const visible of [false, true]) test(`actual Engine TTFT clears only at dis
     engine.reset(); await assert.rejects(pending, { name: 'AbortError' });
   } else await assert.rejects(pending, { name: 'GenerationTimeoutError', deadline: 'first-token' });
   assert.equal(requests.length, 1, 'timeout or cancellation never buys backup time'); release.resolve();
+});
+
+for (const stop of ['timeout', 'model-switch']) test(`AG33 Engine ${stop} releases its mode and allows the next assist request`, async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 100_000 });
+  const entered = deferred(), late = deferred();
+  const { self, requests } = helper((_, number) => { if (number === 1) { entered.resolve(); return late.promise; } return packet('fresh assist'); });
+  const session = new SessionTracker(); session.addTranscript({ speaker: 'interviewer', text: 'QUESTION', timestamp: Date.now(), final: true });
+  const engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
+  const modes = []; engine.on('mode_changed', mode => modes.push(mode));
+  const lifecycle = []; engine.on('mode_changed', mode => lifecycle.push(mode)); engine.on('generation_terminal', () => lifecycle.push('terminal'));
+  const pending = engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true });
+  await entered.promise; assert.equal(engine.getActiveMode(), 'what_to_say');
+  if (stop === 'timeout') t.mock.timers.tick(10_001); else self.setModel(selector('gemini-next'));
+  await assert.rejects(pending, { name: stop === 'timeout' ? 'GenerationTimeoutError' : 'AbortError' });
+  assert.equal(engine.getActiveMode(), 'idle'); assert.equal(modes.at(-1), 'idle');
+  assert.deepEqual(lifecycle.slice(-2), ['idle', 'terminal'], 'idle is sent while main still retains the request owner');
+  assert.equal(await engine.runAssistMode(), 'fresh assist', 'the completed cleanup must not leave assist locked out');
+  assert.equal(requests.length, 2); assert.equal(engine.getActiveMode(), 'idle');
+  late.resolve(packet('LATE OLD ANSWER'));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(engine.getActiveMode(), 'idle');
+  assert.equal(session.getFullTranscript().some(segment => segment.text.includes('LATE OLD')), false);
+});
+
+test('AG33 old Engine finally cannot reset the newer active request mode', async () => {
+  const oldEntered = deferred(), freshEntered = deferred(), oldLate = deferred(), freshLate = deferred();
+  const { self } = helper((_, number) => { if (number === 1) { oldEntered.resolve(); return oldLate.promise; } freshEntered.resolve(); return freshLate.promise; });
+  const session = new SessionTracker(); session.addTranscript({ speaker: 'interviewer', text: 'QUESTION', timestamp: Date.now(), final: true });
+  const engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
+  const old = engine.runWhatShouldISay('OLD', 0.8, undefined, { skipCooldown: true });
+  await oldEntered.promise;
+  const fresh = engine.runManualAnswer('FRESH'); const newTask = engine.activeGenerationTask;
+  await assert.rejects(old, { name: 'AbortError' }); await freshEntered.promise;
+  assert.equal(engine.activeGenerationTask, newTask); assert.equal(engine.getActiveMode(), 'manual');
+  oldLate.resolve(packet('LATE OLD ANSWER')); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(engine.activeGenerationTask, newTask); assert.equal(engine.getActiveMode(), 'manual');
+  freshLate.resolve(packet('fresh answer')); assert.equal(await fresh, 'fresh answer');
+  assert.equal(engine.getActiveMode(), 'idle');
 });
 
 test('compression starts an independent background task inside an interview context and closes that supplied task', async () => {
@@ -314,4 +395,103 @@ test('explicit Codex selector clears stale API selection and snapshots its confi
   const task = self.beginGenerationTask();
   try { assert.equal(self.getTaskMetadata(task).provider, 'codex-cli'); assert.equal(task.primary.target.model, 'fast'); }
   finally { task.close(); }
+});
+
+test('AG33 actual Engine preserves a legitimate short answer and its request metadata', async () => {
+  const { self } = helper(() => packet('是'));
+  const session = new SessionTracker();
+  const engine = new IntelligenceEngine(self, session); const answers = [];
+  engine.on('error', () => {}); engine.on('suggested_answer', (...args) => answers.push(args));
+  assert.equal(await engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true }), '是');
+  assert.equal(answers[0][0], '是');
+  assert.equal(typeof answers[0][3].requestId, 'string');
+  assert.equal(session.getLastAssistantMessage(), '是');
+});
+
+test('AG33 outer cancellation fences late inner errors, held sentinel text and mode changes', async () => {
+  const entered = deferred(), late = deferred();
+  const { self } = helper(() => (async function* () { yield packet('Nothing ', null); entered.resolve(); await late.promise; throw Error('late inner failure'); })());
+  const engine = new IntelligenceEngine(self, new SessionTracker()); const events = [];
+  engine.on('error', () => events.push('error')); engine.on('suggested_answer_token', () => events.push('token'));
+  const pending = engine.runWhatShouldISay('OLD', 0.8, undefined, { skipCooldown: true });
+  await entered.promise; engine.reset(); await assert.rejects(pending, { name: 'AbortError' });
+  late.resolve(); await new Promise(resolve => setImmediate(resolve)); await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(events, []);
+});
+
+test('AG33 shared written task records a second-step failure rather than first-step completion', async () => {
+  const { self } = helper((_, n) => { if (n === 1) return packet('step one'); throw Object.assign(Error('bad configuration'), { status: 400 }); });
+  const task = self.beginGenerationTask('written');
+  await assert.rejects(() => self.runGeneration(async () => { await self.chatWithGemini('FIRST'); await self.chatWithGemini('SECOND'); }, 'written', undefined, task));
+  assert.equal(task.terminalStatus, 'failed');
+});
+
+test('AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup', async () => {
+  const { self, requests } = helper((_, n) => { if (n === 1) throw { status: 503 }; return packet('not allowed'); });
+  delete self.selectedTarget.imageSupportConfirmedFor;
+  await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), /unconfirmed/);
+  assert.equal(requests.length, 0);
+  self.selectedTarget = target();
+  self.setGenerationPolicy({ ...policy(selector('gemini-b')), backupImageSupportConfirmedFor: undefined });
+  const task = self.beginGenerationTask();
+  await assert.rejects(() => collect(self.runGenerationStream(() => self.streamChat('QUESTION', ['image']), 'interview', undefined, task)), /unconfirmed/);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].model, 'gemini-a');
+  assert.equal(self.getTaskMetadata(task).model, 'gemini-a', 'a preflight-rejected backup was never physically sent');
+  assert.equal(self.getTaskMetadata(task).attempts, 1);
+});
+
+test('AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden', async () => {
+  for (const config of [
+    { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-pro-preview', baseUrl: 'https://compatible.example' },
+    { provider: 'gemini', protocol: 'gemini', model: 'toString' },
+    { provider: 'groq', protocol: 'chat-completions', model: 'llama-3.3-70b-versatile', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'llama-3.3-70b-versatile']) },
+  ]) {
+    const { self, requests } = helper(); self.selectedTarget = config; self.currentModelId = config.model;
+    self.groqClient = { chat: { completions: { create: () => { throw Error('must not send'); } } } };
+    await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), /unconfirmed|does not support/);
+    assert.equal(requests.length, 0);
+  }
+});
+
+test('AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count', async () => {
+  const { self } = helper(); const task = self.beginGenerationTask('written');
+  await assert.rejects(() => self.runGeneration(async () => {
+    await self.chatWithGemini('FIRST');
+    assert.equal(task.terminalStatus, 'completed');
+    task.controller.abort(Object.assign(Error('second step timeout'), { name: 'GenerationTimeoutError', deadline: 'total' }));
+    task.check();
+  }, 'written', undefined, task), { name: 'GenerationTimeoutError' });
+  assert.equal(task.terminalStatus, 'failed'); assert.equal(task.sends, 1);
+  assert.equal(self.getTaskMetadata(task).timeout, 'total');
+});
+
+test('AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes', async t => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ag33-invalid-image-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
+  const file = path.join(temp, 'private.png'); fs.writeFileSync(file, 'SYNTHETIC_PRIVATE_NON_IMAGE');
+  const { self, requests } = helper(); delete self.processImage;
+  await assert.rejects(() => collect(self.streamChat('QUESTION', [file])), /Invalid or unreadable image/);
+  assert.equal(requests.length, 0);
+});
+
+test('AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning', async () => {
+  const { CodeHintLLM } = require('../../../dist-electron/electron/llm/CodeHintLLM.js');
+  const { self, requests } = helper();
+  self.selectedTarget = target('opaque-model'); self.currentModelId = 'opaque-model';
+  assert.equal(await collect(new CodeHintLLM(self).generateStream(['image'], 'QUESTION')), 'answer');
+  assert.equal(requests.length, 1);
+  assert.ok(requests[0].contents.some(part => part.inlineData));
+});
+
+test('AG33 partial cancellation records exact target and cancelled status in existing session usage', async () => {
+  const entered = deferred(), late = deferred();
+  const { self } = helper(() => (async function* () { yield packet('partial answer', null); entered.resolve(); await late.promise; yield packet('late'); })());
+  const session = new SessionTracker(), engine = new IntelligenceEngine(self, session);
+  engine.on('error', () => {});
+  const pending = engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true });
+  await entered.promise; engine.reset(); await assert.rejects(pending, { name: 'AbortError' }); late.resolve();
+  const usage = session.getFullUsage().at(-1);
+  assert.equal(usage.answer, 'partial answer'); assert.equal(usage.status, 'cancelled');
+  assert.equal(usage.model, 'gemini-a'); assert.equal(usage.provider, 'gemini'); assert.equal(usage.partial, true);
+  assert.equal(session.getFullTranscript().at(-1).generation.requestId, usage.requestId);
 });

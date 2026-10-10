@@ -1,0 +1,40 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4359.833083ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (644.843333ms)
+✖ the meeting chat follows the post_call_summary and profile_history scopes (24503.834083ms)
+✔ a meeting edit that fails to save is rolled back and reported (5292.974417ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4354.444416ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39673.782583
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:245:1
+✖ the meeting chat follows the post_call_summary and profile_history scopes (24503.834083ms)
+  Error: timed out waiting for the profile_history refusal
+      at waitFor (file://<repo>/tests/margin/meeting-storage.test.mjs:72:38)
+      at async TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:326:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at tests/margin/meeting-storage.test.mjs:463:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4354.444416ms)
+  AssertionError [ERR_ASSERTION]: only the launcher chat answer is in the session: ["RECOVER_DENIED one: we plan the offsite.","RECOVER_DENIED two: the offsite is in May.","RECOVER_DENIED three: the budget is fixed.","RECOVER_DENIED four: I will book the venue."]
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:518:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,370 @@
+✔ ipcHandlers tracks active gemini chat streams by sender id (2.913417ms)
+✔ gemini-chat-stream handler supersedes only the current sender and passes signal to streamChat (1.782125ms)
+✔ gemini-chat-stream-stop handler aborts only the requesting sender stream (0.835541ms)
+✔ preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-stream-stop") (0.899625ms)
+✔ preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream (0.51025ms)
+✔ clearImmediate semantics match the patch: a queued flush is cancellable, and a re-arm after flush still fires (8.364083ms)
+✔ intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer (1.273875ms)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:18704) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.438917ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.112708ms)
+✔ single response preserves incomplete (no finish) (0.096542ms)
+✔ single response preserves empty (STOP) (0.093375ms)
+✔ single response preserves refused (SAFETY) (0.373416ms)
+✔ single response preserves refused (no finish) (0.101875ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.3295ms)
+✔ final scope refusal retains the original object and never sends (0.491959ms)
+✔ cancel before start and late response cannot produce deltas (0.411125ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (7.877875ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (1.553291ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (38.084625ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.599667ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.685042ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.359417ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (0.897333ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (40.016541ms)
+(node:18705) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+✔ chat-completions preserves completed from actual protocol terminal (1.794042ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.172792ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.129958ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.147334ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.165458ms)
+✔ chat-completions preserves empty from actual protocol terminal (0.117125ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.139083ms)
+✔ chat-completions final scope and cancel checks happen before a physical send (1.519ms)
+✔ chat-completions late response and consumer return abort the transport (0.255292ms)
+✔ responses preserves completed from actual protocol terminal (0.158208ms)
+✔ responses preserves incomplete from actual protocol terminal (0.085708ms)
+✔ responses preserves failed from actual protocol terminal (0.077333ms)
+✔ responses preserves refused from actual protocol terminal (0.062875ms)
+✔ responses preserves empty from actual protocol terminal (0.096875ms)
+✔ responses preserves incomplete from actual protocol terminal (0.104375ms)
+✔ responses final scope and cancel checks happen before a physical send (0.184792ms)
+✔ responses late response and consumer return abort the transport (0.12725ms)
+✔ messages preserves completed from actual protocol terminal (0.12ms)
+✔ messages preserves completed from actual protocol terminal (0.058541ms)
+✔ messages preserves incomplete from actual protocol terminal (0.052333ms)
+✔ messages preserves incomplete from actual protocol terminal (0.060625ms)
+✔ messages preserves incomplete from actual protocol terminal (0.0815ms)
+✔ messages preserves refused from actual protocol terminal (0.07ms)
+✔ messages preserves empty from actual protocol terminal (0.051042ms)
+✔ messages preserves incomplete from actual protocol terminal (0.04825ms)
+✔ messages final scope and cancel checks happen before a physical send (0.1645ms)
+✔ messages late response and consumer return abort the transport (0.093708ms)
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+✔ real SDK text/image serialization, saved opaque target, test and model list share one API base (75.79925ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ real OpenAI and Anthropic adapters disable SDK retry on 503 and never follow redirects (13.454ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ an explicitly selected custom model is the wire model, while connection tests retain the saved model (19.779167ms)
+✔ real three-protocol SDK terminal events remain incomplete/refused when the stream finishes normally (7.050625ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ real SDK cancellation after the server receives the request suppresses all late deltas (4.130708ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ Gemini custom target uses the same v1alpha prefix for generation, test and unfiltered model listing (5.65425ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+✔ meeting summary never discovers an unselected OpenAI target, then uses explicitly selected Responses (2.8895ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: old-model
+[GeminiPromptCache] created cache/new for model=test (6000 chars)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: same
+✔ legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged (6.41625ms)
+✔ hot configuration changes keep active provider, protocol and wire model together (0.833334ms)
+✔ saved Gemini base takes precedence over explicit environment base without adding a second API version (0.217667ms)
+✔ Gemini hot configuration clear never accepts an old in-flight cache (0.489458ms)
+✔ endpoint validation and explicit selection refuse wrong protocol, version and model ambiguity (0.824166ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Code hint — question source: screenshot, transcript lines: 0, images: 1
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] code_hint stream aborted by new generation
+(node:18706) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ runCodeHint returns stream on cancellation, preserves its partial record and does not emit stale final result (13.058584ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'coding',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 67 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 81 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+(node:18707) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ handleSuggestionTrigger stays silent for low confidence without emitting or storing history (12.01325ms)
+✔ handleSuggestionTrigger routes recap requests to recap executor (0.82325ms)
+✔ handleSuggestionTrigger routes answerable questions to what-to-say executor (6.334375ms)
+✔ handleSuggestionTrigger routes incomplete technical restatements to clarify executor (0.412208ms)
+✔ handleSuggestionTrigger still answers complete technical restatements (0.769708ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 1,
+  screenOcrAvailable: true,
+  screenOcrTextLength: 43
+}
+[SessionTracker] addAssistantMessage called { length: 49 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 28 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay passes screenContext and preserves imagePaths (17.355625ms)
+✔ runWhatShouldISay works without screenContext (1.797125ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 66 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 75 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+(node:18709) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ runWhatShouldISay suppresses nothing-actionable sentinel output (16.131875ms)
+✔ runWhatShouldISay suppresses nothing-to-capture sentinel output (0.615459ms)
+✔ runWhatShouldISay suppresses normalized sentinel variants (0.761416ms)
+✔ runWhatShouldISay does not suppress near-match real answers (0.836542ms)
+✔ runWhatShouldISay suppresses speculative sentinel output (0.470583ms)
+✔ runWhatShouldISay hides speculative real answers from renderer and history (0.333125ms)
+✔ runWhatShouldISay hides speculative fallback answers from renderer and history (0.293458ms)
+✔ runWhatShouldISay still emits and stores real answers (0.404209ms)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-backup: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:18710) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (136.918167ms)
+✔ selected Gemini stream: image-preparation revocation prevents cache and generation (5.539417ms)
+✔ selected Gemini stream: cache allowed, inflight revocation and explicit expiry recovery (3.357625ms)
+✔ selected Gemini nonstream: image-preparation revocation prevents cache and generation (0.321708ms)
+✔ selected Gemini nonstream: cache allowed, inflight revocation and explicit expiry recovery (1.29225ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (2.431333ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.214125ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.23975ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.1365ms)
+✔ selected gemini nonstream: final scope recheck after limiter wait (1.481584ms)
+✔ selected gemini stream: final scope recheck after limiter wait (0.868625ms)
+✔ selected groq nonstream: final scope recheck after limiter wait (0.721375ms)
+✔ selected groq stream: final scope recheck after limiter wait (0.57725ms)
+✔ selected openai nonstream: final scope recheck after limiter wait (0.688292ms)
+✔ selected openai stream: final scope recheck after limiter wait (0.629334ms)
+✔ selected claude nonstream: final scope recheck after limiter wait (0.748167ms)
+✔ selected claude stream: final scope recheck after limiter wait (0.527541ms)
+✔ selected deepseek nonstream: final scope recheck after limiter wait (0.699ms)
+✔ selected deepseek stream: final scope recheck after limiter wait (0.481917ms)
+✔ generateWithPro: final send rechecks after limiter wait (0.562084ms)
+✔ generateWithFlash: final send rechecks after limiter wait (0.417792ms)
+✔ fixed generateContent: retry uses current permissions, with allowed control (2.428583ms)
+✔ structured generation: limiter, same-model retry and explicit backup all recheck scopes (1.900917ms)
+✔ selected Groq stream: limiter and explicit Gemini backup preserve current permissions (1.629833ms)
+✔ SettingsManager exposes providerDataScopes setting (1.621959ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (0.835958ms)
+✔ preload and renderer types expose provider data scope controls (2.09725ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (0.410875ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:18711) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (4.793625ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (139.333334ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.797084ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (6.802375ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.77725ms)
+✔ groq constructor: SDK cannot resend after scope revocation (6.10025ms)
+✔ openai constructor: SDK cannot resend after scope revocation (4.2125ms)
+✔ claude constructor: SDK cannot resend after scope revocation (3.380833ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (1.708708ms)
+✔ groq key update: SDK cannot resend after scope revocation (1.66325ms)
+✔ openai key update: SDK cannot resend after scope revocation (2.010541ms)
+✔ claude key update: SDK cannot resend after scope revocation (1.616708ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (2.482583ms)
+✔ vision denial is terminal without another send (0.5925ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (0.705041ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (0.748417ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.381416ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (15.987125ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (3.147458ms)
+✔ default chat routing refuses transcript denial but can omit denied history (0.787584ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (0.391459ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.2755ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.384042ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.456125ms)
+✔ fixed Pro: scope refusal stays terminal with an explicit backup (0.427542ms)
+✔ fixed Flash: scope refusal stays terminal with an explicit backup (0.387209ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.336417ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.349209ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (0.764167ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (0.637333ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (0.614375ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.569208ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.35525ms)
+✔ generateWithPro refuses transcript denial at the actual send boundary (0.300917ms)
+✔ generateWithFlash refuses transcript denial at the actual send boundary (0.314292ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.396917ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.67025ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (0.547ms)
+✔ the meeting chat context carries the scopes of what it contains (1.7645ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.122916ms)
+✔ meeting summaries stop the explicit backup when a scope is turned off after the first send (1.119708ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (1.404375ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.352791ms)
+ℹ tests 150
+ℹ suites 0
+ℹ pass 150
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 708.104375

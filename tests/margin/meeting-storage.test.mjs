@@ -280,7 +280,7 @@ test('the meeting chat follows the post_call_summary and profile_history scopes'
   assert.equal(config?.model, 'llm-target:groq:chat-completions:llama-3.3-70b-versatile', `active model is ${JSON.stringify(config)}`);
   await launcher.getByText(TITLE).first().click();
   const input = launcher.locator('input[placeholder="Ask about this meeting..."]');
-  await launcher.evaluate(() => { window.__marginStreamErrors = []; window.electronAPI.onGeminiStreamError((e) => window.__marginStreamErrors.push(e)); });
+  await launcher.evaluate(() => { window.__marginStreamErrors = []; window.electronAPI.onGeminiStreamError((e) => window.__marginStreamErrors.push(e), 'meeting'); });
 
   // Chat questions get their own answer, so the test can wait until it is shown.
   mock.setScript({
@@ -324,6 +324,7 @@ test('the meeting chat follows the post_call_summary and profile_history scopes'
   await input.fill('CHAT_QUESTION three: who owns step four?');
   await input.press('Enter');
   await waitFor(async () => (await launcher.evaluate(() => (window.__marginStreamErrors ?? []).some((e) => /profile_history/.test(e)))), 'the profile_history refusal', 20_000);
+  await launcher.getByText(/profile_history/).first().waitFor({ state: 'visible' });
   await new Promise((r) => setTimeout(r, 500));
   assert.deepEqual(mock.chatRequests().slice(before).map((r) => r.url), [], 'no request for a past meeting with profile_history off');
 
@@ -487,6 +488,14 @@ test('startup recovery of an unprocessed meeting follows the profile_history sco
     const list = await launcher.evaluate(() => window.electronAPI.getRecentMeetings());
     const placeholder = list.find((m) => !known.has(m.id));
     assert.equal(placeholder?.title, 'Processing...', `the meeting is still unprocessed: ${JSON.stringify(placeholder)}`);
+    await app.evaluate(({}, { filename, id, marker }) => {
+      const { DatabaseManager } = process.mainModule.require(filename);
+      const db = DatabaseManager.getInstance();
+      const saved = db.getMeetingDetails(id);
+      saved.usage.push({ type: 'chat', timestamp: 1, question: 'synthetic recovery metadata', answer: 'retained partial answer',
+        requestId: marker, provider: 'openai', model: `${marker}-model`, status: 'failed', attempts: 2, partial: true, timeout: 'total' });
+      db.saveMeeting(saved, Date.parse(saved.date), 1500);
+    }, { filename: path.join(REPO, 'dist-electron/electron/db/DatabaseManager.js'), id: placeholder.id, marker });
     return placeholder.id;
   };
   const respondNormally = () => mock.setScript({ hold: false, respond: (body) => (isSummaryRequest(body) ? JSON.stringify(SUMMARY) : TITLE) });
@@ -516,6 +525,16 @@ test('startup recovery of an unprocessed meeting follows the profile_history sco
   // through the launcher chat without a meeting id, which belongs to the session.)
   assert.ok(!storedTexts.some((t) => /CHAT_QUESTION (one|two|three)/.test(t)), `meeting chat turns must not enter the next meeting: ${JSON.stringify(storedTexts)}`);
   assert.equal(storedTexts.filter((t) => t === 'CHAT_ANSWER shown.').length, 1, `only the launcher chat answer is in the session: ${JSON.stringify(storedTexts)}`);
+  assert.deepEqual(deniedMeeting.usage.find(u => u.generation?.requestId === 'RECOVER_DENIED')?.generation,
+    { requestId: 'RECOVER_DENIED', provider: 'openai', model: 'RECOVER_DENIED-model', status: 'failed', attempts: 2, partial: true, timeout: 'total' }, 'denied startup recovery retains the original failed generation');
+  // The actual history view must distinguish saved partial/timeout output from a completed answer.
+  await launcher.evaluate(() => localStorage.setItem('natively_seen_startup_v1', 'true'));
+  await launcher.reload();
+  await launcher.getByText('Untitled Session', { exact: true }).first().click();
+  await launcher.getByRole('button', { name: 'Usage', exact: true }).click();
+  await launcher.locator('[data-generation-status="failed"]').filter({ hasText: 'RECOVER_DENIED-model' }).waitFor({ state: 'visible' });
+  assert.ok((await launcher.locator('[data-generation-status="failed"]').filter({ hasText: 'RECOVER_DENIED-model' }).innerText()).includes('Incomplete · timeout:total'));
+  await launcher.reload();
 
   // 2. profile_history on: recovery sends the recovered meeting (the check above is
   // not passing only because recovery sends nothing at all).
@@ -531,4 +550,6 @@ test('startup recovery of an unprocessed meeting follows the profile_history sco
   assert.ok(sent.some((b) => b.includes('RECOVER_ALLOWED')), 'recovery sends the meeting with profile_history on');
   assert.ok(!sent.some((b) => b.includes('RECOVER_DENIED')), 'the meeting recovered earlier is not sent again');
   assert.equal(allowedMeeting.title, TITLE);
+  assert.deepEqual(allowedMeeting.usage.find(u => u.generation?.requestId === 'RECOVER_ALLOWED')?.generation,
+    { requestId: 'RECOVER_ALLOWED', provider: 'openai', model: 'RECOVER_ALLOWED-model', status: 'failed', attempts: 2, partial: true, timeout: 'total' }, 'allowed startup recovery retains the original failed generation');
 });

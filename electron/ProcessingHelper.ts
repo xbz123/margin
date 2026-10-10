@@ -20,6 +20,8 @@ export class ProcessingHelper {
   private llmHelper: LLMHelper
   private currentProcessingAbortController: AbortController | null = null
   private currentExtraProcessingAbortController: AbortController | null = null
+  private currentProcessingTask?: ReturnType<LLMHelper['beginGenerationTask']>;
+  private currentExtraProcessingTask?: ReturnType<LLMHelper['beginGenerationTask']>;
 
   constructor(appState: AppState) {
     this.appState = appState
@@ -113,11 +115,17 @@ export class ProcessingHelper {
 
       mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.INITIAL_START)
       this.appState.setView("solutions")
-      this.currentProcessingAbortController = new AbortController()
+      this.cancelOngoingRequests();
+      const controller = new AbortController();
+      this.currentProcessingAbortController = controller;
+      const task = this.llmHelper.beginGenerationTask('written', controller.signal);
+      this.currentProcessingTask = task;
+      task.rendererOwner = mainWindow.webContents;
       try {
         // Generate the structured 4-phase rolling interview script
-        const rollingScript = await this.llmHelper.runGeneration(() => this.llmHelper.generateRollingScript(allPaths), 'written', this.currentProcessingAbortController.signal);
-        this.currentProcessingAbortController.signal.throwIfAborted();
+        const rollingScript = await this.llmHelper.runGeneration(() => this.llmHelper.generateRollingScript(allPaths), 'written', controller.signal, task);
+        if (this.currentProcessingAbortController !== controller || controller.signal.aborted || mainWindow.webContents.isDestroyed?.()) return;
+        this.appState.getIntelligenceManager?.().logUsage('chat', 'Screenshot analysis', JSON.stringify(rollingScript), this.llmHelper.getTaskMetadata(task));
 
         const problemInfo = {
           problem_statement: rollingScript.problem_identifier_script,
@@ -133,6 +141,7 @@ export class ProcessingHelper {
 
         // Send the full structured solution so Solutions.tsx renders the 4 phases
         mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.SOLUTION_SUCCESS, {
+          generation: this.llmHelper.getTaskMetadata(task),
           solution: {
             problem_identifier_script: rollingScript.problem_identifier_script,
             brainstorm_script: rollingScript.brainstorm_script,
@@ -143,10 +152,12 @@ export class ProcessingHelper {
           }
         });
       } catch (error: any) {
+        if (this.currentProcessingAbortController !== controller || mainWindow.webContents.isDestroyed?.()) return;
+        this.appState.getIntelligenceManager?.().logUsage('chat', 'Screenshot analysis', task.displayedText, this.llmHelper.getTaskMetadata(task));
         console.error("[ProcessingHelper] Rolling script generation failed:", error);
-        mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR, error.message)
+        mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR, error.message, this.llmHelper.getTaskMetadata(task))
       } finally {
-        this.currentProcessingAbortController = null
+        if (this.currentProcessingAbortController === controller) { this.currentProcessingAbortController = null; this.currentProcessingTask = undefined; }
       }
       return;
 
@@ -160,7 +171,12 @@ export class ProcessingHelper {
       }
 
       mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.DEBUG_START)
-      this.currentExtraProcessingAbortController = new AbortController()
+      this.cancelOngoingRequests();
+      const controller = new AbortController();
+      this.currentExtraProcessingAbortController = controller;
+      const task = this.llmHelper.beginGenerationTask('written', controller.signal);
+      this.currentExtraProcessingTask = task;
+      task.rendererOwner = mainWindow.webContents;
 
       try {
         // Get problem info and current solution
@@ -170,27 +186,30 @@ export class ProcessingHelper {
         }
 
         // The debug workflow shares one deadline, cancellation signal and send budget.
-        const controller = this.currentExtraProcessingAbortController;
         const debugResult = await this.llmHelper.runGeneration(async () => {
           const currentSolution = await this.llmHelper.generateSolution(problemInfo);
           return this.llmHelper.debugSolutionWithImages(problemInfo, currentSolution.solution.code, extraScreenshotQueue);
-        }, 'written', controller.signal);
-        controller.signal.throwIfAborted();
+        }, 'written', controller.signal, task);
+        if (this.currentExtraProcessingAbortController !== controller || controller.signal.aborted || mainWindow.webContents.isDestroyed?.()) return;
+        this.appState.getIntelligenceManager?.().logUsage('chat', 'Screenshot debugging', JSON.stringify(debugResult), this.llmHelper.getTaskMetadata(task));
 
         this.appState.setHasDebugged(true)
         mainWindow.webContents.send(
           this.appState.PROCESSING_EVENTS.DEBUG_SUCCESS,
-          debugResult
+          { ...debugResult, generation: this.llmHelper.getTaskMetadata(task) }
         )
 
       } catch (error: any) {
+        if (this.currentExtraProcessingAbortController !== controller || mainWindow.webContents.isDestroyed?.()) return;
+        this.appState.getIntelligenceManager?.().logUsage('chat', 'Screenshot debugging', task.displayedText, this.llmHelper.getTaskMetadata(task));
         // console.error("Debug processing error:", error)
         mainWindow.webContents.send(
           this.appState.PROCESSING_EVENTS.DEBUG_ERROR,
-          error.message
+          error.message,
+          this.llmHelper.getTaskMetadata(task)
         )
       } finally {
-        this.currentExtraProcessingAbortController = null
+        if (this.currentExtraProcessingAbortController === controller) { this.currentExtraProcessingAbortController = null; this.currentExtraProcessingTask = undefined; }
       }
     }
   }
@@ -198,12 +217,16 @@ export class ProcessingHelper {
   public cancelOngoingRequests(): void {
     if (this.currentProcessingAbortController) {
       this.currentProcessingAbortController.abort()
+      if (this.currentProcessingTask && this.currentProcessingTask.terminalStatus !== 'completed') this.appState.getIntelligenceManager?.().logUsage('chat', 'Screenshot analysis', this.currentProcessingTask.displayedText, this.llmHelper.getTaskMetadata(this.currentProcessingTask));
       this.currentProcessingAbortController = null
+      this.currentProcessingTask = undefined;
     }
 
     if (this.currentExtraProcessingAbortController) {
       this.currentExtraProcessingAbortController.abort()
+      if (this.currentExtraProcessingTask && this.currentExtraProcessingTask.terminalStatus !== 'completed') this.appState.getIntelligenceManager?.().logUsage('chat', 'Screenshot debugging', this.currentExtraProcessingTask.displayedText, this.llmHelper.getTaskMetadata(this.currentExtraProcessingTask));
       this.currentExtraProcessingAbortController = null
+      this.currentExtraProcessingTask = undefined;
     }
 
     this.appState.setHasDebugged(false)

@@ -209,6 +209,16 @@
     {"line":"let returned;","reason":"AG-32 test local holds the consumer-return promise while checking immediate cancellation; generic declaration written on this branch, 2026-10-10."},
     {"line":"controller.signal.throwIfAborted();","reason":"AG-32 debug workflow checks cancellation before publishing success after its shared logical task; standard AbortSignal call written on this branch, 2026-10-10."},
     {"line":"engine.reset();","reason":"AG-32 real Engine/helper test exercises the existing reset API to abort the active transport; standard method call written on this branch, 2026-10-10."},
-    {"line":"const electronId = require.resolve('electron');","reason":"AG-32 log-redaction behavior test resolves Electron to install and restore a synthetic module-cache entry; standard Node API independently written on this branch, 2026-10-10."}
+    {"line":"const electronId = require.resolve('electron');","reason":"AG-32 log-redaction behavior test resolves Electron to install and restore a synthetic module-cache entry; standard Node API independently written on this branch, 2026-10-10."},
+    {"line":"if (!current()) return;","reason":"AG-33 renderer epoch guard around delayed and streaming callbacks; independently written generic early return, 2026-10-10."},
+    {"line":"requestId: string;","reason":"AG-33 shared generation metadata string field; generic TypeScript declaration written on this branch, 2026-10-10."},
+    {"line":"attempts: number;","reason":"AG-33 shared generation metadata numeric field; generic TypeScript declaration written on this branch, 2026-10-10."},
+    {"line":"partial: boolean;","reason":"AG-33 shared generation metadata boolean field; generic TypeScript declaration written on this branch, 2026-10-10."},
+    {"line":"}).finally(() => {","reason":"AG-33 task terminal cleanup uses the standard Promise finally method; generic syntax written on this branch, 2026-10-10."},
+    {"line":"questionContext: this.getLastInterviewerTurn() || 'unknown',","reason":"AG-33 adds only a trailing comma to the existing a786910e electron/SessionTracker.ts:299 property so generation metadata can follow; original expression unchanged, 2026-10-10."},
+    {"line":"await page.evaluate(() => {","reason":"AG-33 real React component checks invoke the documented Playwright page evaluation API; generic call opening written on this branch, 2026-10-10."},
+    {"line":"await page.close();","reason":"AG-33 real React component checks close their own temporary browser surface; documented Playwright method written on this branch, 2026-10-10."},
+    {"line":"assert.equal(opened, false);","reason":"AG-33 cancellation regression asserts that an already cancelled task never opens a transport; generic Boolean assertion written on this branch, 2026-10-10."},
+    {"line":"assert.equal(engine.getActiveMode(), 'idle');","reason":"AG-33 real Engine cancellation tests assert the public active-mode getter returns idle after owned cleanup; generic existing-API assertion independently written on this branch, 2026-10-10."}
   ]
 }

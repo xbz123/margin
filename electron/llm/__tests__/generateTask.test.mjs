@@ -8,6 +8,39 @@ const policy = { interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writ
 const unavailable = { status: 404, error: { code: 'model_not_found' } };
 const cacheError = { status: 404, error: { details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'CACHED_CONTENT_EXPIRED' }] } };
 
+test('AG33 a written task uses 180 seconds and has no interview first-token deadline', () => {
+  const task = new GenerationTask('A', undefined, policy, 'written');
+  assert.equal(task.totalDeadline - task.startedAt, 180_000); assert.equal(task.firstTokenDeadline, undefined); task.close();
+});
+
+test('AG33 an abort before an attempt preserves its terminal classification and never sends', async () => {
+  for (const reason of [new DOMException('cancelled', 'AbortError'), Object.assign(Error('timeout'), { name: 'GenerationTimeoutError', deadline: 'total' })]) {
+    const task = new GenerationTask('A', 'B'); let opened = false;
+    task.controller.abort(reason);
+    await assert.rejects(() => drain(generateTask(task, async function* () { opened = true; })));
+    assert.equal(opened, false);
+    assert.equal(task.terminalStatus, reason.name === 'AbortError' ? 'cancelled' : 'failed');
+    task.close();
+  }
+});
+
+test('AG33 cancellation between attempts preserves status and does not open the backup', async () => {
+  const task = new GenerationTask('A', 'B'); const sent = [];
+  await assert.rejects(() => drain(generateTask(task, async function* (target) {
+    sent.push(target); task.claimSend(); throw { status: 503 };
+  }, { onAttempt: () => queueMicrotask(() => task.controller.abort(new DOMException('cancel', 'AbortError'))) })));
+  assert.equal(task.terminalStatus, 'cancelled'); assert.deepEqual(sent, ['A']); task.close();
+});
+
+test('AG33 explicit server image rejection is terminal even with a transient HTTP status', async () => {
+  const task = new GenerationTask('A', 'B'); const targets = [];
+  const failure = { status: 503, error: { code: 'unsupported_image' } };
+  try {
+    await assert.rejects(() => drain(generateTask(task, async function* (target) { task.claimSend(); targets.push(target); throw failure; })));
+    assert.deepEqual(targets, ['A']);
+  } finally { task.close(); }
+});
+
 for (const [name, failure, backup, expected] of [
   ['backup before same-model retry', { status: 503 }, 'B', ['A', 'B']],
   ['transient without backup', { code: 'ECONNRESET' }, undefined, ['A', 'A']],

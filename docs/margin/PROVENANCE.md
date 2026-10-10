@@ -21,6 +21,33 @@ Notes:
 
 ## Ledger
 
+### AG-33 answer lifecycle and image admission
+
+The requirements are PLAN S27–S28 and sections 3.1–3.2 of
+`b8ade3f7:docs/fresh-release-implementation-plan.md`. This is a behavior reference,
+not permission to import the older implementation. Changes build on this
+branch's AG-30–32 generation task, existing IPC/preload event paths, credential
+transactions and renderer buffers. No older implementation file is copied or
+added to the approved pool. Exact new source matches and behavior evidence are
+recorded after implementation freezes. Prompt text remains unchanged pending
+the S12/S27 user decision.
+
+The in-progress AG-33 source scan found 17 matches for six exact statements:
+an epoch guard repeated in renderer callbacks, three primitive metadata fields,
+a Promise-finally opening, and an unchanged baseline SessionTracker expression
+with a trailing comma. The last expression was checked against
+`a786910e:electron/SessionTracker.ts` line 299. Surrounding code was reviewed;
+only these exact lines are registered, with no expanded source pool or exclusion.
+The first complete gates scan found four more occurrences of three generic
+statements in the new tests: Playwright page evaluation/close and a Boolean
+no-transport-open assertion. The real component and cancellation test bodies
+were inspected; only those exact statements are registered.
+The second complete scan found two occurrences of one additional assertion,
+`assert.equal(engine.getActiveMode(), 'idle');`, in the real Engine timeout and
+supersession regressions. Their fake-clock/request ownership controls were
+reviewed; this exact public-API assertion is registered without changing the
+scan scope. AG-33 adds ten exact idiom/baseline-punctuation registrations in total.
+
 ### AG-32 logical generation scheduling
 
 The behavior requirement is section 3.2 of

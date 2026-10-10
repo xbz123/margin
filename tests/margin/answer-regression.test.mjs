@@ -36,17 +36,17 @@ let mainPid;
 // Visible transcript text of the overlay's message list.
 const overlayText = () => overlay.evaluate(() => document.body.innerText);
 
-// Type a question and press Enter. The overlay clears the input only when it
-// accepts the submit (it ignores submits while a previous answer is in flight), so
-// retry until the input is empty.
+// Acceptance is a physical mock request, not input removal: failed generations
+// now retain the submitted input and attachments for an explicit retry.
 async function ask(question, { timeoutMs = 15_000 } = {}) {
   const input = overlay.locator('input[type="text"]').last();
   const deadline = Date.now() + timeoutMs;
+  const before = mock.chatRequests().length;
   while (Date.now() < deadline) {
     await input.fill(question);
     await input.press('Enter');
     await new Promise((r) => setTimeout(r, 250));
-    if ((await input.inputValue()) === '') return;
+    if (mock.chatRequests().length > before) return;
   }
   throw new Error(`overlay did not accept the question within ${timeoutMs} ms`);
 }
@@ -120,6 +120,9 @@ test.before(async () => {
   await launcher.waitForLoadState('domcontentloaded');
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_KEY);
   assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
+  const imageTarget = { provider: 'openai', protocol: 'chat-completions', baseUrl: mock.baseURL, model: MODEL,
+    imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', mock.baseURL.replace(/\/+$/, ''), MODEL]) };
+  assert.equal((await launcher.evaluate(config => window.electronAPI.setProviderConfiguration(config), imageTarget)).ok, true);
   await launcher.evaluate((m) => window.electronAPI.setModel(m), MODEL); // see note in PLAN.md AG-09
   const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
   assert.equal(config?.model, `llm-target:openai:chat-completions:${encodeURIComponent(MODEL)}`, `active model is ${JSON.stringify(config)}`);
@@ -368,7 +371,7 @@ test('after a chat request fails before streaming, the next answer is shown once
   await search.fill('Launcher question that fails');
   await search.press('ArrowDown');
   await search.press('Enter');
-  await launcher.waitForFunction(() => document.body.innerText.includes('Something went wrong'), null, { timeout: 15_000 });
+  await launcher.waitForFunction(() => document.body.innerText.includes('margin: injected setup failure'), null, { timeout: 15_000 });
   assert.equal(mock.chatRequests().length, before, 'the failed request reached no provider');
 
   mock.setScript({ errorStatus: 0, chunks: ['Retry ', 'answer ', 'kept.'], delayMs: 100 });
@@ -419,4 +422,139 @@ test('a complete compatible target saved through preload drives a real typed UI 
     await overlay.evaluate(value => window.electronAPI.setModel(value), previous.selection.model);
     assert.deepEqual(await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()), previous.selection);
   }
+});
+
+test('AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry', async () => {
+  const original = (await overlay.evaluate(() => window.electronAPI.getStoredCredentials())).providerConfigurations.openai;
+  const unconfirmed = { ...original }; delete unconfirmed.imageSupportConfirmedFor;
+  const input = overlay.locator('input[type="text"]').last();
+  const before = mock.chatRequests().length;
+  try {
+    assert.equal((await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), unconfirmed)).ok, true);
+    const removeAll = overlay.getByRole('button', { name: 'Remove all' });
+    if (await removeAll.count()) await removeAll.click();
+    await pressScreenshotShortcut();
+    await overlay.waitForFunction(() => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
+    await input.fill('AG33 image confirmation question'); await input.press('Enter');
+    await overlay.waitForFunction(() => document.body.innerText.includes('Image support is unconfirmed'), null, { timeout: 15_000 });
+    assert.equal(await input.inputValue(), 'AG33 image confirmation question');
+    assert.equal(await overlay.locator('img[alt="Screenshot 1"]').count(), 1);
+    assert.equal(mock.chatRequests().length, before);
+    assert.equal((await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), original)).ok, true);
+    mock.setScript({ errorStatus: 0, chunks: ['AG33 image retry accepted.'], delayMs: 20 });
+    await input.press('Enter');
+    await overlay.waitForFunction(() => document.body.innerText.includes('AG33 image retry accepted.'), null, { timeout: 15_000 });
+    await overlay.waitForFunction(() => document.querySelector('input[type="text"]')?.value === '' || [...document.querySelectorAll('input[type="text"]')].at(-1)?.value === '');
+    assert.equal(mock.chatRequests().length, before + 1);
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
+    await overlay.waitForFunction(() => [...document.querySelectorAll('[data-generation-status="completed"]')].some(node => node.textContent.includes('gpt-5.4')));
+  } finally { await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), original); }
+});
+
+test('AG33 one webContents delivers chat events only to the owning UI subscription', async () => {
+  await overlay.evaluate(() => {
+    window.__ag33Owners = { natively: '', global: '', meeting: '' };
+    for (const owner of ['natively', 'global', 'meeting']) window.electronAPI.onGeminiStreamToken(token => { window.__ag33Owners[owner] += token; }, owner);
+  });
+  mock.setScript({ errorStatus: 0, chunks: ['AG33 owner-scoped answer.'], delayMs: 20 });
+  await overlay.evaluate(() => window.electronAPI.streamGeminiChat('AG33 owner question', undefined, undefined, { owner: 'global' }));
+  const owners = await overlay.evaluate(() => window.__ag33Owners);
+  assert.deepEqual(owners, { natively: '', global: 'AG33 owner-scoped answer.', meeting: '' });
+});
+
+test('AG33 real Written typed and captured-image questions survive interview TTFT, preserve cancellation and retry as separate records', async () => {
+  const delayFirstBody = entry => entry.chunksSent === 1 ? new Promise(resolve => setTimeout(resolve, 11_000)) : undefined;
+  try {
+    await overlay.getByLabel('Question mode').selectOption('written');
+    const deliveredBefore = await overlay.locator('[data-generation-status="cancelled"]').count();
+    mock.setScript({ errorStatus: 0, chunks: ['', 'Written ', 'partial ', 'OLD-WRITTEN-TAIL'], delayMs: 800, afterChunk: delayFirstBody });
+    await ask('Synthetic written screenshot-free question');
+    await overlay.waitForFunction(() => document.body.innerText.includes('Written partial'));
+    await overlay.evaluate(() => window.electronAPI.cancelChatStream('natively'));
+    await overlay.waitForFunction(() => document.body.innerText.includes('Written partial') && document.body.innerText.includes('cancelled'));
+    assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), deliveredBefore + 1);
+    mock.setScript({ errorStatus: 0, chunks: ['Written explicit retry completed.'], delayMs: 20 });
+    await ask('Synthetic written explicit retry');
+    await overlay.waitForFunction(() => document.body.innerText.includes('Written explicit retry completed.'));
+    assert.ok((await overlayText()).includes('Written partial'), 'cancelled partial remains its own record after retry');
+    assert.ok(!(await overlayText()).includes('OLD-WRITTEN-TAIL'));
+    const beforeCapture = mock.chatRequests().length;
+    mock.setScript({ errorStatus: 0, chunks: ['', 'Written captured image answer.'], delayMs: 20, afterChunk: delayFirstBody });
+    const screenshot = await overlay.evaluate(() => window.electronAPI.takeScreenshot());
+    await sendOverlayStreamEvent('capture-and-process', screenshot);
+    await overlay.waitForFunction(() => document.body.innerText.includes('Written captured image answer.'), null, { timeout: 20_000 });
+    assert.equal(mock.chatRequests().length, beforeCapture + 1);
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
+  } finally {
+    await overlay.getByLabel('Question mode').selectOption('interview');
+  }
+});
+
+test('AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder', async () => {
+  let release; const gate = new Promise(resolve => { release = resolve; });
+  let paused; const entered = new Promise(resolve => { paused = resolve; });
+  mock.setScript({ errorStatus: 0, chunks: ['Manual source ', 'answer intact.'], delayMs: 100, afterChunk(entry) { if (entry.chunksSent === 1) { paused(); return gate; } } });
+  try {
+    await ask('Synthetic mixed source question'); await entered;
+    const metadata = { requestId: 'AG33-stale-automatic', provider: 'synthetic', model: 'automatic', status: 'completed', attempts: 1, partial: false };
+    await sendOverlayStreamEvent('intelligence-generation-started', metadata);
+    await sendOverlayStreamEvent('intelligence-token-batch', { ...metadata, kind: 'suggested_answer', items: [{ token: 'AUTOMATIC-LATE-TOKEN' }] });
+    await sendOverlayStreamEvent('intelligence-suggested-answer', { ...metadata, answer: 'AUTOMATIC-LATE-DONE' });
+    await sendOverlayStreamEvent('intelligence-generation-terminal', { ...metadata, error: 'AUTOMATIC-LATE-ERROR' });
+    release();
+    await overlay.waitForFunction(() => document.body.innerText.includes('Manual source answer intact.'));
+    assert.doesNotMatch(await overlayText(), /AUTOMATIC-LATE-|automatic ·/);
+  } finally { release(); }
+});
+
+test('AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items', async () => {
+  const databasePath = path.resolve(import.meta.dirname, '../../dist-electron/electron/db/DatabaseManager.js');
+  const metadata = { requestId: 'AG33-sqlite-synthetic', provider: 'openai', model: 'actual-backup', status: 'failed', timeout: 'total', attempts: 2, partial: true };
+  const result = await app.evaluate(({}, { filename, generation }) => {
+    const { DatabaseManager } = process.mainModule.require(filename);
+    const db = DatabaseManager.getInstance();
+    db.saveMeeting({ id: 'AG33-sqlite-roundtrip', title: 'Synthetic metadata only', date: '2026-10-10T00:00:00Z', duration: '0:01', summary: '', usage: [
+      { type: 'chat', timestamp: 1, question: 'synthetic', answer: 'saved partial', ...generation },
+      { type: 'followup_questions', timestamp: 2, items: ['legacy one', 'legacy two'] },
+    ] }, 0, 1000);
+    const saved = db.getMeetingDetails('AG33-sqlite-roundtrip');
+    db.saveMeeting(saved, 0, 1000);
+    const resaved = db.getMeetingDetails('AG33-sqlite-roundtrip');
+    return { usage: saved.usage, resavedUsage: resaved.usage, raw: db.db.prepare('SELECT metadata_json FROM ai_interactions WHERE meeting_id = ? ORDER BY timestamp').all('AG33-sqlite-roundtrip').map(row => JSON.parse(row.metadata_json)) };
+  }, { filename: databasePath, generation: metadata });
+  assert.deepEqual(result.usage[0].generation, metadata); assert.equal(result.usage[0].answer, 'saved partial');
+  assert.deepEqual(result.usage[1].items, ['legacy one', 'legacy two']);
+  assert.deepEqual(result.resavedUsage, result.usage, 'saving the loader output preserves generation metadata and legacy items');
+  assert.deepEqual(result.raw[0], { generation: metadata }); assert.deepEqual(result.raw[1], ['legacy one', 'legacy two']);
+});
+
+test('AG33 real Natively late action invoke cannot change the newer manual answer or erase prior UI records', async () => {
+  mock.setScript({ errorStatus: 0, chunks: ['AG33 prior retained record.'], delayMs: 20 });
+  await ask('AG33 prior retained record question');
+  await overlay.waitForFunction(() => document.body.innerText.includes('AG33 prior retained record.') && document.querySelector('[data-generation-status="completed"]'));
+  await app.evaluate(({ ipcMain }) => {
+    const handlers = ipcMain._invokeHandlers; const real = handlers.get('generate-what-to-say');
+    handlers.set('generate-what-to-say', event => {
+      handlers.set('generate-what-to-say', real);
+      const metadata = { requestId: 'AG33-delayed-action', provider: 'synthetic', model: 'old-action', attempts: 1, partial: true };
+      event.sender.send('intelligence-generation-started', metadata);
+      event.sender.send('intelligence-token-batch', { ...metadata, kind: 'suggested_answer', items: [{ token: 'Old action partial preserved.' }] });
+      return new Promise((resolve, reject) => { globalThis.__ag33RejectOldAction = () => setTimeout(() => reject(Error('LATE-ACTION-INVOKE')), 0); });
+    });
+  });
+  await sendOverlayStreamEvent('global-shortcut', { action: 'whatToAnswer' });
+  await overlay.waitForFunction(() => document.body.innerText.includes('Old action partial preserved.'));
+  let release; const gate = new Promise(resolve => { release = resolve; });
+  let entered; const paused = new Promise(resolve => { entered = resolve; });
+  mock.setScript({ errorStatus: 0, chunks: ['New manual source ', 'finishes intact.'], delayMs: 20, afterChunk(entry) { if (entry.chunksSent === 1) { entered(); return gate; } } });
+  try {
+    await ask('AG33 new manual over delayed action'); await paused;
+    await app.evaluate(() => { globalThis.__ag33RejectOldAction(); return true; });
+    await overlay.waitForFunction(() => [...document.querySelectorAll('[data-generation-status="cancelled"]')].some(node => node.textContent.includes('old-action')));
+    release();
+    await overlay.waitForFunction(() => document.body.innerText.includes('New manual source finishes intact.'));
+    const text = await overlayText();
+    assert.doesNotMatch(text, /LATE-ACTION-INVOKE/); assert.ok(text.includes('Old action partial preserved.'));
+    assert.ok(text.includes('AG33 prior retained record.'), 'cancellation preserves prior UI records');
+  } finally { release(); }
 });

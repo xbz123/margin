@@ -2,6 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+
+const { GenerationTask } = createRequire(import.meta.url)('../../../dist-electron/electron/llm/generateTask.js');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -17,7 +20,9 @@ async function loadSessionTracker() {
 
 class StubLLMHelper {
   getCurrentGenerationTask() { return undefined; }
-  runGeneration(factory) { return factory(); }
+  async runGeneration(factory, _kind, _signal, task) { try { return await factory(); } finally { task?.close(); } }
+  beginGenerationTask() { return new GenerationTask({ provider: 'synthetic', model: 'stub' }); }
+  getTaskMetadata(task) { return { requestId: task.requestId, provider: task.actualTarget.provider, model: task.actualTarget.model, status: task.terminalStatus, attempts: task.sends, partial: task.hasText && task.terminalStatus !== 'completed' }; }
   runGenerationStream(factory) { return factory(); }
   getActiveModel() { return { provider: 'gemini', model: 'gemini-3-flash' }; }
   isStreamingSupported() { return true; }

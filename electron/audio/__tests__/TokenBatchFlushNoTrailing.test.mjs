@@ -84,7 +84,7 @@ test('clearImmediate semantics match the patch: a queued flush is cancellable, a
 });
 
 test('intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer', () => {
-  const region = extractAround('const tokenBatches = new Map<BatchKind, any[]>()', 100, 1_800);
+  const region = extractAround('const tokenBatches = new Map<string, { kind: BatchKind; items: any[]; metadata: any }>()', 100, 1_800);
 
   assert.ok(
     /let\s+pendingFlushHandle:\s*NodeJS\.Immediate\s*\|\s*null\s*=\s*null/.test(region),

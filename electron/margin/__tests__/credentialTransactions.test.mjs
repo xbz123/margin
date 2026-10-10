@@ -119,6 +119,24 @@ function storage() {
   return { files, filename, reads, boot, accountHelper: accountHelper(fakeFs), setFault(value) { fault = value; } };
 }
 
+test('AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes', () => {
+  const disk = storage(), manager = disk.boot();
+  const config = { ...targets.openai, baseUrl: 'https://custom.example/v1', model: 'primary' };
+  const binding = model => JSON.stringify(['openai', 'chat-completions', config.baseUrl, model]);
+  assert.equal(manager.setProviderConfiguration({ ...config, imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(manager.setDefaultModel('llm-target:openai:chat-completions:primary').ok, true);
+  assert.equal(manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:backup', backupImageSupportConfirmedFor: binding('backup') }).ok, true);
+  const restarted = disk.boot();
+  assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, binding('primary'));
+  assert.equal(restarted.getGenerationPolicy().backupImageSupportConfirmedFor, binding('backup'));
+  assert.equal(restarted.setProviderConfiguration({ ...config, baseUrl: 'https://changed.example/v1', imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, undefined);
+  assert.equal(restarted.getGenerationPolicy().backupImageSupportConfirmedFor, undefined);
+  assert.equal(disk.boot().getGenerationPolicy().backupImageSupportConfirmedFor, undefined);
+  assert.equal(restarted.setProviderConfiguration({ ...config, model: 'different', imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, undefined);
+});
+
 for (const fault of ['unavailable', 'encrypt', 'write', 'rename', 'decrypt', 'parse', 'read', 'load-unavailable']) {
   test(`credential transaction rejects ${fault} without losing memory or the old ciphertext`, () => {
     const disk = storage();

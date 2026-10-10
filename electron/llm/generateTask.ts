@@ -1,4 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { randomUUID } from 'node:crypto';
+import type { GenerationMetadata } from '../../src/types/generationMetadata';
 import { GenerationResultError, type GenerateEvent } from './generateContract';
 import { rethrowProviderScopeError } from './ProviderRouter';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
@@ -29,6 +31,8 @@ function deadlineTimer(deadline: number, expire: () => void): () => void {
 }
 
 export class GenerationTask<T = unknown> {
+    readonly requestId = randomUUID();
+    rendererOwner?: { id: number; isDestroyed(): boolean; send(channel: string, ...args: any[]): void };
     readonly controller = new AbortController();
     readonly signal = this.controller.signal;
     readonly startedAt: number;
@@ -39,8 +43,10 @@ export class GenerationTask<T = unknown> {
     hasText = false;
     deferVisibleText = false;
     imageCount = 0;
+    displayedText = '';
+    errorMessage?: string;
     actualTarget: T;
-    terminalStatus?: string;
+    terminalStatus?: GenerationMetadata['status'];
     private firstTimer?: () => void;
     private totalTimer?: () => void;
     private detach?: () => void;
@@ -51,7 +57,7 @@ export class GenerationTask<T = unknown> {
         this.sendLimit = kind === 'compatibility' ? 1 : 2;
         this.actualTarget = primary;
         this.signal.addEventListener('abort', () => {
-            this.terminalStatus ??= this.signal.reason?.name === 'GenerationTimeoutError' ? 'failed' : 'cancelled';
+            if (!this.finished) this.terminalStatus = this.signal.reason?.name === 'GenerationTimeoutError' ? 'failed' : 'cancelled';
         }, { once: true });
         this.startedAt = startedAt;
         this.totalDeadline = startedAt + (kind === 'background' ? BACKGROUND_GENERATION_TIMEOUT_MS
@@ -74,10 +80,11 @@ export class GenerationTask<T = unknown> {
         this.signal.throwIfAborted();
     }
 
-    claimSend(): void {
+    claimSend(target?: T): void {
         this.check();
         if (this.sends >= this.sendLimit) throw new Error('Generation send budget exhausted');
         this.sends++;
+        if (target !== undefined) this.actualTarget = target;
     }
 
     acceptText(text: string): void {
@@ -89,9 +96,11 @@ export class GenerationTask<T = unknown> {
     }
 
     close(): void {
+        this.finished = true;
         this.firstTimer?.(); this.totalTimer?.(); this.detach?.();
         this.controller.abort();
     }
+    private finished = false;
 }
 
 export const generationTasks = new AsyncLocalStorage<GenerationTask<any>>();
@@ -120,7 +129,7 @@ export function withGenerationTask<T>(task: GenerationTask<any>, source: AsyncGe
                 yield step.value as T;
             }
         } catch (error) {
-            task.terminalStatus ??= 'failed';
+            if (!task.signal.aborted && !['refused', 'incomplete', 'empty'].includes(task.terminalStatus ?? '')) task.terminalStatus = 'failed';
             throw error;
         } finally {
             if (own) task.close();
@@ -145,12 +154,18 @@ function details(error: any): any {
     if (error?.response?.data) return error.response.data.error ?? error.response.data;
     try { return JSON.parse(error?.message)?.error; } catch { return undefined; }
 }
+function isImageRejection(error: any): boolean {
+    const info = details(error);
+    return ['unsupported_image', 'image_not_supported', 'invalid_image', 'invalid_image_format', 'invalid_image_url'].includes(info?.code ?? error?.code)
+        || /(?:does not support|doesn't support|cannot process|unable to process) (?:image|vision)|image (?:input|processing) (?:is )?not supported/i.test(info?.message ?? '');
+}
 
 export function classifyGenerationFailure(error: any): 'transient' | 'model-unavailable' | 'cache-invalid' | 'terminal' {
     const info = details(error);
     const code = info?.code ?? error?.code;
     const reason = info?.details?.find((entry: any) => entry['@type'] === 'type.googleapis.com/google.rpc.ErrorInfo')?.reason;
     const status = Number(error?.status ?? error?.statusCode ?? error?.response?.status ?? info?.code ?? (typeof error?.code === 'number' ? error.code : undefined));
+    if (isImageRejection(error)) return 'terminal';
     if (status === 401 || status === 403 || ['insufficient_quota', 'invalid_api_key'].includes(code)) return 'terminal';
     if (['CACHED_CONTENT_NOT_FOUND', 'CACHED_CONTENT_EXPIRED'].includes(reason)) return 'cache-invalid';
     if (['model_not_found', 'model_decommissioned', 'model_not_available'].includes(code) || reason === 'MODEL_NOT_FOUND') return 'model-unavailable';
@@ -176,7 +191,9 @@ export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T
     options: { cacheReference?: string; invalidateCache?: () => void; onAttempt?: (target: T, attempt: number) => void } = {}): AsyncGenerator<GenerateEvent> {
     let target = task.primary, cacheRecovery = false;
     for (let attempt = 1; attempt <= task.sendLimit; attempt++) {
-        task.check(); task.actualTarget = target; options.onAttempt?.(target, attempt);
+        task.check();
+        task.terminalStatus = undefined;
+        options.onAttempt?.(target, attempt);
         let failure: unknown;
         try {
             const source = open(target, task.signal, cacheRecovery)[Symbol.asyncIterator]();
@@ -187,7 +204,7 @@ export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T
                 task.check();
                 if (event.type === 'delta') { task.acceptText(event.text); yield event; }
                 else if (event.status === 'failed') failure = event.error ?? new GenerationResultError('failed', task.hasText);
-                else if (event.status === 'cancelled') { task.check(); throw new DOMException('Generation cancelled', 'AbortError'); }
+                else if (event.status === 'cancelled') { task.controller.abort(new DOMException('Generation cancelled', 'AbortError')); task.check(); }
                 else { task.terminalStatus = event.status; yield event; return; }
             } } finally { if (source.return) void Promise.resolve(source.return()).catch(() => {}); }
         } catch (error) { failure = error; }
@@ -197,6 +214,7 @@ export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T
         const category = classifyGenerationFailure(failure);
         const terminalFailure = () => {
             task.terminalStatus = 'failed';
+            if (isImageRejection(failure)) failure = new Error('This model may not support images. Check the provider model documentation or cancel the image-support confirmation. Your input and attachments were kept.');
             if (failure && typeof failure === 'object' && Object.isExtensible(failure)) Object.defineProperty(failure, 'generationTaskTerminal', { value: true, configurable: true });
             return failure;
         };

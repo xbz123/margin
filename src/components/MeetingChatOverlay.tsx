@@ -22,6 +22,7 @@ interface Message {
     role: 'user' | 'assistant';
     content: string;
     isStreaming?: boolean;
+    generation?: import('../types/generationMetadata').GenerationMetadata;
 }
 
 interface MeetingContext {
@@ -197,14 +198,24 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatWindowRef = useRef<HTMLDivElement>(null);
     const streamBuffer = useStreamBuffer();
+    const requestEpochRef = useRef(0);
+    const releaseStreamRef = useRef<() => void>(() => {});
+    const delayRef = useRef<{ timer: ReturnType<typeof setTimeout>; resolve: () => void } | null>(null);
+    useEffect(() => () => {
+        window.electronAPI?.cancelChatStream('meeting');
+        requestEpochRef.current++;
+        if (delayRef.current) { clearTimeout(delayRef.current.timer); delayRef.current.resolve(); delayRef.current = null; }
+        releaseStreamRef.current(); streamBuffer.reset();
+    }, [isOpen]);
 
     // Submit initial query when overlay opens
     useEffect(() => {
         if (isOpen && initialQuery && messages.length === 0) {
             setChatState('opening');
-            setTimeout(() => {
+            const timer = setTimeout(() => {
                 submitQuestion(initialQuery);
             }, 100);
+            return () => clearTimeout(timer);
         }
     }, [isOpen, initialQuery]);
 
@@ -251,6 +262,8 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
     const submitQuestion = useCallback(async (question: string) => {
         if (!question.trim() || chatState === 'waiting_for_llm' || chatState === 'streaming_response') return;
 
+        const epoch = ++requestEpochRef.current;
+        const current = () => requestEpochRef.current === epoch;
         const userMessage: Message = {
             id: genMessageId(),
             role: 'user',
@@ -273,7 +286,9 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
 
         try {
             // Add typing indicator delay (200ms) - makes the AI feel "thoughtful"
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise<void>(resolve => { delayRef.current = { timer: setTimeout(resolve, 200), resolve }; });
+            delayRef.current = null;
+            if (!current()) return;
 
             // Create assistant message placeholder
             setMessages(prev => [...prev, {
@@ -291,21 +306,24 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
             // Switch to Gemini streaming (RAF-batched)
             streamBuffer.reset();
             const tokenCleanup = window.electronAPI?.onGeminiStreamToken((token: string) => {
+                if (!current()) return;
                 setChatState('streaming_response');
                 streamBuffer.appendToken(token, (content) => {
+                    if (!current()) return;
                     setMessages(prev => prev.map(msg =>
                         msg.id === assistantMessageId
                             ? { ...msg, content }
                             : msg
                     ));
                 });
-            });
+            }, 'meeting');
 
-            const doneCleanup = window.electronAPI?.onGeminiStreamDone(() => {
+            const doneCleanup = window.electronAPI?.onGeminiStreamDone((generation) => {
+                if (!current()) return;
                 const finalContent = streamBuffer.getBufferedContent();
                 setMessages(prev => prev.map(msg =>
                     msg.id === assistantMessageId
-                        ? { ...msg, content: finalContent, isStreaming: false }
+                        ? { ...msg, content: finalContent, isStreaming: false, generation }
                         : msg
                 ));
                 setChatState('idle');
@@ -313,38 +331,43 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
                 tokenCleanup?.();
                 doneCleanup?.();
                 errorCleanup?.();
-            });
+            }, 'meeting');
 
-            const errorCleanup = window.electronAPI?.onGeminiStreamError((error: string) => {
+            const errorCleanup = window.electronAPI?.onGeminiStreamError((error: string, generation) => {
+                if (!current()) return;
                 console.error('[MeetingChat] Gemini stream error:', error);
-                setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
-                setErrorMessage("Couldn't get a response. Please check your settings.");
+                const partial = streamBuffer.getBufferedContent();
+                setMessages(prev => prev.map(msg => msg.id === assistantMessageId ? { ...msg, content: partial, isStreaming: false, generation } : msg));
+                setErrorMessage(error);
                 setChatState('error');
                 streamBuffer.reset();
                 tokenCleanup?.();
                 doneCleanup?.();
                 errorCleanup?.();
-            });
+            }, 'meeting');
 
             releaseStream = () => {
                 tokenCleanup?.();
                 doneCleanup?.();
                 errorCleanup?.();
             };
+            releaseStreamRef.current = releaseStream;
 
             await window.electronAPI?.streamGeminiChat(
                 question,
                 undefined,
                 undefined,
-                { skipSystemPrompt: true, ignoreKnowledgeMode: true, meetingId: meetingContext.id }
+                { skipSystemPrompt: true, ignoreKnowledgeMode: true, meetingId: meetingContext.id, owner: 'meeting' }
             );
 
         } catch (error) {
             console.error('[MeetingChat] Error:', error);
             releaseStream();
+            if (!current()) return;
+            const partial = streamBuffer.getBufferedContent();
             streamBuffer.reset();
-            setMessages(prev => prev.filter(msg => msg.id !== assistantMessageId));
-            setErrorMessage("Something went wrong. Please try again.");
+            setMessages(prev => prev.map(msg => msg.id === assistantMessageId ? { ...msg, content: partial, isStreaming: false } : msg));
+            setErrorMessage(String(error));
             setChatState('error');
         }
     }, [chatState, meetingContext]);
@@ -401,7 +424,7 @@ const MeetingChatOverlay: React.FC<MeetingChatOverlayProps> = ({
                             {messages.map((msg) => (
                                 msg.role === 'user'
                                     ? <UserMessage key={msg.id} content={msg.content} />
-                                    : <AssistantMessage key={msg.id} content={msg.content} isStreaming={msg.isStreaming} />
+                                    : <div key={msg.id}><AssistantMessage content={msg.content} isStreaming={msg.isStreaming} />{msg.generation && <div className="text-xs text-text-tertiary" data-generation-status={msg.generation.status}>{msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status}</div>}</div>
                             ))}
 
                             {chatState === 'waiting_for_llm' && <TypingIndicator />}

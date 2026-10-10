@@ -1,0 +1,25 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (5669.302833ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (1070.703125ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5250.821417ms)
+✔ a meeting edit that fails to save is rolled back and reported (4575.426791ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (34662.372ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51799.596417
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:464:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (34662.372ms)
+  locator.click: Timeout 30000ms exceeded.
+  Call log:
+    - waiting for getByRole('button', { name: 'usage', exact: true })
+  
+      at TestContext.<anonymous> (<repo>/tests/margin/meeting-storage.test.mjs:534:70) {
+    name: 'TimeoutError'
+  }

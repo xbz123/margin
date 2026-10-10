@@ -55,6 +55,7 @@ export class IntelligenceManager extends EventEmitter {
             'follow_up_questions_update', 'follow_up_questions_token',
             'manual_answer_started', 'manual_answer_result',
             'mode_changed', 'error',
+            'generation_started', 'generation_terminal',
         ];
 
         for (const event of events) {
@@ -97,8 +98,8 @@ export class IntelligenceManager extends EventEmitter {
         }
     }
 
-    addAssistantMessage(text: string): void {
-        this.session.addAssistantMessage(text);
+    addAssistantMessage(text: string, generation?: import('../src/types/generationMetadata').GenerationMetadata): void {
+        this.session.addAssistantMessage(text, generation);
     }
 
     getContext(lastSeconds: number = 120) {
@@ -117,8 +118,8 @@ export class IntelligenceManager extends EventEmitter {
         return this.session.getLastInterviewerTurn();
     }
 
-    logUsage(type: string, question: string, answer: string): void {
-        this.session.logUsage(type, question, answer);
+    logUsage(type: string, question: string, answer: string, generation?: import('../src/types/generationMetadata').GenerationMetadata): void {
+        this.session.logUsage(type, question, answer, generation);
     }
 
     // ============================================

@@ -1,0 +1,51 @@
+{
+  "startedAt": "2026-10-10T19:04:28.417Z",
+  "head": "060061497153de763c90e65b3f95c4bec909e76f",
+  "uncommittedPaths": 28,
+  "uncommittedPathList": [
+    "M docs/margin/PROVENANCE.md",
+    " M electron/IntelligenceEngine.ts",
+    " M electron/IntelligenceManager.ts",
+    " M electron/LLMHelper.ts",
+    " M electron/SessionTracker.ts",
+    " M electron/db/DatabaseManager.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/llm/__tests__/generateTask.test.mjs",
+    " M electron/llm/__tests__/generationInterfaces.test.mjs",
+    " M electron/llm/generateTask.ts",
+    " M electron/llm/llmTarget.ts",
+    " M electron/main.ts",
+    " M electron/preload.ts",
+    " M electron/services/__tests__/ImagePathValidation.test.mjs",
+    " M electron/utils/__tests__/validateImagePath.test.mjs",
+    " M electron/utils/imagePathValidation.ts",
+    " M src/components/GlobalChatOverlay.tsx",
+    " M src/components/MeetingChatOverlay.tsx",
+    " M src/components/NativelyInterface.tsx",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/components/settings/ProviderCard.tsx",
+    " M src/types/electron.d.ts",
+    " M src/types/generationPolicy.ts",
+    " M src/types/llmTarget.ts",
+    " M tests/margin/answer-regression.test.mjs",
+    "?? docs/margin/evidence/AG-33/",
+    "?? src/types/generationMetadata.ts",
+    "?? src/types/modelImageSupport.ts"
+  ],
+  "reference": null,
+  "note": "AG-33-in-progress-source-diagnostic",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3087,
+      "log": "docs/margin/evidence/AG-33/provenance-initial/provenance.log",
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-10T19:04:31.505Z",
+  "allPassed": false
+}
