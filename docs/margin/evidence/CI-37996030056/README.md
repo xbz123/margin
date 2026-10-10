@@ -47,5 +47,7 @@ were deleted after the check.
 
 ## Artifacts
 
-Private workflow artifacts in `xbz123/Assessment-Assistant`, about 1.05 GB; the
-app zips expire on 2026-10-23, the others on 2026-11-08.
+Private workflow artifacts in `xbz123/Assessment-Assistant`, about 1.05 GB. They
+were deleted on 2026-10-10 at the user's request, with the 43 remaining `margin-*`
+artifacts of earlier runs in that repository (50 in all); the records copied here
+remain.

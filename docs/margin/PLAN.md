@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-状态：**阶段 2 由 Claude 实现完毕并自验收通过（S21）；Astra 独立验收（2026-10-09）提出 4 项，3 项已修复，五个只有元数据声明的 crate 由用户批准为限定例外（S23），待 Astra 复验**（第 8 节末"阶段 2 独立验收"）。AG-20–26、AG-24 后续、S19-C 及 S22（包内改用重编的 libvips）均已完成；修复后的提交 `9ef2ed4a` 在公开仓库 `xbz123/margin`（S25）的无缓存 CI `38004311007` 三个作业全部通过，下载产物的本机核对也通过（第 8 节末"阶段 2 修复后的 CI"）。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
+状态：**阶段 2 由 Claude 实现完毕并自验收通过（S21）；Astra 独立验收（2026-10-09）提出 4 项，复验（2026-10-10）关闭其中 3 项，剩余的外链激活窗口问题（P2）已由 Claude 修复（`a0090760`、`85eb3d02`，本地门禁 16/16），待 Astra 再次复验**（第 8 节末"阶段 2 复验"）。AG-20–26、AG-24 后续、S19-C 及 S22（包内改用重编的 libvips）均已完成；修复后的提交 `9ef2ed4a` 在公开仓库 `xbz123/margin`（S25）的无缓存 CI `38004311007` 三个作业全部通过，下载产物的本机核对也通过（第 8 节末"阶段 2 修复后的 CI"）。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
 本文件是本分支的执行依据：实验、验收、ticket 和依赖都以这里为准。
 
@@ -1475,7 +1475,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 原第 1 条（包内 libvips 无法证明逐字节对应的源码）已由 S22 解决：现在分发的是同次运行从记录源码重编的版本。
 
-**下一步**：等待用户安排 Astra 独立验收阶段 2（复验见第 8 节末）。若验收提出修复，仍按 S21 处理。S8–S25 的边界和停止条件保持有效。
+**下一步**：等待用户安排 Astra 再次复验阶段 2（复验见第 8 节末）。若验收提出修复，仍按 S21 处理。S8–S25 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -1791,3 +1791,19 @@ Xcode 16.4（16F6，与 CI 相同，只经 `DEVELOPER_DIR` 使用，系统开发
 - **原生模块哈希变化**：`38004311007` 从零编译的模块是 `0f92a0b1…`，不再是 `71f9cf8e…`。原因是 install name 内嵌构建目录的绝对路径，仓库名从 `Assessment-Assistant` 变为 `margin`；大小、各节、导出符号、规范化后的字符串和链接集合都相同（`native/compare-with-37996030056.log`）。工作树仍用已核对的 `71f9cf8e…`，未替换。
 - **本机核对**（`evidence/AG-25/local-verify/`）：temp 包、源码包和 libvips 源码按 `38004311007` 重做，结果与 CI 一致，`asar-smoke` 和 `sharp-smoke-local` 退出 0，加载的是包内重编的 libvips。正式身份按 S25 不再上传压缩包，其本机核对保留 `37996030056` 的结果。
 - **CI 用时**：三次作业合计约 95 分钟。`37996030056` 在私有仓库计费；后两次在公开仓库，使用标准 GitHub 托管 runner，不计费。私有仓库的旧运行产物仍保留，删除需用户同意。
+- **私有仓库产物**：2026-10-10 经用户同意，删除了 `xbz123/Assessment-Assistant` 中全部 50 个 `margin-*` workflow 产物（含 `37996030056` 的约 1.05 GB），各运行抄存在 `evidence/CI-*` 的记录不受影响。另一条 workflow（`windows-support` 分支）的 `margin-windows-x64` 不属于 Margin 运行，未删除。
+
+### 阶段 2 复验（Codex Astra，2026-10-10）及修复
+
+范围 `8f2590f1..95b88e84`，只读，未触发 CI，报告见 `evidence/stage2-reacceptance/astra-reacceptance-review.txt`。本地门禁 16/16 通过。结论：上轮四项关闭三项（sharp 冒烟失败退出码、S23 许可例外、等待期间撤销），导航仍有一项 P2 残留，暂不签通过。另有一处非阻塞文案：`source-bundle.mjs` 仍称产物为私有。
+
+**[P2] 普通点击后的瞬时激活可被定时脚本借用。** `openExternal` 只检查 `navigator.userActivation.isActive`，点击后约 5 秒内都为真。Astra 的脚本先在无手势时安排定时器，用户点击一个不含链接的普通按钮后，定时器仍能打开外链（守卫截获，未真实外连）。
+
+Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
+
+- `preload.ts`：`openExternal` 只在一次可信点击仍在派发时生效（捕获阶段记录最近的可信点击，派发结束后其 `eventPhase` 为 `NONE`），并且只打开被点击控件自己声明的 URL（控件的 `data-external-url`，或链接的 href）。定时器不可能在派发中运行；其他控件的处理函数也打不开未声明的 URL。
+- 所有调用方都声明了 URL：`HelpSettings` 的 12 个按钮、`ProviderCard`、`SettingsOverlay` 的语音服务密钥链接（URL 表留在组件内，改为 `sttKeyUrl`）、`NativelyInterface` 的权限提示、`PermissionsToaster` 的屏幕录制设置（新增 `actionUrl`，仅 darwin）。`AboutSection` 的链接本身带 href。删除无调用方的 `openKeyUrl`。`source-bundle.mjs` 的文案按 S25 改掉"私有"。
+- 测试：导航测试用不带手势的 `executeJavaScript` 安装控件和定时器（Playwright 的 evaluate 自带手势，首次尝试时定时器在点击前就生效了），先点普通按钮；定时器在激活期间调用 20 次（含已声明的 URL），另有未声明 URL 和声明了别的 URL 的按钮。只检查激活的旧实现下测试失败，定时器的 URL 和两个未声明的 URL 都被记录（`navigation-red-before-fix.log`）；修复后只打开预期的 3 个（`navigation-green.log`）。Astra 的原脚本原样重跑，点击后没有打开（`astra-activation-window-after-fix.log`）。
+- 残留边界（已写入 `OUTBOUND.md`）：处理同一次点击的页面脚本能打开该控件声明的 URL，与应用自己的处理函数相同；能改页面的脚本也能改声明的 URL，如同能改链接的 href。没有对该控件的真实点击就不会打开。
+- 门禁：首次（`gates-first-failed/`，`a0090760`）失败两处：来源扫描命中模块级的 `const STT_KEY_URLS: Record<string, string> = {`（上游后来在同一文件有同名的一行，因此改写结构而不登记）和测试里通用的 `const timer = setInterval(() => {`（已登记）；`FormatPermissionMessageCrossPlatform` 不接受没有 darwin 判断的顶层系统设置 URL，已改回 darwin 分支内联。修正后（`gates/`，`85eb3d02`，干净工作树）16/16 通过，111 文件、853 测试、847 通过、6 个既有跳过；AG-09 6/6、存储 5/5、启动 1/1、renderer 出站 2/2、守卫自测 12/12；来源 0 命中；退役规则 261 条 0 失败。修正后 `FormatPermissionMessageCrossPlatform` 曾在守卫外用 `node --test` 直接跑过一次（只读源码文件），其余都在守卫下运行。
+- 未触发 CI：preload 和渲染层变了，打包产物与 `38004311007` 不同；是否为这次修复再跑 CI 由用户决定。
