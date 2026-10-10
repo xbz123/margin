@@ -36,7 +36,7 @@
 | S9 | 阶段 1–2 不做实机验收：不授予屏幕录制或麦克风权限，不用真实 key，不访问真实钥匙串 | 由 S8 推出 |
 | S10 | D2–D4 按第 3 节的建议执行；D1 由 X3 的结果决定 | 用户，2026-10-07 |
 | S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`（开发期按 S15 只启动临时身份的变体）。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 当时仍等用户，同日已定案（S12）。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256。<br>（S26 起，`no_cache` 只在原生模块、Rust 工具链或 Xcode 变化时使用） | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
-| S12 | 决定 1 定案：默认回答提示词（`DEFAULT_ANSWER_PROMPT_SUFFIX`，`electron/llm/prompts.ts`）暂时保留。阶段 3 能用真实模型评估时（按 D2 授权）再决定是否删除，评估放在 AG-33。按决定 1 暂留的其他提示词文字（`prompts.ts` 中 Profile Intelligence 的描述、`tinyPrompts.ts` 中关于本地模型的一句）一并留到那时处理 | 用户，2026-10-08 |
+| S12 | 决定 1 定案：默认回答提示词（`DEFAULT_ANSWER_PROMPT_SUFFIX`，`electron/llm/prompts.ts`）暂时保留。阶段 3 能用真实模型评估时（按 D2 授权）再决定是否删除，评估放在 AG-33。按决定 1 暂留的其他提示词文字（`prompts.ts` 中 Profile Intelligence 的描述、`tinyPrompts.ts` 中关于本地模型的一句）一并留到那时处理。<br>（S27 起不做真实模型评估，这些提示词的去留在 AG-33 由用户直接决定） | 用户，2026-10-08 |
 | S13 | 阶段 2 的启动条件（第 7 节）已满足。"阶段 1 出口的 Astra 只读复查通过"按以下两项视为满足：Astra 对第八轮修复源码的只读审查没有未处理的发现（`AG-17-review8/checks/source-review.md`，所审差异的指纹与 `c43b10e9` 一致）；Claude 第九轮独立验收通过（`AG-17-review9/`）。出口第 1 条的 CI 证据为 `37709440574` | 用户，2026-10-08 |
 | S14 | 分工：第八轮复查起，复查发现的问题由 Codex 修复；阶段 2 起，ticket 由 Codex 派发 `gpt-6.1-sol` 执行。Claude 只读复查，不改代码（用户明确要求时只改文档） | 用户，2026-10-08 |
 | S15 | 开发和测试期间应用名用临时名 `temp`，不用正式身份 `Margin`，避免与本机已安装的 Margin 冲突。细则见下 | 用户，2026-10-08 |
@@ -51,6 +51,7 @@
 | S24 | 本机安装 Xcode 16.4（与 CI 相同）和 rustup，在本机从零重新编译原生模块，取代 D5 和 S11 中"本机不装 Xcode"及第 5 条"本机不为原生模块运行 setup:native"。rustup 由 Homebrew 安装（keg-only，不进 PATH，不改 shell 配置），工具链按 `native-module/rust-toolchain.toml` 装官方 1.98.1；Xcode 需用户本人用 Apple ID 下载并执行需要管理员密码的步骤（选择开发者目录、接受许可）。本机编译在草稿目录的干净克隆中进行，与 CI 的 `71f9cf8e…` 比对，不覆盖工作树中已核对的模块，除非另行决定。S9、S15 不变：本机仍不打包、不启动打包后的二进制、不运行正式身份 | 用户，2026-10-09，回复"安装 xcode，rustup，进行重新编译"，并选择 Xcode 16.4 |
 | S25 | CI 改在新建的公开仓库 `xbz123/margin` 上运行，原私有仓库 `xbz123/Assessment-Assistant` 不转公开：其中旧线分支和旧 Release 含 6 月后上游代码。新仓库只推送本分支，其历史为基线 `a786910e` 及之前的上游提交加本分支提交，不含旧线提交和 6 月后上游提交。起因：`37996030056` 的 libvips-replace 作业因账户付款失败未启动。公开仓库的 workflow 产物任何登录用户都可下载，因此正式身份只上传报告、启动结果和 BUILD-INFO，不上传 `.app` 压缩包；temp 包和对应源码包照常上传。`download-ci-artifact.mjs` 默认读新仓库，旧运行用 `--repo` | 用户，2026-10-10 |
 | S26 | 精简验收条件（Claude 列出 9 项，用户回复"按你的建议全部去掉，等CI结果后执行"）：<br>1. libvips 的 `rebuild.sh` 保留四项失败检查：配方下载、librsvg 的 `Cargo.lock`、编译 crate 列表、库中嵌入的 rustc 提交（许可依赖它）。配方工具链版本、mozjpeg 构建串和动态库 sha256 只写进 BUILD-INFO（CI `38052543358` 已确认固定后重编为 `64bcfea7…`）。<br>2. 本机不再重做 `package-check`、`Info.plist` 和 `codesign` 校验，这些只在 CI 上做；`sharp-smoke-local` 删除，sharp 在包内的运行由 CI 的替换检查覆盖。本机保留源码包核对和 `asar-smoke`。<br>3. 本机核对 libvips 源码只在配方或 `scripts/margin/libvips/` 的记录变化时做（CI 每次都比对）。<br>4. `no_cache` 只在 `native-module/`、Rust 工具链或 Xcode 变化时使用，其他运行使用缓存；调整 S11 第 1 条"当前提交上不使用缓存"的要求。<br>5. 删除 S17 的 `package_inventory` 诊断：workflow 输入和三个步骤、`package-inventory.cjs`、其构建配置和测试 | 用户，2026-10-10 |
+| S27 | 阶段 3 的测试和验收精简（Claude 列出，用户回复"按你的建议全部写进PLAN并提交"）：<br>1. **源码字符串测试随重写替换**：阶段 3 重写的代码，其源码字符串测试在新代码有同一性质的行为测试后删除，每次删除写明替代测试（G6 已同步）。已知范围：`suggestionPromptAssembly.test.mjs` 的字符串用例（备注和转写只进用户内容、图片交给流式入口等行为用例迁到 AG-30 的新入口）；`ProviderGatewayPolicy.test.mjs` 和 `ScopeLocalFallback.test.mjs` 的字符串用例（数据范围撤销后不再发送、拒绝范围后不发送、Gemini 顺序备用和取消等行为用例迁到新入口）；`ImagePathValidation.test.mjs` 在 AG-33 改为直接调用 handler、传入恶意路径的行为测试后删除。`MeetingPersistenceRace.test.mjs` 不在阶段 3 处理，留到 AG-52。<br>2. **AG-33**：去掉用真实模型对比默认回答提示词质量（S12 中的这一步）和用真实模型复测失败切换延迟；提示词去留由用户直接决定，切换逻辑由 mock 功能测试覆盖。<br>3. **AG-32**：只断言失败切换会发生、失败正确显示，不在 mock 上测量切换耗时。<br>4. **X5 重写量校准取消**：不读旧 Margin 对应模块、不做行数和用时对比。<br>5. **G6 测试清单**：引用 gates 生成的 `tests.files.json` 和 TAP 报告，只对新增的跳过项写原因。<br>6. **CI 频率**：阶段 3 的 ticket 只跑本地 gates（不动原生模块、打包和 libvips）；阶段出口跑一次完整 CI（`package_apps`）。<br>保留：G1–G5、G7，AG-09 mock 回归，出站清单和 renderer 出站测试，startup 和 storage | 用户，2026-10-10 |
 
 **S21 细则**：
 
@@ -277,9 +278,9 @@ X2 只交付隔离工具和它们自己的自测程序（`scripts/margin/isolati
     - 单元测试覆盖：打包状态被忽略、非回环地址被忽略、正常情况生效。
     - AG-31 实现用户可配置的兼容地址后，再决定这些开关保留为测试专用还是删除。
 
-### X5 重写量校准（阶段 3 开始时做）
+### X5 重写量校准（已取消，S27）
 
-AG-30 完成后，对比旧 Margin 中对应模块的行数和用时，用来重估阶段 3–6 的工作量。不阻塞阶段 1–2。
+原计划：AG-30 完成后，对比旧 Margin 中对应模块的行数和用时，用来重估阶段 3–6 的工作量。按 S27 取消：它不是验收条件，且要读旧 Margin 代码，增加来源审查的工作量。
 
 ## 5. 验收
 
@@ -292,7 +293,7 @@ AG-30 完成后，对比旧 Margin 中对应模块的行数和用时，用来重
 | G3 | 退役清单 | `scripts/margin/retired-check.mjs`（新建）按精确的路径、符号、主机和依赖规则检查。**规则逐步启用**：规则表 `docs/margin/retired-rules.json` 中每条规则都标明所属 ticket，只有已完成 ticket 的规则才参与检查，要求零命中。阶段出口用 `--all` 跑全部规则。检查范围是源码、构建配置和依赖树，不扫 `docs/margin`。不用宽泛的子串去查（如 `Pro`、`premium`） |
 | G4 | 隔离 | 所有自动测试和启动冒烟都在 X2 的守卫下运行。覆盖不了的层面按 X2 结论写明 |
 | G5 | 格式 | 提交前 `git diff --check` 无输出 |
-| G6 | 测试 | 列出实际执行的测试清单、跳过项及原因。改动范围内留下的测试和新增测试都要通过；删掉的测试只能是随退役功能一起删的。注意：现在的 `npm test` 只跑 `electron/{services,llm,audio}/__tests__`（`package.json:25`），渲染层和工具函数的测试要单独列出 |
+| G6 | 测试 | 引用 gates 生成的测试清单（`tests.files.json`、TAP 报告），只对新增的跳过项写原因（S27；此前要求手列清单）。改动范围内留下的测试和新增测试都要通过；删掉的测试只能是随退役功能一起删的，或者是被重写代码的源码字符串测试且新代码已有同一性质的行为测试（S27，每次删除写明替代测试）。注意：现在的 `npm test` 只跑 `electron/{services,llm,audio}/__tests__`（`package.json:25`），渲染层和工具函数的测试要单独列出 |
 | G7 | 依赖 | 每张 ticket 删掉依赖后，同步更新 `package-lock.json`；`npm ci` 能成功 |
 
 **行为证据优先**。基线里的 `MeetingPersistenceRace.test.mjs:18`、`CredentialStorage.test.mjs:14` 和 `ProviderGatewayPolicy.test.mjs:64` 只检查源码里的字符串，不能证明运行行为。它们保留，但不单独作为验收依据。各 ticket 要补上对应的行为检查。
@@ -607,14 +608,14 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
   - `CHANGELOG.md` 保留，作为上游历史。
   - 文档只写已经实现的功能。
 
-### 阶段 3–6（概要，X5 之后细化）
+### 阶段 3–6（概要；X5 已取消，S27）
 
 | ID | 内容 | 依赖 |
 | --- | --- | --- |
-| AG-30 | 统一的生成入口，先接 Gemini 一个协议；同时做 X5 校准 | 阶段 2 |
+| AG-30 | 统一的生成入口，先接 Gemini 一个协议；被替换代码的源码字符串测试按 S27 迁成新入口上的行为测试后删除 | 阶段 2 |
 | AG-31 | OpenAI Chat、OpenAI Responses、Anthropic Messages 三个协议，厂商预设，用户可填兼容地址 | AG-30 |
-| AG-32 | 重试、时限、备用模型、错误显示。用 mock 服务注入延迟，测 Gemini 顺序备用（第八轮由并行改来）的失败切换耗时；数据范围拒绝只显示一次提示（阶段 1 出口遗留事项） | AG-30 |
-| AG-33 | 截图和文字提问、笔试模式、流式显示与取消。按 S12 用真实模型对比保留和删除默认回答提示词的回答质量，决定去留（需 D2 授权）；用真实模型复测失败切换延迟 | AG-31、AG-32 |
+| AG-32 | 重试、时限、备用模型、错误显示。用 mock 服务注入失败和延迟，断言 Gemini 顺序备用（第八轮由并行改来）会切换、失败正确显示，不测量切换耗时（S27）；数据范围拒绝只显示一次提示（阶段 1 出口遗留事项） | AG-30 |
+| AG-33 | 截图和文字提问、笔试模式、流式显示与取消。默认回答提示词的去留由用户直接决定，不做真实模型对比，也不用真实模型复测切换延迟（S27）；`ImagePathValidation.test.mjs` 改为调用 handler 的行为测试 | AG-31、AG-32 |
 | AG-34 | Codex CLI 只读凭据来源（替换基线里的子进程生成方式）；同时解决 CLI 自身重试不受数据范围约束的问题（见 AG-24） | AG-30 |
 | AG-40 | 双路音频与会话生命周期（开始、停止、尾段排空） | 阶段 2 |
 | AG-41 | 收窄云端 STT 的选择范围；未配置时阻止开始。按核实后的 Realtime 接口改写并恢复 AG-17 跳过的 4 个 `OpenAIRealtimeGAProtocol` 用例（用例自己清理保活定时器） | AG-40 |
@@ -675,6 +676,8 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | Claude | 每张 ticket 完成后和阶段出口时只读复查：读 diff 和原始证据，逐条核对，只报告不改代码；对来源有疑问的引入项做抽查。阶段 1 及以前由 Claude 实现、Astra 复核，见第 8、9 节 |
 
 真实服务和实机验收要等 D2 授权。
+
+**阶段 3**（S27）：每张 ticket 只跑本地 gates，不触发 CI；阶段出口跑一次完整 CI（`package_apps`，原生模块和工具链不变时不用 `no_cache`，S26）。
 
 ## 8. 执行与恢复记录
 
@@ -1476,7 +1479,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 原第 1 条（包内 libvips 无法证明逐字节对应的源码）已由 S22 解决：现在分发的是同次运行从记录源码重编的版本。
 
-**下一步**：阶段 2 出口已签收。进入阶段 3 前待用户安排；待议事项：原生模块的 Rust 标准库许可是否补 stdarch 的许可文件（见"libvips Rust 工具链修复"末条）。S8–S26 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；阶段 3 由 Codex 开始，按 S27 精简后的测试和验收执行。待议事项：原生模块的 Rust 标准库许可是否补 stdarch 的许可文件（见"libvips Rust 工具链修复"末条）。S8–S27 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
