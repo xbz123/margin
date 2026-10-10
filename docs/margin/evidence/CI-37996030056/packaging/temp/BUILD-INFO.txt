@@ -1,0 +1,7 @@
+commit: cd71f14b3416e75a0c895bf0e4b93778aeed70ce
+run: 37996030056/1
+variant: temp
+name: temp
+appId: io.github.xbz123.temp
+checks: passed
+419576b49f239212cf146828cf21b5add6c7b61cdbc2aaab14337ebd3c5e6d42  temp-temp-arm64.zip
