@@ -2,17 +2,17 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
 
-## In progress
+## Next actions
 
-- **阶段 3 只读复查（W1，Claude）** — paused；resume：PLAN §6"阶段 3 收尾计划"W1，复查基准 `246e4ffa`；next：读 AG-30 提交 `bcd7ebf5` 的改动，在 PLAN §9 新建"阶段 3 复查（Claude）"并记下第一批发现。
+- **W2 修复（Codex）**：R3-2 至 R3-5 可以开始（PLAN §9"阶段 3 复查（Claude）"）。修完后跑一次完整本地 gates，由 Claude 核对关闭。
 
 ## Waiting
 
-- **W2 修复与关闭（Codex 修，Claude 核对）** — 等 W1 的发现清单（PLAN §9"阶段 3 复查（Claude）"）。
+- **W2 中的 R3-1** — 等用户在甲、乙两种处理方式中选择（PLAN §9"阶段 3 复查（Claude）"）。
 - **W3 阶段 3 出口 CI** — 等 W2 全部关闭，并且用户批准触发 CI（参数见 PLAN W3）。
 - **W4 本机核对与阶段 3 签收** — 等 W3 的产物；签收由用户决定。
 - **阶段 4（AG-40 起）** — 等阶段 3 签收和用户允许开始（PLAN §6"阶段 3–6"表）。
-- **AG-70 Windows 编译检查首次运行** — `.github/workflows/windows-compile.yml` 已加入（S30），只能手动触发，不影响 W3；等用户批准触发，结果记入 PLAN §8。
+- **AG-70 是否并入每票门禁** — 首次运行已通过（运行 38087756944），等用户决定（PLAN §8"AG-70 Windows 编译检查首次运行"）。
 - **阶段 7 其余（AG-71–75）** — 等对应的 macOS 功能完成（PLAN §6"阶段 7"表）；签名（D6）和架构（D7）等用户决定。
 
 ## Watching
@@ -23,6 +23,8 @@
 
 ## Done (rolling)
 
+- W1 阶段 3 只读复查：没有阻断问题，R3-1 应修，R3-2 至 R3-5 为建议（PLAN §9"阶段 3 复查（Claude）"）。
+- AG-70 Windows 编译检查首次运行通过：运行 38087756944，提交 `1f6313a8`（PLAN §8）。
 - 阶段 3 提示词定案（S29）：`90fae433`，本地 gates 16/16（`docs/margin/evidence/AG-33/prompt-decision/gates/`），已推送到私有和公开两个仓库。
 - 原生模块补 stdarch 许可：`23a25388`，gates 16/16（`docs/margin/evidence/stdarch-notice/gates/`）。包内许可正文在 W3 确认。
 - 阶段 2 出口签收（2026-10-10）：完整 CI `38057787157` 及本机核对（PLAN §8"阶段 2 出口签收"）。

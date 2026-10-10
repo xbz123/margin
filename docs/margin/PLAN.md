@@ -673,8 +673,8 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 
 | 项 | 负责 | 现在状态 | 放行条件（阻塞的阶段） |
 | --- | --- | --- | --- |
-| W1 只读复查 | Claude | 可以开始 | 无 |
-| W2 修复与关闭 | Codex 修，Claude 核对关闭 | 等待 | W1 的发现清单（实现） |
+| W1 只读复查 | Claude | 已完成（§9"阶段 3 复查（Claude）"，R3-1 至 R3-5，无阻断） | 无 |
+| W2 修复与关闭 | Codex 修，Claude 核对关闭 | R3-2 至 R3-5 可以开始；R3-1 等用户决定处理方式 | W1 的发现清单（实现）；R3-1 的用户决定 |
 | W3 出口 CI | Claude | 等待 | W2 全部关闭（实现）；用户批准触发 CI |
 | W4 本机核对与签收 | Claude 核对，用户签收 | 等待 | W3 的产物（验收） |
 
@@ -1612,7 +1612,17 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 **AG-31 本地完成（2026-10-10）**：四协议统一单次发送、显式目标配置及事务保存、同目标连接测试/模型列表、OpenAI-only 摘要已实现。`evidence/AG-31/gates-final/` 完整门禁 15/16：112 文件、895 测试（890 通过、0 失败、5 既有跳过），AG-09 7/7、startup 1/1、renderer 2/2；存储仅旧模型 ID 断言不符且使依赖用例失败。仅将该断言改为 qualified selector ID，复用同一应用构建在 `storage-final/` 补跑 5/5，通过 diff-check。不是单次完整 16/16；所有要求现均有通过证据。首次 Groq env 根路径回归和旧构造器清单失败已修复，失败记录及 S27 替代映射保留在 `evidence/AG-31/README.md`。依赖/原生/提示词未改，未触发 CI，Claude 只读复查待做。
 
-**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 §6"阶段 3 收尾计划"的 W1–W4 串行执行：现在可开始 W1（Claude 只读复查，基准 `246e4ffa`）；W3 出口 CI 须用户批准触发。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S29 的边界和停止条件保持有效。
+**AG-70 Windows 编译检查首次运行（2026-10-10）**：用户回复"触发 Windows 编译检查"后，"CI/CD 搭建"会话手动触发，Claude 已用 GitHub API 和运行日志核实。
+
+- **运行**：`xbz123/margin` 运行 38087756944，`workflow_dispatch`，分支 `codex/margin-agpl-migration`，提交 `1f6313a8`，结论 success，约 3 分钟（21:28–21:31Z）。
+- **环境**：runner `win25-vs2026 20260925.250.1`，Node v26.0.0，rustc 1.98.1（`48a229cea`，由 `rust-toolchain.toml` 固定）。
+- **结果**：所有步骤都成功，包括 `npm ci`、两个 tsc、build-electron、vite build，以及用 MSVC 跑的 `build-native.js`（cargo release 用时 44.07 秒）。`index.win32-x64-msvc.node` 的 sha256 为 `ef8293e3…f4aa313`。
+- **警告**：日志里只有 Vite 的 chunk 体积提示。
+- **产物**：`margin-windows-compile-1f6313a8…`，含日志和 BUILD-INFO，保留 30 天。`.node` 文件本身没有上传。
+- **只证明了能编译**：没有运行测试，没有加载这个 `.node`，没有打包，也没有实机运行，这些属于 AG-71 起的工作。
+- **待用户决定**：是否把它并入每票门禁（AG-70）。
+
+**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 §6"阶段 3 收尾计划"的 W1–W4 串行执行：W1 已完成（§9"阶段 3 复查（Claude）"：无阻断，R3-1 应修、R3-2 至 R3-5 建议）；W2 由 Codex 修复，R3-1 的处理方式等用户决定；W3 出口 CI 须用户批准触发。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S29 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2004,3 +2014,44 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - **`asar-smoke`**（守卫下用仓库的 Electron 运行 temp 包的 `app.asar`）：10 项全部通过；原生模块、sharp、libvips 和 better-sqlite3 都从包内 `app.asar.unpacked` 加载，没有来自仓库的；无主进程错误、无出站尝试。打包后的二进制本机未启动（S9），只在 CI 的一次性 HOME 中启动。
 
 **结论**：阶段 2 出口第 1–7 条全部满足（逐条见"阶段 2 出口自验收"表，依据更新为 `38057787157`），签收阶段 2 出口。这是 Claude 按 S21 的自验收，加上 Astra 对四项问题的复验结论；Astra 未对 S26 之后的提交做独立验收。仍然存在的限制见该表下方，未变。
+
+### 阶段 3 复查（Claude，2026-10-10，W1，用户指示"开始 W1 复查"）
+
+范围按 W1：Codex 的 `bcd7ebf5`、`85cade1c`、`06006149`、`49b44e8c`、`b1ed9fe3` 及 `evidence/AG-30`–`AG-34`，基准 `246e4ffa`（到 `1f6313a8` 之间只有文档和手动触发的 Windows 工作流，代码相同）。只读，没有改源码，没有跑真实服务。
+
+**逐行看过的部分**：`CodexAuthSource.ts`、`src/types/codexSource.ts`、`generateTask.ts`、`generateOnce.ts`、`generateContract.ts`、`llmTarget.ts`；`LLMHelper.ts` 的任务、目标快照、`selectedGeneration`、`configureProvider` 和连接测试；`CredentialsManager.ts` 和 `SettingsManager.ts` 的新增部分；`ipcHandlers.ts` 的生成通道包装、聊天流、图片路径、服务商配置、凭据、模型列表、连接测试和 Codex 配置；`imagePathValidation.ts`；`outbound.ts`；`ProcessingHelper.ts` 和 `IntelligenceEngine.ts` 的任务部分；preload 新增通道；`provenance-config.json` 的新增白名单；AG-32/33/34 的删测迁移表。
+
+**只抽查的部分**：renderer 组件（`NativelyInterface`、`AIProvidersSettings`、`ProviderCard`、两个聊天浮窗）、`WhatToAnswerLLM.ts` 和其余模式包装、`DatabaseManager`/`SessionTracker` 的元数据保存，以及测试文件本身。
+
+**总体结论**：没有发现阻断问题。
+
+- S27 删测替代：三张迁移表逐条列出被删用例及替代测试或有意退役（AG-32 的 39 个视觉用例，AG-34 的 CLI 用例），与 PLAN 一致。
+- 单次发送和两次预算：`generateTask` 每次尝试前重置终态（AG-32 记录的 `??=` 遗留已解决）。权限、401/403、额度、图片拒绝、空成功和已有正文都不换模型，Retry-After 超出剩余时间直接失败。
+- Codex 登录：
+  - 固定端点，`redirect: 'error'`。
+  - 读文件前检查同意版本，`O_NOFOLLOW` 加 dev/ino 比对，大小有上限。
+  - 不刷新或写回凭据。401 只在同账号且令牌已变时恢复一次。
+  - 错误只保留白名单里的代码，令牌不进 renderer、普通设置或错误对象。
+- 出站：
+  - 生产启动时 `installOutboundFetchPolicy` 把全局 fetch 改为禁止重定向，Gemini SDK 也受约束；axios 的 `maxRedirects` 为 0。
+  - 连接测试和模型列表只用已保存的配置和 key。
+- 新增的来源白名单都是通用语句，并写明了原因。
+
+**发现**
+
+| 编号 | 严重度 | 位置 | 失败情形 | 归属 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| R3-1 | 应修，处理方式需用户决定 | `electron/services/CredentialsManager.ts:225`、`:250`；`src/components/settings/AIProvidersSettings.tsx:283` | 用户已保存官方 OpenAI key，之后在同一槽位填入第三方兼容地址，不重新输入 key 直接保存。主进程保留旧 key，下一次生成就把官方 key 发给新地址，界面没有任何提示。旧 Margin 计划 `b8ade3f7` 第 3 节要求"约束…凭据转发" | AG-31 | 待用户决定 |
+| R3-2 | 建议 | `electron/ipcHandlers.ts:1966`、`:2080`、`:2129` | `generate-what-to-say`、`generate-code-hint`、`generate-brainstorm` 校验后继续使用原始路径，没有用校验得到的 realpath；同文件第 29 行的 `validateImages` 是用 realpath 的。只有在 userData 里能替换符号链接时才可能利用（校验和读取之间的竞争），风险低，但三个入口应统一 | AG-33 | 待修 |
+| R3-3 | 建议（阶段 7 前提） | `electron/utils/imagePathValidation.ts:8` | 带盘符的路径（`C:\…`）一律拒绝，Windows 上所有截图都无法发送。这是基线原有行为，不影响 macOS | AG-71/AG-73 | 移交阶段 7 |
+| R3-4 | 建议（潜在） | `electron/llm/generateOnce.ts:120`、`electron/services/CodexAuthSource.ts:95` | Responses 协议把 assistant 角色的文字也写成 `input_text`；按 OpenAI 文档，assistant 消息应使用 `output_text`（未用真实服务核实）。目前生产代码不会发送多轮内容：唯一能传任意内容的 `generateWithPro`/`generateWithFlash` 只有测试在调用，所以暂时不会触发 | AG-31 | 待修或记录 |
+| R3-5 | 建议（清理） | `electron/LLMHelper.ts:578`、`:590`；`electron/ipcHandlers.ts:759`–`769`、`electron/preload.ts` 中 `get/setScreenUnderstandingMode`、`SettingsManager.getScreenUnderstandingMode` | `ScreenUnderstandingService` 删除后，屏幕理解模式的 IPC、preload 和设置读写仍在，renderer 已不再调用；`generateWithPro`/`generateWithFlash` 没有生产调用方 | AG-32 | 待修 |
+
+**R3-1 的处理方式**（用户决定）：
+
+- **甲（建议）**：有效地址的 origin 变化时，主进程要求同时提供新 key，否则拒绝保存。提示"更换地址后请重新输入 API key"，并加回归测试。
+- **乙**：允许沿用旧 key，但必须勾选"将现有 key 发送到新地址"才能保存。
+
+两种方式都只改 AG-31 的保存路径，不涉及原生模块、依赖或打包。
+
+**未验证**（不阻塞签收，W4 时写明）：真实服务对 Responses、Codex 后端、各厂商兼容地址的实际行为；R3-4 中的 API 规则；renderer 组件只做了抽查。
