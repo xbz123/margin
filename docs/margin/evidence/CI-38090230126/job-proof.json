@@ -1,0 +1,283 @@
+{
+  "run": {
+    "conclusion": "failure",
+    "created_at": "2026-10-10T22:07:31Z",
+    "event": "workflow_dispatch",
+    "head_branch": "codex/margin-agpl-migration",
+    "head_sha": "0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+    "id": 38090230126,
+    "inputs": null,
+    "path": ".github/workflows/margin-gates.yml",
+    "run_attempt": 1,
+    "status": "completed",
+    "updated_at": "2026-10-10T22:45:05Z"
+  },
+  "jobs": [
+    {
+      "completed_at": "2026-10-10T22:29:33Z",
+      "conclusion": "success",
+      "labels": [
+        "macos-15"
+      ],
+      "name": "libvips",
+      "runner_name": "GitHub Actions 1000000810",
+      "started_at": "2026-10-10T22:07:40Z",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Recipe build tools (as the recipe's own CI installs them)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Rebuild libvips from the fixed recipe, keeping every source"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    },
+    {
+      "completed_at": "2026-10-10T22:44:24Z",
+      "conclusion": "failure",
+      "labels": [
+        "macos-15"
+      ],
+      "name": "gates",
+      "runner_name": "GitHub Actions 1000000811",
+      "started_at": "2026-10-10T22:29:41Z",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Fetch upstream refs and extra restricted commits (read-only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Toolchain versions"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/cache@v6"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/cache@v6"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run npm ci"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install the rebuilt libvips in place of the prebuilt (S22)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Native setup"
+        },
+        {
+          "conclusion": "success",
+          "name": "Collect the native module"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Run gates against the newest local ticket evidence"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Check release identity contract (CI only; no packaging)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Package the temp app (AG-25; workflow artifacts only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Package the release app (AG-25; workflow artifacts only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Launch the packaged temp app in a throwaway home (CI only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Launch the packaged release app in a throwaway home (CI only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Corresponding source bundle (S19-C; workflow artifact)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upload the temp app"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upload the release app reports"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upload the source bundle"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/cache@v6"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/cache@v6"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    },
+    {
+      "completed_at": "2026-10-10T22:45:04Z",
+      "conclusion": "success",
+      "labels": [
+        "macos-15"
+      ],
+      "name": "libvips-replace",
+      "runner_name": "GitHub Actions 1000000812",
+      "started_at": "2026-10-10T22:44:30Z",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Verify the app artifact and fetch the npm prebuilt by its lockfile integrity"
+        },
+        {
+          "conclusion": "success",
+          "name": "Replace the shipped libvips with another build, re-sign ad hoc and check sharp"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "digest": "sha256:105a62952409a8375a423cc295f82fa04532c90d90e7fd5a2c2381f6b978ea35",
+      "expires_at": "2026-10-24T22:44:09Z",
+      "name": "margin-app-release-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 31517
+    },
+    {
+      "digest": "sha256:9ce4b50028f43322c3bbcf1935a03e4c26f2d56b3239db66e8437029d245d55b",
+      "expires_at": "2026-10-24T22:44:01Z",
+      "name": "margin-app-temp-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 323468586
+    },
+    {
+      "digest": "sha256:4b209220b1b1547f7beb4dc7df102de3907a941103e78057821ecf3de11c0fdc",
+      "expires_at": "2026-11-09T22:44:16Z",
+      "name": "margin-gates-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 60005
+    },
+    {
+      "digest": "sha256:f3f1adb156f51a5a9b05ef23bd28faebbf5bd952ea94df5c878bf2c8c588ce82",
+      "expires_at": "2026-11-09T22:29:18Z",
+      "name": "margin-libvips-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 9389330
+    },
+    {
+      "digest": "sha256:95822ae2d9d9e03b14e3f0276e18b3fdf4dbcab6c54fa56fbe9af6a9b59938ac",
+      "expires_at": "2026-11-09T22:45:01Z",
+      "name": "margin-libvips-replace-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 213873
+    },
+    {
+      "digest": "sha256:fcdde3d16665a6b1f37551c4bad7ab47498120e713d806681734cdda2023be44",
+      "expires_at": "2026-11-09T22:29:21Z",
+      "name": "margin-libvips-sources-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 173549660
+    },
+    {
+      "digest": "sha256:1cc44e68682a982229567e0601538f9c66cbc062cf451f47c187614d95fa2fcb",
+      "expires_at": "2026-11-09T22:32:36Z",
+      "name": "margin-native-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 718295
+    },
+    {
+      "digest": "sha256:cabac221f786baaf71c283ee2ff196899c75124071ab49019d5d84057936b5af",
+      "expires_at": "2026-11-09T22:44:11Z",
+      "name": "margin-source-0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+      "size_in_bytes": 225127297
+    }
+  ]
+}

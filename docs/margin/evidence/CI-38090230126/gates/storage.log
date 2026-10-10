@@ -1,0 +1,51 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (17160.152ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (1942.00075ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (7355.678416ms)
+✔ a meeting edit that fails to save is rolled back and reported (5679.358208ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (36760.17475ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70140.709417
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:464:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (36760.17475ms)
+  locator.click: Timeout 30000ms exceeded.
+  Call log:
+    - waiting for getByText('Untitled Session', { exact: true }).first()
+      - locator resolved to <div class="font-medium text-[14px] max-w-[60%] truncate text-text-primary">Untitled Session</div>
+    - attempting click action
+      - waiting for element to be visible, enabled and stable
+      - element is not stable
+    - retrying click action
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div>…</div> intercepts pointer events
+    - retrying click action
+      - waiting 20ms
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> intercepts pointer events
+      - retrying click action
+        - waiting 100ms
+      50 × waiting for element to be visible, enabled and stable
+         - element is visible, enabled and stable
+         - scrolling into view if needed
+         - done scrolling
+         - <div>…</div> intercepts pointer events
+       - retrying click action
+         - waiting 500ms
+  
+      at TestContext.<anonymous> (/Users/runner/work/margin/margin/tests/margin/meeting-storage.test.mjs:533:73) {
+    name: 'TimeoutError'
+  }

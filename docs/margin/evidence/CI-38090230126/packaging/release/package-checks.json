@@ -1,0 +1,232 @@
+{
+  "passed": true,
+  "identity": {
+    "variant": "release",
+    "name": "Margin",
+    "appId": "io.github.xbz123.margin"
+  },
+  "checks": [
+    {
+      "id": "info-plist:CFBundleName",
+      "passed": true,
+      "detail": {
+        "expected": "Margin",
+        "actual": "Margin"
+      }
+    },
+    {
+      "id": "info-plist:CFBundleDisplayName",
+      "passed": true,
+      "detail": {
+        "expected": "Margin",
+        "actual": "Margin"
+      }
+    },
+    {
+      "id": "info-plist:CFBundleIdentifier",
+      "passed": true,
+      "detail": {
+        "expected": "io.github.xbz123.margin",
+        "actual": "io.github.xbz123.margin"
+      }
+    },
+    {
+      "id": "executable-name",
+      "passed": true,
+      "detail": {
+        "expected": "MacOS/Margin"
+      }
+    },
+    {
+      "id": "no-update-config",
+      "passed": true,
+      "detail": "electron-builder writes app-update.yml only for a publish target"
+    },
+    {
+      "id": "publish-null",
+      "passed": true,
+      "detail": {
+        "packagedBuildPublish": "absent"
+      }
+    },
+    {
+      "id": "built-identity",
+      "passed": true,
+      "detail": {
+        "variant": "release",
+        "name": "Margin",
+        "appId": "io.github.xbz123.margin"
+      }
+    },
+    {
+      "id": "forbidden-content",
+      "passed": true,
+      "detail": {
+        "matches": [],
+        "count": 0,
+        "scanned": 38802
+      }
+    },
+    {
+      "id": "libvips-rebuilt",
+      "passed": true,
+      "detail": {
+        "packaged": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
+        "expected": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
+        "upstreamPrebuilt": "ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d"
+      }
+    },
+    {
+      "id": "native-arm64",
+      "passed": true,
+      "detail": {
+        "count": 21,
+        "wrongArch": []
+      }
+    },
+    {
+      "id": "codesign-verify",
+      "passed": true,
+      "detail": [
+        "--validated:/Users/runner/work/_temp/margin-package/release/builder/mac-arm64/Margin.app/Contents/Frameworks/Margin Helper (Renderer).app",
+        "/Users/runner/work/_temp/margin-package/release/builder/mac-arm64/Margin.app: valid on disk",
+        "/Users/runner/work/_temp/margin-package/release/builder/mac-arm64/Margin.app: satisfies its Designated Requirement"
+      ]
+    },
+    {
+      "id": "ad-hoc-signature",
+      "passed": true,
+      "detail": [
+        "Identifier=io.github.xbz123.margin",
+        "Signature=adhoc",
+        "TeamIdentifier=not set"
+      ]
+    },
+    {
+      "id": "license-files",
+      "passed": true,
+      "detail": {
+        "checkedNotices": 1348,
+        "candidateInventoryOnly": true
+      }
+    }
+  ],
+  "native": [
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
+      "archs": "arm64",
+      "sha256": "370f09ed58b52c29653afbd08fa643a85ed5f93f302c0cd5b5b3cbe5328d8124"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Helpers/chrome_crashpad_handler",
+      "archs": "arm64",
+      "sha256": "3cc110d01aa8140d8a552964083657ab3de066fe813f526ce2d65d47256de64a"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib",
+      "archs": "arm64",
+      "sha256": "8664b824b6569890e94bd5b370cbe2ecefa4202ec701068f6a033f113d3df08b"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib",
+      "archs": "arm64",
+      "sha256": "0a0a294de6c6c2be69b734a9db5bec9b8638f42fc68423a5fcfe40aade9940c1"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib",
+      "archs": "arm64",
+      "sha256": "d210a2e4b52cb44fd9bb5cabc890bc3f2d271477b44592a1492e0e21012ff9be"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib",
+      "archs": "arm64",
+      "sha256": "0cb37261bf61d52cc9d05bfbc6e53b86e3ff3f497da35a26d953660a23e30fa7"
+    },
+    {
+      "path": "Frameworks/Mantle.framework/Versions/A/Mantle",
+      "archs": "arm64",
+      "sha256": "7b6f11694401107fbb80dafc2465e4caa9267c6337d6600ea850d654028fd5cd"
+    },
+    {
+      "path": "Frameworks/Margin Helper (GPU).app/Contents/MacOS/Margin Helper (GPU)",
+      "archs": "arm64",
+      "sha256": "3e0b6244abeb5e7648f01daddf1f624c0e75d6494ced7203789997b447b780cf"
+    },
+    {
+      "path": "Frameworks/Margin Helper (Plugin).app/Contents/MacOS/Margin Helper (Plugin)",
+      "archs": "arm64",
+      "sha256": "8b56d50a124385b8367d8d54212b29caaf7c3e5f3a6710e405ba7358a9ad9d54"
+    },
+    {
+      "path": "Frameworks/Margin Helper (Renderer).app/Contents/MacOS/Margin Helper (Renderer)",
+      "archs": "arm64",
+      "sha256": "6f7b26200484b9d7f28c5714b0651dd9d4842749f02ab4783b0f1f6e43d40129"
+    },
+    {
+      "path": "Frameworks/Margin Helper.app/Contents/MacOS/Margin Helper",
+      "archs": "arm64",
+      "sha256": "79a6b053bd93af8fbd3a80bbef99d8353615bea010b71727a6f8fc1b97200c5d"
+    },
+    {
+      "path": "Frameworks/ReactiveObjC.framework/Versions/A/ReactiveObjC",
+      "archs": "arm64",
+      "sha256": "f602b9cbe73a26b418d1354019b8c5043b72a5e8578d7c2f282945f93dc989e2"
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt",
+      "archs": "arm64",
+      "sha256": "34710dbe8916b8029e2a979281adb1f74f6c9cab269f1ef2a1d20066e7d4e201"
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Squirrel",
+      "archs": "arm64",
+      "sha256": "2b185870ecccede8b62d7886e9b648e1959ed14ff524391eb4ef828527354081"
+    },
+    {
+      "path": "MacOS/Margin",
+      "archs": "arm64",
+      "sha256": "4649a96fdad22c74f298adeaae65f9f2e91d35150a4948feb57c9e53479ddb37"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
+      "archs": "arm64",
+      "sha256": "0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node",
+      "archs": "arm64",
+      "sha256": "05dba5ee40609b0ac94e14e591c515b3d9bd813ff5939625ff9a4bb78eb7c628"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib",
+      "archs": "arm64",
+      "sha256": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",
+      "archs": "arm64",
+      "sha256": "0b6fc1dc4dce7557351620197e26c5699dc3d873b22bdece73bb8d9c01f9746b"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "archs": "arm64",
+      "sha256": "0b6fc1dc4dce7557351620197e26c5699dc3d873b22bdece73bb8d9c01f9746b"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node",
+      "archs": "arm64",
+      "sha256": "6c32c41c0e5a9e546616607b0383eada5bb646d0164324f20baab59d5b7963fa"
+    }
+  ],
+  "libvips": {
+    "upstreamSHA256": "ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d",
+    "rebuiltSHA256": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
+    "installName": "@rpath/libvips-cpp.8.17.3.dylib",
+    "sharpImports": 200,
+    "uuid": "57E6BFB0-8E4E-3F1F-A3AB-1DD593CAC71C",
+    "artifactRun": "38090230126 (attempt 1)",
+    "upstreamCopy": "/Users/runner/work/_temp/libvips-upstream/libvips-cpp.8.17.3.dylib"
+  },
+  "commit": "0610e60619db4e74301f0ad1ac44b28b1d99dc5e",
+  "run": "38090230126/1"
+}

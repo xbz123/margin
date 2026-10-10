@@ -1,0 +1,950 @@
+{
+  "map": "natively-audio-aarch64-apple-darwin.map",
+  "objectInputs": 208,
+  "linked": [
+    {
+      "kind": "cargo",
+      "name": "anyhow",
+      "liveBytes": 6940,
+      "deadBytes": 10192,
+      "inputs": 2,
+      "members": [
+        "anyhow-72b6fe2e7d9eb076.anyhow.b1df05cd951f818c-cgu.0.rcgu.o",
+        "anyhow-72b6fe2e7d9eb076.anyhow.b1df05cd951f818c-cgu.1.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "cidre",
+      "liveBytes": 20045,
+      "deadBytes": 138982,
+      "inputs": 34,
+      "members": [
+        "app.o",
+        "at.o",
+        "av.o",
+        "av_kit.o",
+        "ci.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.00.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.01.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.02.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.03.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.04.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.05.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.06.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.07.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.08.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.09.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.10.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.11.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.12.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.14.rcgu.o",
+        "cidre-142a6f885073f894.cidre.6d78e66814d09537-cgu.15.rcgu.o",
+        "core_audio.o",
+        "gc.o",
+        "mc.o",
+        "ml.o",
+        "mlc.o",
+        "mtk.o",
+        "mtl.o",
+        "nl.o",
+        "ns.o",
+        "sc.o",
+        "sn.o",
+        "un.o",
+        "vn.o",
+        "wk.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "coreaudio",
+      "liveBytes": 7730,
+      "deadBytes": 49370,
+      "inputs": 6,
+      "members": [
+        "coreaudio-ef944e1683cfd78e.coreaudio.f5f694f05c390a5c-cgu.0.rcgu.o",
+        "coreaudio-ef944e1683cfd78e.coreaudio.f5f694f05c390a5c-cgu.1.rcgu.o",
+        "coreaudio-ef944e1683cfd78e.coreaudio.f5f694f05c390a5c-cgu.2.rcgu.o",
+        "coreaudio-ef944e1683cfd78e.coreaudio.f5f694f05c390a5c-cgu.3.rcgu.o",
+        "coreaudio-ef944e1683cfd78e.coreaudio.f5f694f05c390a5c-cgu.4.rcgu.o",
+        "coreaudio-ef944e1683cfd78e.coreaudio.f5f694f05c390a5c-cgu.5.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "cpal",
+      "liveBytes": 49755,
+      "deadBytes": 4671,
+      "inputs": 5,
+      "members": [
+        "cpal-316a4ab441f72250.cpal.7a21e8a03a61c6b3-cgu.0.rcgu.o",
+        "cpal-316a4ab441f72250.cpal.7a21e8a03a61c6b3-cgu.1.rcgu.o",
+        "cpal-316a4ab441f72250.cpal.7a21e8a03a61c6b3-cgu.2.rcgu.o",
+        "cpal-316a4ab441f72250.cpal.7a21e8a03a61c6b3-cgu.3.rcgu.o",
+        "cpal-316a4ab441f72250.cpal.7a21e8a03a61c6b3-cgu.4.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "libloading",
+      "liveBytes": 1351,
+      "deadBytes": 1121,
+      "inputs": 1,
+      "members": [
+        "libloading-962bc1e639f25157.libloading.4b61c6bcc6acf571-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "napi",
+      "liveBytes": 64056,
+      "deadBytes": 59301,
+      "inputs": 15,
+      "members": [
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.01.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.02.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.03.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.04.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.05.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.06.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.07.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.08.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.09.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.10.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.11.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.12.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.13.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.14.rcgu.o",
+        "napi-b6eac097ac1cead5.napi.585c3295e0e447d4-cgu.15.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "napi_sys",
+      "liveBytes": 41148,
+      "deadBytes": 98,
+      "inputs": 2,
+      "members": [
+        "napi_sys-de153bf90de44df4.napi_sys.49ac14a6158632db-cgu.0.rcgu.o",
+        "napi_sys-de153bf90de44df4.napi_sys.49ac14a6158632db-cgu.1.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "natively_audio",
+      "liveBytes": 191082,
+      "deadBytes": 12669,
+      "inputs": 17,
+      "members": []
+    },
+    {
+      "kind": "cargo",
+      "name": "objc2",
+      "liveBytes": 308,
+      "deadBytes": 27466,
+      "inputs": 2,
+      "members": [
+        "objc2-162340a2ed70c058.objc2.da2dc25f90ee1bdb-cgu.0.rcgu.o",
+        "objc2-162340a2ed70c058.objc2.da2dc25f90ee1bdb-cgu.1.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "signal_hook_registry",
+      "liveBytes": 77,
+      "deadBytes": 10154,
+      "inputs": 1,
+      "members": [
+        "signal_hook_registry-6e9d02d1de2c6dbc.signal_hook_registry.225ef33d386904ed-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "socket2",
+      "liveBytes": 73,
+      "deadBytes": 30390,
+      "inputs": 2,
+      "members": [
+        "socket2-e1e106404536dd47.socket2.361d88df476a5092-cgu.0.rcgu.o",
+        "socket2-e1e106404536dd47.socket2.361d88df476a5092-cgu.1.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "tokio",
+      "liveBytes": 2716,
+      "deadBytes": 335339,
+      "inputs": 16,
+      "members": [
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.00.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.01.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.02.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.03.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.04.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.05.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.06.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.07.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.08.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.09.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.10.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.11.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.12.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.13.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.14.rcgu.o",
+        "tokio-d8029b9b82abefa2.tokio.68c681ee1c52407a-cgu.15.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "webrtc_vad",
+      "liveBytes": 12138,
+      "deadBytes": 340,
+      "inputs": 12,
+      "members": [
+        "4494b2c7df224d0d-division_operations.o",
+        "4494b2c7df224d0d-energy.o",
+        "4494b2c7df224d0d-get_scaling_square.o",
+        "4494b2c7df224d0d-resample_48khz.o",
+        "4494b2c7df224d0d-resample_by_2_internal.o",
+        "4494b2c7df224d0d-resample_fractional.o",
+        "bbc44049262f4800-fvad.o",
+        "fdd6d7d62f05b931-vad_core.o",
+        "fdd6d7d62f05b931-vad_filterbank.o",
+        "fdd6d7d62f05b931-vad_gmm.o",
+        "fdd6d7d62f05b931-vad_sp.o",
+        "webrtc_vad-f3b87a04c20ea319.webrtc_vad.a47db716e91aa6f9-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "linker",
+      "name": "linker synthesized",
+      "liveBytes": 4975,
+      "deadBytes": 19350,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "addr2line",
+      "liveBytes": 1420,
+      "deadBytes": 656,
+      "inputs": 1,
+      "members": [
+        "addr2line-79bed969f69e54c6.addr2line.377ec3c252d659d6-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "alloc",
+      "liveBytes": 8945,
+      "deadBytes": 24011,
+      "inputs": 1,
+      "members": [
+        "alloc-3daa19367295a846.alloc.cc4db322bb1ac55d-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "core",
+      "liveBytes": 64160,
+      "deadBytes": 108251,
+      "inputs": 1,
+      "members": [
+        "core-4a1205c3dacb37e1.core.663bb9e1522ba5ef-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "gimli",
+      "liveBytes": 7852,
+      "deadBytes": 95474,
+      "inputs": 1,
+      "members": [
+        "gimli-757741385d9265ec.gimli.152a7a7567452a81-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "hashbrown",
+      "liveBytes": 171,
+      "deadBytes": 759,
+      "inputs": 1,
+      "members": [
+        "hashbrown-e7a46a0b87cff2e7.hashbrown.25ec24948a800476-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "object",
+      "liveBytes": 2206,
+      "deadBytes": 19819,
+      "inputs": 1,
+      "members": [
+        "object-b14cfe590d6e1067.object.558aa43f10e364e3-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "panic_unwind",
+      "liveBytes": 997,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": [
+        "panic_unwind-869827fb9cf0d68e.panic_unwind.d87e01602af865c0-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "rustc_demangle",
+      "liveBytes": 28697,
+      "deadBytes": 512,
+      "inputs": 1,
+      "members": [
+        "rustc_demangle-8b283a422a84bedc.rustc_demangle.41ecd7b68f771344-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "std",
+      "liveBytes": 212446,
+      "deadBytes": 188855,
+      "inputs": 1,
+      "members": [
+        "std-3f21d70fba8f3088.std.5d97c59e5e5fafcc-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "system",
+      "name": "AudioToolboxCore.tbd",
+      "liveBytes": 200,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreAudio.tbd",
+      "liveBytes": 240,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreFoundation.tbd",
+      "liveBytes": 408,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreGraphics.tbd",
+      "liveBytes": 120,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreMedia.tbd",
+      "liveBytes": 40,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "Foundation.tbd",
+      "liveBytes": 20,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "HIServices.tbd",
+      "liveBytes": 20,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libcommonCrypto.tbd",
+      "liveBytes": 20,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libdispatch.tbd",
+      "liveBytes": 140,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libdyld.tbd",
+      "liveBytes": 188,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libobjc.tbd",
+      "liveBytes": 628,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_blocks.tbd",
+      "liveBytes": 28,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_c.tbd",
+      "liveBytes": 448,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_kernel.tbd",
+      "liveBytes": 200,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_malloc.tbd",
+      "liveBytes": 100,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_pthread.tbd",
+      "liveBytes": 480,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libunwind.tbd",
+      "liveBytes": 260,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    }
+  ],
+  "deadStrippedOnly": [
+    {
+      "kind": "cargo",
+      "name": "bitflags",
+      "liveBytes": 0,
+      "deadBytes": 5704,
+      "inputs": 1,
+      "members": [
+        "bitflags-8de5ed9a18495ced.bitflags.3dcf45453f480e5f-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "bytes",
+      "liveBytes": 0,
+      "deadBytes": 18061,
+      "inputs": 2,
+      "members": [
+        "bytes-2bd5916c86545621.bytes.a50a854d263bb867-cgu.0.rcgu.o",
+        "bytes-2bd5916c86545621.bytes.a50a854d263bb867-cgu.1.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "errno",
+      "liveBytes": 0,
+      "deadBytes": 1664,
+      "inputs": 1,
+      "members": [
+        "errno-d01643db752ed724.errno.65d98dac0ee99728-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "mio",
+      "liveBytes": 0,
+      "deadBytes": 21006,
+      "inputs": 3,
+      "members": [
+        "mio-c23c1ef93c02b955.mio.8eddb95dbd94e849-cgu.0.rcgu.o",
+        "mio-c23c1ef93c02b955.mio.8eddb95dbd94e849-cgu.1.rcgu.o",
+        "mio-c23c1ef93c02b955.mio.8eddb95dbd94e849-cgu.2.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "objc2_encode",
+      "liveBytes": 0,
+      "deadBytes": 19170,
+      "inputs": 2,
+      "members": [
+        "objc2_encode-fa008af3444035bc.objc2_encode.fe39fa2686da6dc8-cgu.0.rcgu.o",
+        "objc2_encode-fa008af3444035bc.objc2_encode.fe39fa2686da6dc8-cgu.1.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "parking_lot",
+      "liveBytes": 0,
+      "deadBytes": 12588,
+      "inputs": 2,
+      "members": [
+        "parking_lot-3843b0ce40cd355e.parking_lot.517d72414dcff5aa-cgu.1.rcgu.o",
+        "parking_lot-3843b0ce40cd355e.parking_lot.517d72414dcff5aa-cgu.2.rcgu.o"
+      ]
+    },
+    {
+      "kind": "cargo",
+      "name": "parking_lot_core",
+      "liveBytes": 0,
+      "deadBytes": 3362,
+      "inputs": 1,
+      "members": [
+        "parking_lot_core-39791c2754e1be36.parking_lot_core.9e420b5e16e063ce-cgu.0.rcgu.o"
+      ]
+    },
+    {
+      "kind": "other",
+      "name": "symbols.o",
+      "liveBytes": 0,
+      "deadBytes": 1224,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "rust-sysroot",
+      "name": "compiler_builtins",
+      "liveBytes": 0,
+      "deadBytes": 1016,
+      "inputs": 4,
+      "members": [
+        "compiler_builtins-51dc6f60309b0c2f.compiler_builtins.1a788e71d34f9c7-cgu.016.rcgu.o",
+        "compiler_builtins-51dc6f60309b0c2f.compiler_builtins.1a788e71d34f9c7-cgu.100.rcgu.o",
+        "compiler_builtins-51dc6f60309b0c2f.compiler_builtins.1a788e71d34f9c7-cgu.104.rcgu.o",
+        "compiler_builtins-51dc6f60309b0c2f.compiler_builtins.1a788e71d34f9c7-cgu.198.rcgu.o"
+      ]
+    },
+    {
+      "kind": "system",
+      "name": "Accelerate.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AppKit.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "ApplicationServices.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AudioToolbox.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AudioUnit.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AVFAudio.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AVFCapture.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AVFCore.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AVFoundation.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "AVKit.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreImage.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreLocation.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreMediaIO.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreML.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreText.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "CoreVideo.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "DiskArbitration.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "GameController.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "ImageIO.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "IOSurface.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libc.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libcompression.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libcopyfile.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libiconv.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libm.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_dnssd.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_info.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libsystem_m.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libSystem.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "libvDSP.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "MediaToolbox.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "Metal.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "MetalKit.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "MLCompute.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "MobileDevice",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "MultipeerConnectivity.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "NaturalLanguage.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "Network.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "QuartzCore.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "ScreenCaptureKit.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "Security.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "SoundAnalysis.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "UIFoundation.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "UniformTypeIdentifiers.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "UserNotifications.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "VideoToolbox.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "vImage.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "Vision.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    },
+    {
+      "kind": "system",
+      "name": "WebKit.tbd",
+      "liveBytes": 0,
+      "deadBytes": 0,
+      "inputs": 1,
+      "members": []
+    }
+  ],
+  "summary": {
+    "cargo": 13,
+    "linker": 1,
+    "rust-sysroot": 9,
+    "system": 17
+  }
+}
