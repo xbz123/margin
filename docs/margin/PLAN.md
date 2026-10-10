@@ -55,7 +55,7 @@
 | S28 | 阶段 2 完成，允许开始阶段 3；允许参考旧 Margin 实现的行为和接口。AG-30 从 Gemini 开始，按 S27 串行执行本地门禁，X5 仍取消。旧实现的直接复用仍按 PROVENANCE 逐文件核对来源/许可；本决定不解除后期上游禁用规则，不授权真实服务、设备、正式身份运行或提前触发阶段出口 CI | 用户，2026-10-10，回复“阶段2完成，可以开始阶段3”“可以参考旧 Margin 实现来进行完成” |
 | S29 | 阶段 3 提示词定案与出口顺序（Claude 建议，用户逐条接受）：<br>1. **提示词定案**（结束 S12 的暂留）：默认回答提示词保留，suggestion 路径不再重复附加；删除 General 提示词中已无注入来源的简历和薪资块说明（Profile Intelligence），删除 tiny 提示词中针对本地模型的一句；助手身份由 "Natively, developed by Evin John" 改为 Margin，不写作者，"谁开发了你"与"你是谁"用同一固定回复。由 Claude 直接实施，不另行验收，仍跑本地 gates。<br>2. **出口顺序**：Claude 先只读复查 AG-30–34 并关闭发现的问题，再跑阶段 3 完整出口 CI 和 S26 核对，避免复查后重跑 CI。<br>3. **AG-51 范围**：提示词改为基础层加面试/笔试场景层，场景按入口自动选择并可手动切换；高级设置提供按场景的附加指令（只追加在默认提示词之后，不能整段替换，限长，可恢复默认，只存本机）。按 S27 不做真实模型质量评估，由用户自行试用。<br>4. **公开推送**：批准本轮源码和证据推送到公开仓库。<br>5. 原工作区 `.github/workflows/release.yml` 的未提交改动来自用户另一个 Claude 会话，不是本迁移的越界写入 | 用户，2026-10-10，回复"批准推送到公共仓库""接受建议""接受建议修改""可以计入，这部分由你直接进行执行，这部分内容比较简单，不需要出发验收" |
 | S30 | 准备双平台发布（Claude 在另一会话中列出，用户回复"可以进行这些修改，准备双平台发布"）：<br>1. **目标扩展**：最终交付 macOS 与 Windows 两个平台的安装包，在公开仓库 `xbz123/margin` 发布 GitHub Release。Release 同时附对应源码包（S19-C）和两个平台的许可声明，满足 AGPL 的源码提供义务。私有仓库 `xbz123/Assessment-Assistant` 不发布（S25 理由不变）。<br>2. **D3 改定**：Windows 不再只保证编译，改为在新增的阶段 7 实现并验收。Windows 的实机项与 macOS 一样，每项先按 D2 单独授权。<br>3. **来源规则不变**：旧线 `windows-support` 分支建在含 6 月后上游代码的旧线上，不合并、不 cherry-pick；其中为 Margin 自写的内容只能按 PROVENANCE 逐文件核对后迁移。Windows 实现以基线 `a786910e` 已有的平台分支（如原生模块的 WASAPI 系统声音采集）为起点，其余按行为需求编写。<br>4. **顺序不变**：阶段 3 收尾 W1–W4 及阶段 4–6 照原计划执行；阶段 7 的 AG-70（Windows 编译检查）可以先做，其余在对应 macOS 功能完成后进行（§6"阶段 7"表）。<br>5. **AG-70 先行**：新增只能手动触发的 `.github/workflows/windows-compile.yml`，不属于每票门禁和阶段出口 CI，不影响 W3。首次运行由用户批准后触发，结果记入 §8。<br>6. **未决事项**：是否签名（D6）、支持哪些架构（D7）由用户另行决定；AG-62 放开正式身份保护的方式仍由用户决定（S15） | 用户，2026-10-10，回复"可以进行这些修改，准备双平台发布，告知修改内容给主工作session" |
-**S21 细则**：
+| S31 | 阶段 3 复查后的两项决定：<br>1. **R3-1 选甲**：服务商的有效地址（origin）变化时，主进程要求同时提供新的 API key，否则拒绝保存，提示"更换地址后请重新输入 API key"，并加回归测试。由 Codex 在 W2 实现。<br>2. **AG-70 并入每票门禁**：`windows-compile.yml` 改为在推送迁移分支时自动运行，只改文档（`docs/**`、`*.md`）的推送不触发；只在公开仓库 `xbz123/margin` 运行，私有仓库收到同样的推送时跳过，不消耗私有仓库的额度。每张改代码的 ticket 推送后，该提交的 Windows 编译检查必须通过，才算过了门禁。因此每票的代码提交都要推送到公开仓库。这一条修改了 S27 第 6 条"ticket 不触发 CI"；macOS 的完整 CI 仍只在阶段出口运行 | 用户，2026-10-10，回复"R3-1 选甲，AG-70 可以加入" |**S21 细则**：
 
 1. **依赖删除**：只删 `pdf-parse`、`mammoth` 两个根依赖及其失去引用的节点，保留共享节点；其他包的版本、integrity 和来源不变，lock 键序按旧文件机械恢复。G3 增加四条依赖规则（`pdf-parse`、`pdfjs-dist`、`@napi-rs/canvas`、`mammoth`）。随删除失效的许可补料（dingbat-to-unicode）和无引用正文一并移除，许可清单由收集脚本重生。
 2. **P2 范围**：设置页显示凭据读取失败的原因；只有已读到字节但解密或解析失败时，才提供需用户确认的"先备份、再丢弃"。备份是原文件的硬链接改名，字节不变；读取失败、加密不可用或已正常读取时一律拒绝。测试只用假的 `safeStorage` 和内存文件系统，不读真实钥匙串。
@@ -674,7 +674,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | 项 | 负责 | 现在状态 | 放行条件（阻塞的阶段） |
 | --- | --- | --- | --- |
 | W1 只读复查 | Claude | 已完成（§9"阶段 3 复查（Claude）"，R3-1 至 R3-5，无阻断） | 无 |
-| W2 修复与关闭 | Codex 修，Claude 核对关闭 | R3-2 至 R3-5 可以开始；R3-1 等用户决定处理方式 | W1 的发现清单（实现）；R3-1 的用户决定 |
+| W2 修复与关闭 | Codex 修，Claude 核对关闭 | R3-1（按甲，S31）至 R3-5 都可以开始 | W1 的发现清单（实现） |
 | W3 出口 CI | Claude | 等待 | W2 全部关闭（实现）；用户批准触发 CI |
 | W4 本机核对与签收 | Claude 核对，用户签收 | 等待 | W3 的产物（验收） |
 
@@ -747,7 +747,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 
 | ID | 内容 | 依赖 |
 | --- | --- | --- |
-| AG-70 | Windows 编译检查：手动触发的 `windows-compile.yml`，在 Windows x64 上跑类型检查、Electron 主进程和 renderer 构建，用 MSVC 编译原生模块，只上传日志和 BUILD-INFO。首次全部通过后，由用户决定是否并入每票门禁 | 无（S30 第 5 条） |
+| AG-70 | Windows 编译检查：手动触发的 `windows-compile.yml`，在 Windows x64 上跑类型检查、Electron 主进程和 renderer 构建，用 MSVC 编译原生模块，只上传日志和 BUILD-INFO。首次运行 38087756944 通过；S31 起在推送迁移分支时自动运行（只在公开仓库），作为每票门禁的一部分 | 无（S30 第 5 条） |
 | AG-71 | Windows 原生模块与音频：基线 WASAPI 系统声音采集和麦克风在 Windows 上编译、加载并通过 mock 测试；在 CI 上编译并作为 workflow 产物保存，与 macOS 的做法一致（S11） | AG-40、AG-70 |
 | AG-72 | Windows 窗口保护与快捷键：macOS 的 `stealth_window.rs`、`keyboard_tap.rs` 没有 Windows 实现，按行为需求补齐或明确降级（例如旧系统只能显示黑框），并在界面上如实提示。实机项按 D2 授权 | AG-61、AG-71 |
 | AG-73 | Windows 安装包：x64 安装包、应用身份、Windows 专用依赖（如 `wasapi`、`windows` crate 及 MSVC 运行时）的许可声明并入 `licenses/`，源码包覆盖 Windows 平台分支；包检查拒绝缺失或架构不符的原生文件 | AG-71、AG-72 |
@@ -803,7 +803,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 真实服务和实机验收要等 D2 授权。
 
-**阶段 3**（S27）：每张 ticket 只跑本地 gates，不触发 CI；阶段出口跑一次完整 CI（`package_apps`，原生模块和工具链不变时不用 `no_cache`，S26）。
+**阶段 3**（S27，S31 修订）：每张 ticket 跑本地 gates；改代码的 ticket 推送到公开仓库后，Windows 编译检查自动运行且必须通过（S31）；除此以外不触发 CI。阶段出口跑一次完整 CI（`package_apps`，原生模块和工具链不变时不用 `no_cache`，S26）。
 
 ## 8. 执行与恢复记录
 
@@ -1620,9 +1620,9 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 - **警告**：日志里只有 Vite 的 chunk 体积提示。
 - **产物**：`margin-windows-compile-1f6313a8…`，含日志和 BUILD-INFO，保留 30 天。`.node` 文件本身没有上传。
 - **只证明了能编译**：没有运行测试，没有加载这个 `.node`，没有打包，也没有实机运行，这些属于 AG-71 起的工作。
-- **待用户决定**：是否把它并入每票门禁（AG-70）。
+- **用户决定（S31）**：并入每票门禁。工作流已改为推送时自动运行，只在公开仓库运行。
 
-**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 §6"阶段 3 收尾计划"的 W1–W4 串行执行：W1 已完成（§9"阶段 3 复查（Claude）"：无阻断，R3-1 应修、R3-2 至 R3-5 建议）；W2 由 Codex 修复，R3-1 的处理方式等用户决定；W3 出口 CI 须用户批准触发。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S29 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 §6"阶段 3 收尾计划"的 W1–W4 串行执行：W1 已完成（§9"阶段 3 复查（Claude）"：无阻断，R3-1 应修、R3-2 至 R3-5 建议）；W2 由 Codex 修复，R3-1 按甲（S31）；改代码的 ticket 推送后，Windows 编译检查必须通过（S31）；W3 出口 CI 须用户批准触发。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S31 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2041,7 +2041,7 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 
 | 编号 | 严重度 | 位置 | 失败情形 | 归属 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| R3-1 | 应修，处理方式需用户决定 | `electron/services/CredentialsManager.ts:225`、`:250`；`src/components/settings/AIProvidersSettings.tsx:283` | 用户已保存官方 OpenAI key，之后在同一槽位填入第三方兼容地址，不重新输入 key 直接保存。主进程保留旧 key，下一次生成就把官方 key 发给新地址，界面没有任何提示。旧 Margin 计划 `b8ade3f7` 第 3 节要求"约束…凭据转发" | AG-31 | 待用户决定 |
+| R3-1 | 应修，用户选甲（S31） | `electron/services/CredentialsManager.ts:225`、`:250`；`src/components/settings/AIProvidersSettings.tsx:283` | 用户已保存官方 OpenAI key，之后在同一槽位填入第三方兼容地址，不重新输入 key 直接保存。主进程保留旧 key，下一次生成就把官方 key 发给新地址，界面没有任何提示。旧 Margin 计划 `b8ade3f7` 第 3 节要求"约束…凭据转发" | AG-31 | 待修（甲） |
 | R3-2 | 建议 | `electron/ipcHandlers.ts:1966`、`:2080`、`:2129` | `generate-what-to-say`、`generate-code-hint`、`generate-brainstorm` 校验后继续使用原始路径，没有用校验得到的 realpath；同文件第 29 行的 `validateImages` 是用 realpath 的。只有在 userData 里能替换符号链接时才可能利用（校验和读取之间的竞争），风险低，但三个入口应统一 | AG-33 | 待修 |
 | R3-3 | 建议（阶段 7 前提） | `electron/utils/imagePathValidation.ts:8` | 带盘符的路径（`C:\…`）一律拒绝，Windows 上所有截图都无法发送。这是基线原有行为，不影响 macOS | AG-71/AG-73 | 移交阶段 7 |
 | R3-4 | 建议（潜在） | `electron/llm/generateOnce.ts:120`、`electron/services/CodexAuthSource.ts:95` | Responses 协议把 assistant 角色的文字也写成 `input_text`；按 OpenAI 文档，assistant 消息应使用 `output_text`（未用真实服务核实）。目前生产代码不会发送多轮内容：唯一能传任意内容的 `generateWithPro`/`generateWithFlash` 只有测试在调用，所以暂时不会触发 | AG-31 | 待修或记录 |

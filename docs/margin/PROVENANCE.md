@@ -31,7 +31,9 @@ worked before; no line is copied from them, and neither is added to the
 approved source pool. The workflow invokes only scripts already on this
 branch (`scripts/build-electron.js`, `scripts/build-native.js`) and the
 baseline's Windows platform branch of the native module. It changes no
-source, test, dependency or prompt.
+source, test, dependency or prompt. S31 added the push trigger, the documentation-only
+path filter and the public-repository guard; those lines were also written for
+this branch.
 
 ### AG-34 read-only Codex login source
 

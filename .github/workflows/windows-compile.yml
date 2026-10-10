@@ -1,12 +1,17 @@
-# Windows compile check (PLAN.md S30, AG-70). Manual runs only for now: it is not
-# one of the ticket gates and not part of a stage exit CI, so it cannot change their
-# result. It checks that the platform-branch code still builds on Windows x64 (type
-# checks, renderer, Electron main process) and that the native module compiles with
-# MSVC through the WASAPI branch. It runs no tests, packages nothing, uses no secrets
+# Windows compile check (PLAN.md S30, AG-70; a ticket gate since S31). It runs on every
+# push to the migration branch that changes more than documentation, and by hand. Only
+# the public xbz123/margin runs it: the private mirror receives the same pushes and
+# skips the job, so it uses no private-repository minutes. It checks that the
+# platform-branch code still builds on Windows x64 (type checks, renderer, Electron
+# main process) and that the native module compiles with MSVC through the WASAPI
+# branch. It runs no tests, packages nothing, uses no secrets
 # and uploads only its logs and build record.
 name: Windows compile
 
 on:
+  push:
+    branches: [codex/margin-agpl-migration]
+    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
 
 permissions:
@@ -14,6 +19,7 @@ permissions:
 
 jobs:
   windows-compile:
+    if: github.repository == 'xbz123/margin'
     runs-on: windows-2025
     timeout-minutes: 60
     defaults:
