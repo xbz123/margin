@@ -21,6 +21,18 @@ Notes:
 
 ## Ledger
 
+### AG-70 Windows compile workflow
+
+`.github/workflows/windows-compile.yml` is new code written for this branch
+(PLAN S30). Its step layout follows this branch's own `margin-gates.yml`. The
+older Margin line's `.github/workflows/release.yml` and the `windows-support`
+branch's Windows job were read only to see which Windows build steps had
+worked before; no line is copied from them, and neither is added to the
+approved source pool. The workflow invokes only scripts already on this
+branch (`scripts/build-electron.js`, `scripts/build-native.js`) and the
+baseline's Windows platform branch of the native module. It changes no
+source, test, dependency or prompt.
+
 ### AG-34 read-only Codex login source
 
 The behavior requirements are PLAN S27–S28 and sections 3.2–3.3 of

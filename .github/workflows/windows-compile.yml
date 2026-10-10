@@ -1,0 +1,80 @@
+# Windows compile check (PLAN.md S30, AG-70). Manual runs only for now: it is not
+# one of the ticket gates and not part of a stage exit CI, so it cannot change their
+# result. It checks that the platform-branch code still builds on Windows x64 (type
+# checks, renderer, Electron main process) and that the native module compiles with
+# MSVC through the WASAPI branch. It runs no tests, packages nothing, uses no secrets
+# and uploads only its logs and build record.
+name: Windows compile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-compile:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26.0.0
+
+      - name: Toolchain versions
+        run: |
+          node -v; npm -v
+          # Same pinned Rust release as macOS; rustup adds the Windows host target itself.
+          cd native-module && rustup toolchain install && rustc -V && cargo -V
+
+      # .npmrc sets ignore-scripts=true, so this installs no Electron binary and runs
+      # no dependency install scripts; none of the steps below need them.
+      - run: npm ci
+
+      - name: Type checks
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/windows-compile"
+          node_modules/.bin/tsc --noEmit -p . 2>&1 | tee "$RUNNER_TEMP/windows-compile/tsc-renderer.log"
+          node_modules/.bin/tsc -p electron/tsconfig.json --noEmit 2>&1 | tee "$RUNNER_TEMP/windows-compile/tsc-electron.log"
+
+      - name: Build the Electron main process and the renderer
+        run: |
+          set -o pipefail
+          node scripts/build-electron.js 2>&1 | tee "$RUNNER_TEMP/windows-compile/build-electron.log"
+          node_modules/.bin/vite build 2>&1 | tee "$RUNNER_TEMP/windows-compile/vite-build.log"
+
+      - name: Build the native module with MSVC
+        run: |
+          set -o pipefail
+          node scripts/build-native.js 2>&1 | tee "$RUNNER_TEMP/windows-compile/build-native.log"
+
+      - name: Record the build
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/windows-compile"
+          {
+            echo "commit: $GITHUB_SHA"
+            echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"
+            echo "runner: $ImageOS $ImageVersion"
+            echo "node: $(node -v)"
+            echo "rustc: $(cd native-module && rustc -V)"
+            if [ -f native-module/index.win32-x64-msvc.node ]; then
+              sha256sum native-module/index.win32-x64-msvc.node
+            else
+              echo "native module: not built"
+            fi
+          } > "$RUNNER_TEMP/windows-compile/BUILD-INFO.txt"
+          cat "$RUNNER_TEMP/windows-compile/BUILD-INFO.txt"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: margin-windows-compile-${{ github.sha }}
+          path: ${{ runner.temp }}/windows-compile/
+          retention-days: 30

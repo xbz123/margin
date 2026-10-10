@@ -11,14 +11,14 @@
 
 ## 1. 目标与非目标
 
-**目标**：在 AGPL 基线 `a786910e` 上，按旧 Margin 已确认的产品行为重建 Margin。每处非基线代码都可追溯来源。交付源码和 Mac 本地包。
+**目标**：在 AGPL 基线 `a786910e` 上，按旧 Margin 已确认的产品行为重建 Margin。每处非基线代码都可追溯来源。交付源码和 Mac 本地包；阶段 7 起扩展为 macOS 与 Windows 双平台，在公开仓库 `xbz123/margin` 发布 GitHub Release（S30）。
 
 **非目标**：
 - 不复制、不 cherry-pick 2026-06-01（IST）及以后公开的上游代码、测试、提示词或资源。
 - 不恢复已退役的功能。
 - 不做旧版数据迁移。
-- 不创建 PR 或 GitHub Release。
-- 不做 Developer ID 签名或 Apple 公证，但允许本地 ad hoc 签名。
+- 不创建 PR。GitHub Release 只在阶段 7（AG-74）按 S30 发布，此前不创建。
+- 不做 Developer ID 签名或 Apple 公证，但允许本地 ad hoc 签名。公开发布是否签名（含 Windows 代码签名）待 D6 决定。
 - 不安装到 `/Applications`。
 
 ## 2. 已定决策
@@ -54,6 +54,7 @@
 | S27 | 阶段 3 的测试和验收精简（Claude 列出，用户回复"按你的建议全部写进PLAN并提交"）：<br>1. **源码字符串测试随重写替换**：阶段 3 重写的代码，其源码字符串测试在新代码有同一性质的行为测试后删除，每次删除写明替代测试（G6 已同步）。已知范围：`suggestionPromptAssembly.test.mjs` 的字符串用例（备注和转写只进用户内容、图片交给流式入口等行为用例迁到 AG-30 的新入口）；`ProviderGatewayPolicy.test.mjs` 和 `ScopeLocalFallback.test.mjs` 的字符串用例（数据范围撤销后不再发送、拒绝范围后不发送、Gemini 顺序备用和取消等行为用例迁到新入口）；`ImagePathValidation.test.mjs` 在 AG-33 改为直接调用 handler、传入恶意路径的行为测试后删除。`MeetingPersistenceRace.test.mjs` 不在阶段 3 处理，留到 AG-52。<br>2. **AG-33**：去掉用真实模型对比默认回答提示词质量（S12 中的这一步）和用真实模型复测失败切换延迟；提示词去留由用户直接决定，切换逻辑由 mock 功能测试覆盖。<br>3. **AG-32**：只断言失败切换会发生、失败正确显示，不在 mock 上测量切换耗时。<br>4. **X5 重写量校准取消**：不读旧 Margin 对应模块、不做行数和用时对比。<br>5. **G6 测试清单**：引用 gates 生成的 `tests.files.json` 和 TAP 报告，只对新增的跳过项写原因。<br>6. **CI 频率**：阶段 3 的 ticket 只跑本地 gates（不动原生模块、打包和 libvips）；阶段出口跑一次完整 CI（`package_apps`）。<br>保留：G1–G5、G7，AG-09 mock 回归，出站清单和 renderer 出站测试，startup 和 storage | 用户，2026-10-10 |
 | S28 | 阶段 2 完成，允许开始阶段 3；允许参考旧 Margin 实现的行为和接口。AG-30 从 Gemini 开始，按 S27 串行执行本地门禁，X5 仍取消。旧实现的直接复用仍按 PROVENANCE 逐文件核对来源/许可；本决定不解除后期上游禁用规则，不授权真实服务、设备、正式身份运行或提前触发阶段出口 CI | 用户，2026-10-10，回复“阶段2完成，可以开始阶段3”“可以参考旧 Margin 实现来进行完成” |
 | S29 | 阶段 3 提示词定案与出口顺序（Claude 建议，用户逐条接受）：<br>1. **提示词定案**（结束 S12 的暂留）：默认回答提示词保留，suggestion 路径不再重复附加；删除 General 提示词中已无注入来源的简历和薪资块说明（Profile Intelligence），删除 tiny 提示词中针对本地模型的一句；助手身份由 "Natively, developed by Evin John" 改为 Margin，不写作者，"谁开发了你"与"你是谁"用同一固定回复。由 Claude 直接实施，不另行验收，仍跑本地 gates。<br>2. **出口顺序**：Claude 先只读复查 AG-30–34 并关闭发现的问题，再跑阶段 3 完整出口 CI 和 S26 核对，避免复查后重跑 CI。<br>3. **AG-51 范围**：提示词改为基础层加面试/笔试场景层，场景按入口自动选择并可手动切换；高级设置提供按场景的附加指令（只追加在默认提示词之后，不能整段替换，限长，可恢复默认，只存本机）。按 S27 不做真实模型质量评估，由用户自行试用。<br>4. **公开推送**：批准本轮源码和证据推送到公开仓库。<br>5. 原工作区 `.github/workflows/release.yml` 的未提交改动来自用户另一个 Claude 会话，不是本迁移的越界写入 | 用户，2026-10-10，回复"批准推送到公共仓库""接受建议""接受建议修改""可以计入，这部分由你直接进行执行，这部分内容比较简单，不需要出发验收" |
+| S30 | 准备双平台发布（Claude 在另一会话中列出，用户回复"可以进行这些修改，准备双平台发布"）：<br>1. **目标扩展**：最终交付 macOS 与 Windows 两个平台的安装包，在公开仓库 `xbz123/margin` 发布 GitHub Release。Release 同时附对应源码包（S19-C）和两个平台的许可声明，满足 AGPL 的源码提供义务。私有仓库 `xbz123/Assessment-Assistant` 不发布（S25 理由不变）。<br>2. **D3 改定**：Windows 不再只保证编译，改为在新增的阶段 7 实现并验收。Windows 的实机项与 macOS 一样，每项先按 D2 单独授权。<br>3. **来源规则不变**：旧线 `windows-support` 分支建在含 6 月后上游代码的旧线上，不合并、不 cherry-pick；其中为 Margin 自写的内容只能按 PROVENANCE 逐文件核对后迁移。Windows 实现以基线 `a786910e` 已有的平台分支（如原生模块的 WASAPI 系统声音采集）为起点，其余按行为需求编写。<br>4. **顺序不变**：阶段 3 收尾 W1–W4 及阶段 4–6 照原计划执行；阶段 7 的 AG-70（Windows 编译检查）可以先做，其余在对应 macOS 功能完成后进行（§6"阶段 7"表）。<br>5. **AG-70 先行**：新增只能手动触发的 `.github/workflows/windows-compile.yml`，不属于每票门禁和阶段出口 CI，不影响 W3。首次运行由用户批准后触发，结果记入 §8。<br>6. **未决事项**：是否签名（D6）、支持哪些架构（D7）由用户另行决定；AG-62 放开正式身份保护的方式仍由用户决定（S15） | 用户，2026-10-10，回复"可以进行这些修改，准备双平台发布，告知修改内容给主工作session" |
 **S21 细则**：
 
 1. **依赖删除**：只删 `pdf-parse`、`mammoth` 两个根依赖及其失去引用的节点，保留共享节点；其他包的版本、integrity 和来源不变，lock 键序按旧文件机械恢复。G3 增加四条依赖规则（`pdf-parse`、`pdfjs-dist`、`@napi-rs/canvas`、`mammoth`）。随删除失效的许可补料（dingbat-to-unicode）和无引用正文一并移除，许可清单由收集脚本重生。
@@ -93,9 +94,11 @@
 | --- | --- | --- | --- |
 | D1 | Electron 留在 33，还是升到旧 Margin 使用的 43 | 只阻塞 AG-17 的版本处理一步 | 按 X2 的结果定。判断依据是 Electron 的官方支持状态、原生依赖能否加载、运行有无回归；改动行数不作主要依据 |
 | D2 | 真实服务和实机验收由谁做、何时授权：真实 API 调用、屏幕录制权限、系统截图对照 | 阶段 3 起的实机项 | 每项实机验收前单独请求授权 |
-| D3 | Windows 的范围 | 平台分支代码 | 保留平台分支并保证能编译，不做 Windows 构建验收 |
+| D3 | Windows 的范围 | 平台分支代码 | **已由 S30 改定（2026-10-10）**：原建议为"保留平台分支并保证能编译，不做 Windows 构建验收"；现改为在阶段 7 实现并验收 Windows，双平台发布 |
 | D4 | `package.json` 的 `license` 字段写 `AGPL-3.0-only` 还是 `AGPL-3.0-or-later` | AG-26 | 设计建议：`AGPL-3.0-only`。上游没有声明 "or later"，选 `-only` 不会扩大授权范围 |
 | D5 | 本机没有完整的 Xcode，Rust 原生模块无法从零构建（X3）。是安装 Xcode，还是接受"使用已有 cargo 缓存"作为阶段 1 出口第 1 条的例外 | 阶段 1 出口第 1 条、AG-25 打包 | **已定（2026-10-08），见第 2 节 S11**：不装 Xcode，第 1 条以不使用缓存的 CI 运行为准，原生模块和打包都在 CI 上产出 workflow 产物 |
+| D6 | 公开发布是否签名：macOS Developer ID 签名与 Apple 公证（需 Apple Developer 账号，年费）；Windows 代码签名（需购买证书或使用托管签名服务） | AG-75；不阻塞 AG-74 的首次发布 | 不签名也能发布，但下载者会看到 Gatekeeper / SmartScreen 警告，需要手动放行。是否签名由用户按受众决定；签名所需凭据只存 GitHub Secrets，并只在打发布标签时使用 |
+| D7 | 支持的架构 | AG-71、AG-73、AG-74 | 建议 macOS 只出 Apple Silicon（arm64），Windows 只出 x64：与现有打包和原生模块构建一致。Intel Mac 和 Windows on ARM 需另外的构建与验收 |
 
 ## 4. 实验
 
@@ -739,6 +742,17 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | AG-60 | 设置页重组、中英双语界面 | AG-33、AG-43、AG-52 |
 | AG-61 | 窗口保护、快捷键、鼠标穿透、伪装（实机部分需 D2 授权）。恢复 AG-17 跳过的 `ActivationPolicyOrdering` 用例，或按定下的激活策略改写后启用 | 阶段 2 |
 | AG-62 | 首次启动引导；README 和 PRIVACY 最终版；Mac 包。分发前必须先放开 `electron/margin/appIdentity.ts` 中"正式身份只能在 GitHub Actions 中运行"的保护（S15），否则正式包在用户机器上启动即退出；放开方式和本机何时改用正式身份由用户决定 | 全部 |
+
+### 阶段 7：Windows 与双平台发布（概要，S30）
+
+| ID | 内容 | 依赖 |
+| --- | --- | --- |
+| AG-70 | Windows 编译检查：手动触发的 `windows-compile.yml`，在 Windows x64 上跑类型检查、Electron 主进程和 renderer 构建，用 MSVC 编译原生模块，只上传日志和 BUILD-INFO。首次全部通过后，由用户决定是否并入每票门禁 | 无（S30 第 5 条） |
+| AG-71 | Windows 原生模块与音频：基线 WASAPI 系统声音采集和麦克风在 Windows 上编译、加载并通过 mock 测试；在 CI 上编译并作为 workflow 产物保存，与 macOS 的做法一致（S11） | AG-40、AG-70 |
+| AG-72 | Windows 窗口保护与快捷键：macOS 的 `stealth_window.rs`、`keyboard_tap.rs` 没有 Windows 实现，按行为需求补齐或明确降级（例如旧系统只能显示黑框），并在界面上如实提示。实机项按 D2 授权 | AG-61、AG-71 |
+| AG-73 | Windows 安装包：x64 安装包、应用身份、Windows 专用依赖（如 `wasapi`、`windows` crate 及 MSVC 运行时）的许可声明并入 `licenses/`，源码包覆盖 Windows 平台分支；包检查拒绝缺失或架构不符的原生文件 | AG-71、AG-72 |
+| AG-74 | 发布工作流：推送版本标签后两个平台先跑检查，任一失败则不发布；`package.json` 版本与标签不一致则失败；两个平台都打包成功后，统一在 `xbz123/margin` 创建一个 Release，附 macOS 包、Windows 安装包、对应源码包和许可声明 | AG-62、AG-73 |
+| AG-75 | 签名与公证（可选，按 D6） | AG-74、D6 |
 
 ## 7. 依赖与并行
 
