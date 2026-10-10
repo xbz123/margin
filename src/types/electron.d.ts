@@ -311,9 +311,6 @@ export interface ElectronAPI {
   getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }>;
   setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }) => Promise<{ success: boolean; error?: string }>;
   onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }) => void) => () => void;
-  getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only'>;
-  setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only') => Promise<{ success: boolean; error?: string }>;
-  onScreenUnderstandingModeChanged: (callback: (mode: 'vision_first' | 'vision_only') => void) => () => void;
   getTechnicalInterviewVisionFirst: () => Promise<boolean>;
   setTechnicalInterviewVisionFirst: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
   onTechnicalInterviewVisionFirstChanged: (callback: (enabled: boolean) => void) => () => void;

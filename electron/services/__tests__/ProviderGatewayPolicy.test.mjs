@@ -150,11 +150,11 @@ for (const provider of ['gemini', 'groq', 'openai', 'claude', 'deepseek']) for (
     }
   });
 }
-for (const entry of ['generateWithPro', 'generateWithFlash']) test(`${entry}: final send rechecks after limiter wait`, async () => {
+test('generateContent: final send rechecks after limiter wait', async () => {
   for (const revoke of [true, false]) {
     const policy = {}; let sends = 0; const self = helper('gemini', () => { sends++; throw Error('synthetic-send-reached'); }, policy);
     self.rateLimiters.gemini.acquire = async () => { if (revoke) policy.transcript = false; };
-    await assert.rejects(() => self[entry]([{ text: 'synthetic' }]), revoke ? { name: 'ProviderScopeError' } : /synthetic-send-reached/);
+    await assert.rejects(() => self.generateContent([{ text: 'synthetic' }]), revoke ? { name: 'ProviderScopeError' } : /synthetic-send-reached/);
     assert.equal(sends, revoke ? 0 : 1);
   }
 });

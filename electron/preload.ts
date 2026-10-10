@@ -461,13 +461,6 @@ interface ElectronAPI {
       post_call_summary?: boolean;
     }) => void,
   ) => () => void;
-  getScreenUnderstandingMode: () => Promise<'vision_first' | 'vision_only'>;
-  setScreenUnderstandingMode: (
-    mode: 'vision_first' | 'vision_only',
-  ) => Promise<{ success: boolean; error?: string }>;
-  onScreenUnderstandingModeChanged: (
-    callback: (mode: 'vision_first' | 'vision_only') => void,
-  ) => () => void;
   getTechnicalInterviewVisionFirst: () => Promise<boolean>;
   setTechnicalInterviewVisionFirst: (
     enabled: boolean,
@@ -1436,19 +1429,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('provider-data-scopes-changed', subscription);
     return () => {
       ipcRenderer.removeListener('provider-data-scopes-changed', subscription);
-    };
-  },
-  getScreenUnderstandingMode: () => ipcRenderer.invoke('get-screen-understanding-mode'),
-  setScreenUnderstandingMode: (mode: 'vision_first' | 'vision_only') =>
-    ipcRenderer.invoke('set-screen-understanding-mode', mode),
-  onScreenUnderstandingModeChanged: (
-    callback: (mode: 'vision_first' | 'vision_only') => void,
-  ) => {
-    const subscription = (_: any, mode: 'vision_first' | 'vision_only') =>
-      callback(mode);
-    ipcRenderer.on('screen-understanding-mode-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('screen-understanding-mode-changed', subscription);
     };
   },
   getTechnicalInterviewVisionFirst: () =>

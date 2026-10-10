@@ -385,6 +385,23 @@ test('after a chat request fails before streaming, the next answer is shown once
   assert.equal(mock.chatRequests().length, before + 1);
 });
 
+test('R3-1 real preload refuses a changed origin without key reentry and keeps runtime, stored selections and key availability', async () => {
+  const snapshot = () => overlay.evaluate(async () => ({
+    stored: await window.electronAPI.getStoredCredentials(),
+    selection: await window.electronAPI.getCurrentLlmConfig(),
+    defaultModel: await window.electronAPI.getDefaultModel(),
+    generationPolicy: await window.electronAPI.getGenerationPolicy(),
+  }));
+  const before = await snapshot(), sends = mock.chatRequests().length;
+  const changed = { ...before.stored.providerConfigurations.openai, baseUrl: 'http://127.0.0.1:1/v1' };
+  const result = await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), changed);
+  assert.equal(result.ok, false);
+  assert.match(result.message, /re-enter.*API key/i);
+  assert.deepEqual(await snapshot(), before);
+  assert.equal(before.stored.hasOpenaiKey, true);
+  assert.equal(mock.chatRequests().length, sends);
+});
+
 test('a complete compatible target saved through preload drives a real typed UI question', async () => {
   const previous = await overlay.evaluate(async () => ({
     configuration: (await window.electronAPI.getStoredCredentials()).providerConfigurations.openai,

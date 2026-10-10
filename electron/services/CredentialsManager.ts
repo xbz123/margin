@@ -11,7 +11,7 @@ import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResul
 import { regionalSttEndpoint, openAiSttEndpoint } from './outbound';
 import { GoogleServiceAccount, loadGoogleServiceAccount, validateGoogleServiceAccount } from './googleServiceAccount';
 import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
-import { validateProviderConfiguration, resolveModelTarget } from '../llm/llmTarget';
+import { validateProviderConfiguration, resolveModelTarget, effectiveProviderConfiguration } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
 import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
 
@@ -225,6 +225,11 @@ export class CredentialsManager {
     public setProviderConfiguration(value: ProviderConfigurationSave): CredentialSaveResult {
         const config = validateProviderConfiguration(value);
         if (value.apiKey !== undefined && typeof value.apiKey !== 'string') throw new Error('Invalid API key');
+        const previous = this.getProviderConfigurations()[config.provider];
+        if (new URL(effectiveProviderConfiguration(previous).baseUrl).origin !== new URL(effectiveProviderConfiguration(config).baseUrl).origin
+            && !value.apiKey?.trim()) {
+            return { ok: false, code: 'write_failed', message: 'Re-enter an API key after changing the provider address. The previous configuration was kept.' };
+        }
         let defaultModel = this.credentials.defaultModel;
         if (!this.getDefaultModel().startsWith('codex-cli')) {
             const selected = resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations());

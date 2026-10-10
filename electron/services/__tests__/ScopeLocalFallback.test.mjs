@@ -281,8 +281,7 @@ const denialRoutes = [
   ['structured generation', self => self.generateContentStructured('QUESTION')],
   ['streaming text', self => drain(self.streamChatWithGemini('QUESTION'))],
   ['streaming images', self => drain(self.streamChat('QUESTION', NO_IMAGE))],
-  ['fixed Pro', self => self.generateWithPro([{ text: 'QUESTION' }])],
-  ['fixed Flash', self => self.generateWithFlash([{ text: 'QUESTION' }])],
+  ['selected content generation', self => self.generateContent([{ text: 'QUESTION' }])],
 ];
 for (const [name, run] of denialRoutes) test(`${name}: scope refusal stays terminal with an explicit backup`, async () => {
   const { ProviderScopeError } = await loadRouter(); const denied = new ProviderScopeError('test', ['transcript']);
@@ -363,8 +362,7 @@ test('chatWithGemini with Claude selected does not send a transcript-bearing mes
 const geminiOnly = geminiClient;
 const branchSends = [
   ['generateContentStructured', self => self.generateContentStructured('TRANSCRIPT_SENTINEL')],
-  ['generateWithPro', self => self.generateWithPro([{ text: 'TRANSCRIPT_SENTINEL' }])],
-  ['generateWithFlash', self => self.generateWithFlash([{ text: 'TRANSCRIPT_SENTINEL' }])],
+  ['generateContent', self => self.generateContent([{ text: 'TRANSCRIPT_SENTINEL' }])],
   ['streamChat selected model', self => drain(self.streamChat('TRANSCRIPT_SENTINEL'))],
 ];
 for (const [name, call] of branchSends) test(`${name} refuses transcript denial at the actual send boundary`, async () => {

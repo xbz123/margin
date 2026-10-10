@@ -93,6 +93,21 @@ ambiguous legacy model IDs are not assigned to a provider by name prefix.
 Switching a configured active slot updates its selected model/protocol, and a
 matching saved default is updated in the same transaction.
 
+R3-1 / S31 requires explicit key re-entry when a save changes the effective
+origin (scheme, hostname or port). The main-process credential transaction uses
+the same effective-target resolver as generation, including supported environment
+and development overrides. A missing or blank replacement key refuses the whole
+save before persisted state or live clients change. An explicitly re-entered key
+may have the same bytes; origin-preserving path/model edits do not require it.
+This controls configuration saves, not arbitrary external changes to the process
+environment or a remote service's behavior.
+
+R3-2 selects explicit images or the existing screenshot-queue fallback before
+validation; the optimizer and generation receive only canonical validated paths.
+Malformed explicit input is rejected, not replaced by the queue. WhatToSay keeps
+its existing explicit-image behavior. This removes duplicated checks; it does
+not claim that a pathname alone prevents every concurrent filesystem mutation.
+
 Compatible API bases reject userinfo, fragments and queries. Messages accepts
 a trailing `/v1` without duplicating it; Gemini bases exclude the API version,
 and both generation and compatible model listing use v1alpha. Saved addresses

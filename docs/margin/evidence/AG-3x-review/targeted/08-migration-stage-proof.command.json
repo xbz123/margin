@@ -1,0 +1,9 @@
+{
+  "cwd": "<repo>",
+  "args": [
+    "scripts/margin/isolation/run-node.mjs",
+    "--test",
+    "electron/services/__tests__/codexConsent.test.mjs"
+  ],
+  "startedAt": "2026-10-10T21:48:44.670Z"
+}

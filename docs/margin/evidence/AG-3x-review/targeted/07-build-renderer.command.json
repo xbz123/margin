@@ -1,0 +1,11 @@
+{
+  "cwd": "<repo>",
+  "args": [
+    "scripts/margin/isolation/run-node.mjs",
+    "--allow-exec",
+    "esbuild",
+    "node_modules/vite/bin/vite.js",
+    "build"
+  ],
+  "startedAt": "2026-10-10T21:48:03.717Z"
+}

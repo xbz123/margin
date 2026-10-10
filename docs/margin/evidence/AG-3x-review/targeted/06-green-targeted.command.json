@@ -1,0 +1,13 @@
+{
+  "cwd": "<repo>",
+  "args": [
+    "scripts/margin/isolation/run-node.mjs",
+    "--test",
+    "electron/margin/__tests__/credentialTransactions.test.mjs",
+    "electron/services/__tests__/ImagePathValidation.test.mjs",
+    "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    "electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+    "electron/services/__tests__/codexConsent.test.mjs"
+  ],
+  "startedAt": "2026-10-10T21:47:27.751Z"
+}

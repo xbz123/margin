@@ -571,31 +571,6 @@ export class LLMHelper {
   }
 
   /**
-   * Generate content using Gemini 3 Flash (text reasoning)
-   * Used by IntelligenceManager for mode-specific prompts
-   * NOTE: Migrated from Pro to Flash for consistency
-   */
-  public async generateWithPro(contents: any[], purpose: GenerateRequest['purpose'] = 'answer'): Promise<string> { const inherited = generationTasks.getStore();
-    const task = inherited ?? this.beginGenerationTask(purpose === 'summary' ? 'background' : 'interview', undefined, { ...LLM_PRESETS.gemini, model: GEMINI_PRO_MODEL });
-    try {
-      let text = '';
-      for await (const chunk of this.selectedGeneration(JSON.stringify(contents), undefined, undefined, false, purpose, task, contents)) text += chunk;
-      return text;
-    } finally { if (!inherited) task.close(); } }
-
-  /**
-   * Generate content using Gemini 3 Flash (audio + fast multimodal)
-   * CRITICAL: Audio input MUST use this model, not Pro
-   */
-  public async generateWithFlash(contents: any[], purpose: GenerateRequest['purpose'] = 'answer'): Promise<string> { const inherited = generationTasks.getStore();
-    const task = inherited ?? this.beginGenerationTask(purpose === 'summary' ? 'background' : 'interview', undefined, { ...LLM_PRESETS.gemini, model: GEMINI_FLASH_MODEL });
-    try {
-      let text = '';
-      for await (const chunk of this.selectedGeneration(JSON.stringify(contents), undefined, undefined, false, purpose, task, contents)) text += chunk;
-      return text;
-    } finally { if (!inherited) task.close(); } }
-
-  /**
    * Post-process the response
    * NOTE: Truncation/clamping removed - response length is handled in prompts
    */

@@ -1,0 +1,91 @@
+{
+  "startedAt": "2026-10-10T21:49:37.060Z",
+  "head": "832e5777939dc0af2bad49aad64148ae34371cf0",
+  "uncommittedPaths": 16,
+  "uncommittedPathList": [
+    "M docs/margin/OUTBOUND.md",
+    " M docs/margin/PROVENANCE.md",
+    " M electron/LLMHelper.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/margin/__tests__/credentialTransactions.test.mjs",
+    " M electron/preload.ts",
+    " M electron/services/CredentialsManager.ts",
+    " M electron/services/SettingsManager.ts",
+    " M electron/services/__tests__/ImagePathValidation.test.mjs",
+    " M electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+    " M electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    " M electron/services/__tests__/codexConsent.test.mjs",
+    " M src/components/settings/ProviderCard.tsx",
+    " M src/types/electron.d.ts",
+    " M tests/margin/answer-regression.test.mjs",
+    "?? docs/margin/evidence/AG-3x-review/"
+  ],
+  "reference": "docs/margin/evidence/AG-33/prompt-decision/gates",
+  "note": "Frozen W2 R3-1 R3-2 R3-5 static preflight",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3252,
+      "log": "docs/margin/evidence/AG-3x-review/preflight/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1878,
+      "log": "docs/margin/evidence/AG-3x-review/preflight/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 84,
+      "log": "docs/margin/evidence/AG-3x-review/preflight/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 136,
+      "log": "docs/margin/evidence/AG-3x-review/preflight/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 47,
+      "log": "docs/margin/evidence/AG-3x-review/preflight/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-10T21:49:42.459Z",
+  "allPassed": true
+}

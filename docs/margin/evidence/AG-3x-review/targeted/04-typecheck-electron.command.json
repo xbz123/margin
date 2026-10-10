@@ -1,0 +1,11 @@
+{
+  "cwd": "<repo>",
+  "args": [
+    "scripts/margin/isolation/run-node.mjs",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "electron/tsconfig.json",
+    "--noEmit"
+  ],
+  "startedAt": "2026-10-10T21:46:43.684Z"
+}

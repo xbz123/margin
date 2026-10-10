@@ -27,6 +27,25 @@ function boot(files, fail = false) {
   });
   return module.exports.SettingsManager.getInstance();
 }
+for (const mode of ['private', 'private_vision']) for (const fail of [false, true, { rename: true }]) test(`R3-5 ${mode} preserves screenshot refusal, other scopes and restart protection with migration save failure ${JSON.stringify(fail)}`, () => {
+  const original = JSON.stringify({ screenUnderstandingMode: mode, providerDataScopes: {
+    screenshots: true, transcript: false, profile_history: true, post_call_summary: false,
+  }, verboseLogging: true });
+  const files = new Map([['/synthetic/settings.json', original]]);
+  const expected = { screenshots: false, transcript: false, profile_history: true, post_call_summary: false };
+  const manager = boot(files, fail);
+  assert.deepEqual(JSON.parse(JSON.stringify(manager.get('providerDataScopes'))), expected);
+  assert.equal(manager.get('verboseLogging'), true);
+  if (fail) assert.equal(files.get('/synthetic/settings.json'), original, 'failed migration retains the original private decision on disk');
+  assert.equal(files.has('/synthetic/settings.json.tmp'), Boolean(fail?.rename), 'only rename failure occurs after the migrated candidate was written');
+  const restarted = boot(files);
+  assert.deepEqual(JSON.parse(JSON.stringify(restarted.get('providerDataScopes'))), expected);
+  const persisted = JSON.parse(files.get('/synthetic/settings.json'));
+  assert.equal(Object.hasOwn(persisted, 'screenUnderstandingMode'), false);
+  assert.deepEqual(persisted.providerDataScopes, expected);
+  assert.deepEqual(JSON.parse(JSON.stringify(boot(files).get('providerDataScopes'))), expected);
+});
+
 test('AG34 enabling requires current explicit confirmation, not legacy enabled', () => {
   const files = new Map([['/synthetic/settings.json', JSON.stringify({ codexCliEnabled: true })]]);
   const manager = boot(files);

@@ -1,0 +1,20 @@
+✔ R3-5 private preserves screenshot refusal, other scopes and restart protection with migration save failure false (80.490958ms)
+✔ R3-5 private preserves screenshot refusal, other scopes and restart protection with migration save failure true (28.142625ms)
+✔ R3-5 private preserves screenshot refusal, other scopes and restart protection with migration save failure {"rename":true} (25.523209ms)
+✔ R3-5 private_vision preserves screenshot refusal, other scopes and restart protection with migration save failure false (26.311125ms)
+✔ R3-5 private_vision preserves screenshot refusal, other scopes and restart protection with migration save failure true (22.929ms)
+✔ R3-5 private_vision preserves screenshot refusal, other scopes and restart protection with migration save failure {"rename":true} (22.760541ms)
+✔ AG34 enabling requires current explicit confirmation, not legacy enabled (7.276709ms)
+✔ AG34 failed confirmation save publishes no consent and restart stays disabled (14.484583ms)
+✔ AG34 legacy writer counterexample: failed disk save must not publish enabled (7.112583ms)
+✔ AG34 consent and tier/effort survive restart; legacy enabled does not migrate consent (23.230458ms)
+✔ AG34 failed withdrawal stays closed live; later partial saves cannot silently restore consent (14.415375ms)
+✔ AG34 rename failure keeps old consent/model memory and disk (7.097666ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 503.338417

@@ -21,6 +21,20 @@ Notes:
 
 ## Ledger
 
+### Stage 3 W2 review repairs
+
+R3-1, R3-2 and R3-5 are implemented from the review findings and the user's
+bounded repair decisions on this branch. They reuse the existing effective
+provider resolver, credential transaction, image-path validator and legacy
+privacy conversion. No earlier Margin or restricted upstream implementation is
+imported. No new dependency, native input, prompt or workflow is in scope.
+The named red/green checks and retired-test behavior map are recorded in
+`evidence/AG-3x-review/`. Frozen-source local gates pass 16/16, with zero G2 hits
+and no new allowlist entry, source pool or path exclusion. Six test instances
+on removed wrappers become three equivalent safety checks on a retained entry;
+their assertions are not retired with the wrappers. Windows compilation and
+Claude closure are recorded separately from local verification.
+
 ### AG-70 Windows compile workflow
 
 `.github/workflows/windows-compile.yml` is new code written for this branch

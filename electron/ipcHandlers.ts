@@ -756,26 +756,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     return { success: true };
   });
 
-  safeHandle('get-screen-understanding-mode', async () => {
-    return SettingsManager.getInstance().getScreenUnderstandingMode();
-  });
-
-  safeHandle(
-    'set-screen-understanding-mode',
-    async (_, mode: 'vision_first' | 'vision_only') => {
-      if (!['vision_first', 'vision_only'].includes(mode)) {
-        return { success: false, error: 'invalid_mode' };
-      }
-      SettingsManager.getInstance().setScreenUnderstandingMode(mode);
-      BrowserWindow.getAllWindows().forEach((win) => {
-        if (!win.isDestroyed()) {
-          win.webContents.send('screen-understanding-mode-changed', mode);
-        }
-      });
-      return { success: true };
-    },
-  );
-
   safeHandle('get-technical-interview-vision-first', async () => {
     return SettingsManager.getInstance().getTechnicalInterviewVisionFirst();
   });
@@ -1926,48 +1906,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         let screenContextStatus: 'not_available' | 'available' | 'failed' = 'not_available';
         let visionFailureReason: string | undefined;
 
-        const validatedImagePaths: string[] | undefined = imagePaths?.length ? [] : undefined;
-
-        // SECURITY (P0): Validate image paths if provided from renderer
-        if (imagePaths && imagePaths.length > 0) {
-          if (
-            !Array.isArray(imagePaths) ||
-            imagePaths.length > 5 ||
-            imagePaths.some(
-              (imagePath) => typeof imagePath !== 'string' || imagePath.trim().length === 0,
-            )
-          ) {
-            console.warn('[IPC] generate-what-to-say: malformed image path payload rejected');
-            return {
-              answer: null,
-              question: question || 'unknown',
-              screenContextStatus,
-              error: 'Invalid image path payload',
-            };
-          }
-
-          const { app } = require('electron');
-          const { validateImagePath } = require('./utils/imagePathValidation');
-          const userDataDir = app.getPath('userData');
-
-          for (const imagePath of imagePaths) {
-            const validation = validateImagePath(imagePath, userDataDir);
-            if (!validation.isValid) {
-              console.warn(
-                `[IPC] generate-what-to-say: invalid image path rejected: ${validation.reason}`,
-              );
-              return {
-                answer: null,
-                question: question || 'unknown',
-                screenContextStatus,
-                error: `Invalid image path: ${validation.reason}`,
-              };
-            }
-            validatedImagePaths!.push(imagePath);
-          }
-
-          // Answer once from all validated original images; no redundant generative extraction.
-        }
+        const validatedImagePaths = imagePaths?.length ? imagePaths : undefined;
 
         const intelligenceManager = appState.getIntelligenceManager();
         // Question and imagePaths are now optional - IntelligenceManager infers from transcript
@@ -2063,29 +2002,10 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('generate-code-hint', async (_, imagePaths?: string[], problemStatement?: string) => {
     try {
-      imagePaths = validateImages(imagePaths);
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
-      const screenshotQueue = appState.getScreenshotQueue();
-      const resolvedImagePaths: string[] =
-        imagePaths && imagePaths.length > 0 ? imagePaths : screenshotQueue;
-
-      // SECURITY (P0): Validate image paths if provided from renderer
-      if (imagePaths && imagePaths.length > 0) {
-        const { app } = require('electron');
-        const { validateImagePath } = require('./utils/imagePathValidation');
-        const userDataDir = app.getPath('userData');
-
-        for (const imagePath of imagePaths) {
-          const validation = validateImagePath(imagePath, userDataDir);
-          if (!validation.isValid) {
-            console.warn(
-              `[IPC] generate-code-hint: invalid image path rejected: ${validation.reason}`,
-            );
-            return { error: `Invalid image path: ${validation.reason}`, hint: null };
-          }
-        }
-      }
+      const resolvedImagePaths = validateImages(imagePaths === undefined || Array.isArray(imagePaths) && imagePaths.length === 0
+        ? appState.getScreenshotQueue() : imagePaths)!;
 
       console.log(
         `[IPC] generate-code-hint: using ${resolvedImagePaths.length} image(s) (${imagePaths?.length ? 'explicit' : 'queue fallback'})`,
@@ -2112,29 +2032,10 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('generate-brainstorm', async (_, imagePaths?: string[], problemStatement?: string) => {
     try {
-      imagePaths = validateImages(imagePaths);
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
-      const screenshotQueue = appState.getScreenshotQueue();
-      const resolvedImagePaths: string[] =
-        imagePaths && imagePaths.length > 0 ? imagePaths : screenshotQueue;
-
-      // SECURITY (P0): Validate image paths if provided from renderer
-      if (imagePaths && imagePaths.length > 0) {
-        const { app } = require('electron');
-        const { validateImagePath } = require('./utils/imagePathValidation');
-        const userDataDir = app.getPath('userData');
-
-        for (const imagePath of imagePaths) {
-          const validation = validateImagePath(imagePath, userDataDir);
-          if (!validation.isValid) {
-            console.warn(
-              `[IPC] generate-brainstorm: invalid image path rejected: ${validation.reason}`,
-            );
-            return { error: `Invalid image path: ${validation.reason}`, script: null };
-          }
-        }
-      }
+      const resolvedImagePaths = validateImages(imagePaths === undefined || Array.isArray(imagePaths) && imagePaths.length === 0
+        ? appState.getScreenshotQueue() : imagePaths)!;
 
       console.log(
         `[IPC] generate-brainstorm: using ${resolvedImagePaths.length} image(s) (${imagePaths?.length ? 'explicit' : 'queue fallback'})`,

@@ -158,6 +158,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                         placeholder={providerId === 'gemini' ? 'https://generativelanguage.googleapis.com' : providerId === 'claude' ? 'https://api.anthropic.com' : 'https://service.example/v1'}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
+                <p className="text-xs text-text-secondary">Re-enter your API key when changing the provider address.</p>
                 {providerId === 'openai' && <label className="block text-xs text-text-secondary">Protocol
                     <select aria-label="OpenAI protocol" value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], imageSupportConfirmedFor: undefined }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">

@@ -116,7 +116,7 @@ function storage() {
   const boot = () => {
     const module = { exports: {} };
     vm.runInNewContext(compile(read('electron/services/CredentialsManager.ts')), {
-      module, exports: module.exports, Buffer, console: quiet,
+      module, exports: module.exports, Buffer, URL, console: quiet,
       require(id) {
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage };
         if (id === 'fs') return fakeFs;
@@ -136,21 +136,91 @@ function storage() {
   return { files, filename, reads, boot, accountHelper: accountHelper(fakeFs), setFault(value) { fault = value; } };
 }
 
+test('R3-1 changed effective origin requires an explicitly reentered nonempty key and leaves all stored selections untouched on refusal', () => {
+  const disk = storage(), manager = disk.boot();
+  manager.setDefaultModel('llm-target:openai:chat-completions:primary');
+  manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:backup' });
+  const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
+  for (const apiKey of [undefined, '', '   ']) {
+    const result = manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://custom.invalid/v1', apiKey });
+    assert.equal(result.ok, false);
+    assert.match(result.message, /re-enter.*API key/i);
+    assert.deepEqual(plain(manager.getAllCredentials()), before);
+    assert.deepEqual(disk.files.get(disk.filename), cipher);
+  }
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://custom.invalid/v1', apiKey: 'synthetic-old' }).ok, true, 'reentering the same bytes authorizes the new origin');
+  assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-old');
+  assert.equal(disk.boot().getProviderConfigurations().openai.baseUrl, 'https://custom.invalid/v1');
+  for (const baseUrl of [undefined, 'http://custom.invalid/v1', 'https://custom.invalid:8443/v1']) {
+    assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl }).ok, false);
+  }
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://CUSTOM.invalid:443/other/' }).ok, true, 'same normalized origin keeps its key');
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, apiKey: 'synthetic-old' }).ok, true, 'custom to official also requires reentry');
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://API.OPENAI.COM:443/another/' }).ok, true);
+});
+
+test('R3-1 effective environment and development endpoints participate in origin comparison', () => {
+  const variable = 'OPENAI_BASE_URL', previous = process.env[variable];
+  const electronId = require.resolve('electron'), cached = require.cache[electronId];
+  const previousDev = process.env.MARGIN_DEV_OPENAI_BASE_URL;
+  try {
+    require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { isPackaged: false } } };
+    for (const dev of [false, true]) {
+      process.env[variable] = 'https://environment.invalid/root';
+      if (dev) process.env.MARGIN_DEV_OPENAI_BASE_URL = 'http://127.0.0.1:19331/v1';
+      else delete process.env.MARGIN_DEV_OPENAI_BASE_URL;
+      const disk = storage(), manager = disk.boot();
+      const effectiveBase = dev ? 'http://127.0.0.1:19331/path' : 'https://environment.invalid/other';
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: effectiveBase }).ok, true);
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai }).ok, true, 'clearing saved base returns to the same env origin');
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://api.openai.com/v1' }).ok, false);
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://api.openai.com/v1', apiKey: 'synthetic-old' }).ok, true);
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai }).ok, false, 'saved official to environment origin requires reentry');
+    }
+  } finally {
+    if (previous === undefined) delete process.env[variable]; else process.env[variable] = previous;
+    if (previousDev === undefined) delete process.env.MARGIN_DEV_OPENAI_BASE_URL; else process.env.MARGIN_DEV_OPENAI_BASE_URL = previousDev;
+    if (cached) require.cache[electronId] = cached; else delete require.cache[electronId];
+  }
+});
+
+test('R3-1 real save handler refuses origin changes and failed atomic saves before any runtime effect', async () => {
+  const disk = storage(), manager = disk.boot(), effects = [];
+  const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
+  const apply = () => effects.push('runtime');
+  const invoke = handler('set-provider-configuration', {
+    require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: apply, getCurrentModelSelection: () => 'synthetic' }) },
+      getIntelligenceManager: () => ({ resetEngine: apply, initializeLLMs: apply }), sendModelChanged: apply },
+  });
+  const config = { ...targets.openai, baseUrl: 'https://new.invalid/v1' };
+  assert.equal((await invoke({}, config)).ok, false);
+  disk.setFault('rename');
+  assert.equal((await invoke({}, { ...config, apiKey: 'synthetic-new' })).ok, false);
+  assert.deepEqual(effects, []);
+  assert.deepEqual(plain(manager.getAllCredentials()), before);
+  assert.deepEqual(disk.files.get(disk.filename), cipher);
+  disk.setFault(undefined);
+  assert.equal((await invoke({}, { ...config, apiKey: 'synthetic-new' })).ok, true);
+  assert.equal(effects.length, 4);
+  assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-new');
+});
+
 test('AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes', () => {
   const disk = storage(), manager = disk.boot();
   const config = { ...targets.openai, baseUrl: 'https://custom.example/v1', model: 'primary' };
   const binding = model => JSON.stringify(['openai', 'chat-completions', config.baseUrl, model]);
-  assert.equal(manager.setProviderConfiguration({ ...config, imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ ...config, apiKey: 'synthetic-old', imageSupportConfirmedFor: binding('primary') }).ok, true);
   assert.equal(manager.setDefaultModel('llm-target:openai:chat-completions:primary').ok, true);
   assert.equal(manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:backup', backupImageSupportConfirmedFor: binding('backup') }).ok, true);
   const restarted = disk.boot();
   assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, binding('primary'));
   assert.equal(restarted.getGenerationPolicy().backupImageSupportConfirmedFor, binding('backup'));
-  assert.equal(restarted.setProviderConfiguration({ ...config, baseUrl: 'https://changed.example/v1', imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(restarted.setProviderConfiguration({ ...config, baseUrl: 'https://changed.example/v1', apiKey: 'synthetic-old', imageSupportConfirmedFor: binding('primary') }).ok, true);
   assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, undefined);
   assert.equal(restarted.getGenerationPolicy().backupImageSupportConfirmedFor, undefined);
   assert.equal(disk.boot().getGenerationPolicy().backupImageSupportConfirmedFor, undefined);
-  assert.equal(restarted.setProviderConfiguration({ ...config, model: 'different', imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(restarted.setProviderConfiguration({ ...config, model: 'different', apiKey: 'synthetic-old', imageSupportConfirmedFor: binding('primary') }).ok, true);
   assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, undefined);
 });
 
@@ -243,12 +313,12 @@ test('all 24 setters commit only after persistence and can be read after restart
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
+    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
     assert.equal(manager[name](...args).ok, true, name);
-    if (name === 'setProviderConfiguration') assert.deepEqual(plain(manager.getAllCredentials().providerConfigurations.openai), plain(args[0]));
+    if (name === 'setProviderConfiguration') { const { apiKey, ...config } = args[0]; assert.deepEqual(plain(manager.getAllCredentials().providerConfigurations.openai), plain(config)); }
     else if (name === 'setGenerationPolicy') assert.deepEqual(plain(manager.getAllCredentials().generationPolicy), plain(args[0]));
     else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
     assert.deepEqual(plain(disk.boot().getAllCredentials()), plain(manager.getAllCredentials()), name);
@@ -391,8 +461,9 @@ test('AG31 env-only startup retains explicit keys, saved slots bind their own ke
     const disk = storage(), manager = disk.boot();
     // Start without the old synthetic stored key for the env-only control.
     if (scenario === 'env-only') manager.setOpenaiApiKey('');
-    if (scenario === 'saved-target' || scenario === 'removed-key') manager.setProviderConfiguration({ ...targets.openai,
-      protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: scenario === 'removed-key' ? '' : 'synthetic-saved' });
+    if (scenario === 'saved-target' || scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...targets.openai,
+      protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-saved' }).ok, true);
+    if (scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...manager.getProviderConfigurations().openai, apiKey: '' }).ok, true);
     if (scenario === 'unreadable') { disk.setFault('decrypt'); manager.init(); }
     const configured = [];
     class Helper {
