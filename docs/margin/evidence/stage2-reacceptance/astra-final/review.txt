@@ -1,0 +1,42 @@
+阶段2导航P2修复独立复验 — 2026-10-10
+
+审查范围：95b88e849355acfd622613b56a32f375c7794228..fa4ed3864b498b1e2d45deeb2f88e760297a72f5。
+提交：a0090760、85eb3d02、fa4ed386。只读审查，无源码或PLAN修改，无提交/推送/删除/远程CI触发。
+
+结论
+
+本次导航P2可关闭；与上轮已关闭的sharp失败退出、S23限定许可例外和等待撤销行为证据合并，上轮四项均已关闭。
+当前源码及本地技术验收通过，未发现新的代码阻塞。完整阶段2当前提交的打包验收仍待新产物证据，不把旧CI38004311007的9ef2ed4a包当作fa4ed386的已验包。
+
+Standards / 规范轴：0阻塞发现，0新增smell建议
+
+所有实际openExternal调用方均有匹配声明：HelpSettings12个按钮、ProviderCard、SettingsOverlay语音key按钮、NativelyInterface权限提示、PermissionsToaster屏幕设置，以及本身带href的AboutSection链接。未发现遗漏声明导致正常点击被拒绝的调用链。
+STT六项URL可追溯批准基线，组件内sttKeyUrl供属性和回调共用；没有隐藏未批准来源的证据。新增来源例外仅通用interval单行，有记录，未扩大批准文件池、排除规则或扫描器。
+source-bundle关于公开workflow和30天保留期的文字已同步。
+
+Spec / 需求轴：0新增代码阻塞；旧导航P2关闭
+
+preload不再使用全局短暂激活状态授权任意URL。捕获到可信点击后，要求该事件仍在派发，且请求URL与被点击控件声明的URL规范化后一致。原window.open/location路径继续拒绝、不打开浏览器。
+原始复现脚本原样运行，初始无激活，点击普通无URL按钮前后均没有external-open。原始输出为original-repro.log；主线程另用assert确认两个数组均为空。
+真实窗口回归测试在无用户手势下安装定时器，随后真实点击控件；20次定时器尝试、未声明/不匹配URL都被拒绝，合法链接及按钮仍只记录预期3条外链。该测试已随本轮完整门禁执行。
+
+准确边界
+
+实现不是消费式“每个点击只能调用一次”的计数器。其保证是可信点击派发期间+匹配声明URL；同次点击中的脚本可以打开该声明URL，可修改DOM的脚本也可以修改声明。这已在OUTBOUND记明，按当前契约不作为新的阻塞，也不宣称它可抵御任意页面脚本控制。未发现现有正常调用方单次点击重复开窗。
+
+主线程本轮实测
+
+- 当前干净fa4ed386上完整本地隔离门禁：16步实际exit0，853测试，847pass，0fail，6既有skip。
+- AG-09 6/6，storage5/5，startup1/1，outbound-renderer2/2。
+- retired-check --all：261规则0失败。
+- git diff --check及本次提交范围diff --check通过。
+- 原始activation-window复现：无外链，真实浏览器和网络未打开。
+- 原工作区codex/ai-assistant-refactor和迁移工作区codex/margin-agpl-migration均干净，HEAD未改变。
+
+证据：gates/summary.json及原始日志；retired-all.log；original-repro.log。
+
+剩余验收边界
+
+这次修改了preload和渲染层。85eb3d02是最终代码，fa4ed386仅更新文档/证据；但二者都没有对应的最新双身份打包、签名、包内检查、打包启动及对应源码产物记录。
+依用户要求，本轮没有手动触发CI，也没有本机打包、重编原生模块、启动正式Margin、下载大型产物、删除任何workflow产物或验证真实设备/密钥。
+若要签署完整阶段2出口，需要更新当前代码的打包/源码证据，或由用户明确调整该验收要求。它是待验证项，不是本轮发现的新代码缺陷。
