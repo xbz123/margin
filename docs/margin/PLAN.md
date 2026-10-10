@@ -674,8 +674,8 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | 项 | 负责 | 现在状态 | 放行条件（阻塞的阶段） |
 | --- | --- | --- | --- |
 | W1 只读复查 | Claude | 已完成（§9"阶段 3 复查（Claude）"，R3-1 至 R3-5，无阻断） | 无 |
-| W2 修复与关闭 | Codex 修，Claude 核对关闭 | R3-1、R3-2、R3-5 已实现，本地 16/16；代码 `3e779466` 的 Windows 编译 `38089471774` 通过，待 Claude 核对关闭。R3-3 移交阶段 7，R3-4 不改 | W1 的发现清单（实现） |
-| W3 出口 CI | Claude | 等待 | W2 全部关闭（实现）；用户批准触发 CI |
+| W2 修复与关闭 | Codex 修，Claude 核对关闭 | 已关闭（2026-10-11，§9"W2 关闭核对"）：R3-1、R3-2、R3-5 在 `3e779466` 修复；R3-3 移交阶段 7，R3-4 不改 | W1 的发现清单（实现） |
+| W3 出口 CI | Claude | 可以开始，等用户批准触发 | W2 已关闭；用户批准触发 CI |
 | W4 本机核对与签收 | Claude 核对，用户签收 | 等待 | W3 的产物（验收） |
 
 四项不能并行：W2 要改 W1 复查的代码；W3 要在最终代码上只跑一次；W4 要用 W3 的产物。复查和 CI 期间分支只接受 W2 的修复。阶段 4（AG-40 起）在阶段 3 签收并经用户允许后开始；如要提前并行，须另开工作树并征得用户同意，且不能移动 W3 的提交。
@@ -1631,7 +1631,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 - **只证明了能编译**：没有运行测试，没有加载这个 `.node`，没有打包，也没有实机运行，这些属于 AG-71 起的工作。
 - **用户决定（S31）**：并入每票门禁。工作流已改为推送时自动运行，只在公开仓库运行。
 
-**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W2 的 R3-1、R3-2、R3-5 已在 `3e779466` 修复，本地 16/16 和 Windows 编译 `38089471774` 通过，交 Claude 只核对修过的点及相关证据后关闭。R3-3 移交阶段 7，R3-4 不改。W3 出口 CI 仍须用户批准触发，随后按 S26 做 W4 核对；阶段 3 尚未签收。原生模块补 stdarch 许可已完成，包内许可正文仍须在出口 CI 随打包检查确认。S8–S31 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。下一步是 W3：阶段 3 完整出口 CI（`package_apps`，`no_cache=false`），须用户批准触发；随后按 S26 做 W4 核对，签收由用户决定。原生模块补 stdarch 许可已完成，包内许可正文在 W3 随打包检查确认。S8–S31 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2050,11 +2050,11 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 
 | 编号 | 严重度 | 位置 | 失败情形 | 归属 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| R3-1 | 应修，用户选甲（S31） | `electron/services/CredentialsManager.ts:225`、`:250`；`src/components/settings/AIProvidersSettings.tsx:283` | 用户已保存官方 OpenAI key，之后在同一槽位填入第三方兼容地址，不重新输入 key 直接保存。主进程保留旧 key，下一次生成就把官方 key 发给新地址，界面没有任何提示。旧 Margin 计划 `b8ade3f7` 第 3 节要求"约束…凭据转发" | AG-31 | 已修，本地通过；最终门禁与关闭见 W2 记录 |
-| R3-2 | 建议（Astra 复核后收窄） | `electron/ipcHandlers.ts:1924`、`:2066`、`:2115`、`:2071`、`:2120` | 原写法"校验后用原始路径"有误：三个入口开头都先调用 `validateImages()`，显式路径已经是 realpath，后面的再次校验是多余的，容易让人误解。真正的缺口是：`generate-code-hint` 和 `generate-brainstorm` 在没有显式图片时，回退使用截图队列，而队列路径没有经过统一校验。修法：先决定用显式图片还是队列，再统一校验，只传校验结果，并删掉重复的校验。改用 realpath 并不能消除所有文件替换竞态 | AG-33 | 已修，本地通过；最终门禁与关闭见 W2 记录 |
+| R3-1 | 应修，用户选甲（S31） | `electron/services/CredentialsManager.ts:225`、`:250`；`src/components/settings/AIProvidersSettings.tsx:283` | 用户已保存官方 OpenAI key，之后在同一槽位填入第三方兼容地址，不重新输入 key 直接保存。主进程保留旧 key，下一次生成就把官方 key 发给新地址，界面没有任何提示。旧 Margin 计划 `b8ade3f7` 第 3 节要求"约束…凭据转发" | AG-31 | 已关闭（`3e779466`） |
+| R3-2 | 建议（Astra 复核后收窄） | `electron/ipcHandlers.ts:1924`、`:2066`、`:2115`、`:2071`、`:2120` | 原写法"校验后用原始路径"有误：三个入口开头都先调用 `validateImages()`，显式路径已经是 realpath，后面的再次校验是多余的，容易让人误解。真正的缺口是：`generate-code-hint` 和 `generate-brainstorm` 在没有显式图片时，回退使用截图队列，而队列路径没有经过统一校验。修法：先决定用显式图片还是队列，再统一校验，只传校验结果，并删掉重复的校验。改用 realpath 并不能消除所有文件替换竞态 | AG-33 | 已关闭（`3e779466`） |
 | R3-3 | 建议（阶段 7 前提） | `electron/utils/imagePathValidation.ts:8` | 带盘符的路径（`C:\…`）一律拒绝，Windows 上所有截图都无法发送。这是基线原有行为，不影响 macOS | AG-71/AG-73 | 移交阶段 7：作为 Windows 截图功能验收项关闭，不能用编译通过代替 |
 | R3-4 | 待核实（Astra 复核后改定） | `electron/llm/generateOnce.ts:120`、`electron/services/CodexAuthSource.ts:95` | 原结论"assistant 消息必须用 `output_text`"依据不足：官方 `EasyInputMessage` 允许 assistant 角色使用 `input_text`，`output_text` 属于另一种结构 `ResponseOutputMessage`。因此不改代码。目前没有生产代码发送多轮内容，这一点仍然成立。Codex 私有后端是否接受这种写法，单独记为未验证 | AG-31、AG-34 | 不改，记录 |
-| R3-5 | 建议（清理） | `electron/LLMHelper.ts:578`、`:590`；`electron/ipcHandlers.ts:759`–`769`、`electron/preload.ts` 中 `get/setScreenUnderstandingMode`、`SettingsManager.getScreenUnderstandingMode` | `ScreenUnderstandingService` 删除后，屏幕理解模式的 IPC、preload、类型声明和设置读写仍在，renderer 已不再调用；`generateWithPro`/`generateWithFlash` 只有测试在调用。可以连同它们专属的测试一起删除。**必须保留** `SettingsManager.migrateLegacySettings`（`:177` 起）中把旧的 `private`/`private_vision` 转成 `screenshots: false` 的保护，否则会恢复用户原本禁止的截图外发 | AG-32 | 已清理并保留隐私保护，本地通过；最终门禁与关闭见 W2 记录 |
+| R3-5 | 建议（清理） | `electron/LLMHelper.ts:578`、`:590`；`electron/ipcHandlers.ts:759`–`769`、`electron/preload.ts` 中 `get/setScreenUnderstandingMode`、`SettingsManager.getScreenUnderstandingMode` | `ScreenUnderstandingService` 删除后，屏幕理解模式的 IPC、preload、类型声明和设置读写仍在，renderer 已不再调用；`generateWithPro`/`generateWithFlash` 只有测试在调用。可以连同它们专属的测试一起删除。**必须保留** `SettingsManager.migrateLegacySettings`（`:177` 起）中把旧的 `private`/`private_vision` 转成 `screenshots: false` 的保护，否则会恢复用户原本禁止的截图外发 | AG-32 | 已关闭（`3e779466`） |
 
 **Astra 复核（2026-10-10）**：只读核对了源码、调用方和官方文档。R3-1 不变；R3-2 收窄；R3-3 移交阶段 7，作为功能验收项；R3-4 改为待核实，不改代码；R3-5 是有限清理，保留 `private_vision` 的保护。上表已按此更正。W2 的范围是 R3-1、R3-2 和 R3-5。
 
@@ -2066,3 +2066,27 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 两种方式都只改 AG-31 的保存路径，不涉及原生模块、依赖或打包。
 
 **未验证**（不阻塞签收，W4 时写明）：真实服务对 Responses、Codex 后端、各厂商兼容地址的实际行为；R3-4 中的 API 规则；renderer 组件只做了抽查。
+
+### W2 关闭核对（Claude，2026-10-11，用户指示"帮我核对关闭"）
+
+只核对修过的点和相关证据，没有重做全面复查。
+
+- **R3-1**（`CredentialsManager.setProviderConfiguration`）：
+  - 先用和运行时相同的 resolver 算出新旧有效地址，再比较 origin。origin 变了又没有显式的非空 key，就拒绝整次保存，密文、默认/备用模型和运行状态都不变。重新输入 key 后即可保存，只改路径不受限制。
+  - `ProviderCard` 增加了提示文字。
+  - 测试覆盖：空 key 和空白 key 被拒；协议、端口、主机变化被拒；大小写和默认端口归一后相同的 origin 可以保存；从自定义地址改回官方地址也要重新输入 key；环境变量和开发地址参与比较；真实保存处理在拒绝时以及原子写入失败时都没有运行时副作用；真实 preload 路径被拒绝，且没有发出请求。
+- **R3-2**（`ipcHandlers.ts` 的 `generate-code-hint`、`generate-brainstorm`）：
+  - 先选定显式图片或截图队列，再统一走一次 `validateImages()`，只把 realpath 交给优化器和生成入口。畸形参数不会退回到队列。`generate-what-to-say` 删掉了重复校验，也没有新增队列回退。
+  - 截图队列上限是 5，与 `validateImages` 的上限一致（`ScreenshotHelper.MAX_SCREENSHOTS`）。
+  - 行为变化：队列里有失效路径时，请求会直接报错，不再把它交给后续步骤。属于失败即拒绝，可以接受。
+  - 测试覆盖：越界符号链接和超长队列在优化器之前就被拒绝；符号链接别名解析成真实路径；"该怎么答"不会使用队列。
+- **R3-5**：
+  - 删除了屏幕理解模式的 IPC、preload、类型声明和设置读写，以及 `generateWithPro`/`generateWithFlash`。
+  - 旧值 `private`/`private_vision` 仍会转成 `screenshots: false`，之后再删除这个废弃字段，其他数据范围不变。
+  - 测试覆盖：两个旧值，在保存成功、写入失败和改名失败三种情况下，重启后拒绝外发截图的设置都还在。
+- **证据**：
+  - 完整门禁 `evidence/AG-3x-review/` 16/16：981 个测试，976 通过，0 失败，5 个既有跳过；来源扫描 0 命中。
+  - 门禁是在 `832e5777` 加上未提交的修复上跑的。Claude 把 `targeted/10-frozen-source-inspection.log` 里 13 个文件的 sha256 与提交 `3e779466` 中的版本逐一比对，13/13 一致；`3afb3134` 只改了文档。
+  - Claude 在隔离守卫下重新构建，复跑 `credentialTransactions`、`ImagePathValidation`、`codexConsent`、`ProviderGatewayPolicy`、`ScopeLocalFallback`：136/136 通过。
+  - Windows 编译检查运行 38089471774（`3e779466`，push 触发）结论为 success，已用 GitHub API 核实。
+- **结论**：R3-1、R3-2、R3-5 关闭，W2 关闭。R3-3 留在阶段 7，作为 Windows 截图功能的验收项；R3-4 仍是待核实项，签收时写入未验证清单。
