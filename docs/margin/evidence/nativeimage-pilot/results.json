@@ -1,0 +1,418 @@
+{
+  "electron": "43.1.0",
+  "sharp": {
+    "aom": "3.13.1",
+    "archive": "3.8.2",
+    "cairo": "1.18.4",
+    "cgif": "0.5.0",
+    "exif": "0.6.25",
+    "expat": "2.7.3",
+    "ffi": "3.5.2",
+    "fontconfig": "2.17.1",
+    "freetype": "2.14.1",
+    "fribidi": "1.0.16",
+    "glib": "2.86.1",
+    "harfbuzz": "12.1.0",
+    "heif": "1.20.2",
+    "highway": "1.3.0",
+    "imagequant": "2.4.1",
+    "lcms": "2.17",
+    "mozjpeg": "0826579",
+    "pango": "1.57.0",
+    "pixman": "0.46.4",
+    "png": "1.6.50",
+    "proxy-libintl": "0.5",
+    "rsvg": "2.61.2",
+    "spng": "0.7.4",
+    "tiff": "4.7.1",
+    "vips": "8.17.3",
+    "webp": "1.6.0",
+    "xml2": "2.15.1",
+    "zlib-ng": "2.2.5",
+    "sharp": "0.34.5"
+  },
+  "cases": {
+    "source:retinaLight": {
+      "file": "src-retinaLight.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 195319
+    },
+    "source:retinaDark": {
+      "file": "src-retinaDark.png",
+      "width": 2880,
+      "height": 1800,
+      "bytes": 196943
+    },
+    "source:plain1x": {
+      "file": "src-plain1x.png",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 81962
+    },
+    "retinaLight:processImage": {
+      "max": 1536,
+      "quality": 80,
+      "mozjpeg": false,
+      "sharp": {
+        "file": "retinaLight-processImage-sharp.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 41572,
+        "ms": 53.6,
+        "psnr": 46.75
+      },
+      "native": {
+        "file": "retinaLight-processImage-native.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 42201,
+        "ms": 35.2,
+        "psnr": 46.45
+      }
+    },
+    "retinaLight:fast": {
+      "max": 1024,
+      "quality": 78,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaLight-fast-sharp.jpg",
+        "width": 1024,
+        "height": 640,
+        "bytes": 14138,
+        "ms": 66.9,
+        "psnr": 40.37
+      },
+      "native": {
+        "file": "retinaLight-fast-native.jpg",
+        "width": 1024,
+        "height": 640,
+        "bytes": 21838,
+        "ms": 18.7,
+        "psnr": 44.35
+      }
+    },
+    "retinaLight:balanced": {
+      "max": 1280,
+      "quality": 85,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaLight-balanced-sharp.jpg",
+        "width": 1280,
+        "height": 800,
+        "bytes": 23446,
+        "ms": 79.5,
+        "psnr": 43.36
+      },
+      "native": {
+        "file": "retinaLight-balanced-native.jpg",
+        "width": 1280,
+        "height": 800,
+        "bytes": 35365,
+        "ms": 21.3,
+        "psnr": 47.67
+      }
+    },
+    "retinaLight:technical": {
+      "max": 1536,
+      "quality": 88,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaLight-technical-sharp.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 32634,
+        "ms": 102.3,
+        "psnr": 45.49
+      },
+      "native": {
+        "file": "retinaLight-technical-native.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 49016,
+        "ms": 24.8,
+        "psnr": 50.09
+      }
+    },
+    "retinaLight:best": {
+      "max": 1920,
+      "quality": 90,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaLight-best-sharp.jpg",
+        "width": 1920,
+        "height": 1200,
+        "bytes": 47604,
+        "ms": 131.4,
+        "psnr": 47.65
+      },
+      "native": {
+        "file": "retinaLight-best-native.jpg",
+        "width": 1920,
+        "height": 1200,
+        "bytes": 71681,
+        "ms": 27.3,
+        "psnr": 52.16
+      }
+    },
+    "retinaDark:processImage": {
+      "max": 1536,
+      "quality": 80,
+      "mozjpeg": false,
+      "sharp": {
+        "file": "retinaDark-processImage-sharp.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 40294,
+        "ms": 48.1,
+        "psnr": 45.57
+      },
+      "native": {
+        "file": "retinaDark-processImage-native.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 40851,
+        "ms": 24,
+        "psnr": 45.51
+      }
+    },
+    "retinaDark:fast": {
+      "max": 1024,
+      "quality": 78,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaDark-fast-sharp.jpg",
+        "width": 1024,
+        "height": 640,
+        "bytes": 13744,
+        "ms": 66.6,
+        "psnr": 39.85
+      },
+      "native": {
+        "file": "retinaDark-fast-native.jpg",
+        "width": 1024,
+        "height": 640,
+        "bytes": 21317,
+        "ms": 19.3,
+        "psnr": 43.32
+      }
+    },
+    "retinaDark:balanced": {
+      "max": 1280,
+      "quality": 85,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaDark-balanced-sharp.jpg",
+        "width": 1280,
+        "height": 800,
+        "bytes": 22973,
+        "ms": 92.3,
+        "psnr": 42.8
+      },
+      "native": {
+        "file": "retinaDark-balanced-native.jpg",
+        "width": 1280,
+        "height": 800,
+        "bytes": 34327,
+        "ms": 22.1,
+        "psnr": 46.65
+      }
+    },
+    "retinaDark:technical": {
+      "max": 1536,
+      "quality": 88,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaDark-technical-sharp.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 31948,
+        "ms": 102.1,
+        "psnr": 45.08
+      },
+      "native": {
+        "file": "retinaDark-technical-native.jpg",
+        "width": 1536,
+        "height": 960,
+        "bytes": 47802,
+        "ms": 23.6,
+        "psnr": 49.09
+      }
+    },
+    "retinaDark:best": {
+      "max": 1920,
+      "quality": 90,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "retinaDark-best-sharp.jpg",
+        "width": 1920,
+        "height": 1200,
+        "bytes": 45846,
+        "ms": 126.9,
+        "psnr": 47.38
+      },
+      "native": {
+        "file": "retinaDark-best-native.jpg",
+        "width": 1920,
+        "height": 1200,
+        "bytes": 69102,
+        "ms": 28.5,
+        "psnr": 51.16
+      }
+    },
+    "plain1x:processImage": {
+      "max": 1536,
+      "quality": 80,
+      "mozjpeg": false,
+      "sharp": {
+        "file": "plain1x-processImage-sharp.jpg",
+        "width": 1536,
+        "height": 864,
+        "bytes": 29890,
+        "ms": 23.4,
+        "psnr": 47.93
+      },
+      "native": {
+        "file": "plain1x-processImage-native.jpg",
+        "width": 1536,
+        "height": 864,
+        "bytes": 30407,
+        "ms": 12.4,
+        "psnr": 47.61
+      }
+    },
+    "plain1x:fast": {
+      "max": 1024,
+      "quality": 78,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "plain1x-fast-sharp.jpg",
+        "width": 1024,
+        "height": 576,
+        "bytes": 9618,
+        "ms": 56.6,
+        "psnr": 42.6
+      },
+      "native": {
+        "file": "plain1x-fast-native.jpg",
+        "width": 1024,
+        "height": 576,
+        "bytes": 15365,
+        "ms": 9.6,
+        "psnr": 45.79
+      }
+    },
+    "plain1x:balanced": {
+      "max": 1280,
+      "quality": 85,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "plain1x-balanced-sharp.jpg",
+        "width": 1280,
+        "height": 720,
+        "bytes": 15547,
+        "ms": 56.5,
+        "psnr": 44.67
+      },
+      "native": {
+        "file": "plain1x-balanced-native.jpg",
+        "width": 1280,
+        "height": 720,
+        "bytes": 24067,
+        "ms": 10.7,
+        "psnr": 49.14
+      }
+    },
+    "plain1x:technical": {
+      "max": 1536,
+      "quality": 88,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "plain1x-technical-sharp.jpg",
+        "width": 1536,
+        "height": 864,
+        "bytes": 23276,
+        "ms": 77.4,
+        "psnr": 47.13
+      },
+      "native": {
+        "file": "plain1x-technical-native.jpg",
+        "width": 1536,
+        "height": 864,
+        "bytes": 35313,
+        "ms": 13,
+        "psnr": 51.16
+      }
+    },
+    "plain1x:best": {
+      "max": 1920,
+      "quality": 90,
+      "mozjpeg": true,
+      "sharp": {
+        "file": "plain1x-best-sharp.jpg",
+        "width": 1920,
+        "height": 1080,
+        "bytes": 33226,
+        "ms": 104.9,
+        "psnr": 48.23
+      },
+      "native": {
+        "file": "plain1x-best-native.jpg",
+        "width": 1920,
+        "height": 1080,
+        "bytes": 50681,
+        "ms": 8.4,
+        "psnr": 54.4
+      }
+    },
+    "stitch": {
+      "sharp": {
+        "file": "stitch-sharp.png",
+        "width": 3360,
+        "height": 1080,
+        "bytes": 103649,
+        "ms": 79.9,
+        "alphaBelow2x": 0
+      },
+      "native": {
+        "file": "stitch-native.png",
+        "width": 3360,
+        "height": 1080,
+        "bytes": 117545,
+        "ms": 62.4,
+        "alphaBelow2x": 0,
+        "psnrVsSharp": 63.2
+      }
+    },
+    "decode": {
+      "png": {
+        "fromBuffer": {
+          "width": 1920,
+          "height": 1080
+        },
+        "fromPath": {
+          "width": 1920,
+          "height": 1080
+        }
+      },
+      "jpeg": {
+        "fromBuffer": {
+          "width": 1920,
+          "height": 1080
+        },
+        "fromPath": {
+          "width": 1920,
+          "height": 1080
+        }
+      },
+      "webp": {
+        "fromBuffer": "empty",
+        "fromPath": "empty"
+      },
+      "gif": {
+        "fromBuffer": "empty",
+        "fromPath": "empty"
+      }
+    }
+  }
+}

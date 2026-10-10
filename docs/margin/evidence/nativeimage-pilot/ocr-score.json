@@ -1,0 +1,177 @@
+{
+ "plain1x.png": {
+  "mean": 0.8345,
+  "exact": 6,
+  "of": 13
+ },
+ "retinaDark.png": {
+  "mean": 0.9655,
+  "exact": 7,
+  "of": 13
+ },
+ "retinaLight.png": {
+  "mean": 0.8269,
+  "exact": 6,
+  "of": 13
+ },
+ "plain1x-balanced-sharp.jpg": {
+  "mean": 0.7792,
+  "exact": 2,
+  "of": 13
+ },
+ "plain1x-best-sharp.jpg": {
+  "mean": 0.8333,
+  "exact": 7,
+  "of": 13
+ },
+ "plain1x-fast-sharp.jpg": {
+  "mean": 0.3815,
+  "exact": 0,
+  "of": 13
+ },
+ "plain1x-processImage-sharp.jpg": {
+  "mean": 0.8158,
+  "exact": 5,
+  "of": 13
+ },
+ "plain1x-technical-sharp.jpg": {
+  "mean": 0.8157,
+  "exact": 4,
+  "of": 13
+ },
+ "retinaDark-balanced-sharp.jpg": {
+  "mean": 0.9051,
+  "exact": 4,
+  "of": 13
+ },
+ "retinaDark-best-sharp.jpg": {
+  "mean": 0.9565,
+  "exact": 5,
+  "of": 13
+ },
+ "retinaDark-fast-sharp.jpg": {
+  "mean": 0.7257,
+  "exact": 0,
+  "of": 13
+ },
+ "retinaDark-processImage-sharp.jpg": {
+  "mean": 0.9491,
+  "exact": 7,
+  "of": 13
+ },
+ "retinaDark-technical-sharp.jpg": {
+  "mean": 0.9455,
+  "exact": 6,
+  "of": 13
+ },
+ "retinaLight-balanced-sharp.jpg": {
+  "mean": 0.9786,
+  "exact": 8,
+  "of": 13
+ },
+ "retinaLight-best-sharp.jpg": {
+  "mean": 0.9759,
+  "exact": 10,
+  "of": 13
+ },
+ "retinaLight-fast-sharp.jpg": {
+  "mean": 0.7696,
+  "exact": 1,
+  "of": 13
+ },
+ "retinaLight-processImage-sharp.jpg": {
+  "mean": 0.7897,
+  "exact": 5,
+  "of": 13
+ },
+ "retinaLight-technical-sharp.jpg": {
+  "mean": 0.9632,
+  "exact": 6,
+  "of": 13
+ },
+ "plain1x-balanced-native.jpg": {
+  "mean": 0.7858,
+  "exact": 3,
+  "of": 13
+ },
+ "plain1x-best-native.jpg": {
+  "mean": 0.837,
+  "exact": 7,
+  "of": 13
+ },
+ "plain1x-fast-native.jpg": {
+  "mean": 0.4537,
+  "exact": 0,
+  "of": 13
+ },
+ "plain1x-processImage-native.jpg": {
+  "mean": 0.8166,
+  "exact": 4,
+  "of": 13
+ },
+ "plain1x-technical-native.jpg": {
+  "mean": 0.817,
+  "exact": 4,
+  "of": 13
+ },
+ "retinaDark-balanced-native.jpg": {
+  "mean": 0.9186,
+  "exact": 4,
+  "of": 13
+ },
+ "retinaDark-best-native.jpg": {
+  "mean": 0.9632,
+  "exact": 6,
+  "of": 13
+ },
+ "retinaDark-fast-native.jpg": {
+  "mean": 0.758,
+  "exact": 0,
+  "of": 13
+ },
+ "retinaDark-processImage-native.jpg": {
+  "mean": 0.9466,
+  "exact": 6,
+  "of": 13
+ },
+ "retinaDark-technical-native.jpg": {
+  "mean": 0.9501,
+  "exact": 6,
+  "of": 13
+ },
+ "retinaLight-balanced-native.jpg": {
+  "mean": 0.9449,
+  "exact": 8,
+  "of": 13
+ },
+ "retinaLight-best-native.jpg": {
+  "mean": 0.972,
+  "exact": 10,
+  "of": 13
+ },
+ "retinaLight-fast-native.jpg": {
+  "mean": 0.7981,
+  "exact": 4,
+  "of": 13
+ },
+ "retinaLight-processImage-native.jpg": {
+  "mean": 0.7885,
+  "exact": 5,
+  "of": 13
+ },
+ "retinaLight-technical-native.jpg": {
+  "mean": 0.9551,
+  "exact": 7,
+  "of": 13
+ },
+ "stitch-native.png": {
+  "mean": 0.6389,
+  "exact": 2,
+  "of": 13
+ },
+ "stitch-sharp.png": {
+  "mean": 0.6389,
+  "exact": 2,
+  "of": 13
+ }
+}

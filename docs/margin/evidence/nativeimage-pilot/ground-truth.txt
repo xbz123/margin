@@ -1,0 +1,13 @@
+Question 2: 给定一个整数数组 nums，返回和为 target 的两个下标。
+function twoSum(nums, target) {
+  const seen = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    const need = target - nums[i];
+    if (seen.has(need)) return [seen.get(need), i];
+    seen.set(nums[i], i);
+  }
+  return [];
+}
+// Time O(n), space O(n); edge case: duplicate values like [3, 3] with target 6
+console.log(twoSum([2, 7, 11, 15], 9)); // expected [0, 1]
+提示：时间限制 1 秒，内存限制 256 MB；请在 30 分钟内提交。
