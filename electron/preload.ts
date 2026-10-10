@@ -1,4 +1,5 @@
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from '../src/types/llmTarget';
+import type { GenerationPolicy } from '../src/types/generationPolicy';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
@@ -95,6 +96,8 @@ interface ElectronAPI {
 
   // API Key Management
   setProviderConfiguration: (value: ProviderConfigurationSave) => Promise<CredentialSaveResult>;
+  getGenerationPolicy: () => Promise<GenerationPolicy>;
+  setGenerationPolicy: (value: GenerationPolicy) => Promise<CredentialSaveResult>;
   setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
@@ -226,6 +229,10 @@ interface ElectronAPI {
     question?: string;
     error?: string;
     screenContextStatus?: 'not_available' | 'available' | 'failed';
+    visionProviderUsed?: string;
+    visionModelUsed?: string;
+    visionAttempts?: number;
+    generationStatus?: string;
     ocrTextLength?: number;
     imageCount?: number;
     usedImageInput?: boolean;
@@ -786,6 +793,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // API Key Management
   setProviderConfiguration: (value: ProviderConfigurationSave) => ipcRenderer.invoke('set-provider-configuration', value),
+  getGenerationPolicy: () => ipcRenderer.invoke('get-generation-policy'),
+  setGenerationPolicy: (value: GenerationPolicy) => ipcRenderer.invoke('set-generation-policy', value),
   setGeminiApiKey: (apiKey: string) => ipcRenderer.invoke('set-gemini-api-key', apiKey),
   setGroqApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-api-key', apiKey),
   setOpenaiApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-api-key', apiKey),

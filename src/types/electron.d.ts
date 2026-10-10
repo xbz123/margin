@@ -1,4 +1,5 @@
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from './llmTarget';
+import type { GenerationPolicy } from './generationPolicy';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from './credentialSave';
 
 export interface ElectronAPI {
@@ -86,6 +87,8 @@ export interface ElectronAPI {
 
   // API Key Management
   setProviderConfiguration: (value: ProviderConfigurationSave) => Promise<CredentialSaveResult>;
+  getGenerationPolicy: () => Promise<GenerationPolicy>;
+  setGenerationPolicy: (value: GenerationPolicy) => Promise<CredentialSaveResult>;
   setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
@@ -151,6 +154,7 @@ export interface ElectronAPI {
     question?: string;
     error?: string;
     /** Vision pipeline outcome — replaces legacy screenContextStatus/ocrTextLength fields */
+    generationStatus?: string;
     screenContextStatus?: 'not_available' | 'available' | 'failed';
     visionProviderUsed?: string;
     visionModelUsed?: string;

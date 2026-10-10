@@ -1,5 +1,4 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowTerminalGenerationError } from "./generateContract";
 import { CODE_HINT_PROMPT, buildCodeHintMessage } from "./prompts";
 import { TINY_CODE_HINT_PROMPT } from "./tinyPrompts";
 
@@ -10,41 +9,40 @@ export class CodeHintLLM {
         this.llmHelper = llmHelper;
     }
 
-    async *generateStream(
+    generateStream(...args: Parameters<CodeHintLLM['generateStreamInner']>): AsyncGenerator<string> {
+        const factory = () => this.generateStreamInner(...args);
+        return this.llmHelper.runGenerationStream(factory);
+    }
+
+    async *generateStreamInner(
         imagePaths?: string[],
         questionContext?: string,
         questionSource?: 'screenshot' | 'transcript' | null,
         transcriptContext?: string
     ): AsyncGenerator<string> {
-        try {
-            // Vision-required + small model lacking image support → fail loud, not malformed.
-            if (imagePaths?.length) {
-                const caps = this.llmHelper.getCapabilities();
-                if (!caps.supportsImages) {
-                    yield `The current local model (${caps.name}) doesn't support image input. Switch to a vision-capable model (e.g. llava, llama3.2-vision, gemma3) or use a cloud model.`;
-                    return;
-                }
+        // Vision-required + small model lacking image support → fail loud, not malformed.
+        if (imagePaths?.length) {
+            const caps = this.llmHelper.getCapabilities();
+            if (!caps.supportsImages) {
+                yield `The current local model (${caps.name}) doesn't support image input. Switch to a vision-capable model (e.g. llava, llama3.2-vision, gemma3) or use a cloud model.`;
+                return;
             }
-
-            const message = buildCodeHintMessage(
-                questionContext ?? null,
-                questionSource ?? null,
-                transcriptContext ?? null
-            );
-
-            const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_CODE_HINT_PROMPT : CODE_HINT_PROMPT;
-            const fittedMessage = this.llmHelper.fitContextForCurrentModel(message);
-
-            yield* this.llmHelper.streamChat(
-                fittedMessage,
-                imagePaths,
-                undefined,
-                promptOverride
-            );
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[CodeHintLLM] Stream failed:", error);
-            yield "I couldn't analyze the screenshot. Make sure your code is visible and try again.";
         }
+
+        const message = buildCodeHintMessage(
+            questionContext ?? null,
+            questionSource ?? null,
+            transcriptContext ?? null
+        );
+
+        const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_CODE_HINT_PROMPT : CODE_HINT_PROMPT;
+        const fittedMessage = this.llmHelper.fitContextForCurrentModel(message);
+
+        yield* this.llmHelper.streamChat(
+            fittedMessage,
+            imagePaths,
+            undefined,
+            promptOverride
+        );
     }
 }

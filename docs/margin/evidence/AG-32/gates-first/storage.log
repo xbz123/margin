@@ -1,0 +1,54 @@
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (61688.880166ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (540.978417ms)
+✖ the meeting chat follows the post_call_summary and profile_history scopes (61661.949875ms)
+✖ a meeting edit that fails to save is rolled back and reported (8.689542ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (21993.5025ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 146696.7745
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:106:1
+✖ a meeting is saved with a mock summary, survives a restart, and stays deleted (61688.880166ms)
+  Error: timed out waiting for the processed meeting
+      at waitFor (file://<repo>/tests/margin/meeting-storage.test.mjs:72:38)
+      at async TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:132:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at tests/margin/meeting-storage.test.mjs:243:1
+✖ the meeting chat follows the post_call_summary and profile_history scopes (61661.949875ms)
+  Error: timed out waiting for the processed meeting for the chat; meetings: ["Untitled Session","Untitled Session","Untitled Session"]; requests: 0
+      at file://<repo>/tests/margin/meeting-storage.test.mjs:265:65
+      at async TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:261:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at tests/margin/meeting-storage.test.mjs:354:1
+✖ a meeting edit that fails to save is rolled back and reported (8.689542ms)
+  AssertionError [ERR_ASSERTION]: the meeting from the chat test is listed
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:357:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/margin/meeting-storage.test.mjs:461:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (21993.5025ms)
+  Error: timed out waiting for the held title request for RECOVER_DENIED
+      at waitFor (file://<repo>/tests/margin/meeting-storage.test.mjs:72:38)
+      at async leaveUnprocessed (file://<repo>/tests/margin/meeting-storage.test.mjs:484:5)
+      at async TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:497:20)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

@@ -39,8 +39,12 @@ LLMHelper's final sends recheck request scopes after limiter/image processing an
 before application retries/fallback. Groq/OpenAI/Anthropic/DeepSeek SDK retries
 are disabled (`maxRetries: 0`), including each physical request's options.
 All four generation protocols are centralized in `llm/generateOnce.ts`.
-Gemini uses `retryOptions.attempts: 1` on each physical request;
-the caller retains application-level retries and sequential model fallback.
+Gemini uses `retryOptions.attempts: 1` on each physical request.
+AG-32 moves application retries into `llm/generateTask.ts`: a logical task has
+at most two physical generations, with one explicitly configured backup rather
+than a traversal of configured providers. Task targets are snapshots, while
+permissions are read again before each send. Retries, explicit cache-reference
+recovery and backup selection share the same attempt and deadline budget.
 The shared Gemini client constructor and cache creation also explicitly
 set one attempt. Cache creation is an outbound request: both callers check
 scopes and abort **before** getOrCreate, the cache helper checks immediately
@@ -52,11 +56,12 @@ cache creation. Cancelled generation discards late response content; this is
 client-side cancellation, not a promise that the remote service stops billing.
 The single-send result distinguishes complete, refused, incomplete, empty,
 cancelled and failed responses. Scope refusal remains a terminal exception.
-Gemini refusal/incomplete output and failures after partial output propagate
-through the legacy fallback wrappers rather than silently succeeding or
-appending another provider's answer. Empty pre-output results retain the
-caller's existing fallback policy. No new endpoint, credential source or
-automatic redirect is introduced by AG-30.
+Refusal, incomplete or empty output and failures after partial output are
+terminal rather than silently succeeding or appending another provider's
+answer. Authentication, configuration and scope errors do not select a backup.
+Only an eligible pre-text transient or explicit model-unavailable error can
+justify a second attempt. No new endpoint, credential source or automatic
+redirect is introduced by this scheduler.
 
 AG-31 adds explicit saved provider/protocol/base/model targets, not a new
 credential source. The five encrypted credential slots remain separate.
@@ -83,12 +88,13 @@ Protocol EOF without the required finish event/reason is incomplete, not
 success. Single-send tests use real installed SDKs with local HTTP services;
 they do not certify arbitrary remote compatible services.
 
-Concrete helper send paths include generateWithPro/Flash, generateContent,
-generateContentStructured, generateWithGroq/Openai/Claude/Deepseek,
-generateWithGroqMultimodal, streamWithGroq/Openai/Claude/Deepseek and their image
-variants, streamWithGeminiModel, collectStreamResponse, generateWithFallback,
-streamWithGroqOrGemini and generateMeetingSummary. Chat/vision/summary fallback
-wrappers delegate to these final sends rather than defining separate transports.
+The active answer, structured-generation and summary helpers delegate to
+`selectedGeneration` and the shared scheduler. Prompt wrappers preserve the task
+through lazy generator iteration; background compression and summaries have
+their own total deadline without an interview first-token timer. The
+WhatToSay screenshot entry forwards the original images to the answer rather
+than first generating a separate screen analysis with another provider chain.
+Connection testing remains a single physical request to the saved target.
 
 Cache system content is not assumed to be permanently static. Language settings
 are inserted into it; systemPromptOverride and the optional skill prompt interface

@@ -54,6 +54,7 @@ async function summarizeWith(policy, extraDataScopes) {
   const LLMHelper = loadBuiltLLMHelper();
   const requests = [];
   const self = Object.assign(Object.create(LLMHelper.prototype), {
+    currentModelId: 'llama-3.3-70b-versatile', selectedTarget: { provider: 'groq', protocol: 'chat-completions', model: 'llama-3.3-70b-versatile' },
     codexCliConfig: { enabled: false },
     groqClient: { chat: { completions: { create: async (body) => { requests.push(body); return { choices: [{ message: { content: 'SUMMARY' }, finish_reason: 'stop' }] }; } } } },
     getProviderScopePolicy: () => policy,
@@ -109,13 +110,13 @@ async function codexWith(entry, policy) {
   const self = Object.assign(Object.create(LLMHelper.prototype), {
     codexCliConfig: { enabled: true, path: '/margin-test/codex-not-installed', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex', timeoutMs: 1_000, sandboxMode: 'read-only', serviceTier: 'default' },
     currentModelId: 'codex-cli:gpt-5.4',
-    getProviderScopePolicy: () => policy,
+    getProviderScopePolicy: () => policy, personaPrompt: '', aiResponseLanguage: 'auto',
   });
   try {
     if (entry === 'stream') {
-      for await (const _ of self.streamWithCodexCli('TRANSCRIPT_SENTINEL said hello', 'SYSTEM')) { /* drain */ }
+      for await (const _ of self.streamChat('TRANSCRIPT_SENTINEL said hello')) { /* drain */ }
     } else {
-      await self.generateWithCodexCli('TRANSCRIPT_SENTINEL said hello', 'SYSTEM');
+      await self.chatWithGemini('TRANSCRIPT_SENTINEL said hello');
     }
     return { error: null, spawned };
   } catch (error) {
@@ -169,12 +170,9 @@ for (const construction of ['constructor', 'key update']) {
           status: 500, headers: { 'content-type': 'application/json', 'retry-after-ms': '1' },
         });
       };
-      const calls = {
-        groq: () => self.generateWithGroq('SCOPE_SENTINEL'),
-        openai: () => self.generateWithOpenai('SCOPE_SENTINEL'),
-        claude: () => self.generateWithClaude('SCOPE_SENTINEL'),
-        deepseek: () => self.generateWithDeepseek('SCOPE_SENTINEL'),
-      };
+      const model = { groq: 'llama-3.3-70b-versatile', openai: 'gpt-5.4', claude: 'claude-sonnet-4-6', deepseek: 'deepseek-v4-flash' }[provider];
+      self.setModel(`llm-target:${provider}:${provider === 'claude' ? 'messages' : 'chat-completions'}:${model}`);
+      const calls = { [provider]: () => self.chatWithGemini('SCOPE_SENTINEL') };
       await assert.rejects(calls[provider]);
       assert.equal(requests, 1, 'no hidden SDK replay after the scope closes');
       assert.equal(client.maxRetries, 0);
@@ -182,66 +180,45 @@ for (const construction of ['constructor', 'key update']) {
   }
 }
 
-test('vision denial is terminal without retries, health penalty or fallback', async () => {
-  const { ProviderScopeError } = await loadRouter();
-  const { runStreamingVisionFallback, DEFAULT_VISION_FALLBACK_CONFIG } = await import(pathToFileURL(path.join(repoRoot, 'dist-electron/electron/llm/visionStreamFallback.js')).href);
-  const denied = new ProviderScopeError('test', ['screenshots']);
-  const health = new Map();
-  const attempts = [];
-  const providers = ['first', 'backup'].map(id => ({ id, name: id, isLocal: false, priority: 0,
-    open: async function* () { attempts.push(id); throw denied; },
-  }));
-  const hooks = { sleep: async () => { attempts.push('backoff'); }, warn: () => { attempts.push('provider warning'); } };
-  await assert.rejects(async () => {
-    for await (const _ of runStreamingVisionFallback(providers, { ...DEFAULT_VISION_FALLBACK_CONFIG, cleanupTimeoutMs: 1 }, health, hooks)) { /* drain */ }
-  }, error => error === denied);
-  assert.deepEqual(attempts, ['first']);
-  assert.equal(health.size, 0);
+test('vision denial is terminal without another send', async () => {
+  const self = helperWith({ screenshots: false }, geminiClient(() => { throw Error('must not send'); }));
+  await assert.rejects(() => drain(self.streamChat('QUESTION', NO_IMAGE, undefined, undefined, true, true, ['screenshots'])), { name: 'ProviderScopeError' });
 });
 
-test('Gemini fallback preserves refusal without starting a speculative sibling', async () => {
+test('Gemini explicit backup preserves refusal without a speculative sibling', async () => {
   const { ProviderScopeError } = await loadRouter();
   const denied = new ProviderScopeError('gemini', ['transcript']);
   const attempted = [];
-  const self = helperWith({}, { client: {}, collectStreamResponse: async (_, model) => {
-    attempted.push(model);
-    if (attempted.length === 1) throw denied;
-    return 'must not become an answer';
-  } });
-  await assert.rejects(async () => {
-    for await (const _ of self.streamWithGeminiFallback('QUESTION')) { /* drain */ }
-  }, error => error === denied);
+  const self = helperWith({}, geminiClient(body => { attempted.push(body.model); throw denied; }));
+  self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+  await assert.rejects(() => drain(self.streamChat('QUESTION')), error => error === denied);
   assert.equal(attempted.length, 1);
 });
 
-test('Gemini sequential fallback retains ordinary failure and cancellation behavior', async () => {
+test('Gemini explicit backup recovers a transient failure, while cancellation terminates it', async () => {
   const attempted = [];
-  const self = helperWith({}, { client: {}, collectStreamResponse: async (_, model) => {
-    attempted.push(model);
-    if (attempted.length === 1) throw new Error('provider unavailable');
-    return 'BACKUP_RESULT';
-  } });
-  let answer = '';
-  for await (const chunk of self.streamWithGeminiFallback('QUESTION')) answer += chunk;
-  assert.equal(answer, 'BACKUP_RESULT');
+  const self = helperWith({}, geminiClient(body => {
+    attempted.push(body.model); if (attempted.length === 1) throw Object.assign(Error('overloaded'), { status: 503 }); return complete('BACKUP_RESULT');
+  }));
+  self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+  assert.equal(await collect(self.streamChat('QUESTION')), 'BACKUP_RESULT');
+  assert.deepEqual(attempted, ['gemini-test', 'backup']);
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(() => collect(self.streamChat('QUESTION', undefined, undefined, undefined, false, false, [], controller.signal)), { name: 'AbortError' });
   assert.equal(attempted.length, 2);
-  const cancelled = new AbortController();
-  self.collectStreamResponse = async () => { cancelled.abort(); throw new Error('cancelled'); };
-  await drain(self.streamWithGeminiFallback('QUESTION', undefined, undefined, cancelled.signal));
 });
 
 test('an aborted Gemini collection cannot send after its cache wait', async () => {
-  const controller = new AbortController();
-  let sends = 0;
-  const self = helperWith({}, {
-    client: { models: { generateContent: async () => { sends++; return { text: 'ANSWER' }; } } },
-    geminiPromptCache: { getOrCreate: async () => { controller.abort(); return null; } },
-  });
-  await assert.rejects(() => self.collectStreamResponse('QUESTION', 'test', undefined, controller.signal, 'SYSTEM'));
+  const controller = new AbortController(); let sends = 0;
+  const self = helperWith({}, geminiClient(() => { sends++; return complete(); }));
+  self.geminiPromptCache.getOrCreate = async () => { controller.abort(); return null; };
+  await assert.rejects(() => collect(self.streamChat('QUESTION', undefined, undefined, 'SYSTEM', true, true, [], controller.signal)), { name: 'AbortError' });
   assert.equal(sends, 0);
 });
 
-const drain = async (stream) => { for await (const _ of stream) { /* drain */ } };
+const drain = async stream => { for await (const _ of stream) { /* drain */ } };
+const collect = async stream => { let text = ''; for await (const chunk of stream) text += chunk; return text; };
+const complete = (text = 'ANSWER') => ({ text, candidates: [{ content: { parts: [{ text }] }, finishReason: 'STOP' }] });
 
 test('prompt wrappers propagate a refusal instead of inventing an answer', async () => {
   loadBuiltLLMHelper();
@@ -249,6 +226,7 @@ test('prompt wrappers propagate a refusal instead of inventing an answer', async
   const denied = new ProviderScopeError('test', ['transcript']);
   assert.throws(() => rethrowProviderScopeError(new AggregateError([new Error('ordinary'), new AggregateError([denied])])), error => error === denied);
   const helper = {
+    runGeneration: factory => factory(), runGenerationStream: factory => factory(),
     getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: true }),
     fitContextForCurrentModel: text => text,
     getPromptTier: () => 'standard',
@@ -279,6 +257,7 @@ test('WhatToSay emits the refusal and rejects without a fabricated answer', asyn
   const denied = new ProviderScopeError('test', ['transcript']);
   const events = [];
   const engine = Object.assign(Object.create(IntelligenceEngine.prototype), {
+    llmHelper: { runGeneration: factory => factory(), getCurrentGenerationTask: () => undefined },
     session: { getFormattedContext: () => 'CONTEXT' },
     answerLLM: { generate: async () => { throw denied; } },
     emit: (...args) => events.push(args),
@@ -286,79 +265,54 @@ test('WhatToSay emits the refusal and rejects without a fabricated answer', asyn
   });
   await assert.rejects(() => engine.runWhatShouldISay('QUESTION'), error => error === denied);
   assert.deepEqual(events, [['mode', 'what_to_say'], ['error', denied, 'what_to_say'], ['mode', 'idle']]);
+  events.length = 0;
+  await assert.rejects(() => engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true, errorDelivery: 'caller' }), error => error === denied);
+  assert.deepEqual(events, [['mode', 'what_to_say'], ['mode', 'idle']], 'IPC caller displays the rejection without an unaddressed duplicate event');
 });
 
-test('default chat routing refuses transcript denial but can send without denied context', async () => {
-  const LLMHelper = loadBuiltLLMHelper();
-  const policy = { transcript: false };
-  const messages = [];
-  const self = Object.assign(new LLMHelper(), {
-    currentModelId: 'gemini-test', groqClient: {},
-    getProviderScopePolicy: () => policy,
-    generateWithGroq: async message => { messages.push(message); return 'ANSWER'; },
-  });
+test('default chat routing refuses transcript denial but can omit denied history', async () => {
+  const policy = { transcript: false }; const messages = [];
+  const self = helperWith(policy, geminiClient(body => { messages.push(body); return complete('ANSWER'); }));
   await assert.rejects(() => self.chatWithGemini('QUESTION'), { name: 'ProviderScopeError' });
   assert.equal(messages.length, 0);
-  policy.transcript = true;
-  policy.profile_history = false;
+  policy.transcript = true; policy.profile_history = false;
   assert.equal(await self.chatWithGemini('QUESTION', undefined, 'MEETING: SECRET_HISTORY'), 'ANSWER');
-  assert.deepEqual(messages, ['QUESTION']);
+  assert.doesNotMatch(JSON.stringify(messages), /SECRET_HISTORY/);
 });
+
 const denialRoutes = [
   ['non-streaming chat', self => self.chatWithGemini('QUESTION')],
-  ['fast Codex chat', self => { self.groqFastTextMode = true; self.codexCliConfig.enabled = true; return self.chatWithGemini('QUESTION'); }],
-  ['fast Groq chat', self => { self.groqFastTextMode = true; self.currentModelId = 'llama-3.3-70b-versatile'; return self.chatWithGemini('QUESTION'); }],
-  ['structured fallback', self => self.generateContentStructured('QUESTION')],
-  ['non-streaming vision', self => self.generateWithVisionFallback('SYSTEM', 'QUESTION', NO_IMAGE)],
-  ['Codex vision', self => { self.codexCliConfig.enabled = true; return self.generateWithVisionFallback('SYSTEM', 'QUESTION', NO_IMAGE); }],
-  ['streaming text fallback', self => drain(self.streamChatWithGemini('QUESTION'))],
-  ['streaming vision outer boundary', self => drain(self.streamChat('QUESTION', NO_IMAGE))],
-  ['mode-specific fallback', self => drain(self.streamWithGroqOrGemini('QUESTION', 'QUESTION'))],
+  ['structured generation', self => self.generateContentStructured('QUESTION')],
+  ['streaming text', self => drain(self.streamChatWithGemini('QUESTION'))],
+  ['streaming images', self => drain(self.streamChat('QUESTION', NO_IMAGE))],
+  ['fixed Pro', self => self.generateWithPro([{ text: 'QUESTION' }])],
+  ['fixed Flash', self => self.generateWithFlash([{ text: 'QUESTION' }])],
 ];
-for (const [name, run] of denialRoutes) {
-  test(`${name}: a scope refusal stops at the first provider`, async () => {
-    const LLMHelper = loadBuiltLLMHelper();
-    const { ProviderScopeError } = await loadRouter();
-    const denied = new ProviderScopeError('test', ['transcript']);
-    const calls = [];
-    const self = Object.assign(new LLMHelper(), {
-      currentModelId: 'gpt-5.4', codexCliConfig: { enabled: false, model: 'test' },
-      openaiClient: {}, claudeClient: {}, client: {},
-      groqClient: { chat: { completions: { create: async () => { calls.push('groq send'); throw denied; } } } },
-      getProviderScopePolicy: () => ({}),
-      delay: async () => { calls.push('backoff'); },
-    });
-    for (const method of ['generateWithCodexCli', 'generateWithGroq', 'generateWithOpenai', 'generateWithClaude', 'generateWithDeepseek', 'generateWithGroqMultimodal']) {
-      self[method] = async () => { calls.push(method); throw denied; };
-    }
-    for (const method of ['streamWithCodexCli', 'streamWithGroq', 'streamWithOpenai', 'streamWithClaude', 'streamVisionWithFallback']) {
-      self[method] = async function* () { calls.push(method); throw denied; };
-    }
-    await assert.rejects(() => run(self), error => error === denied);
-    assert.equal(calls.length, 1, JSON.stringify(calls));
-  });
-}
+for (const [name, run] of denialRoutes) test(`${name}: scope refusal stays terminal with an explicit backup`, async () => {
+  const { ProviderScopeError } = await loadRouter(); const denied = new ProviderScopeError('test', ['transcript']);
+  const calls = []; const self = helperWith({}, geminiClient(body => { calls.push(body.model); throw denied; }));
+  self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+  await assert.rejects(() => run(self), error => error === denied);
+  assert.equal(calls.length, 1);
+});
 
-for (const refuseAt of [1, 2]) {
-  test(`robust Gemini fallback keeps refusal type at rate-limit wait ${refuseAt}`, async () => {
-    const policy = {};
-    let waits = 0;
-    let sends = 0;
-    const self = helperWith(policy, {
-      rateLimiters: { gemini: { acquire: async () => { if (++waits === refuseAt) policy.transcript = false; } } },
-    });
-    const client = { models: { generateContent: async () => { sends++; throw new Error('server failed'); } } };
-    await assert.rejects(() => self.generateWithFallback(client, { model: 'test', contents: [{ text: 'QUESTION' }] }), { name: 'ProviderScopeError' });
-    assert.equal(sends, refuseAt - 1);
-    assert.equal(waits, refuseAt, 'no subsequent retry cycle after a refusal');
-  });
-}
+for (const refuseAt of [1, 2]) test(`selected Gemini preserves scope refusal at limiter wait ${refuseAt}`, async () => {
+  const policy = {}; let waits = 0; let sends = 0;
+  const self = helperWith(policy, geminiClient(() => { sends++; throw Object.assign(Error('overloaded'), { status: 503 }); }));
+  self.rateLimiters.gemini.acquire = async () => { if (++waits === refuseAt) policy.transcript = false; };
+  await assert.rejects(() => self.chatWithGemini('QUESTION'), { name: 'ProviderScopeError' });
+  assert.equal(sends, refuseAt - 1); assert.equal(waits, refuseAt);
+});
 
 function helperWith(policy, fields) {
   const LLMHelper = loadBuiltLLMHelper();
   const noLimit = { acquire: async () => {} };
   return Object.assign(Object.create(LLMHelper.prototype), {
-    codexCliConfig: { enabled: false },
+    codexCliConfig: { enabled: false }, personaPrompt: '', customNotes: '', aiResponseLanguage: 'auto',
+    currentModelId: 'gemini-test', selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' },
+    processImage: async () => ({ mimeType: 'image/png', data: 'AAAA' }),
+    geminiPromptCache: { getOrCreate: async () => null, invalidate() {} },
+    processResponse: text => text,
     groqFastTextMode: false,
     rateLimiters: { claude: noLimit, groq: noLimit, gemini: noLimit, openai: noLimit, deepseek: noLimit },
     withRetry: (fn) => fn(),
@@ -378,33 +332,22 @@ async function sendWith(policy, makeClient, call) {
   }
 }
 
-const claudeClient = (send) => ({ claudeClient: { messages: { create: send } }, currentModelId: 'claude-sonnet-4-6' });
-const groqClient = (send) => ({ groqClient: { chat: { completions: { create: send } } } });
-const geminiClient = (send) => ({ client: { models: { generateContent: send } }, geminiModel: 'gemini-test' });
-// A path that does not exist: the image is skipped when reading, but the call still
-// counts as one carrying screenshots, as in the app.
-const NO_IMAGE = ['/margin-test/screenshot-not-present.png'];
-
-const directSends = [
-  ['Claude', claudeClient, (self, images) => self.generateWithClaude('TRANSCRIPT_SENTINEL said hello', 'SYSTEM', images)],
-  ['Groq multimodal', groqClient, (self, images) => self.generateWithGroqMultimodal('TRANSCRIPT_SENTINEL said hello', images ?? [], 'SYSTEM')],
-  ['Gemini contents', geminiClient, (self, images) => self.generateContent([{ text: 'TRANSCRIPT_SENTINEL said hello' }, ...(images ? [{ inlineData: { mimeType: 'image/png', data: 'AAAA' } }] : [])])],
-];
-
-for (const [name, makeClient, call] of directSends) {
-  test(`${name} sends nothing when the transcript or screenshot scope is denied`, async () => {
-    const allowed = await sendWith({}, makeClient, (self) => call(self, NO_IMAGE));
-    assert.match(String(allowed.error?.message), new RegExp(SEND_STUB), 'with every scope allowed the call reaches the send');
-    assert.equal(allowed.requests.length, 1);
-    assert.match(JSON.stringify(allowed.requests[0]), /TRANSCRIPT_SENTINEL/);
-
-    for (const [policy, images] of [[{ transcript: false }, undefined], [{ screenshots: false }, NO_IMAGE]]) {
-      const denied = await sendWith(policy, makeClient, (self) => call(self, images));
-      assert.equal(denied.error?.name, 'ProviderScopeError', `${JSON.stringify(policy)}: expected a scope error, got ${denied.error}`);
-      assert.equal(denied.requests.length, 0, `${JSON.stringify(policy)}: nothing may be sent`);
-    }
-  });
-}
+const chosen = (provider, protocol, model) => ({ currentModelId: model, selectedTarget: { provider, protocol, model } });
+const claudeClient = send => ({ ...chosen('claude', 'messages', 'claude-sonnet-4-6'), claudeClient: { messages: { create: send } } });
+const groqClient = send => ({ ...chosen('groq', 'chat-completions', 'llama-3.3-70b-versatile'), groqClient: { chat: { completions: { create: send } } } });
+const geminiClient = send => ({ ...chosen('gemini', 'gemini', 'gemini-test'), client: { models: { generateContent: send, generateContentStream: async body => [await send(body)] } } });
+const NO_IMAGE = ['/margin-test/screenshot-synthetic.png'];
+const directSends = [['Claude', claudeClient], ['Groq images', groqClient], ['Gemini images', geminiClient]];
+for (const [name, makeClient] of directSends) test(`${name} sends nothing when a declared transcript or screenshot scope is denied`, async () => {
+  const call = self => drain(self.streamChat('TRANSCRIPT_SENTINEL said hello', NO_IMAGE, undefined, undefined, true, true, ['screenshots']));
+  const allowed = await sendWith({}, makeClient, call);
+  assert.match(String(allowed.error?.message), new RegExp(SEND_STUB)); assert.equal(allowed.requests.length, 1);
+  assert.match(JSON.stringify(allowed.requests), /TRANSCRIPT_SENTINEL/);
+  for (const policy of [{ transcript: false }, { screenshots: false }]) {
+    const denied = await sendWith(policy, makeClient, call);
+    assert.equal(denied.error?.name, 'ProviderScopeError'); assert.equal(denied.requests.length, 0);
+  }
+});
 
 // The path the review named: Claude selected, the transcript in the message itself
 // (as generateSuggestion builds it), the Transcripts scope denied.
@@ -418,39 +361,24 @@ test('chatWithGemini with Claude selected does not send a transcript-bearing mes
   assert.doesNotMatch(String(denied.result), /TRANSCRIPT_SENTINEL/);
 });
 
-// AG-31 replaces the retired SDK syntax-count guard with multi-protocol final-scope behavior tests in multiProtocolGeneration.test.mjs.
-
-// Fourth review (PLAN.md AG-17): the static sweep only shows that a check comes
-// before each send in the same method, not that every branch is guarded. These cases
-// call each remaining send branch with the transcript scope denied and count requests,
-// so deleting the check of any one branch fails here.
-const geminiOnly = (send) => ({ client: { models: { generateContent: send } }, geminiModel: 'gemini-test', delay: async () => {} });
-const groqThenNothing = (send) => ({ groqClient: { chat: { completions: { create: send } } } });
+// Retired multi-provider rotations are covered through the selected structured/fixed entries.
+const geminiOnly = geminiClient;
 const branchSends = [
-  // Two Gemini branches, each tried in every rotation: 2 x 3 requests when allowed.
-  ['generateContentStructured (Gemini Pro and Flash branches)', geminiOnly, (self) => self.generateContentStructured('TRANSCRIPT_SENTINEL said hello'), 6],
-  ['generateWithPro', geminiOnly, (self) => self.generateWithPro([{ text: 'TRANSCRIPT_SENTINEL said hello' }]), 1],
-  ['generateWithFlash', geminiOnly, (self) => self.generateWithFlash([{ text: 'TRANSCRIPT_SENTINEL said hello' }]), 1],
-  ['generateWithFallback (robust Gemini client)', geminiOnly, (self) => self.generateWithFallback(self.client, { model: 'gemini-test', contents: [{ text: 'TRANSCRIPT_SENTINEL said hello' }] }), null],
-  ['streamWithGroqOrGemini (Groq branch)', groqThenNothing, async (self) => { for await (const _ of self.streamWithGroqOrGemini('TRANSCRIPT_SENTINEL said hello', 'TRANSCRIPT_SENTINEL said hello')) { /* drain */ } }, 1],
+  ['generateContentStructured', self => self.generateContentStructured('TRANSCRIPT_SENTINEL')],
+  ['generateWithPro', self => self.generateWithPro([{ text: 'TRANSCRIPT_SENTINEL' }])],
+  ['generateWithFlash', self => self.generateWithFlash([{ text: 'TRANSCRIPT_SENTINEL' }])],
+  ['streamChat selected model', self => drain(self.streamChat('TRANSCRIPT_SENTINEL'))],
 ];
-
-for (const [name, makeClient, call, allowedRequests] of branchSends) {
-  test(`${name} sends nothing when the transcript scope is denied`, async () => {
-    const allowed = await sendWith({}, makeClient, call);
-    if (allowedRequests === null) assert.ok(allowed.requests.length >= 1, 'with every scope allowed the call reaches the send');
-    else assert.equal(allowed.requests.length, allowedRequests, 'with every scope allowed every branch reaches the send');
-
-    const denied = await sendWith({ transcript: false }, makeClient, call);
-    assert.equal(denied.requests.length, 0, 'nothing may be sent');
-    assert.match(`${denied.error?.name} ${denied.error?.message}`, /ProviderScopeError|blocked by data scope policy: transcript/, `unexpected error: ${denied.error}`);
-  });
-}
+for (const [name, call] of branchSends) test(`${name} refuses transcript denial at the actual send boundary`, async () => {
+  const allowed = await sendWith({}, geminiOnly, call); assert.equal(allowed.requests.length, 1);
+  const denied = await sendWith({ transcript: false }, geminiOnly, call);
+  assert.equal(denied.error?.name, 'ProviderScopeError'); assert.equal(denied.requests.length, 0);
+});
 
 // Fourth review, finding 1: scopes the caller declares for a request describe data
 // that may sit in the message itself. streamChat must refuse the request when one of
 // them is denied, even with the transcript allowed.
-const openaiClient = (send) => ({ openaiClient: { chat: { completions: { create: send } } }, currentModelId: 'gpt-5.4', personaPrompt: '' });
+const openaiClient = (send) => ({ ...chosen('openai', 'chat-completions', 'gpt-5.4'), openaiClient: { chat: { completions: { create: send } } }, currentModelId: 'gpt-5.4', personaPrompt: '' });
 
 test('streamChat refuses a request whose declared scope is denied, before anything is sent', async () => {
   const run = (self) => (async () => {
@@ -472,6 +400,7 @@ async function whatToAnswerWith(deniedScopes) {
   const { WhatToAnswerLLM } = createRequire(import.meta.url)(path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js'));
   const calls = [];
   const helper = {
+    runGeneration: factory => factory(), runGenerationStream: factory => factory(),
     getCapabilities: () => ({ outputBudgetTokens: 2000 }),
     fitContextForCurrentModel: (text) => text,
     getPromptTier: () => 'standard',
@@ -522,89 +451,36 @@ test('the keyword fallback recognizes the meeting chat headings in a window-buil
   assert.deepEqual(self.inferContextScopes('plain conversation about a summary of nothing'), []);
 });
 
-// Seventh review (PLAN.md AG-17): a scope turned off while a request waits (a provider
-// failing, the rate limiter) must stop the sends that follow. Each stub turns the scope
-// off at that moment; the later sends must not happen. Data already sent before the
-// change cannot be recalled and is not part of this check.
-test('meeting summaries stop the fallback chain when a scope is turned off during it', async () => {
-  const LLMHelper = loadBuiltLLMHelper();
+test('meeting summaries stop the explicit backup when a scope is turned off after the first send', async () => {
   for (const [scope, extra] of [['profile_history', ['profile_history']], ['post_call_summary', []], ['transcript', []]]) {
-    // Codex fails after the scope is turned off; Groq must not be asked.
-    const policy = {};
-    const groqRequests = [];
-    const self = helperWith(policy, {
-      codexCliConfig: { enabled: true, timeoutMs: 1000 },
-      generateWithCodexCli: async () => { policy[scope] = false; throw new Error('codex failed'); },
-      groqClient: { chat: { completions: { create: async (body) => { groqRequests.push(body); return { choices: [{ message: { content: 'SUMMARY' } }] }; } } } },
-      processResponse: (text) => text,
-    });
-    const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', extra);
-    assert.equal(result, '', `${scope}: no summary`);
-    assert.equal(groqRequests.length, 0, `${scope}: Groq is not asked after the scope was turned off`);
+    const policy = {}; const requests = [];
+    const self = helperWith(policy, geminiClient(body => { requests.push(body); policy[scope] = false; throw Object.assign(Error('overloaded'), { status: 503 }); }));
+    self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+    assert.equal(await self.generateMeetingSummary('SYSTEM', 'TRANSCRIPT_SENTINEL', undefined, extra), '');
+    assert.equal(requests.length, 1, `${scope}: no backup after revocation`);
   }
-
-  // Gemini: the first Flash attempt returns nothing after the scope is turned off; no
-  // further Flash or Pro attempt is sent, and the refusal ends the chain at once
-  // instead of going through the retries and their back-off waits (1 s and more).
-  const policy = {};
-  const geminiRequests = [];
-  const self = helperWith(policy, {
-    client: { models: { generateContent: async (body) => { geminiRequests.push(body); policy.profile_history = false; return { text: '' }; } } },
-    processResponse: (text) => text,
-  });
-  const started = Date.now();
-  const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', ['profile_history']);
-  const tookMs = Date.now() - started;
-  assert.equal(result, '');
-  assert.equal(geminiRequests.length, 1, 'only the attempt sent before the change');
-  assert.ok(tookMs < 900, `the refusal ends the chain without retrying (took ${tookMs} ms)`);
 });
 
-test('streamChat re-checks its scopes before each send, also after waiting', async () => {
-  const run = (self, scopes) => (async () => {
-    for await (const _ of self.streamChat('QUESTION', undefined, 'MEETING: Weekly sync\nRECENT TRANSCRIPT:\nCHAT_SENTINEL', undefined, true, true, scopes)) { /* drain */ }
-  })();
-  const groqStream = (requests) => async (body) => { requests.push(body); return (async function* () { yield { choices: [{ delta: { content: 'ok' } }] }; yield { choices: [{ delta: {}, finish_reason: 'stop' }] }; })(); };
-
-  // 1. Declared scope, turned off while the rate limiter waits: the Groq send is refused.
-  for (const scopes of [['profile_history'], []]) {
-    const policy = {};
-    const requests = [];
-    const self = helperWith(policy, {
-      currentModelId: 'llama-3.3-70b-versatile',
-      personaPrompt: '',
-      groqClient: { chat: { completions: { create: groqStream(requests) } } },
-      rateLimiters: { groq: { acquire: async () => { policy.profile_history = false; } } },
-    });
-    let error = null;
-    try { await run(self, scopes); } catch (e) { error = e; }
-    // With nothing declared, the `MEETING:` context heading carries profile_history.
-    assert.equal(error?.name, 'ProviderScopeError', `${JSON.stringify(scopes)}: expected a scope error, got ${error}`);
-    assert.equal(requests.length, 0, `${JSON.stringify(scopes)}: nothing may be sent after the scope was turned off`);
+test('streamChat keeps declared and inferred context scopes through the limiter and explicit backup', async () => {
+  for (const declared of [['profile_history'], []]) {
+    const policy = {}; const requests = [];
+    const self = helperWith(policy, geminiClient(body => { requests.push(body); return complete(); }));
+    self.rateLimiters.gemini.acquire = async () => { policy.profile_history = false; };
+    await assert.rejects(() => drain(self.streamChat('QUESTION', undefined, 'MEETING: Weekly sync\nCHAT_SENTINEL', undefined, true, true, declared)), { name: 'ProviderScopeError' });
+    assert.equal(requests.length, 0);
   }
-
-  // 2. Fast mode: Codex fails after the scope is turned off; Groq is not asked.
-  const policy = {};
-  const requests = [];
-  const self = helperWith(policy, {
-    currentModelId: 'llama-3.3-70b-versatile',
-    personaPrompt: '',
-    groqFastTextMode: true,
-    codexCliConfig: { enabled: true },
-    streamWithCodexCli: async function* () { policy.profile_history = false; throw new Error('codex failed'); },
-    groqClient: { chat: { completions: { create: groqStream(requests) } } },
-  });
-  let error = null;
-  try { await run(self, ['profile_history']); } catch (e) { error = e; }
-  assert.equal(error?.name, 'ProviderScopeError', `fast mode: expected a scope error, got ${error}`);
-  assert.equal(requests.length, 0, 'fast mode: Groq is not asked');
-
-  // Control: with nothing turned off the request is sent.
-  const open = {};
-  const sent = [];
-  await run(helperWith(open, { currentModelId: 'llama-3.3-70b-versatile', personaPrompt: '', groqClient: { chat: { completions: { create: groqStream(sent) } } } }), ['profile_history']);
-  assert.equal(sent.length, 1, 'with nothing turned off the request is sent');
-  assert.match(JSON.stringify(sent[0]), /CHAT_SENTINEL/);
+  for (const revoke of [true, false]) {
+    const policy = {}; const requests = [];
+    const self = helperWith(policy, geminiClient(body => {
+      requests.push(body);
+      if (requests.length === 1) { if (revoke) policy.profile_history = false; throw Object.assign(Error('overloaded'), { status: 503 }); }
+      return complete();
+    }));
+    self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+    const run = () => drain(self.streamChat('QUESTION', undefined, 'MEETING: Weekly sync\nCHAT_SENTINEL'));
+    if (revoke) await assert.rejects(run, { name: 'ProviderScopeError' }); else await run();
+    assert.equal(requests.length, revoke ? 1 : 2); assert.match(JSON.stringify(requests[0]), /CHAT_SENTINEL/);
+  }
 });
 
 test('chatWithGemini keeps the scopes of its context for every send', async () => {

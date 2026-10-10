@@ -1,7 +1,6 @@
 // electron/llm/types.ts
 // Shared types for the Natively LLM system
 
-import { GoogleGenAI } from "@google/genai";
 
 /**
  * Generation configuration for Gemini calls
@@ -53,11 +52,4 @@ export const MODE_CONFIGS = {
 export interface GeminiContent {
     role: "user" | "model";
     parts: { text: string }[];
-}
-
-/**
- * LLM client interface for dependency injection
- */
-export interface LLMClient {
-    getGeminiClient(): GoogleGenAI | null;
 }

@@ -1,0 +1,48 @@
+✔ backup before same-model retry (2.653709ms)
+✔ transient without backup (0.207041ms)
+✔ unavailable without backup (0.147958ms)
+✔ auth takes precedence over model code (0.117209ms)
+✔ ordinary 404 is terminal (0.146833ms)
+✔ Retry-After exceeds budget (0.109083ms)
+✔ empty never retries (0.142417ms)
+✔ refused never retries (0.0935ms)
+✔ incomplete never retries (0.102791ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.595167ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.178ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.267834ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (0.627667ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.059417ms)
+[LLMHelper] Switched to Model: gemini-new
+(node:86274) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (5.051042ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.534083ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.523583ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.630209ms)
+✔ real answer interface: SAFETY terminates without backup (1.037375ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.426125ms)
+✔ real answer interface: EMPTY terminates without backup (0.308334ms)
+✔ real answer interface: AUTH terminates without backup (0.334542ms)
+✔ real answer interface: CONFIG terminates without backup (0.329375ms)
+✔ real answer interface: PARTIAL terminates without backup (0.371542ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.639208ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.358916ms)
+✔ permission revoked during limiter stops all later sends (0.411083ms)
+✔ permission revoked during image stops all later sends (0.178667ms)
+✔ permission revoked during cache stops all later sends (0.237209ms)
+✔ permission revoked during retry-after stops all later sends (0.245708ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.400875ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.334375ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.236958ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.678041ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.204625ms)
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (30.857ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.170292ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 367.579667

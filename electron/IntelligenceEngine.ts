@@ -5,7 +5,7 @@
 import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
 import { rethrowProviderScopeError } from './llm/ProviderRouter';
-import { rethrowTerminalGenerationError } from './llm/generateContract';
+import type { GenerationTask } from './llm/generateTask';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
@@ -78,6 +78,26 @@ export class IntelligenceEngine extends EventEmitter {
     // Concurrency tracking
     private assistCancellationToken: AbortController | null = null;
     private currentGenerationId: number = 0;
+    private activeGenerationController?: AbortController;
+    private activeGenerationTask?: GenerationTask<any>;
+
+    private runGenerationRequest(factory: () => Promise<string | null>): Promise<string | null> {
+        const inherited = this.llmHelper.getCurrentGenerationTask();
+        if (inherited) {
+            if (this.activeGenerationTask === inherited) return this.llmHelper.runGeneration(factory);
+            this.activeGenerationTask?.controller.abort(new DOMException('Superseded generation', 'AbortError'));
+            this.activeGenerationController?.abort(new DOMException('Superseded generation', 'AbortError'));
+            this.activeGenerationTask = inherited;
+            return this.llmHelper.runGeneration(factory).finally(() => { if (this.activeGenerationTask === inherited) this.activeGenerationTask = undefined; });
+        }
+        this.activeGenerationTask?.controller.abort(new DOMException('Superseded generation', 'AbortError'));
+        this.activeGenerationController?.abort(new DOMException('Superseded generation', 'AbortError'));
+        const controller = new AbortController();
+        this.activeGenerationController = controller;
+        return this.llmHelper.runGeneration(factory, 'interview', controller.signal).finally(() => {
+            if (this.activeGenerationController === controller) this.activeGenerationController = undefined;
+        });
+    }
 
     // Keep reference to LLMHelper for client access
     private llmHelper: LLMHelper;
@@ -348,7 +368,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE 1: Assist (Passive)
      * Low-priority observational insights
      */
-    async runAssistMode(): Promise<string | null> {
+    runAssistMode(...args: Parameters<IntelligenceEngine['runAssistModeInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runAssistModeInner(...args));
+    }
+
+    async runAssistModeInner(): Promise<string | null> {
         if (this.activeMode !== 'idle' && this.activeMode !== 'assist') {
             return null;
         }
@@ -399,7 +423,13 @@ export class IntelligenceEngine extends EventEmitter {
      * Manual trigger - uses clean transcript pipeline for question inference
      * Scope refusals reach the error boundary, never become a suggested answer.
      */
-    async runWhatShouldISay(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { speculative?: boolean; skipCooldown?: boolean; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
+    runWhatShouldISay(...args: Parameters<IntelligenceEngine['runWhatShouldISayInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runWhatShouldISayInner(...args));
+    }
+
+    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
+        const task = this.llmHelper.getCurrentGenerationTask();
+        if (task) task.deferVisibleText = true;
         const now = Date.now();
         const isSpeculative = options?.speculative === true;
         const skipCooldown = options?.skipCooldown === true;
@@ -445,6 +475,7 @@ export class IntelligenceEngine extends EventEmitter {
                     return answer || "Could you repeat that? I want to make sure I address your question properly.";
                 }
                 if (answer) {
+                    task?.markVisible(answer);
                     this.session.addAssistantMessage(answer);
                     this.emit('suggested_answer', answer, question || 'inferred', confidence);
                 }
@@ -505,12 +536,13 @@ export class IntelligenceEngine extends EventEmitter {
 
             const generationId = ++this.currentGenerationId;
             let fullAnswer = "";
+            let pendingDisplay = "";
             // RC-03 fix: hold a reference to the generator so we can call .return()
             // to properly terminate the network request when a new generation starts.
             const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext, options?.activeSkill);
             let streamAborted = false;
 
-            for await (const token of stream) {
+            try { for await (const token of stream) {
                 if (this.currentGenerationId !== generationId) {
                     console.log('[IntelligenceEngine] _what_to_say stream aborted by new generation');
                     // RC-03 fix: .return() signals the generator to clean up and stops
@@ -520,6 +552,23 @@ export class IntelligenceEngine extends EventEmitter {
                     break;
                 }
                 fullAnswer += token;
+                if (!isSpeculative) {
+                    pendingDisplay += token;
+                    const normalized = fullAnswer.trim().toLowerCase().replace(/[.!?]+$/g, '');
+                    const possibleSentinel = ['nothing actionable right now', 'nothing to capture right now']
+                        .some(sentinel => sentinel.startsWith(normalized));
+                    if (!possibleSentinel) {
+                        task?.markVisible(pendingDisplay);
+                        this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
+                        pendingDisplay = "";
+                    }
+                }
+            } } catch (error) {
+                if (pendingDisplay && !isSpeculative) {
+                    task?.markVisible(pendingDisplay);
+                    this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
+                }
+                throw error;
             }
 
             if (streamAborted) {
@@ -549,6 +598,10 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
+            if (pendingDisplay && !isSpeculative) {
+                task?.markVisible(pendingDisplay);
+                this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
+            }
             if (isSpeculative) {
                 this.lastTriggerTime = Date.now();
                 this.speculativeTextExpiry = this.lastTriggerTime + this.triggerCooldown + 500;
@@ -556,7 +609,6 @@ export class IntelligenceEngine extends EventEmitter {
                 return fullAnswer;
             }
 
-            this.emit('suggested_answer_token', fullAnswer, question || 'inferred', confidence);
             this.session.addAssistantMessage(fullAnswer);
 
             this.session.pushUsage({
@@ -573,10 +625,11 @@ export class IntelligenceEngine extends EventEmitter {
 
         } catch (error) {
             if (isSpeculative) { this.speculativeText = null; this.speculativeTextExpiry = Infinity; }
-            this.emit('error', error as Error, 'what_to_say');
+            if ((error as Error)?.name === 'AbortError') throw error;
+            // An IPC caller owns its error display; emitting as well can target another window.
+            if (options?.errorDelivery !== 'caller') this.emit('error', error as Error, 'what_to_say');
             this.setMode('idle');
-            rethrowTerminalGenerationError(error);
-            return "Could you repeat that? I want to make sure I address your question properly.";
+            throw error;
         }
     }
 
@@ -584,7 +637,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE 3: Follow-Up (Refinement)
      * Modify the last assistant message
      */
-    async runFollowUp(intent: string, userRequest?: string): Promise<string | null> {
+    runFollowUp(...args: Parameters<IntelligenceEngine['runFollowUpInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runFollowUpInner(...args));
+    }
+
+    async runFollowUpInner(intent: string, userRequest?: string): Promise<string | null> {
         console.log(`[IntelligenceEngine] runFollowUp called with intent: ${intent}`);
         const lastMsg = this.session.getLastAssistantMessage();
         if (!lastMsg) {
@@ -662,7 +719,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE 4: Recap (Summary)
      * Neutral conversation summary
      */
-    async runRecap(): Promise<string | null> {
+    runRecap(...args: Parameters<IntelligenceEngine['runRecapInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runRecapInner(...args));
+    }
+
+    async runRecapInner(): Promise<string | null> {
         console.log('[IntelligenceEngine] runRecap called');
         this.setMode('recap');
 
@@ -728,7 +789,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE: Clarify
      * Ask a clarifying question to the interviewer
      */
-    async runClarify(): Promise<string | null> {
+    runClarify(...args: Parameters<IntelligenceEngine['runClarifyInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runClarifyInner(...args));
+    }
+
+    async runClarifyInner(): Promise<string | null> {
         console.log('[IntelligenceEngine] runClarify called');
         this.setMode('clarify');
 
@@ -792,7 +857,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE 6: Follow-Up Questions
      * Suggest strategic questions for the user to ask
      */
-    async runFollowUpQuestions(): Promise<string | null> {
+    runFollowUpQuestions(...args: Parameters<IntelligenceEngine['runFollowUpQuestionsInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runFollowUpQuestionsInner(...args));
+    }
+
+    async runFollowUpQuestionsInner(): Promise<string | null> {
         console.log('[IntelligenceEngine] runFollowUpQuestions called');
         this.setMode('follow_up_questions');
 
@@ -856,7 +925,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE 5: Manual Answer (Fallback)
      * Explicit bypass when auto-detection fails
      */
-    async runManualAnswer(question: string): Promise<string | null> {
+    runManualAnswer(...args: Parameters<IntelligenceEngine['runManualAnswerInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runManualAnswerInner(...args));
+    }
+
+    async runManualAnswerInner(question: string): Promise<string | null> {
         this.emit('manual_answer_started');
         this.setMode('manual');
 
@@ -899,7 +972,11 @@ export class IntelligenceEngine extends EventEmitter {
      *   2. session.detectedCodingQuestion (detected from interviewer transcript)
      *   3. transcriptContext (last N seconds of conversation — fallback for inference)
      */
-    async runCodeHint(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
+    runCodeHint(...args: Parameters<IntelligenceEngine['runCodeHintInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runCodeHintInner(...args));
+    }
+
+    async runCodeHintInner(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
         if (this.assistCancellationToken) {
             this.assistCancellationToken.abort();
             this.assistCancellationToken = null;
@@ -981,7 +1058,11 @@ export class IntelligenceEngine extends EventEmitter {
      * MODE 8: Brainstorm (Strategic Approach Generator)
      * Generates a spoken script outlining 2-3 problem-solving approaches with trade-offs.
      */
-    async runBrainstorm(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
+    runBrainstorm(...args: Parameters<IntelligenceEngine['runBrainstormInner']>): Promise<string | null> {
+        return this.runGenerationRequest(() => this.runBrainstormInner(...args));
+    }
+
+    async runBrainstormInner(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
         if (this.assistCancellationToken) {
             this.assistCancellationToken.abort();
             this.assistCancellationToken = null;
@@ -1074,6 +1155,8 @@ export class IntelligenceEngine extends EventEmitter {
      * Reset engine state (cancels any in-flight operations)
      */
     reset(): void {
+        this.activeGenerationTask?.controller.abort(new DOMException('Session reset', 'AbortError'));
+        this.activeGenerationController?.abort(new DOMException('Session reset', 'AbortError'));
         this.activeMode = 'idle';
         this.currentGenerationId++; // Increment to break all active LLM streams
         if (this.assistCancellationToken) {

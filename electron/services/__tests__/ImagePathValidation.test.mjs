@@ -42,7 +42,7 @@ test('generate-code-hint validates imagePaths before using them', () => {
   // It should validate paths before passing them
 
   // Check that IntelligenceEngine.runCodeHint has path validation
-  const runCodeHintStart = engineSource.indexOf('async runCodeHint(');
+  const runCodeHintStart = engineSource.indexOf('async runCodeHintInner(');
   assert.ok(runCodeHintStart >= 0, 'runCodeHint should exist');
 
   const nextMethod = engineSource.indexOf('\n    async ', runCodeHintStart + 10);
@@ -69,7 +69,7 @@ test('generate-brainstorm validates imagePaths before using them', () => {
 
   const brainstormHandler = sliceSafeHandleBlock(ipcSource, 'generate-brainstorm');
 
-  const runBrainstormStart = engineSource.indexOf('async runBrainstorm(');
+  const runBrainstormStart = engineSource.indexOf('async runBrainstormInner(');
   assert.ok(runBrainstormStart >= 0, 'runBrainstorm should exist');
 
   // Should validate imagePaths
@@ -85,7 +85,7 @@ test('runWhatShouldISay receives validated imagePaths from IPC handler', () => {
 
   // The runWhatShouldISay method in IntelligenceEngine accepts imagePaths
   // but validation happens at the IPC layer before calling the engine
-  const methodStart = engineSource.indexOf('async runWhatShouldISay(');
+  const methodStart = engineSource.indexOf('async runWhatShouldISayInner(');
   assert.ok(methodStart >= 0, 'runWhatShouldISay should exist');
 
   const nextMethod = engineSource.indexOf('\n    async ', methodStart + 10);

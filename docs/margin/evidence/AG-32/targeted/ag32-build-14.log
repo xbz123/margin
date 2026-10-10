@@ -1,0 +1,22 @@
+[isolation] blocked exec: spawn <repo>/node_modules/@esbuild/darwin-arm64/bin/esbuild
+<repo>/scripts/margin/isolation/guard.cjs:184
+      throw blockedError(kind, `${name} ${String(cmd)}`);
+      ^
+
+Error: [isolation] exec blocked: spawn <repo>/node_modules/@esbuild/darwin-arm64/bin/esbuild
+    at blockedError (<repo>/scripts/margin/isolation/guard.cjs:55:15)
+    at Object.guarded [as spawn] (<repo>/scripts/margin/isolation/guard.cjs:184:13)
+    at ensureServiceIsRunning (<repo>/node_modules/esbuild/lib/main.js:1975:29)
+    at build (<repo>/node_modules/esbuild/lib/main.js:1873:26)
+    at Object.<anonymous> (<repo>/scripts/build-electron.js:36:1)
+    at Module._compile (node:internal/modules/cjs/loader:1829:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1969:10)
+    at Module.load (node:internal/modules/cjs/loader:1552:32)
+    at Module._load (node:internal/modules/cjs/loader:1354:12)
+    at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24) {
+  code: 'EMARGINISOLATION'
+}
+
+Node.js v26.0.0
+[isolation] 1 blocked attempt(s); log: <temporary-path>
+[isolation]   exec spawn <repo>/node_modules/@esbuild/darwin-arm64/bin/esbuild

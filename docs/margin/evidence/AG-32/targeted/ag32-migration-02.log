@@ -1,0 +1,240 @@
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:88724) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.597333ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.119584ms)
+✔ single response preserves incomplete (no finish) (0.115375ms)
+✔ single response preserves empty (STOP) (0.086709ms)
+✔ single response preserves refused (SAFETY) (0.118708ms)
+✔ single response preserves refused (no finish) (0.07675ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (0.99625ms)
+✔ final scope refusal retains the original object and never sends (0.395458ms)
+✔ cancel before start and late response cannot produce deltas (0.412708ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (4.995833ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (1.341125ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (47.030709ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.622417ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.700208ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.329208ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (0.840125ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (34.534916ms)
+(node:88725) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ generateSuggestion sends custom notes and the transcript as user content, not in the system prompt (238.957791ms)
+✔ intent answer shapes require grounding for examples and behavioral stories (0.112792ms)
+✔ WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content (9.17925ms)
+✔ WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content (0.465042ms)
+✖ WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection) (0.288166ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 1,
+  screenOcrAvailable: true,
+  screenOcrTextLength: 43
+}
+[SessionTracker] addAssistantMessage called { length: 49 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 28 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay passes screenContext and preserves imagePaths (22.657917ms)
+✔ runWhatShouldISay works without screenContext (0.63725ms)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-backup: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:88727) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (226.865083ms)
+✔ selected Gemini stream: image-preparation revocation prevents cache and generation (3.738292ms)
+✔ selected Gemini stream: cache allowed, inflight revocation and explicit expiry recovery (3.187125ms)
+✔ selected Gemini nonstream: image-preparation revocation prevents cache and generation (0.36475ms)
+✔ selected Gemini nonstream: cache allowed, inflight revocation and explicit expiry recovery (1.144875ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (1.928417ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.207334ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.237708ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.143584ms)
+✔ selected gemini nonstream: final scope recheck after limiter wait (1.1695ms)
+✔ selected gemini stream: final scope recheck after limiter wait (0.778458ms)
+✔ selected groq nonstream: final scope recheck after limiter wait (0.572459ms)
+✔ selected groq stream: final scope recheck after limiter wait (0.50425ms)
+✔ selected openai nonstream: final scope recheck after limiter wait (0.619292ms)
+✔ selected openai stream: final scope recheck after limiter wait (0.591583ms)
+✔ selected claude nonstream: final scope recheck after limiter wait (0.693458ms)
+✔ selected claude stream: final scope recheck after limiter wait (0.482417ms)
+✔ selected deepseek nonstream: final scope recheck after limiter wait (0.607208ms)
+✔ selected deepseek stream: final scope recheck after limiter wait (0.438166ms)
+✔ generateWithPro: final send rechecks after limiter wait (0.659416ms)
+✔ generateWithFlash: final send rechecks after limiter wait (0.488167ms)
+✔ fixed generateContent: retry uses current permissions, with allowed control (1.364125ms)
+✔ structured generation: limiter, same-model retry and explicit backup all recheck scopes (1.674833ms)
+✔ selected Groq stream: limiter and explicit Gemini backup preserve current permissions (1.188042ms)
+✔ SettingsManager exposes providerDataScopes setting (0.482666ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (0.463542ms)
+✔ preload and renderer types expose provider data scope controls (1.43525ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (0.965958ms)
+▶ RateLimiter
+  ✔ createProviderRateLimiters creates rate limiters for all providers (5.301125ms)
+  ✔ acquire() allows requests when tokens available (0.291709ms)
+  ✔ acquire() throws when queue is full (13.206708ms)
+  ✔ destroy() rejects all queued waiters (53.697084ms)
+✔ RateLimiter (73.531375ms)
+▶ CircuitBreaker
+  ✔ initial state is closed (3.165084ms)
+  ✔ recordSuccess resets failure count and closes circuit (0.165917ms)
+  ✔ circuit opens after threshold failures (0.113ms)
+  ✔ canExecute returns false when open (0.109834ms)
+  ✔ circuit transitions to half-open after resetTimeout (62.619041ms)
+  ✔ half-open allows limited calls (0.308625ms)
+✔ CircuitBreaker (66.781458ms)
+▶ ProviderRouter
+  ✔ selectProvider defaults to groq (0.2855ms)
+  ✔ needsVision prefers vision-capable provider (0.152542ms)
+  ✔ preferLowLatency prefers fast provider (0.133334ms)
+  ✔ summary action prefers quality provider (0.098334ms)
+  ✔ down provider is skipped (0.090708ms)
+  ✔ mode-based routing selects appropriate provider (0.105ms)
+  ✔ recordSuccess and recordFailure update circuit breaker (0.098708ms)
+  ✔ getProviderHealth returns health status for all providers (0.105334ms)
+✔ ProviderRouter (1.180375ms)
+▶ Integration: RateLimiter wiring in LLMHelper
+  ✔ rate limiter acquire is called before provider request (mock test) (0.094292ms)
+✔ Integration: RateLimiter wiring in LLMHelper (0.123333ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:88729) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (6.370459ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (224.42525ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.815917ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (3.632417ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.695375ms)
+✔ groq constructor: SDK cannot resend after scope revocation (5.671917ms)
+✔ openai constructor: SDK cannot resend after scope revocation (3.355875ms)
+✖ claude constructor: SDK cannot resend after scope revocation (0.823292ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (1.340375ms)
+✔ groq key update: SDK cannot resend after scope revocation (1.17275ms)
+✔ openai key update: SDK cannot resend after scope revocation (1.421667ms)
+✖ claude key update: SDK cannot resend after scope revocation (0.455708ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (1.060375ms)
+✔ vision denial is terminal without another send (1.118584ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (0.581541ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (0.659792ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.262417ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (29.835792ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (3.222125ms)
+✔ default chat routing refuses transcript denial but can omit denied history (0.904209ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (0.472375ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.287417ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.297417ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.318042ms)
+✔ fixed Pro: scope refusal stays terminal with an explicit backup (0.309541ms)
+✔ fixed Flash: scope refusal stays terminal with an explicit backup (0.278542ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.294292ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.319416ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (0.855834ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (0.589167ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (0.542833ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.543042ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.291459ms)
+✔ generateWithPro refuses transcript denial at the actual send boundary (0.246125ms)
+✔ generateWithFlash refuses transcript denial at the actual send boundary (0.243875ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.323417ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.577208ms)
+✖ WhatToAnswer sends earlier answers only while profile_history is allowed (0.155541ms)
+✔ the meeting chat context carries the scopes of what it contains (1.965875ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.1015ms)
+✔ meeting summaries stop the explicit backup when a scope is turned off after the first send (0.797291ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (1.405875ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.321917ms)
+ℹ tests 114
+ℹ suites 4
+ℹ pass 110
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 482.772209
+
+✖ failing tests:
+
+test at electron/llm/__tests__/suggestionPromptAssembly.test.mjs:193:1
+✖ WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection) (0.288166ms)
+  TypeError: this.llmHelper.runGenerationStream is not a function
+      at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/suggestionPromptAssembly.test.mjs:218:38)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:151:5
+✖ claude constructor: SDK cannot resend after scope revocation (0.823292ms)
+  Error: Invalid model target
+      at resolveModelTarget (<repo>/dist-electron/electron/LLMHelper.js:84580:23)
+      at LLMHelper.setModel (<repo>/dist-electron/electron/LLMHelper.js:93208:70)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:174:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:151:5
+✖ claude key update: SDK cannot resend after scope revocation (0.455708ms)
+  Error: Invalid model target
+      at resolveModelTarget (<repo>/dist-electron/electron/LLMHelper.js:84580:23)
+      at LLMHelper.setModel (<repo>/dist-electron/electron/LLMHelper.js:93208:70)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:174:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:412:1
+✖ WhatToAnswer sends earlier answers only while profile_history is allowed (0.155541ms)
+  TypeError: this.llmHelper.runGenerationStream is not a function
+      at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+      at whatToAnswerWith (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:407:53)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:413:25)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

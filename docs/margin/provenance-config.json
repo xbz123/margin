@@ -201,6 +201,14 @@
     {"line":"if (!match) return null;","reason":"AG-31 generic unmatched-selector return in the renderer label helper. Independently written, 2026-10-10."},
     {"line":"assert.equal(requests.length, 1);","reason":"AG-31 real renderer regression asserts one request reached the configured mock target. Independently written, 2026-10-10."},
     {"line":"let baseUrl: string | undefined;","reason":"AG-31 TypeScript local for an optional validated provider address, written for this branch. Independently written, 2026-10-10."},
-    {"line":"baseUrl?: string;","reason":"AG-31 shared optional URL field for provider configuration, written for this branch. Independently written, 2026-10-10."}
+    {"line":"baseUrl?: string;","reason":"AG-31 shared optional URL field for provider configuration, written for this branch. Independently written, 2026-10-10."},
+    {"line":"const collect = async stream => { let text = ''; for await (const chunk of stream) text += chunk; return text; };","reason":"AG-32 test helper concatenating an async text stream; reviewed with the migrated scope tests, not imported from restricted upstream, 2026-10-10."},
+    {"line":"assert.equal(requests.length, 0);","reason":"AG-32 scope-revocation test asserts no physical send after a denied limiter wait; generic count assertion written on this branch, 2026-10-10."},
+    {"line":"const remaining = deadline - Date.now();","reason":"AG-32 deadline timer computes remaining milliseconds for Node timer chunking; generic arithmetic written on this branch, 2026-10-10."},
+    {"line":"const cancel = () => {","reason":"AG-32 lazy generator cancellation callback declaration; body aborts the task when the consumer closes it, independently written, 2026-10-10."},
+    {"line":"let returned;","reason":"AG-32 test local holds the consumer-return promise while checking immediate cancellation; generic declaration written on this branch, 2026-10-10."},
+    {"line":"controller.signal.throwIfAborted();","reason":"AG-32 debug workflow checks cancellation before publishing success after its shared logical task; standard AbortSignal call written on this branch, 2026-10-10."},
+    {"line":"engine.reset();","reason":"AG-32 real Engine/helper test exercises the existing reset API to abort the active transport; standard method call written on this branch, 2026-10-10."},
+    {"line":"const electronId = require.resolve('electron');","reason":"AG-32 log-redaction behavior test resolves Electron to install and restore a synthetic module-cache entry; standard Node API independently written on this branch, 2026-10-10."}
   ]
 }

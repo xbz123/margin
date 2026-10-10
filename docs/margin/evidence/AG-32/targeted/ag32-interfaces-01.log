@@ -1,0 +1,60 @@
+✔ backup before same-model retry (2.513542ms)
+✔ transient without backup (0.1955ms)
+✔ unavailable without backup (0.148ms)
+✔ auth takes precedence over model code (0.124875ms)
+✔ ordinary 404 is terminal (0.157958ms)
+✔ Retry-After exceeds budget (0.116417ms)
+✔ empty never retries (0.147042ms)
+✔ refused never retries (0.09875ms)
+✔ incomplete never retries (0.109416ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.55425ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.176541ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.263959ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (0.618875ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.060125ms)
+[LLMHelper] Switched to Model: gemini-new
+(node:86184) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (5.248292ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.562417ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.516125ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.473541ms)
+✔ real answer interface: SAFETY terminates without backup (1.068208ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.395625ms)
+✔ real answer interface: EMPTY terminates without backup (0.293625ms)
+✔ real answer interface: AUTH terminates without backup (0.355875ms)
+✔ real answer interface: CONFIG terminates without backup (0.303959ms)
+✔ real answer interface: PARTIAL terminates without backup (0.393291ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.6385ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.370917ms)
+✔ permission revoked during limiter stops all later sends (0.414666ms)
+✔ permission revoked during image stops all later sends (0.189541ms)
+✔ permission revoked during cache stops all later sends (0.232042ms)
+✔ permission revoked during retry-after stops all later sends (0.232083ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.396292ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.348ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.235ms)
+✔ switch aborts underlying generation before first text and ignores late results (1.60025ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.322042ms)
+✖ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (31.451792ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (4.959541ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 36
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 382.658833
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generationInterfaces.test.mjs:124:1
+✖ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (31.451792ms)
+  Error [GenerationResultError]: Generation incomplete
+      at LLMHelper.generationFinish (<repo>/dist-electron/electron/LLMHelper.js:93135:77)
+      at <repo>/dist-electron/electron/LLMHelper.js:93048:17
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    status: 'incomplete',
+    partial: false
+  }

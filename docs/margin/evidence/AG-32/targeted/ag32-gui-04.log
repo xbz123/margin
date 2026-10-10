@@ -1,0 +1,17 @@
+✔ a typed question streams the mock answer into the overlay (2941.47475ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (8080.002625ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3296.313042ms)
+✔ a screenshot question sends the fixture image to the model (432.776ms)
+✔ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (145.632708ms)
+✔ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (156.320708ms)
+✔ a provider error is shown and the next question still works (1573.503958ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (2001.643667ms)
+✔ a complete compatible target saved through preload drives a real typed UI question (330.166167ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19564.376083

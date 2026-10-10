@@ -1,5 +1,4 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_WHAT_TO_ANSWER_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX } from "./prompts";
 import { TINY_WHAT_TO_ANSWER_PROMPT } from "./tinyPrompts";
 import { estimateTokens } from "./modelCapabilities";
@@ -22,14 +21,24 @@ export class WhatToAnswerLLM {
     }
 
     // Deprecated non-streaming method (redirect to streaming or implement if needed)
-    async generate(cleanedTranscript: string): Promise<string> {
+    generate(...args: Parameters<WhatToAnswerLLM['generateInner']>): Promise<string> {
+        const factory = () => this.generateInner(...args);
+        return this.llmHelper.runGeneration(factory);
+    }
+
+    async generateInner(cleanedTranscript: string): Promise<string> {
         const stream = this.generateStream(cleanedTranscript);
         let full = "";
         for await (const chunk of stream) full += chunk;
         return full;
     }
 
-    async *generateStream(
+    generateStream(...args: Parameters<WhatToAnswerLLM['generateStreamInner']>): AsyncGenerator<string> {
+        const factory = () => this.generateStreamInner(...args);
+        return this.llmHelper.runGenerationStream(factory);
+    }
+
+    async *generateStreamInner(
         cleanedTranscript: string,
         temporalContext?: TemporalContext,
         intentResult?: IntentResult,
@@ -44,153 +53,138 @@ export class WhatToAnswerLLM {
         const interTokenLatencies: number[] = [];
         let tPrevToken = 0;
 
-        try {
-            if (MEASURE) tStart = performance.now();
+        if (MEASURE) tStart = performance.now();
 
-            // ── Step 1: Transient context (intent + prior-turn guard) ──────────
-            if (MEASURE) tIntent = performance.now();
+        // ── Step 1: Transient context (intent + prior-turn guard) ──────────
+        if (MEASURE) tIntent = performance.now();
 
-            const hasAttachedImages = Array.isArray(imagePaths) && imagePaths.length > 0;
-            if (hasAttachedImages) {
-                // NOTE: The vision fallback chain handles provider selection + retries.
-                // We no longer check selected-model capabilities here because the
-                // generateWithVisionFallback chain tries OpenAI -> Claude -> Gemini ->
-                // remaining providers in priority order with 3 retries each.
-                // If local-only mode is active, the chain skips cloud providers.
-            }
-
-            const intentContextParts = [];
-            if (intentResult) {
-                intentContextParts.push(`<intent_and_shape>
+        const hasAttachedImages = Array.isArray(imagePaths) && imagePaths.length > 0;
+        const intentContextParts = [];
+        if (intentResult) {
+            intentContextParts.push(`<intent_and_shape>
 DETECTED INTENT: ${intentResult.intent}
 ANSWER SHAPE: ${intentResult.answerShape}
 </intent_and_shape>`);
-            }
-            if (hasAttachedImages) {
-                intentContextParts.push(SCREEN_DIRECT_VISION_INSTRUCTION);
-            }
-            const intentContext = intentContextParts.length > 0
-                ? intentContextParts.join('\n\n')
-                : undefined;
+        }
+        if (hasAttachedImages) {
+            intentContextParts.push(SCREEN_DIRECT_VISION_INSTRUCTION);
+        }
+        const intentContext = intentContextParts.length > 0
+            ? intentContextParts.join('\n\n')
+            : undefined;
 
-            if (MEASURE) tTemporal = performance.now();
+        if (MEASURE) tTemporal = performance.now();
 
-            // ── Step 2: Truncate transcript to fit model context window ──────
-            if (MEASURE) tTrunc = performance.now();
-            // Reserve tokens for: extraContext (~transient) + output budget.
-            // fitContextForCurrentModel only shrinks for cloud models; tiny-tier
-            // returns unchanged so we must estimate conservatively.
-            const assemblerBudget = 2000
-                + estimateTokens(intentContext || '')
-                + estimateTokens(screenContext?.ocrText || '')
-                + estimateTokens((temporalContext?.previousResponses || []).join('\n'));
-            const reservedForFit =
-                (this.llmHelper.getCapabilities().outputBudgetTokens || 2000)
-                + assemblerBudget;
-            const workingTranscript = this.llmHelper.fitContextForCurrentModel(cleanedTranscript, reservedForFit);
+        // ── Step 2: Truncate transcript to fit model context window ──────
+        if (MEASURE) tTrunc = performance.now();
+        // Reserve tokens for: extraContext (~transient) + output budget.
+        // fitContextForCurrentModel only shrinks for cloud models; tiny-tier
+        // returns unchanged so we must estimate conservatively.
+        const assemblerBudget = 2000
+            + estimateTokens(intentContext || '')
+            + estimateTokens(screenContext?.ocrText || '')
+            + estimateTokens((temporalContext?.previousResponses || []).join('\n'));
+        const reservedForFit =
+            (this.llmHelper.getCapabilities().outputBudgetTokens || 2000)
+            + assemblerBudget;
+        const workingTranscript = this.llmHelper.fitContextForCurrentModel(cleanedTranscript, reservedForFit);
 
-            // ── Step 3: Resolve the system prompt (base + default answer suffix) ─
-            // UNIVERSAL_WHAT_TO_ANSWER_PROMPT carries CORE_IDENTITY + EXECUTION_CONTRACT
-            // + CONTEXT_INTELLIGENCE_LAYER + SHARED_CODING_RULES. The default answer
-            // suffix (formerly the active General mode, PLAN.md AG-13) is layered on top.
-            if (MEASURE) tMode = performance.now();
+        // ── Step 3: Resolve the system prompt (base + default answer suffix) ─
+        // UNIVERSAL_WHAT_TO_ANSWER_PROMPT carries CORE_IDENTITY + EXECUTION_CONTRACT
+        // + CONTEXT_INTELLIGENCE_LAYER + SHARED_CODING_RULES. The default answer
+        // suffix (formerly the active General mode, PLAN.md AG-13) is layered on top.
+        if (MEASURE) tMode = performance.now();
 
-            const basePrompt = this.llmHelper.getPromptTier() === 'tiny'
-                ? TINY_WHAT_TO_ANSWER_PROMPT
-                : UNIVERSAL_WHAT_TO_ANSWER_PROMPT;
+        const basePrompt = this.llmHelper.getPromptTier() === 'tiny'
+            ? TINY_WHAT_TO_ANSWER_PROMPT
+            : UNIVERSAL_WHAT_TO_ANSWER_PROMPT;
 
-            const finalPromptOverride = activeSkill
-                ? `${basePrompt}\n\n## ACTIVE SKILL\n${activeSkill.promptBlock}`
-                : `${basePrompt}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
+        const finalPromptOverride = activeSkill
+            ? `${basePrompt}\n\n## ACTIVE SKILL\n${activeSkill.promptBlock}`
+            : `${basePrompt}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
 
-            // Earlier answers are profile_history data: leave them out when the user has
-            // denied that scope (PLAN.md AG-17 fourth review).
-            const includePriorResponses = !!temporalContext?.hasRecentResponses
-                && temporalContext.previousResponses.length > 0
-                && this.llmHelper.deniedDataScopes(['profile_history']).length === 0;
-            const assembler = new PromptAssembler();
-            const packet = assembler.assemble({
-                transcript: workingTranscript,
-                screenContext,
-                priorResponses: includePriorResponses ? temporalContext!.previousResponses : undefined,
-                intentContext,
-                tokenBudget: Math.max(1000, assemblerBudget),
-                systemPrompt: finalPromptOverride,
-            });
+        // Earlier answers are profile_history data: leave them out when the user has
+        // denied that scope (PLAN.md AG-17 fourth review).
+        const includePriorResponses = !!temporalContext?.hasRecentResponses
+            && temporalContext.previousResponses.length > 0
+            && this.llmHelper.deniedDataScopes(['profile_history']).length === 0;
+        const assembler = new PromptAssembler();
+        const packet = assembler.assemble({
+            transcript: workingTranscript,
+            screenContext,
+            priorResponses: includePriorResponses ? temporalContext!.previousResponses : undefined,
+            intentContext,
+            tokenBudget: Math.max(1000, assemblerBudget),
+            systemPrompt: finalPromptOverride,
+        });
 
-            if (MEASURE) tPrompt = performance.now();
-            if (MEASURE) tStream = performance.now();
+        if (MEASURE) tPrompt = performance.now();
+        if (MEASURE) tStream = performance.now();
 
-            // Stream with per-token latency tracking
-            let tokenCount = 0;
-            // Buffer the full streamed answer so we can post-stream sanity-check
-            // it for known high-confidence code bug shapes (FINDING-012).
-            // Buffering does not delay the user's perceived latency because we
-            // still yield every token as it arrives; the buffer is just appended.
-            const streamedBuffer: string[] = [];
-            const packetScopes: ProviderDataScope[] = [];
-            if (includePriorResponses) packetScopes.push('profile_history');
-            for await (const token of this.llmHelper.streamChat(packet.userMessage, imagePaths, undefined, finalPromptOverride, true, true, packetScopes)) {
-                if (MEASURE) {
-                    const now = performance.now();
-                    if (tPrevToken > 0) interTokenLatencies.push(now - tPrevToken);
-                    tPrevToken = now;
-                }
-                tokenCount++;
-                streamedBuffer.push(token);
-                yield token;
-            }
-
-            // Post-stream code sanity check. Fire-and-forget log + telemetry on
-            // hit; we deliberately do NOT auto-rewrite the answer because the
-            // dry-run prose accompanying the buggy code is typically also wrong
-            // and a single-line rewrite would produce an internally inconsistent
-            // answer. The right downstream action is to surface a regenerate
-            // affordance in the UI; that ticket is FINDING-012 follow-up #1.
-            try {
-                const fullAnswer = streamedBuffer.join('');
-                const sanity = checkAnswerForCodeBugs(fullAnswer);
-                if (!sanity.ok) {
-                    const codes = sanity.issues.map(i => i.code).join(',');
-                    console.warn(`[WhatToAnswerLLM] code sanity check flagged ${sanity.issues.length} issue(s): ${codes}`);
-                }
-            } catch (sanityErr: any) {
-                // Sanity check failure must never break the streaming contract.
-                console.warn('[WhatToAnswerLLM] code sanity check threw:', sanityErr?.message);
-            }
-
+        // Stream with per-token latency tracking
+        let tokenCount = 0;
+        // Buffer the full streamed answer so we can post-stream sanity-check
+        // it for known high-confidence code bug shapes (FINDING-012).
+        // Buffering does not delay the user's perceived latency because we
+        // still yield every token as it arrives; the buffer is just appended.
+        const streamedBuffer: string[] = [];
+        const packetScopes: ProviderDataScope[] = [];
+        if (includePriorResponses) packetScopes.push('profile_history');
+        for await (const token of this.llmHelper.streamChat(packet.userMessage, imagePaths, undefined, finalPromptOverride, true, true, packetScopes)) {
             if (MEASURE) {
-                tStream = performance.now() - tStream;
-                const totalMs = performance.now() - tStart;
-                const intentMs = tIntent > 0 ? tTemporal - tIntent : 0;
-                const temporalMs = tTemporal > 0 ? tTrunc - tTemporal : 0;
-                const truncMs = tTrunc > 0 ? tMode - tTrunc : 0;
-                const modeMs = tMode > 0 ? tPrompt - tMode : 0;
-                const promptMs = tPrompt > 0 ? tStream - tPrompt : 0;
-
-                const sorted = [...interTokenLatencies].sort((a, b) => a - b);
-                const p50 = sorted[Math.floor(sorted.length * 0.5)] || 0;
-                const p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
-                const p99 = sorted[Math.floor(sorted.length * 0.99)] || 0;
-                const avg = interTokenLatencies.length
-                    ? interTokenLatencies.reduce((a, b) => a + b, 0) / interTokenLatencies.length
-                    : 0;
-
-                console.log('\n[LATENCY] WhatToAnswerLLM pipeline breakdown:');
-                console.log(`  Stage 1 (intent):       ${intentMs.toFixed(1)}ms`);
-                console.log(`  Stage 2 (temporal):     ${temporalMs.toFixed(1)}ms`);
-                console.log(`  Stage 3 (truncation):   ${truncMs.toFixed(1)}ms`);
-                console.log(`  Stage 4 (mode ctx):     ${modeMs.toFixed(1)}ms`);
-                console.log(`  Stage 5 (prompt build): ${promptMs.toFixed(1)}ms`);
-                console.log(`  Stage 6 (LLM stream):   ${tStream.toFixed(1)}ms total, ${tokenCount} tokens`);
-                console.log(`    Per-token: avg=${avg.toFixed(1)}ms p50=${p50.toFixed(1)}ms p95=${p95.toFixed(1)}ms p99=${p99.toFixed(1)}ms`);
-                console.log(`  Total E2E:              ${totalMs.toFixed(1)}ms`);
+                const now = performance.now();
+                if (tPrevToken > 0) interTokenLatencies.push(now - tPrevToken);
+                tPrevToken = now;
             }
+            tokenCount++;
+            streamedBuffer.push(token);
+            yield token;
+        }
 
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[WhatToAnswerLLM] Stream failed:", error);
-            yield "Could you repeat that? I want to make sure I address your question properly.";
+        // Post-stream code sanity check. Fire-and-forget log + telemetry on
+        // hit; we deliberately do NOT auto-rewrite the answer because the
+        // dry-run prose accompanying the buggy code is typically also wrong
+        // and a single-line rewrite would produce an internally inconsistent
+        // answer. The right downstream action is to surface a regenerate
+        // affordance in the UI; that ticket is FINDING-012 follow-up #1.
+        try {
+            const fullAnswer = streamedBuffer.join('');
+            const sanity = checkAnswerForCodeBugs(fullAnswer);
+            if (!sanity.ok) {
+                const codes = sanity.issues.map(i => i.code).join(',');
+                console.warn(`[WhatToAnswerLLM] code sanity check flagged ${sanity.issues.length} issue(s): ${codes}`);
+            }
+        } catch (sanityErr: any) {
+            // Sanity check failure must never break the streaming contract.
+            console.warn('[WhatToAnswerLLM] code sanity check threw:', sanityErr?.message);
+        }
+
+        if (MEASURE) {
+            tStream = performance.now() - tStream;
+            const totalMs = performance.now() - tStart;
+            const intentMs = tIntent > 0 ? tTemporal - tIntent : 0;
+            const temporalMs = tTemporal > 0 ? tTrunc - tTemporal : 0;
+            const truncMs = tTrunc > 0 ? tMode - tTrunc : 0;
+            const modeMs = tMode > 0 ? tPrompt - tMode : 0;
+            const promptMs = tPrompt > 0 ? tStream - tPrompt : 0;
+
+            const sorted = [...interTokenLatencies].sort((a, b) => a - b);
+            const p50 = sorted[Math.floor(sorted.length * 0.5)] || 0;
+            const p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
+            const p99 = sorted[Math.floor(sorted.length * 0.99)] || 0;
+            const avg = interTokenLatencies.length
+                ? interTokenLatencies.reduce((a, b) => a + b, 0) / interTokenLatencies.length
+                : 0;
+
+            console.log('\n[LATENCY] WhatToAnswerLLM pipeline breakdown:');
+            console.log(`  Stage 1 (intent):       ${intentMs.toFixed(1)}ms`);
+            console.log(`  Stage 2 (temporal):     ${temporalMs.toFixed(1)}ms`);
+            console.log(`  Stage 3 (truncation):   ${truncMs.toFixed(1)}ms`);
+            console.log(`  Stage 4 (mode ctx):     ${modeMs.toFixed(1)}ms`);
+            console.log(`  Stage 5 (prompt build): ${promptMs.toFixed(1)}ms`);
+            console.log(`  Stage 6 (LLM stream):   ${tStream.toFixed(1)}ms total, ${tokenCount} tokens`);
+            console.log(`    Per-token: avg=${avg.toFixed(1)}ms p50=${p50.toFixed(1)}ms p95=${p95.toFixed(1)}ms p99=${p99.toFixed(1)}ms`);
+            console.log(`  Total E2E:              ${totalMs.toFixed(1)}ms`);
         }
     }
 }

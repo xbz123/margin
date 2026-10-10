@@ -8,7 +8,7 @@ export type GenerateContents = string | readonly (GeneratePart | { role: 'user' 
 /** One physical send. Routing, retries and deadlines belong to the caller. */
 export interface GenerateRequest {
   protocol: LlmProtocol;
-  purpose: 'answer' | 'structured' | 'summary' | 'compatibility';
+  purpose: 'answer' | 'structured' | 'summary' | 'compression' | 'compatibility';
   model: string;
   contents: GenerateContents;
   systemInstruction?: string;
@@ -43,6 +43,6 @@ export class GenerationResultError extends Error {
 export function rethrowTerminalGenerationError(error: unknown): void {
   rethrowProviderScopeError(error);
   const terminal = error as GenerationResultError | undefined;
-  if ((error instanceof GenerationResultError || terminal?.name === 'GenerationResultError')
-    && (terminal?.status !== 'empty' || terminal?.partial)) throw error;
+  if ((error as any)?.generationTaskTerminal || error instanceof GenerationResultError || terminal?.name === 'GenerationResultError'
+    || terminal?.name === 'GenerationTimeoutError' || terminal?.name === 'AbortError') throw error;
 }

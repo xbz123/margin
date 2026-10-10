@@ -79,6 +79,7 @@ export class ProcessingHelper {
       console.log(`[ProcessingHelper] Loading stored Default Model: ${defaultModel}`);
       this.llmHelper.setModel(defaultModel);
     }
+    this.llmHelper.setGenerationPolicy(credManager.getGenerationPolicy());
 
     // Load Languages
     const sttLanguage = credManager.getSttLanguage();
@@ -115,7 +116,8 @@ export class ProcessingHelper {
       this.currentProcessingAbortController = new AbortController()
       try {
         // Generate the structured 4-phase rolling interview script
-        const rollingScript = await this.llmHelper.generateRollingScript(allPaths);
+        const rollingScript = await this.llmHelper.runGeneration(() => this.llmHelper.generateRollingScript(allPaths), 'written', this.currentProcessingAbortController.signal);
+        this.currentProcessingAbortController.signal.throwIfAborted();
 
         const problemInfo = {
           problem_statement: rollingScript.problem_identifier_script,
@@ -167,16 +169,13 @@ export class ProcessingHelper {
           throw new Error("No problem info available")
         }
 
-        // Get current solution from state
-        const currentSolution = await this.llmHelper.generateSolution(problemInfo)
-        const currentCode = currentSolution.solution.code
-
-        // Debug the solution using vision model
-        const debugResult = await this.llmHelper.debugSolutionWithImages(
-          problemInfo,
-          currentCode,
-          extraScreenshotQueue
-        )
+        // The debug workflow shares one deadline, cancellation signal and send budget.
+        const controller = this.currentExtraProcessingAbortController;
+        const debugResult = await this.llmHelper.runGeneration(async () => {
+          const currentSolution = await this.llmHelper.generateSolution(problemInfo);
+          return this.llmHelper.debugSolutionWithImages(problemInfo, currentSolution.solution.code, extraScreenshotQueue);
+        }, 'written', controller.signal);
+        controller.signal.throwIfAborted();
 
         this.appState.setHasDebugged(true)
         mainWindow.webContents.send(

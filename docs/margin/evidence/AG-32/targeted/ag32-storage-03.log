@@ -1,0 +1,30 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (5004.708167ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (636.558167ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5271.998833ms)
+✔ a meeting edit that fails to save is rolled back and reported (5246.78975ms)
+[DEBUG-ag32-recovery] {"title":"Untitled Session","config":{"provider":"groq","model":"llm-target:groq:chat-completions:llama-3.3-70b-versatile"},"defaultModel":{"model":"llm-target:groq:chat-completions:llama-3.3-70b-versatile"},"scopes":{},"sends":[],"shutdown":["[isolation] blocked local-exec: execFileSync defaults","[DEBUG-ag32-metadata-error] {\"name\":\"AbortError\",\"message\":\"Application quit\"}","[175:1010/203727.724323:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)","[175:1010/203727.724351:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)","[175:1010/203727.741461:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)","[harness] main process exited code=0 signal=null"],"startup":["[isolation] blocked local-exec: execFileSync defaults"]}
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (7675.758667ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24306.963791
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:464:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (7675.758667ms)
+  AssertionError [ERR_ASSERTION]: recovery sends the meeting with profile_history on
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:549:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

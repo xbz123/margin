@@ -1,0 +1,1348 @@
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:87031) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.922792ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.118917ms)
+✔ single response preserves incomplete (no finish) (0.095ms)
+✔ single response preserves empty (STOP) (0.086666ms)
+✔ single response preserves refused (SAFETY) (0.125625ms)
+✔ single response preserves refused (no finish) (0.079958ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.076459ms)
+✔ final scope refusal retains the original object and never sends (0.437458ms)
+✔ cancel before start and late response cannot produce deltas (0.403292ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (5.918ms)
+✔ terminal errors cross separately bundled vision fallback without health penalty or swallowed partial (0.951333ms)
+✖ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (2.727083ms)
+✖ Flash empty then Pro error/empty rejects; empty then valid backup still works (1.46475ms)
+✖ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.573209ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.709959ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (1.2545ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (40.216416ms)
+(node:87032) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ generateSuggestion sends custom notes and the transcript as user content, not in the system prompt (333.073125ms)
+✔ intent answer shapes require grounding for examples and behavioral stories (0.121208ms)
+✖ WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content (6.961583ms)
+✖ WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content (0.209417ms)
+✖ WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection) (0.139459ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 1,
+  screenOcrAvailable: true,
+  screenOcrTextLength: 43
+}
+[SessionTracker] addAssistantMessage called { length: 49 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 28 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay passes screenContext and preserves imagePaths (21.118459ms)
+✔ runWhatShouldISay works without screenContext (0.580833ms)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+(node:87035) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (348.763583ms)
+✔ streamWithGeminiModel: revocation during image processing prevents cache and generation (4.154667ms)
+✔ collectStreamResponse: revocation during image processing prevents cache and generation (0.517833ms)
+✖ streamWithGeminiModel: allowed cache, cache-inflight revocation and expired-cache retry (5.331791ms)
+✖ collectStreamResponse: allowed cache, cache-inflight revocation and expired-cache retry (1.177375ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (2.100209ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.250792ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.265459ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.174834ms)
+✖ generateWithGroq: final send rechecks after limiter wait, with allowed control (0.373792ms)
+✖ generateWithOpenai: final send rechecks after limiter wait, with allowed control (0.167084ms)
+✖ generateWithClaude: final send rechecks after limiter wait, with allowed control (0.174625ms)
+✖ generateWithDeepseek: final send rechecks after limiter wait, with allowed control (0.210875ms)
+✔ generateWithPro: final send rechecks after limiter wait, with allowed control (0.675958ms)
+✔ generateWithFlash: final send rechecks after limiter wait, with allowed control (0.505958ms)
+✖ generateWithGroqMultimodal: final send rechecks after limiter wait, with allowed control (0.174542ms)
+✖ streamWithGroq: final send rechecks after limiter wait, with allowed control (0.143083ms)
+✖ streamWithOpenai: final send rechecks after limiter wait, with allowed control (0.149084ms)
+✖ streamWithClaude: final send rechecks after limiter wait, with allowed control (0.132291ms)
+✖ streamWithDeepseek: final send rechecks after limiter wait, with allowed control (0.131041ms)
+✖ streamWithGroqMultimodal: final send rechecks after limiter wait, with allowed control (0.127416ms)
+✖ streamWithOpenaiMultimodal: final send rechecks after limiter wait, with allowed control (0.148375ms)
+✖ streamWithClaudeMultimodal: final send rechecks after limiter wait, with allowed control (0.11275ms)
+✔ streamWithGeminiModel: final send rechecks after limiter wait, with allowed control (0.495166ms)
+✖ generateContent: revocation during the retry backoff stops the retry, with allowed control (0.776042ms)
+✖ generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls (1.09225ms)
+✖ streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls (0.213333ms)
+✔ SettingsManager exposes providerDataScopes setting (0.65725ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (0.579792ms)
+✔ preload and renderer types expose provider data scope controls (1.485083ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (0.593792ms)
+▶ RateLimiter
+  ✔ createProviderRateLimiters creates rate limiters for all providers (4.058792ms)
+  ✔ acquire() allows requests when tokens available (0.254833ms)
+  ✔ acquire() throws when queue is full (13.145708ms)
+  ✔ destroy() rejects all queued waiters (51.115167ms)
+✔ RateLimiter (69.640709ms)
+▶ CircuitBreaker
+  ✔ initial state is closed (3.442541ms)
+  ✔ recordSuccess resets failure count and closes circuit (0.160375ms)
+  ✔ circuit opens after threshold failures (0.11175ms)
+  ✔ canExecute returns false when open (0.128958ms)
+  ✔ circuit transitions to half-open after resetTimeout (62.017083ms)
+  ✔ half-open allows limited calls (0.2315ms)
+✔ CircuitBreaker (66.378958ms)
+▶ ProviderRouter
+  ✔ selectProvider defaults to groq (0.245084ms)
+  ✔ needsVision prefers vision-capable provider (0.130208ms)
+  ✔ preferLowLatency prefers fast provider (0.087875ms)
+  ✔ summary action prefers quality provider (0.085083ms)
+  ✔ down provider is skipped (0.080792ms)
+  ✔ mode-based routing selects appropriate provider (0.10525ms)
+  ✔ recordSuccess and recordFailure update circuit breaker (0.093084ms)
+  ✔ getProviderHealth returns health status for all providers (0.106375ms)
+✔ ProviderRouter (1.026458ms)
+▶ Integration: RateLimiter wiring in LLMHelper
+  ✔ rate limiter acquire is called before provider request (mock test) (0.094458ms)
+✔ Integration: RateLimiter wiring in LLMHelper (0.117459ms)
+(node:87037) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (4.729833ms)
+✖ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (331.419167ms)
+✖ meeting summaries with a declared profile_history scope are not sent while it is denied (0.619458ms)
+✖ Codex CLI (generate) does not start when the transcript scope is denied (0.607541ms)
+✖ Codex CLI (stream) does not start when the transcript scope is denied (0.16225ms)
+✖ groq constructor: SDK cannot resend after scope revocation (4.7395ms)
+✖ openai constructor: SDK cannot resend after scope revocation (0.75775ms)
+✖ claude constructor: SDK cannot resend after scope revocation (0.656625ms)
+✖ deepseek constructor: SDK cannot resend after scope revocation (0.625042ms)
+✖ groq key update: SDK cannot resend after scope revocation (0.464083ms)
+✖ openai key update: SDK cannot resend after scope revocation (0.46225ms)
+✖ claude key update: SDK cannot resend after scope revocation (0.441084ms)
+✖ deepseek key update: SDK cannot resend after scope revocation (0.440917ms)
+✔ vision denial is terminal without retries, health penalty or fallback (2.633167ms)
+✖ Gemini fallback preserves refusal without starting a speculative sibling (1.793125ms)
+✖ Gemini sequential fallback retains ordinary failure and cancellation behavior (0.514333ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.440625ms)
+✖ prompt wrappers propagate a refusal instead of inventing an answer (2.418709ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (4.021333ms)
+✖ default chat routing refuses transcript denial but can send without denied context (2.073375ms)
+✖ non-streaming chat: a scope refusal stops at the first provider (1.8985ms)
+✖ fast Codex chat: a scope refusal stops at the first provider (0.873958ms)
+✔ fast Groq chat: a scope refusal stops at the first provider (0.611625ms)
+✖ structured fallback: a scope refusal stops at the first provider (0.765208ms)
+[LLMHelper] Failed to process image with sharp: Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+    at async open (node:internal/fs/promises:1281:25)
+    at async Object.readFile (node:internal/fs/promises:1929:14)
+    at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93431:27) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/margin-test/screenshot-not-present.png'
+}
+✖ non-streaming vision: a scope refusal stops at the first provider (15.420708ms)
+[LLMHelper] Failed to process image with sharp: Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+    at async open (node:internal/fs/promises:1281:25)
+    at async Object.readFile (node:internal/fs/promises:1929:14)
+    at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93431:27) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/margin-test/screenshot-not-present.png'
+}
+✖ Codex vision: a scope refusal stops at the first provider (1.123666ms)
+✖ streaming text fallback: a scope refusal stops at the first provider (1.042792ms)
+[LLMHelper] Failed to process image with sharp: Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+    at async open (node:internal/fs/promises:1281:25)
+    at async Object.readFile (node:internal/fs/promises:1929:14)
+    at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93431:27) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/margin-test/screenshot-not-present.png'
+}
+✖ streaming vision outer boundary: a scope refusal stops at the first provider (2.065584ms)
+[LLMHelper] Failed to process image with sharp: Error: ENOENT: no such file or directory, open 'Q'
+    at async open (node:internal/fs/promises:1281:25)
+    at async Object.readFile (node:internal/fs/promises:1929:14)
+    at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93431:27) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'Q'
+}
+✖ mode-specific fallback: a scope refusal stops at the first provider (1.145583ms)
+✖ robust Gemini fallback keeps refusal type at rate-limit wait 1 (0.2595ms)
+✖ robust Gemini fallback keeps refusal type at rate-limit wait 2 (0.090042ms)
+✖ Claude sends nothing when the transcript or screenshot scope is denied (0.206417ms)
+✖ Groq multimodal sends nothing when the transcript or screenshot scope is denied (0.116959ms)
+✔ Gemini contents sends nothing when the transcript or screenshot scope is denied (0.694916ms)
+✖ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.578ms)
+✖ generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied (0.268125ms)
+✔ generateWithPro sends nothing when the transcript scope is denied (0.339875ms)
+✔ generateWithFlash sends nothing when the transcript scope is denied (0.314791ms)
+✖ generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied (0.107209ms)
+[LLMHelper] Failed to process image with sharp: Error: ENOENT: no such file or directory, open 'T'
+    at async open (node:internal/fs/promises:1281:25)
+    at async Object.readFile (node:internal/fs/promises:1929:14)
+    at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93431:27) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'T'
+}
+✖ streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied (1.944459ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.722958ms)
+✖ WhatToAnswer sends earlier answers only while profile_history is allowed (0.151583ms)
+✔ the meeting chat context carries the scopes of what it contains (1.502041ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.09225ms)
+✖ meeting summaries stop the fallback chain when a scope is turned off during it (0.305333ms)
+✖ streamChat re-checks its scopes before each send, also after waiting (1.107083ms)
+✖ chatWithGemini keeps the scopes of its context for every send (0.407625ms)
+ℹ tests 121
+ℹ suites 4
+ℹ pass 62
+ℹ fail 59
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2503.379541
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generateOnce.test.mjs:136:1
+✖ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (2.727083ms)
+  AssertionError [ERR_ASSERTION]: WhatToAnswerLLM
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:152:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: this.llmHelper.runGenerationStream is not a function
+        at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+        at file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:153:38
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:152:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/llm/__tests__/generateOnce.test.mjs:171:1
+✖ Flash empty then Pro error/empty rejects; empty then valid backup still works (1.46475ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Both Gemini models failed/. Input:
+  
+  "TypeError: Cannot read properties of undefined (reading 'generateContentStream')"
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:182:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'generateContentStream')
+        at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91762:66)
+        at generateGemini.next (<anonymous>)
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91811:12)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    expected: /Both Gemini models failed/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/llm/__tests__/generateOnce.test.mjs:187:1
+✖ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.573209ms)
+  Error: cached content expired
+      at Object.generateContent (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:190:96)
+      at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91762:123)
+      at generateGemini.next (<anonymous>)
+      at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91811:12)
+      at generateOnce.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92861:16
+
+test at electron/llm/__tests__/suggestionPromptAssembly.test.mjs:85:1
+✖ WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content (6.961583ms)
+  TypeError: this.llmHelper.runGenerationStream is not a function
+      at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/suggestionPromptAssembly.test.mjs:101:38)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/llm/__tests__/suggestionPromptAssembly.test.mjs:119:1
+✖ WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content (0.209417ms)
+  TypeError: this.llmHelper.runGenerationStream is not a function
+      at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/suggestionPromptAssembly.test.mjs:157:38)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/llm/__tests__/suggestionPromptAssembly.test.mjs:187:1
+✖ WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection) (0.139459ms)
+  TypeError: this.llmHelper.runGenerationStream is not a function
+      at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+      at TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/suggestionPromptAssembly.test.mjs:212:38)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:63:3
+✖ streamWithGeminiModel: allowed cache, cache-inflight revocation and expired-cache retry (5.331791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   name: 'Error'
+  -   name: 'ProviderScopeError'
+    }
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:85:53)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: cached content expired
+        at Object.generate (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:70:69)
+        at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91762:66)
+        at generateGemini.next (<anonymous>)
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91811:12)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    expected: { name: 'ProviderScopeError' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:63:3
+✖ collectStreamResponse: allowed cache, cache-inflight revocation and expired-cache retry (1.177375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   name: 'Error'
+  -   name: 'ProviderScopeError'
+    }
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:85:53)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: cached content expired
+        at Object.generate (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:70:69)
+        at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91762:123)
+        at generateGemini.next (<anonymous>)
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91811:12)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    expected: { name: 'ProviderScopeError' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ generateWithGroq: final send rechecks after limiter wait, with allowed control (0.373792ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ generateWithOpenai: final send rechecks after limiter wait, with allowed control (0.167084ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ generateWithClaude: final send rechecks after limiter wait, with allowed control (0.174625ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ generateWithDeepseek: final send rechecks after limiter wait, with allowed control (0.210875ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ generateWithGroqMultimodal: final send rechecks after limiter wait, with allowed control (0.174542ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithGroq: final send rechecks after limiter wait, with allowed control (0.143083ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithOpenai: final send rechecks after limiter wait, with allowed control (0.149084ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithClaude: final send rechecks after limiter wait, with allowed control (0.132291ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithDeepseek: final send rechecks after limiter wait, with allowed control (0.131041ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithGroqMultimodal: final send rechecks after limiter wait, with allowed control (0.127416ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithOpenaiMultimodal: final send rechecks after limiter wait, with allowed control (0.148375ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:155:3
+✖ streamWithClaudeMultimodal: final send rechecks after limiter wait, with allowed control (0.11275ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /synthetic-send-reached/. Input:
+  
+  'TypeError: self[entry] is not a function'
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: self[entry] is not a function
+        at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:170:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:174:20)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    expected: /synthetic-send-reached/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:185:1
+✖ generateContent: revocation during the retry backoff stops the retry, with allowed control (0.776042ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection (ProviderScopeError).
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:199:17)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { name: 'ProviderScopeError' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:204:1
+✖ generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls (1.09225ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection (ProviderScopeError): retry
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:223:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { name: 'ProviderScopeError' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ProviderGatewayPolicy.test.mjs:230:1
+✖ streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls (0.213333ms)
+  Error: Unknown model ID. Configure and select its provider first.
+      at resolveModelTarget (<repo>/dist-electron/electron/LLMHelper.js:84592:22)
+      at LLMHelper.beginGenerationTask (<repo>/dist-electron/electron/LLMHelper.js:92790:172)
+      at LLMHelper.selectedGeneration (<repo>/dist-electron/electron/LLMHelper.js:92802:36)
+      at LLMHelper.streamWithGroqOrGemini (<repo>/dist-electron/electron/LLMHelper.js:93976:17)
+      at invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:249:82)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:250:112)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:68:1
+✖ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (331.419167ms)
+  Error: gemini client not initialized
+      at <repo>/dist-electron/electron/LLMHelper.js:92847:28
+      at AsyncGenerator.next (<anonymous>)
+      at generateTask (<repo>/dist-electron/electron/LLMHelper.js:92662:59)
+      at generateTask.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92818:24
+      at AsyncGenerator.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92586:89
+      at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)
+      at <repo>/dist-electron/electron/LLMHelper.js:92586:66
+      at AsyncGenerator.next (<anonymous>)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:84:1
+✖ meeting summaries with a declared profile_history scope are not sent while it is denied (0.619458ms)
+  Error: gemini client not initialized
+      at <repo>/dist-electron/electron/LLMHelper.js:92847:28
+      at AsyncGenerator.next (<anonymous>)
+      at generateTask (<repo>/dist-electron/electron/LLMHelper.js:92662:59)
+      at generateTask.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92818:24
+      at AsyncGenerator.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92586:89
+      at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)
+      at <repo>/dist-electron/electron/LLMHelper.js:92586:66
+      at AsyncGenerator.next (<anonymous>)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:129:3
+✖ Codex CLI (generate) does not start when the transcript scope is denied (0.607541ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed the call reaches the CLI
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:131:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'self.generateWithCodexCli is not a function',
+    expected: /spawn-stub-reached/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:129:3
+✖ Codex CLI (stream) does not start when the transcript scope is denied (0.16225ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed the call reaches the CLI
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:131:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'self.streamWithCodexCli(...) is not a function or its return value is not async iterable',
+    expected: /spawn-stub-reached/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ groq constructor: SDK cannot resend after scope revocation (4.7395ms)
+  TypeError: self.generateWithGroq is not a function
+      at groq (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:173:26)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ openai constructor: SDK cannot resend after scope revocation (0.75775ms)
+  TypeError: self.generateWithOpenai is not a function
+      at openai (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:174:28)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ claude constructor: SDK cannot resend after scope revocation (0.656625ms)
+  TypeError: self.generateWithClaude is not a function
+      at claude (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:175:28)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ deepseek constructor: SDK cannot resend after scope revocation (0.625042ms)
+  TypeError: self.generateWithDeepseek is not a function
+      at deepseek (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:176:30)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ groq key update: SDK cannot resend after scope revocation (0.464083ms)
+  TypeError: self.generateWithGroq is not a function
+      at groq (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:173:26)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ openai key update: SDK cannot resend after scope revocation (0.46225ms)
+  TypeError: self.generateWithOpenai is not a function
+      at openai (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:174:28)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ claude key update: SDK cannot resend after scope revocation (0.441084ms)
+  TypeError: self.generateWithClaude is not a function
+      at claude (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:175:28)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:150:5
+✖ deepseek key update: SDK cannot resend after scope revocation (0.440917ms)
+  TypeError: self.generateWithDeepseek is not a function
+      at deepseek (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:176:30)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:178:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:202:1
+✖ Gemini fallback preserves refusal without starting a speculative sibling (1.793125ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  TypeError: Cannot read properties of undefined (reading 'generateContentStream')
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:211:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'generateContentStream')
+        at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91762:66)
+        at generateGemini.next (<anonymous>)
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91811:12)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:217:1
+✖ Gemini sequential fallback retains ordinary failure and cancellation behavior (0.514333ms)
+  TypeError: Cannot read properties of undefined (reading 'generateContentStream')
+      at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91762:66)
+      at generateGemini.next (<anonymous>)
+      at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91811:12)
+      at generateOnce.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92861:16
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:246:1
+✖ prompt wrappers propagate a refusal instead of inventing an answer (2.418709ms)
+  AssertionError [ERR_ASSERTION]: WhatToAnswerLLM.generate
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:267:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: this.llmHelper.runGeneration is not a function
+        at WhatToAnswerLLM.generate (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1365:27)
+        at file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:268:39
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:267:20)
+        at async Test.run (node:internal/test_runner/test:1208:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:291:1
+✖ default chat routing refuses transcript denial but can send without denied context (2.073375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   name: 'Error'
+  -   name: 'ProviderScopeError'
+    }
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:300:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Unknown model ID. Configure and select its provider first.
+        at resolveModelTarget (<repo>/dist-electron/electron/LLMHelper.js:84592:22)
+        at LLMHelper.beginGenerationTask (<repo>/dist-electron/electron/LLMHelper.js:92790:172)
+        at LLMHelper.runGeneration (<repo>/dist-electron/electron/LLMHelper.js:92769:48)
+        at LLMHelper.chatWithGemini (<repo>/dist-electron/electron/LLMHelper.js:93648:17)
+        at assert.rejects.name (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:300:35)
+        at waitForActual (node:assert:601:21)
+        at strict.rejects (node:assert:738:31)
+        at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:300:16)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1201:25),
+    expected: { name: 'ProviderScopeError' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ non-streaming chat: a scope refusal stops at the first provider (1.8985ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  TypeError: Cannot read properties of undefined (reading 'completions')
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'completions')
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91868:82)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ fast Codex chat: a scope refusal stops at the first provider (0.873958ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  TypeError: Cannot read properties of undefined (reading 'completions')
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'completions')
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91868:82)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ structured fallback: a scope refusal stops at the first provider (0.765208ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  TypeError: Cannot read properties of undefined (reading 'completions')
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'completions')
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91868:82)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ non-streaming vision: a scope refusal stops at the first provider (15.420708ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+        at async open (node:internal/fs/promises:1281:25)
+        at async Object.readFile (node:internal/fs/promises:1929:14)
+        at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93445:20),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ Codex vision: a scope refusal stops at the first provider (1.123666ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+        at async open (node:internal/fs/promises:1281:25)
+        at async Object.readFile (node:internal/fs/promises:1929:14)
+        at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93445:20),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ streaming text fallback: a scope refusal stops at the first provider (1.042792ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  TypeError: Cannot read properties of undefined (reading 'completions')
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'completions')
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91868:82)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92861:16,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ streaming vision outer boundary: a scope refusal stops at the first provider (2.065584ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: ENOENT: no such file or directory, open '/margin-test/screenshot-not-present.png'
+        at async open (node:internal/fs/promises:1281:25)
+        at async Object.readFile (node:internal/fs/promises:1929:14)
+        at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93445:20),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:319:3
+✖ mode-specific fallback: a scope refusal stops at the first provider (1.145583ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: ENOENT: no such file or directory, open 'Q'
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:337:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: ENOENT: no such file or directory, open 'Q'
+        at async open (node:internal/fs/promises:1281:25)
+        at async Object.readFile (node:internal/fs/promises:1929:14)
+        at async LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93445:20),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:343:3
+✖ robust Gemini fallback keeps refusal type at rate-limit wait 1 (0.2595ms)
+  TypeError: self.generateWithFallback is not a function
+      at assert.rejects.name (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:351:37)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:351:18)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:343:3
+✖ robust Gemini fallback keeps refusal type at rate-limit wait 2 (0.090042ms)
+  TypeError: self.generateWithFallback is not a function
+      at assert.rejects.name (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:351:37)
+      at waitForActual (node:assert:601:21)
+      at strict.rejects (node:assert:738:31)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:351:18)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:395:3
+✖ Claude sends nothing when the transcript or screenshot scope is denied (0.206417ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed the call reaches the send
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:397:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'self.generateWithClaude is not a function',
+    expected: /send-stub-reached/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:395:3
+✖ Groq multimodal sends nothing when the transcript or screenshot scope is denied (0.116959ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed the call reaches the send
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:397:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'self.generateWithGroqMultimodal is not a function',
+    expected: /send-stub-reached/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:411:1
+✖ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.578ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed Claude is asked
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:414:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:439:3
+✖ generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied (0.268125ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed every branch reaches the send
+  
+  1 !== 6
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:442:17)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 6,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:439:3
+✖ generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied (0.107209ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed the call reaches the send
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:441:42)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:439:3
+✖ streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied (1.944459ms)
+  AssertionError [ERR_ASSERTION]: with every scope allowed every branch reaches the send
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:442:17)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:487:1
+✖ WhatToAnswer sends earlier answers only while profile_history is allowed (0.151583ms)
+  TypeError: this.llmHelper.runGenerationStream is not a function
+      at WhatToAnswerLLM.generateStream (<repo>/dist-electron/electron/llm/WhatToAnswerLLM.js:1375:27)
+      at whatToAnswerWith (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:482:53)
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:488:25)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:529:1
+✖ meeting summaries stop the fallback chain when a scope is turned off during it (0.305333ms)
+  Error: gemini client not initialized
+      at <repo>/dist-electron/electron/LLMHelper.js:92847:28
+      at AsyncGenerator.next (<anonymous>)
+      at generateTask (<repo>/dist-electron/electron/LLMHelper.js:92662:59)
+      at generateTask.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92818:24
+      at AsyncGenerator.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92586:89
+      at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)
+      at <repo>/dist-electron/electron/LLMHelper.js:92586:66
+      at AsyncGenerator.next (<anonymous>)
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:563:1
+✖ streamChat re-checks its scopes before each send, also after waiting (1.107083ms)
+  AssertionError [ERR_ASSERTION]: fast mode: expected a scope error, got null
+  + actual - expected
+  
+  + undefined
+  - 'ProviderScopeError'
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:599:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'ProviderScopeError',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/ScopeLocalFallback.test.mjs:610:1
+✖ chatWithGemini keeps the scopes of its context for every send (0.407625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   message: "Cannot read properties of undefined (reading 'trim')",
+  +   name: 'TypeError'
+  -   message: /Data scope denied/,
+  -   name: 'ProviderScopeError'
+    }
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:617:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'trim')
+        at LLMHelper._streamChatBody (<repo>/dist-electron/electron/LLMHelper.js:93822:47)
+        at _streamChatBody.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92728:65
+        at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)
+        at withRequestDataScopes (<repo>/dist-electron/electron/LLMHelper.js:92728:44)
+        at withRequestDataScopes.next (<anonymous>)
+        at LLMHelper._streamChatInner (<repo>/dist-electron/electron/LLMHelper.js:93789:12)
+        at _streamChatInner.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:93650:24
+        at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14),
+    expected: { name: 'ProviderScopeError', message: /Data scope denied/ },
+    operator: 'rejects',
+    diff: 'simple'
+  }

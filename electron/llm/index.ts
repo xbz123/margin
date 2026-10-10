@@ -33,7 +33,7 @@ export type { PlannerDecision, PlannerDecisionKind, PlannerInput } from "./Plann
 export { routeLLMProviders } from "./ProviderRouter";
 export type { LLMProviderId, ProviderAttempt, ProviderAttemptStatus, ProviderAvailabilityState, ProviderCapability, ProviderModelState, ProviderRouteOptions, ProviderUnavailableReason } from "./ProviderRouter";
 export { MODE_CONFIGS } from "./types";
-export type { GenerationConfig, GeminiContent, LLMClient } from "./types";
+export type { GenerationConfig, GeminiContent } from "./types";
 export {
     HARD_SYSTEM_PROMPT,
     ANSWER_MODE_PROMPT,

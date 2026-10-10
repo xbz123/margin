@@ -4,7 +4,6 @@
 //   - ImageOptimizer Sharp pipeline across 4 screenshot sizes
 //   - per-profile (fast / balanced / technical / best) duration and payload size
 //   - cache hit latency (second pass with the same cacheKey)
-//   - VisionProviderFallbackChain overhead with a near-instant fake provider
 //
 // What this DOES NOT measure:
 //   - live LLM provider latency (would require API keys + quota)
@@ -27,7 +26,6 @@ const iterations = Number.parseInt(process.env.SCREEN_UNDERSTANDING_BENCH_ITERAT
 process.env.NATIVELY_TEST_USER_DATA = process.env.NATIVELY_TEST_USER_DATA || os.tmpdir();
 
 const { ImageOptimizer } = await import(pathToFileURL(path.join(screenDir, 'ImageOptimizer.js')).href);
-const { runVisionFallback } = await import(pathToFileURL(path.join(screenDir, 'VisionProviderFallbackChain.js')).href);
 
 function percentile(values, p) {
   if (values.length === 0) return 0;
@@ -130,84 +128,11 @@ async function benchOptimizer(fixtures) {
   return results;
 }
 
-async function benchChain(fixtures) {
-  const optimizer = new ImageOptimizer();
-  const fastFakeProvider = {
-    id: 'bench-fake',
-    displayName: 'Bench Fake',
-    modelId: 'fake-vision-1',
-    isLocal: true,
-    isConfigured: true,
-    supportsVision: true,
-    scopeAllowsScreenshots: true,
-    hint: 'generic',
-    invoke: async () => 'ok',
-  };
-
-  const slowFakeProvider = {
-    ...fastFakeProvider,
-    id: 'bench-slow',
-    invoke: async () => { throw new Error('500 simulated failure'); },
-  };
-
-  const out = [];
-  for (const fixture of fixtures) {
-    // 1. Single-provider best case (optimizer cache warm)
-    const warmDurations = [];
-    for (let i = 0; i < iterations; i++) {
-      const started = performance.now();
-      await runVisionFallback({
-        imagePath: fixture.path,
-        mode: 'vision_first',
-        providers: [fastFakeProvider],
-        systemPrompt: 'sys',
-        userPrompt: 'user',
-        optimizer,
-        optimizationProfile: 'balanced',
-        cacheKey: `chain-warm|${fixture.name}`,
-      });
-      warmDurations.push(performance.now() - started);
-    }
-
-    // 2. Fallback case — first provider fails, second wins
-    const fallbackDurations = [];
-    for (let i = 0; i < iterations; i++) {
-      const started = performance.now();
-      await runVisionFallback({
-        imagePath: fixture.path,
-        mode: 'vision_first',
-        providers: [slowFakeProvider, fastFakeProvider],
-        systemPrompt: 'sys',
-        userPrompt: 'user',
-        optimizer,
-        optimizationProfile: 'balanced',
-        cacheKey: `chain-fb|${fixture.name}`,
-      });
-      fallbackDurations.push(performance.now() - started);
-    }
-
-    out.push({
-      fixture: fixture.name,
-      size: `${fixture.w}x${fixture.h}`,
-      warmAvgMs: round(warmDurations.reduce((s, v) => s + v, 0) / warmDurations.length),
-      warmP95Ms: round(percentile(warmDurations, 95)),
-      fallbackAvgMs: round(fallbackDurations.reduce((s, v) => s + v, 0) / fallbackDurations.length),
-      fallbackP95Ms: round(percentile(fallbackDurations, 95)),
-      fallbackOverheadVsWarmMs: round(
-        (fallbackDurations.reduce((s, v) => s + v, 0) / fallbackDurations.length) -
-        (warmDurations.reduce((s, v) => s + v, 0) / warmDurations.length),
-      ),
-    });
-  }
-  await optimizer.cleanupAll();
-  return out;
-}
 
 async function main() {
   const { dir, fixtures } = await buildFixtures();
   try {
     const optimizer = await benchOptimizer(fixtures);
-    const chain = await benchChain(fixtures);
 
     const summary = {
       timestamp: new Date().toISOString(),
@@ -216,10 +141,8 @@ async function main() {
       sharpVersion: sharp.versions?.sharp || 'unknown',
       iterationsPerSample: iterations,
       optimizer,
-      chain,
       notes: [
         'Optimizer numbers are real Sharp work on synthetic textured PNGs (no flat-color compression bias).',
-        'Chain numbers use a fake provider that returns instantly so the duration is dominated by Sharp + chain overhead, not LLM latency.',
         'Cache hit numbers are within-process — they prove the cache works but do not include disk-write latency that the first pass paid.',
       ],
     };

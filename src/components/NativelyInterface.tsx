@@ -2026,8 +2026,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       setLatestVisionModelUsed(result.visionModelUsed);
       setLatestVisionFailureReason(result.visionFailureReason);
       if (result.answer == null) {
+        if (streamingTextRef.current) flushToken();
         const feedback =
-          result.error ??
+          (result.error ? `❌ Error (what_to_say): ${result.error}` : undefined) ??
           'Could not generate an answer yet. Wait a few seconds after speech and try again.';
         // CRITICAL ORDERING: clear streaming refs and wipe imperative DOM
         // BEFORE the `setMessages` that commits the null-feedback. The old

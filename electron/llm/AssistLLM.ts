@@ -4,7 +4,6 @@
 // Uses LLMHelper for centralized routing and universal prompts
 
 import { LLMHelper } from "../LLMHelper";
-import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_ASSIST_PROMPT } from "./prompts";
 import { TINY_ASSIST_PROMPT } from "./tinyPrompts";
 
@@ -20,30 +19,28 @@ export class AssistLLM {
      * @param context - Current conversation context
      * @returns Insight (no post-clamp; prompt enforces brevity)
      */
-    async generate(context: string): Promise<string> {
-        try {
-            if (!context.trim()) {
-                return "";
-            }
+    generate(...args: Parameters<AssistLLM['generateInner']>): Promise<string> {
+        const factory = () => this.generateInner(...args);
+        return this.llmHelper.runGeneration(factory);
+    }
 
-            // Centralized LLM logic
-            // providing a specific instruction as message, using UNIVERSAL_ASSIST_PROMPT as system prompt
-            const instruction = "Briefly summarize what is happening right now in 1-2 sentences. Do not give advice, just observation.";
-
-            const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_ASSIST_PROMPT : UNIVERSAL_ASSIST_PROMPT;
-            const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
-            return await this.llmHelper.chat(
-                instruction,
-                undefined,
-                fittedContext,
-                promptOverride,
-                true
-            );
-
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[AssistLLM] Generation failed:", error);
+    async generateInner(context: string): Promise<string> {
+        if (!context.trim()) {
             return "";
         }
+
+        // Centralized LLM logic
+        // providing a specific instruction as message, using UNIVERSAL_ASSIST_PROMPT as system prompt
+        const instruction = "Briefly summarize what is happening right now in 1-2 sentences. Do not give advice, just observation.";
+
+        const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_ASSIST_PROMPT : UNIVERSAL_ASSIST_PROMPT;
+        const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
+        return await this.llmHelper.chat(
+            instruction,
+            undefined,
+            fittedContext,
+            promptOverride,
+            true
+        );
     }
 }

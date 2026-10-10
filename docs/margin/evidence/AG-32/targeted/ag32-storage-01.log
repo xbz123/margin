@@ -1,0 +1,29 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (5037.63975ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (678.854667ms)
+✔ the meeting chat follows the post_call_summary and profile_history scopes (5283.5885ms)
+✔ a meeting edit that fails to save is rolled back and reported (4965.487125ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (7655.028208ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24134.787625
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:463:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (7655.028208ms)
+  AssertionError [ERR_ASSERTION]: recovery sends the meeting with profile_history on
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:531:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

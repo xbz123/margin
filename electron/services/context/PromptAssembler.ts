@@ -7,10 +7,8 @@ import { ContextPacket } from './ContextPacket';
 
 // Screen context delivered to PromptAssembler.
 //
-// VISION-FIRST: extractedText, visibleSummary, screenType, codeBlocks, tables, errors
-// come from a vision LLM call (ScreenUnderstandingService → VisionProviderFallbackChain).
-// LEGACY: ocrText is retained as an optional alias for older callers that still produce
-// OCR text. New runtime paths must populate extractedText / visibleSummary instead.
+// Extracted-text fields remain for existing context callers. Answer generation
+// sends original images directly and does not synthesize these fields first.
 export interface ScreenContext {
     /** @deprecated Legacy OCR text. New callers populate `extractedText` / `visibleSummary`. */
     ocrText?: string;

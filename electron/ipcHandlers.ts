@@ -3,6 +3,7 @@
 import * as crypto from 'crypto';
 import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfigurationSave } from '../src/types/llmTarget';
 import { resolveModelTarget } from './llm/llmTarget';
+import type { GenerationTask } from './llm/generateTask';
 import { app, BrowserWindow, dialog, ipcMain, shell, systemPreferences } from 'electron';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -363,6 +364,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; meetingId?: unknown },
     ) => {
       let myController: AbortController | null = null;
+      let chatTask: GenerationTask<any> | undefined;
       // Scopes of the data in this request beyond the transcript; streamChat refuses
       // the request when one of them is denied. Set only here in the main process, from
       // data it reads itself (PLAN.md AG-17 fourth and fifth reviews).
@@ -377,6 +379,9 @@ export function initializeIpcHandlers(appState: AppState): void {
       try {
         console.log('[IPC] gemini-chat-stream started using LLMHelper.streamChat');
         const llmHelper = appState.processingHelper.getLLMHelper();
+        myController = new AbortController();
+        chatTask = llmHelper.beginGenerationTask('interview', myController.signal);
+        chatTask.deferVisibleText = true;
 
         // Meeting chat: the window sends only the meeting id. The context comes from the
         // saved meeting, with the summary left out when post_call_summary is denied; a
@@ -399,7 +404,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         if (priorStream) {
           try { priorStream.controller.abort(); } catch { /* noop */ }
         }
-        myController = new AbortController();
         _chatStreamsBySender.set(senderId, { streamId: myStreamId, controller: myController });
 
         const intelligenceManager = appState.getIntelligenceManager();
@@ -484,7 +488,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           // is superseded or explicitly cancelled via gemini-chat-stream-stop.
           // The signature accepts a final optional `abortSignal?: AbortSignal`
           // that streamChat extracts from its variadic args.
-          const stream = llmHelper.streamChat(
+          const stream = llmHelper.runGenerationStream(() => llmHelper.streamChat(
             message,
             imagePaths,
             context,
@@ -492,8 +496,8 @@ export function initializeIpcHandlers(appState: AppState): void {
             options?.ignoreKnowledgeMode,
             false, // skipModeInjection
             declaredScopes, // extraDataScopes
-            myController.signal,
-          );
+            myController!.signal,
+          ), 'interview', myController.signal, chatTask);
 
           for await (const token of stream) {
             // Bail if a newer stream has taken over (user triggered a new request)
@@ -503,6 +507,7 @@ export function initializeIpcHandlers(appState: AppState): void {
               );
               return null;
             }
+            chatTask.markVisible(token);
             event.sender.send('gemini-stream-token', token, clientStreamId);
             fullResponse += token;
           }
@@ -534,6 +539,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         console.error('[IPC] Error in gemini-chat-stream setup:', error);
         throw error;
       } finally {
+        chatTask?.close();
         if (myController) {
           const current = _chatStreamsBySender.get(event.sender.id);
           if (current?.controller === myController) {
@@ -944,6 +950,12 @@ export function initializeIpcHandlers(appState: AppState): void {
       appState.getIntelligenceManager().initializeLLMs();
       appState.sendModelChanged(helper.getCurrentModelSelection());
     });
+  });
+
+  safeHandle('get-generation-policy', async () => require('./services/CredentialsManager').CredentialsManager.getInstance().getGenerationPolicy());
+  safeHandle('set-generation-policy', async (_, value) => {
+    const manager = require('./services/CredentialsManager').CredentialsManager.getInstance();
+    return persistCredentials(() => manager.setGenerationPolicy(value), () => appState.processingHelper.getLLMHelper().setGenerationPolicy(manager.getGenerationPolicy()));
   });
 
   // Dedicated API key setters (for Settings UI Save buttons)
@@ -1886,10 +1898,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // MODE 2: What Should I Say (Primary auto-answer)
   //
-  // VISION-FIRST: image paths are validated and forwarded to IntelligenceManager
-  // which routes them through the vision provider fallback chain.
-  // OCR was removed (PLAN.md AG-16): the app answers from the image directly via a
-  // vision-capable provider.
+  // Validated original images reach the selected answer task without generative preanalysis.
   safeHandle(
     'generate-what-to-say',
     async (
@@ -1897,7 +1906,10 @@ export function initializeIpcHandlers(appState: AppState): void {
       question?: string,
       imagePaths?: string[],
     ) => {
+      const helper = appState.processingHelper.getLLMHelper();
+      let task: GenerationTask<any> | undefined;
       try {
+        task = helper.beginGenerationTask('interview');
         let screenContext: any;
         let screenContextStatus: 'not_available' | 'available' | 'failed' = 'not_available';
         let visionProviderUsed: string | undefined;
@@ -1945,76 +1957,33 @@ export function initializeIpcHandlers(appState: AppState): void {
             validatedImagePaths!.push(imagePath);
           }
 
-          // Vision-first: run the ScreenUnderstandingService so the image is hashed, optimized,
-          // and routed through the vision provider fallback chain. The structured result becomes
-          // the screenContext that PromptAssembler consumes.
-          try {
-            const {
-              getScreenUnderstandingService,
-            } = require('./services/screen/ScreenUnderstandingService');
-            const { CredentialsManager } = require('./services/CredentialsManager');
-            const sus = getScreenUnderstandingService();
-            const settings = SettingsManager.getInstance();
-            const credentials = CredentialsManager.getInstance();
-            const providerScopes = settings.get('providerDataScopes') || {};
-            if (providerScopes.screenshots === false) {
-              console.warn('[ScopeFallback] screenshots denied for cloud providers; omitting from context');
-            }
-
-            const sur = await sus.understand({
-              modeId: 'what-to-say',
-              transcript: question,
-              userAction: 'what_to_say',
-              qualityMode: 'balanced',
-              imagePaths: validatedImagePaths,
-              screenUnderstandingMode: settings.getScreenUnderstandingMode(),
-              technicalInterviewVisionFirst: settings.getTechnicalInterviewVisionFirst(),
-              providerPolicy: {
-                allowScreenshots: providerScopes.screenshots !== false,
-                visionAvailable: credentials.anyVisionProviderConfigured?.() ?? true,
-              },
-            });
-
-            screenContext = sur.status === 'available' ? sur : undefined;
-            screenContextStatus =
-              sur.status === 'available'
-                ? 'available'
-                : sur.status === 'failed'
-                  ? 'failed'
-                  : 'not_available';
-            visionProviderUsed = sur.providerUsed;
-            visionModelUsed = sur.modelUsed;
-            visionAttempts = Array.isArray(sur.attempts) ? sur.attempts.length : undefined;
-            visionFailureReason = sur.failureReason;
-          } catch (sErr: any) {
-            screenContextStatus = 'failed';
-            console.warn('[IPC] generate-what-to-say: ScreenUnderstandingService failed', {
-              errorClass: sErr?.name || 'Error',
-            });
-          }
+          // Answer once from all validated original images; no redundant generative extraction.
         }
 
         const intelligenceManager = appState.getIntelligenceManager();
         // Question and imagePaths are now optional - IntelligenceManager infers from transcript
-        const answer = await intelligenceManager.runWhatShouldISay(
+        const answer = await helper.runGeneration(() => intelligenceManager.runWhatShouldISay(
           question,
           0.8,
           validatedImagePaths,
           {
             skipCooldown: process.env.NODE_ENV === 'test',
+            errorDelivery: 'caller',
             screenContext,
           },
-        );
+        ), 'interview', undefined, task);
+        const metadata = helper.getTaskMetadata(task);
         return {
           answer,
           question: question || 'inferred from context',
           screenContextStatus,
-          visionProviderUsed,
-          visionModelUsed,
-          visionAttempts,
+          visionProviderUsed: metadata.usedImageInput ? metadata.provider : undefined,
+          visionModelUsed: metadata.usedImageInput ? metadata.model : undefined,
+          visionAttempts: metadata.attempts,
+          generationStatus: metadata.status,
           visionFailureReason,
-          imageCount: validatedImagePaths?.length || 0,
-          usedImageInput: Boolean(validatedImagePaths?.length),
+          imageCount: metadata.imageCount,
+          usedImageInput: metadata.usedImageInput,
         };
       } catch (error: any) {
         console.error('[IPC] generate-what-to-say error:', error);
@@ -2022,7 +1991,10 @@ export function initializeIpcHandlers(appState: AppState): void {
           answer: null,
           question: question || 'unknown',
           error: error?.message || 'unknown_error',
+          generationStatus: task?.terminalStatus,
         };
+      } finally {
+        task?.close();
       }
     },
   );

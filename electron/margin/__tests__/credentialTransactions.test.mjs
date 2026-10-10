@@ -16,6 +16,8 @@ const compile = source => ts.transpileModule(source, { compilerOptions: {
 const targetModule = { exports: {} };
 vm.runInNewContext(compile(read('src/types/llmTarget.ts')), { module: targetModule, exports: targetModule.exports });
 const { LLM_PRESETS: targets } = targetModule.exports;
+const generationPolicyModule = { exports: {} };
+vm.runInNewContext(compile(read('src/types/generationPolicy.ts')), { module: generationPolicyModule, exports: generationPolicyModule.exports });
 const quiet = { log() {}, warn() {}, error() {} };
 const failure = { ok: false, code: 'write_failed', message: 'Synthetic save failure' };
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -34,6 +36,36 @@ function accountHelper(fakeFs) {
   });
   return module.exports;
 }
+
+test('generation policy persists independent deadlines and rejects invalid or identical targets without mutation', () => {
+  const disk = storage(); const manager = disk.boot();
+  const primary = 'llm-target:openai:chat-completions:primary';
+  const backup = 'llm-target:openai:chat-completions:backup';
+  assert.equal(manager.setDefaultModel(primary).ok, true);
+  const policy = { backupModel: backup, interviewFirstTokenSeconds: 12, interviewTotalSeconds: 90, writtenTotalSeconds: 240 };
+  assert.equal(manager.setGenerationPolicy(policy).ok, true);
+  assert.deepEqual(plain(disk.boot().getGenerationPolicy()), policy);
+  const before = disk.files.get(disk.filename).toString();
+  for (const invalid of [{ ...policy, interviewFirstTokenSeconds: 0 }, { ...policy, interviewTotalSeconds: 5 },
+    { ...policy, writtenTotalSeconds: Infinity }, { ...policy, backupModel: primary }]) {
+    assert.throws(() => manager.setGenerationPolicy(invalid));
+    assert.equal(disk.files.get(disk.filename).toString(), before);
+    assert.deepEqual(plain(manager.getGenerationPolicy()), policy);
+  }
+  assert.throws(() => manager.setDefaultModel(backup), /must differ/);
+  assert.throws(() => manager.setProviderConfiguration({ ...targets.openai, model: 'backup' }), /must differ/);
+  assert.equal(manager.getDefaultModel(), primary);
+  assert.equal(disk.files.get(disk.filename).toString(), before);
+});
+
+test('generation policy failed atomic save keeps old memory and disk deadlines', () => {
+  const disk = storage(); const manager = disk.boot(); const previous = plain(manager.getGenerationPolicy());
+  const before = disk.files.get(disk.filename).toString(); disk.setFault('rename');
+  const result = manager.setGenerationPolicy({ ...previous, interviewTotalSeconds: 75 });
+  assert.equal(result.ok, false); assert.equal(result.code, 'write_failed');
+  assert.deepEqual(plain(manager.getGenerationPolicy()), previous);
+  assert.equal(disk.files.get(disk.filename).toString(), before);
+});
 
 function storage() {
   const filename = '/synthetic/credentials.enc';
@@ -75,6 +107,7 @@ function storage() {
         if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');
         if (id === './googleServiceAccount') return accountHelper(fakeFs);
         if (id === '../../src/types/llmTarget') return targetModule.exports;
+        if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
         if (id === '../llm/llmTarget') return require('../../../dist-electron/electron/llm/llmTarget.js');
         return require(id);
       },
@@ -155,7 +188,7 @@ test('a failed backup during discard keeps the unreadable file and the save bloc
   assert.equal(manager.setOpenaiApiKey('synthetic-new').ok, false);
 });
 
-test('all 22 setters commit only after persistence and can be read after restart', () => {
+test('all 24 setters commit only after persistence and can be read after restart', () => {
   const disk = storage();
   const manager = disk.boot();
   const ast = ts.createSourceFile('manager.ts', read('electron/services/CredentialsManager.ts'), ts.ScriptTarget.Latest, true);
@@ -168,19 +201,20 @@ test('all 22 setters commit only after persistence and can be read after restart
     setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel',
     setElevenLabsApiKey: 'elevenLabsApiKey', setAzureApiKey: 'azureApiKey', setAzureRegion: 'azureRegion',
     setIbmWatsonApiKey: 'ibmWatsonApiKey', setIbmWatsonRegion: 'ibmWatsonRegion', setSonioxApiKey: 'sonioxApiKey',
-    setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations',
+    setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
   };
-  assert.equal(names.length, 23);
+  assert.equal(names.length, 24);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
+    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
     assert.equal(manager[name](...args).ok, true, name);
     if (name === 'setProviderConfiguration') assert.deepEqual(plain(manager.getAllCredentials().providerConfigurations.openai), plain(args[0]));
+    else if (name === 'setGenerationPolicy') assert.deepEqual(plain(manager.getAllCredentials().generationPolicy), plain(args[0]));
     else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
     assert.deepEqual(plain(disk.boot().getAllCredentials()), plain(manager.getAllCredentials()), name);
   }
@@ -329,7 +363,7 @@ test('AG31 env-only startup retains explicit keys, saved slots bind their own ke
       constructor() {}
       configureProvider(config, key) { configured.push([config.provider, key, config]); }
       initModelVersionManager() { return Promise.resolve(); }
-      setModel() {} setSttLanguage() {} setAiResponseLanguage() {}
+      setModel() {} setGenerationPolicy() {} setSttLanguage() {} setAiResponseLanguage() {}
     }
     const module = { exports: {} };
     vm.runInNewContext(compile(read('electron/ProcessingHelper.ts')), {

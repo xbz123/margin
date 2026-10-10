@@ -1,0 +1,6 @@
+
+> natively@2.7.0 typecheck:electron
+> tsc -p electron/tsconfig.json --noEmit
+
+electron/llm/generateTask.ts(105,19): error TS2322: Type 'void | Awaited<T>' is not assignable to type 'Awaited<T>'.
+  Type 'void' is not assignable to type 'Awaited<T>'.

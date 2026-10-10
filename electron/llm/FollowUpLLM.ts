@@ -1,5 +1,4 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_FOLLOWUP_PROMPT } from "./prompts";
 import { TINY_FOLLOWUP_PROMPT } from "./tinyPrompts";
 
@@ -14,29 +13,28 @@ export class FollowUpLLM {
         return this.llmHelper.getPromptTier() === 'tiny' ? TINY_FOLLOWUP_PROMPT : UNIVERSAL_FOLLOWUP_PROMPT;
     }
 
-    async generate(previousAnswer: string, refinementRequest: string, context?: string): Promise<string> {
-        try {
-            const message = `PREVIOUS ANSWER:\n${previousAnswer}\n\nREQUEST: ${refinementRequest}`;
-            const fittedContext = context ? this.llmHelper.fitContextForCurrentModel(context) : context;
-            const stream = this.llmHelper.streamChat(message, undefined, fittedContext, this.resolvePrompt());
-            let full = "";
-            for await (const chunk of stream) full += chunk;
-            return full;
-        } catch (e) {
-            rethrowTerminalGenerationError(e);
-            console.error("[FollowUpLLM] Failed:", e);
-            return "";
-        }
+    generate(...args: Parameters<FollowUpLLM['generateInner']>): Promise<string> {
+        const factory = () => this.generateInner(...args);
+        return this.llmHelper.runGeneration(factory);
     }
 
-    async *generateStream(previousAnswer: string, refinementRequest: string, context?: string): AsyncGenerator<string> {
-        try {
-            const message = `PREVIOUS ANSWER:\n${previousAnswer}\n\nREQUEST: ${refinementRequest}`;
-            const fittedContext = context ? this.llmHelper.fitContextForCurrentModel(context) : context;
-            yield* this.llmHelper.streamChat(message, undefined, fittedContext, this.resolvePrompt());
-        } catch (e) {
-            rethrowTerminalGenerationError(e);
-            console.error("[FollowUpLLM] Stream Failed:", e);
-        }
+    async generateInner(previousAnswer: string, refinementRequest: string, context?: string): Promise<string> {
+        const message = `PREVIOUS ANSWER:\n${previousAnswer}\n\nREQUEST: ${refinementRequest}`;
+        const fittedContext = context ? this.llmHelper.fitContextForCurrentModel(context) : context;
+        const stream = this.llmHelper.streamChat(message, undefined, fittedContext, this.resolvePrompt());
+        let full = "";
+        for await (const chunk of stream) full += chunk;
+        return full;
+    }
+
+    generateStream(...args: Parameters<FollowUpLLM['generateStreamInner']>): AsyncGenerator<string> {
+        const factory = () => this.generateStreamInner(...args);
+        return this.llmHelper.runGenerationStream(factory);
+    }
+
+    async *generateStreamInner(previousAnswer: string, refinementRequest: string, context?: string): AsyncGenerator<string> {
+        const message = `PREVIOUS ANSWER:\n${previousAnswer}\n\nREQUEST: ${refinementRequest}`;
+        const fittedContext = context ? this.llmHelper.fitContextForCurrentModel(context) : context;
+        yield* this.llmHelper.streamChat(message, undefined, fittedContext, this.resolvePrompt());
     }
 }

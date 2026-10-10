@@ -9,8 +9,8 @@
 //   allowed, and its summary only while post_call_summary is allowed too; startup
 //   recovery of an unprocessed meeting sends it only while profile_history is allowed;
 //   an edit that fails to save is rolled back and reported.
-// The summary chain never calls OpenAI (Codex -> Groq -> Gemini), so the mock
-// serves the Groq client through the SDK's own GROQ_BASE_URL.
+// The explicitly selected default is Groq; the mock serves that client through
+// the SDK's own GROQ_BASE_URL. Summary generation never discovers another provider.
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:
@@ -110,6 +110,8 @@ test('a meeting is saved with a mock summary, survives a restart, and stays dele
 
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
   assert.deepEqual(keyResult, { ok: true }, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
+  const modelResult = await launcher.evaluate(() => window.electronAPI.setDefaultModel('llm-target:groq:chat-completions:llama-3.3-70b-versatile'));
+  assert.deepEqual(modelResult, { ok: true }, `setDefaultModel failed: ${JSON.stringify(modelResult)}`);
   assert.deepEqual(await launcher.evaluate(() => window.electronAPI.getRecentMeetings()), [], 'fresh database has no meetings');
 
   // 1. Meeting with a transcript.

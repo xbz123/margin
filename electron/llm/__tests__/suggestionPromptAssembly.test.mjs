@@ -37,6 +37,8 @@ function loadBuiltLLMHelper() {
 function suggestionHarness({ codexEnabled }) {
   const calls = { streamChat: [], chatWithGemini: [] };
   const self = {
+    runGeneration: factory => factory(),
+    runGenerationStream: factory => factory(),
     customNotes: 'NOTES_SENTINEL',
     codexCliConfig: { enabled: codexEnabled },
     client: {},
@@ -64,9 +66,9 @@ test('generateSuggestion sends custom notes and the transcript as user content, 
   assert.equal(ignoreKnowledgeMode, true);
 
   const codex = suggestionHarness({ codexEnabled: true });
-  assert.equal(await LLMHelper.prototype.generateSuggestion.call(codex.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'from codex');
-  assert.equal(codex.calls.streamChat.length, 0, 'Codex CLI answered, so no fallback stream');
-  const [codexMessage, , codexContext] = codex.calls.chatWithGemini[0];
+  assert.equal(await LLMHelper.prototype.generateSuggestion.call(codex.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
+  assert.equal(codex.calls.chatWithGemini.length, 0, 'enabling CLI does not add an extra independent generation');
+  const [codexMessage, , codexContext] = codex.calls.streamChat[0];
   assert.match(codexMessage, /QUESTION_SENTINEL/);
   assert.doesNotMatch(codexMessage, /NOTES_SENTINEL|CONTEXT_SENTINEL/);
   assert.match(codexContext, /NOTES_SENTINEL/);
@@ -87,6 +89,8 @@ test('WhatToAnswerLLM sends the default answer prompt as system prompt and the t
   const calls = [];
 
   const llmHelper = {
+    runGeneration: factory => factory(),
+    runGenerationStream: factory => factory(),
     getCapabilities: () => ({ outputBudgetTokens: 2000 }),
     getPromptTier: () => 'full',
     fitContextForCurrentModel: text => text,
@@ -122,6 +126,8 @@ test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen cont
   const imagePaths = ['/tmp/natively-screen.png'];
 
   const llmHelper = {
+    runGeneration: factory => factory(),
+    runGenerationStream: factory => factory(),
     getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: true }),
     getCurrentProvider: () => 'gemini',
     getCurrentModel: () => 'gemini-3.1-flash-lite-preview',
@@ -184,17 +190,13 @@ test('WhatToAnswerLLM assembles runtime intent, prior responses, and screen cont
   assert.doesNotMatch(systemPromptOverride, /Prior &lt;answer&gt;/);
 });
 
-test('WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection)', async () => {
-  // NEW CONTRACT: WhatToAnswerLLM no longer gates on the selected model's vision
-  // capability. Every image-bearing request is handed to streamChat, whose
-  // unified streaming vision fallback chain (OpenAI → Claude → Gemini → Groq →
-  // Natively → local) picks a vision-capable provider, retries, and degrades
-  // gracefully. The premature "switch to a vision model" refusal is gone — that
-  // dead-ended screenshots whenever the picked model couldn't see images.
+test('WhatToAnswerLLM delegates attached images to the selected streamChat task', async () => {
+  // The selected transport owns image validation and the explicit backup budget.
   const { WhatToAnswerLLM } = require(distWhatToAnswerPath);
   const calls = [];
 
   const llmHelper = {
+    runGeneration: factory => factory(), runGenerationStream: factory => factory(),
     getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: false }),
     getCurrentProvider: () => 'custom',
     getCurrentModel: () => 'qwen3.5:4b',

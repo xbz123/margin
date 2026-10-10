@@ -1,5 +1,4 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowTerminalGenerationError } from "./generateContract";
 import { CLARIFY_MODE_PROMPT } from "./prompts";
 import { TINY_CLARIFY_PROMPT } from "./tinyPrompts";
 
@@ -13,34 +12,33 @@ export class ClarifyLLM {
     /**
      * Generate a clarification question
      */
-    async generate(context: string): Promise<string> {
+    generate(...args: Parameters<ClarifyLLM['generateInner']>): Promise<string> {
+        const factory = () => this.generateInner(...args);
+        return this.llmHelper.runGeneration(factory);
+    }
+
+    async generateInner(context: string): Promise<string> {
         if (!context.trim()) return "";
-        try {
-            const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_CLARIFY_PROMPT : CLARIFY_MODE_PROMPT;
-            const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
-            const stream = this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
-            let fullResponse = "";
-            for await (const chunk of stream) fullResponse += chunk;
-            return fullResponse.trim();
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[ClarifyLLM] Generation failed:", error);
-            return "";
-        }
+        const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_CLARIFY_PROMPT : CLARIFY_MODE_PROMPT;
+        const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
+        const stream = this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
+        let fullResponse = "";
+        for await (const chunk of stream) fullResponse += chunk;
+        return fullResponse.trim();
     }
 
     /**
      * Generate a clarification question (Streamed)
      */
-    async *generateStream(context: string): AsyncGenerator<string> {
+    generateStream(...args: Parameters<ClarifyLLM['generateStreamInner']>): AsyncGenerator<string> {
+        const factory = () => this.generateStreamInner(...args);
+        return this.llmHelper.runGenerationStream(factory);
+    }
+
+    async *generateStreamInner(context: string): AsyncGenerator<string> {
         if (!context.trim()) return;
-        try {
-            const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_CLARIFY_PROMPT : CLARIFY_MODE_PROMPT;
-            const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
-            yield* this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[ClarifyLLM] Streaming generation failed:", error);
-        }
+        const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_CLARIFY_PROMPT : CLARIFY_MODE_PROMPT;
+        const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
+        yield* this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
     }
 }

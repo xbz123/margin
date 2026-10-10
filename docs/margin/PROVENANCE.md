@@ -21,6 +21,35 @@ Notes:
 
 ## Ledger
 
+### AG-32 logical generation scheduling
+
+The behavior requirement is section 3.2 of
+`b8ade3f7:docs/fresh-release-implementation-plan.md`, read under PLAN S27–S28.
+The scheduler is written on this branch around the AG-30/31 single-send
+interface, Node abort signals and AsyncLocalStorage. No earlier Margin
+scheduler implementation is copied or added to the approved-source pool.
+Provider targets and safe credential transactions reuse this branch's existing
+implementation. Cancellation, finite attempts and completion states are tested
+with synthetic transports; no remote latency or quality claim follows from
+these checks. The per-ticket evidence records failures and any exact generic
+source matches after the implementation is frozen.
+
+The in-progress scan in `evidence/AG-32/provenance-initial/` found five exact
+generic statements: async stream collection, a zero-request assertion, remaining
+deadline arithmetic, a cancellation callback declaration and a test promise
+local. Their surrounding scheduler and scope/cancellation tests were reviewed;
+only these statements are registered. No source pool or exclusion is enlarged.
+This diagnostic is not final source or ticket acceptance.
+The first full gates scan added two generic matches after the last implementation
+checks: a standard AbortSignal cancellation check before debug success, and an
+Engine reset call in the real transport-cancellation test. Both surrounding
+paths were reviewed and those two exact statements registered as well.
+The final full scan found one further standard Node resolution statement,
+`const electronId = require.resolve('electron');`, in the log-redaction behavior
+test. Its synthetic module-cache installation and restoration were reviewed;
+only the exact statement is registered. The follow-up scan reports zero hits.
+All eight registrations concern generic idioms, not copied implementation.
+
 ### AG-31 protocol and target configuration
 
 The four-protocol behavior and explicit target requirements are read from the

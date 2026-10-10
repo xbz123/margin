@@ -23,6 +23,7 @@ const { GeminiPromptCache } = require('../../../dist-electron/electron/llm/Gemin
 const { outboundFetch } = require('../../../dist-electron/electron/services/outbound.js');
 const { fetchProviderModels } = require('../../../dist-electron/electron/utils/modelFetcher.js');
 const drain = async source => { const events = []; for await (const event of source) events.push(event); return events; };
+const collect = async source => { let text = ''; for await (const chunk of source) text += chunk; return text; };
 const request = (protocol, extra = {}) => ({ protocol, purpose: 'answer', model: 'opaque-model',
   contents: [{ text: 'USER' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }],
   systemInstruction: 'SYSTEM', maxOutputTokens: 128, dataScopes: ['transcript', 'screenshots'], stream: true, ...extra });
@@ -120,13 +121,11 @@ test('real SDK text/image serialization, saved opaque target, test and model lis
       helper.setModel(`llm-target:${provider}:${protocol}:opaque-model`);
       assert.equal(helper.getCurrentProvider(), provider);
       assert.equal(helper.getCurrentModel(), 'opaque-model');
-      const args = { model: 'must-not-use-official-fallback', max_tokens: 128,
-        messages: [{ role: 'system', content: 'SYSTEM' }, { role: 'user', content: [
-          { type: 'text', text: 'USER' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } },
-        ] }], prompt_cache_key: 'must-not-leak', system: undefined };
-      if (provider === 'claude') { args.system = [{ type: 'text', text: 'SYSTEM', cache_control: { type: 'ephemeral' } }]; args.messages.shift(); }
-      const result = await drain(helper.providerGeneration(provider, args, true));
-      assert.equal(result.at(-1).status, 'completed');
+      helper.setAiResponseLanguage('English');
+      helper.processImage = async () => ({ mimeType: 'image/png', data: 'AAAA' });
+      const task = helper.beginGenerationTask();
+      assert.equal(await helper.runGeneration(() => collect(helper.streamChat('USER', ['synthetic-image'], undefined, 'SYSTEM', true, true)), 'interview', undefined, task), 'ANSWER');
+      assert.equal(helper.getTaskMetadata(task).status, 'completed');
       assert.equal(await helper.testProviderConnection(provider), 'ANSWER');
       assert.deepEqual(await fetchProviderModels(provider, `synthetic-${provider}`, config), [{ id: 'opaque-model', label: 'opaque-model' }]);
       assert.equal(helper.modelVersionManager[`${provider === 'claude' ? 'claude' : provider}ApiKey`] ?? null, null);
@@ -183,8 +182,7 @@ test('an explicitly selected custom model is the wire model, while connection te
       helper.configureProvider(config, 'synthetic-only');
       helper.setModel(`llm-target:${provider}:${protocol}:opaque-selected-model`);
       assert.equal(helper.getCurrentModel(), 'opaque-selected-model');
-      if (provider === 'gemini') assert.equal((await helper.sendGemini({ model: config.model, contents: [{ text: 'USER' }] })).text, 'ANSWER');
-      else assert.equal((await helper.sendProvider(provider, { model: config.model, messages: [{ role: 'user', content: 'USER' }] })).choices[0].message.content, 'ANSWER');
+      assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
       assert.equal(await helper.testProviderConnection(provider), 'ANSWER');
       const [generation, connection] = observed.slice(-2);
       if (provider === 'gemini') {
@@ -255,13 +253,15 @@ test('Gemini custom target uses the same v1alpha prefix for generation, test and
     assert.equal(await helper.testProviderConnection('gemini'), 'ANSWER');
     assert.deepEqual(await fetchProviderModels('gemini', 'synthetic-only', config), [{ id: 'opaque-model', label: 'Opaque' }]);
     assert.equal(helper.modelVersionManager.geminiApiKey, null);
-    assert.equal((await helper.sendGemini({ model: 'must-not-send-default', contents: [{ text: 'USER' }] })).text, 'ANSWER');
+    assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
   });
   assert.deepEqual(urls, ['/proxy/v1alpha/models/opaque-model:generateContent', '/proxy/v1alpha/models', '/proxy/v1alpha/models/opaque-model:generateContent']);
 });
 
-test('OpenAI-only meeting summary uses the configured Responses target', async () => {
+test('meeting summary never discovers an unselected OpenAI target, then uses explicitly selected Responses', async () => {
+  let sends = 0;
   await serve(async (req, res) => {
+    sends++;
     let body = ''; for await (const part of req) body += part;
     const payload = JSON.parse(body);
     assert.equal(req.url, '/v1/responses');
@@ -273,13 +273,14 @@ test('OpenAI-only meeting summary uses the configured Responses target', async (
     res.setHeader('content-type', 'application/json');
     res.end(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'SUMMARY' }] }] }));
   }, async base => {
-    for (const explicitlySelected of [false, true]) {
-      const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-      helper.configureProvider({ provider: 'openai', protocol: 'responses', model: 'opaque-model', baseUrl: `${base}/v1` }, 'synthetic-only');
-      if (explicitlySelected) helper.setModel('llm-target:openai:responses:opaque-model');
-      assert.equal(await helper.generateMeetingSummary('SUMMARY_SYSTEM', 'TRANSCRIPT'), 'SUMMARY');
-    }
+    const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+    helper.configureProvider({ provider: 'openai', protocol: 'responses', model: 'opaque-model', baseUrl: `${base}/v1` }, 'synthetic-only');
+    await assert.rejects(() => helper.generateMeetingSummary('SUMMARY_SYSTEM', 'TRANSCRIPT'), /gemini client not initialized/);
+    assert.equal(sends, 0, 'an unconfigured selected target cannot silently switch to another configured provider');
+    helper.setModel('llm-target:openai:responses:opaque-model');
+    assert.equal(await helper.generateMeetingSummary('SUMMARY_SYSTEM', 'TRANSCRIPT'), 'SUMMARY');
   });
+  assert.equal(sends, 1);
 });
 
 test('legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged', async () => {
@@ -299,8 +300,7 @@ test('legacy Groq environment host root keeps the SDK API prefix while saved API
         const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
         helper.configureProvider(config, 'synthetic-only');
         helper.setModel('llm-target:groq:chat-completions:opaque-groq');
-        const events = await drain(helper.providerGeneration('groq', { model: 'opaque-groq', messages: [{ role: 'user', content: 'USER' }] }, false));
-        assert.equal(events.at(-1).status, 'completed');
+        assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
         assert.equal(await helper.testProviderConnection('groq'), 'ANSWER');
         assert.deepEqual(await fetchProviderModels('groq', 'synthetic-only', config), [{ id: 'opaque-groq', label: 'opaque-groq' }]);
       }

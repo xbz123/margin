@@ -1,0 +1,7 @@
+electron/audio/__tests__/LlmStreamAbortController.test.mjs :: electron/audio/__tests__/LlmStreamAbortController.test.mjs
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: Gemini custom target uses the same v1alpha prefix for generation, test and unfiltered model listing
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: OpenAI-only meeting summary uses the configured Responses target
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: an explicitly selected custom model is the wire model, while connection tests retain the saved model
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: real SDK text/image serialization, saved opaque target, test and model list share one API base
+electron/services/__tests__/SensitiveLogRedaction.test.mjs :: LLMHelper logs request metadata without prompt or response snippets

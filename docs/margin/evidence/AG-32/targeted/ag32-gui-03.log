@@ -1,0 +1,27 @@
+✔ a typed question streams the mock answer into the overlay (2480.874875ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (8156.311291ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3291.075417ms)
+✔ a screenshot question sends the fixture image to the model (433.727791ms)
+✔ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (143.801667ms)
+[DEBUG-ag32-refusal] {"body":"Hide\nSTT not configured\nTranscription Not Configured\n\nNo STT provider selected. Open Settings → Audio to pick one.\n\nOpen Settings\n\nWhat is two plus two?\n\nMargin regression answer one.\n\nPlease give a long answer.\n\nCancel test LIVE-INJECTED Fresh NEW-INJECTED answer arrives intact.\n\nFirst question\n\nFirst STALE-A Second answer done.\n\nScreenshot attached\n\nWhat is on the screen?\n\nScreenshot seen.\n\nScreenshot attached\n\nWhat should I say about this?\n\nWhat to answer?\nClarify\nRecap\nFollow Up Question\nAnswer\nAsk anything on screen or conversation, or\n⌘\n+\n⇧\n+\nH\nfor selective screenshot\n↵\ngpt-5.4 (openai)","scopes":{"transcript":false},"invokes":[{"imagePaths":["<temporary-path> Support/temp/screenshots/a3300d8a-2b06-47fa-99a0-c1c429b43eb6.png"],"result":{"answer":null,"question":"unknown","error":"Data scope denied: transcript. Check Data Scopes in Settings.","errorReported":true,"generationStatus":"failed"}}],"sends":0,"main":[]}
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (15136.693541ms)
+✔ a provider error is shown and the next question still works (1589.152833ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (2013.364125ms)
+✔ a complete compatible target saved through preload drives a real typed UI question (301.322208ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34181.103334
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:302:1
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (15136.693541ms)
+  page.waitForFunction: Timeout 15000ms exceeded.
+      at TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:327:19) {
+    name: 'TimeoutError'
+  }

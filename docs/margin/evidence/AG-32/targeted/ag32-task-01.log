@@ -1,0 +1,39 @@
+node:internal/modules/cjs/loader:1475
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '../../../dist-electron/src/types/generationPolicy.js'
+Require stack:
+- <repo>/electron/llm/__tests__/generateTask.test.mjs
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+    at Module._load (node:internal/modules/cjs/loader:1261:25)
+    at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1575:12)
+    at require (node:internal/modules/helpers:191:16)
+    at file://<repo>/electron/llm/__tests__/generateTask.test.mjs:6:38 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '<repo>/electron/llm/__tests__/generateTask.test.mjs'
+  ]
+}
+
+Node.js v26.0.0
+✖ electron/llm/__tests__/generateTask.test.mjs (88.399833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.435458
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generateTask.test.mjs:1:1
+✖ electron/llm/__tests__/generateTask.test.mjs (88.399833ms)
+  'test failed'

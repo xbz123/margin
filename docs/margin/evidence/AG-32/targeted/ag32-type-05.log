@@ -1,0 +1,5 @@
+
+> natively@2.7.0 typecheck:electron
+> tsc -p electron/tsconfig.json --noEmit
+
+electron/LLMHelper.ts(700,56): error TS2367: This comparison appears to be unintentional because the types '"answer"' and '"summary"' have no overlap.

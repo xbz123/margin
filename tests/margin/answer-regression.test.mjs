@@ -282,6 +282,46 @@ test('a screenshot question sends the fixture image to the model', async () => {
   assert.ok(/data:image\/(png|jpeg|webp);base64,/.test(serialized), 'request did not include an image');
 });
 
+test('generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot', async () => {
+  mock.setScript({ chunks: ['AG32 direct image answer.'], delayMs: 20 });
+  const before = mock.chatRequests().length;
+  const result = await overlay.evaluate(async () => {
+    const screenshot = await window.electronAPI.takeScreenshot();
+    return window.electronAPI.generateWhatToSay('Explain the screen', [screenshot.path]);
+  });
+  assert.equal(result.answer, 'AG32 direct image answer.');
+  assert.equal(result.screenContextStatus, 'not_available', 'no fabricated extracted screen facts');
+  assert.equal(result.usedImageInput, true); assert.equal(result.visionModelUsed, MODEL);
+  assert.equal(result.visionAttempts, 1); assert.equal(result.generationStatus, 'completed');
+  const requests = mock.chatRequests().slice(before);
+  assert.equal(requests.length, 1, 'no separate generative screen preanalysis');
+  assert.match(JSON.stringify(requests[0].body.messages), /data:image\/(png|jpeg|webp);base64,/);
+});
+
+test('a WhatToSay scope refusal through the real renderer action displays one error and sends nothing', async () => {
+  const original = await overlay.evaluate(() => window.electronAPI.getProviderDataScopes());
+  const before = mock.chatRequests().length;
+  const errorsBefore = (await overlayText()).split('Error (what_to_say):').length - 1;
+  const transcriptBefore = (await overlayText()).split('Data scope denied').length - 1;
+  try {
+    await overlay.evaluate(() => window.electronAPI.setProviderDataScopes({ transcript: false }));
+    // Explicit image bypasses the engine cooldown without synthetic time changes.
+    const removeAll = overlay.locator('button[title="Remove all"]');
+    if (await removeAll.count()) await removeAll.click();
+    await overlay.waitForFunction(() => !document.querySelector('img[alt="Screenshot 1"]'));
+    await pressScreenshotShortcut();
+    await overlay.waitForFunction(() => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
+    await app.evaluate(({ BrowserWindow }) => {
+      for (const window of BrowserWindow.getAllWindows()) if (window.webContents.getURL().includes('window=overlay')) window.webContents.send('global-shortcut', { action: 'whatToAnswer' });
+    });
+    await overlay.waitForFunction(count => document.body.innerText.split('Error (what_to_say):').length - 1 === count + 1, errorsBefore, { timeout: 15_000 });
+    const text = await overlayText();
+    assert.equal(text.split('Error (what_to_say):').length - 1, errorsBefore + 1);
+    assert.equal(text.split('Data scope denied').length - 1, transcriptBefore + 1, 'the IPC null-answer path must not append the same refusal again');
+    assert.equal(mock.chatRequests().length, before);
+  } finally { await overlay.evaluate(scopes => window.electronAPI.setProviderDataScopes(scopes), original); }
+});
+
 test('a provider error is shown and the next question still works', async () => {
   mock.setScript({ errorStatus: 400 });
   const before = mock.chatRequests().length;

@@ -252,6 +252,8 @@ Return ONLY valid JSON (no markdown code blocks):
                 }),
             };
         } catch (e) {
+            // Cancellation leaves the saved placeholder available for restart recovery.
+            if ((e as Error)?.name === 'AbortError') return;
             console.error("Error generating meeting metadata", e);
         }
 

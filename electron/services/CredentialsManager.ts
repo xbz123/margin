@@ -12,6 +12,7 @@ import { regionalSttEndpoint, openAiSttEndpoint } from './outbound';
 import { GoogleServiceAccount, loadGoogleServiceAccount, validateGoogleServiceAccount } from './googleServiceAccount';
 import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
 import { validateProviderConfiguration, resolveModelTarget } from '../llm/llmTarget';
+import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
@@ -24,6 +25,7 @@ export interface StoredCredentials {
     googleServiceAccountPath?: string;
     defaultModel?: string;
     providerConfigurations?: Partial<Record<LlmProvider, ProviderConfiguration>>;
+    generationPolicy?: GenerationPolicy;
     // STT Provider settings
     sttProvider?: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox';
     groqSttApiKey?: string;
@@ -187,6 +189,17 @@ export class CredentialsManager {
         return this.credentials[`${provider}ApiKey` as keyof StoredCredentials] as string | undefined;
     }
 
+    public getGenerationPolicy(): GenerationPolicy { return validateGenerationPolicy(this.credentials.generationPolicy ?? DEFAULT_GENERATION_POLICY); }
+
+    public setGenerationPolicy(value: GenerationPolicy): CredentialSaveResult {
+        const policy = validateGenerationPolicy(value);
+        if (policy.backupModel) {
+            const backup = resolveModelTarget(policy.backupModel, this.getProviderConfigurations());
+            if (!this.getDefaultModel().startsWith('codex-cli') && modelTargetId(backup) === modelTargetId(resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations()))) throw new Error('Primary and backup model must differ.');
+        }
+        return this.saveCredentials({ generationPolicy: policy });
+    }
+
     public setProviderConfiguration(value: ProviderConfigurationSave): CredentialSaveResult {
         const config = validateProviderConfiguration(value);
         if (value.apiKey !== undefined && typeof value.apiKey !== 'string') throw new Error('Invalid API key');
@@ -194,6 +207,13 @@ export class CredentialsManager {
         if (!this.getDefaultModel().startsWith('codex-cli')) {
             const selected = resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations());
             if (selected.provider === config.provider) defaultModel = modelTargetId(config);
+        }
+        const nextConfigurations = { ...this.getProviderConfigurations(), [config.provider]: config };
+        const nextDefault = defaultModel ?? this.getDefaultModel();
+        const backup = this.getGenerationPolicy().backupModel;
+        if (backup && !nextDefault.startsWith('codex-cli')
+            && modelTargetId(resolveModelTarget(nextDefault, nextConfigurations)) === modelTargetId(resolveModelTarget(backup, nextConfigurations))) {
+            throw new Error('Primary and backup model must differ. Change the backup first.');
         }
         return this.saveCredentials({
             defaultModel,
@@ -209,7 +229,7 @@ export class CredentialsManager {
 
     /**
      * True if at least one configured provider is vision-capable.
-     * Used by ScreenUnderstandingService to gate vision_only / decide fallback.
+     * Legacy capability query; it does not select or reorder generation targets.
      */
     public anyVisionProviderConfigured(): boolean {
         if (this.credentials.openaiApiKey) return true;          // gpt-4o / gpt-5 vision
@@ -314,7 +334,11 @@ export class CredentialsManager {
         return this.saveCredentials({ aiResponseLanguage: language });
     }
     public setDefaultModel(model: string): CredentialSaveResult {
-        if (!model.startsWith('codex-cli')) resolveModelTarget(model, this.getProviderConfigurations());
+        if (!model.startsWith('codex-cli')) {
+            const target = resolveModelTarget(model, this.getProviderConfigurations());
+            const backup = this.getGenerationPolicy().backupModel;
+            if (backup && modelTargetId(target) === modelTargetId(resolveModelTarget(backup, this.getProviderConfigurations()))) throw new Error('Primary and backup model must differ. Change the backup first.');
+        }
         return this.saveCredentials({ defaultModel: model });
     }
 

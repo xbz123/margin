@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 
 function makeHelper() {
   return {
+    runGeneration: factory => factory(), runGenerationStream: factory => factory(), getCurrentGenerationTask: () => undefined,
     setNegotiationCoachingHandler() {},
   };
 }
@@ -143,7 +144,7 @@ test('runWhatShouldISay still emits and stores real answers', async () => {
   const answer = await engine.runWhatShouldISay('how should I answer?', 0.9, undefined, { skipCooldown: true });
 
   assert.equal(answer, realAnswer);
-  assert.deepEqual(tokens, [realAnswer]);
+  assert.deepEqual(tokens, ['I would explain ', 'the tradeoff clearly ', 'and ask which constraint matters most.']);
   assert.deepEqual(finals, [realAnswer]);
   assert.equal(session.getFullUsage().length, 1);
   assert.equal(session.getFullUsage()[0].answer, realAnswer);

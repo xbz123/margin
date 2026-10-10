@@ -1,0 +1,1 @@
+electron/main.ts(4202,48): error TS2339: Property 'scrubKeys' does not exist on type 'LLMHelper'.

@@ -13,7 +13,6 @@ const { generateOnce } = require(path.join(root, 'dist-electron/electron/llm/gen
 const { GenerationResultError } = require(path.join(root, 'dist-electron/electron/llm/generateContract.js'));
 const { GeminiPromptCache } = require(path.join(root, 'dist-electron/electron/llm/GeminiPromptCache.js'));
 const { HARD_SYSTEM_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX } = require(path.join(root, 'dist-electron/electron/llm/prompts.js'));
-const { runStreamingVisionFallback, DEFAULT_VISION_FALLBACK_CONFIG } = require(path.join(root, 'dist-electron/electron/llm/visionStreamFallback.js'));
 const built = path.join(root, 'dist-electron/electron/LLMHelper.js');
 const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
 const previousElectron = require.cache[electronId];
@@ -119,17 +118,22 @@ test('Gemini legacy streams never turn partial failure/refusal/incomplete into s
   }
 });
 
-test('terminal errors cross separately bundled vision fallback without health penalty or swallowed partial', async () => {
+test('selected vision entry preserves terminal results and partial text without a backup send', async () => {
   for (const partial of [false, true]) {
-    const error = new GenerationResultError(partial ? 'incomplete' : 'refused', partial);
-    let attempts = 0;
-    const health = new Map();
-    const providers = ['primary', 'backup'].map(id => ({ id, name: id, priority: 0, isLocal: false,
-      open: async function* () { attempts++; if (partial) yield 'partial'; throw error; } }));
-    await assert.rejects(() => drain(runStreamingVisionFallback(providers, DEFAULT_VISION_FALLBACK_CONFIG, health)), e => e === error);
-    assert.equal(attempts, 1);
-    if (!partial) assert.equal(health.size, 0);
-    for (const entry of health.values()) assert.equal(entry.consecutiveFails, 0, 'terminal result is not a health penalty');
+    let sends = 0;
+    const self = helper({ models: { generateContentStream: async () => {
+      sends++;
+      return (async function* () {
+        if (partial) yield packet('partial', null);
+        yield packet('', partial ? 'MAX_TOKENS' : 'SAFETY');
+      })();
+    } } }, {}, { processImage: async () => ({ mimeType: 'image/png', data: 'AAAA' }) });
+    self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+    const output = [];
+    await assert.rejects(async () => { for await (const text of self.streamChat('QUESTION', [import.meta.filename])) output.push(text); },
+      e => e.name === 'GenerationResultError' && e.status === (partial ? 'incomplete' : 'refused'));
+    assert.equal(sends, 1);
+    assert.deepEqual(output, partial ? ['partial'] : []);
   }
 });
 
@@ -137,6 +141,8 @@ test('actual prompt wrappers propagate terminal results without adding a fallbac
   for (const state of ['incomplete', 'refused']) {
     const terminal = new GenerationResultError(state, true);
     const fakeHelper = {
+      runGeneration: factory => factory(), runGenerationStream: factory => factory(),
+      getCurrentGenerationTask: () => undefined,
       getCapabilities: () => ({ outputBudgetTokens: 2000, supportsImages: true }),
       fitContextForCurrentModel: text => text, getPromptTier: () => 'standard', deniedDataScopes: () => [],
       chat: async () => { throw terminal; },
@@ -160,6 +166,7 @@ test('actual prompt wrappers propagate terminal results without adding a fallbac
     const { AnswerLLM } = require(path.join(root, 'dist-electron/electron/llm/AnswerLLM.js'));
     const events = [];
     const engine = Object.assign(Object.create(IntelligenceEngine.prototype), {
+      llmHelper: fakeHelper,
       session: { getFormattedContext: () => 'CONTEXT' }, answerLLM: new AnswerLLM(fakeHelper),
       emit: (...args) => events.push(args), setMode: mode => events.push(['mode', mode]),
     });
@@ -168,29 +175,23 @@ test('actual prompt wrappers propagate terminal results without adding a fallbac
   }
 });
 
-test('Flash empty then Pro error/empty rejects; empty then valid backup still works', async () => {
-  for (const outcome of ['failed', 'empty', 'completed']) {
-    const calls = [];
-    const self = helper({}, {}, { collectStreamResponse: async (_, model) => {
-      calls.push(model);
-      if (calls.length === 1 || outcome === 'empty') return '';
-      if (outcome === 'failed') throw Error('provider failed');
-      return 'backup';
-    } });
-    const run = () => drain(self.streamWithGeminiFallback('QUESTION'));
-    if (outcome === 'completed') assert.equal((await run()).join(''), 'backup');
-    else await assert.rejects(run, /Both Gemini models failed/);
-    assert.equal(calls.length, 2);
-  }
+test('empty primary is terminal even with a valid explicit backup configured', async () => {
+  let sends = 0;
+  const self = helper({ models: { generateContentStream: async () => {
+    sends++; return (async function* () { yield packet('', 'STOP'); })();
+  } } });
+  self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
+  await assert.rejects(() => drain(self.streamChat('QUESTION')), e => e.name === 'GenerationResultError' && e.status === 'empty');
+  assert.equal(sends, 1);
 });
 
 test('cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent', async () => {
   const policy = {}, requests = [];
   const self = helper({ caches: { create: async () => ({ name: 'cached/test' }) }, models: {
-    generateContent: async args => { requests.push(args); if (args.config.cachedContent) throw Error('cached content expired'); return packet(); },
+    generateContent: async args => { requests.push(args); if (args.config.cachedContent) throw Object.assign(Error('explicit cache expired'), { status: 404, error: { details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'CACHED_CONTENT_EXPIRED' }] } }); return packet(); },
   } }, policy);
   const system = 'SYSTEM '.repeat(1000);
-  assert.equal(await self.collectStreamResponse('QUESTION', 'test', undefined, undefined, system), 'ok');
+  assert.equal((await drain(self.streamChat('QUESTION', undefined, undefined, system, true, true, [], undefined, false))).join(''), 'ok');
   assert.equal(requests.length, 2);
   assert.equal(requests[1].config.cachedContent, undefined);
   assert.deepEqual(requests[1].config.systemInstruction, { parts: [{ text: system }] });
@@ -203,11 +204,7 @@ test('suggestion and screenshot wrappers reach the physical Gemini entry with se
   const requests = [];
   const self = helper({ models: { generateContentStream: async args => {
     requests.push(args); return (async function* () { yield packet('answer'); })();
-  } } }, {}, { customNotes: 'NOTES', processImage: async () => ({ mimeType: 'image/jpeg', data: 'AAAA' }),
-    streamVisionWithFallback: async function* (input, signal) {
-      yield* this.streamWithGeminiModel(input.userContent, 'test', input.imagePaths, input.systemPrompt, signal);
-    },
-  });
+  } } }, {}, { customNotes: 'NOTES', processImage: async () => ({ mimeType: 'image/jpeg', data: 'AAAA' }) });
   assert.equal(await self.generateSuggestion('TRANSCRIPT', 'QUESTION'), 'answer');
   assert.match(requests[0].contents[0].text, /NOTES/);
   assert.match(requests[0].contents[0].text, /TRANSCRIPT/);

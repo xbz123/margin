@@ -16,6 +16,9 @@ async function loadSessionTracker() {
 }
 
 class StubLLMHelper {
+  getCurrentGenerationTask() { return undefined; }
+  runGeneration(factory) { return factory(); }
+  runGenerationStream(factory) { return factory(); }
   getActiveModel() { return { provider: 'gemini', model: 'gemini-3-flash' }; }
   isStreamingSupported() { return true; }
   setNegotiationCoachingHandler(_fn) { }

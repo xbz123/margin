@@ -3,7 +3,7 @@
 // PLAN.md AG-16; only the shared type remains.
 
 export interface ScreenContext {
-    ocrText: string;      // legacy key; ScreenUnderstandingService fills it with vision-extracted text
+    ocrText: string;      // legacy extracted-text key; no generative preanalysis runs in the answer path
     imagePath: string;
     activeWindowTitle?: string;
     timestamp: number;

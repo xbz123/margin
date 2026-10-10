@@ -1,0 +1,78 @@
+[LLMHelper] Switched to Model: gemini-new
+[LLMHelper] Switched to Model: gemini-a
+[LLMHelper] Switched to Model: gemini-a
+(node:99622) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (4.622125ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.488166ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.441167ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.560541ms)
+✔ real answer interface: SAFETY terminates without backup (0.943459ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.396791ms)
+✔ real answer interface: EMPTY terminates without backup (0.282ms)
+✔ real answer interface: AUTH terminates without backup (0.31625ms)
+✔ real answer interface: CONFIG terminates without backup (0.283833ms)
+✔ real answer interface: PARTIAL terminates without backup (0.414458ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.583958ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.349ms)
+✔ permission revoked during limiter stops all later sends (0.405ms)
+✔ permission revoked during image stops all later sends (0.179792ms)
+✔ permission revoked during cache stops all later sends (0.206209ms)
+✔ permission revoked during retry-after stops all later sends (0.226125ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.369542ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.327334ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.241208ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.632458ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.207334ms)
+✔ reselecting the same canonical target through qualified or raw model id keeps active transport alive (0.281209ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[LLMHelper] Switched to Model: codex-cli
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (30.043417ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.172792ms)
+✔ Groq fast mode preserves the explicitly selected model for both text and images (0.401ms)
+✔ saved provider connection test ignores the answer backup and sends its own failed target only once (0.256375ms)
+✔ the configured answer backup can itself be connection-tested once without a primary/backup conflict (0.174334ms)
+✔ actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport (2.623792ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry false (0.594875ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry true (0.354292ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false (1.189959ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true (0.490292ms)
+✔ compression starts an independent background task inside an interview context and closes that supplied task (2.774541ms)
+✔ actual prompt entry snapshots language and prompt tier before assembly starts (2.175542ms)
+✔ image metadata reflects actual send and screenshot omission, not the validated input list (0.508709ms)
+✔ backup updates and selected provider reconfiguration reject identical targets without changing active state (0.178083ms)
+✔ explicit Codex selector clears stale API selection and snapshots its configured fast model (0.163291ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 441.365292

@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle, ChevronDown, Check, RefreshCw, ExternalLink, 
 import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, STANDARD_CLOUD_MODELS, prettifyModelId } from '../../utils/modelUtils';
 import { ProviderCard } from './ProviderCard';
 import type { CredentialSaveResult } from '../../types/credentialSave';
+import { DEFAULT_GENERATION_POLICY, type GenerationPolicy } from '../../types/generationPolicy';
 
 const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
 const CODEX_MODEL_REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
@@ -113,6 +114,9 @@ const CodexCliModelField: React.FC<{
 );
 
 export const AIProvidersSettings: React.FC = () => {
+    const [generationPolicy, setGenerationPolicy] = useState<GenerationPolicy>({ ...DEFAULT_GENERATION_POLICY });
+    const [generationPolicySaving, setGenerationPolicySaving] = useState(false);
+    const [generationPolicyNotice, setGenerationPolicyNotice] = useState('');
     const [providerConfigurations, setProviderConfigurations] = useState<Record<LlmProvider, ProviderConfiguration>>({ ...LLM_PRESETS });
     // --- Standard Providers ---
     const [apiKey, setApiKey] = useState('');
@@ -143,10 +147,6 @@ export const AIProvidersSettings: React.FC = () => {
     // --- Dynamic Model Discovery ---
     const [preferredModels, setPreferredModels] = useState<Record<string, string>>({});
 
-    // --- Screen Understanding (vision routing) ---
-    const [screenUnderstandingMode, setScreenUnderstandingMode] = useState<'vision_first' | 'vision_only'>('vision_first');
-    const [technicalInterviewVisionFirst, setTechnicalInterviewVisionFirst] = useState<boolean>(true);
-
     // --- Cloud Provider Data Scopes (fail-closed cloud share controls) ---
     const [providerDataScopes, setProviderDataScopes] = useState<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean; post_call_summary?: boolean }>({});
 
@@ -154,6 +154,7 @@ export const AIProvidersSettings: React.FC = () => {
     useEffect(() => {
         const loadCredentials = async () => {
             try {
+                setGenerationPolicy(await window.electronAPI.getGenerationPolicy());
                 // Load credentials FIRST so canUseFastMode is correct before we set fastResponseMode.
                 // If we set fastResponseMode before hasStoredKey is populated, the enforcement
                 // effect below fires with canUseFastMode=false and immediately resets fast mode
@@ -228,35 +229,6 @@ export const AIProvidersSettings: React.FC = () => {
             window.electronAPI?.setGroqFastTextMode(false);
         }
     }, [credentialsLoaded, canUseFastMode, fastResponseMode]);
-
-    // Load Screen Understanding (vision routing) settings
-    useEffect(() => {
-        window.electronAPI?.getScreenUnderstandingMode?.().then(setScreenUnderstandingMode as any).catch(() => { });
-        (window.electronAPI as any)?.getTechnicalInterviewVisionFirst?.()
-            .then(setTechnicalInterviewVisionFirst)
-            .catch(() => {
-                // Fallback to deprecated alias if the renderer is talking to an older main process.
-                window.electronAPI?.getTechnicalInterviewDirectVision?.().then(setTechnicalInterviewVisionFirst).catch(() => { });
-            });
-    }, []);
-
-    useEffect(() => {
-        const api: any = window.electronAPI;
-        if (!api?.onScreenUnderstandingModeChanged) return;
-        const unsubscribe = api.onScreenUnderstandingModeChanged(setScreenUnderstandingMode);
-        return () => unsubscribe?.();
-    }, []);
-
-    useEffect(() => {
-        const api: any = window.electronAPI;
-        const handler = (enabled: boolean) => setTechnicalInterviewVisionFirst(enabled);
-        const unsub1 = api?.onTechnicalInterviewVisionFirstChanged?.(handler);
-        const unsub2 = api?.onTechnicalInterviewDirectVisionChanged?.(handler);
-        return () => {
-            unsub1?.();
-            unsub2?.();
-        };
-    }, []);
 
     // Load Cloud Provider Data Scopes and subscribe to cross-window changes
     useEffect(() => {
@@ -408,14 +380,50 @@ export const AIProvidersSettings: React.FC = () => {
     };
 
 
+    const cloudModelOptions: ModelOption[] = [];
+    for (const [provider, config] of Object.entries(STANDARD_CLOUD_MODELS)) {
+        if (!hasStoredKey[provider]) continue;
+        const target = providerConfigurations[provider as LlmProvider];
+        if (!target.baseUrl) config.ids.forEach((model, index) => cloudModelOptions.push({ id: modelTargetId({ ...target, model }), name: config.names[index] }));
+        const preferred = preferredModels[provider] ?? target.model;
+        if (target.baseUrl || !config.ids.includes(preferred)) cloudModelOptions.push({ id: modelTargetId({ ...target, model: preferred }), name: `${prettifyModelId(preferred)} (${provider})` });
+    }
+
     return (
         <div className="space-y-5 animated fadeIn pb-10">
+            <section className="space-y-3 rounded-xl border border-border-subtle p-5">
+                <h3 className="text-sm font-bold text-text-primary">Generation limits</h3>
+                <p className="text-xs text-text-secondary">At most two sends per request. Switching manually cancels the current request and keeps its partial output. A backup can receive the same request data and incur additional costs, subject to current privacy settings. First-token timeout ends the request without extra backup time; hidden reasoning may consume that budget before any visible text.</p>
+                <label className="block text-xs text-text-secondary">Backup model
+                    <select className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" value={generationPolicy.backupModel ?? ''} onChange={event => setGenerationPolicy({ ...generationPolicy, backupModel: event.target.value || undefined })}>
+                        <option value="">None — retry the same model only for a transient failure</option>
+                        {cloudModelOptions.filter(option => option.id !== defaultModel).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
+                    </select>
+                </label>
+                {([
+                    ['interviewFirstTokenSeconds', 'Interview first visible text (seconds)'],
+                    ['interviewTotalSeconds', 'Interview total (seconds)'],
+                    ['writtenTotalSeconds', 'Written answer total (seconds)'],
+                ] as const).map(([key, label]) => <label key={key} className="block text-xs text-text-secondary">{label}
+                    <input className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" type="number" min="0" step="any" value={Number.isFinite(generationPolicy[key]) ? generationPolicy[key] : ''} onChange={event => setGenerationPolicy({ ...generationPolicy, [key]: event.target.value ? Number(event.target.value) : NaN })} />
+                </label>)}
+                <p className="text-xs text-text-secondary">Background summaries and transcript compression: 180 seconds, with no first-token deadline.</p>
+                <button type="button" disabled={generationPolicySaving} className="text-xs text-accent-primary disabled:opacity-50" onClick={async () => {
+                    setGenerationPolicySaving(true); setGenerationPolicyNotice('');
+                    try {
+                        const result = await window.electronAPI.setGenerationPolicy(generationPolicy);
+                        setGenerationPolicyNotice(result.ok ? result.warning ?? 'Saved' : result.message);
+                    } catch (error) { setGenerationPolicyNotice(error instanceof Error ? error.message : 'Could not save'); }
+                    finally { setGenerationPolicySaving(false); }
+                }}>{generationPolicySaving ? 'Saving…' : 'Save generation limits'}</button>
+                {generationPolicyNotice && <p role="status" className="text-xs text-text-secondary">{generationPolicyNotice}</p>}
+            </section>
             {credentialNotice && <p role="alert" className="text-xs text-amber-500">{credentialNotice}</p>}
             {/* Default Model for Chat */}
             <div className="space-y-5">
                 <div>
                     <h3 className="text-sm font-bold text-text-primary mb-1">Default Model for Chat</h3>
-                    <p className="text-xs text-text-secondary mb-2">Primary model for new chats. Other configured models act as fallbacks.</p>
+                    <p className="text-xs text-text-secondary mb-2">Primary model for new requests. Only an explicitly selected backup may replace it.</p>
                 </div>
 
                 <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle flex items-center justify-between">
@@ -428,15 +436,7 @@ export const AIProvidersSettings: React.FC = () => {
                         options={(() => {
                             const opts: { id: string; name: string }[] = [];
 
-                            for (const [prov, cfg] of Object.entries(STANDARD_CLOUD_MODELS)) {
-                                if (!hasStoredKey[prov as keyof typeof hasStoredKey]) continue;
-                                const target = providerConfigurations[prov as LlmProvider];
-                                if (!target.baseUrl) cfg.ids.forEach((id, i) => opts.push({ id: modelTargetId({ ...target, model: id }), name: cfg.names[i] }));
-                                const pm = preferredModels[prov as keyof typeof preferredModels];
-                                if (pm && (target.baseUrl || !cfg.ids.includes(pm))) {
-                                    opts.push({ id: modelTargetId({ ...target, model: pm }), name: `${prettifyModelId(pm)} (${prov})` });
-                                }
-                            }
+                            opts.push(...cloudModelOptions);
                             if (codexCliConfig.enabled) {
                                 opts.push({ id: CODEX_CLI_MODEL.id, name: `${CODEX_CLI_MODEL.name} (${prettifyModelId(codexCliConfig.model)})` });
                                 CODEX_CLI_MODEL_PRESETS.forEach(model => {
@@ -466,7 +466,7 @@ export const AIProvidersSettings: React.FC = () => {
                             <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Fast Response Mode</label>
                             <span className="bg-orange-500/10 text-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded border border-orange-500/20">NEW</span>
                         </div>
-                        <p className="text-[10px] text-text-secondary mt-0.5">Super fast responses using the Codex CLI fast model or Groq. Turn this off to use the selected normal model.</p>
+                        <p className="text-[10px] text-text-secondary mt-0.5">Applies to selected Groq and Codex CLI models. Groq keeps your selected model; Codex CLI uses its configured Fast Model. Other model selections are not overridden.</p>
                         {!canUseFastMode && (
                             <p className="text-[10px] text-orange-500 mt-0.5 font-medium">Requires Groq or Codex CLI to be configured.</p>
                         )}
@@ -726,71 +726,9 @@ export const AIProvidersSettings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Screen Understanding — vision-first routing */}
-            <div className="space-y-5">
-                <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Screen understanding</h3>
-                    <p className="text-xs text-text-secondary mb-2">Pick how {APP_NAME} reads what is on your screen. All paths use the vision-capable AI provider directly; OCR is no longer used.</p>
-                </div>
-                <div className="bg-bg-item-surface rounded-xl p-4 border border-border-subtle flex flex-col gap-2">
-                    {([
-                        {
-                            value: 'vision_first' as const,
-                            label: 'Vision first',
-                            description: 'Recommended. Try every configured vision provider in order; first success wins.',
-                        },
-                        {
-                            value: 'vision_only' as const,
-                            label: 'Vision only',
-                            description: 'Stricter. Require a vision-capable provider; never silently drop the screenshot.',
-                        },
-                    ]).map(({ value, label, description }) => {
-                        const selected = screenUnderstandingMode === value;
-                        return (
-                            <div
-                                key={value}
-                                onClick={() => {
-                                    setScreenUnderstandingMode(value);
-                                    window.electronAPI?.setScreenUnderstandingMode?.(value);
-                                }}
-                                className={`px-3 py-2 rounded-lg border cursor-pointer transition-colors ${selected ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-border-subtle hover:border-border-muted bg-bg-elevated/50'}`}
-                                role="radio"
-                                aria-checked={selected}
-                            >
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex flex-col">
-                                        <span className={`text-xs font-semibold ${selected ? 'text-emerald-300' : 'text-text-primary'}`}>{label}</span>
-                                        <span className="text-[11px] text-text-secondary leading-snug mt-0.5">{description}</span>
-                                    </div>
-                                    <div className={`w-4 h-4 rounded-full border-2 shrink-0 ${selected ? 'border-emerald-400 bg-emerald-400' : 'border-border-muted'}`} />
-                                </div>
-                            </div>
-                        );
-                    })}
-                    <div className="flex items-center justify-between pt-2 mt-1 border-t border-border-subtle">
-                        <div className="flex flex-col">
-                            <span className="text-xs text-text-primary font-semibold">Technical interview direct vision</span>
-                            <span className="text-[11px] text-text-secondary leading-snug mt-0.5">Use the highest-resolution image profile so code text stays sharp in interview mode.</span>
-                        </div>
-                        <div
-                            onClick={() => {
-                                const next = !technicalInterviewVisionFirst;
-                                setTechnicalInterviewVisionFirst(next);
-                                const api: any = window.electronAPI;
-                                if (api?.setTechnicalInterviewVisionFirst) {
-                                    api.setTechnicalInterviewVisionFirst(next);
-                                } else {
-                                    window.electronAPI?.setTechnicalInterviewDirectVision?.(next);
-                                }
-                            }}
-                            className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer shrink-0 ${technicalInterviewVisionFirst ? 'bg-emerald-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                            role="switch"
-                            aria-checked={technicalInterviewVisionFirst}
-                        >
-                            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${technicalInterviewVisionFirst ? 'translate-x-4' : 'translate-x-0'}`} />
-                        </div>
-                    </div>
-                </div>
+            <div className="space-y-2">
+                <h3 className="text-sm font-bold text-text-primary">Screen input</h3>
+                <p className="text-xs text-text-secondary">Original screenshots go directly to the selected model, with only your explicit backup eligible for retry. Enable Screenshots below to share them; no separate generative screen analysis is run.</p>
             </div>
 
             {/* Cloud Provider Data Scopes — fail-closed cloud share controls */}

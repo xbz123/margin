@@ -559,7 +559,7 @@ export class SessionTracker {
             // Fire-and-forget LLM summarization (non-blocking)
             if (this.recapLLM) {
                 try {
-                    const epochSummary = await this.recapLLM.generate(
+                    const epochSummary = await this.recapLLM.generateCompression(
                         `Summarize this conversation segment into 3-5 concise bullet points preserving key topics, decisions, and questions:\n\n${summaryInput}`
                     );
                     if (epochSummary && epochSummary.trim().length > 0) {

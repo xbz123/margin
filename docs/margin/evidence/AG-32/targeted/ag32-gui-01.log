@@ -1,0 +1,179 @@
+✖ a typed question streams the mock answer into the overlay (2015.544375ms)
+✖ after cancel, and after a new stream has started, events of the old stream are not shown (0.385458ms)
+✖ while an answer streams, a typed question is held back and a new stream request supersedes it (0.044041ms)
+✖ a screenshot question sends the fixture image to the model (0.044375ms)
+✖ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (0.034958ms)
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (0.0275ms)
+✖ a provider error is shown and the next question still works (0.039666ms)
+✖ after a chat request fails before streaming, the next answer is shown once and kept (0.027459ms)
+✖ a complete compatible target saved through preload drives a real typed UI question (0.03675ms)
+✖ <repo>/tests/margin/answer-regression.test.mjs (0.720084ms)
+ℹ Error: Test hook "before" at tests/margin/answer-regression.test.mjs:107:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/answer-regression.test.mjs:107:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ Error: Test hook "before" at tests/margin/answer-regression.test.mjs:107:6 generated asynchronous activity after the test ended. This activity created the error "Error: Process failed to launch!" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+ℹ tests 10
+ℹ suites 0
+ℹ pass 0
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2468.256792
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:145:1
+✖ a typed question streams the mock answer into the overlay (2015.544375ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:187:1
+✖ after cancel, and after a new stream has started, events of the old stream are not shown (0.385458ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:247:1
+✖ while an answer streams, a typed question is held back and a new stream request supersedes it (0.044041ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:271:1
+✖ a screenshot question sends the fixture image to the model (0.044375ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:285:1
+✖ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (0.034958ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:301:1
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (0.0275ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:322:1
+✖ a provider error is shown and the next question still works (0.039666ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:353:1
+✖ after a chat request fails before streaming, the next answer is shown once and kept (0.027459ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:382:1
+✖ a complete compatible target saved through preload drives a real typed UI question (0.03675ms)
+  electron.launch: Process failed to launch!
+  Call log:
+    - <launching> <repo>/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --inspect=0 --remote-debugging-port=0 -r <repo>/scripts/margin/isolation/guard.cjs -r <repo>/tests/margin/record-main-errors.cjs <repo> --use-mock-keychain --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --disable-background-networking --no-proxy-server
+    - <launched> pid=94100
+    - [pid=94100] <kill>
+    - [pid=94100] <will force kill>
+    - [pid=94100] exception while trying to kill process: Error: kill EPERM
+    - [pid=94100] <process did exit: exitCode=null, signal=SIGABRT>
+    - [pid=94100] starting temporary directories cleanup
+    - [pid=94100] finished temporary directories cleanup
+  
+      at async launchApp (<repo>/tests/margin/launch-app.mjs:47:15)
+      at async TestContext.<anonymous> (<repo>/tests/margin/answer-regression.test.mjs:113:29)
+
+test at tests/margin/answer-regression.test.mjs:131:6
+✖ <repo>/tests/margin/answer-regression.test.mjs (0.720084ms)
+  Error: isolation log missing: <temporary-path> (the guard did not load or could not write)
+      at readGuardLog (file://<repo>/scripts/margin/isolation/env.mjs:66:42)
+      at readBlocked (file://<repo>/scripts/margin/isolation/env.mjs:77:10)
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:134:29)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7)
+      at async Test.runHook (node:internal/test_runner/test:1117:9)
+      at async after (node:internal/test_runner/test:1159:9)
+      at async Test.run (node:internal/test_runner/test:1227:7)

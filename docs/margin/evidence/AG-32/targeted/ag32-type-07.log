@@ -1,0 +1,4 @@
+
+> natively@2.7.0 typecheck:electron
+> tsc -p electron/tsconfig.json --noEmit
+

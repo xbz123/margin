@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import os from 'node:os';
+import { inspect } from 'node:util';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../../..');
@@ -33,13 +36,43 @@ test('IntelligenceEngine logs interim transcript metadata without text snippets'
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}substring\(/);
 });
 
-test('LLMHelper logs request metadata without prompt or response snippets', () => {
+test('LLMHelper actual chat and stream paths never log prompt, context, system or response text', async () => {
   const source = read('electron/LLMHelper.ts');
-
-  assert.match(source, /chatWithGemini called`, \{ messageLength: message\.length/);
-  assert.match(source, /streamChatWithGemini called`, \{ messageLength: message\.length/);
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}message\.substring\(/);
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}JSON\.stringify\(data\)\.substring\(/);
+
+  const require = createRequire(import.meta.url);
+  const electronId = require.resolve('electron');
+  const previous = require.cache[electronId];
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => os.tmpdir(), isPackaged: true, getVersion: () => '0.0.0' } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require(path.join(root, 'dist-electron/electron/LLMHelper.js'))); }
+  finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
+  const sentinels = ['PRIVATE_PROMPT_SENTINEL', 'PRIVATE_CONTEXT_SENTINEL', 'PRIVATE_SYSTEM_SENTINEL', 'PRIVATE_RESPONSE_SENTINEL'];
+  let sends = 0;
+  const helper = Object.assign(Object.create(LLMHelper.prototype), {
+    selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'synthetic-model' },
+    currentModelId: 'synthetic-model', personaPrompt: '', customNotes: '', aiResponseLanguage: 'English',
+    codexCliConfig: { enabled: false }, getProviderScopePolicy: () => ({}),
+    openaiClient: { chat: { completions: { create: async body => {
+      sends++;
+      return body.stream ? (async function* () {
+        yield { choices: [{ delta: { content: sentinels[3] } }] };
+        yield { choices: [{ delta: {}, finish_reason: 'stop' }] };
+      })() : { choices: [{ message: { content: sentinels[3] }, finish_reason: 'stop' }] };
+    } } } },
+  });
+  const entries = [];
+  const originalConsole = Object.fromEntries(['log', 'warn', 'error'].map(level => [level, console[level]]));
+  try {
+    for (const level of Object.keys(originalConsole)) console[level] = (...args) => entries.push(args.map(arg => inspect(arg)).join(' '));
+    assert.equal(await helper.chatWithGemini(sentinels[0], undefined, sentinels[1]), sentinels[3]);
+    let streamed = '';
+    for await (const chunk of helper.streamChat(sentinels[0], undefined, sentinels[1], sentinels[2], true, true)) streamed += chunk;
+    assert.equal(streamed, sentinels[3]);
+  } finally { Object.assign(console, originalConsole); }
+  assert.equal(sends, 2, 'both actual public paths reached the synthetic transport');
+  for (const sentinel of sentinels) assert.ok(!entries.join('\n').includes(sentinel), `${sentinel} must not appear in logs`);
 });
 
 test('STT providers log transcript metadata without transcript text', () => {

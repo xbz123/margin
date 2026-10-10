@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 
 function makeHelper() {
   return {
+    runGeneration: factory => factory(), runGenerationStream: factory => factory(), getCurrentGenerationTask: () => undefined,
     setNegotiationCoachingHandler() {},
   };
 }

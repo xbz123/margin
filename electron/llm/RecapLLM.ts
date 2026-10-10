@@ -1,5 +1,4 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_RECAP_PROMPT } from "./prompts";
 import { TINY_RECAP_PROMPT } from "./tinyPrompts";
 
@@ -13,35 +12,39 @@ export class RecapLLM {
     /**
      * Generate a neutral conversation summary
      */
-    async generate(context: string): Promise<string> {
+    generate(...args: Parameters<RecapLLM['generateInner']>): Promise<string> {
+        const factory = () => this.generateInner(...args);
+        return this.llmHelper.runGeneration(factory);
+    }
+
+    generateCompression(context: string): Promise<string> {
+        const task = this.llmHelper.beginGenerationTask('background');
+        return this.llmHelper.runGeneration(() => this.generateInner(context, 'compression'), 'background', undefined, task);
+    }
+
+    async generateInner(context: string, purpose: 'answer' | 'compression' = 'answer'): Promise<string> {
         if (!context.trim()) return "";
-        try {
-            const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_RECAP_PROMPT : UNIVERSAL_RECAP_PROMPT;
-            const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
-            const stream = this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
-            let fullResponse = "";
-            for await (const chunk of stream) fullResponse += chunk;
-            return this.clampRecapResponse(fullResponse);
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[RecapLLM] Generation failed:", error);
-            return "";
-        }
+        const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_RECAP_PROMPT : UNIVERSAL_RECAP_PROMPT;
+        const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
+        const stream = this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride, false, false, [], undefined, true, purpose);
+        let fullResponse = "";
+        for await (const chunk of stream) fullResponse += chunk;
+        return this.clampRecapResponse(fullResponse);
     }
 
     /**
      * Generate a neutral conversation summary (Streamed)
      */
-    async *generateStream(context: string): AsyncGenerator<string> {
+    generateStream(...args: Parameters<RecapLLM['generateStreamInner']>): AsyncGenerator<string> {
+        const factory = () => this.generateStreamInner(...args);
+        return this.llmHelper.runGenerationStream(factory);
+    }
+
+    async *generateStreamInner(context: string): AsyncGenerator<string> {
         if (!context.trim()) return;
-        try {
-            const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_RECAP_PROMPT : UNIVERSAL_RECAP_PROMPT;
-            const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
-            yield* this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
-        } catch (error) {
-            rethrowTerminalGenerationError(error);
-            console.error("[RecapLLM] Streaming generation failed:", error);
-        }
+        const promptOverride = this.llmHelper.getPromptTier() === 'tiny' ? TINY_RECAP_PROMPT : UNIVERSAL_RECAP_PROMPT;
+        const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
+        yield* this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
     }
 
     private clampRecapResponse(text: string): string {

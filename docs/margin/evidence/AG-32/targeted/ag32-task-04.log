@@ -1,0 +1,22 @@
+✔ backup before same-model retry (2.631583ms)
+✔ transient without backup (0.194875ms)
+✔ unavailable without backup (0.147459ms)
+✔ auth takes precedence over model code (0.118041ms)
+✔ ordinary 404 is terminal (0.142292ms)
+✔ Retry-After exceeds budget (0.11075ms)
+✔ empty never retries (0.150417ms)
+✔ refused never retries (0.086916ms)
+✔ incomplete never retries (0.094791ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.548375ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.1845ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.237042ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (0.6395ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.059334ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117.29225

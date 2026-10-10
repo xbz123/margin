@@ -48,7 +48,8 @@ export class RateLimiter {
      * If the bucket is empty, waits up to MAX_QUEUE_DEPTH slots.
      * Throws RateLimitQueueFullError if the queue is full — callers should catch and fail-fast.
      */
-    public async acquire(): Promise<void> {
+    public async acquire(signal?: AbortSignal): Promise<void> {
+        signal?.throwIfAborted();
         this.refill();
 
         if (this.tokens >= 1) {
@@ -64,7 +65,15 @@ export class RateLimiter {
 
         // Wait for a token to become available
         return new Promise<void>((resolve, reject) => {
-            this.waitQueue.push({ resolve, reject });
+            const cleanup = () => signal?.removeEventListener('abort', abort);
+            const waiter = { resolve: () => { cleanup(); resolve(); }, reject: (error: Error) => { cleanup(); reject(error); } };
+            const abort = () => {
+                const index = this.waitQueue.indexOf(waiter);
+                if (index >= 0) this.waitQueue.splice(index, 1);
+                cleanup(); reject(signal?.reason);
+            };
+            this.waitQueue.push(waiter);
+            signal?.addEventListener('abort', abort, { once: true });
         });
     }
 

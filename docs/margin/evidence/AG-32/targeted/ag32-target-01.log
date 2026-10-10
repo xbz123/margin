@@ -1,0 +1,106 @@
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:84640) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.25875ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.097667ms)
+✔ single response preserves incomplete (no finish) (0.085042ms)
+✔ single response preserves empty (STOP) (0.080666ms)
+✔ single response preserves refused (SAFETY) (0.104542ms)
+✔ single response preserves refused (no finish) (0.068875ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (0.918ms)
+✔ final scope refusal retains the original object and never sends (0.367125ms)
+✔ cancel before start and late response cannot produce deltas (0.362042ms)
+✖ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (3.6625ms)
+✔ terminal errors cross separately bundled vision fallback without health penalty or swallowed partial (0.567209ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (97.569541ms)
+✖ Flash empty then Pro error/empty rejects; empty then valid backup still works (1.538625ms)
+✖ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.697375ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (3.0555ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (1.327625ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (46.857542ms)
+✔ backup before same-model retry (2.431208ms)
+✔ transient without backup (0.184375ms)
+✔ unavailable without backup (0.142084ms)
+✔ auth takes precedence over model code (0.10825ms)
+✔ ordinary 404 is terminal (0.144334ms)
+✔ Retry-After exceeds budget (0.103708ms)
+✔ empty never retries (0.14025ms)
+✔ refused never retries (0.097417ms)
+✔ incomplete never retries (0.09375ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.51975ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.178459ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.233667ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (0.202375ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.057542ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 28
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2553.665833
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generateOnce.test.mjs:103:1
+✖ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (3.6625ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: cached content expired after partial
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:115:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: cached content expired after partial
+        at file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:110:39
+        at AsyncGenerator.next (<anonymous>)
+        at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91934:48)
+        at generateGemini.next (<anonymous>)
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91973:12)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92995:16
+        at AsyncGenerator.next (<anonymous>)
+        at generateTask (<repo>/dist-electron/electron/LLMHelper.js:92796:59)
+        at generateTask.next (<anonymous>),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/llm/__tests__/generateOnce.test.mjs:171:1
+✖ Flash empty then Pro error/empty rejects; empty then valid backup still works (1.538625ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /Both Gemini models failed/. Input:
+  
+  "TypeError: Cannot read properties of undefined (reading 'generateContentStream')"
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:182:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: Cannot read properties of undefined (reading 'generateContentStream')
+        at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91924:66)
+        at generateGemini.next (<anonymous>)
+        at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91973:12)
+        at generateOnce.next (<anonymous>)
+        at <repo>/dist-electron/electron/LLMHelper.js:92995:16,
+    expected: /Both Gemini models failed/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/llm/__tests__/generateOnce.test.mjs:187:1
+✖ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.697375ms)
+  Error: cached content expired
+      at Object.generateContent (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:190:96)
+      at generateGemini (<repo>/dist-electron/electron/LLMHelper.js:91924:123)
+      at generateGemini.next (<anonymous>)
+      at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91973:12)
+      at generateOnce.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92995:16
