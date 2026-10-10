@@ -85,9 +85,11 @@ PATENTS, debian/copyright, the libfvad AUTHORS and its five distinct original fi
 headers are included. Generic code of one crate can be compiled into another's
 objects, so notices are kept for every crate compiled for macOS arm64, not only
 those the map lists. The standard library is built by rustc 1.98.1 (pinned in
-`native-module/rust-toolchain.toml`); the Rust COPYRIGHT and MIT terms, and the
-MIT terms of hashbrown, gimli, addr2line, object and rustc-demangle at the versions
-its `library/Cargo.lock` records, are included. Squirrel.Mac, ReactiveObjC and
+`native-module/rust-toolchain.toml`); the Rust COPYRIGHT and MIT terms, the MIT
+terms of `library/stdarch` (compiled into core and std), and the MIT terms of
+hashbrown, gimli, addr2line, object and rustc-demangle at the versions its
+`library/Cargo.lock` records, are included. compiler_builtins has no live code in
+the map, so its terms are not added for the native module. Squirrel.Mac, ReactiveObjC and
 Mantle, which every Electron macOS app ships but `LICENSES.chromium.html` does not
 list, are included at the commits Electron 43.1.0 pins.
 

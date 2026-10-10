@@ -1479,7 +1479,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 原第 1 条（包内 libvips 无法证明逐字节对应的源码）已由 S22 解决：现在分发的是同次运行从记录源码重编的版本。
 
-**下一步**：阶段 2 出口已签收；阶段 3 由 Codex 开始，按 S27 精简后的测试和验收执行。待议事项：原生模块的 Rust 标准库许可是否补 stdarch 的许可文件（见"libvips Rust 工具链修复"末条）。S8–S27 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；阶段 3 由 Codex 开始，按 S27 精简后的测试和验收执行。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内的许可正文在阶段 3 出口的完整 CI 中随打包检查一并确认。S8–S27 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -1834,7 +1834,7 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - **许可**：`notice-inputs.py --rust-std` 按 `a30aa906` 生成 31 条标准库许可条目，写入 `notices.json` 的 `rustStd`：rust-lang/rust 的 COPYRIGHT、MIT、Apache 正文，compiler-builtins 和 stdarch 的许可，以及该提交 `library/Cargo.lock` 中 std 在 macOS arm64 上的全部 crates.io 依赖（addr2line、gimli、miniz_oxide、adler2、cfg-if、hashbrown、foldhash、libc、memchr、object、rustc-demangle）的许可文件。每份按脚本里记录的 sha256 或 Cargo.lock 校验和核对。libvips 没有链接映射，所以全部登记。许可清单重新生成：699 候选、515 份正文（+4）、0 未解决；`collect-licenses.mjs` 读取 `rustStd`。
 - **测试**：`packagingTools` 的 sharp 冒烟判定测试改为从已存报告里读取 UUID（此前写死 `57E6BFB0…`，`b0090ca8` 换成 10-10 那次的报告后会失败）；libvips 许可条目测试包含 `rustStd`。
 - **对应源码**：与原生模块（S19-C）相同，Rust 标准库源码不在源码包里，只记录准确的提交（`a30aa906`）。
-- **待议**：原生模块的标准库许可只含 rust 的 COPYRIGHT 和 MIT 及 5 个 crate；compiler_builtins 在原生链接映射中没有实际代码，但 stdarch 的代码属于 core，它单独的许可文件是否也要补，留待决定。
+- **原待议**：原生模块的标准库许可只含 rust 的 COPYRIGHT 和 MIT 及 5 个 crate；compiler_builtins 在原生链接映射中没有实际代码，但 stdarch 的代码属于 core，它单独的许可文件是否也要补，留待决定。已按用户决定补上（2026-10-10，"stdarch 许可补上，按你的建议处理"）：`license-sources.json` 增加 `rust-sysroot:stdarch`，即 rust-lang/rust 在 1.98.1（`48a229ce`）的 `library/stdarch/LICENSE-MIT`，按 git blob 和 sha256 核对（正文与 `a30aa906` 的相同，所以许可正文数不变）；链接映射中 core 有 64,160 字节实际代码。compiler_builtins 没有实际代码，不补。许可清单重新生成：699 候选、515 份正文、0 未解决；`licenses/README.md` 同步。
 
 ### CI 38052543358 与验收精简（Claude，2026-10-10）
 

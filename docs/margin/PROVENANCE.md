@@ -359,6 +359,13 @@ imported. Generic one-line idioms the provenance check matched are registered in
   sha256 in the script or the checksum in that commit's `library/Cargo.lock`. They
   are third-party license texts kept as notices, not code.
 
+### Native module stdarch notice (Claude, 2026-10-10)
+
+- `rust-sysroot:stdarch` in `scripts/margin/license-sources.json`: the verbatim
+  `library/stdarch/LICENSE-MIT` of rust-lang/rust at tag 1.98.1 (`48a229ce`),
+  checked by git blob and sha256; a third-party license text kept as a notice,
+  not code.
+
 ### Upstream overlap found by CI 38052543358 (Claude, 2026-10-10)
 
 - `const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');`

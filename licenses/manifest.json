@@ -3,7 +3,7 @@
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
   "packageLockSHA256": "f76e33fa4cc923e66b68fdc47f02084f2f8cee3c3a27410a31019a5d2de7d0a9",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
-  "sourceConfigSHA256": "8e2c240e27a10ecbda3b78cae9c821dc76440bd758eac237c3cc46210ffc14d9",
+  "sourceConfigSHA256": "b276c1cb89b44804185d98fcb6a474a1580113e0566b7190d3c04dd2d1a1d928",
   "libvipsNoticesSHA256": "10e6de05ba78bef7b86732958dc0e6198f05e51985e153d7fe879db6a996534d",
   "electronVersion": "43.1.0",
   "components": [
@@ -16652,6 +16652,23 @@
         "url": "https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/LICENSE-MIT",
         "gitBlob": "a2070c4be7acd5316f8d0357ca3c12419a2f3c62",
         "origin": "original LICENSE-MIT of rust-lang/rust at tag 1.98.1; std, core, alloc and panic_unwind, statically linked into the native module (natively-audio .node) as part of the Rust standard library built with rustc 1.98.1 (native-module/rust-toolchain.toml); the CI linker map shows live code from it"
+      }
+    },
+    {
+      "id": "rust-sysroot:stdarch",
+      "version": "1.98.1",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/library/stdarch/LICENSE-MIT",
+      "gitBlob": "52d82415d8b60cd3c5858c8939fa0d8fae1aeca0",
+      "sha256": "29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21",
+      "role": "original LICENSE-MIT of library/stdarch in rust-lang/rust at tag 1.98.1 (48a229cea); stdarch (core::arch and std_detect) is compiled into core and std, statically linked into the native module (natively-audio .node) as part of the Rust standard library built with rustc 1.98.1 (native-module/rust-toolchain.toml); the CI linker map shows live code from core and std",
+      "closesMissing": false,
+      "text": {
+        "file": "texts/29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21.txt",
+        "sha256": "29662666b44dff84977b46e05642cdef910bc3a93a17b5fd86e632bafa59cf21",
+        "url": "https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/library/stdarch/LICENSE-MIT",
+        "gitBlob": "52d82415d8b60cd3c5858c8939fa0d8fae1aeca0",
+        "origin": "original LICENSE-MIT of library/stdarch in rust-lang/rust at tag 1.98.1 (48a229cea); stdarch (core::arch and std_detect) is compiled into core and std, statically linked into the native module (natively-audio .node) as part of the Rust standard library built with rustc 1.98.1 (native-module/rust-toolchain.toml); the CI linker map shows live code from core and std"
       }
     },
     {
