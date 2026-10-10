@@ -1,8 +1,25 @@
 # Stage 3 review fixes — W2
 
-Starting commit: `832e5777`. R3-1, R3-2 and R3-5 are implemented and full local
-gates pass. The code commit's Windows gate and Claude closure remain pending;
-this is not phase-exit acceptance.
+Starting commit: `832e5777`. Code commit: `3e779466`.
+R3-1, R3-2 and R3-5 are implemented; full local gates and the code commit's
+Windows compile gate pass. Claude closure remains pending; this is not
+phase-exit acceptance.
+
+## Windows compile result
+
+Public-repository run [38089471774](https://github.com/xbz123/margin/actions/runs/38089471774)
+was triggered by the push of `3e779466bb668951d9c9b6fe9fff79181bed61dc` and
+completed successfully. `windows-compile/run.json` records the exact commit,
+event and every step result; `job.log` retains the job output with only the
+runner workspace path normalized. Dependency installation, both typechecks,
+Electron/renderer builds and the MSVC native build all pass. The log shows
+`Compiling natively-audio`, the completed release profile and the Windows module
+SHA-256 `6c243aef17ff49e3db09b8a7f98cf787c74b79f0df32c4fef8f0129d13f126c0`.
+
+`artifacts.json` records the run's logs/BUILD-INFO artifact metadata. The native
+module was not downloaded or installed locally, and no Windows runtime, capture
+or packaging acceptance is implied. This is S31's compile gate, not W3's macOS
+package-apps exit run.
 
 ## Local result
 
@@ -29,8 +46,10 @@ behavior. Legacy privacy tests retain the screenshot ban and other settings
 through successful migration, write failure, rename failure and restart.
 
 `targeted/test-map.md` maps the six removed dead-method test instances to three
-checks on the retained `generateContent` entry. Their refusal, zero-send,
-positive-send and no-backup assertions remain. The new checks plus this
+checks on the retained internal `generateContent` helper. Their refusal,
+zero-send, positive-send and no-backup assertions remain; the map also names
+existing public chat/stream checks of the same properties. It does not claim a
+live UI caller for the legacy `testConnection` wrapper. The new checks plus this
 deduplication explain the unit count change from 972 to 981; no skip was added.
 Published evidence mechanically normalizes machine-specific paths only. Raw
 output remains archived locally; outcomes, errors and counts are preserved.

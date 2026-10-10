@@ -8,7 +8,7 @@ No production callers existed for generateWithPro/generateWithFlash.
 | ScopeLocalFallback.test.mjs: fixed Pro / fixed Flash: scope refusal stays terminal with an explicit backup | selected content generation: scope refusal stays terminal with an explicit backup | Same scope-error object propagates; explicit backup is not sent; exactly one initial send. |
 | ScopeLocalFallback.test.mjs: generateWithPro / generateWithFlash refuses transcript denial at the actual send boundary | generateContent refuses transcript denial at the actual send boundary | Allowed control sends once; denied transcript throws ProviderScopeError and sends zero times. |
 
-generateContent remains called by the production testConnection entry. Existing public selected chat, structured generation and streaming tests remain.
+`generateContent` remains an internal helper called by `testConnection`; no production caller of that outer method was found. The three mapped checks exercise its shared generation pipeline, not a demonstrated live UI route. The same safety properties are also exercised by retained live-route tests: `selected gemini nonstream: final scope recheck after limiter wait`, `non-streaming chat: scope refusal stays terminal with an explicit backup`, and `streamChat selected model refuses transcript denial at the actual send boundary`. Those checks use the public chat/stream entries and retain their positive and negative assertions.
 
 R3-5 legacy settings protection adds private/private_vision with successful save, write failure, and rename failure. It checks screenshots=false, other scopes/settings retained, old disk decision retained on failed save, precise tmp-write stage, restart denial, and retired field removal after successful save.
 

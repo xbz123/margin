@@ -1,0 +1,492 @@
+windows-compile	Set up job	﻿2026-10-10T21:55:35.4004383Z Current runner version: '2.337.0'
+windows-compile	Set up job	2026-10-10T21:55:35.4069832Z ##[group]Runner Image Provisioner
+windows-compile	Set up job	2026-10-10T21:55:35.4070713Z Hosted Compute Agent
+windows-compile	Set up job	2026-10-10T21:55:35.4071300Z Version: 20260901.588
+windows-compile	Set up job	2026-10-10T21:55:35.4071926Z Commit: f88ec8081b781fac6c440065ac7ff9e710ce3d0b
+windows-compile	Set up job	2026-10-10T21:55:35.4072622Z Build Date: 2026-09-01T19:56:44Z
+windows-compile	Set up job	2026-10-10T21:55:35.4073291Z Worker ID: {d2fb1890-9a36-4cc8-b6ec-bf0d4915b71f}
+windows-compile	Set up job	2026-10-10T21:55:35.4074468Z Azure Region: northcentralus
+windows-compile	Set up job	2026-10-10T21:55:35.4075068Z ##[endgroup]
+windows-compile	Set up job	2026-10-10T21:55:35.4076532Z ##[group]Operating System
+windows-compile	Set up job	2026-10-10T21:55:35.4077198Z Microsoft Windows Server 2025
+windows-compile	Set up job	2026-10-10T21:55:35.4077852Z 10.0.26100
+windows-compile	Set up job	2026-10-10T21:55:35.4078342Z Datacenter
+windows-compile	Set up job	2026-10-10T21:55:35.4078828Z ##[endgroup]
+windows-compile	Set up job	2026-10-10T21:55:35.4079359Z ##[group]Runner Image
+windows-compile	Set up job	2026-10-10T21:55:35.4079921Z Image: windows-2025-vs2026
+windows-compile	Set up job	2026-10-10T21:55:35.4080491Z Version: 20260925.250.1
+windows-compile	Set up job	2026-10-10T21:55:35.4081607Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20260925.250/images/windows/Windows2025-VS2026-Readme.md
+windows-compile	Set up job	2026-10-10T21:55:35.4083587Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20260925.250
+windows-compile	Set up job	2026-10-10T21:55:35.4084549Z ##[endgroup]
+windows-compile	Set up job	2026-10-10T21:55:35.4085616Z ##[group]GITHUB_TOKEN Permissions
+windows-compile	Set up job	2026-10-10T21:55:35.4087407Z Contents: read
+windows-compile	Set up job	2026-10-10T21:55:35.4088028Z Metadata: read
+windows-compile	Set up job	2026-10-10T21:55:35.4088587Z ##[endgroup]
+windows-compile	Set up job	2026-10-10T21:55:35.4090674Z Secret source: Actions
+windows-compile	Set up job	2026-10-10T21:55:35.4091677Z Cache mode: write
+windows-compile	Set up job	2026-10-10T21:55:35.4092409Z Prepare workflow directory
+windows-compile	Set up job	2026-10-10T21:55:35.4668734Z Prepare all required actions
+windows-compile	Set up job	2026-10-10T21:55:35.4737213Z Getting action download info
+windows-compile	Set up job	2026-10-10T21:55:35.7493311Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+windows-compile	Set up job	2026-10-10T21:55:35.8797677Z Download action repository 'actions/setup-node@v7' (SHA:949feb2413d6458794dcd2491c4babbbce0c15c1)
+windows-compile	Set up job	2026-10-10T21:55:36.2955323Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+windows-compile	Set up job	2026-10-10T21:55:36.8354705Z Complete job name: windows-compile
+windows-compile	Run actions/checkout@v7	﻿2026-10-10T21:55:36.9906202Z ##[group]Run actions/checkout@v7
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9907605Z with:
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9908221Z   repository: xbz123/margin
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9914528Z   token: ***
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9915086Z   ssh-strict: true
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9915649Z   ssh-user: git
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9916223Z   persist-credentials: true
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9916856Z   clean: true
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9917423Z   sparse-checkout-cone-mode: true
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9918104Z   fetch-depth: 1
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9918666Z   fetch-tags: false
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9919233Z   show-progress: true
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9919818Z   lfs: false
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9920357Z   submodules: false
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9920967Z   set-safe-directory: true
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9921886Z   allow-unsafe-pr-checkout: false
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:36.9922931Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.1566522Z Syncing repository: xbz123/margin
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.1569501Z ##[group]Getting Git version info
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.1570700Z Working directory is '<runner-workspace>'
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.2571214Z [command]"C:\Program Files\Git\bin\git.exe" version
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4251023Z git version 2.55.0.windows.5
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4341280Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4406772Z Temporarily overriding HOME='D:\a\_temp\167d9b92-06af-4b0f-8106-5d293f7b9501' before making global git config changes
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4482646Z Adding repository directory to the temporary git global config as a safe directory
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4486019Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory <runner-workspace>
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4775855Z Deleting the contents of '<runner-workspace>'
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4781679Z ##[group]Determining repository object format
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4784610Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4786194Z ##[group]Initializing the repository
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.4799868Z [command]"C:\Program Files\Git\bin\git.exe" init <runner-workspace>
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.5301275Z Initialized empty Git repository in <runner-workspace>/.git/
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.5356869Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/xbz123/margin
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.5706230Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.5707608Z ##[group]Disabling automatic garbage collection
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.5716405Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.6075937Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.6077290Z ##[group]Setting up auth
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.6077917Z Removing SSH command configuration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.6091046Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:37.6416963Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:38.8652716Z Removing HTTP extra header
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:38.8663361Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:38.8990340Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:39.5161782Z Removing includeIf entries pointing to credentials config files
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:39.5173513Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:39.5499405Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.1680114Z [command]"C:\Program Files\Git\bin\git.exe" config --file D:\a\_temp\git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.2041419Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:<runner-workspace>/.git.path D:\a\_temp\git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.2371104Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:<runner-workspace>/.git/worktrees/*.path D:\a\_temp\git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.2696299Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.3048109Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.3405984Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.3406666Z ##[group]Fetching the repository
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:40.3408021Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +3e779466bb668951d9c9b6fe9fff79181bed61dc:refs/remotes/origin/codex/margin-agpl-migration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4197823Z From https://github.com/xbz123/margin
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4199372Z  * [new ref]         3e779466bb668951d9c9b6fe9fff79181bed61dc -> origin/codex/margin-agpl-migration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4252749Z [command]"C:\Program Files\Git\bin\git.exe" branch --list --remote origin/codex/margin-agpl-migration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4548115Z   origin/codex/margin-agpl-migration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4615440Z [command]"C:\Program Files\Git\bin\git.exe" rev-parse refs/remotes/origin/codex/margin-agpl-migration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4892248Z 3e779466bb668951d9c9b6fe9fff79181bed61dc
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4932570Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4933189Z ##[group]Determining the checkout info
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4935707Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.4945991Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.5323508Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.5634247Z ##[group]Checking out the ref
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:43.5644822Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force -B codex/margin-agpl-migration refs/remotes/origin/codex/margin-agpl-migration
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6033188Z Updating files:  59% (2645/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6185727Z Updating files:  60% (2654/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6308988Z Updating files:  61% (2698/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6427101Z Updating files:  62% (2742/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6550846Z Updating files:  63% (2786/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6672140Z Updating files:  64% (2831/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6789502Z Updating files:  65% (2875/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.6934883Z Updating files:  66% (2919/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7042056Z Updating files:  67% (2963/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7169421Z Updating files:  68% (3007/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7277531Z Updating files:  69% (3052/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7398985Z Updating files:  70% (3096/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7537093Z Updating files:  71% (3140/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7658679Z Updating files:  72% (3184/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7798534Z Updating files:  73% (3229/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.7932414Z Updating files:  74% (3273/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8161403Z Updating files:  75% (3317/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8386797Z Updating files:  76% (3361/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8526293Z Updating files:  77% (3405/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8631726Z Updating files:  78% (3450/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8740290Z Updating files:  79% (3494/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8848444Z Updating files:  80% (3538/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.8957633Z Updating files:  81% (3582/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9058438Z Updating files:  82% (3627/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9171910Z Updating files:  83% (3671/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9304614Z Updating files:  84% (3715/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9419449Z Updating files:  85% (3759/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9533113Z Updating files:  86% (3803/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9654955Z Updating files:  87% (3848/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9811528Z Updating files:  88% (3892/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:44.9943758Z Updating files:  89% (3936/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.0067516Z Updating files:  90% (3980/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.0181542Z Updating files:  91% (4025/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.0297260Z Updating files:  92% (4069/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.0420871Z Updating files:  93% (4113/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.0705649Z Updating files:  94% (4157/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.2636014Z Updating files:  95% (4201/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.3641066Z Updating files:  96% (4246/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.3944470Z Updating files:  97% (4290/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.4148796Z Updating files:  98% (4334/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.4263631Z Updating files:  99% (4378/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.4264168Z Updating files: 100% (4422/4422)
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.4264587Z Updating files: 100% (4422/4422), done.
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.4845878Z Switched to a new branch 'codex/margin-agpl-migration'
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.4889462Z branch 'codex/margin-agpl-migration' set up to track 'origin/codex/margin-agpl-migration'.
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.5338260Z ##[endgroup]
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.5811049Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+windows-compile	Run actions/checkout@v7	2026-10-10T21:55:45.6121539Z 3e779466bb668951d9c9b6fe9fff79181bed61dc
+windows-compile	Run actions/setup-node@v7	﻿2026-10-10T21:55:45.6820865Z ##[group]Run actions/setup-node@v7
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.6821212Z with:
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.6821399Z   node-version: 26.0.0
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.6821619Z   check-latest: false
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.6824393Z   token: ***
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.6824623Z   package-manager-cache: true
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.6824870Z ##[endgroup]
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:45.8477439Z Attempting to download 26.0.0...
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:46.5163833Z Acquiring 26.0.0 - x64 from https://github.com/actions/node-versions/releases/download/26.0.0-25413736946/node-26.0.0-win32-x64.7z
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:46.9648987Z Extracting ...
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:49.3283898Z Adding to the cache ...
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:52.7745403Z ##[group]Environment details
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:54.2781693Z node: v26.0.0
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:54.2782423Z npm: 11.12.1
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:54.2782913Z yarn: 1.22.22
+windows-compile	Run actions/setup-node@v7	2026-10-10T21:55:54.2783728Z ##[endgroup]
+windows-compile	Toolchain versions	﻿2026-10-10T21:55:54.3144230Z ##[group]Run node -v; npm -v
+windows-compile	Toolchain versions	2026-10-10T21:55:54.3144775Z [36;1mnode -v; npm -v[0m
+windows-compile	Toolchain versions	2026-10-10T21:55:54.3145446Z [36;1m# Same pinned Rust release as macOS; rustup adds the Windows host target itself.[0m
+windows-compile	Toolchain versions	2026-10-10T21:55:54.3146383Z [36;1mcd native-module && rustup toolchain install && rustc -V && cargo -V[0m
+windows-compile	Toolchain versions	2026-10-10T21:55:54.3171721Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-compile	Toolchain versions	2026-10-10T21:55:54.3172135Z ##[endgroup]
+windows-compile	Toolchain versions	2026-10-10T21:55:54.4132431Z v26.0.0
+windows-compile	Toolchain versions	2026-10-10T21:55:54.9665025Z 11.12.1
+windows-compile	Toolchain versions	2026-10-10T21:55:55.6531240Z info: syncing channel updates for 1.98.1-x86_64-pc-windows-msvc
+windows-compile	Toolchain versions	2026-10-10T21:55:56.2480835Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+windows-compile	Toolchain versions	2026-10-10T21:55:56.2536723Z info: downloading 4 components
+windows-compile	Toolchain versions	2026-10-10T21:56:06.8161193Z info: the active toolchain `1.98.1-x86_64-pc-windows-msvc` has been installed
+windows-compile	Toolchain versions	2026-10-10T21:56:06.8162746Z info: it's active because: overridden by '<runner-workspace>\native-module\rust-toolchain.toml'
+windows-compile	Toolchain versions	2026-10-10T21:56:07.5980916Z rustc 1.98.1 (48a229cea 2026-09-01)
+windows-compile	Toolchain versions	2026-10-10T21:56:08.2573548Z cargo 1.98.1 (797e8a9bc 2026-08-05)
+windows-compile	Run npm ci	﻿2026-10-10T21:56:08.2931952Z ##[group]Run npm ci
+windows-compile	Run npm ci	2026-10-10T21:56:08.2932250Z [36;1mnpm ci[0m
+windows-compile	Run npm ci	2026-10-10T21:56:08.2947493Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-compile	Run npm ci	2026-10-10T21:56:08.2947900Z ##[endgroup]
+windows-compile	Run npm ci	2026-10-10T21:56:18.4211809Z npm warn deprecated npmlog@6.0.2: This package is no longer supported.
+windows-compile	Run npm ci	2026-10-10T21:56:18.9297011Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+windows-compile	Run npm ci	2026-10-10T21:56:20.6246650Z npm warn deprecated @npmcli/move-file@2.0.1: This functionality has been moved to @npmcli/fs
+windows-compile	Run npm ci	2026-10-10T21:56:21.1031337Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+windows-compile	Run npm ci	2026-10-10T21:56:21.5051421Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+windows-compile	Run npm ci	2026-10-10T21:56:21.7721381Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+windows-compile	Run npm ci	2026-10-10T21:56:21.9904158Z npm warn deprecated glob@8.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+windows-compile	Run npm ci	2026-10-10T21:56:22.1007684Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+windows-compile	Run npm ci	2026-10-10T21:56:22.4320307Z npm warn deprecated are-we-there-yet@3.0.1: This package is no longer supported.
+windows-compile	Run npm ci	2026-10-10T21:56:22.7034401Z npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+windows-compile	Run npm ci	2026-10-10T21:56:24.7195345Z npm warn deprecated gauge@4.0.4: This package is no longer supported.
+windows-compile	Run npm ci	2026-10-10T21:56:24.7453048Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+windows-compile	Run npm ci	2026-10-10T21:56:26.5967327Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+windows-compile	Run npm ci	2026-10-10T21:56:27.8030675Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+windows-compile	Run npm ci	2026-10-10T21:56:31.3909257Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+windows-compile	Run npm ci	2026-10-10T21:56:33.7005003Z npm warn deprecated electron-rebuild@3.2.9: Please use @electron/rebuild moving forward.  There is no API change, just a package name change
+windows-compile	Run npm ci	2026-10-10T21:57:24.3912410Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.3913287Z added 1111 packages, and audited 1113 packages in 1m
+windows-compile	Run npm ci	2026-10-10T21:57:24.3913779Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.3916425Z 288 packages are looking for funding
+windows-compile	Run npm ci	2026-10-10T21:57:24.3917755Z   run `npm fund` for details
+windows-compile	Run npm ci	2026-10-10T21:57:24.5260602Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.5261520Z 62 vulnerabilities (6 low, 11 moderate, 42 high, 3 critical)
+windows-compile	Run npm ci	2026-10-10T21:57:24.5262011Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.5262358Z To address issues that do not require attention, run:
+windows-compile	Run npm ci	2026-10-10T21:57:24.5262938Z   npm audit fix
+windows-compile	Run npm ci	2026-10-10T21:57:24.5263126Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.5263536Z To address all issues possible (including breaking changes), run:
+windows-compile	Run npm ci	2026-10-10T21:57:24.5264162Z   npm audit fix --force
+windows-compile	Run npm ci	2026-10-10T21:57:24.5264395Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.5264687Z Some issues need review, and may require choosing
+windows-compile	Run npm ci	2026-10-10T21:57:24.5265218Z a different dependency.
+windows-compile	Run npm ci	2026-10-10T21:57:24.5265456Z 
+windows-compile	Run npm ci	2026-10-10T21:57:24.5265640Z Run `npm audit` for details.
+windows-compile	Type checks	﻿2026-10-10T21:57:26.0572988Z ##[group]Run set -o pipefail
+windows-compile	Type checks	2026-10-10T21:57:26.0573577Z [36;1mset -o pipefail[0m
+windows-compile	Type checks	2026-10-10T21:57:26.0574062Z [36;1mmkdir -p "$RUNNER_TEMP/windows-compile"[0m
+windows-compile	Type checks	2026-10-10T21:57:26.0574962Z [36;1mnode_modules/.bin/tsc --noEmit -p . 2>&1 | tee "$RUNNER_TEMP/windows-compile/tsc-renderer.log"[0m
+windows-compile	Type checks	2026-10-10T21:57:26.0576364Z [36;1mnode_modules/.bin/tsc -p electron/tsconfig.json --noEmit 2>&1 | tee "$RUNNER_TEMP/windows-compile/tsc-electron.log"[0m
+windows-compile	Type checks	2026-10-10T21:57:26.0601640Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-compile	Type checks	2026-10-10T21:57:26.0602360Z ##[endgroup]
+windows-compile	Build the Electron main process and the renderer	﻿2026-10-10T21:57:38.4489116Z ##[group]Run set -o pipefail
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:38.4489500Z [36;1mset -o pipefail[0m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:38.4489937Z [36;1mnode scripts/build-electron.js 2>&1 | tee "$RUNNER_TEMP/windows-compile/build-electron.log"[0m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:38.4490575Z [36;1mnode_modules/.bin/vite build 2>&1 | tee "$RUNNER_TEMP/windows-compile/vite-build.log"[0m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:38.4507015Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:38.4507425Z ##[endgroup]
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:42.9354242Z [build-electron] Done in 4359ms
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:43.6479755Z [36mvite v5.4.21 [32mbuilding for production...[36m[39m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:43.7112018Z transforming...
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:54.7411177Z [32m✓[39m 3871 modules transformed.
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:55.3874752Z rendering chunks...
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.0227652Z [1m[33m[plugin:vite:reporter][39m[22m [33m[plugin vite:reporter] 
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.0315734Z (!) <runner-workspace>/src/lib/sttErrorMapper.ts is dynamically imported by <runner-workspace>/src/components/NativelyInterface.tsx but also statically imported by <runner-workspace>/src/components/ui/RollingTranscript.tsx, dynamic import will not move module into another chunk.
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.0590574Z [39m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3223271Z computing gzip size...
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3861416Z [2mdist/[22m[32mindex.html                                        [39m[1m[2m    1.10 kB[22m[1m[22m[2m │ gzip:   0.62 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3863494Z [2mdist/[22m[32massets/KaTeX_Size3-Regular-CTq5MqoE.woff          [39m[1m[2m    4.42 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3866535Z [2mdist/[22m[32massets/KaTeX_Size4-Regular-Dl5lxZxV.woff2         [39m[1m[2m    4.93 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3869501Z [2mdist/[22m[32massets/KaTeX_Size2-Regular-Dy4dx90m.woff2         [39m[1m[2m    5.21 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3871080Z [2mdist/[22m[32massets/KaTeX_Size1-Regular-mCD8mA8B.woff2         [39m[1m[2m    5.47 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3872618Z [2mdist/[22m[32massets/icon-bi3ZfLMG.png                          [39m[1m[2m    5.69 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3874166Z [2mdist/[22m[32massets/KaTeX_Size4-Regular-BF-4gkZK.woff          [39m[1m[2m    5.98 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3875723Z [2mdist/[22m[32massets/KaTeX_Size2-Regular-oD1tc_U0.woff          [39m[1m[2m    6.19 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3877097Z [2mdist/[22m[32massets/KaTeX_Size1-Regular-C195tn64.woff          [39m[1m[2m    6.50 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3878831Z [2mdist/[22m[32massets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2   [39m[1m[2m    6.91 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3880274Z [2mdist/[22m[32massets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2      [39m[1m[2m    6.91 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3881636Z [2mdist/[22m[32massets/KaTeX_Size3-Regular-DgpXs0kz.ttf           [39m[1m[2m    7.59 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3883424Z [2mdist/[22m[32massets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff    [39m[1m[2m    7.66 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3884935Z [2mdist/[22m[32massets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff       [39m[1m[2m    7.72 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3887223Z [2mdist/[22m[32massets/KaTeX_Script-Regular-D3wIWfF6.woff2        [39m[1m[2m    9.64 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3889849Z [2mdist/[22m[32massets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2     [39m[1m[2m   10.34 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3891769Z [2mdist/[22m[32massets/KaTeX_Size4-Regular-DWFBv043.ttf           [39m[1m[2m   10.36 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3893301Z [2mdist/[22m[32massets/KaTeX_Script-Regular-D5yQViql.woff         [39m[1m[2m   10.59 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3894842Z [2mdist/[22m[32massets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2       [39m[1m[2m   11.32 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3896317Z [2mdist/[22m[32massets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2          [39m[1m[2m   11.35 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3901442Z [2mdist/[22m[32massets/KaTeX_Size2-Regular-B7gKUWhC.ttf           [39m[1m[2m   11.51 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3902707Z [2mdist/[22m[32massets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2      [39m[1m[2m   12.03 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3904157Z [2mdist/[22m[32massets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2        [39m[1m[2m   12.22 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3905603Z [2mdist/[22m[32massets/KaTeX_Size1-Regular-Dbsnue_I.ttf           [39m[1m[2m   12.23 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3907042Z [2mdist/[22m[32massets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff      [39m[1m[2m   12.32 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3908566Z [2mdist/[22m[32massets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf     [39m[1m[2m   12.34 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3910044Z [2mdist/[22m[32massets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf        [39m[1m[2m   12.37 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3911535Z [2mdist/[22m[32massets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff        [39m[1m[2m   13.21 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3912953Z [2mdist/[22m[32massets/KaTeX_Fraktur-Bold-BsDP51OF.woff           [39m[1m[2m   13.30 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3914472Z [2mdist/[22m[32massets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2    [39m[1m[2m   13.57 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3915956Z [2mdist/[22m[32massets/KaTeX_SansSerif-Italic-DN2j7dab.woff       [39m[1m[2m   14.11 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3917409Z [2mdist/[22m[32massets/KaTeX_SansSerif-Bold-DbIhKOiC.woff         [39m[1m[2m   14.41 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3919474Z [2mdist/[22m[32massets/KaTeX_Typewriter-Regular-C0xS9mPB.woff     [39m[1m[2m   16.03 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3920957Z [2mdist/[22m[32massets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2       [39m[1m[2m   16.40 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3922335Z [2mdist/[22m[32massets/KaTeX_Math-Italic-t53AETM-.woff2           [39m[1m[2m   16.44 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3923767Z [2mdist/[22m[32massets/KaTeX_Script-Regular-C5JkGWo-.ttf          [39m[1m[2m   16.65 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3925175Z [2mdist/[22m[32massets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2       [39m[1m[2m   16.78 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3926533Z [2mdist/[22m[32massets/KaTeX_Main-Italic-NWA7e6Wa.woff2           [39m[1m[2m   16.99 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3927888Z [2mdist/[22m[32massets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff        [39m[1m[2m   18.67 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3929349Z [2mdist/[22m[32massets/KaTeX_Math-Italic-DA0__PXp.woff            [39m[1m[2m   18.75 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3930782Z [2mdist/[22m[32massets/KaTeX_Main-BoldItalic-SpSLRI95.woff        [39m[1m[2m   19.41 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3932228Z [2mdist/[22m[32massets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf       [39m[1m[2m   19.44 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3933601Z [2mdist/[22m[32massets/KaTeX_Fraktur-Regular-CB_wures.ttf         [39m[1m[2m   19.57 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3934973Z [2mdist/[22m[32massets/KaTeX_Fraktur-Bold-BdnERNNW.ttf            [39m[1m[2m   19.58 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3936378Z [2mdist/[22m[32massets/KaTeX_Main-Italic-BMLOBm91.woff            [39m[1m[2m   19.68 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3937759Z [2mdist/[22m[32massets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf        [39m[1m[2m   22.36 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3939461Z [2mdist/[22m[32massets/KaTeX_SansSerif-Bold-CFMepnvq.ttf          [39m[1m[2m   24.50 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3940896Z [2mdist/[22m[32massets/KaTeX_Main-Bold-Cx986IdX.woff2             [39m[1m[2m   25.32 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3942284Z [2mdist/[22m[32massets/KaTeX_Main-Regular-B22Nviop.woff2          [39m[1m[2m   26.27 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3943632Z [2mdist/[22m[32massets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf      [39m[1m[2m   27.56 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3945811Z [2mdist/[22m[32massets/KaTeX_AMS-Regular-BQhdFMY1.woff2           [39m[1m[2m   28.08 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3947157Z [2mdist/[22m[32massets/KaTeX_Main-Bold-Jm3AIy58.woff              [39m[1m[2m   29.91 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3948514Z [2mdist/[22m[32massets/KaTeX_Main-Regular-Dr94JaBh.woff           [39m[1m[2m   30.77 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3949878Z [2mdist/[22m[32massets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf         [39m[1m[2m   31.20 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3951238Z [2mdist/[22m[32massets/KaTeX_Math-Italic-flOr_0UB.ttf             [39m[1m[2m   31.31 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3952598Z [2mdist/[22m[32massets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf         [39m[1m[2m   32.97 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3953951Z [2mdist/[22m[32massets/KaTeX_AMS-Regular-DMm9YOAa.woff            [39m[1m[2m   33.52 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3955289Z [2mdist/[22m[32massets/KaTeX_Main-Italic-3WenGoN9.ttf             [39m[1m[2m   33.58 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3956670Z [2mdist/[22m[32massets/Masterfont - Celeb MF Medium-QyODFAhU.otf  [39m[1m[2m   45.02 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3958064Z [2mdist/[22m[32massets/Masterfont - Celeb MF Light-DZ7SWwTH.otf   [39m[1m[2m   45.55 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3959793Z [2mdist/[22m[32massets/KaTeX_Main-Bold-waoOVXN0.ttf               [39m[1m[2m   51.34 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3961169Z [2mdist/[22m[32massets/KaTeX_Main-Regular-ypZvNtVU.ttf            [39m[1m[2m   53.58 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3962745Z [2mdist/[22m[32massets/KaTeX_AMS-Regular-DRggAlZN.ttf             [39m[1m[2m   63.63 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3964104Z [2mdist/[22m[32massets/Inter-Light-14LG-y7V.woff2                 [39m[1m[2m  112.59 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3965465Z [2mdist/[22m[32massets/Inter-Medium-CDhBSFyE.woff2                [39m[1m[2m  114.35 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3966820Z [2mdist/[22m[32massets/InterVariable-DiVDrmQJ.woff2               [39m[1m[2m  352.24 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3968101Z [2mdist/[22m[32massets/evin-BgBc3Eq7.png                          [39m[1m[2m  466.74 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3969333Z [2mdist/[22m[32massets/hero-u82bkLM-.webm                         [39m[1m[2m  848.96 kB[22m[1m[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3970785Z [2mdist/[22m[35massets/index-TzmM6LuM.css                         [39m[1m[2m  153.20 kB[22m[1m[22m[2m │ gzip:  27.72 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3972338Z [2mdist/[22m[36massets/Cropper-C0MrH8ae.js                        [39m[1m[2m    4.11 kB[22m[1m[22m[2m │ gzip:   1.72 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3973826Z [2mdist/[22m[36massets/ui-Cb6vJ1N7.js                             [39m[1m[2m   69.24 kB[22m[1m[22m[2m │ gzip:  19.15 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3975303Z [2mdist/[22m[36massets/vendor-D4dr3WIt.js                         [39m[1m[2m  135.44 kB[22m[1m[22m[2m │ gzip:  44.76 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3976833Z [2mdist/[22m[36massets/index.es-B-x5hyL_.js                       [39m[1m[2m  150.31 kB[22m[1m[22m[2m │ gzip:  51.48 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3978378Z [2mdist/[22m[36massets/html2canvas.esm-CBrSDip1.js                [39m[1m[2m  201.42 kB[22m[1m[22m[2m │ gzip:  48.03 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3980249Z [2mdist/[22m[36massets/index-22K2ZmPl.js                          [39m[1m[33m2,188.91 kB[39m[22m[2m │ gzip: 689.45 kB[22m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3981073Z [33m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3981615Z (!) Some chunks are larger than 1000 kB after minification. Consider:
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3982375Z - Using dynamic import() to code-split the application
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3983674Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.3985345Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+windows-compile	Build the Electron main process and the renderer	2026-10-10T21:57:56.4018608Z [32m✓ built in 12.72s[39m
+windows-compile	Build the native module with MSVC	﻿2026-10-10T21:57:56.5213632Z ##[group]Run set -o pipefail
+windows-compile	Build the native module with MSVC	2026-10-10T21:57:56.5214033Z [36;1mset -o pipefail[0m
+windows-compile	Build the native module with MSVC	2026-10-10T21:57:56.5214464Z [36;1mnode scripts/build-native.js 2>&1 | tee "$RUNNER_TEMP/windows-compile/build-native.log"[0m
+windows-compile	Build the native module with MSVC	2026-10-10T21:57:56.5229417Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-compile	Build the native module with MSVC	2026-10-10T21:57:56.5229819Z ##[endgroup]
+windows-compile	Build the native module with MSVC	2026-10-10T21:57:56.6403238Z Building for current platform: win32
+windows-compile	Build the native module with MSVC	2026-10-10T21:57:56.6404261Z > npx napi build --platform --release
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:21.3438554Z    Compiling proc-macro2 v1.0.106
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:21.3439137Z    Compiling quote v1.0.44
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:21.3439590Z    Compiling unicode-ident v1.0.22
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:21.3440037Z    Compiling autocfg v1.5.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:21.4784275Z    Compiling windows_x86_64_msvc v0.52.6
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:21.8331280Z    Compiling num-traits v0.2.19
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:23.4694145Z    Compiling dtor-proc-macro v0.0.6
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:23.5340114Z    Compiling windows-targets v0.52.6
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:23.5976466Z    Compiling syn v1.0.109
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:23.9794416Z    Compiling pin-project-lite v0.2.16
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:24.0612110Z    Compiling zerocopy v0.8.35
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:24.0917074Z    Compiling futures-sink v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:24.2535473Z    Compiling windows_x86_64_msvc v0.48.5
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:24.6882197Z    Compiling futures-core v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:24.9115435Z    Compiling syn v2.0.114
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:25.0457068Z    Compiling futures-channel v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:25.3891408Z    Compiling num-integer v0.1.46
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:25.7232855Z    Compiling futures-io v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:25.9641153Z    Compiling strength_reduce v0.2.4
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:26.5587719Z    Compiling shlex v1.3.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:26.5628888Z    Compiling cfg-if v1.0.4
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:26.7937134Z    Compiling slab v0.4.11
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:26.8530574Z    Compiling ctor-proc-macro v0.0.7
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:27.3945927Z    Compiling futures-task v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:27.6946454Z    Compiling find-msvc-tools v0.1.8
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:27.8490929Z    Compiling memchr v2.7.6
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:29.8446110Z    Compiling cc v1.2.54
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:31.3361264Z    Compiling getrandom v0.2.17
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:31.8047821Z    Compiling transpose v0.2.3
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:32.1752784Z    Compiling primal-check v0.3.4
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:32.8045836Z    Compiling num-complex v0.4.6
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:33.0408386Z    Compiling windows-result v0.1.2
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:33.7973765Z    Compiling crossbeam-utils v0.8.21
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:34.0155692Z    Compiling windows-link v0.2.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:34.2374278Z    Compiling napi-build v2.3.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:34.3168198Z    Compiling unicode-segmentation v1.12.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:34.6172704Z    Compiling napi v3.8.3
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:35.2067826Z    Compiling convert_case v0.11.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:35.3421933Z    Compiling libloading v0.9.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:35.5676470Z    Compiling futures-macro v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:35.8849511Z    Compiling rustfft v6.4.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:36.0436548Z    Compiling windows-core v0.54.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:37.4186144Z    Compiling futures-util v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:41.2680501Z    Compiling ppv-lite86 v0.2.21
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:42.2925304Z    Compiling webrtc-vad v0.4.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:42.6375458Z    Compiling windows-targets v0.48.5
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:42.8110739Z    Compiling windows-interface v0.48.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:42.8114762Z    Compiling windows-implement v0.48.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:44.0724236Z    Compiling futures-executor v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:44.1807579Z    Compiling rand_core v0.6.4
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:44.2883150Z    Compiling dtor v0.1.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:44.6962358Z    Compiling cpal v0.15.3
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:44.7078817Z    Compiling anyhow v1.0.100
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:45.1808596Z    Compiling once_cell v1.21.3
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:45.2775751Z    Compiling semver v1.0.27
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:45.5623940Z    Compiling tracing-core v0.1.36
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:45.6834453Z    Compiling napi-derive-backend v5.0.2
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:45.8721254Z    Compiling ctor v0.6.3
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:46.2068594Z    Compiling realfft v3.5.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:46.7816018Z    Compiling rand_chacha v0.3.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:47.9772813Z    Compiling futures v0.3.32
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:48.1414394Z    Compiling windows v0.48.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:48.5859684Z    Compiling windows v0.54.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:51.1459667Z    Compiling napi-sys v3.2.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:54.4359579Z    Compiling tracing-attributes v0.1.31
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:56.1333414Z    Compiling windows-core v0.52.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:57.8279327Z    Compiling nohash-hasher v0.2.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:58.2742734Z    Compiling log v0.4.29
+windows-compile	Build the native module with MSVC	2026-10-10T21:58:58.9631977Z    Compiling widestring v1.2.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:02.7622113Z    Compiling bitflags v2.10.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:03.8331877Z    Compiling dasp_sample v0.11.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:03.9358137Z    Compiling rustc-hash v2.1.1
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:04.3483117Z    Compiling tracing v0.1.44
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:05.5701568Z    Compiling windows v0.52.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:13.4060079Z    Compiling ringbuf v0.4.8
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:14.6494974Z    Compiling napi-derive v3.5.2
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:22.2149008Z    Compiling wasapi v0.13.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:24.9389901Z    Compiling rand v0.8.5
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:25.4211108Z    Compiling rubato v0.16.2
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:27.1065512Z    Compiling bytemuck v1.25.0
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:33.4491175Z    Compiling natively-audio v0.1.0 (<runner-workspace>\native-module)
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:37.2406439Z     Finished `release` profile [optimized] target(s) in 1m 16s
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:37.3516860Z Verified native artifacts:
+windows-compile	Build the native module with MSVC	2026-10-10T21:59:37.3517510Z - index.win32-x64-msvc.node
+windows-compile	Record the build	﻿2026-10-10T21:59:37.3754412Z ##[group]Run mkdir -p "$RUNNER_TEMP/windows-compile"
+windows-compile	Record the build	2026-10-10T21:59:37.3754992Z [36;1mmkdir -p "$RUNNER_TEMP/windows-compile"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3755362Z [36;1m{[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3755617Z [36;1m  echo "commit: $GITHUB_SHA"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3756005Z [36;1m  echo "run: $GITHUB_RUN_ID (attempt $GITHUB_RUN_ATTEMPT)"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3756416Z [36;1m  echo "runner: $ImageOS $ImageVersion"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3756780Z [36;1m  echo "node: $(node -v)"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3757140Z [36;1m  echo "rustc: $(cd native-module && rustc -V)"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3757581Z [36;1m  if [ -f native-module/index.win32-x64-msvc.node ]; then[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3758032Z [36;1m    sha256sum native-module/index.win32-x64-msvc.node[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3758398Z [36;1m  else[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3758682Z [36;1m    echo "native module: not built"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3759097Z [36;1m  fi[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3759523Z [36;1m} > "$RUNNER_TEMP/windows-compile/BUILD-INFO.txt"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3760062Z [36;1mcat "$RUNNER_TEMP/windows-compile/BUILD-INFO.txt"[0m
+windows-compile	Record the build	2026-10-10T21:59:37.3776684Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-compile	Record the build	2026-10-10T21:59:37.3777157Z ##[endgroup]
+windows-compile	Record the build	2026-10-10T21:59:37.6275270Z commit: 3e779466bb668951d9c9b6fe9fff79181bed61dc
+windows-compile	Record the build	2026-10-10T21:59:37.6276727Z run: 38089471774 (attempt 1)
+windows-compile	Record the build	2026-10-10T21:59:37.6278661Z runner: win25-vs2026 20260925.250.1
+windows-compile	Record the build	2026-10-10T21:59:37.6280357Z node: v26.0.0
+windows-compile	Record the build	2026-10-10T21:59:37.6280885Z rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+windows-compile	Record the build	2026-10-10T21:59:37.6282986Z 6c243aef17ff49e3db09b8a7f98cf787c74b79f0df32c4fef8f0129d13f126c0 *native-module/index.win32-x64-msvc.node
+windows-compile	Run actions/upload-artifact@v7	﻿2026-10-10T21:59:37.6578832Z ##[group]Run actions/upload-artifact@v7
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6579316Z with:
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6579804Z   name: margin-windows-compile-3e779466bb668951d9c9b6fe9fff79181bed61dc
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6580401Z   path: D:\a\_temp/windows-compile/
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6580764Z   retention-days: 30
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6581062Z   if-no-files-found: warn
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6581404Z   compression-level: 6
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6581707Z   overwrite: false
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6582045Z   include-hidden-files: false
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6582373Z   archive: true
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.6582651Z ##[endgroup]
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.8558202Z With the provided path, there will be 6 files uploaded
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.8563395Z Artifact name is valid!
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:37.8564817Z Root directory input is valid!
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.1075344Z Uploading artifact: margin-windows-compile-3e779466bb668951d9c9b6fe9fff79181bed61dc.zip
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.1151481Z Beginning upload of artifact content to blob storage
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.2866308Z Uploaded bytes 3978
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.3220294Z Finished uploading artifact content to blob storage!
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.3221783Z SHA256 digest of uploaded artifact is 94e8daa4bc91aa7e59f16e0de7355dc865b1617689015805182c3378dc9d4383
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.3222943Z Finalizing artifact upload
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.6423405Z Artifact margin-windows-compile-3e779466bb668951d9c9b6fe9fff79181bed61dc successfully finalized. Artifact ID 11683976591
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.6425732Z Artifact margin-windows-compile-3e779466bb668951d9c9b6fe9fff79181bed61dc has been successfully uploaded! Final size is 3978 bytes. Artifact ID is 11683976591
+windows-compile	Run actions/upload-artifact@v7	2026-10-10T21:59:38.6434426Z Artifact download URL: https://github.com/xbz123/margin/actions/runs/38089471774/artifacts/11683976591
+windows-compile	Post Run actions/setup-node@v7	﻿2026-10-10T21:59:38.6859760Z Post job cleanup.
+windows-compile	Post Run actions/checkout@v7	﻿2026-10-10T21:59:38.8652609Z Post job cleanup.
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1184163Z [command]"C:\Program Files\Git\bin\git.exe" version
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1469713Z git version 2.55.0.windows.5
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1541522Z Temporarily overriding HOME='D:\a\_temp\ea5b979f-598e-4fb4-83ed-7cae0f0fed20' before making global git config changes
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1543470Z Adding repository directory to the temporary git global config as a safe directory
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1557009Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory <runner-workspace>
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1875338Z Removing SSH command configuration
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.1891091Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.2309032Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.8151377Z Removing HTTP extra header
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.8162245Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:39.8490026Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4407816Z Removing includeIf entries pointing to credentials config files
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4419453Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4736624Z includeif.gitdir:<runner-workspace>/.git.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4737654Z includeif.gitdir:<runner-workspace>/.git/worktrees/*.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4738448Z includeif.gitdir:/github/workspace/.git.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4739154Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.4779822Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:<runner-workspace>/.git.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.5062368Z D:\a\_temp\git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.5107743Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:<runner-workspace>/.git.path D\:\\a\\_temp\\git\-credentials\-eb6f290d\-d6b2\-4adb\-bcb5\-748640e6fb32\.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.5434311Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:<runner-workspace>/.git/worktrees/*.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.5713198Z D:\a\_temp\git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.5761053Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:<runner-workspace>/.git/worktrees/*.path D\:\\a\\_temp\\git\-credentials\-eb6f290d\-d6b2\-4adb\-bcb5\-748640e6fb32\.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.6087798Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.6373694Z /github/runner_temp/git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.6416700Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-eb6f290d\-d6b2\-4adb\-bcb5\-748640e6fb32\.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.6732706Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.7025094Z /github/runner_temp/git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.7128758Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-eb6f290d\-d6b2\-4adb\-bcb5\-748640e6fb32\.config
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:40.7554355Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+windows-compile	Post Run actions/checkout@v7	2026-10-10T21:59:41.3638038Z Removing credentials config 'D:\a\_temp\git-credentials-eb6f290d-d6b2-4adb-bcb5-748640e6fb32.config'
+windows-compile	Complete job	﻿2026-10-10T21:59:41.3868739Z Cleaning up orphan processes

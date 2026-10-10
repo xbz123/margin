@@ -1,0 +1,129 @@
+{
+  "conclusion": "success",
+  "createdAt": "2026-10-10T21:55:31Z",
+  "databaseId": 38089471774,
+  "event": "push",
+  "headBranch": "codex/margin-agpl-migration",
+  "headSha": "3e779466bb668951d9c9b6fe9fff79181bed61dc",
+  "jobs": [
+    {
+      "completedAt": "2026-10-10T21:59:42Z",
+      "conclusion": "success",
+      "databaseId": 114322757635,
+      "name": "windows-compile",
+      "startedAt": "2026-10-10T21:55:34Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-10T21:55:36Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-10T21:55:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:55:45Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-10-10T21:55:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:55:54Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v7",
+          "number": 3,
+          "startedAt": "2026-10-10T21:55:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:56:08Z",
+          "conclusion": "success",
+          "name": "Toolchain versions",
+          "number": 4,
+          "startedAt": "2026-10-10T21:55:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:57:26Z",
+          "conclusion": "success",
+          "name": "Run npm ci",
+          "number": 5,
+          "startedAt": "2026-10-10T21:56:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:57:38Z",
+          "conclusion": "success",
+          "name": "Type checks",
+          "number": 6,
+          "startedAt": "2026-10-10T21:57:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:57:56Z",
+          "conclusion": "success",
+          "name": "Build the Electron main process and the renderer",
+          "number": 7,
+          "startedAt": "2026-10-10T21:57:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:59:37Z",
+          "conclusion": "success",
+          "name": "Build the native module with MSVC",
+          "number": 8,
+          "startedAt": "2026-10-10T21:57:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:59:37Z",
+          "conclusion": "success",
+          "name": "Record the build",
+          "number": 9,
+          "startedAt": "2026-10-10T21:59:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:59:38Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7",
+          "number": 10,
+          "startedAt": "2026-10-10T21:59:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:59:38Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v7",
+          "number": 19,
+          "startedAt": "2026-10-10T21:59:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:59:41Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 20,
+          "startedAt": "2026-10-10T21:59:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T21:59:41Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 21,
+          "startedAt": "2026-10-10T21:59:41Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/xbz123/margin/actions/runs/38089471774/job/114322757635"
+    }
+  ],
+  "status": "completed",
+  "updatedAt": "2026-10-10T21:59:43Z",
+  "url": "https://github.com/xbz123/margin/actions/runs/38089471774",
+  "workflowName": "Windows compile"
+}
