@@ -1,7 +1,8 @@
 // electron/llm/__tests__/IdentityGuard.test.mjs
 //
-// Regression tests for S454 sub-issue 2: creator-identity leakage in voice
-// modes (model outputs "I'm Evin John..." as the speaker's self-introduction).
+// Regression tests for S454 sub-issue 2: assistant-identity leakage in voice
+// modes (model outputs the assistant's name as the speaker's self-introduction).
+// AG-33: the assistant is Margin and the prompts name no creator.
 //
 // The guard lives in two places:
 //   1. tinyPrompts.ts → TINY_CORE (composed into every tiny mode)
@@ -25,8 +26,7 @@ const full = await import(pathToFileURL(fullPath).href);
 
 const GUARD_MARKERS = [
   'IDENTITY GUARD',
-  '"Natively"',
-  '"Evin John"',
+  '"Margin"',
   'NEVER',
 ];
 
@@ -45,14 +45,10 @@ describe('IdentityGuard — TINY_CORE carries the name-claim guard', () => {
     });
   }
 
-  test('TINY_CORE explicitly forbids "I\'m Evin John" / "I\'m Natively"', () => {
+  test('TINY_CORE explicitly forbids "I\'m Margin" as a self-introduction', () => {
     assert.ok(
-      /I'm Evin John/i.test(tiny.TINY_CORE),
-      'TINY_CORE must call out the literal "I\'m Evin John" anti-pattern',
-    );
-    assert.ok(
-      /I'm Natively/i.test(tiny.TINY_CORE),
-      'TINY_CORE must call out the literal "I\'m Natively" anti-pattern',
+      /NEVER introduce yourself as "I'm Margin"/.test(tiny.TINY_CORE),
+      'TINY_CORE must call out the literal "I\'m Margin" anti-pattern',
     );
   });
 });
@@ -73,10 +69,26 @@ describe('IdentityGuard — every first-person tiny prompt inherits the guard', 
 describe('IdentityGuard — full-tier prompts.ts retains the rule', () => {
   test('UNIVERSAL_WHAT_TO_ANSWER_PROMPT contains the name-confusion rule', () => {
     assert.ok(
-      /names "Natively" and "Evin John" describe ONLY this assistant/.test(
+      /name "Margin" describes ONLY this assistant/.test(
         full.UNIVERSAL_WHAT_TO_ANSWER_PROMPT,
       ),
       'full-tier prompt must retain explicit name-confusion rule',
     );
+  });
+});
+
+describe('IdentityGuard — prompts name Margin and no creator', () => {
+  const exported = [...Object.entries(full), ...Object.entries(tiny)].filter(([, value]) => typeof value === 'string');
+  test('no exported prompt carries the upstream assistant or creator name', () => {
+    assert.ok(exported.length > 40);
+    for (const [name, value] of exported) {
+      assert.doesNotMatch(value, /Natively|Evin/, name);
+    }
+  });
+  test('identity answers name Margin', () => {
+    for (const prompt of [full.UNIVERSAL_WHAT_TO_ANSWER_PROMPT, full.CHAT_MODE_PROMPT, tiny.TINY_CORE]) {
+      assert.match(prompt, /You are Margin, (a helpful |an )AI assistant\./);
+      assert.match(prompt, /I'm Margin, an AI assistant\./);
+    }
   });
 });

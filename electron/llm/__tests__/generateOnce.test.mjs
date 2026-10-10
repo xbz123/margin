@@ -209,9 +209,9 @@ test('suggestion and screenshot wrappers reach the physical Gemini entry with se
   assert.match(requests[0].contents[0].text, /NOTES/);
   assert.match(requests[0].contents[0].text, /TRANSCRIPT/);
   assert.doesNotMatch(JSON.stringify(requests[0].config), /NOTES|TRANSCRIPT/);
-  // Preserve the existing suggestion + streamChat suffix layering; prompt policy is AG-33.
+  // The default answer suffix is sent once (AG-33 prompt decision).
   assert.equal(requests[0].config.systemInstruction.parts[0].text,
-    `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`);
+    `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`);
   await drain(self.streamChat('QUESTION', [import.meta.filename], undefined, 'SYSTEM', true, true));
   assert.equal(requests[1].contents[1].inlineData.data, 'AAAA');
 });

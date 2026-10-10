@@ -809,7 +809,7 @@ ${lastQuestion}
 
 ANSWER DIRECTLY:`;
       let fullResponse = '';
-      for await (const chunk of this.streamChat(promptMessage, undefined, suggestionContext, basePrompt, true)) fullResponse += chunk;
+      for await (const chunk of this.streamChat(promptMessage, undefined, suggestionContext, basePrompt, true, true)) fullResponse += chunk;
       return this.processResponse(fullResponse);
     });
   }

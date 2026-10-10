@@ -57,13 +57,14 @@ test('generateSuggestion sends custom notes and the transcript as user content, 
   const cloud = suggestionHarness({ codexEnabled: false });
   assert.equal(await LLMHelper.prototype.generateSuggestion.call(cloud.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
   assert.equal(cloud.calls.streamChat.length, 1);
-  const [message, imagePaths, context, systemPrompt, ignoreKnowledgeMode] = cloud.calls.streamChat[0];
+  const [message, imagePaths, context, systemPrompt, ignoreKnowledgeMode, skipModeInjection] = cloud.calls.streamChat[0];
   assert.match(message, /QUESTION_SENTINEL/);
   assert.equal(imagePaths, undefined);
   assert.match(context, /<user_context>\nNOTES_SENTINEL\n<\/user_context>/);
   assert.match(context, /CONTEXT_SENTINEL/);
   assert.equal(systemPrompt, basePrompt);
   assert.equal(ignoreKnowledgeMode, true);
+  assert.equal(skipModeInjection, true, 'the prompt already carries the default answer suffix');
 
   const codex = suggestionHarness({ codexEnabled: true });
   assert.equal(await LLMHelper.prototype.generateSuggestion.call(codex.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');

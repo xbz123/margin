@@ -56,9 +56,10 @@ test('the General prompt prevents hallucination for absent file-specific claims'
   ], 'general');
 });
 
-test('the General prompt carries its behavior contract and profile grounding', () => {
-  assertIncludesAll(GENERAL, ['universal meeting', 'conversation copilot', 'adapt', 'RECENT QUESTION'], 'general');
-  assertIncludesAll(GENERAL, ['<candidate_experience>', 'do not invent', 'salary_intelligence'], 'general');
+test('the General prompt carries its behavior contract without the retired profile blocks', () => {
+  assertIncludesAll(GENERAL, ['universal meeting', 'conversation copilot', 'adapt', 'RECENT QUESTION', 'do not invent'], 'general');
+  // Nothing injects resume or salary blocks any more (AG-33 prompt decision).
+  assert.doesNotMatch(GENERAL, /candidate_experience|salary_intelligence|Profile Intelligence/);
 });
 
 test('code hint examples avoid named problems and em dashes', () => {
