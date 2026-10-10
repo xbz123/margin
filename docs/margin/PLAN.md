@@ -36,7 +36,7 @@
 | S9 | 阶段 1–2 不做实机验收：不授予屏幕录制或麦克风权限，不用真实 key，不访问真实钥匙串 | 由 S8 推出 |
 | S10 | D2–D4 按第 3 节的建议执行；D1 由 X3 的结果决定 | 用户，2026-10-07 |
 | S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`（开发期按 S15 只启动临时身份的变体）。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 当时仍等用户，同日已定案（S12）。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256。<br>（S26 起，`no_cache` 只在原生模块、Rust 工具链或 Xcode 变化时使用） | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
-| S12 | 决定 1 定案：默认回答提示词（`DEFAULT_ANSWER_PROMPT_SUFFIX`，`electron/llm/prompts.ts`）暂时保留。阶段 3 能用真实模型评估时（按 D2 授权）再决定是否删除，评估放在 AG-33。按决定 1 暂留的其他提示词文字（`prompts.ts` 中 Profile Intelligence 的描述、`tinyPrompts.ts` 中关于本地模型的一句）一并留到那时处理。<br>（S27 起不做真实模型评估，这些提示词的去留在 AG-33 由用户直接决定） | 用户，2026-10-08 |
+| S12 | 决定 1 定案：默认回答提示词（`DEFAULT_ANSWER_PROMPT_SUFFIX`，`electron/llm/prompts.ts`）暂时保留。阶段 3 能用真实模型评估时（按 D2 授权）再决定是否删除，评估放在 AG-33。按决定 1 暂留的其他提示词文字（`prompts.ts` 中 Profile Intelligence 的描述、`tinyPrompts.ts` 中关于本地模型的一句）一并留到那时处理。<br>（S27 起不做真实模型评估，这些提示词的去留在 AG-33 由用户直接决定）<br>（已定案，见 S29） | 用户，2026-10-08 |
 | S13 | 阶段 2 的启动条件（第 7 节）已满足。"阶段 1 出口的 Astra 只读复查通过"按以下两项视为满足：Astra 对第八轮修复源码的只读审查没有未处理的发现（`AG-17-review8/checks/source-review.md`，所审差异的指纹与 `c43b10e9` 一致）；Claude 第九轮独立验收通过（`AG-17-review9/`）。出口第 1 条的 CI 证据为 `37709440574` | 用户，2026-10-08 |
 | S14 | 分工：第八轮复查起，复查发现的问题由 Codex 修复；阶段 2 起，ticket 由 Codex 派发 `gpt-6.1-sol` 执行。Claude 只读复查，不改代码（用户明确要求时只改文档） | 用户，2026-10-08 |
 | S15 | 开发和测试期间应用名用临时名 `temp`，不用正式身份 `Margin`，避免与本机已安装的 Margin 冲突。细则见下 | 用户，2026-10-08 |
@@ -53,7 +53,7 @@
 | S26 | 精简验收条件（Claude 列出 9 项，用户回复"按你的建议全部去掉，等CI结果后执行"）：<br>1. libvips 的 `rebuild.sh` 保留四项失败检查：配方下载、librsvg 的 `Cargo.lock`、编译 crate 列表、库中嵌入的 rustc 提交（许可依赖它）。配方工具链版本、mozjpeg 构建串和动态库 sha256 只写进 BUILD-INFO（CI `38052543358` 已确认固定后重编为 `64bcfea7…`）。<br>2. 本机不再重做 `package-check`、`Info.plist` 和 `codesign` 校验，这些只在 CI 上做；`sharp-smoke-local` 删除，sharp 在包内的运行由 CI 的替换检查覆盖。本机保留源码包核对和 `asar-smoke`。<br>3. 本机核对 libvips 源码只在配方或 `scripts/margin/libvips/` 的记录变化时做（CI 每次都比对）。<br>4. `no_cache` 只在 `native-module/`、Rust 工具链或 Xcode 变化时使用，其他运行使用缓存；调整 S11 第 1 条"当前提交上不使用缓存"的要求。<br>5. 删除 S17 的 `package_inventory` 诊断：workflow 输入和三个步骤、`package-inventory.cjs`、其构建配置和测试 | 用户，2026-10-10 |
 | S27 | 阶段 3 的测试和验收精简（Claude 列出，用户回复"按你的建议全部写进PLAN并提交"）：<br>1. **源码字符串测试随重写替换**：阶段 3 重写的代码，其源码字符串测试在新代码有同一性质的行为测试后删除，每次删除写明替代测试（G6 已同步）。已知范围：`suggestionPromptAssembly.test.mjs` 的字符串用例（备注和转写只进用户内容、图片交给流式入口等行为用例迁到 AG-30 的新入口）；`ProviderGatewayPolicy.test.mjs` 和 `ScopeLocalFallback.test.mjs` 的字符串用例（数据范围撤销后不再发送、拒绝范围后不发送、Gemini 顺序备用和取消等行为用例迁到新入口）；`ImagePathValidation.test.mjs` 在 AG-33 改为直接调用 handler、传入恶意路径的行为测试后删除。`MeetingPersistenceRace.test.mjs` 不在阶段 3 处理，留到 AG-52。<br>2. **AG-33**：去掉用真实模型对比默认回答提示词质量（S12 中的这一步）和用真实模型复测失败切换延迟；提示词去留由用户直接决定，切换逻辑由 mock 功能测试覆盖。<br>3. **AG-32**：只断言失败切换会发生、失败正确显示，不在 mock 上测量切换耗时。<br>4. **X5 重写量校准取消**：不读旧 Margin 对应模块、不做行数和用时对比。<br>5. **G6 测试清单**：引用 gates 生成的 `tests.files.json` 和 TAP 报告，只对新增的跳过项写原因。<br>6. **CI 频率**：阶段 3 的 ticket 只跑本地 gates（不动原生模块、打包和 libvips）；阶段出口跑一次完整 CI（`package_apps`）。<br>保留：G1–G5、G7，AG-09 mock 回归，出站清单和 renderer 出站测试，startup 和 storage | 用户，2026-10-10 |
 | S28 | 阶段 2 完成，允许开始阶段 3；允许参考旧 Margin 实现的行为和接口。AG-30 从 Gemini 开始，按 S27 串行执行本地门禁，X5 仍取消。旧实现的直接复用仍按 PROVENANCE 逐文件核对来源/许可；本决定不解除后期上游禁用规则，不授权真实服务、设备、正式身份运行或提前触发阶段出口 CI | 用户，2026-10-10，回复“阶段2完成，可以开始阶段3”“可以参考旧 Margin 实现来进行完成” |
-
+| S29 | 阶段 3 提示词定案与出口顺序（Claude 建议，用户逐条接受）：<br>1. **提示词定案**（结束 S12 的暂留）：默认回答提示词保留，suggestion 路径不再重复附加；删除 General 提示词中已无注入来源的简历和薪资块说明（Profile Intelligence），删除 tiny 提示词中针对本地模型的一句；助手身份由 "Natively, developed by Evin John" 改为 Margin，不写作者，"谁开发了你"与"你是谁"用同一固定回复。由 Claude 直接实施，不另行验收，仍跑本地 gates。<br>2. **出口顺序**：Claude 先只读复查 AG-30–34 并关闭发现的问题，再跑阶段 3 完整出口 CI 和 S26 核对，避免复查后重跑 CI。<br>3. **AG-51 范围**：提示词改为基础层加面试/笔试场景层，场景按入口自动选择并可手动切换；高级设置提供按场景的附加指令（只追加在默认提示词之后，不能整段替换，限长，可恢复默认，只存本机）。按 S27 不做真实模型质量评估，由用户自行试用。<br>4. **公开推送**：批准本轮源码和证据推送到公开仓库。<br>5. 原工作区 `.github/workflows/release.yml` 的未提交改动来自用户另一个 Claude 会话，不是本迁移的越界写入 | 用户，2026-10-10，回复"批准推送到公共仓库""接受建议""接受建议修改""可以计入，这部分由你直接进行执行，这部分内容比较简单，不需要出发验收" |
 **S21 细则**：
 
 1. **依赖删除**：只删 `pdf-parse`、`mammoth` 两个根依赖及其失去引用的节点，保留共享节点；其他包的版本、integrity 和来源不变，lock 键序按旧文件机械恢复。G3 增加四条依赖规则（`pdf-parse`、`pdfjs-dist`、`@napi-rs/canvas`、`mammoth`）。随删除失效的许可补料（dingbat-to-unicode）和无引用正文一并移除，许可清单由收集脚本重生。
@@ -628,7 +628,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 - **AG-32**：按 ADAPTATION 引用的旧目标文档 `b8ade3f7:docs/fresh-release-implementation-plan.md` §3.2，集中逻辑重试/时限和用户指定的一个备用目标；最多首次加一次后续发送，共享剩余时间/次数。首字前暂时故障或明确模型不可用可重试/备用；权限、拒绝、空成功、截断和已产生文本不自动换模型。缓存引用失效恢复也计入该上限。面试首字/总时限与笔试总时限独立配置；只测状态/切换功能，不做性能结论。数据范围拒绝不重复通知。
 - **AG-33**：贯通文字、截图、笔试、流式及取消/迟到事件；图片路径改用真实 handler 行为测试替换字符串检查。沿用旧目标的图片能力校验/未知目标用户确认、输入与附件保留、部分失败不拼接新答案。默认回答提示词的去留仍待用户直接决定；不进行真实模型质量比较。
 - **AG-34**：独立 Codex 只读登录来源取代 CLI 生成子进程；与 API key Responses 的端点、鉴权和参数分开。首次读取前须用户启用并确认风险，范围和不支持的凭据存储类型写明；不刷新、写回或记录外部 token，不把订阅 token 发到兼容地址。自动化只用合成登录文件和回环传输，不读取本机真实登录。
-- **出口**：每票 G1–G7、AG-09、storage/startup/renderer 出站检查；依赖不变复用已验安装证据。所有本地票通过后一次完整 `package_apps` CI（原生/工具链不变使用缓存），按 S26 做源码包和 asar 冒烟核对。Claude 只读复查、用户未决提示词选择、真实服务/设备未验证项不得冒称已通过。
+- **出口**：每票 G1–G7、AG-09、storage/startup/renderer 出站检查；依赖不变复用已验安装证据。所有本地票通过且 Claude 只读复查的问题关闭后（S29），一次完整 `package_apps` CI（原生/工具链不变使用缓存），按 S26 做源码包和 asar 冒烟核对。Claude 只读复查、用户未决提示词选择、真实服务/设备未验证项不得冒称已通过。
 
 ### AG-32 本地完成记录（2026-10-10）
 
@@ -654,6 +654,15 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 - **单次完整门禁 16/16**：113 文件、971 测试（966 通过、0 失败、5 既有跳过），AG-09 15/15、storage 5/5、startup 1/1、renderer 5/5；无隔离拦截或未结束文件。G2 零命中、没有新增白名单；261 条退役规则通过。专项 277/277，组合组件及真实 Electron preload/IPC 两项通过。依赖、原生、三处暂留提示词均未改。
 - 证据入口 `evidence/AG-34/README.md`。实现和本地门禁通过，待 Claude 只读复查；未读取真实登录、调用真实服务或触发每票 CI。**阶段 3 尚未签收**：S12/S27 提示词选择仍需用户直接决定；定案后按 S27 做一次完整出口 CI、S26 源码包与 asar 核对，再完成 Claude 复查。
 - 代码及证据提交 `b1ed9fe3` 已推送并核对私有远端。公开推送尚未执行，本次上传需用户再次明确批准；公开分支仍为 `49b44e8c`。在批准前不更新公开仓库或触发其出口 CI；不以此前 S25 记录代替本次所需确认。
+- 用户已批准公开推送（S29）。Claude 于 2026-10-10 将 `9fec2086` 推送到公开仓库并核对：快进，新增内容未发现密钥。
+
+### AG-33 提示词定案记录（2026-10-10，Claude，S29）
+
+- 提交 `90fae433`：`prompts.ts`、`tinyPrompts.ts` 的身份改为 Margin，删去作者句和 "Evin John" 的名称守卫，守卫改为 "Margin" 不是说话人的名字；`SECURITY_TRAILER` 去掉 "Creator"。IPC 身份短路删去 `CREATOR_PROBE_RE`，"who made you" 由 `IDENTITY_PROBE_RE` 回复 `I'm ${APP_IDENTITY.name}, an AI assistant.`，正则里的 `natively` 改为 `margin`。
+- `generateSuggestion` 的系统提示词已含默认回答 suffix，现传 `skipModeInjection` 让 `streamChat` 不再追加，suffix 只发一次（AG-30 证据记录的重复）。`WhatToAnswerLLM` 原本已跳过，未变。
+- 删除 General 提示词中 `<candidate_*>`（Profile Intelligence）和 `<salary_intelligence>` 两段：代码里已没有任何地方注入这些块。删除 `TINY_CORE` 中 "For local models" 一句（`TINY_RECAP`/`TINY_FOLLOW_UP_QUESTIONS` 取前 4 行，不受影响）。
+- 测试：`IdentityGuard` 改为检查 Margin，并新增"所有导出的提示词都不含 Natively/Evin"；`defaultAnswerPrompt` 改为断言退役块不存在；`suggestionPromptAssembly`、`generateOnce` 改为断言 suffix 只发一次。
+- 本地 gates（`evidence/AG-33/prompt-decision/gates/`）16/16 通过（提交 `90fae433` 的干净工作树，对照 AG-34）：113 文件、972 测试（967 通过、0 失败、5 既有跳过），比 AG-34 多 1 个（IdentityGuard 新增 2 个，名称标记检查少 1 个）；AG-09 15/15、storage 5/5、startup 1/1、renderer 5/5；G2 零命中。未调用真实模型；回答质量变化未评估（S27）。代码注释和"关于"页中对原作者的署名不属于提示词，保留。
 
 ### 阶段 3–6（概要；X5 已取消，S27）
 
@@ -669,7 +678,7 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 | AG-42 | 手动回答 | AG-33、AG-41 |
 | AG-43 | 自动回答与 Gemini Flash-Lite 双语 Judge | AG-42 |
 | AG-50 | Local Context 全文与预热 | AG-33 |
-| AG-51 | 提示词类 Skills | AG-33 |
+| AG-51 | 提示词类 Skills；并入 S29 的提示词分层（基础层加面试/笔试场景层，按入口自动选择、可手动切换）和高级设置中按场景的附加指令（只追加、不可整段替换、限长、可恢复默认、只存本机） | AG-33 |
 | AG-52 | 会议记录：会前设置、增量保存、摘要、失败恢复 | AG-41、AG-32 |
 | AG-60 | 设置页重组、中英双语界面 | AG-33、AG-43、AG-52 |
 | AG-61 | 窗口保护、快捷键、鼠标穿透、伪装（实机部分需 D2 授权）。恢复 AG-17 跳过的 `ActivationPolicyOrdering` 用例，或按定下的激活策略改写后启用 | 阶段 2 |
@@ -762,7 +771,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-30 | 实现和本地门禁通过；待 Claude 只读复查 | 本票提交（起点 `58a1b446`） | Gemini 单次生成入口接入全部生成路径；权限/取消/真实终态及调用链错误传播；17 个接口行为用例替代 6 个字符串检查。本地 16/16、854 测试/849 通过/5 既有跳过，AG-09 6/6、storage 5/5、startup 1/1、renderer 出站 2/2。见 `evidence/AG-30/`；按 S27 不触发 CI |
 | AG-31 | 实现和本地门禁通过；待 Claude 只读复查 | `85cade1c` | 四协议与显式目标配置、事务保存、单目标连接测试及 OpenAI-only 摘要；证据 `evidence/AG-31/`，完整及定点组合通过，不冒称单次 16/16 |
 | AG-32 | 实现和本地门禁通过；待 Claude 只读复查 | `06006149` | 两次发送预算、独立时限、一个备用、取消与终态；证据 `evidence/AG-32/`，完整及 G2 定点组合通过 |
-| AG-33 | 代码及本地检查通过；提示词用户决定和 Claude 复查待办 | `49b44e8c` | 请求身份、流式/短答案/部分结果、笔试和图片能力、记录元数据；证据 `evidence/AG-33/`，三处 S12/S27 提示词保持未改 |
+| AG-33 | 代码及本地检查通过；提示词已定案（S29）；Claude 复查待办 | `49b44e8c`、`90fae433` | 请求身份、流式/短答案/部分结果、笔试和图片能力、记录元数据；证据 `evidence/AG-33/`；提示词定案见"AG-33 提示词定案记录" |
 | AG-34 | 实现和本地门禁通过；待 Claude 只读复查 | `b1ed9fe3`（仅私有远端已更新） | 独立只读 Codex 登录来源；单次完整 16/16，971 测试/966 通过/5 既有跳过；证据 `evidence/AG-34/`。无真实登录或服务验收，阶段出口未完成 |
 
 ### AG-10 记录（2026-10-07）
@@ -1533,7 +1542,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 **AG-31 本地完成（2026-10-10）**：四协议统一单次发送、显式目标配置及事务保存、同目标连接测试/模型列表、OpenAI-only 摘要已实现。`evidence/AG-31/gates-final/` 完整门禁 15/16：112 文件、895 测试（890 通过、0 失败、5 既有跳过），AG-09 7/7、startup 1/1、renderer 2/2；存储仅旧模型 ID 断言不符且使依赖用例失败。仅将该断言改为 qualified selector ID，复用同一应用构建在 `storage-final/` 补跑 5/5，通过 diff-check。不是单次完整 16/16；所有要求现均有通过证据。首次 Groq env 根路径回归和旧构造器清单失败已修复，失败记录及 S27 替代映射保留在 `evidence/AG-31/README.md`。依赖/原生/提示词未改，未触发 CI，Claude 只读复查待做。
 
-**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，交 Claude 只读复查。AG-33 的三处提示词仍待 S12/S27 用户直接决定；定案并验证后按 S27 运行一次阶段 3 完整出口 CI，再按 S26 核对源码包和 asar。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S28 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 S29 顺序：Claude 只读复查 AG-30–34 并关闭发现的问题，然后运行一次阶段 3 完整出口 CI（`package_apps`），再按 S26 核对源码包和 asar。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S29 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
