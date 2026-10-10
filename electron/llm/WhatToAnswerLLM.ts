@@ -1,5 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowProviderScopeError } from "./ProviderRouter";
+import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_WHAT_TO_ANSWER_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX } from "./prompts";
 import { TINY_WHAT_TO_ANSWER_PROMPT } from "./tinyPrompts";
 import { estimateTokens } from "./modelCapabilities";
@@ -188,7 +188,7 @@ ANSWER SHAPE: ${intentResult.answerShape}
             }
 
         } catch (error) {
-            rethrowProviderScopeError(error);
+            rethrowTerminalGenerationError(error);
             console.error("[WhatToAnswerLLM] Stream failed:", error);
             yield "Could you repeat that? I want to make sure I address your question properly.";
         }

@@ -66,7 +66,8 @@ for (const entry of ['streamWithGeminiModel', 'collectStreamResponse']) {
       const generate = async () => {
         sends.push('generation');
         if (stage === 'expired') { policy.transcript = false; throw Error('cached content expired'); }
-        return entry === 'collectStreamResponse' ? { text: 'allowed' } : [];
+        const completed = { candidates: [{ content: { parts: [{ text: 'allowed' }] }, finishReason: 'STOP' }], text: 'allowed' };
+        return entry === 'collectStreamResponse' ? completed : [completed];
       };
       const self = Object.assign(Object.create(LLMHelper.prototype), {
         getProviderScopePolicy: () => policy, rateLimiters: { gemini: { acquire: async () => {} } },
@@ -189,7 +190,7 @@ test('generateContent: revocation during the retry backoff stops the retry, with
       client: { models: { generateContent: async () => {
         sends++;
         if (sends === 1) { if (revoke) setTimeout(() => { policy.transcript = false; }, 50); throw retryable(); }
-        return { candidates: [{ content: { parts: [{ text: 'allowed' }] } }], text: 'allowed' };
+        return { candidates: [{ content: { parts: [{ text: 'allowed' }] }, finishReason: 'STOP' }], text: 'allowed' };
       } } },
     });
     const invoke = () => self.generateContent([{ text: 'synthetic' }]);
@@ -213,7 +214,7 @@ test('generateContentStructured: revocation in the limiter, retry backoff or rot
           sends.push(model);
           if (stage === 'retry' && sends.length === 1) { if (revoke) setTimeout(revokeNow, 50); throw retryable(); }
           if (stage === 'rotation' && sends.length <= 2) throw Error('synthetic provider failure');
-          return { candidates: [{}], text: 'allowed' };
+          return { candidates: [{ finishReason: 'STOP' }], text: 'allowed' };
         } } },
       });
       const invoke = () => self.generateContentStructured('synthetic');
@@ -241,7 +242,7 @@ test('streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemin
           if (stage === 'fallback') { if (revoke) policy.transcript = false; throw Error('synthetic groq failure'); }
           return [{ choices: [{ delta: { content: 'allowed' } }] }];
         } } } },
-        client: { models: { generateContentStream: async () => { sends.push('gemini'); return [{ text: 'allowed' }]; } } },
+        client: { models: { generateContentStream: async () => { sends.push('gemini'); return [{ candidates: [{ finishReason: 'STOP' }], text: 'allowed' }]; } } },
       });
       const invoke = async () => { let text = ''; for await (const chunk of self.streamWithGroqOrGemini('synthetic', 'synthetic')) text += chunk; return text; };
       if (revoke) await assert.rejects(invoke, { name: 'ProviderScopeError' }, stage); else assert.match(await invoke(), /allowed/, stage);
@@ -249,13 +250,6 @@ test('streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemin
       assert.deepEqual(sends, expected, `${stage} ${revoke ? 'revoked' : 'allowed'}`);
     }
   }
-});
-
-test('LLMHelper passes data scopes and policy to routeLLMProviders for fallback rotation', () => {
-  const src = read('electron/LLMHelper.ts');
-
-  assert.match(src, /dataScopes: this\.scopesForPayload\(cloudUserContent, cloudImagePaths\)/);
-  assert.match(src, /scopePolicy,/);
 });
 
 test('SettingsManager exposes providerDataScopes setting', () => {

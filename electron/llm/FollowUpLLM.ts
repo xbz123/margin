@@ -1,5 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowProviderScopeError } from "./ProviderRouter";
+import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_FOLLOWUP_PROMPT } from "./prompts";
 import { TINY_FOLLOWUP_PROMPT } from "./tinyPrompts";
 
@@ -23,7 +23,7 @@ export class FollowUpLLM {
             for await (const chunk of stream) full += chunk;
             return full;
         } catch (e) {
-            rethrowProviderScopeError(e);
+            rethrowTerminalGenerationError(e);
             console.error("[FollowUpLLM] Failed:", e);
             return "";
         }
@@ -35,7 +35,7 @@ export class FollowUpLLM {
             const fittedContext = context ? this.llmHelper.fitContextForCurrentModel(context) : context;
             yield* this.llmHelper.streamChat(message, undefined, fittedContext, this.resolvePrompt());
         } catch (e) {
-            rethrowProviderScopeError(e);
+            rethrowTerminalGenerationError(e);
             console.error("[FollowUpLLM] Stream Failed:", e);
         }
     }

@@ -1,5 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowProviderScopeError } from "./ProviderRouter";
+import { rethrowTerminalGenerationError } from "./generateContract";
 import { BRAINSTORM_MODE_PROMPT } from "./prompts";
 import { TINY_BRAINSTORM_PROMPT } from "./tinyPrompts";
 
@@ -21,7 +21,7 @@ export class BrainstormLLM {
             const fittedContext = context ? this.llmHelper.fitContextForCurrentModel(context) : context;
             yield* this.llmHelper.streamChat(fittedContext, imagePaths, undefined, promptOverride);
         } catch (error) {
-            rethrowProviderScopeError(error);
+            rethrowTerminalGenerationError(error);
             console.error("[BrainstormLLM] Stream failed:", error);
             yield "I couldn't generate brainstorm approaches. Make sure your question is visible and try again.";
         }

@@ -5,6 +5,7 @@
 import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
 import { rethrowProviderScopeError } from './llm/ProviderRouter';
+import { rethrowTerminalGenerationError } from './llm/generateContract';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
@@ -574,7 +575,7 @@ export class IntelligenceEngine extends EventEmitter {
             if (isSpeculative) { this.speculativeText = null; this.speculativeTextExpiry = Infinity; }
             this.emit('error', error as Error, 'what_to_say');
             this.setMode('idle');
-            rethrowProviderScopeError(error);
+            rethrowTerminalGenerationError(error);
             return "Could you repeat that? I want to make sure I address your question properly.";
         }
     }

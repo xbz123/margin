@@ -1,0 +1,1002 @@
+TAP version 13
+# (node:62851) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: generateSuggestion uses the fixed default answer suffix and no mode system
+ok 1 - generateSuggestion uses the fixed default answer suffix and no mode system
+  ---
+  duration_ms: 0.91025
+  type: 'test'
+  ...
+# Subtest: generateSuggestion sends custom notes and the transcript as user content, not in the system prompt
+ok 2 - generateSuggestion sends custom notes and the transcript as user content, not in the system prompt
+  ---
+  duration_ms: 312.053542
+  type: 'test'
+  ...
+# Subtest: generateSuggestion does not append custom notes to any system prompt branch
+ok 3 - generateSuggestion does not append custom notes to any system prompt branch
+  ---
+  duration_ms: 0.149333
+  type: 'test'
+  ...
+# Subtest: WhatToAnswerLLM layers the default answer suffix and no mode system
+ok 4 - WhatToAnswerLLM layers the default answer suffix and no mode system
+  ---
+  duration_ms: 0.105
+  type: 'test'
+  ...
+# Subtest: intent answer shapes require grounding for examples and behavioral stories
+ok 5 - intent answer shapes require grounding for examples and behavioral stories
+  ---
+  duration_ms: 0.087375
+  type: 'test'
+  ...
+# Subtest: WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content
+ok 6 - WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content
+  ---
+  duration_ms: 3.24225
+  type: 'test'
+  ...
+# Subtest: WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content
+ok 7 - WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content
+  ---
+  duration_ms: 0.495916
+  type: 'test'
+  ...
+# Subtest: WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection)
+ok 8 - WhatToAnswerLLM delegates attached images to streamChat (vision fallback owns provider selection)
+  ---
+  duration_ms: 0.229292
+  type: 'test'
+  ...
+# Subtest: classifyVisionError
+    # Subtest: timedOut flag short-circuits to timeout
+    ok 1 - timedOut flag short-circuits to timeout
+      ---
+      duration_ms: 0.677208
+      type: 'test'
+      ...
+    # Subtest: expired API key → auth
+    ok 2 - expired API key → auth
+      ---
+      duration_ms: 0.069667
+      type: 'test'
+      ...
+    # Subtest: 401 / 403 / quota → auth
+    ok 3 - 401 / 403 / quota → auth
+      ---
+      duration_ms: 0.060083
+      type: 'test'
+      ...
+    # Subtest: 429 → rate
+    ok 4 - 429 → rate
+      ---
+      duration_ms: 0.054334
+      type: 'test'
+      ...
+    # Subtest: ECONNRESET / fetch failed → network
+    ok 5 - ECONNRESET / fetch failed → network
+      ---
+      duration_ms: 0.067917
+      type: 'test'
+      ...
+    # Subtest: 413 / too large → payload
+    ok 6 - 413 / too large → payload
+      ---
+      duration_ms: 0.054958
+      type: 'test'
+      ...
+    # Subtest: does not support images → no_vision
+    ok 7 - does not support images → no_vision
+      ---
+      duration_ms: 0.048833
+      type: 'test'
+      ...
+    # Subtest: 503 / overloaded → server
+    ok 8 - 503 / overloaded → server
+      ---
+      duration_ms: 0.057334
+      type: 'test'
+      ...
+    # Subtest: unrecognized → unknown
+    ok 9 - unrecognized → unknown
+      ---
+      duration_ms: 0.065708
+      type: 'test'
+      ...
+    1..9
+ok 9 - classifyVisionError
+  ---
+  duration_ms: 1.992458
+  type: 'suite'
+  ...
+# Subtest: orderVisionByHealth
+    # Subtest: no measurements → priority order preserved
+    ok 1 - no measurements → priority order preserved
+      ---
+      duration_ms: 0.95625
+      type: 'test'
+      ...
+    # Subtest: among MEASURED providers, the faster one leads regardless of priority
+    ok 2 - among MEASURED providers, the faster one leads regardless of priority
+      ---
+      duration_ms: 0.089709
+      type: 'test'
+      ...
+    # Subtest: an unmeasured higher-priority provider is NOT buried behind a measured slow one
+    ok 3 - an unmeasured higher-priority provider is NOT buried behind a measured slow one
+      ---
+      duration_ms: 0.061709
+      type: 'test'
+      ...
+    # Subtest: OPEN-breaker provider demoted to back
+    ok 4 - OPEN-breaker provider demoted to back
+      ---
+      duration_ms: 0.070291
+      type: 'test'
+      ...
+    # Subtest: all cooling → still returned (never fail closed), in priority order
+    ok 5 - all cooling → still returned (never fail closed), in priority order
+      ---
+      duration_ms: 0.056625
+      type: 'test'
+      ...
+    # Subtest: cooldown expires → provider returns to live set
+    ok 6 - cooldown expires → provider returns to live set
+      ---
+      duration_ms: 0.139208
+      type: 'test'
+      ...
+    1..6
+ok 10 - orderVisionByHealth
+  ---
+  duration_ms: 1.49925
+  type: 'suite'
+  ...
+# Subtest: runStreamingVisionFallback — commit point + fallback
+    # Subtest: single provider succeeds → yields all tokens
+    ok 1 - single provider succeeds → yields all tokens
+      ---
+      duration_ms: 0.784542
+      type: 'test'
+      ...
+    # Subtest: first provider fails pre-commit → SILENT fallback, no partial output
+    ok 2 - first provider fails pre-commit → SILENT fallback, no partial output
+      ---
+      duration_ms: 0.426959
+      type: 'test'
+      ...
+    # Subtest: auth failure → provider marked unhealthy and skipped (no retry)
+    ok 3 - auth failure → provider marked unhealthy and skipped (no retry)
+      ---
+      duration_ms: 0.187666
+      type: 'test'
+      ...
+    # Subtest: transient failure retries up to maxAttempts then moves on
+    ok 4 - transient failure retries up to maxAttempts then moves on
+      ---
+      duration_ms: 0.254541
+      type: 'test'
+      ...
+    # Subtest: exhausting all attempts on every provider → throws
+    ok 5 - exhausting all attempts on every provider → throws
+      ---
+      duration_ms: 0.513334
+      type: 'test'
+      ...
+    # Subtest: post-commit failure → keeps delivered tokens, does NOT switch providers
+    ok 6 - post-commit failure → keeps delivered tokens, does NOT switch providers
+      ---
+      duration_ms: 0.14325
+      type: 'test'
+      ...
+    # Subtest: empty-stream first provider → falls back
+    ok 7 - empty-stream first provider → falls back
+      ---
+      duration_ms: 0.195416
+      type: 'test'
+      ...
+    # Subtest: no providers configured → throws config error
+    ok 8 - no providers configured → throws config error
+      ---
+      duration_ms: 0.076708
+      type: 'test'
+      ...
+    # Subtest: already-aborted signal → yields nothing, no provider called
+    ok 9 - already-aborted signal → yields nothing, no provider called
+      ---
+      duration_ms: 0.064542
+      type: 'test'
+      ...
+    # Subtest: TTFT timeout → aborts slow provider and falls back
+    ok 10 - TTFT timeout → aborts slow provider and falls back
+      ---
+      duration_ms: 42.902375
+      type: 'test'
+      ...
+    # Subtest: no_vision failure opens the breaker so the dead model is demoted next time
+    ok 11 - no_vision failure opens the breaker so the dead model is demoted next time
+      ---
+      duration_ms: 0.213958
+      type: 'test'
+      ...
+    # Subtest: payload-too-large opens the breaker and skips to next provider
+    ok 12 - payload-too-large opens the breaker and skips to next provider
+      ---
+      duration_ms: 0.140875
+      type: 'test'
+      ...
+    # Subtest: always closes the upstream iterator on every exit path (no leak)
+    ok 13 - always closes the upstream iterator on every exit path (no leak)
+      ---
+      duration_ms: 0.139708
+      type: 'test'
+      ...
+    # Subtest: outer abort mid-attempt does not penalize the provider breaker
+    ok 14 - outer abort mid-attempt does not penalize the provider breaker
+      ---
+      duration_ms: 0.161458
+      type: 'test'
+      ...
+    # Subtest: records TTFT EWMA on the committed provider
+    ok 15 - records TTFT EWMA on the committed provider
+      ---
+      duration_ms: 0.089333
+      type: 'test'
+      ...
+    1..15
+ok 11 - runStreamingVisionFallback — commit point + fallback
+  ---
+  duration_ms: 46.48325
+  type: 'suite'
+  ...
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] Groq API Key updated.
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] OpenAI API Key updated.
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Claude API Key updated.
+# [GeminiPromptCache] created cached/test for model=test (6800 chars)
+# [GeminiPromptCache] created cached/test for model=test (6800 chars)
+# [LLMHelper] Calling gemini-test...
+# [LLMHelper] Transient error (503). Retrying in 400ms...
+# (node:62853) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: LLM SDK construction and key updates preserve explicitly configured env endpoints
+ok 12 - LLM SDK construction and key updates preserve explicitly configured env endpoints
+  ---
+  duration_ms: 335.968959
+  type: 'test'
+  ...
+# Subtest: streamWithGeminiModel: revocation during image processing prevents cache and generation
+ok 13 - streamWithGeminiModel: revocation during image processing prevents cache and generation
+  ---
+  duration_ms: 2.470292
+  type: 'test'
+  ...
+# Subtest: collectStreamResponse: revocation during image processing prevents cache and generation
+ok 14 - collectStreamResponse: revocation during image processing prevents cache and generation
+  ---
+  duration_ms: 0.423583
+  type: 'test'
+  ...
+# Subtest: streamWithGeminiModel: allowed cache, cache-inflight revocation and expired-cache retry
+not ok 15 - streamWithGeminiModel: allowed cache, cache-inflight revocation and expired-cache retry
+  ---
+  duration_ms: 2.263541
+  type: 'test'
+  location: '<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:61:3'
+  failureType: 'testCodeFailure'
+  error: '(response.stream ?? response)[Symbol.asyncIterator] is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91930:88)
+    async LLMHelper.sendGeminiStream (<repo>/dist-electron/electron/LLMHelper.js:92795:22)
+    async LLMHelper.streamWithGeminiModel (<repo>/dist-electron/electron/LLMHelper.js:95096:7)
+    async invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:79:65)
+    async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:82:32)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: collectStreamResponse: allowed cache, cache-inflight revocation and expired-cache retry
+not ok 16 - collectStreamResponse: allowed cache, cache-inflight revocation and expired-cache retry
+  ---
+  duration_ms: 0.417542
+  type: 'test'
+  location: '<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:61:3'
+  failureType: 'testCodeFailure'
+  error: 'Generation incomplete after partial output'
+  code: 'ERR_TEST_FAILURE'
+  name: 'GenerationResultError'
+  stack: |-
+    LLMHelper.generationFinish (<repo>/dist-electron/electron/LLMHelper.js:92774:77)
+    LLMHelper.sendGemini (<repo>/dist-electron/electron/LLMHelper.js:92788:44)
+    async LLMHelper.collectStreamResponse (<repo>/dist-electron/electron/LLMHelper.js:95194:18)
+    async invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:80:14)
+    async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:82:32)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: assertProviderDataScopes throws ProviderScopeError when a denied scope is requested
+ok 17 - assertProviderDataScopes throws ProviderScopeError when a denied scope is requested
+  ---
+  duration_ms: 2.025458
+  type: 'test'
+  ...
+# Subtest: assertProviderDataScopes is a no-op when scopes are allowed or unset
+ok 18 - assertProviderDataScopes is a no-op when scopes are allowed or unset
+  ---
+  duration_ms: 0.219625
+  type: 'test'
+  ...
+# Subtest: routeLLMProviders marks all providers unavailable when scope is denied
+ok 19 - routeLLMProviders marks all providers unavailable when scope is denied
+  ---
+  duration_ms: 0.26475
+  type: 'test'
+  ...
+# Subtest: routeLLMProviders keeps providers available when scopes are allowed
+ok 20 - routeLLMProviders keeps providers available when scopes are allowed
+  ---
+  duration_ms: 0.150208
+  type: 'test'
+  ...
+# Subtest: generateWithGroq: final send rechecks after limiter wait, with allowed control
+ok 21 - generateWithGroq: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.337958
+  type: 'test'
+  ...
+# Subtest: generateWithOpenai: final send rechecks after limiter wait, with allowed control
+ok 22 - generateWithOpenai: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.232375
+  type: 'test'
+  ...
+# Subtest: generateWithClaude: final send rechecks after limiter wait, with allowed control
+ok 23 - generateWithClaude: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.303375
+  type: 'test'
+  ...
+# Subtest: generateWithDeepseek: final send rechecks after limiter wait, with allowed control
+ok 24 - generateWithDeepseek: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.228458
+  type: 'test'
+  ...
+# Subtest: generateWithPro: final send rechecks after limiter wait, with allowed control
+ok 25 - generateWithPro: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.164167
+  type: 'test'
+  ...
+# Subtest: generateWithFlash: final send rechecks after limiter wait, with allowed control
+ok 26 - generateWithFlash: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.118458
+  type: 'test'
+  ...
+# Subtest: generateWithGroqMultimodal: final send rechecks after limiter wait, with allowed control
+ok 27 - generateWithGroqMultimodal: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.121333
+  type: 'test'
+  ...
+# Subtest: streamWithGroq: final send rechecks after limiter wait, with allowed control
+ok 28 - streamWithGroq: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.148125
+  type: 'test'
+  ...
+# Subtest: streamWithOpenai: final send rechecks after limiter wait, with allowed control
+ok 29 - streamWithOpenai: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.146208
+  type: 'test'
+  ...
+# Subtest: streamWithClaude: final send rechecks after limiter wait, with allowed control
+ok 30 - streamWithClaude: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.13975
+  type: 'test'
+  ...
+# Subtest: streamWithDeepseek: final send rechecks after limiter wait, with allowed control
+ok 31 - streamWithDeepseek: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.120791
+  type: 'test'
+  ...
+# Subtest: streamWithGroqMultimodal: final send rechecks after limiter wait, with allowed control
+ok 32 - streamWithGroqMultimodal: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.131459
+  type: 'test'
+  ...
+# Subtest: streamWithOpenaiMultimodal: final send rechecks after limiter wait, with allowed control
+ok 33 - streamWithOpenaiMultimodal: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.139292
+  type: 'test'
+  ...
+# Subtest: streamWithClaudeMultimodal: final send rechecks after limiter wait, with allowed control
+ok 34 - streamWithClaudeMultimodal: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.13675
+  type: 'test'
+  ...
+# Subtest: streamWithGeminiModel: final send rechecks after limiter wait, with allowed control
+ok 35 - streamWithGeminiModel: final send rechecks after limiter wait, with allowed control
+  ---
+  duration_ms: 0.109708
+  type: 'test'
+  ...
+# [LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+# [LLMHelper] 🚀 Mode-specific Groq stream starting...
+# [LLMHelper] ✅ Mode-specific Groq stream completed
+# [LLMHelper] 🚀 Mode-specific Groq stream starting...
+# [LLMHelper] 🚀 Mode-specific Groq stream starting...
+# [LLMHelper] ⚠️ Groq mode-specific failed: synthetic groq failure, falling back to Gemini
+# [LLMHelper] 🔄 Falling back to Gemini for mode-specific request...
+# Subtest: generateContent: revocation during the retry backoff stops the retry, with allowed control
+not ok 36 - generateContent: revocation during the retry backoff stops the retry, with allowed control
+  ---
+  duration_ms: 404.331
+  type: 'test'
+  location: '<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:182:1'
+  failureType: 'testCodeFailure'
+  error: 'Generation incomplete after partial output'
+  code: 'ERR_TEST_FAILURE'
+  name: 'GenerationResultError'
+  stack: |-
+    LLMHelper.generationFinish (<repo>/dist-electron/electron/LLMHelper.js:92774:77)
+    LLMHelper.sendGemini (<repo>/dist-electron/electron/LLMHelper.js:92788:44)
+    async <repo>/dist-electron/electron/LLMHelper.js:93210:24
+    async LLMHelper.withRetry (<repo>/dist-electron/electron/LLMHelper.js:93186:16)
+    async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:196:97)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls
+not ok 37 - generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls
+  ---
+  duration_ms: 1.697333
+  type: 'test'
+  location: '<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:201:1'
+  failureType: 'testCodeFailure'
+  error: 'Generation incomplete after partial output'
+  code: 'ERR_TEST_FAILURE'
+  name: 'GenerationResultError'
+  stack: |-
+    LLMHelper.generationFinish (<repo>/dist-electron/electron/LLMHelper.js:92774:77)
+    LLMHelper.sendGemini (<repo>/dist-electron/electron/LLMHelper.js:92788:44)
+    async <repo>/dist-electron/electron/LLMHelper.js:93835:25
+    async LLMHelper.withRetry (<repo>/dist-electron/electron/LLMHelper.js:93186:16)
+    async Object.execute (<repo>/dist-electron/electron/LLMHelper.js:93833:28)
+    async LLMHelper.generateContentStructured (<repo>/dist-electron/electron/LLMHelper.js:93887:26)
+    async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:220:106)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls
+not ok 38 - streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls
+  ---
+  duration_ms: 1.607208
+  type: 'test'
+  location: '<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:227:1'
+  failureType: 'testCodeFailure'
+  error: '(response.stream ?? response)[Symbol.asyncIterator] is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    generateOnce (<repo>/dist-electron/electron/LLMHelper.js:91930:88)
+    async LLMHelper.sendGeminiStream (<repo>/dist-electron/electron/LLMHelper.js:92795:22)
+    async LLMHelper.streamWithGeminiModel (<repo>/dist-electron/electron/LLMHelper.js:95096:7)
+    async LLMHelper.streamWithGroqOrGemini (<repo>/dist-electron/electron/LLMHelper.js:95319:7)
+    async invoke (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:246:68)
+    async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ProviderGatewayPolicy.test.mjs:247:106)
+    async Test.run (node:internal/test_runner/test:1208:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: LLMHelper passes data scopes and policy to routeLLMProviders for fallback rotation
+ok 39 - LLMHelper passes data scopes and policy to routeLLMProviders for fallback rotation
+  ---
+  duration_ms: 1.916417
+  type: 'test'
+  ...
+# Subtest: SettingsManager exposes providerDataScopes setting
+ok 40 - SettingsManager exposes providerDataScopes setting
+  ---
+  duration_ms: 3.613292
+  type: 'test'
+  ...
+# Subtest: IPC handlers expose get/set provider-data-scopes and broadcast updates
+ok 41 - IPC handlers expose get/set provider-data-scopes and broadcast updates
+  ---
+  duration_ms: 1.431542
+  type: 'test'
+  ...
+# Subtest: preload and renderer types expose provider data scope controls
+ok 42 - preload and renderer types expose provider data scope controls
+  ---
+  duration_ms: 6.04525
+  type: 'test'
+  ...
+# Subtest: AIProvidersSettings renders cloud provider data scope controls wired to real IPC
+ok 43 - AIProvidersSettings renders cloud provider data scope controls wired to real IPC
+  ---
+  duration_ms: 5.144
+  type: 'test'
+  ...
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Groq for summary...
+# [LLMHelper] ✅ Groq summary generated successfully.
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Groq for summary...
+# [LLMHelper] ✅ Groq summary generated successfully.
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Groq for summary...
+# [LLMHelper] ✅ Groq summary generated successfully.
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# (node:62854) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+# Subtest: transcript scope denial omits transcript from cloud calls
+ok 44 - transcript scope denial omits transcript from cloud calls
+  ---
+  duration_ms: 1.806958
+  type: 'test'
+  ...
+# Subtest: LLMHelper infers auxiliary context scopes before cloud routing
+ok 45 - LLMHelper infers auxiliary context scopes before cloud routing
+  ---
+  duration_ms: 0.637917
+  type: 'test'
+  ...
+# Subtest: routeLLMProviders marks cloud providers unavailable when a scope is denied
+ok 46 - routeLLMProviders marks cloud providers unavailable when a scope is denied
+  ---
+  duration_ms: 2.737
+  type: 'test'
+  ...
+# Subtest: meeting summaries send the transcript only when both transcript and post_call_summary are allowed
+ok 47 - meeting summaries send the transcript only when both transcript and post_call_summary are allowed
+  ---
+  duration_ms: 136.4
+  type: 'test'
+  ...
+# Subtest: meeting summaries with a declared profile_history scope are not sent while it is denied
+ok 48 - meeting summaries with a declared profile_history scope are not sent while it is denied
+  ---
+  duration_ms: 0.357167
+  type: 'test'
+  ...
+# Subtest: Codex CLI (generate) does not start when the transcript scope is denied
+ok 49 - Codex CLI (generate) does not start when the transcript scope is denied
+  ---
+  duration_ms: 0.594333
+  type: 'test'
+  ...
+# Subtest: Codex CLI (stream) does not start when the transcript scope is denied
+ok 50 - Codex CLI (stream) does not start when the transcript scope is denied
+  ---
+  duration_ms: 0.3265
+  type: 'test'
+  ...
+# Subtest: groq constructor: SDK cannot resend after scope revocation
+ok 51 - groq constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 8.246042
+  type: 'test'
+  ...
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# Subtest: openai constructor: SDK cannot resend after scope revocation
+ok 52 - openai constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 406.52025
+  type: 'test'
+  ...
+# [LLMHelper] Groq client initialized with model: llama-3.3-70b-versatile
+# [LLMHelper] OpenAI client initialized with model: gpt-5.4
+# [LLMHelper] Claude client initialized with model: claude-sonnet-4-6
+# [LLMHelper] DeepSeek client initialized with model: deepseek-v4-flash
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# Subtest: claude constructor: SDK cannot resend after scope revocation
+ok 53 - claude constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 411.794625
+  type: 'test'
+  ...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Groq API Key updated.
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] OpenAI API Key updated.
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# Subtest: deepseek constructor: SDK cannot resend after scope revocation
+ok 54 - deepseek constructor: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 407.242208
+  type: 'test'
+  ...
+# Subtest: groq key update: SDK cannot resend after scope revocation
+ok 55 - groq key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 3.197
+  type: 'test'
+  ...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Claude API Key updated.
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# Subtest: openai key update: SDK cannot resend after scope revocation
+ok 56 - openai key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 406.271125
+  type: 'test'
+  ...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] Transient error (500). Retrying in 400ms...
+# [LLMHelper] DeepSeek API Key updated.
+# Subtest: claude key update: SDK cannot resend after scope revocation
+ok 57 - claude key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 406.381916
+  type: 'test'
+  ...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+# [ScopeFallback] transcript denied for cloud providers; omitting from context
+# [LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+# [ScopeFallback] profile_history denied for cloud providers; omitting from context
+# [LLMHelper] 🚀 Attempting Groq (llama-3.3-70b-versatile)...
+# [LLMHelper] ✅ Groq (llama-3.3-70b-versatile) succeeded
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+# [LLMHelper] ⚡️ Fast Text Mode Active. Routing to Codex CLI...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+# [LLMHelper] ⚡️ Groq Fast Text Mode Active. Routing to Groq...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] 🧠 Structured generation: trying OpenAI (gpt-5.4)...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] 🚀 [OpenAI (gpt-5.4)] attempt 1/3...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] 🚀 [Codex CLI] Attempting (test, 1 image(s))...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] streamChatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+# [LLMHelper] 🚀 Attempting OpenAI (gpt-5.4)...
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] No API key provided. Client will be uninitialized until key is set.
+# [LLMHelper] 🚀 Mode-specific Groq stream starting...
+# [LLMHelper] Calling gemini-test...
+# [LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+# [LLMHelper] Critical Error in chatWithGemini: Error: send-stub-reached
+#     at Object.stream (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:394:85)
+#     at <repo>/dist-electron/electron/LLMHelper.js:94038:52
+#     at LLMHelper.withRetry (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:385:24)
+#     at LLMHelper.generateWithClaude (<repo>/dist-electron/electron/LLMHelper.js:94036:12)
+#     at async <repo>/dist-electron/electron/LLMHelper.js:93690:18
+# [LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+# [LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+# [LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+# [LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+# [LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+# [LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+# [LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+# [LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+# [LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+# [LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+# [LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+# [LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+# [LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+# [LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+# [LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+# [LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+# [LLMHelper] 🚀 Mode-specific Groq stream starting...
+# [LLMHelper] ⚠️ Groq mode-specific failed: send-stub-reached, falling back to Gemini
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Codex CLI for summary...
+# [LLMHelper] Attempting Groq for summary...
+# [LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Codex CLI for summary...
+# [LLMHelper] Attempting Groq for summary...
+# [LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+# [LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Codex CLI for summary...
+# [LLMHelper] Attempting Groq for summary...
+# [LLMHelper] generateMeetingSummary called. Context length: 30
+# [LLMHelper] Estimated tokens: 8
+# [LLMHelper] Attempting Gemini Flash for summary...
+# [LLMHelper] ⚡️ Fast Text Mode Active (Streaming). Routing to Codex CLI...
+# [LLMHelper] ⚡️ Groq Fast Text Mode Active (Streaming). Routing to local Groq...
+# [LLMHelper] Codex CLI Fast Text streaming failed, falling back: codex failed
+# [LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+# Subtest: deepseek key update: SDK cannot resend after scope revocation
+ok 58 - deepseek key update: SDK cannot resend after scope revocation
+  ---
+  duration_ms: 407.955125
+  type: 'test'
+  ...
+# Subtest: vision denial is terminal without retries, health penalty or fallback
+ok 59 - vision denial is terminal without retries, health penalty or fallback
+  ---
+  duration_ms: 8.273625
+  type: 'test'
+  ...
+# Subtest: Gemini fallback preserves refusal without starting a speculative sibling
+ok 60 - Gemini fallback preserves refusal without starting a speculative sibling
+  ---
+  duration_ms: 2.005042
+  type: 'test'
+  ...
+# Subtest: Gemini sequential fallback retains ordinary failure and cancellation behavior
+ok 61 - Gemini sequential fallback retains ordinary failure and cancellation behavior
+  ---
+  duration_ms: 1.135583
+  type: 'test'
+  ...
+# Subtest: an aborted Gemini collection cannot send after its cache wait
+ok 62 - an aborted Gemini collection cannot send after its cache wait
+  ---
+  duration_ms: 0.720625
+  type: 'test'
+  ...
+# Subtest: prompt wrappers propagate a refusal instead of inventing an answer
+ok 63 - prompt wrappers propagate a refusal instead of inventing an answer
+  ---
+  duration_ms: 27.977
+  type: 'test'
+  ...
+# Subtest: WhatToSay emits the refusal and rejects without a fabricated answer
+ok 64 - WhatToSay emits the refusal and rejects without a fabricated answer
+  ---
+  duration_ms: 4.13125
+  type: 'test'
+  ...
+# Subtest: default chat routing refuses transcript denial but can send without denied context
+ok 65 - default chat routing refuses transcript denial but can send without denied context
+  ---
+  duration_ms: 4.022333
+  type: 'test'
+  ...
+# Subtest: non-streaming chat: a scope refusal stops at the first provider
+ok 66 - non-streaming chat: a scope refusal stops at the first provider
+  ---
+  duration_ms: 0.849875
+  type: 'test'
+  ...
+# Subtest: fast Codex chat: a scope refusal stops at the first provider
+ok 67 - fast Codex chat: a scope refusal stops at the first provider
+  ---
+  duration_ms: 0.618625
+  type: 'test'
+  ...
+# Subtest: fast Groq chat: a scope refusal stops at the first provider
+ok 68 - fast Groq chat: a scope refusal stops at the first provider
+  ---
+  duration_ms: 0.566833
+  type: 'test'
+  ...
+# Subtest: structured fallback: a scope refusal stops at the first provider
+ok 69 - structured fallback: a scope refusal stops at the first provider
+  ---
+  duration_ms: 0.706959
+  type: 'test'
+  ...
+# Subtest: non-streaming vision: a scope refusal stops at the first provider
+ok 70 - non-streaming vision: a scope refusal stops at the first provider
+  ---
+  duration_ms: 1.090375
+  type: 'test'
+  ...
+# Subtest: Codex vision: a scope refusal stops at the first provider
+ok 71 - Codex vision: a scope refusal stops at the first provider
+  ---
+  duration_ms: 0.570833
+  type: 'test'
+  ...
+# Subtest: streaming text fallback: a scope refusal stops at the first provider
+ok 72 - streaming text fallback: a scope refusal stops at the first provider
+  ---
+  duration_ms: 1.063667
+  type: 'test'
+  ...
+# Subtest: streaming vision outer boundary: a scope refusal stops at the first provider
+ok 73 - streaming vision outer boundary: a scope refusal stops at the first provider
+  ---
+  duration_ms: 0.9675
+  type: 'test'
+  ...
+# Subtest: mode-specific fallback: a scope refusal stops at the first provider
+ok 74 - mode-specific fallback: a scope refusal stops at the first provider
+  ---
+  duration_ms: 1.230458
+  type: 'test'
+  ...
+# Subtest: robust Gemini fallback keeps refusal type at rate-limit wait 1
+ok 75 - robust Gemini fallback keeps refusal type at rate-limit wait 1
+  ---
+  duration_ms: 0.384917
+  type: 'test'
+  ...
+# Subtest: robust Gemini fallback keeps refusal type at rate-limit wait 2
+ok 76 - robust Gemini fallback keeps refusal type at rate-limit wait 2
+  ---
+  duration_ms: 0.491167
+  type: 'test'
+  ...
+# Subtest: Claude sends nothing when the transcript or screenshot scope is denied
+ok 77 - Claude sends nothing when the transcript or screenshot scope is denied
+  ---
+  duration_ms: 0.594792
+  type: 'test'
+  ...
+# Subtest: Groq multimodal sends nothing when the transcript or screenshot scope is denied
+ok 78 - Groq multimodal sends nothing when the transcript or screenshot scope is denied
+  ---
+  duration_ms: 0.416125
+  type: 'test'
+  ...
+# Subtest: Gemini contents sends nothing when the transcript or screenshot scope is denied
+ok 79 - Gemini contents sends nothing when the transcript or screenshot scope is denied
+  ---
+  duration_ms: 0.581667
+  type: 'test'
+  ...
+# Subtest: chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied
+ok 80 - chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied
+  ---
+  duration_ms: 8.194042
+  type: 'test'
+  ...
+# Subtest: every enumerated SDK send immediately follows a scope check without a syntactic wait
+not ok 81 - every enumerated SDK send immediately follows a scope check without a syntactic wait
+  ---
+  duration_ms: 46.241458
+  type: 'test'
+  location: '<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:469:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(sends.length >= 20)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:471:10)
+    Test.runInAsyncScope (node:async_hooks:226:14)
+    Test.run (node:internal/test_runner/test:1201:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+    Test.postRun (node:internal/test_runner/test:1330:19)
+    Test.run (node:internal/test_runner/test:1258:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+  ...
+# Subtest: send syntax guard rejects deferred closures and awaited arguments
+ok 82 - send syntax guard rejects deferred closures and awaited arguments
+  ---
+  duration_ms: 0.981291
+  type: 'test'
+  ...
+# Subtest: generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied
+ok 83 - generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied
+  ---
+  duration_ms: 0.704708
+  type: 'test'
+  ...
+# Subtest: generateWithPro sends nothing when the transcript scope is denied
+ok 84 - generateWithPro sends nothing when the transcript scope is denied
+  ---
+  duration_ms: 0.167
+  type: 'test'
+  ...
+# Subtest: generateWithFlash sends nothing when the transcript scope is denied
+ok 85 - generateWithFlash sends nothing when the transcript scope is denied
+  ---
+  duration_ms: 0.141667
+  type: 'test'
+  ...
+# Subtest: generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied
+ok 86 - generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied
+  ---
+  duration_ms: 0.174084
+  type: 'test'
+  ...
+# Subtest: streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied
+ok 87 - streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied
+  ---
+  duration_ms: 0.133875
+  type: 'test'
+  ...
+# Subtest: streamChat refuses a request whose declared scope is denied, before anything is sent
+ok 88 - streamChat refuses a request whose declared scope is denied, before anything is sent
+  ---
+  duration_ms: 0.593667
+  type: 'test'
+  ...
+# Subtest: WhatToAnswer sends earlier answers only while profile_history is allowed
+ok 89 - WhatToAnswer sends earlier answers only while profile_history is allowed
+  ---
+  duration_ms: 0.464917
+  type: 'test'
+  ...
+# Subtest: the meeting chat context carries the scopes of what it contains
+ok 90 - the meeting chat context carries the scopes of what it contains
+  ---
+  duration_ms: 0.964125
+  type: 'test'
+  ...
+# Subtest: the keyword fallback recognizes the meeting chat headings in a window-built context
+ok 91 - the keyword fallback recognizes the meeting chat headings in a window-built context
+  ---
+  duration_ms: 0.074334
+  type: 'test'
+  ...
+# Subtest: meeting summaries stop the fallback chain when a scope is turned off during it
+ok 92 - meeting summaries stop the fallback chain when a scope is turned off during it
+  ---
+  duration_ms: 0.489083
+  type: 'test'
+  ...
+# Subtest: streamChat re-checks its scopes before each send, also after waiting
+ok 93 - streamChat re-checks its scopes before each send, also after waiting
+  ---
+  duration_ms: 0.675417
+  type: 'test'
+  ...
+# Subtest: chatWithGemini keeps the scopes of its context for every send
+ok 94 - chatWithGemini keeps the scopes of its context for every send
+  ---
+  duration_ms: 0.194792
+  type: 'test'
+  ...
+1..94
+# tests 121
+# suites 3
+# pass 115
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3031.195042

@@ -1,0 +1,53 @@
+
+electron/llm/__tests__/generateOnce.test.mjs: 8 hit(s)
+  11: const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+  121: for (const partial of [false, true]) {
+  128: assert.equal(attempts, 1);
+  137: calls.push(model);
+  145: assert.equal(calls.length, 2);
+  188: assert.equal(sent.length, 0);
+  191: assert.equal(sent.length, 1);
+  203: res.writeHead(200, { 'content-type': 'text/event-stream' });
+
+electron/LLMHelper.ts: 3 hit(s)
+  213: if (signal?.aborted) return;
+  3021: }, abortSignal);
+  3036: }, abortSignal);
+
+electron/llm/GeminiPromptCache.ts: 1 hit(s)
+  176: if (signal?.aborted) throw err;
+
+electron/llm/generateContract.ts: 1 hit(s)
+  19: stream: boolean;
+
+electron/llm/generateOnce.ts: 1 hit(s)
+  24: let reason: string | undefined;
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 615901,
+  "addedSubstantiveLines": 70160,
+  "hits": 14,
+  "genericIdiomHits": 142,
+  "allowlistedHits": 2659,
+  "filesWithHits": 5,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ]
+}

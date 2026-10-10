@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import type { GoogleGenAI } from '@google/genai';
+import { rethrowProviderScopeError } from './ProviderRouter';
 
 /**
  * Process-local manager for Gemini explicit context caches (caches.create).
@@ -23,9 +24,9 @@ import type { GoogleGenAI } from '@google/genai';
  *     storage-hour cost of that orphan window is < a single uncached request.
  *
  * Failure mode:
- *   getOrCreate() returns null on any error (too-small input, model
- *   incompatibility, transient API failure, missing client). The caller MUST
- *   fall back to passing `systemInstruction` directly. Never throw upward.
+ *   getOrCreate() returns null on cache-service errors (too-small input, model
+ *   incompatibility, transient API failure). The caller falls back to passing
+ *   `systemInstruction` directly. Scope refusals and cancellation still throw.
  *
  * Eviction:
  *   No explicit delete — server-side TTL handles it. The in-memory entry is
@@ -74,7 +75,9 @@ export class GeminiPromptCache {
   async getOrCreate(
     client: GoogleGenAI,
     model: string,
-    systemPrompt: string
+    systemPrompt: string,
+    beforeSend: () => void,
+    signal?: AbortSignal
   ): Promise<string | null> {
     if (!systemPrompt || systemPrompt.length < MIN_PROMPT_CHARS) return null;
 
@@ -95,7 +98,7 @@ export class GeminiPromptCache {
     const pending = this.inflight.get(key);
     if (pending) return pending;
 
-    const creation = this.create(client, model, systemPrompt, key).finally(() => {
+    const creation = this.create(client, model, systemPrompt, key, beforeSend, signal).finally(() => {
       this.inflight.delete(key);
     });
     this.inflight.set(key, creation);
@@ -136,15 +139,21 @@ export class GeminiPromptCache {
     client: GoogleGenAI,
     model: string,
     systemPrompt: string,
-    key: string
+    key: string,
+    beforeSend: () => void,
+    signal?: AbortSignal
   ): Promise<string | null> {
     try {
+      signal?.throwIfAborted();
+      beforeSend();
       // Gemini requires both `contents` AND `systemInstruction` to have non-empty
       // bodies. We use a one-token placeholder for contents so the entire prompt
       // sits in `systemInstruction` (which is what we want to cache).
       const response: any = await (client as any).caches.create({
         model,
         config: {
+          abortSignal: signal,
+          httpOptions: { retryOptions: { attempts: 1 } },
           contents: [{ role: 'user', parts: [{ text: '_' }] }],
           systemInstruction: { parts: [{ text: systemPrompt }] },
           ttl: `${CACHE_TTL_SECONDS}s`,
@@ -163,6 +172,8 @@ export class GeminiPromptCache {
       console.log(`[GeminiPromptCache] created ${name} for model=${model} (${systemPrompt.length} chars)`);
       return name;
     } catch (err: any) {
+      rethrowProviderScopeError(err);
+      if (signal?.aborted) throw err;
       // Non-fatal. Common reasons: prompt below model minimum, model doesn't
       // support caching, transient 5xx. We log once and fall back to
       // systemInstruction on every subsequent call for this key until the

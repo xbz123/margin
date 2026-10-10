@@ -29,7 +29,7 @@ preserved. Nothing patches node_modules or SDK prototypes.
 | LLMHelper OpenAI chat/completions | Nonpackaged loopback dev override, otherwise OPENAI_BASE_URL, otherwise https://api.openai.com/v1 | Text/images; no current Responses call |
 | LLMHelper Anthropic messages | Explicit option, otherwise ANTHROPIC_BASE_URL, otherwise https://api.anthropic.com | Text/images |
 | LLMHelper DeepSeek chat/completions | Explicit https://api.deepseek.com overrides OpenAI env | Text |
-| LLMHelper Gemini generateContent/Stream and caches.create | HttpOptions baseUrl > SDK setDefaultBaseUrls > GOOGLE_GEMINI_BASE_URL / GOOGLE_VERTEX_BASE_URL for the selected backend > official default | Text/images/system instructions |
+| LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | HttpOptions baseUrl > SDK setDefaultBaseUrls > GOOGLE_GEMINI_BASE_URL / GOOGLE_VERTEX_BASE_URL for the selected backend > official default | Text/images/system instructions |
 | ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic/Groq model-list URLs, fetch | Key/config only; startup/background/model-error discovery |
 | utils/modelFetcher, fetch-provider-models IPC | Official five-provider model-list URLs, Axios | User-triggered key/config only |
 | test-llm-connection IPC | Official five-provider POSTs | Fixed Hello and supplied/stored key |
@@ -37,10 +37,25 @@ preserved. Nothing patches node_modules or SDK prototypes.
 
 LLMHelper's final sends recheck request scopes after limiter/image processing and
 before application retries/fallback. Groq/OpenAI/Anthropic/DeepSeek SDK retries
-are disabled (`maxRetries: 0`). Gemini has no retryOptions configured, so its
-installed apiCall sends once. Cache creation is an outbound request: both callers
-check scopes and abort **before** getOrCreate and check again before generation.
+are disabled (`maxRetries: 0`). Gemini generation is centralized in
+`llm/generateOnce.ts`, with `retryOptions.attempts: 1` on each physical request;
+the caller retains application-level retries and sequential model fallback.
+The three Gemini client-construction paths and cache creation also explicitly
+set one attempt. Cache creation is an outbound request: both callers check
+scopes and abort **before** getOrCreate, the cache helper checks immediately
+before `caches.create`, and generation checks again after the cache wait.
 An already submitted cache cannot be recalled; a later generation/retry is refused.
+
+The installed Gemini SDK receives the request AbortSignal for generation and
+cache creation. Cancelled generation discards late response content; this is
+client-side cancellation, not a promise that the remote service stops billing.
+The single-send result distinguishes complete, refused, incomplete, empty,
+cancelled and failed responses. Scope refusal remains a terminal exception.
+Gemini refusal/incomplete output and failures after partial output propagate
+through the legacy fallback wrappers rather than silently succeeding or
+appending another provider's answer. Empty pre-output results retain the
+caller's existing fallback policy. No new endpoint, credential source or
+automatic redirect is introduced by AG-30.
 
 Concrete helper send paths include generateWithPro/Flash, generateContent,
 generateContentStructured, generateWithGroq/Openai/Claude/Deepseek,

@@ -21,6 +21,35 @@ Notes:
 
 ## Ledger
 
+### AG-30 Gemini single-send interface
+
+Under PLAN S28, the earlier Margin snapshot `b8ade3f7` was read for the
+interface and behavior of `electron/llm/generateContract.ts`,
+`electron/llm/generateOnce.ts`, `electron/llm/answerGeneration.ts`,
+`electron/llm/logicalGeneration.ts`, `electron/llm/actionGeneration.ts` and
+their `electron/LLMHelper.ts` callers. The original single-send module addition was
+`3eff9a6206eaa7e3e42887e0d3ef3a054430b287`. This is a structural reference,
+not approval to import the old branch or its transitive contents. No old source
+file is copied, cherry-picked or added to the approved-source pool.
+
+The implementation on this branch separates one physical Gemini generation
+from the existing caller-owned routing and retry policy. It is written against
+the retained branch behavior, installed `@google/genai` request/response types
+and synthetic transport checks. Unlike the older raw HTTP/SSE implementation,
+it uses the installed SDK. Older multi-protocol adapters, capacity rules,
+context orchestration and prompt text are not imported. This is not described
+as a clean-room implementation. Restricted upstream sources remain prohibited;
+G2 still scans the changed lines without widening path exclusions.
+
+The first G2 run is retained at `evidence/AG-30/provenance-initial/` (exit 1).
+Its 14 matches comprise 13 exact generic statements: ESM root resolution,
+boolean test iteration, mock call recording/count assertions, an HTTP SSE
+success header, AbortSignal return/rethrow/argument forwarding, a boolean
+request field and an optional string local. Their surrounding code was checked
+against the new interface tests and the retained branch callers. Only these
+exact statements are registered in `provenance-config.json`; no old module or
+upstream source pool is approved by this registration.
+
 The S17 early AG-25 package diagnostic (`scripts/margin/package-inventory.cjs`,
 its separate builder config and `packageInventory.test.mjs`) is written on this
 branch from the approved actual-package inventory contract, Node standard-library

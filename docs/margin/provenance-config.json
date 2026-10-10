@@ -176,6 +176,19 @@
     { "line": "console.log(JSON.stringify(result));", "reason": "Generic JSON result print in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" },
     { "line": "return Promise.resolve();", "reason": "Generic resolved promise when the preload refuses openExternal without user activation (stage 2 acceptance review), independently written for this branch by Claude, 2026-10-09" },
     { "line": "const timer = setInterval(() => {", "reason": "Generic interval in the navigation test's timer case (stage 2 re-acceptance), independently written for this branch by Claude, 2026-10-10; upstream has it only in unrelated test and harness files" },
-    { "line": "const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');", "reason": "Generic file sha256 helper in scripts/margin/libvips/install-rebuilt.mjs, written for this branch on 2026-10-09 (f142ca23); upstream ea316087 added the same line on 2026-10-10 11:33Z, found by CI 38052543358's fresh upstream fetch" }
+    { "line": "const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');", "reason": "Generic file sha256 helper in scripts/margin/libvips/install-rebuilt.mjs, written for this branch on 2026-10-09 (f142ca23); upstream ea316087 added the same line on 2026-10-10 11:33Z, found by CI 38052543358's fresh upstream fetch" },
+    { "line": "const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');", "reason": "Standard Node ESM repository-root resolution in the AG-30 interface test, written for this branch, 2026-10-10" },
+    { "line": "for (const partial of [false, true]) {", "reason": "Boolean parameterization of the AG-30 terminal error test before/after output, written for this branch, 2026-10-10" },
+    { "line": "assert.equal(attempts, 1);", "reason": "Generic exact-send-count assertion in the AG-30 no-fallback behavior test, written for this branch, 2026-10-10" },
+    { "line": "calls.push(model);", "reason": "Record mock model order in the AG-30 sequential fallback test, written for this branch, 2026-10-10" },
+    { "line": "assert.equal(calls.length, 2);", "reason": "Generic two-call assertion in the AG-30 Flash/Pro mock sequence, written for this branch, 2026-10-10" },
+    { "line": "assert.equal(sent.length, 0);", "reason": "Generic zero-send assertion after permission revocation in the AG-30 test, written for this branch, 2026-10-10" },
+    { "line": "assert.equal(sent.length, 1);", "reason": "Generic one-send positive control in the AG-30 permission test, written for this branch, 2026-10-10" },
+    { "line": "res.writeHead(200, { 'content-type': 'text/event-stream' });", "reason": "Standard HTTP SSE success header for the AG-30 loopback SDK fixture, written for this branch, 2026-10-10" },
+    { "line": "if (signal?.aborted) return;", "reason": "Standard AbortSignal guard discarding late Gemini deltas in AG-30, written for this branch, 2026-10-10" },
+    { "line": "}, abortSignal);", "reason": "Closing an existing Gemini argument object and forwarding its existing cancellation signal to the AG-30 sender; no implementation copied, 2026-10-10" },
+    { "line": "if (signal?.aborted) throw err;", "reason": "Preserve cancellation rather than caching it as an ordinary create failure in AG-30, written for this branch, 2026-10-10" },
+    { "line": "stream: boolean;", "reason": "TypeScript boolean field selecting the two retained Gemini SDK methods in AG-30, written for this branch, 2026-10-10" },
+    { "line": "let reason: string | undefined;", "reason": "TypeScript local holding the optional provider finish reason in AG-30, written for this branch, 2026-10-10" }
   ]
 }

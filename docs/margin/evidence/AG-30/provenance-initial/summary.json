@@ -1,0 +1,33 @@
+{
+  "startedAt": "2026-10-10T16:27:44.561Z",
+  "head": "58a1b446d3da8a158255ea31822f4197cf9c7828",
+  "uncommittedPaths": 10,
+  "uncommittedPathList": [
+    "M docs/margin/OUTBOUND.md",
+    " M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M electron/LLMHelper.ts",
+    " M electron/llm/GeminiPromptCache.ts",
+    " M electron/llm/visionStreamFallback.ts",
+    " M electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+    "?? electron/llm/__tests__/generateOnce.test.mjs",
+    "?? electron/llm/generateContract.ts",
+    "?? electron/llm/generateOnce.ts"
+  ],
+  "reference": null,
+  "note": "AG-30-initial-source-scan",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2304,
+      "log": "docs/margin/evidence/AG-30/provenance-initial/provenance.log",
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-10T16:27:46.865Z",
+  "allPassed": false
+}

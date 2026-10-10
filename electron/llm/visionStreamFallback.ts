@@ -15,9 +15,10 @@
 //     provider/attempt with no visible artifact.
 //   • Once the first chunk is yielded we are COMMITTED to that provider; a
 //     later failure cannot switch providers (that would duplicate output), so
-//     we end the stream gracefully with whatever was already delivered.
+//     ordinary failures retain the delivered text. Explicit Gemini terminal
+//     results propagate to the consumer instead of marking partial output done.
 
-import { rethrowProviderScopeError } from './ProviderRouter';
+import { rethrowTerminalGenerationError } from './generateContract';
 
 export type VisionErrorClass =
   | 'auth'        // 401/403/quota/invalid-or-expired key — will not self-heal
@@ -277,7 +278,7 @@ export async function* runStreamingVisionFallback(
             next = await Promise.race([nextChunk, stall]);
           } catch (drainErr: any) {
             if (abortSignal?.aborted) return;
-            rethrowProviderScopeError(drainErr);
+            rethrowTerminalGenerationError(drainErr);
             warn(`[Vision] ${provider.name} interrupted mid-stream after commit: ${drainErr?.message || drainErr}`);
             return; // partial answer already delivered; do not duplicate via another provider
           } finally {
@@ -289,7 +290,7 @@ export async function* runStreamingVisionFallback(
       } catch (err: any) {
         // An outer cancel isn't a provider failure or a policy refusal.
         if (abortSignal?.aborted) return;
-        rethrowProviderScopeError(err);
+        rethrowTerminalGenerationError(err);
         // A throw after commit (e.g. consumer .throw()) must NOT trigger fallback.
         if (committed) return;
 

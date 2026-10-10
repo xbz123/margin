@@ -1,5 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
-import { rethrowProviderScopeError } from "./ProviderRouter";
+import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_RECAP_PROMPT } from "./prompts";
 import { TINY_RECAP_PROMPT } from "./tinyPrompts";
 
@@ -23,7 +23,7 @@ export class RecapLLM {
             for await (const chunk of stream) fullResponse += chunk;
             return this.clampRecapResponse(fullResponse);
         } catch (error) {
-            rethrowProviderScopeError(error);
+            rethrowTerminalGenerationError(error);
             console.error("[RecapLLM] Generation failed:", error);
             return "";
         }
@@ -39,7 +39,7 @@ export class RecapLLM {
             const fittedContext = this.llmHelper.fitContextForCurrentModel(context);
             yield* this.llmHelper.streamChat(fittedContext, undefined, undefined, promptOverride);
         } catch (error) {
-            rethrowProviderScopeError(error);
+            rethrowTerminalGenerationError(error);
             console.error("[RecapLLM] Streaming generation failed:", error);
         }
     }

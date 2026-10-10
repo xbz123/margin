@@ -4,7 +4,7 @@
 // Uses LLMHelper for centralized routing and universal prompts
 
 import { LLMHelper } from "../LLMHelper";
-import { rethrowProviderScopeError } from "./ProviderRouter";
+import { rethrowTerminalGenerationError } from "./generateContract";
 import { UNIVERSAL_ASSIST_PROMPT } from "./prompts";
 import { TINY_ASSIST_PROMPT } from "./tinyPrompts";
 
@@ -41,7 +41,7 @@ export class AssistLLM {
             );
 
         } catch (error) {
-            rethrowProviderScopeError(error);
+            rethrowTerminalGenerationError(error);
             console.error("[AssistLLM] Generation failed:", error);
             return "";
         }

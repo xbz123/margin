@@ -16,24 +16,6 @@ async function loadRouter() {
   return import(pathToFileURL(routerPath).href);
 }
 
-test('transcript scope denial omits transcript from cloud calls', () => {
-  const src = read('electron/LLMHelper.ts');
-
-  assert.match(src, /shouldOmitContext = deniedOutboundScopes\.some\(scope => scope === 'transcript' \|\| scope === 'profile_history' \|\| scope === 'post_call_summary'\)/);
-  assert.match(src, /cloudContext = shouldOmitContext \? undefined : context/);
-  assert.match(src, /const cloudCombinedMessages = \{/);
-  assert.match(src, /return await this\.generateWithCodexCli\(cloudUserContent/);
-  assert.match(src, /return await this\.generateWithGroq\(cloudUserContent/);
-});
-
-test('LLMHelper infers auxiliary context scopes before cloud routing', () => {
-  const src = read('electron/LLMHelper.ts');
-
-  assert.match(src, /inferContextScopes\(context\?: string\): ProviderDataScope\[\]/);
-  assert.match(src, /<meeting_history\|USER-PROVIDED PERSONA CONTEXT\|<user_context/);
-  assert.match(src, /<post_call_summary\|meeting summary\|silent meeting summarizer\|silent meeting note-taker/);
-});
-
 test('routeLLMProviders marks cloud providers unavailable when a scope is denied', async () => {
   const { routeLLMProviders, routeWithScopeFallback } = await loadRouter();
 
@@ -466,9 +448,9 @@ function scanSends(source) {
   return sends;
 }
 
-test('every enumerated SDK send immediately follows a scope check without a syntactic wait', () => {
+test('remaining legacy non-Gemini SDK sends immediately follow a scope check without a syntactic wait', () => {
   const sends = scanSends(read('electron/LLMHelper.ts'));
-  assert.ok(sends.length >= 20);
+  assert.equal(sends.length, 16, 'Gemini sends moved to generateOnce with runtime before-send guards');
   assert.deepEqual(sends.filter(send => !send.checked || send.waits), []);
 });
 

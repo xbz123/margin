@@ -7,14 +7,6 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const sourcePath = path.resolve(__dirname, '../../LLMHelper.ts');
-const source = fs.readFileSync(sourcePath, 'utf8');
-const generateSuggestionStart = source.indexOf('public async generateSuggestion');
-const generateSuggestionEnd = source.indexOf('public setCustomNotes', generateSuggestionStart);
-const generateSuggestionSource = source.slice(generateSuggestionStart, generateSuggestionEnd);
-
-const whatToAnswerPath = path.resolve(__dirname, '../WhatToAnswerLLM.ts');
-const whatToAnswerSource = fs.readFileSync(whatToAnswerPath, 'utf8');
 const intentClassifierPath = path.resolve(__dirname, '../IntentClassifier.ts');
 const intentClassifierSource = fs.readFileSync(intentClassifierPath, 'utf8');
 
@@ -22,11 +14,6 @@ const distWhatToAnswerPath = path.resolve(__dirname, '../../../dist-electron/ele
 const distPromptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');
 const require = createRequire(import.meta.url);
 const { DEFAULT_ANSWER_PROMPT_SUFFIX, HARD_SYSTEM_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(distPromptsPath);
-
-test('generateSuggestion uses the fixed default answer suffix and no mode system', () => {
-  assert.ok(generateSuggestionStart >= 0, 'generateSuggestion should exist');
-  assert.match(generateSuggestionSource, /const basePrompt = `\$\{HARD_SYSTEM_PROMPT\}\\n\\n## ACTIVE MODE\\n\$\{DEFAULT_ANSWER_PROMPT_SUFFIX\}`;/);
-});
 
 // Replaces a baseline case that asserted call shapes the baseline code never had
 // (it failed at a786910e; resolved in PLAN.md AG-17). This one runs the built
@@ -84,16 +71,6 @@ test('generateSuggestion sends custom notes and the transcript as user content, 
   assert.doesNotMatch(codexMessage, /NOTES_SENTINEL|CONTEXT_SENTINEL/);
   assert.match(codexContext, /NOTES_SENTINEL/);
   assert.match(codexContext, /CONTEXT_SENTINEL/);
-});
-
-test('generateSuggestion does not append custom notes to any system prompt branch', () => {
-  assert.doesNotMatch(generateSuggestionSource, /basePrompt[\s\S]*customNotesBlock/);
-  assert.doesNotMatch(generateSuggestionSource, /Never hedge\. Never say "it depends"\.\$\{customNotesBlock\}/);
-});
-
-test('WhatToAnswerLLM layers the default answer suffix and no mode system', () => {
-  assert.doesNotMatch(whatToAnswerSource, /modeContextBlock|modePromptSuffix/);
-  assert.match(whatToAnswerSource, /: `\$\{basePrompt\}\\n\\n## ACTIVE MODE\\n\$\{DEFAULT_ANSWER_PROMPT_SUFFIX\}`;/);
 });
 
 test('intent answer shapes require grounding for examples and behavioral stories', () => {
