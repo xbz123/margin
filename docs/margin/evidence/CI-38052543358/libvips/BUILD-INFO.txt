@@ -1,0 +1,14 @@
+recipe: 20b5e899954907a3039d6e3d4c200aaa0ec52c4c
+commit: 399d22479fc735e511a38665010a213a39a8e30b
+run: 38052543358 (attempt 1)
+rustc (librsvg, recipe toolchain nightly-2026-10-09): rustc 1.101.0-nightly (a30aa9064 2026-10-08)
+rustc commits embedded in libvips-cpp: rustc/a30aa9064df6a504b6a323c6884a2f4cfbfff666 
+mozjpeg: mozjpeg version 5.0.0 (build 20261009)
+SOURCE_DATE_EPOCH: 1791547200
+cargo-c: v0.10.25+cargo-0.99.0
+meson: 1.12.1
+clang: Apple clang version 17.0.0 (clang-1700.0.13.5)
+xcode: Xcode 16.4 Build version 16F6 
+librsvg crates locked: 353, kept: 184, compiled from the registry: 169 (all kept)
+dd138017bd37c4130cf981f9c19f22ba54167e32fe11b78d76d91be9d5f17258  sharp-libvips-darwin-arm64v8.tar.gz
+libvips-cpp: 64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e 57E6BFB0-8E4E-3F1F-A3AB-1DD593CAC71C

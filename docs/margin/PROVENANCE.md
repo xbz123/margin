@@ -40,6 +40,8 @@ Missing renderer maps are a documented evidence blind spot, not proof of absence
 Failures retain diagnostic JSON/logs where available. A separate text allowlist
 check precedes five exact report uploads; no app, archive, source-map contents,
 native binary or normal native-module artifact is uploaded in diagnostic mode.
+The diagnostic, its config, its test and its workflow input and steps were removed
+on 2026-10-10 (the AG-25 package checks replaced it); this paragraph is history.
 This does not implement or pass the full AG-25 signing, launch or joint acceptance
 contract, and does not resolve AG-26's outstanding license obligations.
 The initial diagnostic source scan retained ten matches for eight generic lines:
@@ -339,18 +341,31 @@ imported. Generic one-line idioms the provenance check matched are registered in
   (written for this branch on 2026-10-08, `c49fb86d`) is allowlisted after upstream
   main added the same generic line in a test on 2026-10-10, found by the S24 local
   run's fresh upstream fetch.
+- On 2026-10-10 `sharp-smoke-local.mjs` and `package-inventory.cjs` were removed
+  (acceptance trimming; CI's `replace-check.sh` checks sharp on the package), and
+  the allowlist entries for `const report = {` and `const bytes = fs.readFileSync(file);`
+  with them.
 
 ### libvips Rust toolchain pin (Claude, 2026-10-10)
 
-- The nightly and build-date pin and the toolchain, mozjpeg and sha256 checks in
-  `scripts/margin/libvips/rebuild.sh`, and the `--rust-std` mode of
-  `notice-inputs.py`: written for this branch.
+- The nightly and build-date pin and the embedded-rustc check in
+  `scripts/margin/libvips/rebuild.sh` (the toolchain, mozjpeg and sha256 checks
+  were made records only after run 38052543358 reproduced `64bcfea7`), and the
+  `--rust-std` mode of `notice-inputs.py`: written for this branch.
 - `scripts/margin/license-inputs/libvips/` gains the license files of the Rust
   standard library built by nightly-2026-10-09: verbatim files of rust-lang/rust
   at `a30aa906` (COPYRIGHT, LICENSE-MIT, LICENSE-APACHE, compiler-builtins and
   stdarch licenses) and of eleven crates.io crates, each checked against the
   sha256 in the script or the checksum in that commit's `library/Cargo.lock`. They
   are third-party license texts kept as notices, not code.
+
+### Upstream overlap found by CI 38052543358 (Claude, 2026-10-10)
+
+- `const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');`
+  in `scripts/margin/libvips/install-rebuilt.mjs` was written for this branch on
+  2026-10-09 (`f142ca23`). Upstream `ea316087` (2026-10-10 11:33Z) added the same
+  generic line, and the CI run's fresh upstream fetch flagged it. It is
+  allowlisted as a generic sha256 helper; nothing was taken from that commit.
 
 ### Stage 2 re-acceptance fix (Claude, 2026-10-10)
 

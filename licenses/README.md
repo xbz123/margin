@@ -36,10 +36,11 @@ compared). Every archive the build downloaded, the crates compiled for librsvg a
 librsvg's resolved `Cargo.lock` are kept per run (`margin-libvips-sources-<commit>`),
 and CI fails if a later build drifts from the recorded one
 (`scripts/margin/libvips/expected-sources.tsv`, `librsvg-Cargo.lock`,
-`librsvg-compiled.txt`, and in `rebuild.sh` the Rust toolchain, mozjpeg's build
-date and the built library's sha256). The recipe builds librsvg with a Rust
-nightly; `rebuild.sh` pins it to nightly-2026-10-09 (rustc `a30aa906`), whose
-commit the library embeds, and the build date to 2026-10-09. The original license
+`librsvg-compiled.txt`, and in `rebuild.sh` the rustc commit embedded in the
+built library). The recipe builds librsvg with a Rust nightly; `rebuild.sh` pins
+it to nightly-2026-10-09 (rustc `a30aa906`), whose commit the library embeds, and
+the build date to 2026-10-09, and records the toolchain, mozjpeg's build string
+and the library's sha256 in the run's BUILD-INFO. The original license
 files of the 28 statically linked libraries and of the 169 crates are in
 `scripts/margin/libvips/notices.json` with their archive and member, and so are
 those of the Rust standard library that nightly built: the rust-lang/rust

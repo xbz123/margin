@@ -1,0 +1,14 @@
+✔ a typed question streams the mock answer into the overlay (13423.923625ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (9852.579208ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3680.637958ms)
+✔ a screenshot question sends the fixture image to the model (568.1135ms)
+✔ a provider error is shown and the next question still works (1640.783666ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (5487.4ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35910.288375

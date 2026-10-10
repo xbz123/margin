@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-状态：**阶段 2 由 Claude 实现完毕并自验收通过（S21）；Astra 独立验收（2026-10-09）提出 4 项，两轮复验（2026-10-10）后四项全部关闭，源码与本地验收通过（`fa4ed386`）；当前代码的打包 CI `38042681414` 通过，本机核对一致，但发现 S22 的一个缺陷：包内 libvips 的 Rust 部分是用配方当天的 nightly 编译的，不是记录的 rustc 1.98.1，"rustc 不一致时 CI 失败"的保护从未生效。经用户同意已修复（固定 nightly 和构建日期、检查读取库本身、补 nightly 标准库的许可），待 CI 确认重编结果回到 `64bcfea7…`**（第 8 节末"libvips Rust 工具链修复"）。AG-20–26、AG-24 后续、S19-C 及 S22（包内改用重编的 libvips）均已完成；修复后的提交 `9ef2ed4a` 在公开仓库 `xbz123/margin`（S25）的无缓存 CI `38004311007` 三个作业全部通过，下载产物的本机核对也通过（第 8 节末"阶段 2 修复后的 CI"）。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
+状态：**阶段 2 由 Claude 实现完毕并自验收通过（S21）；Astra 独立验收（2026-10-09）提出 4 项，两轮复验（2026-10-10）后四项全部关闭，源码与本地验收通过（`fa4ed386`）。打包 CI `38042681414` 发现包内 libvips 的 Rust 部分随配方当天的 nightly 变化，经用户同意固定后，CI `38052543358` 确认重编结果回到记录的 `64bcfea7…`；该次门禁只因上游当天新提交的一行通用代码在来源检查中命中而失败，已加入白名单。随后按用户决定精简了验收条件（S26）。待在当前提交上跑一次完整 CI 后签收阶段 2 出口**（第 8 节末"CI 38052543358 与验收精简"）。AG-20–26、AG-24 后续、S19-C 及 S22（包内改用重编的 libvips）均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
 本文件是本分支的执行依据：实验、验收、ticket 和依赖都以这里为准。
 
@@ -35,7 +35,7 @@
 | S8 | 测试不得读写真实用户数据或真实密钥，不得调用付费服务，不得采集真实会议 | 用户初始任务 |
 | S9 | 阶段 1–2 不做实机验收：不授予屏幕录制或麦克风权限，不用真实 key，不访问真实钥匙串 | 由 S8 推出 |
 | S10 | D2–D4 按第 3 节的建议执行；D1 由 X3 的结果决定 | 用户，2026-10-07 |
-| S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`（开发期按 S15 只启动临时身份的变体）。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 当时仍等用户，同日已定案（S12）。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256 | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
+| S11 | D5 定案：本机不装 Xcode。<br>1. 阶段 1 出口第 1 条（干净安装）以 CI 为准：装有 Xcode 的干净 macOS 上执行 `npm ci` → `setup:native` → 全部门禁。证据必须是当前提交上一次不使用缓存的运行，日志里能看到 `Compiling cidre`，且门禁全部通过。<br>2. 原生模块在 CI 上从零编译，作为 workflow 产物保存（不是 Release，不发布）。本机开发下载这个产物使用，不再依赖 X3 复制来的旧 cargo 缓存。<br>3. AG-25 的打包改为在 CI 上进行，产出 workflow 产物；本机只验证下载下来的 `Margin.app`（开发期按 S15 只启动临时身份的变体）。<br>4. 进入阶段 2 的条件：Astra 复查通过，且第 1 条有不使用缓存的 CI 证据。决定 1 当时仍等用户，同日已定案（S12）。<br>5. 过渡（AG-25 的下载脚本完成之前）：本机继续使用现有的原生模块（由 X3 复制来的 cargo 缓存构建），不再为原生模块运行 `setup:native`；本机门禁照常使用这个模块。CI 产物是唯一的从零构建证据；AG-25 之后改为下载 CI 产物并核对 sha256。<br>（S26 起，`no_cache` 只在原生模块、Rust 工具链或 Xcode 变化时使用） | 用户，2026-10-08（在另一个会话中做出，由该会话转达） |
 | S12 | 决定 1 定案：默认回答提示词（`DEFAULT_ANSWER_PROMPT_SUFFIX`，`electron/llm/prompts.ts`）暂时保留。阶段 3 能用真实模型评估时（按 D2 授权）再决定是否删除，评估放在 AG-33。按决定 1 暂留的其他提示词文字（`prompts.ts` 中 Profile Intelligence 的描述、`tinyPrompts.ts` 中关于本地模型的一句）一并留到那时处理 | 用户，2026-10-08 |
 | S13 | 阶段 2 的启动条件（第 7 节）已满足。"阶段 1 出口的 Astra 只读复查通过"按以下两项视为满足：Astra 对第八轮修复源码的只读审查没有未处理的发现（`AG-17-review8/checks/source-review.md`，所审差异的指纹与 `c43b10e9` 一致）；Claude 第九轮独立验收通过（`AG-17-review9/`）。出口第 1 条的 CI 证据为 `37709440574` | 用户，2026-10-08 |
 | S14 | 分工：第八轮复查起，复查发现的问题由 Codex 修复；阶段 2 起，ticket 由 Codex 派发 `gpt-6.1-sol` 执行。Claude 只读复查，不改代码（用户明确要求时只改文档） | 用户，2026-10-08 |
@@ -50,6 +50,7 @@
 | S23 | 批准五个精确版本的 crate 用"Cargo.toml 声明＋标准 SPDX 正文"作为许可证据：block 0.1.6、objc_id 0.1.1、objc-foundation 0.1.1（MIT），fxhash 0.2.1、mac 0.1.1（声明为 MIT 与 Apache-2.0 双许可，记录取 Apache-2.0）。它们本身和上游仓库都没有许可文件，在 librsvg 编译集合中，上游预编译版本同样包含。不补版权人，不自动扩展到其他包或其他版本；版本变化时 CI 的漂移检查会失败，需要重新决定 | 用户，2026-10-09，对 Astra 阶段 2 验收第 2 项回复"批准这五项" |
 | S24 | 本机安装 Xcode 16.4（与 CI 相同）和 rustup，在本机从零重新编译原生模块，取代 D5 和 S11 中"本机不装 Xcode"及第 5 条"本机不为原生模块运行 setup:native"。rustup 由 Homebrew 安装（keg-only，不进 PATH，不改 shell 配置），工具链按 `native-module/rust-toolchain.toml` 装官方 1.98.1；Xcode 需用户本人用 Apple ID 下载并执行需要管理员密码的步骤（选择开发者目录、接受许可）。本机编译在草稿目录的干净克隆中进行，与 CI 的 `71f9cf8e…` 比对，不覆盖工作树中已核对的模块，除非另行决定。S9、S15 不变：本机仍不打包、不启动打包后的二进制、不运行正式身份 | 用户，2026-10-09，回复"安装 xcode，rustup，进行重新编译"，并选择 Xcode 16.4 |
 | S25 | CI 改在新建的公开仓库 `xbz123/margin` 上运行，原私有仓库 `xbz123/Assessment-Assistant` 不转公开：其中旧线分支和旧 Release 含 6 月后上游代码。新仓库只推送本分支，其历史为基线 `a786910e` 及之前的上游提交加本分支提交，不含旧线提交和 6 月后上游提交。起因：`37996030056` 的 libvips-replace 作业因账户付款失败未启动。公开仓库的 workflow 产物任何登录用户都可下载，因此正式身份只上传报告、启动结果和 BUILD-INFO，不上传 `.app` 压缩包；temp 包和对应源码包照常上传。`download-ci-artifact.mjs` 默认读新仓库，旧运行用 `--repo` | 用户，2026-10-10 |
+| S26 | 精简验收条件（Claude 列出 9 项，用户回复"按你的建议全部去掉，等CI结果后执行"）：<br>1. libvips 的 `rebuild.sh` 保留四项失败检查：配方下载、librsvg 的 `Cargo.lock`、编译 crate 列表、库中嵌入的 rustc 提交（许可依赖它）。配方工具链版本、mozjpeg 构建串和动态库 sha256 只写进 BUILD-INFO（CI `38052543358` 已确认固定后重编为 `64bcfea7…`）。<br>2. 本机不再重做 `package-check`、`Info.plist` 和 `codesign` 校验，这些只在 CI 上做；`sharp-smoke-local` 删除，sharp 在包内的运行由 CI 的替换检查覆盖。本机保留源码包核对和 `asar-smoke`。<br>3. 本机核对 libvips 源码只在配方或 `scripts/margin/libvips/` 的记录变化时做（CI 每次都比对）。<br>4. `no_cache` 只在 `native-module/`、Rust 工具链或 Xcode 变化时使用，其他运行使用缓存；调整 S11 第 1 条"当前提交上不使用缓存"的要求。<br>5. 删除 S17 的 `package_inventory` 诊断：workflow 输入和三个步骤、`package-inventory.cjs`、其构建配置和测试 | 用户，2026-10-10 |
 
 **S21 细则**：
 
@@ -366,11 +367,11 @@ G3 的初始规则如下，随 ticket 补充。写入规则表时按 ticket 归�
 6. **打包**（按 S11 在 CI 上进行）：
    - `publish` 为 `null`，构建配置和 CI 中没有上游发布目标；CI 只上传 workflow 产物，不建 Release；
    - CI 从干净的输出目录构建 arm64 的 `.app`，并做 ad hoc 签名，作为 workflow 产物保存；
-   - 以下检查在 CI 上做，并在本机对下载下来的产物再做一遍：
+   - 以下检查在 CI 上做（S26 起本机不再重做）：
    - 逐一检查 asar、`asar.unpacked` 和 `Resources`：没有模型文件、`sqlite-vec`、`onnx`、`premium`；
    - 所有原生库的架构正确；
    - `codesign --verify --deep --strict` 通过；
-   - 本机只对下载下来的临时身份产物做启动冒烟，不安装；正式身份的 `Margin.app` 在本机只做只读检查，不启动（S15）。
+   - 本机只对下载下来的临时身份产物做启动冒烟（`asar-smoke`）并核对对应源码包，不安装；正式身份的 `Margin.app` 在本机不启动（S15）。
 7. **许可与声明**：
    - `LICENSE` 保持 AGPLv3；
    - `package.json` 的 `license` 字段按 D4 设定，lockfile 的元数据同步；
@@ -1458,24 +1459,24 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 
 | 条 | 结论 | 依据 |
 | --- | --- | --- |
-| 1 身份 | 通过 | 两个身份的打包 Info.plist 在 CI 和本机核对均正确（`CI-38004311007/packaging/*/package-checks.json`、`AG-25/local-verify/plist-codesign.txt`；正式身份的本机核对在 `37996030056` 上，S25 之后其压缩包不再上传） |
+| 1 身份 | 通过 | 两个身份的打包 Info.plist 在 CI 上正确（`CI-38042681414/packaging/*/package-checks.json`）；此前本机也核对过（`AG-25/local-verify/plist-codesign.txt`），S26 起不再重做 |
 | 2 数据隔离 | 通过 | AG-20 守卫契约及启动测试；CI 正式身份契约 6/6；两个打包二进制在一次性 HOME 中只创建自己的目录（`launch.json`） |
 | 3 凭据 | 通过 | AG-22 事务保存及 AG-24 后续的读取失败提示和确认后备份丢弃（假 `safeStorage`） |
 | 4 日志 | 通过 | AG-23；限制见其行 |
 | 5 出站 | 通过 | AG-24 及 AG-24 后续的跳转/新窗口策略；renderer 出站 2/2 |
-| 6 打包 | 通过，有一处按 S9 调整 | `publish` 为 null，CI 只上传 workflow 产物；干净目录 arm64 打包和 ad hoc 签名；asar/unpacked/Resources 无禁止内容；原生库架构和签名校验在 CI 和本机都通过。本机启动冒烟是在守卫下运行包内 asar 和原生库，没有启动打包后的二进制；打包二进制只在 CI 的一次性 HOME 中启动 |
+| 6 打包 | 通过，有一处按 S9 调整 | `publish` 为 null，CI 只上传 workflow 产物；干净目录 arm64 打包和 ad hoc 签名；asar/unpacked/Resources 无禁止内容；原生库架构和签名校验在 CI 上通过（此前本机也重做过，S26 起只在 CI 上做）。本机启动冒烟是在守卫下运行包内 asar 和原生库，没有启动打包后的二进制；打包二进制只在 CI 的一次性 HOME 中启动 |
 | 7 许可与声明 | 通过（候选库存口径） | AGPLv3 `LICENSE`、`NOTICE`、随包 1,316 条许可引用哈希匹配、原生声明补齐；包内 libvips 是本次运行重编的版本，对应源码（配方、37 个下载、169 个 crate 及 `Cargo.lock`）同次运行保存，静态链接内容的原始许可齐备（S22） |
 
 **仍然存在的限制**：
 1. 对应源码目前只是 workflow 产物，30 天后失效（应用包本身 14 天）。S25 之后它在公开仓库里，任何登录用户都可下载，但仍不是长期提供方式。分发前要决定公开方式（S19 第 3 条）。
 2. 链接映射只是下限：泛型代码会编进调用方的目标文件。因此声明按全部编译集合保留；标准库只覆盖有实际代码的 crate。
 3. 正式身份包在本机启动即退出的保护仍然有效，分发前按 AG-62 处理。
-4. libvips 的许可按记录的那次重编整理。配方下载或 librsvg 依赖有任何变化，CI 都会失败，需要先更新 `scripts/margin/libvips/` 的记录和 `notices.json`。原说"rustc 变化 CI 也会失败"当时不成立：librsvg 用的是配方当天的 nightly，检查读到的不是它（2026-10-10 发现）。现已固定为 nightly-2026-10-09，检查改为读库中嵌入的 rustc 提交、mozjpeg 构建日期和动态库 sha256（见第 8 节末）。block、objc_id、objc-foundation、fxhash、mac 五个 crate 没有任何许可文件，只能附 Cargo.toml 声明的标准正文（S23 批准的限定例外）。
+4. libvips 的许可按记录的那次重编整理。配方下载、librsvg 依赖或库中嵌入的 rustc 提交有任何变化，CI 都会失败，需要先更新 `scripts/margin/libvips/` 的记录和 `notices.json`。原说"rustc 变化 CI 也会失败"当时不成立：librsvg 用的是配方当天的 nightly，检查读到的不是它（2026-10-10 发现）。现已固定为 nightly-2026-10-09，CI `38052543358` 确认重编回到 `64bcfea7…`；动态库 sha256、mozjpeg 构建串和工具链版本按 S26 只记录不判定，字节不同但嵌入的 rustc 提交相同时 CI 不失败。block、objc_id、objc-foundation、fxhash、mac 五个 crate 没有任何许可文件，只能附 Cargo.toml 声明的标准正文（S23 批准的限定例外）。
 5. 打包后的二进制只在 CI 上启动；本机按 S9 只在守卫下运行包内代码。
 
 原第 1 条（包内 libvips 无法证明逐字节对应的源码）已由 S22 解决：现在分发的是同次运行从记录源码重编的版本。
 
-**下一步**：CI 确认 libvips 重编回到记录的 `64bcfea7…` 并刷新打包证据后，签收阶段 2 出口。若验收提出修复，仍按 S21 处理。S8–S25 的边界和停止条件保持有效。
+**下一步**：经用户同意在当前提交上跑一次完整 CI（`package_apps`；按 S26 原生模块未变，不用 `no_cache`），门禁和打包通过、本机核对源码包和 `asar-smoke` 后，签收阶段 2 出口。若验收提出修复，仍按 S21 处理。S8–S25 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -1831,3 +1832,18 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - **测试**：`packagingTools` 的 sharp 冒烟判定测试改为从已存报告里读取 UUID（此前写死 `57E6BFB0…`，`b0090ca8` 换成 10-10 那次的报告后会失败）；libvips 许可条目测试包含 `rustStd`。
 - **对应源码**：与原生模块（S19-C）相同，Rust 标准库源码不在源码包里，只记录准确的提交（`a30aa906`）。
 - **待议**：原生模块的标准库许可只含 rust 的 COPYRIGHT 和 MIT 及 5 个 crate；compiler_builtins 在原生链接映射中没有实际代码，但 stdarch 的代码属于 core，它单独的许可文件是否也要补，留待决定。
+
+### CI 38052543358 与验收精简（Claude，2026-10-10）
+
+**CI `38052543358`**（`399d2247`，含 libvips 工具链固定；证据见 `evidence/CI-38052543358/`，约 39 分钟，公开仓库不计费）：
+
+- **libvips**：通过。配方工具链为 `rustc 1.101.0-nightly (a30aa9064 2026-10-08)`，库中嵌入的 rustc 提交只有 `a30aa906…`，mozjpeg 为 `build 20261009`；libvips-cpp 为 `64bcfea7…`（UUID `57E6BFB0…`），与 2026-10-09 的四次重编字节相同。固定有效，许可条目（`rustStd`）对应这次的库。
+- **替换检查**：通过；包内为 `64bcfea7…`，换成 npm 预编译版本后 sharp 结果相同。
+- **门禁**：16 项中 15 项通过（853 测试、847 通过、6 个既有跳过），来源检查 1 处命中：`scripts/margin/libvips/install-rebuilt.mjs` 第 28 行的通用 sha256 函数。该文件自 `f142ca23`（2026-10-09）未改，`38042681414` 时没有命中；上游 `ea316087`（2026-10-10 11:33 UTC，在那次运行之后）新加了相同的一行，CI 每次重新拉取上游所以看到了。本分支先写，已加入 `provenance-config.json` 白名单并记入 PROVENANCE.md，与此前 `const bytes = fs.readFileSync(file);` 的处理相同。门禁失败，所以正式身份契约步骤被跳过；打包和启动步骤仍运行且通过，但这次不作为打包证据。原生模块仍是 `0f92a0b1…`。
+
+**按 S26 精简验收条件**（用户同意 9 项全部去掉）：
+
+1. `rebuild.sh`：配方工具链版本、mozjpeg 构建串和动态库 sha256 三项检查改为只写进 BUILD-INFO；保留下载、`Cargo.lock`、编译 crate 列表和嵌入 rustc 提交四项失败检查。
+2. 删除 `scripts/margin/libvips/sharp-smoke-local.mjs` 及其判定测试（CI 的 `replace-check.sh` 已检查 sharp 结果和加载的 libvips UUID，任何一步失败作业即失败）。
+3. 删除 `package_inventory` 诊断：workflow 输入、原生产物上传的条件和三个步骤，`package-inventory.cjs`、`package-inventory.config.cjs` 和 `packageInventory.test.mjs`；两条只用于已删文件的白名单（`const report = {`、`const bytes = fs.readFileSync(file);`）一并删除。
+4. 本机不再重做 `package-check`、`Info.plist` 和 `codesign` 校验；libvips 源码只在配方或记录变化时本机核对；`no_cache` 只在原生模块、Rust 工具链或 Xcode 变化时使用。第 5 节阶段 2 出口第 6 条、出口自验收表、S11 已同步。`evidence/AG-25/local-verify/` 中这些检查的旧报告保留为历史记录。

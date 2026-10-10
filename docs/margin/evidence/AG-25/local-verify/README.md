@@ -1,5 +1,13 @@
 # AG-25 local checks of the downloaded CI artifacts
 
+Since PLAN S26 (2026-10-10) only two of these checks are repeated locally: the
+source bundle against its manifest and `git archive` (`source-bundle-verify.json`)
+and `asar-smoke` (`asar-smoke-temp.json`). The libvips sources are checked again
+only when the recipe or the records in `scripts/margin/libvips/` change. The
+package checks, Info.plist and codesign reports and the sharp smoke below are the
+last local runs of checks that now run only on CI; `sharp-smoke-local.mjs` was
+removed.
+
 Claude, 2026-10-10. The temp package and source reports here are from run
 38042681414 (commit `7153aa07`, the code after the navigation fix, public
 `xbz123/margin`, see `../../CI-38042681414/`); the previous ones, from run

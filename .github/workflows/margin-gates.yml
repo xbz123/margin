@@ -6,8 +6,8 @@
 # clean install. With no_cache (manual runs only) it skips the Electron and cargo
 # caches, so the native module is compiled from scratch; that run is the evidence for
 # phase 1 exit item 1 under D5 (PLAN.md section 3). Every run also keeps the native
-# module it built as a workflow artifact (except package_inventory diagnostics), which local development uses
-# instead of the old cargo cache.
+# module it built as a workflow artifact, which local development uses instead of
+# the old cargo cache.
 name: Margin gates
 
 on:
@@ -17,10 +17,6 @@ on:
     inputs:
       no_cache:
         description: Skip the Electron and cargo caches and build everything from scratch
-        type: boolean
-        default: false
-      package_inventory:
-        description: CI-only non-distributable temp app inventory; upload reports only
         type: boolean
         default: false
       gate_ref:
@@ -136,7 +132,6 @@ jobs:
           cat native-artifact/BUILD-INFO.txt
 
       - uses: actions/upload-artifact@v7
-        if: ${{ !inputs.package_inventory }}
         with:
           name: margin-native-${{ github.sha }}
           path: ${{ runner.temp }}/native-artifact/
@@ -231,33 +226,6 @@ jobs:
           compression-level: 0
           retention-days: 30
           if-no-files-found: error
-
-      - name: Inventory a formed temp app (CI diagnostic only; always not accepted)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_inventory }}
-        env:
-          MARGIN_APP_VARIANT: temp
-          MARGIN_PACKAGE_INVENTORY: '1'
-        run: node scripts/margin/package-inventory.cjs
-
-      - name: Validate diagnostic upload files are allowlisted text
-        id: inventory_texts
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.package_inventory }}
-        run: |
-          node -e "const fs=require('fs'); const path=require('path'); const dir=path.join(process.env.RUNNER_TEMP,'margin-package-inventory','reports'); if(fs.existsSync(dir)) require('./scripts/margin/package-inventory.cjs').assertTextArtifacts(dir);"
-
-      - name: Upload only diagnostic JSON and logs (never the app or native artifacts)
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.package_inventory && steps.inventory_texts.outcome == 'success' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: margin-package-inventory-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/margin-package-inventory/reports/inventory.json
-            ${{ runner.temp }}/margin-package-inventory/reports/diagnostic-run.json
-            ${{ runner.temp }}/margin-package-inventory/reports/build-electron.log
-            ${{ runner.temp }}/margin-package-inventory/reports/vite-build.log
-            ${{ runner.temp }}/margin-package-inventory/reports/electron-builder.log
-          retention-days: 30
-          if-no-files-found: warn
 
       - if: always()
         uses: actions/upload-artifact@v7

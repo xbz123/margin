@@ -175,8 +175,7 @@
     { "line": "const result = {", "reason": "Generic object literal opening in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" },
     { "line": "console.log(JSON.stringify(result));", "reason": "Generic JSON result print in the S22 libvips install script, independently written for this branch by Claude, 2026-10-09" },
     { "line": "return Promise.resolve();", "reason": "Generic resolved promise when the preload refuses openExternal without user activation (stage 2 acceptance review), independently written for this branch by Claude, 2026-10-09" },
-    { "line": "const report = {", "reason": "Generic object literal opening in the local sharp smoke report (stage 2 acceptance review), independently written for this branch by Claude, 2026-10-09" },
-    { "line": "const bytes = fs.readFileSync(file);", "reason": "Generic file read in scripts/margin/package-inventory.cjs, written for this branch on 2026-10-08 (c49fb86d); upstream main added the same line in a test on 2026-10-10" },
-    { "line": "const timer = setInterval(() => {", "reason": "Generic interval in the navigation test's timer case (stage 2 re-acceptance), independently written for this branch by Claude, 2026-10-10; upstream has it only in unrelated test and harness files" }
+    { "line": "const timer = setInterval(() => {", "reason": "Generic interval in the navigation test's timer case (stage 2 re-acceptance), independently written for this branch by Claude, 2026-10-10; upstream has it only in unrelated test and harness files" },
+    { "line": "const sha = (file) => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');", "reason": "Generic file sha256 helper in scripts/margin/libvips/install-rebuilt.mjs, written for this branch on 2026-10-09 (f142ca23); upstream ea316087 added the same line on 2026-10-10 11:33Z, found by CI 38052543358's fresh upstream fetch" }
   ]
 }
