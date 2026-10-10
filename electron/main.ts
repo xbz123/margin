@@ -2915,9 +2915,10 @@ export class AppState {
         try {
           const { CredentialsManager } = require('./services/CredentialsManager');
           const cm = CredentialsManager.getInstance();
-          const defaultModel = cm.getDefaultModel();
+          let defaultModel = cm.getDefaultModel();
           console.log(`[Main] Reverting model to default: ${defaultModel}`);
           this.processingHelper.getLLMHelper().setModel(defaultModel);
+          defaultModel = this.processingHelper.getLLMHelper().getCurrentModelSelection();
           this.sendModelChanged(defaultModel);
         } catch (e) {
           console.error('[Main] Failed to revert model:', e);

@@ -82,7 +82,7 @@ import {
   getOverlayAppearance,
   OVERLAY_OPACITY_DEFAULT,
 } from '../lib/overlayAppearance';
-import { getCodexCliModelDisplayName } from '../utils/modelUtils';
+import { getCodexCliModelDisplayName, getModelTargetDisplayName } from '../utils/modelUtils';
 import { getModifierSymbol, isMac } from '../utils/platformUtils';
 import GlassEffectLayer from './ui/GlassEffectLayer';
 import RollingTranscript from './ui/RollingTranscript';
@@ -4517,6 +4517,8 @@ Provide only the answer, nothing else.`;
                       <span className="truncate min-w-0 flex-1">
                         {(() => {
                           const m = currentModel;
+                          const targetName = getModelTargetDisplayName(m);
+                          if (targetName) return targetName;
                           const codexCliName = getCodexCliModelDisplayName(m);
                           if (codexCliName) return codexCliName;
                           if (m === 'gemini-3.1-flash-lite-preview') return 'Gemini 3.1 Flash';

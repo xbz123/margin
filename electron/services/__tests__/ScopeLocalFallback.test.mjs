@@ -2,14 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import fs from 'node:fs';
 import os from 'node:os';
 import { createRequire } from 'node:module';
-import ts from 'typescript';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
-const read = rel => fs.readFileSync(path.join(repoRoot, rel), 'utf8');
 
 async function loadRouter() {
   const routerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/ProviderRouter.js');
@@ -58,7 +55,7 @@ async function summarizeWith(policy, extraDataScopes) {
   const requests = [];
   const self = Object.assign(Object.create(LLMHelper.prototype), {
     codexCliConfig: { enabled: false },
-    groqClient: { chat: { completions: { create: async (body) => { requests.push(body); return { choices: [{ message: { content: 'SUMMARY' } }] }; } } } },
+    groqClient: { chat: { completions: { create: async (body) => { requests.push(body); return { choices: [{ message: { content: 'SUMMARY' }, finish_reason: 'stop' }] }; } } } },
     getProviderScopePolicy: () => policy,
     logScopeFallback: () => {},
     withTimeout: (promise) => promise,
@@ -381,7 +378,7 @@ async function sendWith(policy, makeClient, call) {
   }
 }
 
-const claudeClient = (send) => ({ claudeClient: { messages: { stream: send } }, currentModelId: 'claude-sonnet-4-6' });
+const claudeClient = (send) => ({ claudeClient: { messages: { create: send } }, currentModelId: 'claude-sonnet-4-6' });
 const groqClient = (send) => ({ groqClient: { chat: { completions: { create: send } } } });
 const geminiClient = (send) => ({ client: { models: { generateContent: send } }, geminiModel: 'gemini-test' });
 // A path that does not exist: the image is skipped when reading, but the call still
@@ -421,54 +418,7 @@ test('chatWithGemini with Claude selected does not send a transcript-bearing mes
   assert.doesNotMatch(String(denied.result), /TRANSCRIPT_SENTINEL/);
 });
 
-// Syntax guard for the enumerated SDK methods, not a proof about arbitrary callees,
-// aliases, SDK internals or data provenance. Runtime tests cover SDK retries separately.
-function scanSends(source) {
-  const tree = ts.createSourceFile('send.ts', source, ts.ScriptTarget.Latest, true);
-  const sends = [];
-  const walk = (node, visit) => { visit(node); ts.forEachChild(node, child => walk(child, visit)); };
-  walk(tree, call => {
-    if (!ts.isCallExpression(call) || !/(?:\.chat\.completions\.create|\.models\.generateContent(?:Stream)?|\.messages\.(?:create|stream)|CodexCliService\.(?:run|stream))$/.test(call.expression.getText(tree))) return;
-    let statement = call;
-    while (statement.parent && !ts.isBlock(statement.parent) && !ts.isSourceFile(statement.parent)) statement = statement.parent;
-    const siblings = statement.parent?.statements ?? [];
-    const previous = siblings[siblings.indexOf(statement) - 1];
-    const checked = previous && ts.isExpressionStatement(previous) && ts.isCallExpression(previous.expression)
-      && /^this\.(?:assertOutboundScopes|assertGeminiContents)$/.test(previous.expression.expression.getText(tree));
-    let waits = false;
-    walk(statement, node => {
-      // Awaiting the send's result (or its withTimeout wrapper) is fine. Waiting
-      // before invocation, including inside an argument, is not.
-      const containsSend = node.pos <= call.pos && node.end >= call.end;
-      if ((ts.isAwaitExpression(node) || ts.isYieldExpression(node)) && !containsSend && node.pos < call.end) waits = true;
-      if (ts.isFunctionLike(node)) waits = true;
-    });
-    sends.push({ line: tree.getLineAndCharacterOfPosition(call.getStart(tree)).line + 1, checked: !!checked, waits });
-  });
-  return sends;
-}
-
-test('remaining legacy non-Gemini SDK sends immediately follow a scope check without a syntactic wait', () => {
-  const sends = scanSends(read('electron/LLMHelper.ts'));
-  assert.equal(sends.length, 16, 'Gemini sends moved to generateOnce with runtime before-send guards');
-  assert.deepEqual(sends.filter(send => !send.checked || send.waits), []);
-});
-
-test('send syntax guard rejects deferred closures and awaited arguments', () => {
-  const check = 'this.assertOutboundScopes("test", "text");';
-  const send = 'this.openaiClient.chat.completions.create({});';
-  for (const unsafe of [
-    `${check} const later = function () { return ${send} };`,
-    `${check} const later = () => ${send}`,
-    `${check} await wait(); ${send}`,
-    `${check} this.openaiClient.chat.completions.create(await body());`,
-    `${check} this.openaiClient.chat.completions.create({\n content: await body()\n });`,
-    `if (allowed) { ${check} } ${send}`,
-  ]) {
-    assert.ok(scanSends(unsafe).some(send => !send.checked || send.waits), unsafe);
-  }
-  assert.deepEqual(scanSends(`${check} await this.withTimeout(${send.slice(0, -1)}, 1000);`).map(({ checked, waits }) => ({ checked, waits })), [{ checked: true, waits: false }]);
-});
+// AG-31 replaces the retired SDK syntax-count guard with multi-protocol final-scope behavior tests in multiProtocolGeneration.test.mjs.
 
 // Fourth review (PLAN.md AG-17): the static sweep only shows that a check comes
 // before each send in the same method, not that every branch is guarded. These cases
@@ -614,7 +564,7 @@ test('streamChat re-checks its scopes before each send, also after waiting', asy
   const run = (self, scopes) => (async () => {
     for await (const _ of self.streamChat('QUESTION', undefined, 'MEETING: Weekly sync\nRECENT TRANSCRIPT:\nCHAT_SENTINEL', undefined, true, true, scopes)) { /* drain */ }
   })();
-  const groqStream = (requests) => async (body) => { requests.push(body); return (async function* () { yield { choices: [{ delta: { content: 'ok' } }] }; })(); };
+  const groqStream = (requests) => async (body) => { requests.push(body); return (async function* () { yield { choices: [{ delta: { content: 'ok' } }] }; yield { choices: [{ delta: {}, finish_reason: 'stop' }] }; })(); };
 
   // 1. Declared scope, turned off while the rate limiter waits: the Groq send is refused.
   for (const scopes of [['profile_history'], []]) {

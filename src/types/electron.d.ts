@@ -1,3 +1,4 @@
+import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from './llmTarget';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from './credentialSave';
 
 export interface ElectronAPI {
@@ -78,12 +79,13 @@ export interface ElectronAPI {
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void
 
   // LLM Model Management
-  getCurrentLlmConfig: () => Promise<{ provider: "gemini" | "codex-cli"; model: string }>
+  getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "codex-cli"; model: string }>
   switchToGemini: (apiKey?: string, modelId?: string) => Promise<CredentialSaveResult>
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string) => Promise<{ success: boolean; error?: string }>
   selectServiceAccount: () => Promise<ServiceAccountSelectionResult>
 
   // API Key Management
+  setProviderConfiguration: (value: ProviderConfigurationSave) => Promise<CredentialSaveResult>;
   setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
@@ -91,7 +93,7 @@ export interface ElectronAPI {
   setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>
-  getStoredCredentials: () => Promise<{ hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; googleServiceAccountPath: string | null; sttProvider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; hasDeepgramKey: boolean; hasElevenLabsKey: boolean; hasAzureKey: boolean; azureRegion: string; hasIbmWatsonKey: boolean; ibmWatsonRegion: string; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttDeepgramKey?: string; sttElevenLabsKey?: string; sttAzureKey?: string; sttIbmKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
+  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; googleServiceAccountPath: string | null; sttProvider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; hasDeepgramKey: boolean; hasElevenLabsKey: boolean; hasAzureKey: boolean; azureRegion: string; hasIbmWatsonKey: boolean; ibmWatsonRegion: string; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttDeepgramKey?: string; sttElevenLabsKey?: string; sttAzureKey?: string; sttIbmKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>
   requestMicPermission: () => Promise<boolean>

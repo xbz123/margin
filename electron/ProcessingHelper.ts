@@ -4,6 +4,7 @@ import { AppState } from "./main"
 import { LLMHelper } from "./LLMHelper"
 import { CredentialsManager } from "./services/CredentialsManager"
 import { app } from "electron"
+import { LLM_PRESETS, type LlmProvider } from '../src/types/llmTarget';
 // import dotenv from "dotenv" // Removed static import
 
 if (!app.isPackaged) {
@@ -45,35 +46,22 @@ export class ProcessingHelper {
   public loadStoredCredentials(): void {
     const credManager = CredentialsManager.getInstance();
 
-    const geminiKey = credManager.getGeminiApiKey();
-    const groqKey = credManager.getGroqApiKey();
-    const openaiKey = credManager.getOpenaiApiKey();
-    const claudeKey = credManager.getClaudeApiKey();
-    const deepseekKey = credManager.getDeepseekApiKey();
-
-    if (geminiKey) {
-      console.log("[ProcessingHelper] Loading stored Gemini API Key from CredentialsManager");
-      this.llmHelper.setApiKey(geminiKey);
+    if (!credManager.getLoadStatus().ok) {
+      for (const config of Object.values(LLM_PRESETS)) this.llmHelper.configureProvider(config);
+      this.appState.getIntelligenceManager().initializeLLMs();
+      return;
     }
 
-    if (groqKey) {
-      console.log("[ProcessingHelper] Loading stored Groq API Key from CredentialsManager");
-      this.llmHelper.setGroqApiKey(groqKey);
-    }
-
-    if (openaiKey) {
-      console.log("[ProcessingHelper] Loading stored OpenAI API Key from CredentialsManager");
-      this.llmHelper.setOpenaiApiKey(openaiKey);
-    }
-
-    if (claudeKey) {
-      console.log("[ProcessingHelper] Loading stored Claude API Key from CredentialsManager");
-      this.llmHelper.setClaudeApiKey(claudeKey);
-    }
-
-    if (deepseekKey) {
-      console.log("[ProcessingHelper] Loading stored DeepSeek API Key from CredentialsManager");
-      this.llmHelper.setDeepseekApiKey(deepseekKey);
+    const configs = credManager.getProviderConfigurations();
+    const envKeys: Record<LlmProvider, string | undefined> = {
+      gemini: process.env.GEMINI_API_KEY, groq: process.env.GROQ_API_KEY, openai: process.env.OPENAI_API_KEY,
+      claude: process.env.CLAUDE_API_KEY, deepseek: process.env.DEEPSEEK_API_KEY,
+    };
+    const savedConfigs = credManager.getAllCredentials().providerConfigurations;
+    for (const config of Object.values(configs)) {
+      // An explicitly saved slot never borrows an environment key for a new endpoint.
+      const key = credManager.getProviderApiKey(config.provider) || (savedConfigs?.[config.provider] ? undefined : envKeys[config.provider]);
+      this.llmHelper.configureProvider(config, key);
     }
 
     // CRITICAL: Re-initialize IntelligenceManager now that keys are loaded

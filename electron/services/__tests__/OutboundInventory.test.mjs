@@ -8,16 +8,16 @@ import { REPO } from '../../../scripts/margin/isolation/env.mjs';
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
 const registered = {
-  'electron/LLMHelper.ts': { 'new Groq': 2, 'new OpenAI': 4, 'new Anthropic': 2, 'new GoogleGenAI': 3 },
+  'electron/LLMHelper.ts': { 'new Groq': 1, 'new OpenAI': 3, 'new Anthropic': 1, 'new GoogleGenAI': 1 },
   'electron/audio/GoogleSTT.ts': { 'new SpeechClient': 2 },
   'electron/audio/DeepgramStreamingSTT.ts': { createClient: 1 },
   'electron/audio/SonioxStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/audio/ElevenLabsStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
   'electron/audio/RestSTT.ts': { 'axios.post': 2 },
-  'electron/ipcHandlers.ts': { 'new WebSocket': 2, 'axios.get': 1, 'axios.post': 8 },
+  'electron/ipcHandlers.ts': { 'new WebSocket': 2, 'axios.get': 1, 'axios.post': 3 },
   'electron/services/ModelVersionManager.ts': { fetch: 4 },
-  'electron/utils/modelFetcher.ts': { 'axios.get': 5 },
+  'electron/utils/modelFetcher.ts': { 'axios.get': 6 },
 };
 
 function productionFiles(directory) {
@@ -47,7 +47,7 @@ test('known application HTTP/WS/SDK construction sites match the outbound invent
 
 test('fixed endpoint origins in transport modules match the documented provider inventory', () => {
   const origins = new Set();
-  for (const file of Object.keys(registered)) {
+  for (const file of [...Object.keys(registered), 'electron/llm/llmTarget.ts']) {
     const ast = ts.createSourceFile(file, fs.readFileSync(path.join(REPO, file), 'utf8'), ts.ScriptTarget.Latest, true);
     function visit(node) {
       if (ts.isStringLiteralLike(node) && /^(?:https?|wss?):\/\//.test(node.text)) origins.add(new URL(node.text).origin);

@@ -10,6 +10,8 @@ import { randomUUID } from 'crypto';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
 import { regionalSttEndpoint, openAiSttEndpoint } from './outbound';
 import { GoogleServiceAccount, loadGoogleServiceAccount, validateGoogleServiceAccount } from './googleServiceAccount';
+import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
+import { validateProviderConfiguration, resolveModelTarget } from '../llm/llmTarget';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
@@ -21,6 +23,7 @@ export interface StoredCredentials {
     deepseekApiKey?: string;
     googleServiceAccountPath?: string;
     defaultModel?: string;
+    providerConfigurations?: Partial<Record<LlmProvider, ProviderConfiguration>>;
     // STT Provider settings
     sttProvider?: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox';
     groqSttApiKey?: string;
@@ -171,6 +174,35 @@ export class CredentialsManager {
         return { ...this.credentials };
     }
 
+    public getProviderConfigurations(): Record<LlmProvider, ProviderConfiguration> {
+        return Object.fromEntries(Object.entries(LLM_PRESETS).map(([provider, preset]) => {
+            const config = validateProviderConfiguration(this.credentials.providerConfigurations?.[provider as LlmProvider]
+                ?? { ...preset, model: this.getPreferredModel(provider as LlmProvider) ?? preset.model });
+            if (config.provider !== provider) throw new Error('Provider configuration does not match its credential slot');
+            return [provider, config];
+        })) as Record<LlmProvider, ProviderConfiguration>;
+    }
+
+    public getProviderApiKey(provider: LlmProvider): string | undefined {
+        return this.credentials[`${provider}ApiKey` as keyof StoredCredentials] as string | undefined;
+    }
+
+    public setProviderConfiguration(value: ProviderConfigurationSave): CredentialSaveResult {
+        const config = validateProviderConfiguration(value);
+        if (value.apiKey !== undefined && typeof value.apiKey !== 'string') throw new Error('Invalid API key');
+        let defaultModel = this.credentials.defaultModel;
+        if (!this.getDefaultModel().startsWith('codex-cli')) {
+            const selected = resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations());
+            if (selected.provider === config.provider) defaultModel = modelTargetId(config);
+        }
+        return this.saveCredentials({
+            defaultModel,
+            providerConfigurations: { ...this.credentials.providerConfigurations, [config.provider]: config },
+            [`${config.provider}PreferredModel`]: config.model,
+            ...(value.apiKey === undefined ? {} : { [`${config.provider}ApiKey`]: value.apiKey.trim() || undefined }),
+        });
+    }
+
     // =========================================================================
     // Vision provider availability — used by the vision-first screen pipeline
     // =========================================================================
@@ -282,6 +314,7 @@ export class CredentialsManager {
         return this.saveCredentials({ aiResponseLanguage: language });
     }
     public setDefaultModel(model: string): CredentialSaveResult {
+        if (!model.startsWith('codex-cli')) resolveModelTarget(model, this.getProviderConfigurations());
         return this.saveCredentials({ defaultModel: model });
     }
 
@@ -291,8 +324,7 @@ export class CredentialsManager {
     }
 
     public setPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string): CredentialSaveResult {
-        const key = `${provider}PreferredModel` as keyof StoredCredentials;
-        return this.saveCredentials({ [key]: modelId });
+        return this.setProviderConfiguration({ ...this.getProviderConfigurations()[provider], model: modelId });
     }
 
     public getLoadStatus(): CredentialLoadStatus {

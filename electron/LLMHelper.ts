@@ -2,6 +2,8 @@ import { GoogleGenAI } from "@google/genai"
 import Groq from "groq-sdk"
 import OpenAI from "openai"
 import { devOpenAIBaseUrl } from './margin/devOverrides';
+import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ModelTarget } from '../src/types/llmTarget';
+import { effectiveProviderConfiguration, resolveModelTarget, validateProviderConfiguration } from './llm/llmTarget';
 import { outboundFetch, validateHttpEndpoint } from './services/outbound';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
@@ -76,8 +78,10 @@ const CLAUDE_MAX_OUTPUT_TOKENS = 64000
 const IMAGE_ANALYSIS_PROMPT = `Analyze concisely. Be direct. No markdown formatting. Return plain text only.`
 
 export class LLMHelper {
+  private providerConfigurations: Record<LlmProvider, ProviderConfiguration> = { ...LLM_PRESETS };
+  private selectedTarget: ModelTarget | undefined;
   private client: GoogleGenAI | null = null
-  private groqClient: Groq | null = null
+  private groqClient: Groq | OpenAI | null = null
   private openaiClient: OpenAI | null = null
   private claudeClient: Anthropic | null = null
   // DeepSeek is OpenAI-compatible; reuse the OpenAI SDK with a custom baseURL.
@@ -177,7 +181,9 @@ export class LLMHelper {
     for (const key of ['systemInstruction', 'cachedContent', 'topP', 'topK', 'responseMimeType', 'responseSchema', 'responseJsonSchema', 'safetySettings', 'thinkingConfig'] as const) {
       if (config[key] !== undefined) (providerOptions as any)[key] = config[key];
     }
-    return generateOnce({ protocol: 'gemini', purpose, model: args.model, contents: args.contents,
+    const target = effectiveProviderConfiguration((this.providerConfigurations ?? LLM_PRESETS).gemini);
+    const selectedModel = purpose !== 'compatibility' && this.selectedTarget?.provider === 'gemini' ? this.selectedTarget.model : target.model;
+    return generateOnce({ protocol: 'gemini', purpose, model: target.custom ? selectedModel : args.model, contents: args.contents,
       maxOutputTokens: args.config?.maxOutputTokens ?? MAX_OUTPUT_TOKENS,
       temperature: args.config?.temperature, providerOptions,
       dataScopes, signal: signal ?? config.abortSignal, stream: args.stream === true }, {
@@ -188,8 +194,114 @@ export class LLMHelper {
   }
 
   private generationFinish(event: Extract<GenerateEvent, { type: 'finish' }>, partial: boolean): void {
-    if (event.status === 'failed' && !partial) throw event.error ?? new Error('Gemini generation failed');
+    if (event.status === 'failed' && !partial) throw event.error ?? new Error('Generation failed');
     if (event.status !== 'completed' && event.status !== 'cancelled') throw new GenerationResultError(event.status, partial);
+  }
+
+  private providerGeneration(provider: LlmProvider, args: any, stream: boolean, signal?: AbortSignal, purpose: GenerateRequest['purpose'] = 'answer', response?: (value: any) => void): AsyncIterable<GenerateEvent> {
+    const config = effectiveProviderConfiguration((this.providerConfigurations ?? LLM_PRESETS)[provider]);
+    const client = provider === 'groq' ? this.groqClient : provider === 'openai' ? this.openaiClient
+      : provider === 'claude' ? this.claudeClient : this.deepseekClient;
+    if (!client) throw new Error(`${provider} client not initialized`);
+    const system = args.system ?? args.messages?.filter((message: any) => ['system', 'developer'].includes(message.role)).map((message: any) => message.content).join('\n\n');
+    const systemInstruction = typeof system === 'string' ? system : system?.map((block: any) => block.text).join('');
+    const contents = args.messages.filter((message: any) => !['system', 'developer'].includes(message.role)).map((message: any) => ({
+      role: message.role === 'assistant' ? 'model' : 'user',
+      parts: (typeof message.content === 'string' ? [{ type: 'text', text: message.content }] : message.content).map((part: any) => {
+        if (part.type === 'text') return { text: part.text };
+        if (part.type === 'image') return { inlineData: { mimeType: part.source.media_type, data: part.source.data } };
+        const match = /^data:([^;]+);base64,(.*)$/.exec(part.image_url?.url ?? '');
+        if (!match) throw new Error('Only inline image data is supported');
+        return { inlineData: { mimeType: match[1], data: match[2] } };
+      }),
+    }));
+    const dataScopes = this.scopesForPayload(JSON.stringify(contents), /"inlineData"/.test(JSON.stringify(contents)) ? ['inline-image'] : undefined);
+    const selectedModel = purpose !== 'compatibility' && this.selectedTarget?.provider === provider ? this.selectedTarget.model : config.model;
+    return generateOnce({ protocol: config.protocol, purpose, model: config.custom ? selectedModel : args.model,
+      contents, systemInstruction, maxOutputTokens: args.max_completion_tokens ?? args.max_tokens ?? MAX_OUTPUT_TOKENS,
+      temperature: args.temperature, stream, signal, dataScopes,
+      providerOptions: {
+        outputTokenField: args.max_tokens === undefined ? 'max_completion_tokens' : 'max_tokens',
+        ...(config.custom ? {} : args.prompt_cache_key ? { prompt_cache_key: args.prompt_cache_key } : {}),
+        ...(args.top_p === undefined ? {} : { top_p: args.top_p }), ...(args.stop === undefined ? {} : { stop: args.stop }),
+        ...(Array.isArray(system) ? { systemBlocks: system.map((block: any) => config.custom ? { type: 'text' as const, text: block.text } : block) } : {}),
+      },
+    }, { client, beforeSend: () => assertProviderDataScopes(provider, dataScopes, this.getProviderScopePolicy()), response });
+  }
+
+  private async sendProvider(provider: LlmProvider, args: any, signal?: AbortSignal, purpose?: GenerateRequest['purpose']): Promise<any> {
+    let response: any, text = '', hasText = false;
+    for await (const event of this.providerGeneration(provider, args, false, signal, purpose, value => { response = value; })) {
+      if (event.type === 'delta') { text += event.text; hasText = true; }
+      else {
+        if (event.status === 'cancelled') throw signal?.reason ?? new DOMException('Generation cancelled', 'AbortError');
+        if (event.status !== 'empty') this.generationFinish(event, hasText);
+      }
+    }
+    return { ...response, choices: [{ message: { content: text } }], content: [{ type: 'text', text }] };
+  }
+
+  private async * sendProviderStream(provider: LlmProvider, args: any, signal?: AbortSignal): AsyncGenerator<string, void, unknown> {
+    let hasText = false;
+    for await (const event of this.providerGeneration(provider, args, true, signal)) {
+      if (signal?.aborted) return;
+      if (event.type === 'delta') { hasText = true; yield event.text; }
+      else this.generationFinish(event, hasText);
+    }
+  }
+
+  public configureProvider(value: ProviderConfiguration, key?: string): void {
+    const config = effectiveProviderConfiguration(value);
+    this.providerConfigurations = { ...(this.providerConfigurations ?? LLM_PRESETS), [config.provider]: validateProviderConfiguration(value) };
+    const apiKey = key?.trim() || null;
+    if (config.provider === 'gemini') {
+      this.apiKey = apiKey;
+      this.client = apiKey ? new GoogleGenAI({ apiKey, httpOptions: { baseUrl: config.baseUrl, apiVersion: 'v1alpha', retryOptions: { attempts: 1 } } }) : null;
+      this.geminiPromptCache.clear();
+    } else if (config.provider === 'claude') {
+      this.claudeApiKey = apiKey;
+      this.claudeClient = apiKey ? new Anthropic({ apiKey, baseURL: config.baseUrl.replace(/\/v1$/, ''), fetch: outboundFetch, maxRetries: 0 }) : null;
+      this._claudeCacheFirstHitLogged = false;
+    } else if (config.provider === 'openai') {
+      this.openaiApiKey = apiKey;
+      this.openaiClient = apiKey ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }) : null;
+    } else if (config.provider === 'groq') {
+      this.groqApiKey = apiKey;
+      this.groqClient = apiKey ? config.custom
+        ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 })
+        : new Groq({ apiKey, baseURL: 'https://api.groq.com', fetch: outboundFetch, maxRetries: 0 }) : null;
+      this._groqLocalDisabled = false;
+    } else {
+      this.deepseekApiKey = apiKey;
+      this.deepseekClient = apiKey ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }) : null;
+    }
+    this.visionHealth.clear();
+    if (this.selectedTarget?.provider === config.provider) {
+      this.selectedTarget = validateProviderConfiguration(value);
+      this.currentModelId = this.selectedTarget.model;
+      if (config.provider === 'gemini') this.geminiModel = this.selectedTarget.model;
+    }
+    this.refreshDiscoveryKeys();
+  }
+
+  private refreshDiscoveryKeys(): void {
+    const configs = this.providerConfigurations ?? LLM_PRESETS;
+    this.modelVersionManager?.setApiKeys({
+      openai: effectiveProviderConfiguration(configs.openai).custom ? null : this.openaiApiKey,
+      gemini: effectiveProviderConfiguration(configs.gemini).custom ? null : this.apiKey,
+      claude: effectiveProviderConfiguration(configs.claude).custom ? null : this.claudeApiKey,
+      groq: effectiveProviderConfiguration(configs.groq).custom ? null : this.groqApiKey,
+    });
+  }
+
+  public async testProviderConnection(provider: LlmProvider): Promise<string> {
+    const config = (this.providerConfigurations ?? LLM_PRESETS)[provider];
+    const signal = AbortSignal.timeout(15000);
+    if (provider === 'gemini') {
+      return (await this.sendGemini({ model: config.model, contents: [{ text: 'Hello' }], config: { maxOutputTokens: 64 } }, signal, 'compatibility')).text;
+    }
+    const response = await this.sendProvider(provider, { model: config.model, messages: [{ role: 'user', content: 'Hello' }], max_tokens: 64 }, signal, 'compatibility');
+    return response.choices[0].message.content;
   }
 
   private async sendGemini(args: any, signal?: AbortSignal, purpose?: GenerateRequest['purpose'], client = this.client): Promise<any> {
@@ -241,96 +353,30 @@ export class LLMHelper {
     // Initialize model version manager
     this.modelVersionManager = new ModelVersionManager();
 
-    // Initialize Groq client if API key provided
-    if (groqApiKey) {
-      this.groqApiKey = groqApiKey
-      // Only application retries may resend: each one rechecks the data scopes.
-      this.groqClient = new Groq({ apiKey: groqApiKey, baseURL: validateHttpEndpoint(process.env.GROQ_BASE_URL ?? 'https://api.groq.com'), fetch: outboundFetch, maxRetries: 0 })
-      console.log(`[LLMHelper] Groq client initialized with model: ${GROQ_MODEL}`)
-    }
-
-    // Initialize OpenAI client if API key provided
-    if (openaiApiKey) {
-      this.openaiApiKey = openaiApiKey
-      this.openaiClient = new OpenAI({ apiKey: openaiApiKey, baseURL: validateHttpEndpoint(devOpenAIBaseUrl() ?? process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'), fetch: outboundFetch, maxRetries: 0 })
-      console.log(`[LLMHelper] OpenAI client initialized with model: ${OPENAI_MODEL}`)
-    }
-
-    // Initialize Claude client if API key provided
-    if (claudeApiKey) {
-      this.claudeApiKey = claudeApiKey
-      this.claudeClient = new Anthropic({ apiKey: claudeApiKey, baseURL: validateHttpEndpoint(process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com'), fetch: outboundFetch, maxRetries: 0 })
-      console.log(`[LLMHelper] Claude client initialized with model: ${CLAUDE_MODEL}`)
-    }
-
-    // Initialize DeepSeek client if API key provided (OpenAI-compatible)
-    if (deepseekApiKey) {
-      this.deepseekApiKey = deepseekApiKey
-      this.deepseekClient = new OpenAI({ apiKey: deepseekApiKey, baseURL: DEEPSEEK_BASE_URL, fetch: outboundFetch, maxRetries: 0 })
-      console.log(`[LLMHelper] DeepSeek client initialized with model: ${DEEPSEEK_MODEL}`)
-    }
-
-    if (apiKey) {
-      this.apiKey = apiKey
-      // Initialize with v1alpha API version for Gemini 3 support
-      this.client = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: { apiVersion: "v1alpha", retryOptions: { attempts: 1 } }
-      })
-      // console.log(`[LLMHelper] Using Google Gemini 3 with model: ${this.geminiModel} (v1alpha API)`)
-    } else {
-      console.warn("[LLMHelper] No API key provided. Client will be uninitialized until key is set.")
+    for (const [provider, key] of Object.entries({ gemini: apiKey, groq: groqApiKey, openai: openaiApiKey, claude: claudeApiKey, deepseek: deepseekApiKey })) {
+      if (key) this.configureProvider(LLM_PRESETS[provider as LlmProvider], key);
     }
   }
 
+
   public setApiKey(apiKey: string) {
-    this.apiKey = apiKey;
-    this.client = new GoogleGenAI({
-      apiKey: apiKey,
-      httpOptions: { apiVersion: "v1alpha", retryOptions: { attempts: 1 } }
-    })
-    // Cache resource names are scoped to the old key's project — drop them so
-    // we don't reuse a stale/expired-key cache (the root cause behind the
-    // "API key expired" cache.create failures). Also clear the vision circuit
-    // breaker for Gemini so a freshly-entered key is retried immediately.
-    this.geminiPromptCache.clear();
-    this.visionHealth.delete('gemini_flash');
-    this.visionHealth.delete('gemini_pro');
-    console.log("[LLMHelper] Gemini API Key updated.");
+    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).gemini, apiKey);
   }
 
   public setGroqApiKey(apiKey: string) {
-    this.groqClient = new Groq({ apiKey, baseURL: validateHttpEndpoint(process.env.GROQ_BASE_URL ?? 'https://api.groq.com'), fetch: outboundFetch, maxRetries: 0 });
-    this._groqLocalDisabled = false;
-    this.visionHealth.delete('groq'); // fresh key → retry immediately, skip auth cooldown
-    console.log("[LLMHelper] Groq API Key updated.");
+    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).groq, apiKey);
   }
 
   public setOpenaiApiKey(apiKey: string) {
-    this.openaiApiKey = apiKey;
-    this.openaiClient = new OpenAI({ apiKey, baseURL: validateHttpEndpoint(devOpenAIBaseUrl() ?? process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'), fetch: outboundFetch, maxRetries: 0 });
-    this.visionHealth.delete('openai'); // fresh key → retry immediately, skip auth cooldown
-    console.log("[LLMHelper] OpenAI API Key updated.");
+    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).openai, apiKey);
   }
 
   public setClaudeApiKey(apiKey: string) {
-    this.claudeApiKey = apiKey;
-    this.claudeClient = new Anthropic({ apiKey, baseURL: validateHttpEndpoint(process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com'), fetch: outboundFetch, maxRetries: 0 });
-    this.visionHealth.delete('claude'); // fresh key → retry immediately, skip auth cooldown
-    console.log("[LLMHelper] Claude API Key updated.");
+    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).claude, apiKey);
   }
 
   public setDeepseekApiKey(apiKey: string) {
-    const trimmed = (apiKey || '').trim();
-    if (!trimmed) {
-      this.deepseekApiKey = null;
-      this.deepseekClient = null;
-      console.log("[LLMHelper] DeepSeek API Key cleared.");
-      return;
-    }
-    this.deepseekApiKey = trimmed;
-    this.deepseekClient = new OpenAI({ apiKey: trimmed, baseURL: DEEPSEEK_BASE_URL, fetch: outboundFetch, maxRetries: 0 });
-    console.log("[LLMHelper] DeepSeek API Key updated.");
+    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).deepseek, apiKey);
   }
 
   /**
@@ -339,12 +385,7 @@ export class LLMHelper {
    * Triggers initial model discovery and starts background scheduler.
    */
   public async initModelVersionManager(): Promise<void> {
-    this.modelVersionManager.setApiKeys({
-      openai: this.openaiApiKey,
-      gemini: this.apiKey,
-      claude: this.claudeApiKey,
-      groq: this.groqApiKey,
-    });
+    this.refreshDiscoveryKeys();
     await this.modelVersionManager.initialize();
     console.log(this.modelVersionManager.getSummary());
     // Register this instance for VisionProviderRegistry (vision-first screen pipeline).
@@ -443,16 +484,21 @@ export class LLMHelper {
 
   // --- Model Type Checkers ---
   private isOpenAiModel(modelId: string): boolean {
-    return modelId.startsWith("gpt-") || modelId.startsWith("o1-") || modelId.startsWith("o3-") || modelId.includes("openai");
+    if (modelId === this.currentModelId && this.selectedTarget) return this.selectedTarget.provider === 'openai';
+    try { return resolveModelTarget(modelId, this.providerConfigurations ?? LLM_PRESETS).provider === 'openai'; }
+    catch { return false; }
   }
 
   private isClaudeModel(modelId: string): boolean {
-    return modelId.startsWith("claude-");
+    if (modelId === this.currentModelId && this.selectedTarget) return this.selectedTarget.provider === 'claude';
+    try { return resolveModelTarget(modelId, this.providerConfigurations ?? LLM_PRESETS).provider === 'claude'; }
+    catch { return false; }
   }
 
   private isDeepseekModel(modelId: string): boolean {
-    if (!modelId) return false;
-    return /^deepseek-v\d/.test(modelId.toLowerCase());
+    if (modelId === this.currentModelId && this.selectedTarget) return this.selectedTarget.provider === 'deepseek';
+    try { return resolveModelTarget(modelId, this.providerConfigurations ?? LLM_PRESETS).provider === 'deepseek'; }
+    catch { return false; }
   }
 
   private getDeepseekMaxOutput(_modelId: string): number {
@@ -497,11 +543,15 @@ export class LLMHelper {
   }
 
   private isGroqModel(modelId: string): boolean {
-    return modelId.startsWith("llama-") || modelId.startsWith("mixtral-") || modelId.startsWith("gemma-") || modelId.startsWith("meta-llama/") || modelId.startsWith("qwen/") || modelId.startsWith("qwen-");
+    if (modelId === this.currentModelId && this.selectedTarget) return this.selectedTarget.provider === 'groq';
+    try { return resolveModelTarget(modelId, this.providerConfigurations ?? LLM_PRESETS).provider === 'groq'; }
+    catch { return false; }
   }
 
   private isGeminiModel(modelId: string): boolean {
-    return modelId.startsWith("gemini-") || modelId.startsWith("models/");
+    if (modelId === this.currentModelId && this.selectedTarget) return this.selectedTarget.provider === 'gemini';
+    try { return resolveModelTarget(modelId, this.providerConfigurations ?? LLM_PRESETS).provider === 'gemini'; }
+    catch { return false; }
   }
 
   private isCodexCliModel(modelId: string): boolean {
@@ -525,6 +575,10 @@ export class LLMHelper {
     if (modelId === 'llama') targetModelId = GROQ_MODEL;
     if (modelId === 'deepseek') targetModelId = DEEPSEEK_MODEL;
 
+    if (!this.isCodexCliModel(targetModelId)) {
+      this.selectedTarget = resolveModelTarget(targetModelId, this.providerConfigurations ?? LLM_PRESETS);
+      targetModelId = this.selectedTarget.model;
+    } else this.selectedTarget = undefined;
     this.currentModelId = targetModelId;
 
     // Update specific model props if needed
@@ -1522,7 +1576,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     messages.push({ role: "user", content: userMessage });
 
     this.assertOutboundScopes('groq', userMessage); // again right before sending
-    const response = await this.groqClient.chat.completions.create({
+    const response = await this.sendProvider('groq', {
       model: modelId,
       messages,
       temperature: 0.4,
@@ -1571,7 +1625,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const response = await this.withTimeout(
       this.withRetry(() => {
         this.assertOutboundScopes('openai', userMessage, imagePaths);
-        return this.openaiClient!.chat.completions.create({
+        return this.sendProvider('openai', {
           model,
           messages,
           max_completion_tokens: model.toLowerCase().includes('claude') ? this.getClaudeMaxOutput(model) : MAX_OUTPUT_TOKENS,
@@ -1606,7 +1660,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const response = await this.withTimeout(
       this.withRetry(() => {
         this.assertOutboundScopes('deepseek', userMessage);
-        return this.deepseekClient!.chat.completions.create({
+        return this.sendProvider('deepseek', {
           model,
           messages,
           max_tokens: this.getDeepseekMaxOutput(model),
@@ -1657,14 +1711,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const response = await this.withTimeout(
       this.withRetry(async () => {
         this.assertOutboundScopes('claude', userMessage, imagePaths); // again right before sending
-        const stream = this.claudeClient!.messages.stream({
+        return await this.sendProvider('claude', {
           model,
           max_tokens: this.getClaudeMaxOutput(model),
           // CACHE BOUNDARY: system blocks are static; dynamic content lives in `messages` only.
           ...(systemPrompt ? { system: this.buildClaudeSystemBlocks(systemPrompt, model) } : {}),
           messages: [{ role: "user", content }],
         });
-        return await stream.finalMessage();
       }),
       120000,
       `Claude (${model})`
@@ -1749,7 +1802,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     messages.push({ role: "user", content: contentParts });
 
     this.assertOutboundScopes('groq', userMessage, imagePaths); // again right before sending
-    const response = await this.groqClient.chat.completions.create({
+    const response = await this.sendProvider('groq', {
       model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages,
       temperature: 1,
@@ -2606,25 +2659,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('groq', userMessage); // again right before sending
-    const stream = await this.groqClient.chat.completions.create({
+    yield* this.sendProviderStream('groq', {
       model: modelId,
       messages,
       stream: true,
       temperature: 0.4,
       max_tokens: 8192,
-    }, { signal: abortSignal });
-
-    try {
-      for await (const chunk of stream) {
-        if (abortSignal?.aborted) return;
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          yield content;
-        }
-      }
-    } finally {
-      if (abortSignal?.aborted && typeof (stream as any).abort === 'function') (stream as any).abort();
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2653,7 +2694,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('groq', userMessage, imagePaths); // again right before sending
-    const stream = await this.groqClient.chat.completions.create({
+    yield* this.sendProviderStream('groq', {
       model: "meta-llama/llama-4-scout-17b-16e-instruct",
       messages,
       stream: true,
@@ -2661,19 +2702,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       temperature: 1,
       top_p: 1,
       stop: null
-    }, { signal: abortSignal });
-
-    try {
-      for await (const chunk of stream) {
-        if (abortSignal?.aborted) return;
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          yield content;
-        }
-      }
-    } finally {
-      if (abortSignal?.aborted && typeof (stream as any).abort === 'function') (stream as any).abort();
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2703,25 +2732,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const cacheKey = this.getOpenAiPromptCacheKey(systemPrompt);
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('openai', userMessage); // again right before sending
-    const stream = await this.openaiClient.chat.completions.create({
+    yield* this.sendProviderStream('openai', {
       model,
       messages,
       stream: true,
       max_completion_tokens: model.toLowerCase().includes('claude') ? this.getClaudeMaxOutput(model) : MAX_OUTPUT_TOKENS,
       ...(cacheKey ? { prompt_cache_key: cacheKey } : {}),
-    }, { signal: abortSignal });
-
-    try {
-      for await (const chunk of stream) {
-        if (abortSignal?.aborted) return;
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          yield content;
-        }
-      }
-    } finally {
-      if (abortSignal?.aborted && typeof (stream as any).abort === 'function') (stream as any).abort();
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2738,25 +2755,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('claude', userMessage); // again right before sending
-    const stream = this.claudeClient.messages.stream({
+    yield* this.sendProviderStream('claude', {
       model,
       max_tokens: this.getClaudeMaxOutput(model),
       // CACHE BOUNDARY: system blocks are static; dynamic content lives in `messages` only.
       ...(systemPrompt ? { system: this.buildClaudeSystemBlocks(systemPrompt, model) } : {}),
       messages: [{ role: "user", content: userMessage }],
-    });
-    const onAbort = () => { try { stream.abort(); } catch {} };
-    abortSignal?.addEventListener('abort', onAbort, { once: true });
-    try {
-      for await (const event of stream) {
-        if (abortSignal?.aborted) return;
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          yield event.delta.text;
-        }
-      }
-    } finally {
-      abortSignal?.removeEventListener('abort', onAbort);
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2776,22 +2781,12 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('deepseek', userMessage); // again right before sending
-    const stream = await this.deepseekClient.chat.completions.create({
+    yield* this.sendProviderStream('deepseek', {
       model,
       messages,
       stream: true,
       max_tokens: this.getDeepseekMaxOutput(model),
-    }, { signal: abortSignal });
-
-    try {
-      for await (const chunk of stream) {
-        if (abortSignal?.aborted) return;
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) yield content;
-      }
-    } finally {
-      if (abortSignal?.aborted && typeof (stream as any).abort === 'function') (stream as any).abort();
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2823,25 +2818,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const cacheKey = this.getOpenAiPromptCacheKey(systemPrompt);
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('openai', userMessage, imagePaths); // again right before sending
-    const stream = await this.openaiClient.chat.completions.create({
+    yield* this.sendProviderStream('openai', {
       model,
       messages,
       stream: true,
       max_completion_tokens: model.toLowerCase().includes('claude') ? this.getClaudeMaxOutput(model) : MAX_OUTPUT_TOKENS,
       ...(cacheKey ? { prompt_cache_key: cacheKey } : {}),
-    }, { signal: abortSignal });
-
-    try {
-      for await (const chunk of stream) {
-        if (abortSignal?.aborted) return;
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          yield content;
-        }
-      }
-    } finally {
-      if (abortSignal?.aborted && typeof (stream as any).abort === 'function') (stream as any).abort();
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2873,7 +2856,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
     if (abortSignal?.aborted) return;
     this.assertOutboundScopes('claude', userMessage, imagePaths); // again right before sending
-    const stream = this.claudeClient.messages.stream({
+    yield* this.sendProviderStream('claude', {
       model,
       max_tokens: this.getClaudeMaxOutput(model),
       // CACHE BOUNDARY: system blocks are static; image bytes + user text stay in `messages`.
@@ -2885,19 +2868,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
           { type: "text", text: userMessage }
         ]
       }],
-    });
-    const onAbort = () => { try { stream.abort(); } catch {} };
-    abortSignal?.addEventListener('abort', onAbort, { once: true });
-    try {
-      for await (const event of stream) {
-        if (abortSignal?.aborted) return;
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          yield event.delta.text;
-        }
-      }
-    } finally {
-      abortSignal?.removeEventListener('abort', onAbort);
-    }
+    }, abortSignal);
   }
 
   /**
@@ -2943,7 +2914,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     this.assertOutboundScopes('gemini', fullMessage, imagePaths);
     // CACHE BOUNDARY: static system content lives in `config.cachedContent`
     // (or `config.systemInstruction` on fallback); dynamic content stays in `contents`.
-    const cacheName = systemInstruction
+    const cacheName = systemInstruction && !effectiveProviderConfiguration((this.providerConfigurations ?? LLM_PRESETS).gemini).custom
       ? await this.geminiPromptCache.getOrCreate(this.client, model, systemInstruction,
         () => this.assertOutboundScopes('gemini', fullMessage, imagePaths), abortSignal)
       : null;
@@ -3052,7 +3023,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     this.assertOutboundScopes('gemini', fullMessage, imagePaths);
     // CACHE BOUNDARY: static system content lives in `config.cachedContent`
     // (or `config.systemInstruction` on fallback); dynamic content stays in `contents`.
-    const cacheName = systemInstruction
+    const cacheName = systemInstruction && !effectiveProviderConfiguration((this.providerConfigurations ?? LLM_PRESETS).gemini).custom
       ? await this.geminiPromptCache.getOrCreate(this.client, model, systemInstruction,
         () => this.assertOutboundScopes('gemini', fullMessage, imagePaths), signal)
       : null;
@@ -3101,9 +3072,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   }
 
 
-  public getCurrentProvider(): "gemini" | "codex-cli" {
+  public getCurrentProvider(): LlmProvider | "codex-cli" {
     if (this.isCodexCliModel(this.currentModelId)) return "codex-cli";
-    return "gemini";
+    return this.selectedTarget?.provider ?? 'gemini';
+  }
+
+  public getCurrentModelSelection(): string {
+    return this.selectedTarget ? modelTargetId(this.selectedTarget) : this.currentModelId;
   }
 
   public getCurrentModel(): string {
@@ -3131,7 +3106,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   /**
    * Get the Groq client for mode-specific LLMs
    */
-  public getGroqClient(): Groq | null {
+  public getGroqClient(): Groq | OpenAI | null {
     return this.groqClient;
   }
 
@@ -3207,20 +3182,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         console.log(`[LLMHelper] 🚀 Mode-specific Groq stream starting...`);
         await this.rateLimiters.groq.acquire();
         this.assertOutboundScopes('groq', groqMessage); // again right before sending
-        const stream = await this.groqClient.chat.completions.create({
+        yield* this.sendProviderStream('groq', {
           model: GROQ_MODEL,
           messages: [{ role: "user", content: groqMessage }],
           stream: true,
           temperature: temperature,
           max_tokens: maxTokens,
         });
-
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) {
-            yield content;
-          }
-        }
         console.log(`[LLMHelper] ✅ Mode-specific Groq stream completed`);
         return; // Success - done
       } catch (err: any) {
@@ -3357,6 +3325,21 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const tokenCount = estimateTokens(context);
     console.log(`[LLMHelper] Estimated tokens: ${tokenCount}`);
 
+    // Use the selected API target for summaries too; retry orchestration stays in AG-32.
+    if (this.selectedTarget && this.selectedTarget.provider !== 'gemini') {
+      const provider = this.selectedTarget.provider;
+      try {
+        const text = await this.sendProvider(provider, {
+          model: this.selectedTarget.model,
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: `Context:\n${context}` }],
+          max_tokens: provider === 'claude' ? this.getClaudeMaxOutput(this.selectedTarget.model) : 8192,
+        }, undefined, 'summary');
+        if (text.choices[0].message.content.trim()) return this.processResponse(text.choices[0].message.content);
+      } catch (error) { rethrowTerminalGenerationError(error); }
+    } else if (this.openaiClient && !this.groqClient && !this.client && !this.claudeClient && !this.deepseekClient) {
+      return this.processResponse(await this.generateWithOpenai(`Context:\n${context}`, systemPrompt));
+    }
+
     // ATTEMPT 2: Codex CLI (if user has it enabled — text-only path)
     if (this.codexCliConfig.enabled) {
       console.log(`[LLMHelper] Attempting Codex CLI for summary...`);
@@ -3382,7 +3365,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
         const groqPrompt = groqSystemPrompt || systemPrompt;
         this.assertOutboundScopes('groq', context);
         const response = await this.withTimeout(
-          this.groqClient.chat.completions.create({
+          this.sendProvider('groq', {
             model: GROQ_MODEL,
             messages: [
               { role: "system", content: groqPrompt },
@@ -3492,11 +3475,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     }
 
     if (apiKey) {
-      this.apiKey = apiKey;
-      this.client = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: { apiVersion: "v1alpha", retryOptions: { attempts: 1 } }
-      });
+      this.setApiKey(apiKey);
     } else if (!this.client) {
       throw new Error("No Gemini API key provided and no existing client");
     }

@@ -1,3 +1,4 @@
+import { LLM_PRESETS, modelTargetId, type ProviderConfiguration, type LlmProvider } from '../../types/llmTarget';
 import { APP_NAME } from '../../appIdentity';
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, ChevronDown, Check, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
@@ -112,6 +113,7 @@ const CodexCliModelField: React.FC<{
 );
 
 export const AIProvidersSettings: React.FC = () => {
+    const [providerConfigurations, setProviderConfigurations] = useState<Record<LlmProvider, ProviderConfiguration>>({ ...LLM_PRESETS });
     // --- Standard Providers ---
     const [apiKey, setApiKey] = useState('');
     const [groqApiKey, setGroqApiKey] = useState('');
@@ -159,6 +161,7 @@ export const AIProvidersSettings: React.FC = () => {
                 // @ts-ignore
                 const creds = await window.electronAPI?.getStoredCredentials?.();
                 if (creds) {
+                    if (creds.providerConfigurations) setProviderConfigurations(creds.providerConfigurations);
                     setHasStoredKey({
                         gemini: creds.hasGeminiKey,
                         groq: creds.hasGroqKey,
@@ -298,30 +301,31 @@ export const AIProvidersSettings: React.FC = () => {
         }
     };
 
-    const handleSaveKey = async (provider: string, key: string, setter: (val: string) => void): Promise<CredentialSaveResult> => {
-        if (!key.trim()) return { ok: false, code: 'write_failed', message: 'Enter an API key before saving.' };
+    const handleSaveKey = async (provider: string, key: string, setter: (val: string) => void, draft?: ProviderConfiguration): Promise<CredentialSaveResult> => {
+        if (!key.trim() && !hasStoredKey[provider]) return { ok: false, code: 'write_failed', message: 'Enter an API key before saving.' };
         setCredentialNotice('');
         setSavingStatus(prev => ({ ...prev, [provider]: true }));
         setSavedStatus(prev => ({ ...prev, [provider]: false }));
         try {
-            let result: CredentialSaveResult | undefined;
-            // @ts-ignore
-            if (provider === 'gemini') result = await window.electronAPI.setGeminiApiKey(key);
-            // @ts-ignore
-            if (provider === 'groq') result = await window.electronAPI.setGroqApiKey(key);
-            // @ts-ignore
-            if (provider === 'openai') result = await window.electronAPI.setOpenaiApiKey(key);
-            // @ts-ignore
-            if (provider === 'claude') result = await window.electronAPI.setClaudeApiKey(key);
-            // @ts-ignore
-            if (provider === 'deepseek') result = await window.electronAPI.setDeepseekApiKey(key);
+            const config = draft ?? providerConfigurations[provider as LlmProvider];
+            const result = await window.electronAPI.setProviderConfiguration({ ...config, ...(key.trim() ? { apiKey: key } : {}) });
 
             if (result?.ok) {
+                setProviderConfigurations(prev => ({ ...prev, [provider]: config }));
+                let warning = result.warning;
+                try {
+                    const defaultSelection = await window.electronAPI.getDefaultModel();
+                    if (defaultSelection?.model) setDefaultModel(defaultSelection.model);
+                } catch {
+                    // The save is already committed; a refresh failure must not claim rollback.
+                    warning ||= 'Saved; reopen settings to refresh the default model.';
+                }
+                setPreferredModels(prev => ({ ...prev, [provider]: config.model }));
                 setSavedStatus(prev => ({ ...prev, [provider]: true }));
                 setHasStoredKey(prev => ({ ...prev, [provider]: true }));
                 setter('');
                 setTimeout(() => setSavedStatus(prev => ({ ...prev, [provider]: false })), 2000);
-                setCredentialNotice(result.warning || '');
+                setCredentialNotice(warning || '');
                 return result;
             }
             const failed: CredentialSaveResult = result || { ok: false, code: 'write_failed', message: 'No save result was received.' };
@@ -389,7 +393,7 @@ export const AIProvidersSettings: React.FC = () => {
 
         try {
             // @ts-ignore
-            const result = await window.electronAPI.testLlmConnection(provider, key);
+            const result = await window.electronAPI.testLlmConnection(provider);
             if (result.success) {
                 setTestStatus(prev => ({ ...prev, [provider]: 'success' }));
                 setTimeout(() => setTestStatus(prev => ({ ...prev, [provider]: 'idle' })), 3000);
@@ -426,10 +430,11 @@ export const AIProvidersSettings: React.FC = () => {
 
                             for (const [prov, cfg] of Object.entries(STANDARD_CLOUD_MODELS)) {
                                 if (!hasStoredKey[prov as keyof typeof hasStoredKey]) continue;
-                                cfg.ids.forEach((id, i) => opts.push({ id, name: cfg.names[i] }));
+                                const target = providerConfigurations[prov as LlmProvider];
+                                if (!target.baseUrl) cfg.ids.forEach((id, i) => opts.push({ id: modelTargetId({ ...target, model: id }), name: cfg.names[i] }));
                                 const pm = preferredModels[prov as keyof typeof preferredModels];
-                                if (pm && !cfg.ids.includes(pm)) {
-                                    opts.push({ id: pm, name: prettifyModelId(pm) });
+                                if (pm && (target.baseUrl || !cfg.ids.includes(pm))) {
+                                    opts.push({ id: modelTargetId({ ...target, model: pm }), name: `${prettifyModelId(pm)} (${prov})` });
                                 }
                             }
                             if (codexCliConfig.enabled) {
@@ -497,12 +502,13 @@ export const AIProvidersSettings: React.FC = () => {
                     {/* Gemini */}
                     <ProviderCard
                         providerId="gemini"
+                        configuration={providerConfigurations.gemini}
                         providerName="Gemini"
                         apiKey={apiKey}
                         preferredModel={preferredModels.gemini}
                         hasStoredKey={!!hasStoredKey.gemini}
                         onKeyChange={setApiKey}
-                        onSaveKey={() => handleSaveKey('gemini', apiKey, setApiKey)}
+                        onSaveKey={(draft) => handleSaveKey('gemini', apiKey, setApiKey, draft)}
                         onRemoveKey={() => handleRemoveKey('gemini', setApiKey)}
                         onTestConnection={() => handleTestConnection('gemini', apiKey)}
                         testStatus={testStatus.gemini || 'idle'}
@@ -517,12 +523,13 @@ export const AIProvidersSettings: React.FC = () => {
                     {/* Groq */}
                     <ProviderCard
                         providerId="groq"
+                        configuration={providerConfigurations.groq}
                         providerName="Groq"
                         apiKey={groqApiKey}
                         preferredModel={preferredModels.groq}
                         hasStoredKey={!!hasStoredKey.groq}
                         onKeyChange={setGroqApiKey}
-                        onSaveKey={() => handleSaveKey('groq', groqApiKey, setGroqApiKey)}
+                        onSaveKey={(draft) => handleSaveKey('groq', groqApiKey, setGroqApiKey, draft)}
                         onRemoveKey={() => handleRemoveKey('groq', setGroqApiKey)}
                         onTestConnection={() => handleTestConnection('groq', groqApiKey)}
                         testStatus={testStatus.groq || 'idle'}
@@ -537,12 +544,13 @@ export const AIProvidersSettings: React.FC = () => {
                     {/* OpenAI */}
                     <ProviderCard
                         providerId="openai"
+                        configuration={providerConfigurations.openai}
                         providerName="OpenAI"
                         apiKey={openaiApiKey}
                         preferredModel={preferredModels.openai}
                         hasStoredKey={!!hasStoredKey.openai}
                         onKeyChange={setOpenaiApiKey}
-                        onSaveKey={() => handleSaveKey('openai', openaiApiKey, setOpenaiApiKey)}
+                        onSaveKey={(draft) => handleSaveKey('openai', openaiApiKey, setOpenaiApiKey, draft)}
                         onRemoveKey={() => handleRemoveKey('openai', setOpenaiApiKey)}
                         onTestConnection={() => handleTestConnection('openai', openaiApiKey)}
                         testStatus={testStatus.openai || 'idle'}
@@ -557,12 +565,13 @@ export const AIProvidersSettings: React.FC = () => {
                     {/* Claude */}
                     <ProviderCard
                         providerId="claude"
+                        configuration={providerConfigurations.claude}
                         providerName="Claude"
                         apiKey={claudeApiKey}
                         preferredModel={preferredModels.claude}
                         hasStoredKey={!!hasStoredKey.claude}
                         onKeyChange={setClaudeApiKey}
-                        onSaveKey={() => handleSaveKey('claude', claudeApiKey, setClaudeApiKey)}
+                        onSaveKey={(draft) => handleSaveKey('claude', claudeApiKey, setClaudeApiKey, draft)}
                         onRemoveKey={() => handleRemoveKey('claude', setClaudeApiKey)}
                         onTestConnection={() => handleTestConnection('claude', claudeApiKey)}
                         testStatus={testStatus.claude || 'idle'}
@@ -577,12 +586,13 @@ export const AIProvidersSettings: React.FC = () => {
                     {/* DeepSeek — text-only; intentionally not part of the screenshot/vision fallback chain. */}
                     <ProviderCard
                         providerId="deepseek"
+                        configuration={providerConfigurations.deepseek}
                         providerName="DeepSeek"
                         apiKey={deepseekApiKey}
                         preferredModel={preferredModels.deepseek}
                         hasStoredKey={!!hasStoredKey.deepseek}
                         onKeyChange={setDeepseekApiKey}
-                        onSaveKey={() => handleSaveKey('deepseek', deepseekApiKey, setDeepseekApiKey)}
+                        onSaveKey={(draft) => handleSaveKey('deepseek', deepseekApiKey, setDeepseekApiKey, draft)}
                         onRemoveKey={() => handleRemoveKey('deepseek', setDeepseekApiKey)}
                         onTestConnection={() => handleTestConnection('deepseek', deepseekApiKey)}
                         testStatus={testStatus.deepseek || 'idle'}

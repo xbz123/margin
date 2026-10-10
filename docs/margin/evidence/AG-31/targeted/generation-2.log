@@ -1,0 +1,108 @@
+[GeminiPromptCache] caches.create failed for model=gemini-3.1-flash-lite-preview: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-3.1-pro-preview: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=test (7000 chars)
+[LLMHelper] Gemini cachedContent cached/test stale (cached content expired); retrying with systemInstruction
+[GeminiPromptCache] caches.create failed for model=gemini-3.1-flash-lite-preview: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-3.1-pro-preview: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-3.1-flash-lite-preview: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-3.1-pro-preview: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:71061) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.789ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.1345ms)
+✔ single response preserves incomplete (no finish) (0.1325ms)
+✔ single response preserves empty (STOP) (0.111417ms)
+✔ single response preserves refused (SAFETY) (0.137542ms)
+✔ single response preserves refused (no finish) (0.094083ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.200333ms)
+✔ final scope refusal retains the original object and never sends (0.499209ms)
+✔ cancel before start and late response cannot produce deltas (0.478916ms)
+✖ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (5.249ms)
+✔ terminal errors cross separately bundled vision fallback without health penalty or swallowed partial (0.837167ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (50.246416ms)
+✔ Flash empty then Pro error/empty rejects; empty then valid backup still works (0.421833ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.902833ms)
+✖ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.649917ms)
+✖ context scopes survive limiter wait and denied context is omitted before Gemini sending (2.551792ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (50.500125ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 14
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2604.017458
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generateOnce.test.mjs:102:1
+✖ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (5.249ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: Both Gemini models failed: gemini-3.1-flash-lite-preview: access.client.models.generateContent is not a function | gemini-3.1-pro-preview: access.client.models.generateContent is not a function
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:114:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Both Gemini models failed: gemini-3.1-flash-lite-preview: access.client.models.generateContent is not a function | gemini-3.1-pro-preview: access.client.models.generateContent is not a function
+        at LLMHelper.streamWithGeminiFallback (<repo>/dist-electron/electron/LLMHelper.js:95332:34)
+        at async LLMHelper._streamChatBody (<repo>/dist-electron/electron/LLMHelper.js:95032:7)
+        at async withRequestDataScopes (<repo>/dist-electron/electron/LLMHelper.js:92884:20)
+        at async LLMHelper._streamChatInner (<repo>/dist-electron/electron/LLMHelper.js:94892:5)
+        at async LLMHelper.streamChat (<repo>/dist-electron/electron/LLMHelper.js:94882:22)
+        at async file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:114:57
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:114:5)
+        at async Test.run (node:internal/test_runner/test:1208:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/llm/__tests__/generateOnce.test.mjs:201:1
+✖ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.649917ms)
+  Error: Both Gemini models failed: gemini-3.1-flash-lite-preview: access.client.models.generateContent is not a function | gemini-3.1-pro-preview: access.client.models.generateContent is not a function
+      at LLMHelper.streamWithGeminiFallback (<repo>/dist-electron/electron/LLMHelper.js:95332:34)
+      at async LLMHelper._streamChatBody (<repo>/dist-electron/electron/LLMHelper.js:95032:7)
+      at async withRequestDataScopes (<repo>/dist-electron/electron/LLMHelper.js:92884:20)
+      at async LLMHelper._streamChatInner (<repo>/dist-electron/electron/LLMHelper.js:94892:5)
+      at async LLMHelper.streamChat (<repo>/dist-electron/electron/LLMHelper.js:94882:22)
+      at async LLMHelper.generateSuggestion (<repo>/dist-electron/electron/LLMHelper.js:93731:26)
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:210:16)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at electron/llm/__tests__/generateOnce.test.mjs:221:1
+✖ context scopes survive limiter wait and denied context is omitted before Gemini sending (2.551792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   name: 'Error'
+  -   name: 'ProviderScopeError'
+    }
+  
+      at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:226:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Both Gemini models failed: gemini-3.1-flash-lite-preview: access.client.models.generateContent is not a function | gemini-3.1-pro-preview: access.client.models.generateContent is not a function
+        at LLMHelper.streamWithGeminiFallback (<repo>/dist-electron/electron/LLMHelper.js:95332:34)
+        at async LLMHelper._streamChatBody (<repo>/dist-electron/electron/LLMHelper.js:95032:7)
+        at async withRequestDataScopes (<repo>/dist-electron/electron/LLMHelper.js:92884:20)
+        at async LLMHelper._streamChatInner (<repo>/dist-electron/electron/LLMHelper.js:94892:5)
+        at async LLMHelper.streamChat (<repo>/dist-electron/electron/LLMHelper.js:94882:22)
+        at async drain (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:33:71)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file://<repo>/electron/llm/__tests__/generateOnce.test.mjs:226:3)
+        at async Test.run (node:internal/test_runner/test:1208:7),
+    expected: { name: 'ProviderScopeError' },
+    operator: 'rejects',
+    diff: 'simple'
+  }

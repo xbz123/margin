@@ -1,0 +1,1 @@
+electron/services/__tests__/OutboundInventory.test.mjs :: known application HTTP/WS/SDK construction sites match the outbound inventory; additions require registration

@@ -25,22 +25,23 @@ preserved. Nothing patches node_modules or SDK prototypes.
 
 | Entry | Effective configuration / endpoint | Content |
 | --- | --- | --- |
-| LLMHelper Groq chat/completions | Explicit option, otherwise GROQ_BASE_URL, otherwise https://api.groq.com | Text/images |
-| LLMHelper OpenAI chat/completions | Nonpackaged loopback dev override, otherwise OPENAI_BASE_URL, otherwise https://api.openai.com/v1 | Text/images; no current Responses call |
-| LLMHelper Anthropic messages | Explicit option, otherwise ANTHROPIC_BASE_URL, otherwise https://api.anthropic.com | Text/images |
-| LLMHelper DeepSeek chat/completions | Explicit https://api.deepseek.com overrides OpenAI env | Text |
-| LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | HttpOptions baseUrl > SDK setDefaultBaseUrls > GOOGLE_GEMINI_BASE_URL / GOOGLE_VERTEX_BASE_URL for the selected backend > official default | Text/images/system instructions |
-| ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic/Groq model-list URLs, fetch | Key/config only; startup/background/model-error discovery |
-| utils/modelFetcher, fetch-provider-models IPC | Official five-provider model-list URLs, Axios | User-triggered key/config only |
-| test-llm-connection IPC | Official five-provider POSTs | Fixed Hello and supplied/stored key |
+| LLMHelper Groq via llm/generateOnce (Chat) | Saved API base, otherwise legacy GROQ_BASE_URL host root, otherwise official Groq API | Text/images |
+| LLMHelper OpenAI via llm/generateOnce (Chat or Responses) | Saved API base, otherwise nonpackaged loopback dev override / OPENAI_BASE_URL, otherwise https://api.openai.com/v1 | Text/images; Responses uses store:false |
+| LLMHelper Anthropic via llm/generateOnce (Messages) | Saved API base, otherwise ANTHROPIC_BASE_URL, otherwise https://api.anthropic.com | Text/images |
+| LLMHelper DeepSeek via llm/generateOnce (Chat) | Saved API base, otherwise https://api.deepseek.com; does not borrow OpenAI env | Text |
+| LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | Saved base, otherwise GOOGLE_GEMINI_BASE_URL, otherwise https://generativelanguage.googleapis.com; explicit API-key v1alpha backend | Text/images/system instructions |
+| ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic/Groq model-list URLs, fetch; custom targets receive no discovery key | Key/config only; startup/background/model-error discovery |
+| utils/modelFetcher, fetch-provider-models IPC | Saved effective target; unfiltered model IDs for compatible targets, no official fallback | User-triggered saved key/config only |
+| test-llm-connection IPC | Same saved effective target and protocol through generateOnce | Fixed Hello and saved key |
 | test-stt-connection IPC | Deepgram/Soniox WS, ElevenLabs voices GET, regional Azure/IBM POST, Groq/OpenAI transcription POST | Manual validation; synthetic WAV only |
 
 LLMHelper's final sends recheck request scopes after limiter/image processing and
 before application retries/fallback. Groq/OpenAI/Anthropic/DeepSeek SDK retries
-are disabled (`maxRetries: 0`). Gemini generation is centralized in
-`llm/generateOnce.ts`, with `retryOptions.attempts: 1` on each physical request;
+are disabled (`maxRetries: 0`), including each physical request's options.
+All four generation protocols are centralized in `llm/generateOnce.ts`.
+Gemini uses `retryOptions.attempts: 1` on each physical request;
 the caller retains application-level retries and sequential model fallback.
-The three Gemini client-construction paths and cache creation also explicitly
+The shared Gemini client constructor and cache creation also explicitly
 set one attempt. Cache creation is an outbound request: both callers check
 scopes and abort **before** getOrCreate, the cache helper checks immediately
 before `caches.create`, and generation checks again after the cache wait.
@@ -56,6 +57,31 @@ through the legacy fallback wrappers rather than silently succeeding or
 appending another provider's answer. Empty pre-output results retain the
 caller's existing fallback policy. No new endpoint, credential source or
 automatic redirect is introduced by AG-30.
+
+AG-31 adds explicit saved provider/protocol/base/model targets, not a new
+credential source. The five encrypted credential slots remain separate.
+Saving configuration plus an optional new key is one transaction; failure does
+not hot-switch clients. Provider cards require explicit Save. Tests and model
+listing reject unsaved replacement keys and use the saved target. Unknown and
+ambiguous legacy model IDs are not assigned to a provider by name prefix.
+Switching a configured active slot updates its selected model/protocol, and a
+matching saved default is updated in the same transaction.
+
+Compatible API bases reject userinfo, fragments and queries. Messages accepts
+a trailing `/v1` without duplicating it; Gemini bases exclude the API version,
+and both generation and compatible model listing use v1alpha. Saved addresses
+take precedence over supported env overrides. SDK-global Gemini base defaults
+and implicit Vertex routing no longer select an application target. No ADC
+credential route is introduced.
+
+Unknown compatible targets receive neither OpenAI `prompt_cache_key` nor
+Messages `cache_control`; custom Gemini targets do not create explicit caches.
+Hot configuration clears Gemini caches and prevents old in-flight cache results
+from repopulating them. Model discovery aborts its old generation, drops its
+old keys, and does not promote results arriving after reconfiguration.
+Protocol EOF without the required finish event/reason is incomplete, not
+success. Single-send tests use real installed SDKs with local HTTP services;
+they do not certify arbitrary remote compatible services.
 
 Concrete helper send paths include generateWithPro/Flash, generateContent,
 generateContentStructured, generateWithGroq/Openai/Claude/Deepseek,

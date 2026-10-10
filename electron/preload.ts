@@ -1,3 +1,4 @@
+import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from '../src/types/llmTarget';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
@@ -79,7 +80,7 @@ interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{
-    provider: 'gemini' | 'codex-cli';
+    provider: LlmProvider | 'codex-cli';
     model: string;
   }>;
   switchToGemini: (
@@ -93,6 +94,7 @@ interface ElectronAPI {
   selectServiceAccount: () => Promise<ServiceAccountSelectionResult>;
 
   // API Key Management
+  setProviderConfiguration: (value: ProviderConfigurationSave) => Promise<CredentialSaveResult>;
   setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
@@ -102,6 +104,7 @@ interface ElectronAPI {
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>;
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>;
   getStoredCredentials: () => Promise<{
+    providerConfigurations: Record<LlmProvider, ProviderConfiguration>;
     hasGeminiKey: boolean;
     hasGroqKey: boolean;
     hasOpenaiKey: boolean;
@@ -782,6 +785,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectServiceAccount: () => ipcRenderer.invoke('select-service-account'),
 
   // API Key Management
+  setProviderConfiguration: (value: ProviderConfigurationSave) => ipcRenderer.invoke('set-provider-configuration', value),
   setGeminiApiKey: (apiKey: string) => ipcRenderer.invoke('set-gemini-api-key', apiKey),
   setGroqApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-api-key', apiKey),
   setOpenaiApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-api-key', apiKey),

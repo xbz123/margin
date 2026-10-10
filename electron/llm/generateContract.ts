@@ -1,12 +1,13 @@
 import { rethrowProviderScopeError, type ProviderDataScope } from './ProviderRouter';
 import type { GenerateContentConfig } from '@google/genai';
+import type { LlmProtocol } from '../../src/types/llmTarget';
 
 export type GeneratePart = { text: string } | { inlineData: { mimeType: string; data: string } };
 export type GenerateContents = string | readonly (GeneratePart | { role: 'user' | 'model'; parts: readonly GeneratePart[] })[];
 
 /** One physical send. Routing, retries and deadlines belong to the caller. */
 export interface GenerateRequest {
-  protocol: 'gemini';
+  protocol: LlmProtocol;
   purpose: 'answer' | 'structured' | 'summary' | 'compatibility';
   model: string;
   contents: GenerateContents;
@@ -19,7 +20,11 @@ export interface GenerateRequest {
   stream: boolean;
   /** Main-process compatibility calls may retain already configured SDK options. */
   providerOptions?: Pick<GenerateContentConfig, 'systemInstruction' | 'cachedContent' | 'topP' | 'topK'
-    | 'responseMimeType' | 'responseSchema' | 'responseJsonSchema' | 'safetySettings' | 'thinkingConfig'>;
+    | 'responseMimeType' | 'responseSchema' | 'responseJsonSchema' | 'safetySettings' | 'thinkingConfig'> & {
+      outputTokenField?: 'max_tokens' | 'max_completion_tokens'; prompt_cache_key?: string;
+      top_p?: number; stop?: string | string[] | null;
+      systemBlocks?: Array<{ type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }>;
+    };
 }
 
 export type GenerateStatus = 'completed' | 'refused' | 'incomplete' | 'empty' | 'cancelled' | 'failed';

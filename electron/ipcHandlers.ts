@@ -1,6 +1,8 @@
 // ipcHandlers.ts
 
 import * as crypto from 'crypto';
+import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfigurationSave } from '../src/types/llmTarget';
+import { resolveModelTarget } from './llm/llmTarget';
 import { app, BrowserWindow, dialog, ipcMain, shell, systemPreferences } from 'electron';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -915,7 +917,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       const llmHelper = appState.processingHelper.getLLMHelper();
       return {
         provider: llmHelper.getCurrentProvider(),
-        model: llmHelper.getCurrentModel(),
+        model: llmHelper.getCurrentModelSelection(),
       };
     } catch (error: any) {
       // console.error("Error getting current LLM config:", error);
@@ -930,6 +932,18 @@ export function initializeIpcHandlers(appState: AppState): void {
       () => appState.processingHelper.getLLMHelper().switchToGemini(apiKey, modelId),
       apiKey ? undefined : 'No credentials were saved. The provider switch could not be applied. Please try again.',
     );
+  });
+
+  safeHandle('set-provider-configuration', async (_, value: ProviderConfigurationSave) => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    const manager = CredentialsManager.getInstance();
+    return persistCredentials(() => manager.setProviderConfiguration(value), () => {
+      const helper = appState.processingHelper.getLLMHelper();
+      helper.configureProvider(manager.getProviderConfigurations()[value.provider], manager.getProviderApiKey(value.provider));
+      appState.getIntelligenceManager().resetEngine();
+      appState.getIntelligenceManager().initializeLLMs();
+      appState.sendModelChanged(helper.getCurrentModelSelection());
+    });
   });
 
   // Dedicated API key setters (for Settings UI Save buttons)
@@ -1005,6 +1019,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       const hasKey = (key?: string) => !!(key && key.trim().length > 0);
 
       return {
+        providerConfigurations: CredentialsManager.getInstance().getProviderConfigurations(),
         hasGeminiKey: hasKey(creds.geminiApiKey),
         hasGroqKey: hasKey(creds.groqApiKey),
         hasOpenaiKey: hasKey(creds.openaiApiKey),
@@ -1096,10 +1111,12 @@ export function initializeIpcHandlers(appState: AppState): void {
         }
 
         const { fetchProviderModels } = require('./utils/modelFetcher');
-        const models = await fetchProviderModels(provider, key);
+        if (apiKey?.trim()) throw new Error('Save the complete provider configuration before fetching models.');
+        const { CredentialsManager } = require('./services/CredentialsManager');
+        const models = await fetchProviderModels(provider, key, CredentialsManager.getInstance().getProviderConfigurations()[provider]);
         return { success: true, models };
       } catch (error: any) {
-        console.error(`[IPC] Failed to fetch ${provider} models:`, error);
+        console.error(`[IPC] Failed to fetch ${provider} models`);
         const msg =
           error?.response?.data?.error?.message || error.message || 'Failed to fetch models';
         return { success: false, error: msg };
@@ -1111,7 +1128,12 @@ export function initializeIpcHandlers(appState: AppState): void {
     'set-provider-preferred-model',
     async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => {
       const { CredentialsManager } = require('./services/CredentialsManager');
-      return persistCredentials(() => CredentialsManager.getInstance().setPreferredModel(provider, modelId));
+      const manager = CredentialsManager.getInstance();
+      return persistCredentials(() => manager.setPreferredModel(provider, modelId), () => {
+        const helper = appState.processingHelper.getLLMHelper();
+        helper.configureProvider(manager.getProviderConfigurations()[provider], manager.getProviderApiKey(provider));
+        appState.sendModelChanged(helper.getCurrentModelSelection());
+      });
     },
   );
 
@@ -1498,84 +1520,15 @@ export function initializeIpcHandlers(appState: AppState): void {
           return { success: false, error: 'No API key provided' };
         }
 
-        let response;
-
-        if (provider === 'gemini') {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent`;
-          response = await axios.post(
-            url,
-            {
-              contents: [{ parts: [{ text: 'Hello' }] }],
-            },
-            {
-              headers: { 'x-goog-api-key': apiKey },
-              timeout: 15000,
-            },
-          );
-        } else if (provider === 'groq') {
-          response = await axios.post(
-            'https://api.groq.com/openai/v1/chat/completions',
-            {
-              model: 'llama-3.3-70b-versatile',
-              messages: [{ role: 'user', content: 'Hello' }],
-            },
-            {
-              headers: { Authorization: `Bearer ${apiKey}` },
-              timeout: 15000,
-            },
-          );
-        } else if (provider === 'openai') {
-          response = await axios.post(
-            'https://api.openai.com/v1/chat/completions',
-            {
-              model: 'gpt-4o-mini',
-              messages: [{ role: 'user', content: 'Hello' }],
-            },
-            {
-              headers: { Authorization: `Bearer ${apiKey}` },
-              timeout: 15000,
-            },
-          );
-        } else if (provider === 'claude') {
-          response = await axios.post(
-            'https://api.anthropic.com/v1/messages',
-            {
-              model: 'claude-sonnet-4-6',
-              max_tokens: 10,
-              messages: [{ role: 'user', content: 'Hello' }],
-            },
-            {
-              headers: {
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-              },
-              timeout: 15000,
-            },
-          );
-        } else if (provider === 'deepseek') {
-          response = await axios.post(
-            'https://api.deepseek.com/chat/completions',
-            {
-              model: 'deepseek-v4-flash',
-              max_tokens: 10,
-              messages: [{ role: 'user', content: 'Hello' }],
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                'content-type': 'application/json',
-              },
-              timeout: 15000,
-            },
-          );
+        if (apiKey) {
+          const { CredentialsManager } = require('./services/CredentialsManager');
+          if (apiKey !== CredentialsManager.getInstance().getProviderApiKey(provider)) {
+            return { success: false, error: 'Save the complete provider configuration before testing.' };
+          }
         }
+        const text = await appState.processingHelper.getLLMHelper().testProviderConnection(provider);
+        return { success: !!text.trim(), ...(text.trim() ? {} : { error: 'The provider returned an empty response.' }) };
 
-        if (response && (response.status === 200 || response.status === 201)) {
-          return { success: true };
-        } else {
-          return { success: false, error: 'Request failed with status ' + response?.status };
-        }
       } catch (error: any) {
         // CRITICAL: do NOT log the raw axios error — it includes the request config
         // with the Authorization header (full API key) and is dumped verbatim by
@@ -1686,7 +1639,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const llmHelper = appState.processingHelper.getLLMHelper();
       llmHelper.setModel(modelId);
-
+      modelId = llmHelper.getCurrentModelSelection();
       appState.sendModelChanged(modelId);
 
       // Close the selector window if open
@@ -1703,7 +1656,9 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-default-model', async (_, modelId: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setDefaultModel(modelId), () => {
-      appState.processingHelper.getLLMHelper().setModel(modelId);
+      const helper = appState.processingHelper.getLLMHelper();
+      helper.setModel(modelId);
+      modelId = helper.getCurrentModelSelection();
       appState.sendModelChanged(modelId);
       appState.modelSelectorWindowHelper.hideWindow();
     });
@@ -1714,10 +1669,11 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const cm = CredentialsManager.getInstance();
-      return { model: cm.getDefaultModel() };
+      const model = cm.getDefaultModel();
+      return { model: model.startsWith('codex-cli') ? model : modelTargetId(resolveModelTarget(model, cm.getProviderConfigurations())) };
     } catch (error: any) {
       console.error('Error getting default model:', error);
-      return { model: 'gemini-3.1-flash-lite-preview' };
+      return { model: modelTargetId(LLM_PRESETS.gemini) };
     }
   });
 

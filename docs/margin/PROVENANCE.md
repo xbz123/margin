@@ -21,6 +21,36 @@ Notes:
 
 ## Ledger
 
+### AG-31 protocol and target configuration
+
+The four-protocol behavior and explicit target requirements are read from the
+earlier requirements document at
+`b8ade3f7:docs/fresh-release-implementation-plan.md` sections 3.1–3.2, as already
+referenced by ADAPTATION and permitted by PLAN S28. No earlier protocol,
+credential or configuration implementation is imported by this ticket.
+Implementation uses the retained branch's SDKs, transactional credential store,
+outbound wrappers and AG-30 single-send contract. No new dependency is added.
+
+OpenAI request/event behavior is checked against the installed SDK types and
+official documentation fetched on 2026-10-10:
+
+- https://developers.openai.com/api/docs/guides/streaming-responses
+- https://developers.openai.com/api/reference/resources/responses
+
+These establish typed Responses stream events and distinct response/refusal
+states; EOF alone is not treated as successful completion. Tests use synthetic
+keys and local transports, not a claim of compatibility with every third-party
+endpoint. This work does not authorize real service calls or reuse of restricted
+upstream code, and is not claimed as a verified clean-room rewrite.
+
+The frozen-source first scan (`evidence/AG-31/provenance-initial/`) records
+16 matches for 12 exact generic statements: optional URL/failure locals and a
+URL field, fail-closed returns, a cache generation counter/capture, existing
+cache constructor/clear calls, a mock policy, a standard HTTP fixture server
+and a one-request assertion. Their surrounding new target, cache and protocol
+test code was reviewed; only these exact statements are registered. Source
+pools and exclusions are unchanged; no older implementation is approved.
+
 ### AG-30 Gemini single-send interface
 
 Under PLAN S28, the earlier Margin snapshot `b8ade3f7` was read for the

@@ -66,6 +66,13 @@ export const getCodexCliModelDisplayName = (id: string): string | null => {
     return preset?.name || prettifyModelId(modelId);
 };
 
+export const getModelTargetDisplayName = (id: string): string | null => {
+    const match = /^llm-target:([^:]+):[^:]+:(.+)$/.exec(id);
+    if (!match) return null;
+    try { return `${decodeURIComponent(match[2])} (${match[1]})`; }
+    catch { return id; }
+};
+
 export const prettifyModelId = (id: string): string => {
     if (!id) return '';
     return id.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());

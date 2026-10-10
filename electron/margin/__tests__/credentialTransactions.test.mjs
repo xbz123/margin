@@ -13,6 +13,9 @@ const read = file => fs.readFileSync(path.join(REPO, file), 'utf8');
 const compile = source => ts.transpileModule(source, { compilerOptions: {
   module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true,
 } }).outputText;
+const targetModule = { exports: {} };
+vm.runInNewContext(compile(read('src/types/llmTarget.ts')), { module: targetModule, exports: targetModule.exports });
+const { LLM_PRESETS: targets } = targetModule.exports;
 const quiet = { log() {}, warn() {}, error() {} };
 const failure = { ok: false, code: 'write_failed', message: 'Synthetic save failure' };
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -71,6 +74,8 @@ function storage() {
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');
         if (id === './googleServiceAccount') return accountHelper(fakeFs);
+        if (id === '../../src/types/llmTarget') return targetModule.exports;
+        if (id === '../llm/llmTarget') return require('../../../dist-electron/electron/llm/llmTarget.js');
         return require(id);
       },
     });
@@ -163,19 +168,20 @@ test('all 22 setters commit only after persistence and can be read after restart
     setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel',
     setElevenLabsApiKey: 'elevenLabsApiKey', setAzureApiKey: 'azureApiKey', setAzureRegion: 'azureRegion',
     setIbmWatsonApiKey: 'ibmWatsonApiKey', setIbmWatsonRegion: 'ibmWatsonRegion', setSonioxApiKey: 'sonioxApiKey',
-    setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel',
+    setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations',
   };
-  assert.equal(names.length, 22);
+  assert.equal(names.length, 23);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
+    const args = name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
     assert.equal(manager[name](...args).ok, true, name);
-    assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
+    if (name === 'setProviderConfiguration') assert.deepEqual(plain(manager.getAllCredentials().providerConfigurations.openai), plain(args[0]));
+    else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
     assert.deepEqual(plain(disk.boot().getAllCredentials()), plain(manager.getAllCredentials()), name);
   }
 });
@@ -229,7 +235,7 @@ const channels = [
   'set-stt-provider', 'set-groq-stt-api-key', 'set-openai-stt-api-key', 'set-openai-stt-base-url',
   'set-deepgram-api-key', 'set-groq-stt-model', 'set-elevenlabs-api-key', 'set-azure-api-key',
   'set-azure-region', 'set-ibmwatson-api-key', 'set-soniox-api-key', 'set-ibmwatson-region',
-  'set-default-model', 'set-recognition-language', 'select-service-account',
+  'set-default-model', 'set-recognition-language', 'select-service-account', 'set-provider-configuration',
 ];
 
 function expression(file, select, context) {
@@ -249,8 +255,100 @@ function handler(channel, context) {
   const discardRemovedSttKey = expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node)
     && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'discardRemovedSttKey', context);
   return expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent)
-    && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, { persistCredentials, discardRemovedSttKey, loadGoogleServiceAccount: () => serviceAccount, googleSpeechClientOptions: () => ({}), ...context });
+    && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, {
+      persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId,
+      resolveModelTarget: require('../../../dist-electron/electron/llm/llmTarget.js').resolveModelTarget,
+      loadGoogleServiceAccount: () => serviceAccount, googleSpeechClientOptions: () => ({}), ...context });
 }
+
+test('AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart', async () => {
+  const disk = storage(), manager = disk.boot();
+  assert.equal(manager.setDefaultModel('gpt-5.4').ok, true);
+  const value = { provider: 'openai', protocol: 'responses', baseUrl: 'http://127.0.0.1:9999/v1/', model: 'opaque', apiKey: 'synthetic-new' };
+  const previous = disk.files.get(disk.filename);
+  const applied = [];
+  const broadcast = [];
+  const invoke = handler('set-provider-configuration', {
+    require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: (...args) => applied.push(args),
+      getCurrentModelSelection: () => 'llm-target:openai:responses:opaque' }) }, sendModelChanged: value => broadcast.push(value),
+      getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) },
+  });
+  disk.setFault('rename');
+  assert.equal((await invoke({}, value)).ok, false);
+  assert.deepEqual(applied, []);
+  assert.deepEqual(broadcast, []);
+  assert.deepEqual(disk.files.get(disk.filename), previous);
+  disk.setFault(undefined);
+  assert.equal((await invoke({}, value)).ok, true);
+  assert.equal(applied.length, 1);
+  assert.deepEqual(broadcast, ['llm-target:openai:responses:opaque']);
+  const restarted = disk.boot();
+  const config = restarted.getProviderConfigurations().openai;
+  assert.deepEqual(plain(config), { provider: 'openai', protocol: 'responses', baseUrl: 'http://127.0.0.1:9999/v1', model: 'opaque' });
+  assert.equal(restarted.getProviderApiKey('openai'), 'synthetic-new');
+  assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:opaque');
+  assert.equal(restarted.setProviderConfiguration({ ...targets.claude, model: 'other-slot' }).ok, true);
+  assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:opaque', 'another slot cannot change the selected default');
+  const configs = plain(restarted.getAllCredentials());
+  configs.providerConfigurations.openai.provider = 'claude';
+  disk.files.set(disk.filename, Buffer.from('cipher:' + JSON.stringify(configs)));
+  assert.throws(() => disk.boot().getProviderConfigurations(), /protocol|credential slot/);
+});
+
+test('legacy default and raw switch input reach model UI as the canonical runtime selection', async () => {
+  const disk = storage(), manager = disk.boot();
+  let current = 'llm-target:openai:chat-completions:gpt-5.4';
+  const events = [];
+  const context = {
+    require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+    appState: { processingHelper: { getLLMHelper: () => ({ setModel: () => {}, getCurrentModelSelection: () => current }) },
+      sendModelChanged: value => events.push(value), modelSelectorWindowHelper: { hideWindow: () => events.push('hide') } },
+  };
+  assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: 'llm-target:gemini:gemini:gemini-3.1-flash-lite-preview' });
+  assert.equal((await handler('set-model', context)({}, 'gpt-5.4')).success, true);
+  assert.deepEqual(events.splice(0), [current, 'hide']);
+  assert.equal((await handler('set-default-model', context)({}, 'gpt-5.4')).ok, true);
+  assert.deepEqual(events.splice(0), [current, 'hide']);
+  assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: current });
+  current = 'codex-cli:synthetic-model';
+  manager.setDefaultModel(current);
+  assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: current });
+});
+
+test('AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back', () => {
+  for (const scenario of ['env-only', 'saved-target', 'removed-key', 'unreadable']) {
+    const disk = storage(), manager = disk.boot();
+    // Start without the old synthetic stored key for the env-only control.
+    if (scenario === 'env-only') manager.setOpenaiApiKey('');
+    if (scenario === 'saved-target' || scenario === 'removed-key') manager.setProviderConfiguration({ ...targets.openai,
+      protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: scenario === 'removed-key' ? '' : 'synthetic-saved' });
+    if (scenario === 'unreadable') { disk.setFault('decrypt'); manager.init(); }
+    const configured = [];
+    class Helper {
+      constructor() {}
+      configureProvider(config, key) { configured.push([config.provider, key, config]); }
+      initModelVersionManager() { return Promise.resolve(); }
+      setModel() {} setSttLanguage() {} setAiResponseLanguage() {}
+    }
+    const module = { exports: {} };
+    vm.runInNewContext(compile(read('electron/ProcessingHelper.ts')), {
+      module, exports: module.exports, console: quiet, process: { env: { OPENAI_API_KEY: 'synthetic-env' } },
+      require(id) {
+        if (id === './LLMHelper') return { LLMHelper: Helper };
+        if (id === './services/CredentialsManager') return { CredentialsManager: { getInstance: () => manager } };
+        if (id === '../src/types/llmTarget') return targetModule.exports;
+        if (id === 'electron') return { app: { isPackaged: true } };
+        return require(id);
+      },
+    });
+    const processing = new module.exports.ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() {} }) });
+    processing.loadStoredCredentials();
+    const [, key, config] = configured.find(([provider]) => provider === 'openai');
+    assert.equal(key, scenario === 'env-only' ? 'synthetic-env' : scenario === 'saved-target' ? 'synthetic-saved' : undefined);
+    if (scenario === 'saved-target') { assert.equal(config.protocol, 'responses'); assert.equal(config.model, 'opaque'); }
+  }
+});
 
 test('AG24: all active STT key removals discard only after a successful save', async () => {
   for (const provider of ['groq', 'openai', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'soniox']) {
@@ -395,11 +493,11 @@ test('all saving IPC handlers return storage failure before runtime, events or w
   }
 });
 
-test('ProviderCard stops model Fetch when the parent save callback fails', async () => {
+test('ProviderCard stops model Fetch while complete configuration is unsaved', async () => {
   let fetched = false;
   const callback = expression('src/components/settings/ProviderCard.tsx', node => ts.isArrowFunction(node)
     && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'handleFetchModels', {
-    apiKey: 'synthetic-input', onSaveKey: async () => failure, providerId: 'openai',
+    unsaved: true, apiKey: 'synthetic-input', onSaveKey: async () => failure, providerId: 'openai',
     setIsFetching() {}, setFetchError() {}, window: { electronAPI: { fetchProviderModels: async () => { fetched = true; return { success: false }; } } },
   });
   await callback();
@@ -446,6 +544,7 @@ test('recognition language applies only after its real manager setter succeeds',
 });
 
 const apiChannels = {
+  setProviderConfiguration: 'set-provider-configuration',
   setAiResponseLanguage: 'set-ai-response-language', switchToGemini: 'switch-to-gemini',
   setGeminiApiKey: 'set-gemini-api-key', setGroqApiKey: 'set-groq-api-key', setOpenaiApiKey: 'set-openai-api-key',
   setClaudeApiKey: 'set-claude-api-key', setDeepseekApiKey: 'set-deepseek-api-key',
@@ -458,7 +557,7 @@ const apiChannels = {
   setDefaultModel: 'set-default-model', setRecognitionLanguage: 'set-recognition-language', selectServiceAccount: 'select-service-account',
 };
 
-test('all 23 real preload callbacks preserve failure, warning and cancellation results', async () => {
+test('all credential preload callbacks preserve failure, warning and cancellation results', async () => {
   for (const [name, channel] of Object.entries(apiChannels)) {
     for (const result of [failure, { ok: true, warning: 'Synthetic safe warning' }, { cancelled: true }]) {
       const fn = expression('electron/preload.ts', node => ts.isArrowFunction(node) && ts.isPropertyAssignment(node.parent)
@@ -472,6 +571,7 @@ function ui(file, name, result, extra = {}) {
   const changes = new Map();
   const context = {
     confirm: () => true, setTimeout: () => 1,
+    providerConfigurations: targets, hasStoredKey: {}, unsaved: false,
     window: { electronAPI: new Proxy({}, { get: () => async () => result }) },
     availableLanguages: { 'english-us': { group: 'English' } }, sttAzureRegion: 'eastus', sttOpenaiBaseUrl: 'https://synthetic.invalid',
     ...extra,
@@ -507,7 +607,6 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
     [overlay, 'handleGroqSttModelChange', ['synthetic-model'], ['setGroqSttModel']],
     [overlay, 'handleSelectServiceAccount', [], ['setGoogleServiceAccountPath']],
     [overlay, 'handleAzureRegionSave', [], []], [overlay, 'handleOpenAiSttBaseUrlSave', [], []],
-    [card, 'handleSelectModel', ['synthetic-model'], ['setSelectedModel', 'onPreferredModelChange']],
   ]) {
     const subject = ui(file, name, failure, { providerId: 'openai', onPreferredModelChange: () => assert.fail('selection committed') });
     await subject.fn(...args);
@@ -553,6 +652,19 @@ test('renderer keeps Saved and displays a safe apply warning, while cancellation
   assert.equal(cancelled.changes.get('setCredentialNotice'), '');
 });
 
+test('renderer cannot report rollback when default-model refresh fails after a committed configuration save', async () => {
+  let cleared = false;
+  const subject = ui('src/components/settings/AIProvidersSettings.tsx', 'handleSaveKey', { ok: true }, {
+    window: { electronAPI: { setProviderConfiguration: async () => ({ ok: true }),
+      getDefaultModel: async () => { throw Error('synthetic refresh failure'); } } },
+  });
+  assert.equal((await subject.fn('openai', 'synthetic-key', () => { cleared = true; })).ok, true);
+  assert.equal(cleared, true);
+  assert.equal(subject.changes.get('setSavedStatus').openai, true);
+  assert.equal(subject.changes.get('setHasStoredKey').openai, true);
+  assert.match(subject.changes.get('setCredentialNotice'), /^Saved;/);
+});
+
 test('all five LLM Save/Remove branches use their matching endpoint and show failure without clearing input', async () => {
   for (const [provider, method] of Object.entries({ gemini: 'setGeminiApiKey', groq: 'setGroqApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' })) {
     for (const name of ['handleSaveKey', 'handleRemoveKey']) {
@@ -562,7 +674,8 @@ test('all five LLM Save/Remove branches use their matching endpoint and show fai
       });
       const keep = () => assert.fail('failed input was cleared');
       await subject.fn(...(name === 'handleSaveKey' ? [provider, 'synthetic-key', keep] : [provider, keep]));
-      assert.deepEqual(calls, [[method, name === 'handleSaveKey' ? 'synthetic-key' : '']]);
+      assert.deepEqual(plain(calls), name === 'handleSaveKey'
+        ? [['setProviderConfiguration', plain({ ...targets[provider], apiKey: 'synthetic-key' })]] : [[method, '']]);
       assert.equal(subject.changes.has('setHasStoredKey'), false);
       assert.equal(subject.changes.get('setCredentialNotice'), failure.message);
     }
@@ -583,7 +696,7 @@ test('detected-language save failure does not submit an unsaved language selecti
   assert.equal(subject.changes.get('setCredentialNotice'), failure.message);
 });
 
-test('Fetch does not select the first model when its preferred-model save fails', async () => {
+test('Fetch lists models without implicitly selecting or saving the first model', async () => {
   const subject = ui('src/components/settings/ProviderCard.tsx', 'handleFetchModels', failure, {
     apiKey: '', providerId: 'openai', selectedModel: 'synthetic-old-model',
     onPreferredModelChange: () => assert.fail('failed model was selected'),
@@ -594,7 +707,7 @@ test('Fetch does not select the first model when its preferred-model save fails'
   });
   await subject.fn();
   assert.equal(subject.changes.has('setSelectedModel'), false);
-  assert.equal(subject.changes.get('setFetchError'), failure.message);
+  assert.equal(subject.changes.get('setFetchError'), null);
 });
 
 test('storage failures cross the real manager, IPC, preload and renderer without committing live state', async () => {
@@ -606,17 +719,17 @@ test('storage failures cross the real manager, IPC, preload and renderer without
     disk.setFault(loading ? undefined : fault);
     const before = disk.files.get(disk.filename);
     let effects = 0;
-    const callback = handler('set-openai-api-key', {
+    const callback = handler('set-provider-configuration', {
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-      appState: { processingHelper: { getLLMHelper: () => ({ setOpenaiApiKey() { effects++; } }) },
+      appState: { processingHelper: { getLLMHelper: () => ({ configureProvider() { effects++; } }) },
         getIntelligenceManager: () => ({ resetEngine() { effects++; }, initializeLLMs() { effects++; } }) },
     });
     const bridge = expression('electron/preload.ts', node => ts.isArrowFunction(node) && ts.isPropertyAssignment(node.parent)
-      && node.parent.name.getText() === 'setOpenaiApiKey', { ipcRenderer: { invoke: (channel, ...args) => {
-        assert.equal(channel, 'set-openai-api-key'); return callback({}, ...args);
+      && node.parent.name.getText() === 'setProviderConfiguration', { ipcRenderer: { invoke: (channel, ...args) => {
+        assert.equal(channel, 'set-provider-configuration'); return callback({}, ...args);
       } } });
     const subject = ui('src/components/settings/AIProvidersSettings.tsx', 'handleSaveKey', failure, {
-      window: { electronAPI: { setOpenaiApiKey: bridge } },
+      window: { electronAPI: { setProviderConfiguration: bridge } },
     });
     const result = await subject.fn('openai', 'synthetic-new', () => assert.fail('failed input was cleared'));
     assert.equal(result.ok, false, fault);

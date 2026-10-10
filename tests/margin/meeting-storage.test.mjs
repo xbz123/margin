@@ -275,7 +275,7 @@ test('the meeting chat follows the post_call_summary and profile_history scopes'
   await new Promise((r) => setTimeout(r, 1_000));
   await launcher.evaluate(() => window.electronAPI.setModel('llama-3.3-70b-versatile'));
   const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
-  assert.equal(config?.model, 'llama-3.3-70b-versatile', `active model is ${JSON.stringify(config)}`);
+  assert.equal(config?.model, 'llm-target:groq:chat-completions:llama-3.3-70b-versatile', `active model is ${JSON.stringify(config)}`);
   await launcher.getByText(TITLE).first().click();
   const input = launcher.locator('input[placeholder="Ask about this meeting..."]');
   await launcher.evaluate(() => { window.__marginStreamErrors = []; window.electronAPI.onGeminiStreamError((e) => window.__marginStreamErrors.push(e)); });

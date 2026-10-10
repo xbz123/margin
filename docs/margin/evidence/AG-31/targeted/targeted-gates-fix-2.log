@@ -1,0 +1,387 @@
+✔ AppState sends model-changed only to current model listeners (1.38475ms)
+✔ model-changed call sites use the targeted helper (0.51225ms)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=test (7000 chars)
+[LLMHelper] Gemini cachedContent cached/test stale (cached content expired); retrying with systemInstruction
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:77619) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.429ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.114125ms)
+✔ single response preserves incomplete (no finish) (0.091875ms)
+✔ single response preserves empty (STOP) (0.079291ms)
+✔ single response preserves refused (SAFETY) (0.106042ms)
+✔ single response preserves refused (no finish) (0.0705ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.158167ms)
+✔ final scope refusal retains the original object and never sends (0.475375ms)
+✔ cancel before start and late response cannot produce deltas (0.413833ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (4.4505ms)
+✔ terminal errors cross separately bundled vision fallback without health penalty or swallowed partial (1.035375ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (25.149917ms)
+✔ Flash empty then Pro error/empty rejects; empty then valid backup still works (0.4065ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.852125ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.702666ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (0.884333ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (51.769583ms)
+(node:77620) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[LLMHelper] Switched to Model: opaque-model
+✔ chat-completions preserves completed from actual protocol terminal (1.587583ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.158ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.13175ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.10475ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.110792ms)
+✔ chat-completions preserves empty from actual protocol terminal (0.109208ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.0935ms)
+✔ chat-completions final scope and cancel checks happen before a physical send (1.490958ms)
+✔ chat-completions late response and consumer return abort the transport (0.254042ms)
+✔ responses preserves completed from actual protocol terminal (0.171167ms)
+✔ responses preserves incomplete from actual protocol terminal (0.390875ms)
+✔ responses preserves failed from actual protocol terminal (0.301917ms)
+✔ responses preserves refused from actual protocol terminal (0.100458ms)
+✔ responses preserves empty from actual protocol terminal (0.069583ms)
+✔ responses preserves incomplete from actual protocol terminal (0.073042ms)
+✔ responses final scope and cancel checks happen before a physical send (0.213875ms)
+✔ responses late response and consumer return abort the transport (0.12275ms)
+✔ messages preserves completed from actual protocol terminal (0.121958ms)
+✔ messages preserves completed from actual protocol terminal (0.057459ms)
+✔ messages preserves incomplete from actual protocol terminal (0.052417ms)
+✔ messages preserves incomplete from actual protocol terminal (0.04975ms)
+✔ messages preserves incomplete from actual protocol terminal (0.081167ms)
+✔ messages preserves refused from actual protocol terminal (0.05275ms)
+✔ messages preserves empty from actual protocol terminal (0.043959ms)
+✔ messages preserves incomplete from actual protocol terminal (0.047875ms)
+✔ messages final scope and cancel checks happen before a physical send (0.17675ms)
+✔ messages late response and consumer return abort the transport (0.10125ms)
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+✔ real SDK text/image serialization, saved opaque target, test and model list share one API base (142.362625ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ real OpenAI and Anthropic adapters disable SDK retry on 503 and never follow redirects (20.145542ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ an explicitly selected custom model is the wire model, while connection tests retain the saved model (29.064792ms)
+✔ real three-protocol SDK terminal events remain incomplete/refused when the stream finishes normally (11.918625ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ real SDK cancellation after the server receives the request suppresses all late deltas (6.61025ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] generateMeetingSummary called. Context length: 10
+[LLMHelper] Estimated tokens: 3
+✔ Gemini custom target uses the same v1alpha prefix for generation, test and unfiltered model listing (6.614542ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] generateMeetingSummary called. Context length: 10
+[LLMHelper] Estimated tokens: 3
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+✔ OpenAI-only meeting summary uses the configured Responses target (10.503166ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: old-model
+[GeminiPromptCache] created cache/new for model=test (6000 chars)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: same
+✔ legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged (11.999875ms)
+✔ hot configuration changes keep active provider, protocol and wire model together (1.818333ms)
+✔ saved Gemini base takes precedence over explicit environment base without adding a second API version (0.245666ms)
+✔ Gemini hot configuration clear never accepts an old in-flight cache (0.407917ms)
+✔ endpoint validation and explicit selection refuse wrong protocol, version and model ambiguity (1.491417ms)
+✔ credential transaction rejects unavailable without losing memory or the old ciphertext (200.279958ms)
+✔ credential transaction rejects encrypt without losing memory or the old ciphertext (60.059125ms)
+✔ credential transaction rejects write without losing memory or the old ciphertext (45.427667ms)
+✔ credential transaction rejects rename without losing memory or the old ciphertext (49.489958ms)
+✔ credential transaction rejects decrypt without losing memory or the old ciphertext (35.915083ms)
+✔ credential transaction rejects parse without losing memory or the old ciphertext (28.092583ms)
+✔ credential transaction rejects read without losing memory or the old ciphertext (24.411125ms)
+✔ credential transaction rejects load-unavailable without losing memory or the old ciphertext (25.597625ms)
+✔ unreadable credentials are offered for discard only after a decrypt or parse failure (89.711167ms)
+✔ a failed backup during discard keeps the unreadable file and the save block (14.836958ms)
+✔ all 22 setters commit only after persistence and can be read after restart (255.737667ms)
+✔ an exclusive-create collision never deletes the pre-existing temporary file (11.301ms)
+✔ legacy plaintext is removed without being read or used as credentials (11.108ms)
+✔ a warm instance clears old memory and stays locked until a successful reload (14.140083ms)
+✔ AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart (73.976709ms)
+✔ legacy default and raw switch input reach model UI as the canonical runtime selection (128.309167ms)
+✔ AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back (73.0955ms)
+✔ AG24: all active STT key removals discard only after a successful save (537.601458ms)
+✔ AG24: invalid region or STT endpoint never changes credentials (12.883625ms)
+✔ AG24: invalid configuration crosses real manager and IPC with no save or runtime change (89.21425ms)
+✔ Google selection rejects invalid JSON/type/read before persistence or runtime; safe snapshot crosses a successful save (108.124125ms)
+✔ Google settings do not advertise an invalid saved path as usable (32.458833ms)
+✔ AG24: real Azure/IBM connection-test handlers share the runtime region boundary (169.607958ms)
+✔ AG24: a refused ElevenLabs redirect is not reported as a validated key (22.752625ms)
+✔ all saving IPC handlers return storage failure before runtime, events or window side effects (446.693834ms)
+✔ ProviderCard stops model Fetch while complete configuration is unsaved (4.142125ms)
+✔ IPC warns safely after a committed save fails to apply, and cancellation is not a write failure (93.659917ms)
+✔ recognition language applies only after its real manager setter succeeds (14.994375ms)
+✔ all credential preload callbacks preserve failure, warning and cancellation results (323.731958ms)
+✔ renderer save, remove and selection callbacks retain the previous UI on failure (145.09525ms)
+✔ all seven STT Save/Remove callbacks distinguish connection validation from stored keys (342.115125ms)
+✔ renderer keeps Saved and displays a safe apply warning, while cancellation does not change the selected file (22.720375ms)
+✔ renderer cannot report rollback when default-model refresh fails after a committed configuration save (7.936791ms)
+✔ all five LLM Save/Remove branches use their matching endpoint and show failure without clearing input (74.729875ms)
+✔ detected-language save failure does not submit an unsaved language selection (16.92575ms)
+✔ Fetch lists models without implicitly selecting or saving the first model (3.243541ms)
+✔ storage failures cross the real manager, IPC, preload and renderer without committing live state (349.166792ms)
+✔ a decrypt failure reaches settings, and only a confirmed discard crosses IPC and preload (64.445ms)
+✔ explicit HTTP/HTTPS endpoints survive; ambiguous URL syntax is rejected (2.659791ms)
+✔ regional STT builders reject authority injection before any request (2.018708ms)
+✔ fetch wrapper is idempotent and preserves Request, signal, stream and receiver (2.923083ms)
+(node:77622) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ real fetch, axios and Gemini SDK refuse 307 instead of forwarding content (591.33475ms)
+✔ known application HTTP/WS/SDK construction sites match the outbound inventory; additions require registration (387.876916ms)
+✔ fixed endpoint origins in transport modules match the documented provider inventory (42.492833ms)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[LLMHelper] Gemini cachedContent cached/test stale (cached content expired); retrying with systemInstruction
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[GeminiPromptCache] created cached/test for model=test (6800 chars)
+[LLMHelper] Gemini cachedContent cached/test stale (cached content expired); retrying with systemInstruction
+[LLMHelper] Calling gemini-test...
+[LLMHelper] Transient error (503). Retrying in 400ms...
+(node:77624) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (200.74425ms)
+✔ streamWithGeminiModel: revocation during image processing prevents cache and generation (2.615666ms)
+✔ collectStreamResponse: revocation during image processing prevents cache and generation (0.453875ms)
+✔ streamWithGeminiModel: allowed cache, cache-inflight revocation and expired-cache retry (2.291875ms)
+✔ collectStreamResponse: allowed cache, cache-inflight revocation and expired-cache retry (0.749917ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (4.943541ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.592417ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.640209ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.479125ms)
+✔ generateWithGroq: final send rechecks after limiter wait, with allowed control (1.85575ms)
+✔ generateWithOpenai: final send rechecks after limiter wait, with allowed control (0.868291ms)
+✔ generateWithClaude: final send rechecks after limiter wait, with allowed control (0.369042ms)
+✔ generateWithDeepseek: final send rechecks after limiter wait, with allowed control (0.293458ms)
+✔ generateWithPro: final send rechecks after limiter wait, with allowed control (0.214625ms)
+✔ generateWithFlash: final send rechecks after limiter wait, with allowed control (0.152833ms)
+✔ generateWithGroqMultimodal: final send rechecks after limiter wait, with allowed control (0.201916ms)
+✔ streamWithGroq: final send rechecks after limiter wait, with allowed control (0.192334ms)
+✔ streamWithOpenai: final send rechecks after limiter wait, with allowed control (0.197041ms)
+✔ streamWithClaude: final send rechecks after limiter wait, with allowed control (0.160375ms)
+✔ streamWithDeepseek: final send rechecks after limiter wait, with allowed control (0.194125ms)
+✔ streamWithGroqMultimodal: final send rechecks after limiter wait, with allowed control (0.193959ms)
+✔ streamWithOpenaiMultimodal: final send rechecks after limiter wait, with allowed control (0.199833ms)
+✔ streamWithClaudeMultimodal: final send rechecks after limiter wait, with allowed control (0.173125ms)
+✔ streamWithGeminiModel: final send rechecks after limiter wait, with allowed control (0.106917ms)
+[LLMHelper] Calling gemini-test...
+[LLMHelper] Transient error (503). Retrying in 400ms...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ✅ Structured generation succeeded with Gemini Pro (gemini-3.1-pro-preview)
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] Transient error (503). Retrying in 400ms...
+✔ generateContent: revocation during the retry backoff stops the retry, with allowed control (804.2775ms)
+[LLMHelper] ✅ Structured generation succeeded with Gemini Pro (gemini-3.1-pro-preview)
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] Transient error (503). Retrying in 400ms...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: synthetic provider failure
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: synthetic provider failure
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ✅ Structured generation succeeded with Gemini Pro (gemini-3.1-pro-preview)
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: synthetic provider failure
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: synthetic provider failure
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] ✅ Mode-specific Groq stream completed
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] ⚠️ Groq mode-specific failed: synthetic groq failure, falling back to Gemini
+[LLMHelper] 🔄 Falling back to Gemini for mode-specific request...
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] 🔄 Falling back to Gemini for mode-specific request...
+[LLMHelper] ⚠️ Groq mode-specific failed: synthetic groq failure, falling back to Gemini
+✔ generateContentStructured: revocation in the limiter, retry backoff or rotation backoff stops later sends, with allowed controls (805.469416ms)
+✔ streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemini fallback sends nothing more, with allowed controls (0.819ms)
+✔ SettingsManager exposes providerDataScopes setting (0.519709ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (0.650875ms)
+✔ preload and renderer types expose provider data scope controls (1.5295ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (0.415958ms)
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ✅ Groq summary generated successfully.
+[LLMHelper] Transient error (500). Retrying in 400ms...
+(node:77625) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (6.4325ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (145.134542ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.68225ms)
+✔ Codex CLI (generate) does not start when the transcript scope is denied (0.666416ms)
+✔ Codex CLI (stream) does not start when the transcript scope is denied (0.326125ms)
+✔ groq constructor: SDK cannot resend after scope revocation (15.211459ms)
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ openai constructor: SDK cannot resend after scope revocation (407.166625ms)
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ claude constructor: SDK cannot resend after scope revocation (405.036541ms)
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ deepseek constructor: SDK cannot resend after scope revocation (403.103958ms)
+✔ groq key update: SDK cannot resend after scope revocation (1.021916ms)
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ openai key update: SDK cannot resend after scope revocation (400.597541ms)
+[LLMHelper] Transient error (500). Retrying in 400ms...
+✔ claude key update: SDK cannot resend after scope revocation (403.429792ms)
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+[ScopeFallback] profile_history denied for cloud providers; omitting from context
+[LLMHelper] 🚀 Attempting Groq (llama-3.3-70b-versatile)...
+[LLMHelper] ✅ Groq (llama-3.3-70b-versatile) succeeded
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] ⚡️ Fast Text Mode Active. Routing to Codex CLI...
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] ⚡️ Groq Fast Text Mode Active. Routing to Groq...
+[LLMHelper] 🧠 Structured generation: trying OpenAI (gpt-5.4)...
+[LLMHelper] 🚀 [OpenAI (gpt-5.4)] attempt 1/3...
+[LLMHelper] 🚀 [Codex CLI] Attempting (test, 1 image(s))...
+[LLMHelper] streamChatWithGemini called { messageLength: 8, imageCount: 0, hasContext: false }
+[LLMHelper] 🚀 Attempting OpenAI (gpt-5.4)...
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] Calling gemini-test...
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] Critical Error in chatWithGemini: Error: send-stub-reached
+    at Object.create (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:373:85)
+    at generateOnce (<repo>/dist-electron/electron/LLMHelper.js:92113:258)
+    at generateOnce.next (<anonymous>)
+    at LLMHelper.sendProvider (<repo>/dist-electron/electron/LLMHelper.js:93057:22)
+    at <repo>/dist-electron/electron/LLMHelper.js:94325:27
+    at LLMHelper.withRetry (file://<repo>/electron/services/__tests__/ScopeLocalFallback.test.mjs:364:24)
+    at LLMHelper.generateWithClaude (<repo>/dist-electron/electron/LLMHelper.js:94323:12)
+    at async <repo>/dist-electron/electron/LLMHelper.js:93977:18
+[LLMHelper] chatWithGemini called { messageLength: 60, imageCount: 0, hasContext: true }
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🔄 Structured generation rotation 2/3 after 1000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🔄 Structured generation rotation 3/3 after 2000ms backoff...
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Pro (gemini-3.1-pro-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Flash (gemini-3.1-flash-lite-preview)...
+[LLMHelper] ⚠️ Structured generation: Gemini Flash (gemini-3.1-flash-lite-preview) failed: send-stub-reached
+[LLMHelper] 🧠 Structured generation: trying Gemini Pro (gemini-3.1-pro-preview)...
+[LLMHelper] 🚀 Mode-specific Groq stream starting...
+[LLMHelper] ⚠️ Groq mode-specific failed: send-stub-reached, falling back to Gemini
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Codex CLI for summary...
+[LLMHelper] ⚠️ Codex CLI summary failed: codex failed. Falling back...
+[LLMHelper] Attempting Groq for summary...
+[LLMHelper] generateMeetingSummary called. Context length: 30
+[LLMHelper] Estimated tokens: 8
+[LLMHelper] Attempting Gemini Flash for summary...
+[LLMHelper] ⚡️ Fast Text Mode Active (Streaming). Routing to Codex CLI...
+[LLMHelper] ⚡️ Groq Fast Text Mode Active (Streaming). Routing to local Groq...
+[LLMHelper] Codex CLI Fast Text streaming failed, falling back: codex failed
+[LLMHelper] chatWithGemini called { messageLength: 8, imageCount: 0, hasContext: true }
+✔ deepseek key update: SDK cannot resend after scope revocation (402.589791ms)
+✔ vision denial is terminal without retries, health penalty or fallback (2.0515ms)
+✔ Gemini fallback preserves refusal without starting a speculative sibling (0.330708ms)
+✔ Gemini sequential fallback retains ordinary failure and cancellation behavior (0.355709ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.232667ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (11.058875ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (2.783125ms)
+✔ default chat routing refuses transcript denial but can send without denied context (2.361583ms)
+✔ non-streaming chat: a scope refusal stops at the first provider (0.585ms)
+✔ fast Codex chat: a scope refusal stops at the first provider (0.38575ms)
+✔ fast Groq chat: a scope refusal stops at the first provider (0.338833ms)
+✔ structured fallback: a scope refusal stops at the first provider (0.408125ms)
+✔ non-streaming vision: a scope refusal stops at the first provider (0.662459ms)
+✔ Codex vision: a scope refusal stops at the first provider (0.338083ms)
+✔ streaming text fallback: a scope refusal stops at the first provider (0.657291ms)
+✔ streaming vision outer boundary: a scope refusal stops at the first provider (0.618166ms)
+✔ mode-specific fallback: a scope refusal stops at the first provider (0.555334ms)
+✔ robust Gemini fallback keeps refusal type at rate-limit wait 1 (0.320833ms)
+✔ robust Gemini fallback keeps refusal type at rate-limit wait 2 (0.421083ms)
+✔ Claude sends nothing when the transcript or screenshot scope is denied (0.499875ms)
+✔ Groq multimodal sends nothing when the transcript or screenshot scope is denied (0.351959ms)
+✔ Gemini contents sends nothing when the transcript or screenshot scope is denied (0.292458ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (5.629709ms)
+✔ generateContentStructured (Gemini Pro and Flash branches) sends nothing when the transcript scope is denied (0.737083ms)
+✔ generateWithPro sends nothing when the transcript scope is denied (0.195541ms)
+✔ generateWithFlash sends nothing when the transcript scope is denied (0.165958ms)
+✔ generateWithFallback (robust Gemini client) sends nothing when the transcript scope is denied (0.272917ms)
+✔ streamWithGroqOrGemini (Groq branch) sends nothing when the transcript scope is denied (0.194208ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.652083ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (0.495875ms)
+✔ the meeting chat context carries the scopes of what it contains (1.070125ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.100959ms)
+✔ meeting summaries stop the fallback chain when a scope is turned off during it (0.605333ms)
+✔ streamChat re-checks its scopes before each send, also after waiting (0.784458ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.225542ms)
+ℹ tests 180
+ℹ suites 0
+ℹ pass 180
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4469.143334

@@ -1,0 +1,61 @@
+
+electron/LLMHelper.ts: 5 hit(s)
+  487: catch { return false; }
+  493: catch { return false; }
+  499: catch { return false; }
+  546: catch { return false; }
+  552: catch { return false; }
+
+electron/llm/__tests__/multiProtocolGeneration.test.mjs: 4 hit(s)
+  91: const server = http.createServer(handler);
+  118: helper.getProviderScopePolicy = () => ({});
+  277: const cache = new GeminiPromptCache();
+  279: cache.clear();
+
+electron/llm/GeminiPromptCache.ts: 2 hit(s)
+  66: private generation = 0;
+  102: const generation = this.generation;
+
+electron/llm/generateOnce.ts: 1 hit(s)
+  98: let failure: unknown;
+
+src/utils/modelUtils.ts: 1 hit(s)
+  71: if (!match) return null;
+
+tests/margin/answer-regression.test.mjs: 1 hit(s)
+  367: assert.equal(requests.length, 1);
+
+electron/llm/llmTarget.ts: 1 hit(s)
+  15: let baseUrl: string | undefined;
+
+src/types/llmTarget.ts: 1 hit(s)
+  6: baseUrl?: string;
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 615901,
+  "addedSubstantiveLines": 70997,
+  "hits": 16,
+  "genericIdiomHits": 146,
+  "allowlistedHits": 2683,
+  "filesWithHits": 8,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ]
+}

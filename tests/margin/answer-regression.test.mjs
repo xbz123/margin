@@ -122,7 +122,7 @@ test.before(async () => {
   assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
   await launcher.evaluate((m) => window.electronAPI.setModel(m), MODEL); // see note in PLAN.md AG-09
   const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
-  assert.equal(config?.model, MODEL, `active model is ${JSON.stringify(config)}`);
+  assert.equal(config?.model, `llm-target:openai:chat-completions:${encodeURIComponent(MODEL)}`, `active model is ${JSON.stringify(config)}`);
 
   overlay = await windowWithQuery(app, 'window=overlay');
   await overlay.waitForLoadState('domcontentloaded');
@@ -340,4 +340,43 @@ test('after a chat request fails before streaming, the next answer is shown once
   const text = await launcher.evaluate(() => document.body.innerText);
   assert.equal(text.split('Retry answer kept.').length - 1, 1, 'the answer is shown exactly once and survives done');
   assert.equal(mock.chatRequests().length, before + 1);
+});
+
+test('a complete compatible target saved through preload drives a real typed UI question', async () => {
+  const previous = await overlay.evaluate(async () => ({
+    configuration: (await window.electronAPI.getStoredCredentials()).providerConfigurations.openai,
+    selection: await window.electronAPI.getCurrentLlmConfig(),
+    defaultModel: await window.electronAPI.getDefaultModel(),
+  }));
+  const configuration = { provider: 'openai', protocol: 'chat-completions', baseUrl: mock.baseURL, model: 'opaque/ag31-model' };
+  const selection = `llm-target:openai:chat-completions:${encodeURIComponent(configuration.model)}`;
+  try {
+    // Omit apiKey: the existing synthetic key must survive the complete configuration transaction.
+    const saved = await overlay.evaluate(value => window.electronAPI.setProviderConfiguration(value), configuration);
+    assert.equal(saved.ok, true, `configuration save failed: ${JSON.stringify(saved)}`);
+    const stored = await overlay.evaluate(() => window.electronAPI.getStoredCredentials());
+    assert.deepEqual(stored.providerConfigurations.openai, configuration);
+    assert.equal(stored.hasOpenaiKey, true);
+    await overlay.evaluate(value => window.electronAPI.setModel(value), selection);
+    assert.deepEqual(await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()), { provider: 'openai', model: selection });
+    mock.setScript({ errorStatus: 0, chunks: ['AG31 ', 'opaque ', 'target ', 'answer.'], delayMs: 50 });
+    const before = mock.chatRequests().length;
+    await ask('Synthetic AG31 saved target question');
+    await overlay.waitForFunction(() => document.body.innerText.includes('AG31 opaque target answer.'), null, { timeout: 20_000 });
+    const requests = mock.chatRequests().slice(before);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].url, '/v1/chat/completions');
+    assert.equal(requests[0].body.model, configuration.model);
+    assert.ok(JSON.stringify(requests[0].body.messages).includes('Synthetic AG31 saved target question'));
+    assert.equal(requests[0].body.prompt_cache_key, undefined, 'unknown compatible endpoint receives no OpenAI cache parameter');
+  } finally {
+    const restored = await overlay.evaluate(value => window.electronAPI.setProviderConfiguration(value), previous.configuration);
+    assert.equal(restored.ok, true, 'restore the original synthetic configuration');
+    if (previous.defaultModel?.model) {
+      const result = await overlay.evaluate(value => window.electronAPI.setDefaultModel(value), previous.defaultModel.model);
+      assert.equal(result.ok, true, 'restore the original default model');
+    }
+    await overlay.evaluate(value => window.electronAPI.setModel(value), previous.selection.model);
+    assert.deepEqual(await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()), previous.selection);
+  }
 });

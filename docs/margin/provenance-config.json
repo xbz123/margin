@@ -189,6 +189,18 @@
     { "line": "}, abortSignal);", "reason": "Closing an existing Gemini argument object and forwarding its existing cancellation signal to the AG-30 sender; no implementation copied, 2026-10-10" },
     { "line": "if (signal?.aborted) throw err;", "reason": "Preserve cancellation rather than caching it as an ordinary create failure in AG-30, written for this branch, 2026-10-10" },
     { "line": "stream: boolean;", "reason": "TypeScript boolean field selecting the two retained Gemini SDK methods in AG-30, written for this branch, 2026-10-10" },
-    { "line": "let reason: string | undefined;", "reason": "TypeScript local holding the optional provider finish reason in AG-30, written for this branch, 2026-10-10" }
+    { "line": "let reason: string | undefined;", "reason": "TypeScript local holding the optional provider finish reason in AG-30, written for this branch, 2026-10-10" },
+    {"line":"catch { return false; }","reason":"AG-31 explicit model resolution: unknown or ambiguous legacy model is not a provider match; generic fail-closed catch. Independently written, 2026-10-10."},
+    {"line":"const server = http.createServer(handler);","reason":"AG-31 localhost fixture using the standard Node HTTP server factory. Independently written, 2026-10-10."},
+    {"line":"helper.getProviderScopePolicy = () => ({});","reason":"AG-31 synthetic allow-policy control for the existing LLMHelper interface. Independently written, 2026-10-10."},
+    {"line":"const cache = new GeminiPromptCache();","reason":"AG-31 test constructs the retained cache class to exercise hot-configuration invalidation. Independently written, 2026-10-10."},
+    {"line":"cache.clear();","reason":"AG-31 test invokes the retained cache-clear interface during an in-flight creation. Independently written, 2026-10-10."},
+    {"line":"private generation = 0;","reason":"AG-31 monotonic cache invalidation counter, written for this branch. Independently written, 2026-10-10."},
+    {"line":"const generation = this.generation;","reason":"AG-31 cache creation captures its invalidation generation, written for this branch. Independently written, 2026-10-10."},
+    {"line":"let failure: unknown;","reason":"AG-31 TypeScript local preserving an internal protocol failure, written for this branch. Independently written, 2026-10-10."},
+    {"line":"if (!match) return null;","reason":"AG-31 generic unmatched-selector return in the renderer label helper. Independently written, 2026-10-10."},
+    {"line":"assert.equal(requests.length, 1);","reason":"AG-31 real renderer regression asserts one request reached the configured mock target. Independently written, 2026-10-10."},
+    {"line":"let baseUrl: string | undefined;","reason":"AG-31 TypeScript local for an optional validated provider address, written for this branch. Independently written, 2026-10-10."},
+    {"line":"baseUrl?: string;","reason":"AG-31 shared optional URL field for provider configuration, written for this branch. Independently written, 2026-10-10."}
   ]
 }

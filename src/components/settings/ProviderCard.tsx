@@ -1,3 +1,4 @@
+import { LLM_PRESETS, type ProviderConfiguration } from '../../types/llmTarget';
 import React, { useState, useEffect, useRef } from 'react';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, ChevronDown, Check, RefreshCw } from 'lucide-react';
@@ -10,11 +11,12 @@ interface FetchedModel {
 interface ProviderCardProps {
     providerId: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek';
     providerName: string;
+    configuration?: ProviderConfiguration;
     apiKey: string;
     preferredModel?: string;
     hasStoredKey: boolean;
     onKeyChange: (key: string) => void;
-    onSaveKey: () => Promise<CredentialSaveResult>;
+    onSaveKey: (configuration?: ProviderConfiguration) => Promise<CredentialSaveResult>;
     onRemoveKey: () => void;
     onTestConnection: () => void;
     testStatus: 'idle' | 'testing' | 'success' | 'error';
@@ -29,6 +31,7 @@ interface ProviderCardProps {
 export const ProviderCard: React.FC<ProviderCardProps> = ({
     providerId,
     providerName,
+    configuration,
     apiKey,
     preferredModel,
     hasStoredKey,
@@ -42,31 +45,17 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
     savedStatus,
     keyPlaceholder,
     keyUrl,
-    onPreferredModelChange,
 }) => {
+    const savedConfig = configuration ?? LLM_PRESETS[providerId];
+    const [draft, setDraft] = useState<ProviderConfiguration>(savedConfig);
+    const unsaved = JSON.stringify(draft) !== JSON.stringify(savedConfig) || !!apiKey.trim();
+    useEffect(() => { setDraft(savedConfig); setFetchedModels([]); }, [configuration]);
     const [fetchedModels, setFetchedModels] = useState<FetchedModel[]>([]);
     const [isFetching, setIsFetching] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [selectedModel, setSelectedModel] = useState<string>(preferredModel || '');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-    // Refs to avoid stale closures in the auto-save timer
-    const savedRef = useRef(savedStatus);
-    const savingRef = useRef(savingStatus);
-    savedRef.current = savedStatus;
-    savingRef.current = savingStatus;
-
-    // Auto-save API key after 5 seconds of inactivity
-    useEffect(() => {
-        if (!apiKey.trim()) return;
-        const timer = setTimeout(() => {
-            if (!savedRef.current && !savingRef.current) {
-                onSaveKey().catch(console.error);
-            }
-        }, 5000);
-        return () => clearTimeout(timer);
-    }, [apiKey]);
 
     // Sync preferredModel prop
     useEffect(() => {
@@ -89,40 +78,11 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
         setFetchError(null);
 
         try {
-            // If a new key is entered, save it first
-            if (apiKey.trim()) {
-                const saved = await onSaveKey();
-                if (!saved.ok) {
-                    setFetchError(saved.message);
-                    return;
-                }
-            }
-
-            // Fetch models using the key (or stored key)
-            const keyToUse = apiKey.trim() || '';
-            // @ts-ignore
-            const result = await window.electronAPI?.fetchProviderModels(providerId, keyToUse);
+            if (unsaved) { setFetchError('Save the complete configuration before fetching models.'); return; }
+            const result = await window.electronAPI?.fetchProviderModels(providerId, '');
 
             if (result?.success && result.models) {
                 setFetchedModels(result.models);
-                // If we have a preferred model that exists in the list, keep it; otherwise auto-select first
-                if (result.models.length > 0) {
-                    const existsInList = result.models.some((m: FetchedModel) => m.id === selectedModel);
-                    if (!existsInList) {
-                        const firstModel = result.models[0].id;
-                        // @ts-ignore
-                        const saved = await window.electronAPI?.setProviderPreferredModel(providerId, firstModel);
-                        if (!saved?.ok) {
-                            setFetchError(saved?.message || 'Preferred model could not be saved.');
-                            return;
-                        }
-                        setSelectedModel(firstModel);
-                        if (saved.warning) setFetchError(saved.warning);
-                        if (onPreferredModelChange) {
-                            onPreferredModelChange(firstModel);
-                        }
-                    }
-                }
             } else {
                 setFetchError(result?.error || 'Failed to fetch models');
             }
@@ -135,21 +95,8 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
 
     const handleSelectModel = async (modelId: string) => {
         setIsDropdownOpen(false);
-        try {
-            // @ts-ignore
-            const result = await window.electronAPI?.setProviderPreferredModel(providerId, modelId);
-            if (!result?.ok) {
-                setFetchError(result?.message || 'Preferred model could not be saved.');
-                return;
-            }
-            setSelectedModel(modelId);
-            setFetchError(result.warning || null);
-            if (onPreferredModelChange) {
-                onPreferredModelChange(modelId);
-            }
-        } catch {
-            setFetchError('Preferred model could not be saved.');
-        }
+        setDraft(prev => ({ ...prev, model: modelId }));
+        setSelectedModel(modelId);
     };
 
     const selectedOption = fetchedModels.find(m => m.id === selectedModel);
@@ -183,8 +130,8 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                     className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
                 />
                 <button
-                    onClick={onSaveKey}
-                    disabled={savingStatus || !apiKey.trim()}
+                    onClick={() => onSaveKey(draft)}
+                    disabled={savingStatus || (!apiKey.trim() && !hasStoredKey)}
                     className={`px-5 py-2.5 rounded-lg text-xs font-medium transition-colors ${savedStatus
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-bg-input hover:bg-bg-secondary border border-border-subtle text-text-primary disabled:opacity-50'
@@ -203,11 +150,33 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                 )}
             </div>
 
+            <div className="space-y-2 mb-3">
+                <label className="block text-xs text-text-secondary">API base URL (empty uses the vendor preset)
+                    <input aria-label={`${providerName} API base URL`} value={draft.baseUrl ?? ''}
+                        onChange={e => setDraft(prev => ({ ...prev, baseUrl: e.target.value }))}
+                        placeholder={providerId === 'gemini' ? 'https://generativelanguage.googleapis.com' : providerId === 'claude' ? 'https://api.anthropic.com' : 'https://service.example/v1'}
+                        className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
+                </label>
+                {providerId === 'openai' && <label className="block text-xs text-text-secondary">Protocol
+                    <select aria-label="OpenAI protocol" value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'] }))}
+                        className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
+                        <option value="chat-completions">Chat Completions</option><option value="responses">Responses</option>
+                    </select>
+                </label>}
+                <label className="block text-xs text-text-secondary">Model ID
+                    <input aria-label={`${providerName} model ID`} value={draft.model}
+                        onChange={e => setDraft(prev => ({ ...prev, model: e.target.value }))}
+                        className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
+                </label>
+                <p className="text-[10px] text-text-secondary">Use Save to activate the complete configuration. Test and model discovery use only the saved target. Custom addresses may receive your data and API key.</p>
+                {providerId === 'gemini' && <p className="text-[10px] text-text-secondary">Gemini uses v1alpha for generation and model discovery. Do not include the API version in the base URL.</p>}
+            </div>
+
             {/* Action Row: Test Connection + Conditional Dropdown + Fetch Models */}
             <div className="flex items-center justify-between mb-3 w-full">
                 <button
                     onClick={onTestConnection}
-                    disabled={(!apiKey.trim() && !hasStoredKey) || testStatus === 'testing'}
+                    disabled={unsaved || !hasStoredKey || testStatus === 'testing'}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-border-subtle flex items-center gap-2 shrink-0 ${testStatus === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
                         testStatus === 'error' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                             'bg-bg-input hover:bg-bg-elevated text-text-primary'
@@ -257,7 +226,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                 {hasStoredKey ? (
                     <button
                         onClick={handleFetchModels}
-                        disabled={isFetching}
+                        disabled={isFetching || unsaved}
                         className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-border-subtle flex items-center gap-2 shrink-0 ${isFetching
                             ? 'bg-bg-input text-text-secondary'
                             : 'bg-accent-primary/10 text-accent-primary border-accent-primary/20 hover:bg-accent-primary/20'

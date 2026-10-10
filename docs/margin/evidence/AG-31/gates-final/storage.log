@@ -1,0 +1,51 @@
+✔ a meeting is saved with a mock summary, survives a restart, and stays deleted (4378.115542ms)
+✔ with the Transcripts data scope off, the meeting is saved and nothing is sent for its title or summary (642.680083ms)
+✖ the meeting chat follows the post_call_summary and profile_history scopes (3141.95975ms)
+✔ a meeting edit that fails to save is rolled back and reported (5414.200458ms)
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4427.703ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18502.92975
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:243:1
+✖ the meeting chat follows the post_call_summary and profile_history scopes (3141.95975ms)
+  AssertionError [ERR_ASSERTION]: active model is {"provider":"groq","model":"llm-target:groq:chat-completions:llama-3.3-70b-versatile"}
+  + actual - expected
+  
+  + 'llm-target:groq:chat-completions:llama-3.3-70b-versatile'
+  - 'llama-3.3-70b-versatile'
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:278:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'llm-target:groq:chat-completions:llama-3.3-70b-versatile',
+    expected: 'llama-3.3-70b-versatile',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/meeting-storage.test.mjs:461:1
+✖ startup recovery of an unprocessed meeting follows the profile_history scope (4427.703ms)
+  AssertionError [ERR_ASSERTION]: only the launcher chat answer is in the session: ["RECOVER_DENIED one: we plan the offsite.","RECOVER_DENIED two: the offsite is in May.","RECOVER_DENIED three: the budget is fixed.","RECOVER_DENIED four: I will book the venue."]
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/meeting-storage.test.mjs:516:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

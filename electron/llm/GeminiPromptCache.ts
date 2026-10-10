@@ -63,6 +63,7 @@ const CACHE_TTL_SECONDS = 3600;
 const RENEWAL_WINDOW_MS = 5 * 60 * 1000;
 
 export class GeminiPromptCache {
+  private generation = 0;
   private entries = new Map<string, CacheEntry>();
   /** In-flight creation promises keyed by hash — for dedupe under concurrency. */
   private inflight = new Map<string, Promise<string | null>>();
@@ -98,8 +99,9 @@ export class GeminiPromptCache {
     const pending = this.inflight.get(key);
     if (pending) return pending;
 
-    const creation = this.create(client, model, systemPrompt, key, beforeSend, signal).finally(() => {
-      this.inflight.delete(key);
+    const generation = this.generation;
+    const creation = this.create(client, model, systemPrompt, key, beforeSend, signal, generation).finally(() => {
+      if (this.inflight.get(key) === creation) this.inflight.delete(key);
     });
     this.inflight.set(key, creation);
     return creation;
@@ -126,6 +128,7 @@ export class GeminiPromptCache {
    * new key on the next request instead of one wasted failing round-trip.
    */
   clear(): void {
+    this.generation++;
     this.entries.clear();
     this.inflight.clear();
   }
@@ -141,7 +144,8 @@ export class GeminiPromptCache {
     systemPrompt: string,
     key: string,
     beforeSend: () => void,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    generation = this.generation,
   ): Promise<string | null> {
     try {
       signal?.throwIfAborted();
@@ -160,6 +164,8 @@ export class GeminiPromptCache {
           displayName: `natively-sys-${key.slice(0, 8)}`,
         },
       });
+      signal?.throwIfAborted();
+      if (generation !== this.generation) return null;
       const name: string | undefined = response?.name;
       if (!name) {
         console.warn('[GeminiPromptCache] caches.create returned no name; skipping cache');
@@ -174,6 +180,7 @@ export class GeminiPromptCache {
     } catch (err: any) {
       rethrowProviderScopeError(err);
       if (signal?.aborted) throw err;
+      if (generation !== this.generation) return null;
       // Non-fatal. Common reasons: prompt below model minimum, model doesn't
       // support caching, transient 5xx. We log once and fall back to
       // systemInstruction on every subsequent call for this key until the

@@ -324,6 +324,8 @@ export class ModelVersionManager {
   private discoveryTimer: ReturnType<typeof setInterval> | null = null;
   private lastEventTriggeredDiscovery: number = 0;
 
+  private discoveryController = new AbortController();
+
   // Provider API keys (set externally via setApiKeys)
   private openaiApiKey: string | null = null;
   private geminiApiKey: string | null = null;
@@ -343,6 +345,8 @@ export class ModelVersionManager {
     claude?: string | null;
     groq?: string | null;
   }): void {
+    this.discoveryController.abort();
+    this.discoveryController = new AbortController();
     if (keys.openai !== undefined) this.openaiApiKey = keys.openai;
     if (keys.gemini !== undefined) this.geminiApiKey = keys.gemini;
     if (keys.claude !== undefined) this.claudeApiKey = keys.claude;
@@ -501,6 +505,7 @@ export class ModelVersionManager {
    * then apply upgrade rules. Each provider query is individually error-handled.
    */
   public async runDiscoveryAndUpgrade(): Promise<void> {
+    const generation = this.discoveryController;
     console.log('[ModelVersionManager] 🔍 Starting model discovery...');
 
     const discovered: Map<ModelFamily, { modelId: string; version: ModelVersion }> = new Map();
@@ -521,6 +526,7 @@ export class ModelVersionManager {
     }
 
     await Promise.allSettled(discoveryPromises);
+    if (generation.signal.aborted) return;
 
     // Apply upgrade rules for each discovered vision family
     let upgraded = false;
@@ -586,7 +592,7 @@ export class ModelVersionManager {
     try {
       const response = await fetch('https://api.openai.com/v1/models', {
         headers: { Authorization: `Bearer ${this.openaiApiKey}` },
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.any([this.discoveryController.signal, AbortSignal.timeout(15000)]),
       });
       if (!response.ok) {
         this.recordDiscoveryFailure('openai');
@@ -612,7 +618,7 @@ export class ModelVersionManager {
     try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models?key=${this.geminiApiKey}`,
-        { signal: AbortSignal.timeout(15000) }
+        { signal: AbortSignal.any([this.discoveryController.signal, AbortSignal.timeout(15000)]) }
       );
       if (!response.ok) {
         this.recordDiscoveryFailure('gemini');
@@ -648,17 +654,19 @@ export class ModelVersionManager {
       let hasMore = true;
       let afterId: string | null = null;
 
-      while (hasMore) {
+      const controller = this.discoveryController;
+      const key = this.claudeApiKey;
+      while (hasMore && !controller.signal.aborted) {
         const url = afterId
           ? `https://api.anthropic.com/v1/models?limit=100&after_id=${encodeURIComponent(afterId)}`
           : 'https://api.anthropic.com/v1/models?limit=100';
 
         const response = await fetch(url, {
           headers: {
-            'x-api-key': this.claudeApiKey!,
+            'x-api-key': key!,
             'anthropic-version': '2023-06-01',
           },
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.any([this.discoveryController.signal, AbortSignal.timeout(15000)]),
         });
 
         if (!response.ok) {
@@ -697,7 +705,7 @@ export class ModelVersionManager {
     try {
       const response = await fetch('https://api.groq.com/openai/v1/models', {
         headers: { Authorization: `Bearer ${this.groqApiKey}` },
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.any([this.discoveryController.signal, AbortSignal.timeout(15000)]),
       });
       if (!response.ok) {
         this.recordDiscoveryFailure('groq');

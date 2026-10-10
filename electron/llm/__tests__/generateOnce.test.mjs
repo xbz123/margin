@@ -33,6 +33,7 @@ const request = (extra = {}) => ({ protocol: 'gemini', purpose: 'answer', model:
 const drain = async (events) => { const result = []; for await (const event of events) result.push(event); return result; };
 const helper = (client, policy = {}, extra = {}) => Object.assign(Object.create(LLMHelper.prototype), {
   client, getProviderScopePolicy: () => policy, personaPrompt: '', customNotes: '',
+  selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' },
   currentModelId: 'gemini-test', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
   groqFastTextMode: false, rateLimiters: { gemini: { acquire: async () => {} } },
   geminiPromptCache: new GeminiPromptCache(), withTimeout: value => value,

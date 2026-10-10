@@ -26,9 +26,11 @@ test('LLM SDK construction and key updates preserve explicitly configured env en
     try {
       process.env[variable] = 'https://explicit.invalid/v1';
       const self = new LLMHelper(undefined, 'synthetic-only', 'synthetic-only', 'synthetic-only');
-      assert.equal(self[`${provider}Client`].baseURL, 'https://explicit.invalid/v1');
+      assert.equal(self[`${provider}Client`].baseURL, provider === 'claude' ? 'https://explicit.invalid'
+        : provider === 'groq' ? 'https://explicit.invalid/v1/openai/v1' : 'https://explicit.invalid/v1');
       process.env[variable] = 'http://127.0.0.1:1234/v1'; self[setter]('synthetic-only');
-      assert.equal(self[`${provider}Client`].baseURL, 'http://127.0.0.1:1234/v1');
+      assert.equal(self[`${provider}Client`].baseURL, provider === 'claude' ? 'http://127.0.0.1:1234'
+        : provider === 'groq' ? 'http://127.0.0.1:1234/v1/openai/v1' : 'http://127.0.0.1:1234/v1');
       process.env[variable] = 'https://key@wrong.invalid';
       assert.throws(() => self[setter]('synthetic-only'));
     } finally { if (before === undefined) delete process.env[variable]; else process.env[variable] = before; }
@@ -240,7 +242,7 @@ test('streamWithGroqOrGemini: revocation in the Groq limiter or before the Gemin
         groqClient: { chat: { completions: { create: async () => {
           sends.push('groq');
           if (stage === 'fallback') { if (revoke) policy.transcript = false; throw Error('synthetic groq failure'); }
-          return [{ choices: [{ delta: { content: 'allowed' } }] }];
+          return [{ choices: [{ delta: { content: 'allowed' } }] }, { choices: [{ delta: {}, finish_reason: 'stop' }] }];
         } } } },
         client: { models: { generateContentStream: async () => { sends.push('gemini'); return [{ candidates: [{ finishReason: 'STOP' }], text: 'allowed' }]; } } },
       });
