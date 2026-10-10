@@ -1,0 +1,15 @@
+/Users/runner/work/_temp/unzipped/temp.app: replacing existing signature
+shipped: 64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e
+replacement: ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d
+replacement archs: arm64
+replacement install name: @rpath/libvips-cpp.8.17.3.dylib
+shipped uuid: 57E6BFB0-8E4E-3F1F-A3AB-1DD593CAC71C
+replacement uuid: 52C60631-3689-3C30-8D36-2631F40386D7
+sharp imports from libvips: 200
+before: signature valid
+after replacement: signature invalid until re-signed (expected)
+after ad hoc re-sign: signature valid
+{"vips":"8.17.3","webp":"webp","width":4,"svgFirstPixel":[0,0,255]}
+{"vips":"8.17.3","webp":"webp","width":4,"svgFirstPixel":[0,0,255]}
+dyld[15736]: <52C60631-3689-3C30-8D36-2631F40386D7> <app>/Contents/Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib
+symbols sharp needs that the replacement lacks: 0

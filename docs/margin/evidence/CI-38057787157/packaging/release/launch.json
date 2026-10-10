@@ -1,0 +1,80 @@
+{
+  "app": "Margin.app",
+  "expected": {
+    "name": "Margin",
+    "appId": "io.github.xbz123.margin"
+  },
+  "home": "<throwaway>",
+  "checks": [
+    {
+      "id": "launcher-window",
+      "passed": true,
+      "detail": "window=launcher loaded"
+    },
+    {
+      "id": "preload-api",
+      "passed": true,
+      "detail": "window.electronAPI"
+    },
+    {
+      "id": "packaged",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "id": "app-name",
+      "passed": true,
+      "detail": "Margin"
+    },
+    {
+      "id": "user-data",
+      "passed": true,
+      "detail": {
+        "userData": "<home>/Library/Application Support/Margin"
+      }
+    },
+    {
+      "id": "logs",
+      "passed": true,
+      "detail": {
+        "logs": "<home>/Library/Application Support/Margin"
+      }
+    },
+    {
+      "id": "only-own-directory",
+      "passed": true,
+      "detail": [
+        "Margin"
+      ]
+    }
+  ],
+  "output": [
+    "console.log [{\"type\":\"string\",\"length\":30}]",
+    "console.log [{\"type\":\"string\",\"length\":54}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":57}]",
+    "2026-10-10 14:29:40.030 Margin[22614:71332] NSWindow does not support nonactivating panel styleMask 0x80",
+    "console.log [{\"type\":\"string\",\"length\":54}]",
+    "console.log [{\"type\":\"string\",\"length\":61}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":55}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":63}]",
+    "app-quitting []",
+    "console.log [{\"type\":\"string\",\"length\":34}]",
+    "console.log [{\"type\":\"string\",\"length\":43}]",
+    "console.log [{\"type\":\"string\",\"length\":35}]",
+    "console.log [{\"type\":\"string\",\"length\":39}]",
+    "console.log [{\"type\":\"string\",\"length\":36}]",
+    "console.log [{\"type\":\"string\",\"length\":50}]",
+    "console.log [{\"type\":\"string\",\"length\":37}]",
+    "console.log [{\"type\":\"string\",\"length\":47}]",
+    "console.log [{\"type\":\"string\",\"length\":40}]",
+    "Debugger ending on ws://127.0.0.1:49314/0c4c6379-c89d-4b83-97f8-297751c50b73",
+    "For help, see: https://nodejs.org/learn/getting-started/debugging",
+    "[22614:1010/142944.023164:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)",
+    "[22614:1010/142944.023216:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)",
+    ""
+  ],
+  "passed": true
+}
