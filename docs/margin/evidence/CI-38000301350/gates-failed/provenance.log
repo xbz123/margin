@@ -1,0 +1,33 @@
+
+--- stderr ---
+fatal: path 'scripts/icons/app-icon.svg' exists on disk, but not in 'cbb92b8ae1a310ae1af3323d45b2990757d781d9'
+node:internal/errors:998
+  const err = new Error(message);
+              ^
+
+Error: Command failed: git show cbb92b8ae1a310ae1af3323d45b2990757d781d9:scripts/icons/app-icon.svg
+fatal: path 'scripts/icons/app-icon.svg' exists on disk, but not in 'cbb92b8ae1a310ae1af3323d45b2990757d781d9'
+
+    at genericNodeError (node:internal/errors:998:15)
+    at wrappedFn (node:internal/errors:543:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at git (file:///Users/runner/work/margin/margin/scripts/margin/provenance-check.mjs:35:23)
+    at file:///Users/runner/work/margin/margin/scripts/margin/provenance-check.mjs:115:71
+    at cached (file:///Users/runner/work/margin/margin/scripts/margin/provenance-check.mjs:94:15)
+    at file:///Users/runner/work/margin/margin/scripts/margin/provenance-check.mjs:108:18
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:642:26 {
+  status: 128,
+  signal: null,
+  output: [
+    null,
+    '',
+    "fatal: path 'scripts/icons/app-icon.svg' exists on disk, but not in 'cbb92b8ae1a310ae1af3323d45b2990757d781d9'\n"
+  ],
+  pid: 96543,
+  stdout: '',
+  stderr: "fatal: path 'scripts/icons/app-icon.svg' exists on disk, but not in 'cbb92b8ae1a310ae1af3323d45b2990757d781d9'\n"
+}
+
+Node.js v26.0.0

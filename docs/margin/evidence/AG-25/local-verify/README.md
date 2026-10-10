@@ -1,27 +1,34 @@
 # AG-25 local checks of the downloaded CI artifacts
 
-Claude, 2026-10-09, on the artifacts of run 37944613051 (commit `ba9279fa`, the
-S22 package that ships the rebuilt libvips, see `../../CI-37944613051/`). The
-reports here replace those made the same day on run 37871598165 (`46e5c0cc`, the
-prebuilt libvips); the earlier versions are in git history. Downloads went to the
-session scratchpad, not the repository; paths in these reports are shown as
-`<app>`, `<asar>` or `<sandbox>`.
+Claude, 2026-10-10. The temp package and source reports here are from run
+38004311007 (commit `9ef2ed4a`, public `xbz123/margin`, see
+`../../CI-38004311007/`). The release identity's zip is no longer uploaded (PLAN
+S25), so `package-check-release.json` and the release lines of
+`plist-codesign.txt` are still from run 37996030056 (`cd71f14b`, private
+repository, `../../CI-37996030056/`), checked on 2026-10-09; the app code of the
+two commits is the same. Earlier versions (runs 37944613051 and 37871598165) are
+in git history. Downloads went to the session scratchpad, not the repository;
+paths in these reports are shown as `<app>`, `<asar>` or `<sandbox>`.
 
 ## Download and verification
 
 `scripts/margin/download-ci-artifact.mjs` downloaded each artifact with
 `gh run download` and checked every file its `BUILD-INFO.txt` lists before use,
-including the commit: the native module, the libvips build, both app zips and the
-source manifest. All matched. The gates, libvips-sources and libvips-replace
+including the commit: the native module, the libvips build, the temp app zip and
+the source manifest. All matched; for the release artifact everything but the
+absent zip matched. The gates, libvips-sources and libvips-replace
 artifacts carry no BUILD-INFO; the gates records are copied unchanged to the CI
 evidence directory, and the libvips sources are checked below.
 
-- **Native module.** The CI build is `71f9cf8e…`, the same as the module already
-  installed locally from run 37871598165, so it was not reinstalled.
+- **Native module.** The CI build is `0f92a0b1…`. It differs from the
+  `71f9cf8e…` of the private repository's runs only through the build path in its
+  install name (`../../CI-38004311007/native/compare-with-37996030056.log`). The
+  worktree keeps `71f9cf8e…`, installed from run 37871598165; it was not
+  reinstalled.
 - **Source bundle** (`source-bundle-verify.json`): all 592 files listed in
   `MANIFEST.json` match their size and sha256, and no file is unlisted. The app
   archive decompresses to the same tar, byte for byte, as a local
-  `git archive --format=tar --prefix=margin-<commit>/ ba9279fa`.
+  `git archive --format=tar --prefix=margin-<commit>/ 9ef2ed4a`.
 - **libvips sources** (`libvips-sources-verify.json`): all 37 captured downloads
   match `manifest.tsv` (one, `rustup-init`, was an empty response and keeps no
   file); the 184 kept crates match the checksums in librsvg's `Cargo.lock`; all
@@ -34,9 +41,9 @@ evidence directory, and the libvips sources are checked below.
 
 ## Packages (read-only)
 
-`package-check.cjs` was run locally on both unzipped apps with
-`MARGIN_LIBVIPS_SHA256` set to the rebuild's sha256 (`package-check-temp.json`,
-`package-check-release.json`); Info.plist and
+`package-check.cjs` was run locally on the unzipped apps with
+`MARGIN_LIBVIPS_SHA256` set to the rebuild's sha256 (`package-check-temp.json`
+from 38004311007, `package-check-release.json` from 37996030056); Info.plist and
 `codesign --verify --deep --strict` were also checked separately
 (`plist-codesign.txt`). Both pass every check with the same result as on CI,
 including `libvips-rebuilt` (both packages carry `64bcfea7…`, not the prebuilt

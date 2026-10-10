@@ -1,0 +1,49 @@
+✔ a typed question streams the mock answer into the overlay (8899.679583ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (9702.129958ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3774.857417ms)
+✔ a screenshot question sends the fixture image to the model (490.335708ms)
+✔ a provider error is shown and the next question still works (1609.181834ms)
+✖ after a chat request fails before streaming, the next answer is shown once and kept (30443.427375ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55913.405417
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:316:1
+✖ after a chat request fails before streaming, the next answer is shown once and kept (30443.427375ms)
+  locator.click: Timeout 30000ms exceeded.
+  Call log:
+    - waiting for locator('input[placeholder="Search or ask anything..."]')
+      - locator resolved to <input value="" type="text" placeholder="Search or ask anything..." class="↵                                        w-full bg-transparent↵                                        pl-9 pr-4 py-1↵                                        text-[13px] text-text-primary↵                                        placeholder-text-tertiary↵                                        focus:outline-none↵                                        cursor-default↵                                    "/>
+    - attempting click action
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> intercepts pointer events
+      - retrying click action
+      - waiting 20ms
+      2 × waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - <div>…</div> intercepts pointer events
+      - retrying click action
+        - waiting 100ms
+      50 × waiting for element to be visible, enabled and stable
+         - element is visible, enabled and stable
+         - scrolling into view if needed
+         - done scrolling
+         - <div>…</div> intercepts pointer events
+       - retrying click action
+         - waiting 500ms
+  
+      at TestContext.<anonymous> (/Users/runner/work/margin/margin/tests/margin/answer-regression.test.mjs:325:16) {
+    name: 'TimeoutError'
+  }

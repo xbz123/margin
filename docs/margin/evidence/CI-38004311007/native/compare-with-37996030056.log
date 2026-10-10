@@ -1,0 +1,13 @@
+37996030056 (Assessment-Assistant) sha256 71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603 size 1150760 uuid 054AE0C4-9B57-38C5-AE3E-18A36604BB62
+38004311007 (margin)               sha256 0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782 size 1150760 uuid 6C91F801-DABF-36A2-A0A8-D1118A212F37
+install name 37996030056: /Users/runner/work/Assessment-Assistant/Assessment-Assistant/native-module/target/aarch64-apple-darwin/release/deps/libnatively_audio.dylib
+install name 38004311007: /Users/runner/work/margin/margin/native-module/target/aarch64-apple-darwin/release/deps/libnatively_audio.dylib
+sections and sizes:
+  identical
+load commands other than the install name:
+  differ
+exported symbols: identical (1)
+strings after path normalization: identical
+workspace paths embedded: 0 vs 0
+differing bytes (same offsets): 663406
+signature: flags=0x20002(adhoc,linker-signed)

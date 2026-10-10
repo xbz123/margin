@@ -184,12 +184,12 @@
     {
       "path": "MacOS/temp",
       "archs": "arm64",
-      "sha256": "7698357efaa072895724913761b8469f2354913e47f4c3bfc6af0f17efc3158b"
+      "sha256": "81463638f7b5b395c8a9c8a0cbe4a8485adc4fe9740213cbbf6f0e9b4da341c0"
     },
     {
       "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
       "archs": "arm64",
-      "sha256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603"
+      "sha256": "0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782"
     },
     {
       "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64.node",

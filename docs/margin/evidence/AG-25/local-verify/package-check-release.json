@@ -184,7 +184,7 @@
     {
       "path": "MacOS/Margin",
       "archs": "arm64",
-      "sha256": "4667abb80ead78580bcd48aaff5b487ce30ef3ba86260aa782acb8fd13f1beae"
+      "sha256": "d4d6458101f62b12719713c91860912ac4e84000b0c772eed53e7bc1003fce86"
     },
     {
       "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
