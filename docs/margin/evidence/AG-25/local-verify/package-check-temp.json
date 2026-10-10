@@ -70,8 +70,8 @@
       "id": "libvips-rebuilt",
       "passed": true,
       "detail": {
-        "packaged": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
-        "expected": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e",
+        "packaged": "832f9fa59aa0a4d81ce60599867cbc9bcae5060ebb9aa39b36b5f96787df7e36",
+        "expected": "832f9fa59aa0a4d81ce60599867cbc9bcae5060ebb9aa39b36b5f96787df7e36",
         "upstreamPrebuilt": "ad39fe2d407fca7532326eb819af010725a1df9187ef26a6d4aba629b71f173d"
       }
     },
@@ -184,7 +184,7 @@
     {
       "path": "MacOS/temp",
       "archs": "arm64",
-      "sha256": "81463638f7b5b395c8a9c8a0cbe4a8485adc4fe9740213cbbf6f0e9b4da341c0"
+      "sha256": "b083435fee5695d18537de8ef7e01e8894e93310bb212735328a30037118d580"
     },
     {
       "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
@@ -199,7 +199,7 @@
     {
       "path": "Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib",
       "archs": "arm64",
-      "sha256": "64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e"
+      "sha256": "832f9fa59aa0a4d81ce60599867cbc9bcae5060ebb9aa39b36b5f96787df7e36"
     },
     {
       "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",

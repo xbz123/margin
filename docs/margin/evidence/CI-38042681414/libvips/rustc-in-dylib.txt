@@ -1,0 +1,27 @@
+# Which compiler built the Rust part of the rebuilt libvips-cpp (Claude, 2026-10-10)
+# old: run 38004311007 (9ef2ed4a), new: run 38042681414 (7153aa07); libvips-cpp.8.17.3.dylib from each libvips artifact
+
+## old
+sha256 64bcfea76e4b0668fac91da7b8000a556bbe3b3155ed50af856c791fb455c65e
+uuid 57E6BFB0-8E4E-3F1F-A3AB-1DD593CAC71C
+size 16059976
+rustc source paths embedded (count, commit):
+  58 rustc/a30aa9064df6a504b6a323c6884a2f4cfbfff666
+rustc 1.98.1 commit 48a229cea... embedded: 0
+mozjpeg: mozjpeg version 5.0.0 (build 20261009)
+
+## new
+sha256 832f9fa59aa0a4d81ce60599867cbc9bcae5060ebb9aa39b36b5f96787df7e36
+uuid A6DD906E-F1CF-3C97-8A68-915443B7B649
+size 16059976
+rustc source paths embedded (count, commit):
+  58 rustc/32dba69d69c5b10ea89a4042de8d0619f7756203
+rustc 1.98.1 commit 48a229cea... embedded: 0
+mozjpeg: mozjpeg version 5.0.0 (build 20261010)
+
+## recipe toolchain (build.log of each run)
+old: nightly-aarch64-apple-darwin installed - rustc 1.101.0-nightly (a30aa9064 2026-10-08)
+new: nightly-aarch64-apple-darwin installed - rustc 1.101.0-nightly (32dba69d6 2026-10-09)
+recipe build/posix.sh (20b5e899): rustup ... --default-toolchain nightly; RUSTFLAGS -Zlocation-detail=none -Zfmt-debug=none (nightly-only flags)
+BUILD-INFO 'rustc:' line and the drift check in rebuild.sh run deps/cargo/bin/rustc (a rustup proxy) without the recipe's RUSTUP_HOME (exported only inside build.sh), so they report another toolchain, presumably the runner's own (inferred: no 1.98.1 install appears in build.log), not the nightly that built librsvg
+all earlier rebuilds (37871598165, 37944613051, 37996030056, 38004311007) ran on 2026-10-09 UTC with nightly a30aa9064 and mozjpeg build 20261009, hence the identical 64bcfea7

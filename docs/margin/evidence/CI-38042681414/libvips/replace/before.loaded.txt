@@ -1,0 +1,1 @@
+dyld[2110]: <A6DD906E-F1CF-3C97-8A68-915443B7B649> <app>/Contents/Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib

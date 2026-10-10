@@ -1,8 +1,9 @@
 # AG-25 local checks of the downloaded CI artifacts
 
 Claude, 2026-10-10. The temp package and source reports here are from run
-38004311007 (commit `9ef2ed4a`, public `xbz123/margin`, see
-`../../CI-38004311007/`). The release identity's zip is no longer uploaded (PLAN
+38042681414 (commit `7153aa07`, the code after the navigation fix, public
+`xbz123/margin`, see `../../CI-38042681414/`); the previous ones, from run
+38004311007 (`9ef2ed4a`), are in git history. The release identity's zip is no longer uploaded (PLAN
 S25), so `package-check-release.json` and the release lines of
 `plist-codesign.txt` are still from run 37996030056 (`cd71f14b`, private
 repository, `../../CI-37996030056/`), checked on 2026-10-09; the app code of the
@@ -20,7 +21,7 @@ absent zip matched. The gates, libvips-sources and libvips-replace
 artifacts carry no BUILD-INFO; the gates records are copied unchanged to the CI
 evidence directory, and the libvips sources are checked below.
 
-- **Native module.** The CI build is `0f92a0b1…`. It differs from the
+- **Native module.** The CI build is `0f92a0b1…`, as in run 38004311007. It differs from the
   `71f9cf8e…` of the private repository's runs only through the build path in its
   install name (`../../CI-38004311007/native/compare-with-37996030056.log`). The
   worktree keeps `71f9cf8e…`, installed from run 37871598165; it was not
@@ -28,7 +29,7 @@ evidence directory, and the libvips sources are checked below.
 - **Source bundle** (`source-bundle-verify.json`): all 592 files listed in
   `MANIFEST.json` match their size and sha256, and no file is unlisted. The app
   archive decompresses to the same tar, byte for byte, as a local
-  `git archive --format=tar --prefix=margin-<commit>/ 9ef2ed4a`.
+  `git archive --format=tar --prefix=margin-<commit>/ 7153aa07`.
 - **libvips sources** (`libvips-sources-verify.json`): all 37 captured downloads
   match `manifest.tsv` (one, `rustup-init`, was an empty response and keeps no
   file); the 184 kept crates match the checksums in librsvg's `Cargo.lock`; all
@@ -37,17 +38,19 @@ evidence directory, and the libvips sources are checked below.
   moving branch (`THIRD-PARTY-NOTICES.md` from `main`); its fetched bytes are
   kept.
 - **Rebuilt libvips.** The dylib extracted from the libvips artifact has sha256
-  `64bcfea7…` and UUID `57E6BFB0…`, the same as in the two earlier rebuilds.
+  `832f9fa5…` and UUID `A6DD906E…`, not the `64bcfea7…` of the four earlier
+  rebuilds: its Rust part is built with the recipe's nightly of the day and
+  mozjpeg embeds the build date (`../../CI-38042681414/README.md`).
 
 ## Packages (read-only)
 
 `package-check.cjs` was run locally on the unzipped apps with
 `MARGIN_LIBVIPS_SHA256` set to the rebuild's sha256 (`package-check-temp.json`
-from 38004311007, `package-check-release.json` from 37996030056); Info.plist and
+from 38042681414, `package-check-release.json` from 37996030056); Info.plist and
 `codesign --verify --deep --strict` were also checked separately
 (`plist-codesign.txt`). Both pass every check with the same result as on CI,
-including `libvips-rebuilt` (both packages carry `64bcfea7…`, not the prebuilt
-`ad39fe2d…`) and the 1,316 notice references, and the 21 Mach-O files have the
+including `libvips-rebuilt` (the temp package carries `832f9fa5…`, the release
+package of 37996030056 `64bcfea7…`, neither the prebuilt `ad39fe2d…`) and the 1,316 notice references, and the 21 Mach-O files have the
 same paths and sha256 as in the CI reports.
 
 The release identity `Margin.app` was only inspected, never launched (S15). Its
@@ -75,7 +78,7 @@ the repository's Electron 43.1.0 under the guard:
 - `sharp-smoke-temp.json` (`scripts/margin/libvips/sharp-smoke-local.mjs`): sharp
   from the package (Electron in Node mode, guard preloaded) produced PNG, WebP and
   SVG output identical to CI's (`{"vips":"8.17.3",…}`). dyld loaded the package's
-  shipped libvips, the rebuild (UUID `57E6BFB0…`).
+  shipped libvips, the rebuild (UUID `A6DD906E…`).
 
 ## Earlier runs
 
