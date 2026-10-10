@@ -1,0 +1,1046 @@
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:26483) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.858209ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.391875ms)
+✔ single response preserves incomplete (no finish) (0.303667ms)
+✔ single response preserves empty (STOP) (0.243208ms)
+✔ single response preserves refused (SAFETY) (0.369ms)
+✔ single response preserves refused (no finish) (0.208417ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.851042ms)
+✔ final scope refusal retains the original object and never sends (0.47575ms)
+✔ cancel before start and late response cannot produce deltas (0.690083ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (9.920959ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (2.022291ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (109.391ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.946834ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.85675ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (2.343333ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (2.783125ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (62.631ms)
+[LLMHelper] Switched to Model: gemini-new
+[LLMHelper] Switched to Model: gemini-a
+[LLMHelper] Switched to Model: gemini-a
+(node:26484) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it (2.092667ms)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (9.438708ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.808083ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.680334ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.842167ms)
+✔ real answer interface: SAFETY terminates without backup (1.479792ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.870959ms)
+✔ real answer interface: EMPTY terminates without backup (0.519709ms)
+✔ real answer interface: AUTH terminates without backup (0.865208ms)
+✔ real answer interface: CONFIG terminates without backup (0.741417ms)
+✔ real answer interface: PARTIAL terminates without backup (0.637042ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.961083ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.67325ms)
+✔ permission revoked during limiter stops all later sends (0.610375ms)
+✔ permission revoked during image stops all later sends (0.271708ms)
+✔ permission revoked during cache stops all later sends (0.307417ms)
+✔ permission revoked during retry-after stops all later sends (0.414792ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.8045ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.401208ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.385417ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.845625ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.321666ms)
+✔ reselecting the same canonical target through qualified or raw model id keeps active transport alive (0.488875ms)
+✔ application quit cancels existing tasks and refuses all later generation entries before any send (0.51175ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 19 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (44.571458ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.372292ms)
+✔ Groq fast mode preserves the explicitly selected model for both text and images (0.712834ms)
+✔ saved provider connection test ignores the answer backup and sends its own failed target only once (0.427541ms)
+✔ the configured answer backup can itself be connection-tested once without a primary/backup conflict (0.240417ms)
+✔ actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport (4.296084ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry false (0.949833ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry true (0.49425ms)
+✔ AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result (0.770666ms)
+✔ AG33 actual Engine stores empty even without a visible partial (0.814084ms)
+✔ AG33 actual Engine stores refused even without a visible partial (0.912375ms)
+✔ AG33 actual Engine stores incomplete even without a visible partial (0.595083ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false (1.712583ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true (0.854208ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[LLMHelper] Switched to Model: gemini-next
+✔ AG33 Engine timeout releases its mode and allows the next assist request (3.648625ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 Engine model-switch releases its mode and allows the next assist request (1.879708ms)
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[LLMHelper] Switched to Model: codex-cli
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 1 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 old Engine finally cannot reset the newer active request mode (1.83875ms)
+✔ compression starts an independent background task inside an interview context and closes that supplied task (2.019ms)
+✔ actual prompt entry snapshots language and prompt tier before assembly starts (2.373708ms)
+✔ image metadata reflects actual send and screenshot omission, not the validated input list (1.39675ms)
+✔ backup updates and selected provider reconfiguration reject identical targets without changing active state (0.247708ms)
+✔ explicit Codex selector clears stale API selection and snapshots its configured fast model (0.1985ms)
+✔ AG33 actual Engine preserves a legitimate short answer and its request metadata (1.65075ms)
+✔ AG33 outer cancellation fences late inner errors, held sentinel text and mode changes (2.0815ms)
+✔ AG33 shared written task records a second-step failure rather than first-step completion (0.850166ms)
+✔ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (1.029792ms)
+✔ AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden (1.002542ms)
+✔ AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count (0.891625ms)
+[LLMHelper] Failed to process image with sharp: Error: Input buffer contains unsupported image format
+    at Sharp.toBuffer (<repo>/dist-electron/electron/LLMHelper.js:49202:21)
+    at LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93488:32)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 14 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes (13.673042ms)
+✔ AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning (2.560875ms)
+✔ AG33 partial cancellation records exact target and cancelled status in existing session usage (0.858792ms)
+✖ generation policy persists independent deadlines and rejects invalid or identical targets without mutation (198.979542ms)
+✖ generation policy failed atomic save keeps old memory and disk deadlines (29.926208ms)
+✖ AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes (30.353417ms)
+✖ credential transaction rejects unavailable without losing memory or the old ciphertext (21.57325ms)
+✖ credential transaction rejects encrypt without losing memory or the old ciphertext (22.731708ms)
+✖ credential transaction rejects write without losing memory or the old ciphertext (22.277875ms)
+✖ credential transaction rejects rename without losing memory or the old ciphertext (24.586042ms)
+✖ credential transaction rejects decrypt without losing memory or the old ciphertext (20.548375ms)
+✖ credential transaction rejects parse without losing memory or the old ciphertext (23.493375ms)
+✖ credential transaction rejects read without losing memory or the old ciphertext (18.375333ms)
+✖ credential transaction rejects load-unavailable without losing memory or the old ciphertext (18.488375ms)
+✖ unreadable credentials are offered for discard only after a decrypt or parse failure (20.43625ms)
+✖ a failed backup during discard keeps the unreadable file and the save block (16.3065ms)
+✖ all 24 setters commit only after persistence and can be read after restart (15.698333ms)
+✖ an exclusive-create collision never deletes the pre-existing temporary file (31.859167ms)
+✖ legacy plaintext is removed without being read or used as credentials (26.925667ms)
+✖ a warm instance clears old memory and stays locked until a successful reload (15.686ms)
+✖ AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart (15.414542ms)
+✖ legacy default and raw switch input reach model UI as the canonical runtime selection (23.512959ms)
+✖ AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back (17.061334ms)
+✔ AG24: all active STT key removals discard only after a successful save (884.944792ms)
+✖ AG24: invalid region or STT endpoint never changes credentials (22.221292ms)
+✖ AG24: invalid configuration crosses real manager and IPC with no save or runtime change (20.248209ms)
+✖ Google selection rejects invalid JSON/type/read before persistence or runtime; safe snapshot crosses a successful save (22.286125ms)
+✖ Google settings do not advertise an invalid saved path as usable (22.19375ms)
+✔ AG24: real Azure/IBM connection-test handlers share the runtime region boundary (223.381167ms)
+✔ AG24: a refused ElevenLabs redirect is not reported as a validated key (26.087166ms)
+✖ all saving IPC handlers return storage failure before runtime, events or window side effects (465.15075ms)
+✔ ProviderCard stops model Fetch while complete configuration is unsaved (5.467666ms)
+✔ IPC warns safely after a committed save fails to apply, and cancellation is not a write failure (119.892958ms)
+✔ recognition language applies only after its real manager setter succeeds (21.076459ms)
+✔ all credential preload callbacks preserve failure, warning and cancellation results (453.257833ms)
+✔ renderer save, remove and selection callbacks retain the previous UI on failure (165.793042ms)
+✔ all seven STT Save/Remove callbacks distinguish connection validation from stored keys (396.791292ms)
+✔ renderer keeps Saved and displays a safe apply warning, while cancellation does not change the selected file (26.561583ms)
+✔ renderer cannot report rollback when default-model refresh fails after a committed configuration save (8.951291ms)
+✔ all five LLM Save/Remove branches use their matching endpoint and show failure without clearing input (87.421833ms)
+✔ detected-language save failure does not submit an unsaved language selection (18.596167ms)
+✔ Fetch lists models without implicitly selecting or saving the first model (3.907042ms)
+✖ storage failures cross the real manager, IPC, preload and renderer without committing live state (15.335334ms)
+✖ a decrypt failure reaches settings, and only a confirmed discard crosses IPC and preload (14.948459ms)
+✔ migration 01 defaults retain main/fast models and disabled source (no path/sandbox/timeout) (2.068167ms)
+✔ migration 02 invalid tiers and efforts fail, rather than sandbox privilege options (0.302417ms)
+✔ migration 03 source default is no auth read (0.879417ms)
+✔ migration 04 timeout belongs to logical task, not executable config (21.719792ms)
+✔ migration 05 no caller executable or compatible endpoint affects fixed request (9.672167ms)
+✔ migration 06 legacy enabled without current confirmation has zero reads (0.441084ms)
+✔ migration 07 API-key auth mode is rejected (0.299875ms)
+✔ migration 08 whitespace/header-injection account is rejected (0.255375ms)
+✔ migration 09 fixed request preserves system/user separation and stream/store flags (1.090959ms)
+✔ migration 10 default tier/effort omit unclaimed API parameters (0.318875ms)
+✔ migration 11 explicit allowlisted tier/effort serialize without fallback (0.904667ms)
+✔ migration 12 image input becomes independent inline input, never CLI argv (0.123875ms)
+✔ migration 13 explicit completed delta stream succeeds (0.529792ms)
+✔ migration 14 plain text is not silently considered completed (0.684125ms)
+✔ migration 15 markdown/JSON-looking text stays literal model text (0.342125ms)
+✔ migration 16 lifecycle without explicit completion is incomplete (0.298958ms)
+✔ migration 17 only actual output-text deltas are emitted (0.330791ms)
+✔ migration 18 explicit remote failure is safe and not success (0.329792ms)
+✔ migration 19 terminal output_text field alone does not fabricate delta output (0.277583ms)
+✔ migration 20 split multibyte SSE frames reconstruct actual content (1.455708ms)
+✔ migration 21 empty explicit completion remains empty (0.883ms)
+✖ migration 22 error envelope preserves only allowlisted safe classification (3.097042ms)
+✔ migration 23 no remote error means no synthetic error on success (0.605291ms)
+✔ migration 24 arbitrary remote message/code never enter errors (0.392167ms)
+✔ migration 25 missing auth path never triggers discovery/CLI (5.011958ms)
+✔ migration 26 synthetic regular file read is bounded and readonly (12.898125ms)
+✔ migration 27 local status reports only local checks, not connection (0.193542ms)
+✔ migration 28 malformed/oversize/unsupported auth fails without alternate storage (0.444458ms)
+✔ migration 29 unavailable reader returns safe local status (0.356292ms)
+✔ migration 30 expired login requires external re-login, no refresh (0.237625ms)
+✔ migration 31 first-visible/total deadlines cannot acquire extra retry time (16.854042ms)
+✔ migration 32 pre-aborted request has zero reads and sends (0.55775ms)
+✔ migration 33 in-flight abort cancels reader and ignores late text (15.476125ms)
+✔ migration 34 stream preabort likewise cannot read credentials (2.002041ms)
+✔ migration 35 consumer close releases body without a late event (7.54325ms)
+✔ 401 recovery: changed (1.15175ms)
+✔ 401 recovery: unchanged (0.287208ms)
+✔ 401 recovery: account-changed (0.397666ms)
+✔ 401 recovery: expired (0.31275ms)
+✔ 401 recovery: revoked (0.253416ms)
+✔ second 401 cannot cause a third physical send/read (1.242584ms)
+✔ shared budget already consumed by first target permits no source recovery send (1.250542ms)
+✔ partial output prohibits replay even on transient network interruption (0.700917ms)
+✔ network classification preserves safe transient code but no raw secret/cause (0.319292ms)
+✔ 503 unsupported_image is terminal without backup (0.240833ms)
+✔ explicit model_not_found can switch backup; generic 404 cannot (1.955125ms)
+✔ Retry-After exceeding shared remaining time terminates with one send (0.397708ms)
+✔ redirect response cannot leak token into another endpoint (0.245125ms)
+✔ post-fetch live gate failure releases response body (0.231208ms)
+✔ symlink and oversized file fail closed (12.2485ms)
+✔ account claim mismatch and unknown expiry are not locally accepted (0.217959ms)
+✔ refusal and incomplete responses remain terminal non-success without extra send (0.415375ms)
+✔ known application HTTP/WS/SDK construction sites match the outbound inventory; additions require registration (1340.244417ms)
+✖ fixed endpoint origins in transport modules match the documented provider inventory (59.930083ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:26488) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (12.725958ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (1433.481042ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (1.189375ms)
+✔ Codex login source (generate) refuses auth reads and sends when transcript scope is denied (37.192583ms)
+✔ Codex login source (stream) refuses auth reads and sends when transcript scope is denied (2.694ms)
+✔ groq constructor: SDK cannot resend after scope revocation (15.861334ms)
+✔ openai constructor: SDK cannot resend after scope revocation (5.461791ms)
+✔ claude constructor: SDK cannot resend after scope revocation (4.024084ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (2.488042ms)
+✔ groq key update: SDK cannot resend after scope revocation (4.256334ms)
+✔ openai key update: SDK cannot resend after scope revocation (1.367208ms)
+✔ claude key update: SDK cannot resend after scope revocation (1.125375ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (1.041833ms)
+✔ vision denial is terminal without another send (0.516958ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (2.367375ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (1.086958ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.385541ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (37.40775ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (12.220375ms)
+✔ default chat routing refuses transcript denial but can omit denied history (1.367292ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (1.001875ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.408875ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.397416ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.598209ms)
+✔ fixed Pro: scope refusal stays terminal with an explicit backup (0.624584ms)
+✔ fixed Flash: scope refusal stays terminal with an explicit backup (0.378958ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.339416ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.367667ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (1.831667ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (1.034375ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (1.43ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.876625ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.388375ms)
+✔ generateWithPro refuses transcript denial at the actual send boundary (0.363042ms)
+✔ generateWithFlash refuses transcript denial at the actual send boundary (1.330125ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.9815ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (1.34425ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (0.690041ms)
+✔ the meeting chat context carries the scopes of what it contains (2.313167ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.281458ms)
+✔ meeting summaries stop the explicit backup when a scope is turned off after the first send (2.518541ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (15.428209ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.853834ms)
+✔ AG34 enabling requires current explicit confirmation, not legacy enabled (113.305166ms)
+✔ AG34 failed confirmation save publishes no consent and restart stays disabled (47.172583ms)
+✔ AG34 legacy writer counterexample: failed disk save must not publish enabled (12.334458ms)
+ℹ tests 213
+ℹ suites 0
+ℹ pass 184
+ℹ fail 29
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4146.894875
+
+✖ failing tests:
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:40:1
+✖ generation policy persists independent deadlines and rejects invalid or identical targets without mutation (198.979542ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:61:1
+✖ generation policy failed atomic save keeps old memory and disk deadlines (29.926208ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:122:1
+✖ AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes (30.353417ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects unavailable without losing memory or the old ciphertext (21.57325ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects encrypt without losing memory or the old ciphertext (22.731708ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects write without losing memory or the old ciphertext (22.277875ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects rename without losing memory or the old ciphertext (24.586042ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects decrypt without losing memory or the old ciphertext (20.548375ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects parse without losing memory or the old ciphertext (23.493375ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects read without losing memory or the old ciphertext (18.375333ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:141:3
+✖ credential transaction rejects load-unavailable without losing memory or the old ciphertext (18.488375ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:163:1
+✖ unreadable credentials are offered for discard only after a decrypt or parse failure (20.43625ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:196:1
+✖ a failed backup during discard keeps the unreadable file and the save block (16.3065ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:209:1
+✖ all 24 setters commit only after persistence and can be read after restart (15.698333ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:241:1
+✖ an exclusive-create collision never deletes the pre-existing temporary file (31.859167ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:254:1
+✖ legacy plaintext is removed without being read or used as credentials (26.925667ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:267:1
+✖ a warm instance clears old memory and stays locked until a successful reload (15.686ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:316:1
+✖ AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart (15.414542ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:351:1
+✖ legacy default and raw switch input reach model UI as the canonical runtime selection (23.512959ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:371:1
+✖ AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back (17.061334ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:423:1
+✖ AG24: invalid region or STT endpoint never changes credentials (22.221292ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:433:1
+✖ AG24: invalid configuration crosses real manager and IPC with no save or runtime change (20.248209ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:451:1
+✖ Google selection rejects invalid JSON/type/read before persistence or runtime; safe snapshot crosses a successful save (22.286125ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:487:1
+✖ Google settings do not advertise an invalid saved path as usable (22.19375ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:526:1
+✖ all saving IPC handlers return storage failure before runtime, events or window side effects (465.15075ms)
+  AssertionError [ERR_ASSERTION]: set-default-model
+  + actual - expected
+  
+  + [
+  +   'runtime',
+  +   'runtime',
+  +   'runtime'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:544:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'runtime', 'runtime', 'runtime' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:765:1
+✖ storage failures cross the real manager, IPC, preload and renderer without committing live state (15.335334ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/margin/__tests__/credentialTransactions.test.mjs:796:1
+✖ a decrypt failure reaches settings, and only a confirmed discard crosses IPC and preload (14.948459ms)
+  node:internal/modules/cjs/loader:1478
+    throw err;
+    ^
+  
+  Error: Cannot find module '../../src/types/codexSource'
+  Require stack:
+  - <repo>/electron/margin/__tests__/credentialTransactions.test.mjs
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1475:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1048:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1072:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1093:12)
+      at Module._load (node:internal/modules/cjs/loader:1261:25)
+      at Module.guardedLoad [as _load] (<repo>/scripts/margin/isolation/guard.cjs:241:24)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1575:12)
+      at require (node:internal/modules/helpers:191:16)
+      at require (file://<repo>/electron/margin/__tests__/credentialTransactions.test.mjs:112:16) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ '<repo>/electron/margin/__tests__/credentialTransactions.test.mjs' ]
+  }
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:60:1
+✖ migration 22 error envelope preserves only allowlisted safe classification (3.097042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/CodexAuthSource.test.mjs:60:363)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/OutboundInventory.test.mjs:50:1
+✖ fixed endpoint origins in transport modules match the documented provider inventory (59.930083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      'https://api.anthropic.com',
+      'https://api.deepseek.com',
+      'https://api.elevenlabs.io',
+      'https://api.groq.com',
+  ...
+      'https://generativelanguage.googleapis.com',
+  +   'https://synthetic',
+      'wss://api.deepgram.com',
+      'wss://api.elevenlabs.io',
+      'wss://api.openai.com',
+      'wss://stt-rt.soniox.com'
+    ]
+  
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/OutboundInventory.test.mjs:61:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.elevenlabs.io', 'https://api.groq.com', 'https://api.openai.com', 'https://chatgpt.com', 'https://generativelanguage.googleapis.com', 'https://synthetic', 'wss://api.deepgram.com', 'wss://api.elevenlabs.io', 'wss://api.openai.com', 'wss://stt-rt.soniox.com' ],
+    expected: [ 'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.elevenlabs.io', 'https://api.groq.com', 'https://api.openai.com', 'https://chatgpt.com', 'https://generativelanguage.googleapis.com', 'wss://api.deepgram.com', 'wss://api.elevenlabs.io', 'wss://api.openai.com', 'wss://stt-rt.soniox.com' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

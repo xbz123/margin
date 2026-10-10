@@ -1,0 +1,11 @@
+✔ AG34 enabling requires current explicit confirmation, not legacy enabled (58.33825ms)
+✔ AG34 failed confirmation save publishes no consent and restart stays disabled (24.391792ms)
+✔ AG34 legacy writer counterexample: failed disk save must not publish enabled (10.949958ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 299.157208

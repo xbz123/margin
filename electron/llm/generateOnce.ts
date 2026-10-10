@@ -4,6 +4,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type Groq from 'groq-sdk';
 import { rethrowProviderScopeError } from './ProviderRouter';
 import type { GenerateEvent, GenerateRequest } from './generateContract';
+import { parseResponsesEvents } from './responsesEvents';
 
 export interface GenerateAccess {
   client: GoogleGenAI | OpenAI | Anthropic | Groq;
@@ -135,6 +136,9 @@ export async function* generateOnce(request: GenerateRequest, access: GenerateAc
       : request.protocol === 'responses' ? await client.responses.create(args, { signal, maxRetries: 0 })
       : await client.messages.create(args, { signal, maxRetries: 0 });
     if (signal.aborted) { yield { type: 'finish', status: 'cancelled' }; return; }
+    if (request.protocol === 'responses' && request.stream) {
+      yield* parseResponsesEvents(response, signal, access.response); return;
+    }
     if (request.stream || request.protocol === 'messages') iterator = response[Symbol.asyncIterator]?.() ?? response[Symbol.iterator]();
     else access.response?.(response);
     for (;;) {
@@ -159,19 +163,6 @@ export async function* generateOnce(request: GenerateRequest, access: GenerateAc
           failure = chunk.error;
           usage = chunk.usage;
           if (chunk.status === 'incomplete') reason = chunk.incomplete_details?.reason ?? 'incomplete';
-        } else {
-          if (chunk.type === 'response.output_text.delta') delta = chunk.delta;
-          refused ||= chunk.type === 'response.refusal.delta' || chunk.type === 'response.refusal.done';
-          if (['response.completed', 'response.incomplete', 'response.failed'].includes(chunk.type)) {
-            terminal = true;
-            reason = chunk.type.slice('response.'.length);
-            usage = chunk.response?.usage;
-            failure = chunk.response?.error;
-            refused ||= chunk.response?.output?.some((item: any) => item.content?.some((part: any) => part.type === 'refusal')) ?? false;
-            if (reason === 'incomplete') reason = chunk.response?.incomplete_details?.reason ?? 'incomplete';
-            access.response?.(chunk.response);
-          }
-          if (chunk.type === 'error') { terminal = true; failure = new Error(chunk.message ?? 'Responses stream failed'); reason = 'failed'; }
         }
       } else {
         if (chunk.type === 'message_start') usage = chunk.message?.usage;

@@ -1,5 +1,6 @@
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from '../src/types/llmTarget';
 import type { GenerationPolicy } from '../src/types/generationPolicy';
+import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
@@ -319,48 +320,9 @@ interface ElectronAPI {
   // Groq Fast Text Mode
   getGroqFastTextMode: () => Promise<{ enabled: boolean }>;
   setGroqFastTextMode: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  getCodexCliConfig: () => Promise<{
-    enabled: boolean;
-    path: string;
-    model: string;
-    fastModel: string;
-    timeoutMs: number;
-  }>;
-  setCodexCliConfig: (config: {
-    enabled: boolean;
-    path: string;
-    model: string;
-    fastModel: string;
-    timeoutMs: number;
-  }) => Promise<{
-    success: boolean;
-    error?: string;
-    config?: {
-      enabled: boolean;
-      path: string;
-      model: string;
-      fastModel: string;
-      timeoutMs: number;
-    };
-  }>;
-  testCodexCli: (config?: {
-    enabled?: boolean;
-    path?: string;
-    model?: string;
-    fastModel?: string;
-    timeoutMs?: number;
-  }) => Promise<{
-    success: boolean;
-    error?: string;
-    resolvedPath?: string;
-    config?: {
-      enabled: boolean;
-      path: string;
-      model: string;
-      fastModel: string;
-      timeoutMs: number;
-    };
-  }>;
+  getCodexCliConfig: () => Promise<CodexSourceConfig>;
+  setCodexCliConfig: (config: CodexSourceUpdate) => Promise<{ success: boolean; error?: string; config?: CodexSourceConfig }>;
+  testCodexCli: () => Promise<CodexSourceStatus>;
 
   // Demo
   seedDemo: () => Promise<{ success: boolean }>;
@@ -1289,20 +1251,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGroqFastTextMode: () => ipcRenderer.invoke('get-groq-fast-text-mode'),
   setGroqFastTextMode: (enabled: boolean) => ipcRenderer.invoke('set-groq-fast-text-mode', enabled),
   getCodexCliConfig: () => ipcRenderer.invoke('get-codex-cli-config'),
-  setCodexCliConfig: (config: {
-    enabled: boolean;
-    path: string;
-    model: string;
-    fastModel: string;
-    timeoutMs: number;
-  }) => ipcRenderer.invoke('set-codex-cli-config', config),
-  testCodexCli: (config?: {
-    enabled?: boolean;
-    path?: string;
-    model?: string;
-    fastModel?: string;
-    timeoutMs?: number;
-  }) => ipcRenderer.invoke('test-codex-cli', config),
+  setCodexCliConfig: (config: CodexSourceUpdate) => ipcRenderer.invoke('set-codex-cli-config', config),
+  testCodexCli: () => ipcRenderer.invoke('test-codex-cli'),
 
   // Demo
   seedDemo: () => ipcRenderer.invoke('seed-demo'),

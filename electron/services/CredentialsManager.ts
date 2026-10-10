@@ -13,6 +13,7 @@ import { GoogleServiceAccount, loadGoogleServiceAccount, validateGoogleServiceAc
 import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
 import { validateProviderConfiguration, resolveModelTarget } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
+import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
@@ -192,15 +193,29 @@ export class CredentialsManager {
     public getGenerationPolicy(): GenerationPolicy {
         const policy = validateGenerationPolicy(this.credentials.generationPolicy ?? DEFAULT_GENERATION_POLICY);
         if (policy.backupImageSupportConfirmedFor) {
+            if (policy.backupModel && isCodexSelection(policy.backupModel)) {
+                if (policy.backupModel.startsWith('codex-cli:') && policy.backupImageSupportConfirmedFor !== codexImageTarget(validateCodexModel(policy.backupModel.slice(10)))) delete policy.backupImageSupportConfirmedFor;
+                return policy;
+            }
             const backup = policy.backupModel ? resolveModelTarget(policy.backupModel, this.getProviderConfigurations()) : undefined;
             if (!backup || !validateProviderConfiguration({ ...backup, imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }).imageSupportConfirmedFor) delete policy.backupImageSupportConfirmedFor;
         }
         return policy;
     }
 
-    public setGenerationPolicy(value: GenerationPolicy): CredentialSaveResult {
+    private generationSelectionId(selection: string, config: CodexSourceConfig, fast = false): string {
+        return isCodexSelection(selection) ? `codex-cli:${fast ? config.fastModel : selection.startsWith('codex-cli:') ? validateCodexModel(selection.slice(10)) : config.model}`
+            : modelTargetId(resolveModelTarget(selection, this.getProviderConfigurations()));
+    }
+
+    public setGenerationPolicy(value: GenerationPolicy, codexConfig = DEFAULT_CODEX_SOURCE_CONFIG, fast = false): CredentialSaveResult {
         const policy = validateGenerationPolicy(value);
         if (policy.backupModel) {
+            if (isCodexSelection(policy.backupModel)) {
+                if (policy.backupModel.startsWith('codex-cli:')) validateCodexModel(policy.backupModel.slice(10));
+                if (this.generationSelectionId(policy.backupModel, codexConfig) === this.generationSelectionId(this.getDefaultModel(), codexConfig, fast && isCodexSelection(this.getDefaultModel()))) throw new Error('Primary and backup model must differ.');
+                return this.saveCredentials({ generationPolicy: policy });
+            }
             const backup = resolveModelTarget(policy.backupModel, this.getProviderConfigurations());
             if (!this.getDefaultModel().startsWith('codex-cli') && modelTargetId(backup) === modelTargetId(resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations()))) throw new Error('Primary and backup model must differ.');
         }
@@ -217,13 +232,13 @@ export class CredentialsManager {
         }
         const nextConfigurations = { ...this.getProviderConfigurations(), [config.provider]: config };
         const generationPolicy = this.getGenerationPolicy();
-        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel) {
+        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel && !isCodexSelection(generationPolicy.backupModel)) {
             const backupTarget = resolveModelTarget(generationPolicy.backupModel, nextConfigurations);
             if (!validateProviderConfiguration({ ...backupTarget, imageSupportConfirmedFor: generationPolicy.backupImageSupportConfirmedFor }).imageSupportConfirmedFor) delete generationPolicy.backupImageSupportConfirmedFor;
         }
         const nextDefault = defaultModel ?? this.getDefaultModel();
         const backup = this.getGenerationPolicy().backupModel;
-        if (backup && !nextDefault.startsWith('codex-cli')
+        if (backup && !isCodexSelection(backup) && !nextDefault.startsWith('codex-cli')
             && modelTargetId(resolveModelTarget(nextDefault, nextConfigurations)) === modelTargetId(resolveModelTarget(backup, nextConfigurations))) {
             throw new Error('Primary and backup model must differ. Change the backup first.');
         }
@@ -249,9 +264,7 @@ export class CredentialsManager {
         if (this.credentials.claudeApiKey) return true;          // Claude vision
         if (this.credentials.geminiApiKey) return true;          // Gemini vision
         if (this.credentials.groqApiKey) return true;            // Groq llama-4-scout vision
-        // Codex CLI is counted as configured; its vision capability is verified by ProviderRouter.
-        const codexCliPath = (this.credentials as any).codexCliPath as string | undefined;
-        return !!(codexCliPath && codexCliPath.trim().length > 0);
+        return false; // An external login file is neither an API credential nor proof of vision support.
     }
 
     // =========================================================================
@@ -346,11 +359,12 @@ export class CredentialsManager {
     public setAiResponseLanguage(language: string): CredentialSaveResult {
         return this.saveCredentials({ aiResponseLanguage: language });
     }
-    public setDefaultModel(model: string): CredentialSaveResult {
-        if (!model.startsWith('codex-cli')) {
+    public setDefaultModel(model: string, codexConfig = DEFAULT_CODEX_SOURCE_CONFIG, fast = false): CredentialSaveResult {
+        const backup = this.getGenerationPolicy().backupModel;
+        if (backup && this.generationSelectionId(backup, codexConfig) === this.generationSelectionId(model, codexConfig, fast && isCodexSelection(model))) throw new Error('Primary and backup model must differ. Change the backup first.');
+        if (isCodexSelection(model) && model.startsWith('codex-cli:')) validateCodexModel(model.slice(10));
+        if (!isCodexSelection(model)) {
             const target = resolveModelTarget(model, this.getProviderConfigurations());
-            const backup = this.getGenerationPolicy().backupModel;
-            if (backup && modelTargetId(target) === modelTargetId(resolveModelTarget(backup, this.getProviderConfigurations()))) throw new Error('Primary and backup model must differ. Change the backup first.');
         }
         return this.saveCredentials({ defaultModel: model });
     }

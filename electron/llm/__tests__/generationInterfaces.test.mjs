@@ -29,6 +29,76 @@ const target = (model = 'gemini-a') => ({ provider: 'gemini', protocol: 'gemini'
   imageSupportConfirmedFor: JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', model]) });
 const policy = backupModel => ({ backupModel, ...(backupModel ? { backupImageSupportConfirmedFor: target(decodeURIComponent(backupModel.split(':').at(-1))).imageSupportConfirmedFor } : {}), interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 });
 const selector = model => `llm-target:gemini:gemini:${model}`;
+const { CodexAuthSource } = require('../../../dist-electron/electron/services/CodexAuthSource.js');
+const codexBinding = model => JSON.stringify(['codex', 'responses', 'https://chatgpt.com/backend-api/codex/responses', model]);
+function codexHelper(options = {}) {
+  const { self, scopes, requests } = helper(options.apiSend, options.scopes ?? {}), reads = [], sends = [];
+  const auth = nonce => JSON.stringify({ tokens: { account_id: 'synthetic-account', access_token: `e30.${Buffer.from(JSON.stringify({ exp: 4_000_000_000, nonce })).toString('base64url')}.synthetic` } });
+  self.setCodexCliConfig({ enabled: true, riskConfirmedVersion: 1, model: 'gpt-5.4', fastModel: 'fast', serviceTier: 'default',
+    ...(options.images ? { imageSupportConfirmedFor: codexBinding('gpt-5.4'), fastImageSupportConfirmedFor: codexBinding('fast') } : {}) });
+  self.codexAuthSource = new CodexAuthSource(async () => { reads.push(1); return options.read ? options.read(auth, reads.length) : auth('same'); }, async (url, init) => {
+    sends.push({ url, init }); return options.send?.(sends.length, init) ?? new Response('data: {"type":"response.output_text.delta","delta":"codex answer"}\n\ndata: {"type":"response.completed"}\n\n', { headers: { 'content-type': 'text/event-stream' } });
+  });
+  if (!options.apiPrimary) self.setModel('codex-cli');
+  return { self, scopes, requests, reads, sends };
+}
+
+test('AG34 source snapshot has no API client/base URL and refuses unconfirmed backend images before auth read', async () => {
+  const r = codexHelper(); r.self.openaiClient = { apiKey: 'API_CANARY' };
+  const task = r.self.beginGenerationTask('written');
+  assert.equal(task.primary.kind, 'codex'); assert.equal(task.primary.target.provider, 'codex-cli'); assert.equal('client' in task.primary, false); assert.equal('baseUrl' in task.primary.target, false); task.close();
+  await assert.rejects(() => collect(r.self.streamChat('QUESTION', ['image'])), /unconfirmed.*Codex/i);
+  assert.equal(r.reads.length, 0); assert.equal(r.sends.length, 0);
+});
+for (const state of ['denied', 'revoked-during-read', 'allowed']) test(`AG34 preparedContents inline image screenshots scope: ${state}`, async () => {
+  let r; r = codexHelper({ images: true, scopes: state === 'denied' ? { screenshots: false } : {}, read: async auth => { if (state === 'revoked-during-read') r.scopes.screenshots = false; return auth('same'); } });
+  const generate = () => collect(r.self.selectedGeneration('QUESTION', undefined, 'SYSTEM', true, 'chat', undefined, [{ text: 'QUESTION' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }]));
+  if (state === 'allowed') { assert.equal(await generate(), 'codex answer'); assert.equal(r.sends.length, 1); }
+  else { await assert.rejects(generate, { name: 'ProviderScopeError' }); assert.equal(r.sends.length, 0); assert.equal(r.reads.length, state === 'denied' ? 0 : 1); }
+});
+test('AG34 Codex backup image confirmation cannot inherit primary confirmation', async () => {
+  const r = codexHelper({ apiPrimary: true, images: true, apiSend: () => { throw { status: 503 }; } });
+  r.self.setGenerationPolicy({ ...r.self.getGenerationPolicy(), backupModel: 'codex-cli:gpt-5.4' });
+  await assert.rejects(() => collect(r.self.streamChat('QUESTION', ['image'])), /unconfirmed.*Codex/i);
+  assert.equal(r.requests.length, 1); assert.equal(r.reads.length, 0); assert.equal(r.sends.length, 0);
+  r.self.setGenerationPolicy({ ...r.self.getGenerationPolicy(), backupImageSupportConfirmedFor: codexBinding('gpt-5.4') });
+  assert.equal(await collect(r.self.streamChat('QUESTION', ['image'])), 'codex answer');
+  assert.equal(r.sends.length, 1);
+});
+test('AG34 changing main/fast model invalidates only matching image bindings', () => {
+  const r = codexHelper({ images: true }); const previous = r.self.getCodexCliConfig();
+  r.self.setCodexCliConfig({ ...previous, model: 'changed' });
+  assert.equal(r.self.getCodexCliConfig().imageSupportConfirmedFor, undefined); assert.equal(r.self.getCodexCliConfig().fastImageSupportConfirmedFor, codexBinding('fast'));
+});
+test('AG34 equal normal/fast models still require their independent image confirmations', async () => {
+  const r = codexHelper();
+  r.self.setCodexCliConfig({ ...r.self.getCodexCliConfig(), fastModel: 'gpt-5.4', imageSupportConfirmedFor: codexBinding('gpt-5.4') });
+  assert.equal(await collect(r.self.streamChat('QUESTION', ['image'])), 'codex answer');
+  assert.equal(r.reads.length, 1); assert.equal(r.sends.length, 1);
+  r.self.setGroqFastTextMode(true);
+  await assert.rejects(() => collect(r.self.streamChat('QUESTION', ['image'])), /unconfirmed.*Codex/i);
+  assert.equal(r.reads.length, 1); assert.equal(r.sends.length, 1);
+});
+test('AG34 external same-account changed token recovers once within the real LLMHelper task', async () => {
+  const r = codexHelper({ read: (auth, n) => auth(String(n)), send: n => n === 1 ? new Response('{}', { status: 401 }) : undefined });
+  assert.equal(await collect(r.self.streamChat('QUESTION')), 'codex answer'); assert.equal(r.sends.length, 2); assert.equal(r.reads.length, 2);
+});
+for (const change of ['consent', 'model', 'fast', 'policy']) test(`AG34 ${change} change cancels auth-waiting task without late send`, async () => {
+  const wait = deferred(), started = deferred();
+  const r = codexHelper({ read: async auth => { started.resolve(); await wait.promise; return auth('same'); } });
+  const result = collect(r.self.streamChat('QUESTION')); await started.promise;
+  if (change === 'consent') r.self.setCodexCliConfig({ ...r.self.getCodexCliConfig(), enabled: false, riskConfirmedVersion: undefined });
+  if (change === 'model') r.self.setModel('codex-cli:changed');
+  if (change === 'fast') r.self.setGroqFastTextMode(true);
+  if (change === 'policy') r.self.setGenerationPolicy({ ...r.self.getGenerationPolicy(), interviewTotalSeconds: 75 });
+  await assert.rejects(result, { name: 'AbortError' }); wait.resolve(); await new Promise(resolve => setTimeout(resolve, 5)); assert.equal(r.sends.length, 0);
+});
+test('AG34 source getters/selectors and disabled/unconfirmed requests never read auth', async () => {
+  const r = codexHelper(); r.self.setCodexCliConfig({ ...r.self.getCodexCliConfig(), enabled: false, riskConfirmedVersion: undefined });
+  r.self.getCodexCliConfig(); r.self.setModel('codex-cli:gpt-5.4');
+  await assert.rejects(() => r.self.chatWithGemini('QUESTION'), /disabled/); assert.equal(r.reads.length, 0); assert.equal(r.sends.length, 0);
+  r.self.setCodexCliConfig({ ...r.self.getCodexCliConfig(), enabled: true }); await assert.rejects(() => r.self.chatWithGemini('QUESTION'), /Confirm/); assert.equal(r.reads.length, 0);
+});
 const expired = () => Object.assign(Error('structured cache error'), { status: 404, error: { details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'CACHED_CONTENT_EXPIRED' }] } });
 
 test('AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it', () => {
@@ -390,7 +460,7 @@ test('backup updates and selected provider reconfiguration reject identical targ
 });
 
 test('explicit Codex selector clears stale API selection and snapshots its configured fast model', () => {
-  const { self } = helper(); self.codexCliConfig = { enabled: true, model: 'ordinary', fastModel: 'fast', path: 'synthetic-not-executed' }; self.groqFastTextMode = true;
+  const { self } = helper(); self.codexCliConfig = { enabled: true, riskConfirmedVersion: 1, model: 'ordinary', fastModel: 'fast', serviceTier: 'default' }; self.groqFastTextMode = true;
   self.setModel('codex-cli'); assert.equal(self.selectedTarget, undefined);
   const task = self.beginGenerationTask();
   try { assert.equal(self.getTaskMetadata(task).provider, 'codex-cli'); assert.equal(task.primary.target.model, 'fast'); }

@@ -17,6 +17,8 @@ const registered = {
   'electron/audio/RestSTT.ts': { 'axios.post': 2 },
   'electron/ipcHandlers.ts': { 'new WebSocket': 2, 'axios.get': 1, 'axios.post': 3 },
   'electron/services/ModelVersionManager.ts': { fetch: 4 },
+  'electron/services/CodexAuthSource.ts': { createOutboundFetch: 1 },
+  'electron/services/outbound.ts': { createOutboundFetch: 2 },
   'electron/utils/modelFetcher.ts': { 'axios.get': 6 },
 };
 
@@ -36,7 +38,7 @@ test('known application HTTP/WS/SDK construction sites match the outbound invent
     function visit(node) {
       let entry;
       if (ts.isNewExpression(node) && /^(?:Groq|OpenAI|Anthropic|GoogleGenAI|SpeechClient|WebSocket|XMLHttpRequest)$/.test(node.expression.getText(ast))) entry = `new ${node.expression.getText(ast)}`;
-      if (ts.isCallExpression(node) && /^(?:(?:globalThis\.)?fetch|createClient|(?:axios|outboundAxios|http|https|net|tls)\.(?:get|post|put|patch|delete|request|connect))$/.test(node.expression.getText(ast))) entry = node.expression.getText(ast);
+      if (ts.isCallExpression(node) && /^(?:(?:globalThis\.)?fetch|outboundFetch|createOutboundFetch|createClient|(?:axios|outboundAxios|http|https|net|tls)\.(?:get|post|put|patch|delete|request|connect))$/.test(node.expression.getText(ast))) entry = node.expression.getText(ast);
       if (entry) { found[relative] ??= {}; found[relative][entry] = (found[relative][entry] ?? 0) + 1; }
       ts.forEachChild(node, visit);
     }
@@ -47,18 +49,23 @@ test('known application HTTP/WS/SDK construction sites match the outbound invent
 
 test('fixed endpoint origins in transport modules match the documented provider inventory', () => {
   const origins = new Set();
-  for (const file of [...Object.keys(registered), 'electron/llm/llmTarget.ts']) {
+  const dynamicAuthorities = [];
+  for (const file of [...Object.keys(registered), 'electron/llm/llmTarget.ts', 'src/types/codexSource.ts']) {
     const ast = ts.createSourceFile(file, fs.readFileSync(path.join(REPO, file), 'utf8'), ts.ScriptTarget.Latest, true);
     function visit(node) {
       if (ts.isStringLiteralLike(node) && /^(?:https?|wss?):\/\//.test(node.text)) origins.add(new URL(node.text).origin);
-      if (ts.isTemplateExpression(node) && /^(?:https?|wss?):\/\//.test(node.head.text)) origins.add(new URL(node.head.text + 'synthetic').origin);
+      if (ts.isTemplateExpression(node) && /^(?:https?|wss?):\/\//.test(node.head.text)) {
+        if (/^(?:https?|wss?):\/\/$/.test(node.head.text)) dynamicAuthorities.push(`${file}:${node.getText(ast)}`);
+        else origins.add(new URL(node.head.text + 'synthetic').origin);
+      }
       ts.forEachChild(node, visit);
     }
     visit(ast);
   }
+  assert.deepEqual(dynamicAuthorities, ['electron/services/outbound.ts:`https://${hostname}`'], 'Only the existing validated regional-STT authority builder is dynamic.');
   assert.deepEqual([...origins].sort(), [
     'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.elevenlabs.io', 'https://api.groq.com', 'https://api.openai.com',
-    'https://generativelanguage.googleapis.com', 'wss://api.deepgram.com', 'wss://api.elevenlabs.io', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
+    'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.deepgram.com', 'wss://api.elevenlabs.io', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
   ].sort());
   const google = fs.readFileSync(path.join(REPO, 'electron/audio/GoogleSTT.ts'), 'utf8');
   assert.equal(google.includes('keyFilename:'), false, 'Google cannot reintroduce unvalidated JSON/ADC authentication');

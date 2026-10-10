@@ -1,0 +1,37 @@
+(node:28304) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✘ [ERROR] No matching export in "src/components/settings/AIProvidersSettings.tsx" for import "default"
+
+    <stdin>:3:11:
+      3 │     import Settings from './src/components/settings/AIProvidersSett...
+        ╵            ~~~~~~~~
+
+✖ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (666.705416ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1231.570834
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:15:1
+✖ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (666.705416ms)
+  Error: Build failed with 1 error:
+  <stdin>:3:11: ERROR: No matching export in "src/components/settings/AIProvidersSettings.tsx" for import "default"
+      at failureErrorWithLog (<repo>/node_modules/esbuild/lib/main.js:1472:15)
+      at <repo>/node_modules/esbuild/lib/main.js:945:25
+      at <repo>/node_modules/esbuild/lib/main.js:897:52
+      at buildResponseToResult (<repo>/node_modules/esbuild/lib/main.js:943:7)
+      at <repo>/node_modules/esbuild/lib/main.js:970:16
+      at responseCallbacks.<computed> (<repo>/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (<repo>/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (<repo>/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:509:20)
+      at addChunk (node:internal/streams/readable:564:12) {
+    errors: [ { detail: undefined, id: '', location: [Object], notes: [], pluginName: '', text: 'No matching export in "src/components/settings/AIProvidersSettings.tsx" for import "default"' } ],
+    warnings: []
+  }

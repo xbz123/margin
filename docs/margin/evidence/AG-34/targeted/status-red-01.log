@@ -1,0 +1,28 @@
+✖ AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads (1967.713333ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2417.842334
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:87:1
+✖ AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads (1967.713333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  202 !== 101
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/outbound-renderer.test.mjs:154:121)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 202,
+    expected: 101,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

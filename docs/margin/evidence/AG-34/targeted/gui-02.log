@@ -1,0 +1,23 @@
+(node:28621) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✖ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (2670.372959ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3213.209208
+
+✖ failing tests:
+
+test at tests/margin/outbound-renderer.test.mjs:15:1
+✖ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (2670.372959ms)
+  Error: Process failed to launch!
+      at waitForLine (<repo>/node_modules/playwright-core/lib/coreBundle.js:42440:21)
+      at Electron.launch (<repo>/node_modules/playwright-core/lib/coreBundle.js:42633:36)
+      at async ElectronDispatcher.launch (<repo>/node_modules/playwright-core/lib/coreBundle.js:50945:37)
+      at async _ProgressController.run (<repo>/node_modules/playwright-core/lib/coreBundle.js:12974:27)
+      at async ElectronDispatcher._runCommand (<repo>/node_modules/playwright-core/lib/coreBundle.js:24019:18)
+      at async DispatcherConnection.dispatch (<repo>/node_modules/playwright-core/lib/coreBundle.js:24253:27)

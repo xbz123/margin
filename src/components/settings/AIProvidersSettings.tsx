@@ -7,6 +7,7 @@ import { ProviderCard } from './ProviderCard';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { DEFAULT_GENERATION_POLICY, type GenerationPolicy } from '../../types/generationPolicy';
 import { imageSupportTarget, knownModelImageSupport } from '../../types/modelImageSupport';
+import { CODEX_RISK_VERSION, DEFAULT_CODEX_SOURCE_CONFIG, codexImageTarget, codexSourceAvailable, type CodexSourceConfig, type CodexSourceUpdate } from '../../types/codexSource';
 
 const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
 const CODEX_MODEL_REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
@@ -135,15 +136,17 @@ export const AIProvidersSettings: React.FC = () => {
     const [credentialNotice, setCredentialNotice] = useState('');
 
     // --- Codex CLI ---
-    const [codexCliConfig, setCodexCliConfig] = useState({ enabled: false, path: 'codex', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', timeoutMs: 60000, sandboxMode: 'read-only' as string, serviceTier: 'default' as string | undefined, modelReasoningEffort: undefined as string | undefined });
+    const [codexCliConfig, setCodexCliConfig] = useState<CodexSourceConfig>({ ...DEFAULT_CODEX_SOURCE_CONFIG });
+    const [codexRiskAccepted, setCodexRiskAccepted] = useState(false);
     const [codexCliStatus, setCodexCliStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
     const [codexCliError, setCodexCliError] = useState('');
+    const codexOperation = React.useRef(0);
 
     // --- Default Model ---
     const [defaultModel, setDefaultModel] = useState<string>('gemini-3.1-flash-lite-preview');
     const [fastResponseMode, setFastResponseMode] = useState(false);
     const [credentialsLoaded, setCredentialsLoaded] = useState(false);
-    const canUseFastMode = !!(hasStoredKey.groq || codexCliConfig.enabled);
+    const canUseFastMode = !!(hasStoredKey.groq || codexSourceAvailable(codexCliConfig));
 
     // --- Dynamic Model Discovery ---
     const [preferredModels, setPreferredModels] = useState<Record<string, string>>({});
@@ -185,7 +188,7 @@ export const AIProvidersSettings: React.FC = () => {
                 // canUseFastMode will be correct when the enforcement effect runs.
                 // @ts-ignore
                 const cliConfig = await window.electronAPI?.getCodexCliConfig?.();
-                if (cliConfig) setCodexCliConfig(cliConfig as typeof codexCliConfig);
+                if (cliConfig) { setCodexCliConfig(cliConfig); setCodexRiskAccepted(codexSourceAvailable(cliConfig)); }
 
                 const fastMode = await window.electronAPI?.getGroqFastTextMode();
                 if (fastMode) setFastResponseMode(fastMode.enabled);
@@ -243,34 +246,36 @@ export const AIProvidersSettings: React.FC = () => {
         }
     }, []);
 
-    const saveCodexCliConfig = async (next = codexCliConfig) => {
-        const normalized = { ...next, timeoutMs: Number(next.timeoutMs) || 60000 };
-        setCodexCliConfig(normalized);
-        const result = await window.electronAPI?.setCodexCliConfig?.(normalized);
+    const saveCodexCliConfig = async (next: CodexSourceUpdate = codexCliConfig) => {
+        const operation = ++codexOperation.current;
+        const { riskConfirmedVersion: _ignored, ...update } = next as CodexSourceConfig & CodexSourceUpdate;
+        const result = await window.electronAPI?.setCodexCliConfig?.(update);
+        if (operation !== codexOperation.current) return result;
         if (result?.config) setCodexCliConfig(result.config as typeof codexCliConfig);
+        if (result?.config) setCodexRiskAccepted(codexSourceAvailable(result.config));
+        setCodexCliStatus(result?.success ? 'idle' : 'error');
+        setCodexCliError(result?.error ?? '');
+        if (!result?.success && !result?.config) { const saved = await window.electronAPI?.getCodexCliConfig?.(); if (saved) setCodexCliConfig(saved); }
         return result;
     };
 
     const handleTestCodexCli = async () => {
+        const operation = ++codexOperation.current;
         setCodexCliStatus('testing');
         setCodexCliError('');
         try {
-            const saveResult = await saveCodexCliConfig();
-            const configToTest = saveResult?.config || codexCliConfig;
-            const result = await window.electronAPI?.testCodexCli?.(configToTest);
+            const result = await window.electronAPI?.testCodexCli?.();
+            if (operation !== codexOperation.current) return;
             if (result?.success) {
-                // If the main process auto-detected an install, reflect the
-                // resolved path in the form so the user sees what got picked.
-                if (result.config) setCodexCliConfig(result.config as typeof codexCliConfig);
                 setCodexCliStatus('success');
-                setTimeout(() => setCodexCliStatus('idle'), 3000);
             } else {
                 setCodexCliStatus('error');
-                setCodexCliError(result?.error || 'Codex CLI test failed');
+                setCodexCliError(result?.message || 'Local file check failed');
             }
         } catch (e: any) {
+            if (operation !== codexOperation.current) return;
             setCodexCliStatus('error');
-            setCodexCliError(e.message || 'Codex CLI test failed');
+            setCodexCliError('Local file check failed. Service connectivity is unverified.');
         }
     };
 
@@ -382,6 +387,10 @@ export const AIProvidersSettings: React.FC = () => {
 
 
     const cloudModelOptions: ModelOption[] = [];
+    if (codexSourceAvailable(codexCliConfig)) {
+        cloudModelOptions.push({ id: 'codex-cli', name: 'Codex login source (configured model)' });
+        for (const model of new Set([codexCliConfig.model, codexCliConfig.fastModel])) cloudModelOptions.push({ id: codexCliSelectorId(model), name: `${model} (Codex login source, unverified availability)` });
+    }
     for (const [provider, config] of Object.entries(STANDARD_CLOUD_MODELS)) {
         if (!hasStoredKey[provider]) continue;
         const target = providerConfigurations[provider as LlmProvider];
@@ -410,6 +419,14 @@ export const AIProvidersSettings: React.FC = () => {
                 </label>)}
                 <p className="text-xs text-text-secondary">Background summaries and transcript compression: 180 seconds, with no first-token deadline.</p>
                 {(() => {
+                    if (generationPolicy.backupModel?.startsWith('codex-cli')) {
+                        const model = generationPolicy.backupModel.startsWith('codex-cli:') ? generationPolicy.backupModel.slice(10) : codexCliConfig.model;
+                        const binding = codexImageTarget(model);
+                        return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label="Backup model supports images"
+                            checked={generationPolicy.backupImageSupportConfirmedFor === binding}
+                            onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> Backup Codex model supports images
+                            <span className="block text-[10px]">Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.</span></label>;
+                    }
                     const match = /^llm-target:(gemini|groq|openai|claude|deepseek):(gemini|chat-completions|responses|messages):(.+)$/.exec(generationPolicy.backupModel ?? '');
                     if (!match) return null;
                     const config = { ...providerConfigurations[match[1] as LlmProvider], model: decodeURIComponent(match[3]) };
@@ -450,7 +467,7 @@ export const AIProvidersSettings: React.FC = () => {
                             const opts: { id: string; name: string }[] = [];
 
                             opts.push(...cloudModelOptions);
-                            if (codexCliConfig.enabled) {
+                            if (codexSourceAvailable(codexCliConfig)) {
                                 opts.push({ id: CODEX_CLI_MODEL.id, name: `${CODEX_CLI_MODEL.name} (${prettifyModelId(codexCliConfig.model)})` });
                                 CODEX_CLI_MODEL_PRESETS.forEach(model => {
                                     const id = codexCliSelectorId(model.id);
@@ -620,53 +637,43 @@ export const AIProvidersSettings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Codex CLI Provider: the CLI runs on this Mac, the model runs at OpenAI */}
+            {/* Existing CLI login file only; generation never invokes the CLI. */}
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Codex CLI</h3>
-                    <p className="text-xs text-text-secondary">Route text and screenshot responses through the Codex CLI signed in on this Mac. The CLI sends your prompts, transcript context and screenshots to OpenAI for processing.</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">Codex login source (file only)</h3>
+                    <p className="text-xs text-text-secondary">Reads an existing CLI login file without executing the CLI, refreshing or writing tokens. Keyring and ephemeral storage are unsupported; do not downgrade storage. Requests use a fixed third-party-unpromised ChatGPT backend, not the public API. No real-service verification has been performed.</p>
                 </div>
 
                 <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Enable Codex CLI</label>
-                            <p className="text-[10px] text-text-secondary">Adds Codex CLI as a selectable cloud backend and fallback.</p>
+                            <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Enable Codex login source</label>
+                            <p className="text-[10px] text-text-secondary">Selecting a model does not check or read the login file.</p>
                         </div>
                         <button
                             type="button"
                             onClick={async () => {
-                                const next = { ...codexCliConfig, enabled: !codexCliConfig.enabled };
+                                const next = { ...codexCliConfig, enabled: !codexCliConfig.enabled, ...(!codexCliConfig.enabled ? { acceptRisk: codexRiskAccepted } : {}) };
                                 await saveCodexCliConfig(next);
                             }}
+                            aria-label="Enable Codex login source"
+                            disabled={!codexCliConfig.enabled && !codexRiskAccepted}
                             className={`w-11 h-6 rounded-full relative transition-colors ${codexCliConfig.enabled ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
                         >
                             <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${codexCliConfig.enabled ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
                     </div>
 
+                    <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label="Accept Codex login-source risks" checked={codexRiskAccepted}
+                        onChange={async event => { setCodexRiskAccepted(event.target.checked); if (!event.target.checked && codexCliConfig.enabled) await saveCodexCliConfig({ enabled: false }); }} /> I explicitly accept risk version {CODEX_RISK_VERSION}. {codexCliConfig.riskConfirmedVersion === CODEX_RISK_VERSION ? 'Current version is saved; disabling withdraws consent.' : ''}</label>
+                    <ul className="list-disc pl-5 space-y-1 text-[10px] text-text-secondary">
+                        <li>OpenAI has not explicitly authorized this third-party use. The interface may change or fail; the account may be rate-limited, restricted or suspended. Your consent is not provider authorization.</li>
+                        <li>Requests consume plan quota and remain subject to your plan terms. Prompts, transcripts, screenshots and reference context go to the cloud under current data scopes; an invisible window does not prevent uploads.</li>
+                        <li>Credentials never enter ordinary settings or logs. Margin does not refresh or write them. Expired login requires external sign-in; a supported API-key source is the alternative.</li>
+                    </ul>
+                    <p className="text-[10px] text-text-secondary">Uses the shared Generation limits above. No server output-token cap is claimed. Model availability, service tier and reasoning settings are unverified; the backend may reject them. Rejected settings are never silently removed or rerouted.</p>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <label className="space-y-1">
-                            <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">Executable</span>
-                            <input
-                                value={codexCliConfig.path}
-                                onChange={e => setCodexCliConfig(prev => ({ ...prev, path: e.target.value }))}
-                                onBlur={() => saveCodexCliConfig()}
-                                className="w-full bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary font-mono focus:outline-none focus:border-accent-primary"
-                                placeholder="codex"
-                            />
-                        </label>
-                        <label className="space-y-1">
-                            <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">Timeout (ms)</span>
-                            <input
-                                type="number"
-                                value={codexCliConfig.timeoutMs}
-                                onChange={e => setCodexCliConfig(prev => ({ ...prev, timeoutMs: Number(e.target.value) }))}
-                                onBlur={() => saveCodexCliConfig()}
-                                className="w-full bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary font-mono focus:outline-none focus:border-accent-primary"
-                                min={1000}
-                            />
-                        </label>
                         <CodexCliModelField
                             label="Normal Model"
                             value={codexCliConfig.model}
@@ -684,6 +691,14 @@ export const AIProvidersSettings: React.FC = () => {
                             onSave={() => saveCodexCliConfig()}
                         />
                     </div>
+                    {(['model', 'fastModel'] as const).map((key, index) => {
+                        const confirmationKey = index ? 'fastImageSupportConfirmedFor' : 'imageSupportConfirmedFor';
+                        const binding = codexImageTarget(codexCliConfig[key]);
+                        return <label key={key} className="block text-xs text-text-secondary"><input type="checkbox" aria-label={`${index ? 'Fast' : 'Normal'} Codex model supports images`}
+                            checked={codexCliConfig[confirmationKey] === binding}
+                            onChange={event => saveCodexCliConfig({ ...codexCliConfig, [confirmationKey]: event.target.checked ? binding : undefined })} /> {index ? 'Fast' : 'Normal'} Codex model supports images
+                            <span className="block text-[10px]">Verify this exact backend/model yourself. API image support does not confirm Codex backend support.</span></label>;
+                    })}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <label className="space-y-1">
@@ -694,18 +709,18 @@ export const AIProvidersSettings: React.FC = () => {
                                 onChange={(serviceTier) => saveCodexCliConfig({ ...codexCliConfig, serviceTier: serviceTier as typeof CODEX_SERVICE_TIERS[number] })}
                                 placeholder="default"
                             />
-                            <p className="text-[9px] text-text-tertiary">Use faster service tier if available. Codex Cloud only.</p>
+                            <p className="text-[9px] text-text-tertiary">Unverified backend parameter; it may be rejected without silent removal.</p>
                         </label>
                         <label className="space-y-1">
                             <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">Reasoning Effort</span>
                             <ModelSelect
                                 value={codexCliConfig.modelReasoningEffort ?? ''}
                                 options={[
-                                    { id: '', name: 'None' },
+                                    { id: '', name: 'Default / Unspecified' },
                                     ...CODEX_MODEL_REASONING_EFFORTS.map(e => ({ id: e, name: e.charAt(0).toUpperCase() + e.slice(1) })),
                                 ]}
-                                onChange={(effort) => saveCodexCliConfig({ ...codexCliConfig, modelReasoningEffort: effort || undefined })}
-                                placeholder="None"
+                                onChange={(effort) => saveCodexCliConfig({ ...codexCliConfig, modelReasoningEffort: effort as CodexSourceConfig['modelReasoningEffort'] || undefined })}
+                                placeholder="Default / Unspecified"
                             />
                             <p className="text-[9px] text-text-tertiary">How much reasoning effort the model uses. Model-dependent.</p>
                         </label>
@@ -716,7 +731,7 @@ export const AIProvidersSettings: React.FC = () => {
                             {codexCliStatus === 'success' && (
                                 <div className="flex items-center gap-2 text-xs text-green-400">
                                     <CheckCircle size={14} />
-                                    <span>Codex CLI detected</span>
+                                    <span>Local file checks passed; service, models and entitlement unverified.</span>
                                 </div>
                             )}
                             {codexCliStatus === 'error' && (
@@ -729,13 +744,14 @@ export const AIProvidersSettings: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleTestCodexCli}
-                            disabled={codexCliStatus === 'testing'}
+                            disabled={codexCliStatus === 'testing' || !codexSourceAvailable(codexCliConfig)}
                             className="flex items-center gap-2 px-3 py-1.5 bg-bg-input hover:bg-bg-elevated border border-border-subtle rounded-lg text-xs font-medium text-text-primary transition-colors disabled:opacity-60"
                         >
                             {codexCliStatus === 'testing' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                            Test CLI
+                            Check saved local login file
                         </button>
                     </div>
+                    {codexCliStatus === 'error' && <button type="button" className="text-xs text-accent-primary" onClick={() => saveCodexCliConfig()}>Retry saving source settings</button>}
                 </div>
             </div>
 

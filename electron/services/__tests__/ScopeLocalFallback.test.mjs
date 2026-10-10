@@ -95,20 +95,16 @@ test('meeting summaries with a declared profile_history scope are not sent while
   assert.equal(current.requests.length, 1, 'the current meeting does not carry profile_history');
 });
 
-// Codex CLI is a cloud provider too (PLAN.md AG-17 review): both Codex entry points,
-// through which every Codex call goes, must refuse a denied scope before starting the
-// CLI. `spawn` is replaced for the duration of each call, so nothing is started: an
-// allowed call reaches the stub (proving the check sits in front of the send step).
-const SPAWN_STUB = 'spawn-stub-reached';
+// Both Codex entry points check scopes before reading the synthetic login or sending.
 
 async function codexWith(entry, policy) {
   const LLMHelper = loadBuiltLLMHelper();
-  const childProcess = createRequire(import.meta.url)('node:child_process');
-  const realSpawn = childProcess.spawn;
-  const spawned = [];
-  childProcess.spawn = (cmd, args) => { spawned.push(cmd); throw new Error(SPAWN_STUB); };
+  const { CodexAuthSource } = createRequire(import.meta.url)('../../../dist-electron/electron/services/CodexAuthSource.js');
+  const reads = [], spawned = [];
+  const token = `e30.${Buffer.from(JSON.stringify({ exp: Date.now() / 1000 + 3600 })).toString('base64url')}.synthetic`;
   const self = Object.assign(Object.create(LLMHelper.prototype), {
-    codexCliConfig: { enabled: true, path: '/margin-test/codex-not-installed', model: 'gpt-5.4', fastModel: 'gpt-5.3-codex', timeoutMs: 1_000, sandboxMode: 'read-only', serviceTier: 'default' },
+    codexCliConfig: { enabled: true, riskConfirmedVersion: 1, model: 'gpt-5.4', fastModel: 'gpt-5.3-codex', serviceTier: 'default' },
+    codexAuthSource: new CodexAuthSource(async () => { reads.push(1); return JSON.stringify({ tokens: { access_token: token, account_id: 'synthetic-account' } }); }, async url => { spawned.push(url); return new Response('data: {"type":"response.output_text.delta","delta":"allowed"}\n\ndata: {"type":"response.completed"}\n\n', { headers: { 'content-type': 'text/event-stream' } }); }),
     currentModelId: 'codex-cli:gpt-5.4',
     getProviderScopePolicy: () => policy, personaPrompt: '', aiResponseLanguage: 'auto',
   });
@@ -118,23 +114,23 @@ async function codexWith(entry, policy) {
     } else {
       await self.chatWithGemini('TRANSCRIPT_SENTINEL said hello');
     }
-    return { error: null, spawned };
+    return { error: null, spawned, reads };
   } catch (error) {
-    return { error, spawned };
-  } finally {
-    childProcess.spawn = realSpawn;
+    return { error, spawned, reads };
   }
 }
 
 for (const entry of ['generate', 'stream']) {
-  test(`Codex CLI (${entry}) does not start when the transcript scope is denied`, async () => {
+  test(`Codex login source (${entry}) refuses auth reads and sends when transcript scope is denied`, async () => {
     const allowed = await codexWith(entry, {});
-    assert.match(String(allowed.error?.message), new RegExp(SPAWN_STUB), 'with every scope allowed the call reaches the CLI');
-    assert.deepEqual(allowed.spawned, ['/margin-test/codex-not-installed']);
+    assert.equal(allowed.error, null, 'positive control reaches the fixed source');
+    assert.equal(allowed.reads.length, 1);
+    assert.deepEqual(allowed.spawned, ['https://chatgpt.com/backend-api/codex/responses']);
 
     const denied = await codexWith(entry, { transcript: false });
     assert.equal(denied.error?.name, 'ProviderScopeError', `expected a scope error, got ${denied.error}`);
-    assert.deepEqual(denied.spawned, [], 'the CLI must not be started');
+    assert.deepEqual(denied.spawned, [], 'no request may be sent');
+    assert.deepEqual(denied.reads, [], 'no auth file may be read');
   });
 }
 

@@ -1,0 +1,44 @@
+{
+  "startedAt": "2026-10-10T20:02:58.913Z",
+  "head": "49b44e8c9e4450f8b1e5264a6f58a9db67d94cdc",
+  "uncommittedPaths": 21,
+  "uncommittedPathList": [
+    "M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M electron/LLMHelper.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/llm/ProviderRouter.ts",
+    " M electron/llm/generateOnce.ts",
+    " M electron/llm/generateTask.ts",
+    " M electron/main.ts",
+    " M electron/preload.ts",
+    " M electron/services/CredentialsManager.ts",
+    " M electron/services/SettingsManager.ts",
+    " M electron/services/__tests__/OutboundInventory.test.mjs",
+    " M src/components/ModelSelectorWindow.tsx",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/types/electron.d.ts",
+    " M src/utils/modelUtils.ts",
+    "?? docs/margin/evidence/AG-34/",
+    "?? electron/llm/responsesEvents.ts",
+    "?? electron/services/CodexAuthSource.ts",
+    "?? electron/services/__tests__/codexConsent.test.mjs",
+    "?? src/types/codexSource.ts"
+  ],
+  "reference": "docs/margin/evidence/AG-33/gates-final",
+  "note": "AG34 in-progress source diagnostic; not frozen-source acceptance",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3000,
+      "log": "docs/margin/evidence/AG-34/provenance-initial/provenance.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-10T20:03:01.915Z",
+  "allPassed": true
+}

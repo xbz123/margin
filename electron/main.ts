@@ -629,16 +629,7 @@ export class AppState {
         llmHelper.setGroqFastTextMode(true);
         console.log('[AppState] Fast mode restored from settings');
       }
-      llmHelper.setCodexCliConfig({
-        enabled: !!settingsManager.get('codexCliEnabled'),
-        path: settingsManager.get('codexCliPath') || 'codex',
-        model: settingsManager.get('codexCliModel') || 'gpt-5.4',
-        fastModel: settingsManager.get('codexCliFastModel') || 'gpt-5.3-codex-spark',
-        timeoutMs: settingsManager.get('codexCliTimeoutMs') || 60_000,
-        sandboxMode: settingsManager.get('codexCliSandboxMode') || 'read-only',
-        serviceTier: settingsManager.get('codexCliServiceTier') || 'default',
-        modelReasoningEffort: settingsManager.get('codexCliModelReasoningEffort'),
-      });
+      llmHelper.setCodexCliConfig(settingsManager.getCodexSourceConfig());
       // Restore custom notes
       try {
         const savedNotes = DatabaseManager.getInstance().getCustomNotes();

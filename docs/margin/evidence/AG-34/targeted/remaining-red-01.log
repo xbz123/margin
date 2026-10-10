@@ -1,0 +1,88 @@
+[LLMHelper] Switched to Model: codex-cli
+(node:30049) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✖ AG34 equal normal/fast models still require their independent image confirmations (4.055958ms)
+✖ HTTP 200 SSE response.failed safely classifies model_not_found (5.988541ms)
+✔ HTTP 200 SSE response.failed safely classifies SECRET (0.7265ms)
+✖ HTTP 200 SSE response.failed safely classifies unsupported_image (0.743417ms)
+✖ HTTP 200 SSE error safely classifies model_not_found (0.30525ms)
+✔ HTTP 200 SSE error safely classifies SECRET (0.327166ms)
+✖ HTTP 200 SSE error safely classifies unsupported_image (0.311375ms)
+✔ HTTP 200 SSE partial model_not_found never replays or switches backup (0.390333ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 3
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 430.869667
+
+✖ failing tests:
+
+test at electron/llm/__tests__/generationInterfaces.test.mjs:73:1
+✖ AG34 equal normal/fast models still require their independent image confirmations (4.055958ms)
+  Error: Image support is unconfirmed for this Codex model and backend. Confirm it in Settings; attachments were kept.
+      at assertImages (<repo>/dist-electron/electron/LLMHelper.js:92942:109)
+      at <repo>/dist-electron/electron/LLMHelper.js:92944:13
+      at AsyncGenerator.next (<anonymous>)
+      at generateTask (<repo>/dist-electron/electron/LLMHelper.js:92737:59)
+      at generateTask.next (<anonymous>)
+      at <repo>/dist-electron/electron/LLMHelper.js:92937:26
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:99:121
+✖ HTTP 200 SSE response.failed safely classifies model_not_found (5.988541ms)
+  Error [CodexSourceError]: Codex source request failed. No real-service verification is claimed.
+      at sseEvents (<repo>/dist-electron/electron/services/CodexAuthSource.js:17015:60)
+      at async parseResponsesEvents (<repo>/dist-electron/electron/services/CodexAuthSource.js:16836:20)
+      at async CodexAuthSource.<anonymous> (<repo>/dist-electron/electron/services/CodexAuthSource.js:17090:11) {
+    kind: 'transport',
+    status: undefined,
+    code: undefined,
+    headers: undefined
+  }
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:99:121
+✖ HTTP 200 SSE response.failed safely classifies unsupported_image (0.743417ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  CodexSourceError: Codex source request failed. No real-service verification is claimed.
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/CodexAuthSource.test.mjs:102:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: CodexSourceError: Codex source request failed. No real-service verification is claimed.
+        at sseEvents (<repo>/dist-electron/electron/services/CodexAuthSource.js:17015:60)
+        at async parseResponsesEvents (<repo>/dist-electron/electron/services/CodexAuthSource.js:16836:20)
+        at async CodexAuthSource.<anonymous> (<repo>/dist-electron/electron/services/CodexAuthSource.js:17090:11),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:99:121
+✖ HTTP 200 SSE error safely classifies model_not_found (0.30525ms)
+  Error: Codex source stream failed
+      at parseResponsesEvents (<repo>/dist-electron/electron/services/CodexAuthSource.js:16851:48)
+      at async CodexAuthSource.<anonymous> (<repo>/dist-electron/electron/services/CodexAuthSource.js:17090:11)
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:99:121
+✖ HTTP 200 SSE error safely classifies unsupported_image (0.311375ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: Codex source stream failed
+      at async TestContext.<anonymous> (file://<repo>/electron/services/__tests__/CodexAuthSource.test.mjs:102:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Codex source stream failed
+        at parseResponsesEvents (<repo>/dist-electron/electron/services/CodexAuthSource.js:16851:48)
+        at async CodexAuthSource.<anonymous> (<repo>/dist-electron/electron/services/CodexAuthSource.js:17090:11),
+    operator: 'rejects',
+    diff: 'simple'
+  }

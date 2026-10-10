@@ -18,6 +18,8 @@ vm.runInNewContext(compile(read('src/types/llmTarget.ts')), { module: targetModu
 const { LLM_PRESETS: targets } = targetModule.exports;
 const generationPolicyModule = { exports: {} };
 vm.runInNewContext(compile(read('src/types/generationPolicy.ts')), { module: generationPolicyModule, exports: generationPolicyModule.exports });
+const codexModule = { exports: {} };
+vm.runInNewContext(compile(read('src/types/codexSource.ts')), { module: codexModule, exports: codexModule.exports });
 const quiet = { log() {}, warn() {}, error() {} };
 const failure = { ok: false, code: 'write_failed', message: 'Synthetic save failure' };
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -66,6 +68,20 @@ test('generation policy failed atomic save keeps old memory and disk deadlines',
   assert.deepEqual(plain(manager.getGenerationPolicy()), previous);
   assert.equal(disk.files.get(disk.filename).toString(), before);
 });
+test('AG34 Codex alias and actual fast target equality are rejected before credential persistence', () => {
+  const config = { ...codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG, model: 'configured', fastModel: 'fast' };
+  const disk = storage(), manager = disk.boot(); manager.setDefaultModel('codex-cli', config);
+  const before = disk.files.get(disk.filename).toString(), previous = plain(manager.getGenerationPolicy());
+  for (const [backup, fast] of [['codex-cli:configured', false], ['codex-cli:fast', true]]) {
+    assert.throws(() => manager.setGenerationPolicy({ ...previous, backupModel: backup }, config, fast), /must differ/);
+    assert.equal(disk.files.get(disk.filename).toString(), before); assert.deepEqual(plain(manager.getGenerationPolicy()), previous);
+  }
+  assert.equal(manager.setGenerationPolicy({ ...previous, backupModel: 'codex-cli:configured' }, config, true).ok, true);
+  const stored = disk.files.get(disk.filename).toString();
+  assert.throws(() => manager.setDefaultModel('codex-cli', config, false), /must differ/);
+  assert.equal(disk.files.get(disk.filename).toString(), stored);
+  assert.equal(manager.getDefaultModel(), 'codex-cli');
+});
 
 function storage() {
   const filename = '/synthetic/credentials.enc';
@@ -108,6 +124,7 @@ function storage() {
         if (id === './googleServiceAccount') return accountHelper(fakeFs);
         if (id === '../../src/types/llmTarget') return targetModule.exports;
         if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
+        if (id === '../../src/types/codexSource') return codexModule.exports;
         if (id === '../llm/llmTarget') return require('../../../dist-electron/electron/llm/llmTarget.js');
         return require(id);
       },
@@ -354,7 +371,8 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   const events = [];
   const context = {
     require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    appState: { processingHelper: { getLLMHelper: () => ({ setModel: () => {}, getCurrentModelSelection: () => current }) },
+    appState: { processingHelper: { getLLMHelper: () => ({ setModel: () => {}, getCurrentModelSelection: () => current,
+      validateGenerationTargets() {}, getCodexCliConfig: () => codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG, getGroqFastTextMode: () => false }) },
       sendModelChanged: value => events.push(value), modelSelectorWindowHelper: { hideWindow: () => events.push('hide') } },
   };
   assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: 'llm-target:gemini:gemini:gemini-3.1-flash-lite-preview' });
@@ -528,7 +546,8 @@ test('all saving IPC handlers return storage failure before runtime, events or w
     const effects = [];
     const effect = () => { effects.push('runtime'); };
     const manager = new Proxy({}, { get: () => () => failure });
-    const llm = new Proxy({}, { get: () => effect });
+    const llm = new Proxy({}, { get: (_, key) => ['validateGenerationTargets', 'getCodexCliConfig', 'getGroqFastTextMode', 'getCurrentModelSelection'].includes(key)
+      ? () => key === 'getCodexCliConfig' ? codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG : key === 'getCurrentModelSelection' ? 'gpt-5.4' : undefined : effect });
     const appState = {
       processingHelper: { getLLMHelper: () => llm }, getIntelligenceManager: () => ({ resetEngine: effect, initializeLLMs: effect }),
       reconfigureSttProvider: effect, sendModelChanged: effect, updateGoogleCredentials: effect,

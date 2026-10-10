@@ -21,6 +21,35 @@ Notes:
 
 ## Ledger
 
+### AG-34 read-only Codex login source
+
+The behavior requirements are PLAN S27–S28 and sections 3.2–3.3 of
+`b8ade3f7:docs/fresh-release-implementation-plan.md`. The older Margin
+`electron/services/CodexCliService.ts` and `CodexCliAuth.ts` at that revision
+were inspected for the fixed destination, file-auth shape and request fields.
+The older personal additions are associated with `fcfbb02a` and `0469fbe7`;
+this inspection does not approve importing those files or their dependencies.
+No older implementation is copied or added to the approved source pool.
+The new source builds on this branch's generation scheduler, Responses event
+parser and settings infrastructure. Retained reasoning/service-tier options
+use a separate source-specific serializer, not the API-key request serializer.
+
+The official login documentation at `https://learn.chatgpt.com/docs/auth`
+describes file and credential-store choices, not a supported third-party
+contract for the backend endpoint or a complete versioned auth-file schema.
+The distinct OAuth token-sharing flow documented at
+`https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference`
+does not establish that CLI login tokens can be sent to the public API.
+Neither document is used to claim official support for this source. Synthetic
+tests cannot establish real-account compatibility or service authorization.
+The frozen-source full local gates pass 16/16; G2 has zero hits without any new
+allowlist entry, source pool or path exclusion. The existing Responses event
+logic is extracted from this branch; endpoint/auth/body construction stays
+independent. All 35 retired CLI tests have named behavior mappings in
+`evidence/AG-34/targeted/ag34-test-migration-map.md`, with explicit intentional
+changes rather than a claim of one-for-one semantic equivalence. No dependency,
+native input or prompt text changes in this ticket.
+
 ### AG-33 answer lifecycle and image admission
 
 The requirements are PLAN S27–S28 and sections 3.1–3.2 of

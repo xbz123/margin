@@ -109,7 +109,7 @@ export function routeLLMProviders(options: ProviderRouteOptions): ProviderAttemp
     };
     const codex: ProviderSpec = {
         provider: 'codex',
-        name: `Codex CLI (${models.codex ?? 'default'})`,
+        name: `Codex login source (${models.codex ?? 'default'})`,
         model: models.codex,
         available: Boolean(availability.hasCodex),
         unavailableReason: 'missing_config',

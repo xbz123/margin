@@ -1,0 +1,421 @@
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:27210) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (1.465083ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.118042ms)
+✔ single response preserves incomplete (no finish) (0.093875ms)
+✔ single response preserves empty (STOP) (0.086875ms)
+✔ single response preserves refused (SAFETY) (0.125875ms)
+✔ single response preserves refused (no finish) (0.076792ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (1.082084ms)
+✔ final scope refusal retains the original object and never sends (0.420292ms)
+✔ cancel before start and late response cannot produce deltas (0.700416ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (7.77825ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (1.724667ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (33.426792ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.6075ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.711042ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.457ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (0.917667ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (43.657875ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+(node:27211) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG34 source snapshot has no API client/base URL and refuses unconfirmed backend images before auth read (5.413542ms)
+✔ AG34 preparedContents inline image screenshots scope: denied (1.184334ms)
+✔ AG34 preparedContents inline image screenshots scope: revoked-during-read (0.476666ms)
+✔ AG34 preparedContents inline image screenshots scope: allowed (8.804958ms)
+✔ AG34 Codex backup image confirmation cannot inherit primary confirmation (3.256458ms)
+✔ AG34 changing main/fast model invalidates only matching image bindings (0.242334ms)
+✔ AG34 external same-account changed token recovers once within the real LLMHelper task (1.193709ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli:changed
+✔ AG34 consent change cancels auth-waiting task without late send (6.22475ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Groq Fast Text Mode: true
+✔ AG34 model change cancels auth-waiting task without late send (6.215125ms)
+[LLMHelper] Switched to Model: codex-cli
+✔ AG34 fast change cancels auth-waiting task without late send (6.59775ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli:gpt-5.4
+[LLMHelper] Switched to Model: gemini-new
+[LLMHelper] Switched to Model: gemini-a
+[LLMHelper] Switched to Model: gemini-a
+✔ AG34 policy change cancels auth-waiting task without late send (7.140375ms)
+✔ AG34 source getters/selectors and disabled/unconfirmed requests never read auth (0.975125ms)
+✔ AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it (0.139917ms)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (0.972417ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.377208ms)
+✔ generateMeetingSummary: transient failure uses only explicit backup and at most two sends (0.358041ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.335042ms)
+✔ real answer interface: SAFETY terminates without backup (0.930083ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.306ms)
+✔ real answer interface: EMPTY terminates without backup (0.255458ms)
+✔ real answer interface: AUTH terminates without backup (0.301959ms)
+✔ real answer interface: CONFIG terminates without backup (0.291ms)
+✔ real answer interface: PARTIAL terminates without backup (0.388041ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.644083ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.443ms)
+✔ permission revoked during limiter stops all later sends (0.390583ms)
+✔ permission revoked during image stops all later sends (0.226708ms)
+✔ permission revoked during cache stops all later sends (0.234708ms)
+✔ permission revoked during retry-after stops all later sends (0.259375ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.43875ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.321292ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.279375ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.338125ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.785333ms)
+✔ reselecting the same canonical target through qualified or raw model id keeps active transport alive (0.559625ms)
+✔ application quit cancels existing tasks and refuses all later generation entries before any send (0.320916ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 19 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (31.012834ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.266583ms)
+✔ Groq fast mode preserves the explicitly selected model for both text and images (0.519417ms)
+✔ saved provider connection test ignores the answer backup and sends its own failed target only once (0.353041ms)
+✔ the configured answer backup can itself be connection-tested once without a primary/backup conflict (0.223709ms)
+✔ actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport (3.135125ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry false (0.859334ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry true (1.54075ms)
+✔ AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result (1.043375ms)
+✔ AG33 actual Engine stores empty even without a visible partial (0.611959ms)
+✔ AG33 actual Engine stores refused even without a visible partial (0.52475ms)
+✔ AG33 actual Engine stores incomplete even without a visible partial (0.386166ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false (1.3705ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true (0.764ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[LLMHelper] Switched to Model: gemini-next
+✔ AG33 Engine timeout releases its mode and allows the next assist request (4.07175ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 Engine model-switch releases its mode and allows the next assist request (1.745541ms)
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[LLMHelper] Switched to Model: codex-cli
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 1 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 old Engine finally cannot reset the newer active request mode (2.109125ms)
+✔ compression starts an independent background task inside an interview context and closes that supplied task (2.722333ms)
+✔ actual prompt entry snapshots language and prompt tier before assembly starts (2.838958ms)
+✔ image metadata reflects actual send and screenshot omission, not the validated input list (0.679834ms)
+✔ backup updates and selected provider reconfiguration reject identical targets without changing active state (0.230041ms)
+✔ explicit Codex selector clears stale API selection and snapshots its configured fast model (0.1455ms)
+✔ AG33 actual Engine preserves a legitimate short answer and its request metadata (0.906917ms)
+✔ AG33 outer cancellation fences late inner errors, held sentinel text and mode changes (5.827875ms)
+✔ AG33 shared written task records a second-step failure rather than first-step completion (0.621292ms)
+✔ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (0.677792ms)
+✔ AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden (0.7145ms)
+✔ AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count (0.246917ms)
+[LLMHelper] Failed to process image with sharp: Error: Input buffer contains unsupported image format
+    at Sharp.toBuffer (<repo>/dist-electron/electron/LLMHelper.js:49202:21)
+    at LLMHelper.processImage (<repo>/dist-electron/electron/LLMHelper.js:93488:32)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 14 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes (7.378541ms)
+✔ AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning (1.968125ms)
+✔ AG33 partial cancellation records exact target and cancelled status in existing session usage (0.639791ms)
+✔ generation policy persists independent deadlines and rejects invalid or identical targets without mutation (205.996041ms)
+✔ generation policy failed atomic save keeps old memory and disk deadlines (29.331833ms)
+✔ AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes (66.12325ms)
+✔ credential transaction rejects unavailable without losing memory or the old ciphertext (48.806458ms)
+✔ credential transaction rejects encrypt without losing memory or the old ciphertext (39.918917ms)
+✔ credential transaction rejects write without losing memory or the old ciphertext (36.264833ms)
+✔ credential transaction rejects rename without losing memory or the old ciphertext (31.884958ms)
+✔ credential transaction rejects decrypt without losing memory or the old ciphertext (33.036083ms)
+✔ credential transaction rejects parse without losing memory or the old ciphertext (30.452625ms)
+✔ credential transaction rejects read without losing memory or the old ciphertext (42.697292ms)
+✔ credential transaction rejects load-unavailable without losing memory or the old ciphertext (30.181375ms)
+✔ unreadable credentials are offered for discard only after a decrypt or parse failure (118.047416ms)
+✔ a failed backup during discard keeps the unreadable file and the save block (18.973875ms)
+✔ all 24 setters commit only after persistence and can be read after restart (354.176958ms)
+✔ an exclusive-create collision never deletes the pre-existing temporary file (16.898ms)
+✔ legacy plaintext is removed without being read or used as credentials (15.704375ms)
+✔ a warm instance clears old memory and stays locked until a successful reload (18.798834ms)
+✔ AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart (97.258917ms)
+✔ legacy default and raw switch input reach model UI as the canonical runtime selection (148.596958ms)
+✔ AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back (102.025792ms)
+✔ AG24: all active STT key removals discard only after a successful save (629.335667ms)
+✔ AG24: invalid region or STT endpoint never changes credentials (15.171708ms)
+✔ AG24: invalid configuration crosses real manager and IPC with no save or runtime change (94.361292ms)
+✔ Google selection rejects invalid JSON/type/read before persistence or runtime; safe snapshot crosses a successful save (118.022291ms)
+✔ Google settings do not advertise an invalid saved path as usable (37.259916ms)
+✔ AG24: real Azure/IBM connection-test handlers share the runtime region boundary (189.917875ms)
+✔ AG24: a refused ElevenLabs redirect is not reported as a validated key (23.306292ms)
+✔ all saving IPC handlers return storage failure before runtime, events or window side effects (450.884833ms)
+✔ ProviderCard stops model Fetch while complete configuration is unsaved (4.599625ms)
+✔ IPC warns safely after a committed save fails to apply, and cancellation is not a write failure (98.343584ms)
+✔ recognition language applies only after its real manager setter succeeds (12.730709ms)
+✔ all credential preload callbacks preserve failure, warning and cancellation results (343.273375ms)
+✔ renderer save, remove and selection callbacks retain the previous UI on failure (148.083292ms)
+✔ all seven STT Save/Remove callbacks distinguish connection validation from stored keys (344.039709ms)
+✔ renderer keeps Saved and displays a safe apply warning, while cancellation does not change the selected file (22.280167ms)
+✔ renderer cannot report rollback when default-model refresh fails after a committed configuration save (9.043333ms)
+✔ all five LLM Save/Remove branches use their matching endpoint and show failure without clearing input (79.26375ms)
+✔ detected-language save failure does not submit an unsaved language selection (15.822041ms)
+✔ Fetch lists models without implicitly selecting or saving the first model (3.354792ms)
+✔ storage failures cross the real manager, IPC, preload and renderer without committing live state (370.988791ms)
+✔ a decrypt failure reaches settings, and only a confirmed discard crosses IPC and preload (66.113542ms)
+✖ migration 01 defaults retain main/fast models and disabled source (no path/sandbox/timeout) (1.287958ms)
+✖ enabled is strict boolean and current risk version is not inferred (0.185375ms)
+✔ migration 02 invalid tiers and efforts fail, rather than sandbox privilege options (0.253583ms)
+✔ migration 03 source default is no auth read (1.721042ms)
+✔ migration 04 timeout belongs to logical task, not executable config (16.345542ms)
+✔ migration 05 no caller executable or compatible endpoint affects fixed request (3.576667ms)
+✔ migration 06 legacy enabled without current confirmation has zero reads (0.161167ms)
+✔ migration 07 API-key auth mode is rejected (0.098208ms)
+✔ migration 08 whitespace/header-injection account is rejected (0.09325ms)
+✔ migration 09 fixed request preserves system/user separation and stream/store flags (0.451542ms)
+✔ migration 10 default tier/effort omit unclaimed API parameters (0.070667ms)
+✔ migration 11 explicit allowlisted tier/effort serialize without fallback (0.316625ms)
+✔ migration 12 image input becomes independent inline input, never CLI argv (0.051042ms)
+✔ flat text/image parts share one user message; history role order and instructions remain separate (0.090333ms)
+✔ migration 13 explicit completed delta stream succeeds (0.37175ms)
+✔ migration 14 plain text is not silently considered completed (0.643459ms)
+✔ migration 15 markdown/JSON-looking text stays literal model text (0.316709ms)
+✔ migration 16 lifecycle without explicit completion is incomplete (0.292083ms)
+✔ migration 17 only actual output-text deltas are emitted (0.318667ms)
+✔ migration 18 explicit remote failure is safe and not success (0.650541ms)
+✔ migration 19 terminal output_text field alone does not fabricate delta output (0.961625ms)
+✔ migration 20 split multibyte SSE frames reconstruct actual content (3.286125ms)
+✔ migration 21 empty explicit completion remains empty (1.223084ms)
+✔ migration 22 error envelope preserves only allowlisted safe classification (1.441834ms)
+✔ migration 23 no remote error means no synthetic error on success (1.008583ms)
+✔ migration 24 arbitrary remote message/code never enter errors (0.807375ms)
+✔ migration 25 missing auth path never triggers discovery/CLI (8.214084ms)
+✔ migration 26 synthetic regular file read is bounded and readonly (27.485125ms)
+✔ migration 27 local status reports only local checks, not connection (0.507625ms)
+✔ migration 28 malformed/oversize/unsupported auth fails without alternate storage (0.219416ms)
+✔ migration 29 unavailable reader returns safe local status (0.122416ms)
+✔ migration 30 expired login requires external re-login, no refresh (0.076ms)
+✔ migration 31 first-visible/total deadlines cannot acquire extra retry time (16.364708ms)
+✔ migration 32 pre-aborted request has zero reads and sends (0.236167ms)
+✔ migration 33 in-flight abort cancels reader and ignores late text (12.9755ms)
+✔ migration 34 stream preabort likewise cannot read credentials (0.602875ms)
+✔ migration 35 consumer close releases body without a late event (5.401625ms)
+✔ 401 recovery: changed (0.674917ms)
+✔ 401 recovery: unchanged (0.227208ms)
+✔ 401 recovery: account-changed (0.2265ms)
+✔ 401 recovery: expired (0.334917ms)
+✔ 401 recovery: revoked (0.252542ms)
+✔ second 401 cannot cause a third physical send/read (0.37575ms)
+✔ shared budget already consumed by first target permits no source recovery send (0.719667ms)
+✔ partial output prohibits replay even on transient network interruption (1.01925ms)
+✔ network classification preserves safe transient code but no raw secret/cause (0.899667ms)
+✔ 503 unsupported_image is terminal without backup (0.871083ms)
+✔ explicit model_not_found can switch backup; generic 404 cannot (1.02025ms)
+✔ Retry-After exceeding shared remaining time terminates with one send (0.37175ms)
+✔ redirect response cannot leak token into another endpoint (0.222375ms)
+✔ post-fetch live gate failure releases response body (0.2245ms)
+✔ symlink and oversized file fail closed (25.713417ms)
+✔ account claim mismatch and unknown expiry are not locally accepted (0.222041ms)
+✔ refusal and incomplete responses remain terminal non-success without extra send (0.427625ms)
+✔ known application HTTP/WS/SDK construction sites match the outbound inventory; additions require registration (469.933875ms)
+✔ fixed endpoint origins in transport modules match the documented provider inventory (45.392084ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:27215) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (6.392959ms)
+✔ meeting summaries send the transcript only when both transcript and post_call_summary are allowed (183.77525ms)
+✔ meeting summaries with a declared profile_history scope are not sent while it is denied (0.884291ms)
+✔ Codex login source (generate) refuses auth reads and sends when transcript scope is denied (27.188125ms)
+✔ Codex login source (stream) refuses auth reads and sends when transcript scope is denied (1.151958ms)
+✔ groq constructor: SDK cannot resend after scope revocation (8.992375ms)
+✔ openai constructor: SDK cannot resend after scope revocation (3.567125ms)
+✔ claude constructor: SDK cannot resend after scope revocation (2.773ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (1.526625ms)
+✔ groq key update: SDK cannot resend after scope revocation (8.136166ms)
+✔ openai key update: SDK cannot resend after scope revocation (1.251375ms)
+✔ claude key update: SDK cannot resend after scope revocation (1.068417ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (1.1065ms)
+✔ vision denial is terminal without another send (0.571667ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (0.707084ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (0.685209ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.367584ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (22.395208ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (3.141958ms)
+✔ default chat routing refuses transcript denial but can omit denied history (0.816583ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (0.411334ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.322292ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.328583ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.42225ms)
+✔ fixed Pro: scope refusal stays terminal with an explicit backup (0.32475ms)
+✔ fixed Flash: scope refusal stays terminal with an explicit backup (0.310167ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.298083ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.334291ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (0.788041ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (0.635583ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (0.694792ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (14.943875ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.509875ms)
+✔ generateWithPro refuses transcript denial at the actual send boundary (0.351875ms)
+✔ generateWithFlash refuses transcript denial at the actual send boundary (0.332792ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.43125ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (0.869375ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (0.574959ms)
+✔ the meeting chat context carries the scopes of what it contains (9.416208ms)
+✔ the keyword fallback recognizes the meeting chat headings in a window-built context (0.131333ms)
+✔ meeting summaries stop the explicit backup when a scope is turned off after the first send (3.861208ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (1.800083ms)
+✔ chatWithGemini keeps the scopes of its context for every send (0.393875ms)
+✔ AG34 enabling requires current explicit confirmation, not legacy enabled (116.275ms)
+✔ AG34 failed confirmation save publishes no consent and restart stays disabled (58.426208ms)
+✔ AG34 legacy writer counterexample: failed disk save must not publish enabled (21.871417ms)
+ℹ tests 227
+ℹ suites 0
+ℹ pass 225
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4987.664667
+
+✖ failing tests:
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:34:1
+✖ migration 01 defaults retain main/fast models and disabled source (no path/sandbox/timeout) (1.287958ms)
+  TypeError: validateCodexSourceConfig is not a function
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/CodexAuthSource.test.mjs:35:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+
+test at electron/services/__tests__/CodexAuthSource.test.mjs:39:1
+✖ enabled is strict boolean and current risk version is not inferred (0.185375ms)
+  TypeError: validateCodexSourceConfig is not a function
+      at TestContext.<anonymous> (file://<repo>/electron/services/__tests__/CodexAuthSource.test.mjs:39:198)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)

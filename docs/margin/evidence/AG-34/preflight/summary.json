@@ -1,0 +1,104 @@
+{
+  "startedAt": "2026-10-10T20:23:38.350Z",
+  "head": "49b44e8c9e4450f8b1e5264a6f58a9db67d94cdc",
+  "uncommittedPaths": 29,
+  "uncommittedPathList": [
+    "M docs/margin/OUTBOUND.md",
+    " M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M electron/LLMHelper.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/llm/ProviderRouter.ts",
+    " M electron/llm/__tests__/generationInterfaces.test.mjs",
+    " M electron/llm/generateOnce.ts",
+    " M electron/llm/generateTask.ts",
+    " M electron/main.ts",
+    " M electron/margin/__tests__/credentialTransactions.test.mjs",
+    " M electron/preload.ts",
+    " D electron/services/CodexCliService.ts",
+    " M electron/services/CredentialsManager.ts",
+    " M electron/services/SettingsManager.ts",
+    " D electron/services/__tests__/CodexCliService.test.mjs",
+    " M electron/services/__tests__/OutboundInventory.test.mjs",
+    " M electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    " M src/components/ModelSelectorWindow.tsx",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/types/electron.d.ts",
+    " M src/utils/modelUtils.ts",
+    " M tests/margin/outbound-renderer.test.mjs",
+    "?? docs/margin/evidence/AG-34/",
+    "?? electron/llm/responsesEvents.ts",
+    "?? electron/services/CodexAuthSource.ts",
+    "?? electron/services/__tests__/CodexAuthSource.test.mjs",
+    "?? electron/services/__tests__/codexConsent.test.mjs",
+    "?? src/types/codexSource.ts"
+  ],
+  "reference": "docs/margin/evidence/AG-33/gates-final",
+  "note": "AG34 frozen implementation static preflight",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3257,
+      "log": "docs/margin/evidence/AG-34/preflight/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2018,
+      "log": "docs/margin/evidence/AG-34/preflight/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 79,
+      "log": "docs/margin/evidence/AG-34/preflight/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 131,
+      "log": "docs/margin/evidence/AG-34/preflight/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 51,
+      "log": "docs/margin/evidence/AG-34/preflight/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-10T20:23:43.888Z",
+  "allPassed": true
+}

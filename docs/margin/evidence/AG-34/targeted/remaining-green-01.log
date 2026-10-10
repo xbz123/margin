@@ -1,0 +1,20 @@
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Groq Fast Text Mode: true
+(node:30228) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG34 equal normal/fast models still require their independent image confirmations (12.28375ms)
+✔ HTTP 200 SSE response.failed safely classifies model_not_found (7.532542ms)
+✔ HTTP 200 SSE response.failed safely classifies SECRET (0.766333ms)
+✔ HTTP 200 SSE response.failed safely classifies unsupported_image (0.329166ms)
+✔ HTTP 200 SSE error safely classifies model_not_found (0.499667ms)
+✔ HTTP 200 SSE error safely classifies SECRET (0.366333ms)
+✔ HTTP 200 SSE error safely classifies unsupported_image (0.359291ms)
+✔ HTTP 200 SSE partial model_not_found never replays or switches backup (0.438334ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 534.70925

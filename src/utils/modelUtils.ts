@@ -44,8 +44,8 @@ export const STANDARD_CLOUD_MODELS: Record<string, {
 
 export const CODEX_CLI_MODEL = {
     id: 'codex-cli',
-    name: 'Codex CLI',
-    desc: 'Local CLI transport',
+    name: 'Codex login source',
+    desc: 'Read-only login file; third-party backend availability unverified',
 };
 
 export const CODEX_CLI_MODEL_PRESETS = [
