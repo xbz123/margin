@@ -8,16 +8,30 @@ package checks, Info.plist and codesign reports and the sharp smoke below are th
 last local runs of checks that now run only on CI; `sharp-smoke-local.mjs` was
 removed.
 
-Claude, 2026-10-10. The temp package and source reports here are from run
-38042681414 (commit `7153aa07`, the code after the navigation fix, public
-`xbz123/margin`, see `../../CI-38042681414/`); the previous ones, from run
-38004311007 (`9ef2ed4a`), are in git history. The release identity's zip is no longer uploaded (PLAN
-S25), so `package-check-release.json` and the release lines of
-`plist-codesign.txt` are still from run 37996030056 (`cd71f14b`, private
-repository, `../../CI-37996030056/`), checked on 2026-10-09; the app code of the
-two commits is the same. Earlier versions (runs 37944613051 and 37871598165) are
-in git history. Downloads went to the session scratchpad, not the repository;
-paths in these reports are shown as `<app>`, `<asar>` or `<sandbox>`.
+**Current (Claude, 2026-10-10, stage 2 exit):** `source-bundle-verify.json` and
+`asar-smoke-temp.json` are from run 38057787157 (commit `2c7f1e42`, see
+`../../CI-38057787157/`, where the download verification is recorded):
+
+- source bundle: all 592 files listed in `MANIFEST.json` match their size and
+  sha256, none unlisted; the app archive decompresses to the same tar, byte for
+  byte, as a local `git archive --format=tar --prefix=margin-<commit>/ 2c7f1e42`
+  (`986a5a5a…`);
+- `asar-smoke` of the temp package under the guard: all 10 checks pass, with the
+  native module, sharp, libvips and better-sqlite3 mapped from
+  `app.asar.unpacked` and none from the repository. The report's content is the
+  same as for run 38042681414.
+
+The rest of this file describes the earlier full local check. Its temp package and
+source reports were from run 38042681414 (commit `7153aa07`, the code after the
+navigation fix, public `xbz123/margin`, see `../../CI-38042681414/`); the previous
+ones, from run 38004311007 (`9ef2ed4a`), are in git history. The release
+identity's zip is no longer uploaded (PLAN S25), so `package-check-release.json`
+and the release lines of `plist-codesign.txt` are still from run 37996030056
+(`cd71f14b`, private repository, `../../CI-37996030056/`), checked on 2026-10-09;
+the app code of the two commits is the same. Earlier versions (runs 37944613051
+and 37871598165) are in git history. Downloads went to the session scratchpad,
+not the repository; paths in these reports are shown as `<app>`, `<asar>` or
+`<sandbox>`.
 
 ## Download and verification
 

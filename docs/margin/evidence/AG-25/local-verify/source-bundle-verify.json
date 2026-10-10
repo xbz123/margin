@@ -1,5 +1,5 @@
 {
-  "commit": "7153aa073f0ae7ee4264fc5be690bbf5a83a1bdc",
+  "commit": "2c7f1e42da1d7df386622ec078500378ce070ffb",
   "cleanTree": true,
   "trackedChanges": [],
   "untracked": [
@@ -30,11 +30,11 @@
     "note": "Electron is shipped unmodified from its release; its full source and Chromium build system are at the URLs above. ffmpeg is the LGPL library inside it (libffmpeg.dylib) and is included here with Electron's patch."
   },
   "libvips": {
-    "artifact": "margin-libvips-sources-7153aa073f0ae7ee4264fc5be690bbf5a83a1bdc",
-    "binary": "margin-libvips-7153aa073f0ae7ee4264fc5be690bbf5a83a1bdc",
+    "artifact": "margin-libvips-sources-2c7f1e42da1d7df386622ec078500378ce070ffb",
+    "binary": "margin-libvips-2c7f1e42da1d7df386622ec078500378ce070ffb",
     "recipe": "https://github.com/lovell/sharp-libvips/tree/20b5e899954907a3039d6e3d4c200aaa0ec52c4c",
     "note": "corresponding source of the libvips-cpp this package ships (S22): the recipe archive, every archive and patch it downloaded with manifest.tsv, and the crates compiled for librsvg with its Cargo.lock; the build log and the built tarball are in the binary artifact"
   },
   "appTarMatchesLocalGitArchive": true,
-  "appTarSHA256": "9bb03acb8ecfb9db0452e7fcfbbf36a72b83865650d29320ecdd8abae9be821f"
+  "appTarSHA256": "986a5a5a6d5c807ac6dfe86966a877b10fe0ab429923ee5eca2e301aa80579cf"
 }
