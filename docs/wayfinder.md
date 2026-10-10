@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **W2 修复（Codex）**：R3-1（按甲，S31）至 R3-5 都可以开始（PLAN §9"阶段 3 复查（Claude）"）。修完后跑一次完整本地 gates，推送后 Windows 编译检查必须通过（S31），再由 Claude 核对关闭。
+- **W2 修复（Codex）**：R3-1（按甲，S31）、R3-2（已收窄）和 R3-5（保留 `private_vision` 保护）可以开始；R3-3 移交阶段 7，R3-4 不改（PLAN §9"阶段 3 复查（Claude）"）。修完后跑一次完整本地 gates，推送后 Windows 编译检查必须通过（S31），再由 Claude 核对关闭。
 
 ## Waiting
 

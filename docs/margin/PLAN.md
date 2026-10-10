@@ -674,7 +674,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | 项 | 负责 | 现在状态 | 放行条件（阻塞的阶段） |
 | --- | --- | --- | --- |
 | W1 只读复查 | Claude | 已完成（§9"阶段 3 复查（Claude）"，R3-1 至 R3-5，无阻断） | 无 |
-| W2 修复与关闭 | Codex 修，Claude 核对关闭 | R3-1（按甲，S31）至 R3-5 都可以开始 | W1 的发现清单（实现） |
+| W2 修复与关闭 | Codex 修，Claude 核对关闭 | R3-1（按甲，S31）、R3-2、R3-5 可以开始；R3-3 移交阶段 7，R3-4 不改（Astra 复核） | W1 的发现清单（实现） |
 | W3 出口 CI | Claude | 等待 | W2 全部关闭（实现）；用户批准触发 CI |
 | W4 本机核对与签收 | Claude 核对，用户签收 | 等待 | W3 的产物（验收） |
 
@@ -1622,7 +1622,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 - **只证明了能编译**：没有运行测试，没有加载这个 `.node`，没有打包，也没有实机运行，这些属于 AG-71 起的工作。
 - **用户决定（S31）**：并入每票门禁。工作流已改为推送时自动运行，只在公开仓库运行。
 
-**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 §6"阶段 3 收尾计划"的 W1–W4 串行执行：W1 已完成（§9"阶段 3 复查（Claude）"：无阻断，R3-1 应修、R3-2 至 R3-5 建议）；W2 由 Codex 修复，R3-1 按甲（S31）；改代码的 ticket 推送后，Windows 编译检查必须通过（S31）；W3 出口 CI 须用户批准触发。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S31 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-30–34 的代码及本地检查有通过证据，AG-33 提示词已按 S29 定案（`90fae433`）。按 §6"阶段 3 收尾计划"的 W1–W4 串行执行：W1 已完成（§9"阶段 3 复查（Claude）"：无阻断，R3-1 应修、R3-2 至 R3-5 建议）；W2 由 Codex 修复 R3-1（按甲，S31）、R3-2（已收窄）和 R3-5（保留 `private_vision` 保护），R3-3 移交阶段 7，R3-4 不改；改代码的 ticket 推送后，Windows 编译检查必须通过（S31）；W3 出口 CI 须用户批准触发。阶段 3 尚未签收。原生模块补 stdarch 许可已完成（见"libvips Rust 工具链修复"末条），包内许可正文仍须在出口 CI 随打包检查确认。S8–S31 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2042,10 +2042,12 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 | 编号 | 严重度 | 位置 | 失败情形 | 归属 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | R3-1 | 应修，用户选甲（S31） | `electron/services/CredentialsManager.ts:225`、`:250`；`src/components/settings/AIProvidersSettings.tsx:283` | 用户已保存官方 OpenAI key，之后在同一槽位填入第三方兼容地址，不重新输入 key 直接保存。主进程保留旧 key，下一次生成就把官方 key 发给新地址，界面没有任何提示。旧 Margin 计划 `b8ade3f7` 第 3 节要求"约束…凭据转发" | AG-31 | 待修（甲） |
-| R3-2 | 建议 | `electron/ipcHandlers.ts:1966`、`:2080`、`:2129` | `generate-what-to-say`、`generate-code-hint`、`generate-brainstorm` 校验后继续使用原始路径，没有用校验得到的 realpath；同文件第 29 行的 `validateImages` 是用 realpath 的。只有在 userData 里能替换符号链接时才可能利用（校验和读取之间的竞争），风险低，但三个入口应统一 | AG-33 | 待修 |
-| R3-3 | 建议（阶段 7 前提） | `electron/utils/imagePathValidation.ts:8` | 带盘符的路径（`C:\…`）一律拒绝，Windows 上所有截图都无法发送。这是基线原有行为，不影响 macOS | AG-71/AG-73 | 移交阶段 7 |
-| R3-4 | 建议（潜在） | `electron/llm/generateOnce.ts:120`、`electron/services/CodexAuthSource.ts:95` | Responses 协议把 assistant 角色的文字也写成 `input_text`；按 OpenAI 文档，assistant 消息应使用 `output_text`（未用真实服务核实）。目前生产代码不会发送多轮内容：唯一能传任意内容的 `generateWithPro`/`generateWithFlash` 只有测试在调用，所以暂时不会触发 | AG-31 | 待修或记录 |
-| R3-5 | 建议（清理） | `electron/LLMHelper.ts:578`、`:590`；`electron/ipcHandlers.ts:759`–`769`、`electron/preload.ts` 中 `get/setScreenUnderstandingMode`、`SettingsManager.getScreenUnderstandingMode` | `ScreenUnderstandingService` 删除后，屏幕理解模式的 IPC、preload 和设置读写仍在，renderer 已不再调用；`generateWithPro`/`generateWithFlash` 没有生产调用方 | AG-32 | 待修 |
+| R3-2 | 建议（Astra 复核后收窄） | `electron/ipcHandlers.ts:1924`、`:2066`、`:2115`、`:2071`、`:2120` | 原写法"校验后用原始路径"有误：三个入口开头都先调用 `validateImages()`，显式路径已经是 realpath，后面的再次校验是多余的，容易让人误解。真正的缺口是：`generate-code-hint` 和 `generate-brainstorm` 在没有显式图片时，回退使用截图队列，而队列路径没有经过统一校验。修法：先决定用显式图片还是队列，再统一校验，只传校验结果，并删掉重复的校验。改用 realpath 并不能消除所有文件替换竞态 | AG-33 | 待修 |
+| R3-3 | 建议（阶段 7 前提） | `electron/utils/imagePathValidation.ts:8` | 带盘符的路径（`C:\…`）一律拒绝，Windows 上所有截图都无法发送。这是基线原有行为，不影响 macOS | AG-71/AG-73 | 移交阶段 7：作为 Windows 截图功能验收项关闭，不能用编译通过代替 |
+| R3-4 | 待核实（Astra 复核后改定） | `electron/llm/generateOnce.ts:120`、`electron/services/CodexAuthSource.ts:95` | 原结论"assistant 消息必须用 `output_text`"依据不足：官方 `EasyInputMessage` 允许 assistant 角色使用 `input_text`，`output_text` 属于另一种结构 `ResponseOutputMessage`。因此不改代码。目前没有生产代码发送多轮内容，这一点仍然成立。Codex 私有后端是否接受这种写法，单独记为未验证 | AG-31、AG-34 | 不改，记录 |
+| R3-5 | 建议（清理） | `electron/LLMHelper.ts:578`、`:590`；`electron/ipcHandlers.ts:759`–`769`、`electron/preload.ts` 中 `get/setScreenUnderstandingMode`、`SettingsManager.getScreenUnderstandingMode` | `ScreenUnderstandingService` 删除后，屏幕理解模式的 IPC、preload、类型声明和设置读写仍在，renderer 已不再调用；`generateWithPro`/`generateWithFlash` 只有测试在调用。可以连同它们专属的测试一起删除。**必须保留** `SettingsManager.migrateLegacySettings`（`:177` 起）中把旧的 `private`/`private_vision` 转成 `screenshots: false` 的保护，否则会恢复用户原本禁止的截图外发 | AG-32 | 待修 |
+
+**Astra 复核（2026-10-10）**：只读核对了源码、调用方和官方文档。R3-1 不变；R3-2 收窄；R3-3 移交阶段 7，作为功能验收项；R3-4 改为待核实，不改代码；R3-5 是有限清理，保留 `private_vision` 的保护。上表已按此更正。W2 的范围是 R3-1、R3-2 和 R3-5。
 
 **R3-1 的处理方式**（用户决定）：
 
