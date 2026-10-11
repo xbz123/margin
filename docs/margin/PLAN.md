@@ -65,7 +65,8 @@
 | S35 | 阶段 4 的 STT 范围与阶段 4–7 的复用依据（Claude 建议，用户同意）：<br>1. **AG-41 的云端 STT 按旧 Margin 定为五家**：OpenAI、Soniox、Groq（分段转写）、阿里云百炼、豆包。基线的 Google、Deepgram、ElevenLabs 退役，删除实现、设置入口、依赖和专属测试；Google 退役后 S16 不再适用。<br>2. **阶段 4–7 复用旧 Margin 代码以 §6"旧 Margin 复用清单（S35）"为依据**：清单覆盖旧 Margin 相对基线改动的全部文件，只说明哪些内容可以考虑引入，每个文件引入前仍按 PROVENANCE 逐行审查并登记，来源边界和 G2 不变。<br>3. **按 Astra 审阅修订（2026-10-11）**：清单是候选盘点，"做法"只估计工作量，不说明来源已清楚；命中行、近似快照行和快照行都要逐行处置，上游派生内容按需求重新实现；资产和上游池未覆盖的扩展名单独人工审查；依赖按本分支固定提交分级；新增前置项 AG-60a（共享的翻译接口和设置组件），AG-41、AG-50、AG-61、AG-62 的设置界面等它（§9"S35 复用清单审阅"） | 用户，2026-10-11，"按照旧的margin的这五家设定来""可以把这份清单写进 PLAN，作为阶段 4 的复用依据""可以给出全部可复用的内容，进行整理放入plan文档""按这些建议修订 S35，重新生成清单并推送" |
 | S36 | 阶段 4–6 交给 Codex Astra 执行（用户指示，Claude 整理交接文档 [HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)）：<br>1. **执行人与范围**：AG-60a、AG-40、AG-41、AG-42、AG-50、AG-51、AG-60、AG-61、AG-62 由 Astra 实现，按交接文档的顺序串行执行；每票跑本地 gates，登记 PROVENANCE，推送两个远端。阶段 4 从用户把交接交给 Astra 时开始。<br>2. **复查与签收**（Claude 建议）：每票完成后和每个阶段出口由 Claude 只读复查，只报告不改代码；阶段出口 CI 由用户批准后运行，由用户签收。<br>3. **边界不变**：S8–S35 的边界和停止条件照旧；真实服务和实机项按 D2 逐项授权；正式身份、发布和阶段 7 不在本次授权内；并行需用户另外同意 | 用户，2026-10-11，"可以把这些整理好，然后目标是交给astra去做执行" |
 | S37 | AG-40 起改由 AGY 执行（用户指示）：<br>1. **执行人**：AG-60a 由 Astra 完成，Claude 复查通过。AG-40、AG-41、AG-42、AG-50、AG-51、AG-60、AG-61、AG-62 改由 AGY CLI 执行，模型 `gemini-3.8-flash-medium`。Astra 不再执行本阶段的 ticket。<br>2. **派发与验收**：Claude 每次派发一张 ticket，任务说明按交接文档写明范围和边界。AGY 实现、测试、跑本地 gates 并在本地提交。Claude 读 diff、独立复核关键检查，通过后推送两个远端、写复查记录；不通过就把问题汇总后发回同一会话修复。<br>3. **权限**：用户同意 Claude 派发的阶段 4–6 AGY 调用开启自动批准（`--dangerously-skip-permissions`），使 AGY 能运行测试、关闭沙箱的门禁和本地 git。自动批准不是文件沙箱，所以每次运行后 Claude 检查原工作区是否干净、分支是否未变。AGY 不推送，不触发 CI，也不改全局配置。<br>4. **其余不变**：S8–S36 的边界、交接文档的流程和停止条件、阶段出口 CI 须用户批准、用户签收阶段出口 | 用户，2026-10-11，"确认由你复查，astra已经完成60a，复查这个ticket，接下来交给agy的3.8 flash medium去执行"；自动批准：用户选择"开启自动批准" |
-| S38 | 阶段 4 起按难度分配执行人（用户指示）：<br>1. **分工**：Claude 按难度分配。简单、方向明确的任务交 AGY（`gemini-3.8-flash-medium`），其余交 Codex CLI（`gpt-6-astra`，推理强度 medium）。<br>2. **阶段 4 的分配**：AG-40 改交 Codex，原因是旧管线 2399 行要按需求重写，判断多；AGY 未验收的草稿已备份，留在工作区供 Codex 参考或重写。AG-41 拆成两部分：AG-41a 退役 Google、Deepgram、ElevenLabs（删实现、设置入口、专属测试和依赖，写退役规则），交 AGY；AG-41b 五家 STT、未配置时阻止开始、恢复 4 个 Realtime 用例、缓冲上限，交 Codex。AG-42 交 Codex。按 AG-40 → AG-41a → AG-41b → AG-42 串行执行（并行仍须用户另外同意）。<br>3. **Codex 的权限**：`codex exec` 在 `workspace-write` 沙箱里运行，可写目录加上本仓库的 `.git`（用于本地提交）。需要越出沙箱的命令（启动 Electron 的门禁）经 `--approve-for-me` 自动审查后执行，不使用 `--dangerously-bypass-approvals-and-sandbox`。<br>4. **其余按 S37**：每次派一张，执行人本地提交、不推送；Claude 先读代码再检查，通过后推送；测试一律经隔离守卫并设超时 | 用户，2026-10-11，"接下来你对任务进行分配，把简单的任务交给gemini 3.8 flash去做，其他任务调用codex cli的 astra medium去完成" |
+| S38 | 阶段 4 起按难度分配执行人（用户指示）：<br>1. **分工**：边界清晰、需求明确的任务交 AGY（`gemini-3.8-flash-medium`）；需要模型自主判断和决策的任务交 Codex CLI（`gpt-6-astra`，推理强度 medium）。用户随后细化为"把边界清晰，需求明确的任务交给gemini 3.8 flash去做，需要模型自主判断决策的任务交给astra medium"。<br>2. **阶段 4 的分配**：AG-40 改交 Codex，原因是旧管线 2399 行要按需求重写，判断多；AGY 未验收的草稿已备份，留在工作区供 Codex 参考或重写。AG-41 拆成两部分：AG-41a 退役 Google、Deepgram、ElevenLabs（删实现、设置入口、专属测试和依赖，写退役规则），交 AGY；AG-41b 五家 STT、未配置时阻止开始、恢复 4 个 Realtime 用例、缓冲上限，交 Codex。AG-42 交 Codex。按 AG-40 → AG-41a → AG-41b → AG-42 串行执行（并行仍须用户另外同意）。<br>3. **Codex 的权限**：`codex exec` 在 `workspace-write` 沙箱里运行，可写目录加上本仓库的 `.git`（用于本地提交），不开自动审批（`--approve-for-me` 被 Claude Code 自动模式拦下）。需要启动 Electron 的完整 gates 由 Claude 在沙箱外跑。<br>5. **并行**（用户同意"AG-41a 和 AG-40 可以并行跑"）：AG-41a 在被忽略的 `tmp/wt-AG-41a` 独立工作树（分支 `codex/margin-ag41a`）中执行，与 AG-40 互不写同一工作区；共享 `node_modules` 只读，PLAN、wayfinder、PROVENANCE 由 Claude 合并时写。<br>4. **其余按 S37**：每次派一张，执行人本地提交、不推送；Claude 先读代码再检查，通过后推送；测试一律经隔离守卫并设超时 | 用户，2026-10-11，"接下来你对任务进行分配，把简单的任务交给gemini 3.8 flash去做，其他任务调用codex cli的 astra medium去完成" |
+| S39 | Azure Speech 和 IBM Watson 一并退役（Claude 复查 AG-41a 时发现 S35 漏列，用户选择"一起退役"）：S35 第 1 条定的五家（OpenAI、Soniox、Groq、阿里云百炼、豆包）来自旧 Margin，旧 Margin 没有这两家的 STT；S35 列退役名单时只写了 Google、Deepgram、ElevenLabs。两家由 AG-41a 一并删除实现、设置入口、连接测试和专属测试，写退役规则；没有独立 npm 依赖。已存选择按"未选择服务商"处理 | 用户，2026-10-11，选择"一起退役（推荐）" |
 
 **S21 细则**：
 
@@ -1313,7 +1314,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-33 | 代码及本地检查通过；提示词已定案（S29）；Claude 复查待办 | `49b44e8c`、`90fae433` | 请求身份、流式/短答案/部分结果、笔试和图片能力、记录元数据；证据 `evidence/AG-33/`；提示词定案见"AG-33 提示词定案记录" |
 | AG-34 | 实现和本地门禁通过；待 Claude 只读复查 | `b1ed9fe3`（仅私有远端已更新） | 独立只读 Codex 登录来源；单次完整 16/16，971 测试/966 通过/5 既有跳过；证据 `evidence/AG-34/`。无真实登录或服务验收，阶段出口未完成 |
 | AG-60a | 完成；Claude 只读复查通过（2026-10-11，§9"AG-60a 复查"） | `e05ad25e`；记录 `4a782acc`、`1f469b94` | 翻译查找/回退/切换及共用设置组件，本地 gates 单次 16/16，112 文件、967 测试（962 通过、5 既有跳过），G2 零命中；证据 `evidence/AG-60a/`。实现及记录已推送两个远端并核对；无出口 CI、真实服务或设备验收 |
-| AG-40 | 实现和本地检查通过；完整门禁和复查待 Claude | `5241e414` | 主进程双路音频/会话生命周期接线；修改测试 85/85、竞态 16/16，构建和两套类型检查通过，G2 零命中。全量仅有已获准的 iconutil 沙箱例外，5 个既有跳过不变；证据 `evidence/AG-40/`。本地提交、不推送；未运行完整 gates 或实机验收 |
+| AG-40 | 完成；Claude 复查通过，完整 gates 16/16（Claude 在沙箱外运行，§9"AG-40 复查"） | `5241e414`；记录 `1733427a` | 主进程双路音频/会话生命周期接线；修改测试 85/85、竞态 16/16，构建和两套类型检查通过，G2 零命中。全量仅有已获准的 iconutil 沙箱例外，5 个既有跳过不变；证据 `evidence/AG-40/`。本地提交、不推送；未运行完整 gates 或实机验收 |
 
 ### AG-40 记录（2026-10-11）
 
@@ -2755,3 +2756,30 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - `allowLines` 按整行全局生效。AG-60 翻译其他设置页时，与上游完全相同的 `{t('Refresh')}`、`{t('Open Folder')}` 不会再报命中；那时复查要直接看 diff，不能只看扫描结果。
 - `SettingsHeading`/`SettingsCard` 和上游 `SettingsRow.tsx` 的 `SettingsSectionHeading`/`SETTINGS_CARD` 思路相同（都是把标题和卡片样式抽成共用件），但类名取自基线，组件写法不同。
 - 记录提交 `1f469b94` 复查时只在本地，Claude 随 S37 的文档提交一起推送。
+
+### AG-40 复查（Claude，2026-10-11，S38 执行人 Codex `gpt-6-astra` medium）
+
+先读代码后检查（用户要求"你先浏览agy写的代码，查看是否有需要修改的地方，完成后再去跑检查"）。范围：`5241e414`、`1733427a`。
+
+**过程**
+- 先派 AGY，两轮都卡在一个没有超时的竞态测试上，而且出现改字躲扫描的写法，被 Claude 停下。
+- 按 S38 改派 Codex。Codex 以 AGY 草稿为起点。
+- Claude 中途核对出两处上游派生内容，Codex 已删除并改为按需求自写：
+  - 草稿的 `audioDeviceSelection.mjs` 与受限上游同名同 API，`AudioDevices.ts` 中三行与上游逐字相同；
+  - HFP `nativeRate <= 24000` 兜底来自上游 `main.ts`。
+- Codex 在沙箱里遇到 `iconutil` 失败，Claude 在沙箱外复跑 4/4 通过，确认是沙箱造成的。
+
+**代码阅读结论：通过**
+
+| 部分 | 结论 |
+| --- | --- |
+| `MeetingAudioPipeline.ts` | 会话代号（epoch）作废过期的异步任务，修订号（revision）只采纳最新一次设备请求；原生释放失败后拒绝下一次会议；权限每次重新检查，拒绝时只释放系统音频；恢复次数有上限，终止只报告一次。设计取舍：麦克风出错的恢复会连带重建系统音频 |
+| `MeetingSttSession.ts`、`meetingLifecycleQueue.ts` | 每个服务商一组监听；排空期间只接受 final；超时后撤销卡住的发送通道；退下的服务商挂空 error 监听，避免进程崩溃。重复的开始或停止请求合并，启动失败后的停止仍执行清理 |
+| `main.ts` | 停止顺序：作废启动 → 拆采集 → 排空 → 保存 → 恢复默认模型 → 清屏，没有自动回答和 Judge（S33）。`IntelligenceManager.handleTranscript` 只更新上下文，去掉推测生成和自动追问，符合 S33。睡眠时释放采集，唤醒时按上次的设备重建 |
+| `AudioDevices.ts` | 基于本分支的同步原生接口重写。排除的聚合设备名 `NativelySystemAudioTap` 来自基线 `native-module/src/speaker/core_audio.rs` |
+| 测试 | 16 个旧测试中，读 `main.ts` 源码字符串的断言全部换成驱动真实管线和 `AppState` 的行为测试（S27）；停止链测试 `Mg21StopConsumer` 改为调用生产代码 |
+| 来源 | 新增 28 条 allowLines 逐条看过，都是字段声明、计时器清理、测试同步等通用写法。PROVENANCE 逐条列出旧测试的复用范围和处置 |
+
+**低优先级问题（下一张票顺带修）**：`MicRecoveryEmitsTerminalIpc.test.mjs` 没有断言前 3 次错误真的重建了麦克风；恢复逻辑完全失效时，它也会通过。
+
+**检查**：完整 gates 16/16（`evidence/AG-40/gates/`，提交 `1733427a`，无未提交路径）。tests 共 120 个文件、962 项：957 通过、0 失败、5 个既有跳过，其中图标测试在沙箱外通过；regression、storage、startup、outbound-renderer 全部通过。未做实机验证：真实麦克风、系统音频、睡眠唤醒和蓝牙设备都只用了 mock。
