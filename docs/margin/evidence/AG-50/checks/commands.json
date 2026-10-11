@@ -1,0 +1,62 @@
+[
+  {
+    "id": "build-electron",
+    "command": "npm run build:electron",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "vite-build",
+    "command": "npx --no-install vite build",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "tsc-electron",
+    "command": "npx --no-install tsc -p electron/tsconfig.json --noEmit",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "tsc-renderer",
+    "command": "npx --no-install tsc --noEmit -p tsconfig.json",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "preload-contract",
+    "command": "node scripts/margin/preload-contract-check.mjs",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "ipc-channels",
+    "command": "node scripts/margin/ipc-channel-check.mjs",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "unit-suite",
+    "command": "node scripts/margin/run-gates.mjs --only tests --out <worktree>/docs/margin/evidence/AG-50/checks/unit",
+    "exitCode": 1,
+    "signal": null
+  },
+  {
+    "id": "retired-all",
+    "command": "node scripts/margin/retired-check.mjs --all",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "provenance",
+    "command": "node scripts/margin/provenance-check.mjs --max-hits 0",
+    "exitCode": 0,
+    "signal": null
+  },
+  {
+    "id": "diff-check",
+    "command": "git -C <worktree> diff --check",
+    "exitCode": 0,
+    "signal": null
+  }
+]

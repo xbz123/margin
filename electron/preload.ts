@@ -49,6 +49,9 @@ window.addEventListener('auxclick', openClickedLink);
 
 // Types for the exposed Electron API
 interface ElectronAPI {
+  listLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
+  addLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
+  removeLocalContext: (id: string) => Promise<import('../src/types/localContext').LocalContextResult>;
   getDomesticStt: (provider: DomesticSttProvider) => Promise<{ hasKey: boolean; workspaceId: string; appId: string }>;
   saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
   testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
@@ -548,6 +551,9 @@ const cancelActiveIntelligence = () => {
 };
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  listLocalContext: () => ipcRenderer.invoke('local-context:list'),
+  addLocalContext: () => ipcRenderer.invoke('local-context:add'),
+  removeLocalContext: (id: string) => ipcRenderer.invoke('local-context:remove', id),
   updateContentDimensions: (dimensions: { width: number; height: number }) =>
     ipcRenderer.invoke('update-content-dimensions', dimensions),
   updateContentDimensionsCentered: (dimensions: { width: number; height: number }) =>

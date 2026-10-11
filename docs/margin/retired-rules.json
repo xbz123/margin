@@ -12,7 +12,8 @@
     "AG-40",
     "AG-41a",
     "AG-41b",
-    "AG-42"
+    "AG-42",
+    "AG-50"
   ],
   "scanRoots": [
     "electron",
@@ -37,6 +38,10 @@
     "native-module/package-lock.json"
   ],
   "rules": [
+    { "ticket": "AG-50", "kind": "symbol", "value": "localContextPrewarmEnabled" },
+    { "ticket": "AG-50", "kind": "symbol", "value": "supportsLocalContextPrewarm" },
+    { "ticket": "AG-50", "kind": "path", "value": "electron/llm/localContextPrewarm.ts" },
+    { "ticket": "AG-50", "kind": "path", "value": "src/components/settings/LocalContextPrewarmSetting.tsx" },
     { "ticket": "AG-41b", "kind": "path", "value": "electron/audio/wsSafeTeardown.ts" },
     { "ticket": "AG-40", "kind": "path", "value": "electron/audio/audioDeviceSelection.mjs" },
     { "ticket": "AG-40", "kind": "path", "value": "electron/audio/audioDeviceSelection.d.mts" },

@@ -20,6 +20,10 @@ import { TINY_PROMPTS_SET } from "./llm/tinyPrompts"
 import { getModelCapabilities, selectPromptTier, estimateTokens, truncateTranscriptToFit, type PromptTier, type ModelCapabilities } from "./llm/modelCapabilities"
 import { GeminiPromptCache } from "./llm/GeminiPromptCache"
 import { generateOnce } from './llm/generateOnce';
+import { app } from 'electron';
+import { join } from 'node:path';
+import { LocalContextStore } from './services/LocalContextStore';
+import { attachLocalContext } from './llm/localContextRequest';
 import { GenerationResultError, rethrowTerminalGenerationError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
 import { assertProviderDataScopes, getDeniedDataScopes, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
 import type { TranscriptTurn } from "./llm/transcriptCleaner"
@@ -146,6 +150,7 @@ export class LLMHelper {
         contents.push({ inlineData: image });
       }
       const dataScopes = self.scopesForPayload(userContent, /"inlineData"/.test(JSON.stringify(contents)) ? ['inline-image'] : imagePaths);
+      const localContext = purpose === 'compatibility' ? [] : new LocalContextStore(join(app.getPath('userData'), 'local-context.json')).list();
       let cacheReference: string | undefined;
       const codexSession = (self.codexAuthSource ??= new CodexAuthSource()).session(() => { task.check(); assertCodexConsent(self.getCodexCliConfig()); assertProviderDataScopes('codex', dataScopes, self.getProviderScopePolicy()); });
       const options = { get cacheReference() { return cacheReference; }, invalidateCache: () => {
@@ -153,11 +158,15 @@ export class LLMHelper {
       }, recoverAuthentication: (snapshot: GenerationTargetSnapshot, error: unknown) => snapshot.kind === 'codex' ? codexSession.recover(error) : Promise.resolve(false) };
       try { for await (const event of generateTask(task, (snapshot: GenerationTargetSnapshot, signal, recovery) => (async function* () {
         const { target } = snapshot;
+        const request = attachLocalContext({ protocol: target.protocol, model: target.model, purpose, contents,
+          systemInstruction, stream, signal, dataScopes,
+          maxOutputTokens: outputLimit ?? (target.provider === 'claude' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
+        }, localContext);
         const imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0) + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
         if (snapshot.kind === 'codex') {
           const assertImages = () => { if (imageCount && snapshot.imageSupportConfirmedFor !== codexImageTarget(target.model)) throw new Error('Image support is unconfirmed for this Codex model and backend. Confirm it in Settings; attachments were kept.'); };
           assertImages();
-          yield* codexSession.generate(snapshot.codex, { model: target.model, contents, systemInstruction, signal }, () => {
+          yield* codexSession.generate(snapshot.codex, { model: target.model, contents: request.contents, systemInstruction, signal }, () => {
             task.check(); assertCodexConsent(self.getCodexCliConfig()); assertProviderDataScopes('codex', dataScopes, self.getProviderScopePolicy()); assertImages();
             task.claimSend(snapshot); task.imageCount = imageCount;
           }); return;
@@ -174,9 +183,7 @@ export class LLMHelper {
           cacheReference = (await awaitGeneration(task, self.geminiPromptCache.getOrCreate(client, target.model, systemInstruction,
             () => self.assertOutboundScopes(apiTarget.provider, userContent, imagePaths), signal))) ?? undefined;
         }
-        yield* generateOnce({ protocol: target.protocol, model: target.model, purpose, contents,
-          systemInstruction, cacheReference, stream, signal, dataScopes,
-          maxOutputTokens: outputLimit ?? (target.provider === 'claude' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
+        yield* generateOnce({ ...request, cacheReference,
           ...(['gemini', 'groq'].includes(target.provider) ? { temperature: purpose === 'summary' ? 0.3 : 0.4 } : {}),
           providerOptions: {
             outputTokenField: ['groq', 'deepseek', 'claude'].includes(target.provider) ? 'max_tokens' : 'max_completion_tokens',

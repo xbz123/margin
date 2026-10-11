@@ -14,6 +14,7 @@ import {
 import { AboutSection } from './AboutSection';
 import { HelpSettings } from './settings/HelpSettings';
 import { AIProvidersSettings } from './settings/AIProvidersSettings';
+import { LocalContextSettings } from './settings/LocalContextSettings';
 import { CredentialLoadBanner } from './settings/CredentialLoadBanner';
 import { SkillsSettings } from './settings/SkillsSettings';
 import { NativelyLogoMark } from './NativelyLogoMark';
@@ -1922,7 +1923,10 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             )}
 
                             {activeTab === 'ai-providers' && (
-                                <AIProvidersSettings />
+                                <div className="space-y-5">
+                                    <AIProvidersSettings />
+                                    <LocalContextSettings />
+                                </div>
                             )}
                             {activeTab === 'skills' && (
                                 <SkillsSettings />

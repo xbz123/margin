@@ -23,6 +23,7 @@ import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
+import { registerLocalContextHandlers } from './ipc/localContextHandlers';
 import { manualAnswerError, MANUAL_ANSWER_UNCONFIGURED, MANUAL_ANSWER_CANCELLED, InvalidImagePathError } from './direct-assist/errors';
 
 export function initializeIpcHandlers(appState: AppState): void {
@@ -81,6 +82,8 @@ export function initializeIpcHandlers(appState: AppState): void {
       } finally { task?.close(); }
     });
   };
+
+  registerLocalContextHandlers(safeHandle, () => appState.processingHelper.getLLMHelper().cancelGenerationTasks('Local Context changed'));
 
   const safeOn = (
     channel: string,

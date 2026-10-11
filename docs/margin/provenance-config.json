@@ -11,6 +11,12 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"assert.equal(changes, 2);","reason":"AG-50: Generic mutation-callback count assertion in LocalContextBridge.test.mjs; only successful add/remove invalidate in-flight generations, not cancelled selection or rejected imports."},
+    {"line":"const api = {","reason":"AG-50: Generic mock object declaration in LocalContextBridge.test.mjs; it drives the production settings card and is not copied UI behavior."},
+    {"line":"return entries;","reason":"AG-50: Generic return of the validated local snapshot array in LocalContextStore.list/save (two sites); store is newly written with imported-content snapshots, not the old path-based store."},
+    {"line":"import { getModelCapabilities } from './modelCapabilities';","reason":"AG-50: Import of this branch's existing capacity API in localContextRequest; no later upstream capacity implementation imported."},
+    {"line":"assert.equal(sent.length, 2);","reason":"AG-50: Generic mock send-count assertion for two real entry points in LocalContext.test.mjs; test written against this branch."},
+    {"line":"const [error, setError] = useState('');","reason":"AG-50: Standard React error-state initialization in the newly written LocalContextSettings card; no old UI logic imported."},
     {"line":"assert.deepEqual(errors, []);","reason":"AG-40: Generic empty-error assertion in electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs:42 for the locally written watchdog cancellation test; no upstream test logic imported."},
     {"line":"timer.callback();","reason":"AG-40: Generic invocation of a synthetic timer callback in electron/audio/__tests__/meetingAudioFixture.mjs:93; locally written fake-clock fixture, not an imported timer implementation."},
     {"line":"assert.equal(warnings.length, 0);","reason":"AG-42 review repair: Generic count assertion that user cancellation emits no best-effort STT warning; this synthetic behavior test was written here."},

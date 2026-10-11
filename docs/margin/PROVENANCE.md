@@ -21,6 +21,44 @@ Notes:
 
 ## Ledger
 
+### AG-50 full-text Local Context (2026-10-11)
+
+Written for this branch from HANDOFF 4.5, the final S40 user decision and the
+stage-3 GenerateRequest contract. Not a clean-room claim. No old implementation
+fragments, later upstream implementation, assets or dependencies were imported.
+Only `git show b8ade3f7:<path>` was used for old-code inspection. The S35 ledger
+was read before implementation; its candidates are not treated as approvals.
+
+| Old content | Use and disposition |
+| --- | --- |
+| `electron/services/LocalContextStore.ts` | Behavior reference only for UTF-8/text extensions and 8 / 32 KiB / 64 KiB bounds. The upstream-derived implementation is not introduced. New store persists validated text snapshots rather than a list of source paths; generation never reopens the original documents. It has no enable switch, prewarm observer or old state schema. Bounded descriptor reads and atomic replacement use Node primitives. |
+| `electron/llm/promptAssembly.ts` | Behavior reference for reference-first placement and lower-trust material. Rewritten against string / parts / role-based `contents`; no GenerateTurn or old builder. Hit line 12 is excluded with the entire old interface. No stable prefix/prewarm code, Skills or request-reference feature is imported. |
+| `electron/llm/promptBudget.ts` | Behavior reference only for rejecting rather than trimming and conservative UTF-8/framing estimation. Rewritten in `localContextRequest.ts`, using this branch's `getModelCapabilities(model)` and `maxOutputTokens`, not old `request.target`, `request.turns` or modelTargetCapabilities. No old exact-count or backend-unbounded special case is imported. |
+| `electron/ipc/configContextHandlers.ts` | Only inspected the Local Context behavior. New three-channel handler is self-written; no fragments are introduced. All 47 hit lines 58, 61, 152, 153, 154, 155, 159, 162, 163, 164, 167, 171, 173, 174, 175, 177, 178, 179, 181, 182, 185, 189, 192, 193, 195, 196, 198, 202, 205, 206, 207, 209, 210, 211, 213, 215, 219, 220, 221, 224, 225, 226, 227, 228, 229, 230, 232 are excluded, as are all 81 S35 snapshot lines and their adjacent short lines. No old configuration, debug or prewarm dependencies return. |
+| Old `ProviderRouter.ts` and `answerGeneration.ts` | Read only to establish the old `reference_files` policy and distinguish manual persona context. No code imported. S40 supersedes that policy; existing three data scopes are untouched. |
+| `src/components/settings/LocalContextSettings.tsx` | No old body imported or used as a template. New card uses the current SettingsKit/useI18n. S35 hits 7, 12, near-snapshot 71, and snapshot lines 8–9, 11, 13–16, 20–21, 23, 25–27 all remain excluded. No old enable/prewarm controls are introduced. |
+| Old `PromptBudget2026_09_27` / `ManualContextFallback2026_06_16` tests | Not imported. Their snapshot ranges stay excluded. New tests execute this branch's store, request assembly, actual WhatToAnswer/LLMHelper, IPC/preload and UI handlers with synthetic data. No existing test is deleted or skipped. |
+| `tests/fixtures/documents/` | Entirely excluded, including synthetic PDF/DOCX and README. Unsupported extensions are rejected before file access; no parser or dependency changes. |
+
+G2 found seven occurrences of six generic lines. They remain unchanged and are
+registered individually by exact line in `provenance-config.json`, with reasons:
+
+| New location | Exact line | Judgment |
+| --- | --- | --- |
+| LocalContextStore.list | `return entries;` | Return the newly validated local array; generic control flow |
+| LocalContextStore.save | `return entries;` | Return the saved local array; generic control flow |
+| localContextRequest import | `import { getModelCapabilities } from './modelCapabilities';` | Import this branch's existing model-capacity API, not an upstream implementation |
+| LocalContext test | `assert.equal(sent.length, 2);` | Standard count assertion for the two production entry points |
+| LocalContextSettings | `const [error, setError] = useState('');` | Standard React error state |
+| LocalContextBridge test | `const api = {` | Ordinary synthetic bridge-object declaration |
+| LocalContextBridge test | `assert.equal(changes, 2);` | Count only successful add/remove invalidations, excluding cancelled or rejected imports |
+
+No source-pool/exclusion expansion or scan-evasion edits were made. G2's final
+result and test evidence are under `evidence/AG-50/checks/`. The two existing IPC
+unit harnesses gained only a no-op registration stub for the unrelated new module;
+their image-validation and logging-privacy assertions remain intact. AG-50 adds
+four exact prewarm retirement rules; `reference_files` remains retired.
+
 ### Stage 4 exit CI repair (2026-10-11)
 
 Written from the CI 38159055916 failures and this branch's cancellation contract.

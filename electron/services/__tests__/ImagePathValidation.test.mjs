@@ -36,6 +36,7 @@ function handlers(root, queue = []) {
       if (id === './utils/imagePathValidation') return { validateImagePath };
       if (id === './direct-assist/errors') return require('../../../dist-electron/electron/direct-assist/errors.js');
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+      if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };
       if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);
       return {};

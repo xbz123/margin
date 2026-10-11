@@ -1,0 +1,58 @@
+{
+  "startedAt": "2026-10-11T18:31:28.403Z",
+  "head": "0116c6c2fddc71ddf84113ccdd0507f340096eb2",
+  "uncommittedPaths": 21,
+  "uncommittedPathList": [
+    "M docs/margin/PLAN.md",
+    " M docs/margin/provenance-config.json",
+    " M docs/margin/retired-rules.json",
+    " M electron/LLMHelper.ts",
+    " M electron/direct-assist/errors.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/margin/__tests__/loggingPrivacy.test.mjs",
+    " M electron/preload.ts",
+    " M electron/services/__tests__/ImagePathValidation.test.mjs",
+    " M src/components/SettingsOverlay.tsx",
+    " M src/i18n.zh.ts",
+    " M src/types/electron.d.ts",
+    "?? .agy-tmp/",
+    "?? docs/margin/evidence/AG-50/",
+    "?? electron/ipc/localContextHandlers.ts",
+    "?? electron/llm/localContextRequest.ts",
+    "?? electron/services/LocalContextStore.ts",
+    "?? electron/services/__tests__/LocalContext.test.mjs",
+    "?? electron/services/__tests__/LocalContextBridge.test.mjs",
+    "?? src/components/settings/LocalContextSettings.tsx",
+    "?? src/types/localContext.ts"
+  ],
+  "reference": null,
+  "steps": [
+    {
+      "id": "tests",
+      "command": "per file: node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 16533,
+      "log": "docs/margin/evidence/AG-50/checks/unit/tests.log",
+      "tap": "docs/margin/evidence/AG-50/checks/unit/tests.tap",
+      "perFile": "docs/margin/evidence/AG-50/checks/unit/tests.files.json",
+      "files": 123,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 978,
+        "pass": 976,
+        "fail": 1,
+        "skipped": 1,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-11T18:31:44.939Z",
+  "allPassed": false
+}

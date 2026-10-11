@@ -5,6 +5,9 @@ import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResul
 
 import type { DomesticSttProvider, DomesticSttSettings } from './domesticStt';
 export interface ElectronAPI {
+  listLocalContext: () => Promise<import('./localContext').LocalContextResult>;
+  addLocalContext: () => Promise<import('./localContext').LocalContextResult>;
+  removeLocalContext: (id: string) => Promise<import('./localContext').LocalContextResult>;
   getDomesticStt: (provider: DomesticSttProvider) => Promise<{ hasKey: boolean; workspaceId: string; appId: string }>;
   saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
   testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
