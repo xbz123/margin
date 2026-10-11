@@ -2,13 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
 
-**Current answer:** 阶段 4 出口 CI `38162294825`（`fb66acce`）通过：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、源码包 `cleanTree`；产物已核对（2026-10-11）。等用户签收。
+**Current answer:** 阶段 4 已签收（2026-10-11，出口 CI `38162294825`）。阶段 5 开始，AG-50 Local Context 全文交 Codex。
 
-**Current focus:** 用户签收阶段 4；签收前不进入 AG-50。
+**Current focus:** 阶段 5：AG-50 → AG-51 → 阶段 5 出口（CI 须用户批准，用户签收）。
 
 ## Waiting
 
-- **阶段 4 等用户签收** — 出口 CI `38162294825`（`fb66acce`）通过，产物已核对（PLAN §9"阶段 4 出口 CI 38162294825"）。签收后进入阶段 5（AG-50 Local Context，交 Codex）。
+- **AG-50 交 Codex** — Local Context 全文（无预热，S33）；只接受 `.md`、`.markdown`、`.txt`，支持 PDF/DOCX 属于范围变更，须先问用户。完成后由 Claude 复查并跑完整门禁。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching
