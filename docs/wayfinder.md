@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **阶段 4 由 AGY 执行**（S37）— AG-60a 已完成并通过 Claude 复查（PLAN §9"AG-60a 复查"）。AG-40 → AG-41 → AG-42 由 AGY（`gemini-3.8-flash-medium`）逐票执行，Claude 派发、复查、推送；完成后做阶段 4 验收，出口 CI 须用户批准。交接文档 `docs/margin/HANDOFF-stage4-6.md`，复用依据见 PLAN §6"旧 Margin 复用清单（S35）"。
+- **阶段 4 由 AGY 执行**（S37）— AG-60a 已完成并通过 Claude 复查（PLAN §9"AG-60a 复查"）。按 S38 分配：AG-40（Codex）→ AG-41a 退役三家 STT（AGY）→ AG-41b 五家 STT（Codex）→ AG-42（Codex），Claude 派发、复查、推送；完成后做阶段 4 验收，出口 CI 须用户批准。交接文档 `docs/margin/HANDOFF-stage4-6.md`，复用依据见 PLAN §6"旧 Margin 复用清单（S35）"。
 
 ## Waiting
 
