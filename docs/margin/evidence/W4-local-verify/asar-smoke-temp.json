@@ -1,0 +1,62 @@
+{
+  "app": "temp.app",
+  "checks": [
+    {
+      "id": "launcher-window",
+      "passed": true,
+      "detail": "window=launcher rendered"
+    },
+    {
+      "id": "preload-api",
+      "passed": true,
+      "detail": "window.electronAPI"
+    },
+    {
+      "id": "renderer-from-package",
+      "passed": true,
+      "detail": "file://<asar>/dist/index.html?window=launcher"
+    },
+    {
+      "id": "app-path",
+      "passed": true,
+      "detail": "<asar>"
+    },
+    {
+      "id": "app-name",
+      "passed": true,
+      "detail": "temp"
+    },
+    {
+      "id": "user-data-in-sandbox",
+      "passed": true,
+      "detail": "<sandbox>/home/Library/Application Support/temp"
+    },
+    {
+      "id": "native-from-package",
+      "passed": true,
+      "detail": {
+        "fromPackage": [
+          "<asar>.unpacked/native-module/index.darwin-arm64.node",
+          "<asar>.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+        ],
+        "fromRepo": []
+      }
+    },
+    {
+      "id": "stays-up",
+      "passed": true,
+      "detail": "alive after 10 s"
+    },
+    {
+      "id": "no-main-errors",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "id": "no-outbound",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "passed": true
+}

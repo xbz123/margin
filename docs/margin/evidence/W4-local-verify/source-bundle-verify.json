@@ -1,0 +1,36 @@
+{
+  "commit": "d2bd81469e797327bebdaba730de8d53d6bb2c17",
+  "run": "38123550800/1",
+  "cleanTree": true,
+  "trackedChanges": [],
+  "untracked": [
+    "ci-evidence/ipc-channels.gaps.txt",
+    "ci-evidence/preload-contract.gaps.txt",
+    "ci-evidence/summary.json",
+    "ci-evidence/test-failures.txt",
+    "ci-evidence/tests.files.json",
+    "ci-evidence/tests.tap",
+    "ci-evidence/tsc-electron.diagnostics.txt"
+  ],
+  "files": 587,
+  "counts": {
+    "app": 1,
+    "npm": 470,
+    "cargo": 114,
+    "electron-ffmpeg": 1,
+    "electron-ffmpeg-patch": 1
+  },
+  "mismatched": [],
+  "unlisted": [],
+  "electron": {
+    "version": "43.1.0",
+    "source": "https://github.com/electron/electron/tree/v43.1.0",
+    "chromium": "150.0.7871.47",
+    "chromiumSource": "https://chromium.googlesource.com/chromium/src/+/refs/tags/150.0.7871.47",
+    "ffmpegRevision": "ad41607c61898cf7150e0fb20fe4bbabd44922a3",
+    "note": "Electron is shipped unmodified from its release; its full source and Chromium build system are at the URLs above. ffmpeg is the LGPL library inside it (libffmpeg.dylib) and is included here with Electron's patch."
+  },
+  "libvipsSection": false,
+  "appTarMatchesLocalGitArchive": true,
+  "appTarSHA256": "9ecda9b79a76a7e61b6b8925cca0327caac33454565201f3cba6d9ae8dc17eec"
+}
