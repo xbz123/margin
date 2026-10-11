@@ -1,0 +1,137 @@
+[
+  {
+    "name": "build-electron",
+    "command": [
+      "npm",
+      "run",
+      "build:electron"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "vite",
+    "command": [
+      "npx",
+      "--no-install",
+      "vite",
+      "build"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "tsc-electron",
+    "command": [
+      "npx",
+      "--no-install",
+      "tsc",
+      "-p",
+      "electron/tsconfig.json",
+      "--noEmit"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "tsc-renderer",
+    "command": [
+      "npx",
+      "--no-install",
+      "tsc",
+      "--noEmit",
+      "-p",
+      "tsconfig.json"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "preload-contract",
+    "command": [
+      "node",
+      "scripts/margin/preload-contract-check.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "targeted",
+    "command": [
+      "node",
+      "scripts/margin/isolation/run-node.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "--test-timeout=60000",
+      "electron/llm/__tests__/generationInterfaces.test.mjs",
+      "electron/audio/__tests__/MeetingSttSession.test.mjs",
+      "electron/services/__tests__/ManualAnswerBridge.test.mjs",
+      "electron/services/__tests__/ImagePathValidation.test.mjs",
+      "electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "unit-tests",
+    "command": [
+      "node",
+      "scripts/margin/isolation/run-node.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "--test-timeout=60000",
+      "electron/services/__tests__/**/*.test.mjs",
+      "electron/llm/__tests__/**/*.test.mjs",
+      "electron/audio/__tests__/**/*.test.mjs",
+      "electron/margin/__tests__/**/*.test.mjs",
+      "electron/utils/__tests__/**/*.test.mjs",
+      "src/lib/__tests__/**/*.test.mjs"
+    ],
+    "exitCode": 1
+  },
+  {
+    "name": "syntax-answer-regression",
+    "command": [
+      "node",
+      "--check",
+      "tests/margin/answer-regression.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "syntax-meeting-storage",
+    "command": [
+      "node",
+      "--check",
+      "tests/margin/meeting-storage.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "syntax-startup-smoke",
+    "command": [
+      "node",
+      "--check",
+      "tests/margin/startup-smoke.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "syntax-outbound-renderer",
+    "command": [
+      "node",
+      "--check",
+      "tests/margin/outbound-renderer.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "retired",
+    "command": ["node", "scripts/margin/retired-check.mjs", "--all"],
+    "exitCode": 0
+  },
+  {
+    "name": "provenance",
+    "command": ["node", "scripts/margin/provenance-check.mjs", "--max-hits", "0"],
+    "exitCode": 0
+  },
+  {
+    "name": "diff-check",
+    "command": ["git", "-C", "<worktree>", "diff", "--check"],
+    "exitCode": 0
+  }
+]

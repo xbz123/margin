@@ -1,0 +1,21 @@
+{
+  "docs/margin/provenance-config.json": "7c05819442afa5c699811eef53d87664e0043a0c85a838177bf50c4b964dd000",
+  "docs/margin/retired-rules.json": "a80ce2ce3bcff33f6bee053bccdf90642239be5de9f209a4b4e1640ebcb83fac",
+  "electron/IntelligenceEngine.ts": "0ef3c98b22de55fe52d4300b1e9b28cfd58f1f6b4aaadfcd6ae8db21ac1a812e",
+  "electron/IntelligenceManager.ts": "69e3f0366e57477236e927b1e09c3132fa47bed5e1bf2f704ef212550429c93c",
+  "electron/audio/MeetingSttSession.ts": "8ddac25b97efaf5e9e01f35475a830e24ebd12529573b667cb26a982168f0e68",
+  "electron/audio/__tests__/MeetingSttSession.test.mjs": "890b5169a92a6143ff93d1fec96e5c9f925c4427be2f2a1b1820757a2617ca38",
+  "electron/audio/__tests__/mainMeetingFixture.mjs": "cda932270d3ed98506b447feee5f504bf5be99946eb94b1c4faef6dca4468f33",
+  "electron/direct-assist/errors.ts": "c9c97822ea80d34462860e2d92a3ba722e982ac1621588997e3cb7f25c73df0f",
+  "electron/ipcHandlers.ts": "4d996be60ff9d13eb8af74f8c0eefab7077db01818cdab2cdc4379a52dbb11cf",
+  "electron/llm/__tests__/generationInterfaces.test.mjs": "4254212f899b8add4b5c87771a254caf51b374866cb276f5814984d12ebeb25f",
+  "electron/llm/answerGeneration.ts": "3010bb6f01e11ec9da2aa3045cb065bc5897e3cc368d989d471b588b66f7cc6b",
+  "electron/main.ts": "19a33921ec3d8f7a75b91b1d0e4bd664a79156b904aca400cb3b079acb2ca598",
+  "electron/preload.ts": "baccbebc8939412f45fc6ff15bc8a8a36339b19be986e7096a9657e2f9b0168f",
+  "electron/services/__tests__/ImagePathValidation.test.mjs": "0e2da52934f035f143ec6041708139c96b7042dac2568d9d0d5c3683eea8100a",
+  "electron/services/__tests__/ManualAnswerBridge.test.mjs": "964f5d3c780732e0425377149e29af6081ab7eeb9f8507a2d20f2727db935e7f",
+  "electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs": "66b1e0420fc266256dae8309bf848908ce4b59233bef0cee1fb7673963a6c68b",
+  "src/components/NativelyInterface.tsx": "8a7ea2d439ba5723776ce14621c30ecf2b7f5a3f8b79b0d1bf586adc018efd01",
+  "src/lib/directAssistAnswerState.ts": "062e9d21beb5dd22c8adb85ae60f4c761bceefb18e72232bc1d5098db6ac27a7",
+  "tests/margin/answer-regression.test.mjs": "eb0772c5190cd19d5286a385f7290afd18144131c9b6227d8bc1a8964ec3c578"
+}

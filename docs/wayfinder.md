@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-42（手动回答）交 Codex** — AG-41b 已完成，Claude 复查通过，完整 gates 16/16（PLAN §9"AG-41b 复查"）。AG-42 完成后做阶段 4 验收；阶段出口 CI 须用户批准。
+- **AG-42 待 Claude 完整门禁和复查** — `3ff20cbc` 实现及本地检查通过，定向 108/108；全量 965 项仅已知 iconutil 沙箱例外失败、1 个既有跳过。本地提交、不推送；入口/来源/证据见 PLAN §8 和 `docs/margin/evidence/AG-42/`。阶段 4 出口 CI 仍须用户批准。
 
 ## Waiting
 

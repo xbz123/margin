@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-**当前执行点（2026-10-11）**：阶段 4 已按 S36 开始；AG-60a、AG-40、AG-41a、AG-41b 已完成并由 Claude 复查（§9）。下一张 AG-42 交 Codex；阶段出口 CI 未运行，须用户批准。
+**当前执行点（2026-10-11）**：阶段 4 已按 S36 开始；AG-60a、AG-40、AG-41a、AG-41b 已完成并由 Claude 复查（§9）。AG-42 实现和本地检查通过（已知 iconutil 沙箱例外），完整门禁和复查待 Claude；仅本地提交。阶段出口 CI 未运行，须用户批准。
 
 状态：**阶段 3 已签收（2026-10-11，用户指示"做 W4 本机核对，通过后签收阶段 3"）。** 签收依据为提交 `d2bd8146` 的 W3 出口 CI `38123550800`（gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7）及 W4 本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 3 签收"。阶段 4–6 按 S36 交给 Codex Astra 执行（[HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)），从用户把交接交给 Astra 时开始。以下为阶段 2 的状态说明。**阶段 2 出口已签收（2026-10-10，用户指示"做本机核对，通过后签收阶段2"）。** Claude 实现并自验收（S21）；Astra 独立验收（2026-10-09）提出的 4 项经两轮复验（2026-10-10）全部关闭；包内 libvips 的 Rust 工具链已固定，CI 两次复现记录的 `64bcfea7…`；验收条件按 S26 精简。签收依据为提交 `2c7f1e42` 的完整 CI `38057787157`（三个作业全部通过）及其下载核对和本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 2 出口签收"。AG-20–26、AG-24 后续、S19-C 及 S22 均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
@@ -1317,6 +1317,18 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-40 | 完成；Claude 复查通过，完整 gates 16/16（Claude 在沙箱外运行，§9"AG-40 复查"） | `5241e414`；记录 `1733427a` | 主进程双路音频/会话生命周期接线；修改测试 85/85、竞态 16/16，构建和两套类型检查通过，G2 零命中。全量仅有已获准的 iconutil 沙箱例外，5 个既有跳过不变；证据 `evidence/AG-40/`。本地提交、不推送；未运行完整 gates 或实机验收 |
 | AG-41a | 完成；Claude 复查通过，合并后完整 gates 16/16（§9"AG-41a 复查"） | `8f05e4cc`、`921517e3`、`cf534db3`；合并 `d25d48ff` | 退役 Google、Deepgram、ElevenLabs（S35）和 Azure、IBM Watson（S39）；删除 6 个依赖；合并后 116 个文件 937 项测试，932 通过、5 个既有跳过；证据 `evidence/AG-41a/` |
 | AG-41b | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-41b 复查"） | `759a6484`、`520dc16e`、`9b92f883` | 五家云端 STT（新增阿里云百炼、豆包，整体按需求重写）、凭据设置、未配置时拒绝开始会议、恢复四个 Realtime 用例、160 KiB 严格缓冲上限（超限拒绝）、麦克风恢复断言；gates 119 个文件 955 项测试，954 通过、1 个既有跳过；证据 `evidence/AG-41b/`；未实机验证 |
+| AG-42 | 实现和本地检查通过；完整门禁和复查待 Claude | `3ff20cbc` | 现有手动入口接阶段 3，mic finalize、取消和身份隔离；定向 108/108，全量 965 项：963 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过；证据 `evidence/AG-42/`。未推送、未实机验证 |
+
+### AG-42 记录（2026-10-11）
+
+- 起点 `4435616a`，按用户本票指示串行、本地提交、不推送；无子代理。未进入 AG-50/51/60 或阶段出口。
+- **入口**：沿用 What-to-Say 按钮/快捷键、`generateWhatToSay`、`generate-what-to-say`、IntelligenceManager/Engine、WhatToAnswerLLM/LLMHelper；没有并行新建 DirectAssistService、IPC、preload API 或生成 transport。
+- **适配**：`answerGeneration.prepareManualAnswer` 对逻辑任务已选目标做配置预检，等待用户麦克风 finalize，取消后拒绝继续。现有阶段 3 把目标映射到 GenerateRequest 的 protocol/model，把会话转写放 contents，系统提示独立，保留 dataScopes、每次发送授权检查和重试预算。无旧 GenerateTurn/AnswerGenerationInput/requestBuilder/types。
+- **生命周期**：手动触发豁免旧冷却；任务 UUID、主进程 owner/UUID 和 preload 的 `directAssistAnswerState` 一致匹配。取消时中止底层请求、丢弃未发批次、封口迟到增量；快速替换及会议结束均有行为测试。固定失败文案不透传服务端错误或请求内容。
+- **STT**：main 原 manual finalize 改走 MeetingSttSession，只触发用户通道，等待 final 或 1500 ms；取消/失败清理监听器。不改变采集，不引入自动回答/Judge。无 final 时使用已有上下文，不声称服务商尾段完整。
+- **来源**：旧 `b8ade3f7` 服务及状态文件仅参考行为，零代码行移植；S35 标出范围整段不引入。4 条新写的通用语句逐条登记（其中 `await pending;` 出现在两个测试文件），无规避扫描改字。详见 PROVENANCE AG-42。
+- **检查**：Electron/Vite 构建、两套类型检查、preload 契约、退役全量、G2、diff-check 均 exit 0；定向 108/108。全量 965 项：963 通过、1 个既有跳过、1 个已知沙箱 iconutil 失败，exit 1，如实保留。没有删测试或新增跳过；原图恶意输入检查和 Electron scope-refusal 回归保留 no-send/单次提示断言，改为固定错误文案。四个 Electron 门禁文件只做 `node --check`，完整 gates 留 Claude。
+- **证据**：`evidence/AG-42/checks/commands.json` 与最终日志；依赖和 lockfile 不变，G7 复用已签收基线。无真实服务、设备、权限、密钥读取、正式身份或 CI。原工作区提交前仍干净且分支未变；无停止条件触发。临时目录在交付前清理。
 
 ### AG-41b 记录（2026-10-11）
 
