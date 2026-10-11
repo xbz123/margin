@@ -78,7 +78,7 @@ dist/assets/vendor-C6xqPYM1.js                           135.44 kB │ gzip:  44
 dist/assets/index.es-8EmOCKlh.js                         150.31 kB │ gzip:  51.29 kB
 dist/assets/html2canvas.esm-CBrSDip1.js                  201.42 kB │ gzip:  47.70 kB
 dist/assets/index-AvmnOlOw.js                          2,158.75 kB │ gzip: 678.45 kB
-✓ built in 4.86s
+✓ built in 5.12s
 
 --- stderr ---
 [plugin:vite:reporter] [plugin vite:reporter] 

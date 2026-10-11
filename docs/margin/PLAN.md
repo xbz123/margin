@@ -2912,3 +2912,5 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - **剩余失败**：`LATE-1 appeared after cancel`，最终文本为 `Cancel test LATE-1 LIVE-INJECTED LATE-2 LATE-3`。LATE-1 在 LIVE-INJECTED 前已合法投递；取消会清掉流式 DOM 再提交正式消息，取消返回时的 DOM 快照可能处在过渡状态，不能作为投递边界。
 - **本次修正**：核实 `electron/preload.ts` 的 `cancelActiveChat` 为同步函数：同 owner 时同步发出取消错误、清空 `activeChatStreamId`/`chatInFlight`，再发送 stop IPC，无 await。测试在一次同步 `overlay.evaluate` 内先复制 `window.__marginDelivered.tokens`，再调用取消并重置投递记录，中间不让异步 IPC 插入；取消前 token 拼接后的 LATE 标记作为合法多重集合。最终 UI 仍逐次扣减，新增或重复超额标记必失败；另明确断言取消后的 token 拼接结果不含 LATE。GAP、STALE、STALE-ERROR、NOID 禁显、原投递断言、终态次数、新旧 id 和旧 HTTP 中止断言全部保留。delay 不变，无跳过，不改生产代码；移除仅此处使用、现已内联的 resetDelivered。
 - **验证及交付边界**：`NODE_DISABLE_COMPILE_CACHE=1 node --check tests/margin/answer-regression.test.mjs` 与 `git -C <migration-worktree> diff --check` 均 exit 0。本次仅本地提交，不推送、不联网、不触发 CI、不运行 Electron 或其他测试。Electron 行为及完整门禁待 Claude 在沙箱外复验，不能把语法检查视为回归通过。
+
+**Claude 复验 `607f0800`（2026-10-11）**：取消测试改用渲染端回调收到的投递记录作为取消前基线，不再依赖 DOM 快照；新增"取消后不投递 LATE"断言，其余断言不变。沙箱外完整 gates 16/16（`evidence/stage4-exit-ci/gates/`，覆盖上一轮的同目录证据）：121 个文件、970 项，969 通过、1 个既有跳过；regression 中该测试通过。等用户批准第三次出口 CI。

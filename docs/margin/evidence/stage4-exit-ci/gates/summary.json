@@ -1,8 +1,32 @@
 {
-  "startedAt": "2026-10-11T17:38:50.754Z",
-  "head": "925fa207a631d9fe28c3cc734d95c6111e26d6fe",
-  "uncommittedPaths": 0,
-  "uncommittedPathList": [],
+  "startedAt": "2026-10-11T17:59:29.634Z",
+  "head": "607f0800ace0086818631cbf120e745d8df0a4b5",
+  "uncommittedPaths": 23,
+  "uncommittedPathList": [
+    "D docs/margin/evidence/stage4-exit-ci/gates/build-electron.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/clean-dist.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/diff-check.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/guard-selftest.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/ipc-channels.gaps.txt",
+    " D docs/margin/evidence/stage4-exit-ci/gates/ipc-channels.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/outbound-renderer.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/preload-contract.gaps.txt",
+    " D docs/margin/evidence/stage4-exit-ci/gates/preload-contract.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/provenance.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/regression.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/retired.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/startup.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/storage.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/summary.json",
+    " D docs/margin/evidence/stage4-exit-ci/gates/test-failures.txt",
+    " D docs/margin/evidence/stage4-exit-ci/gates/tests.files.json",
+    " D docs/margin/evidence/stage4-exit-ci/gates/tests.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/tests.tap",
+    " D docs/margin/evidence/stage4-exit-ci/gates/tsc-electron.diagnostics.txt",
+    " D docs/margin/evidence/stage4-exit-ci/gates/tsc-electron.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/tsc-renderer.log",
+    " D docs/margin/evidence/stage4-exit-ci/gates/vite-build.log"
+  ],
   "reference": null,
   "steps": [
     {
@@ -11,7 +35,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 80,
+      "durationMs": 115,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/clean-dist.log",
       "passed": true
     },
@@ -21,7 +45,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 828,
+      "durationMs": 940,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/build-electron.log",
       "passed": true
     },
@@ -31,7 +55,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 5135,
+      "durationMs": 5439,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/vite-build.log",
       "passed": true
     },
@@ -51,7 +75,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 1762,
+      "durationMs": 1707,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/tsc-electron.log",
       "diagnostics": {
         "total": 0
@@ -64,7 +88,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 25263,
+      "durationMs": 2955,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/provenance.log",
       "passed": true
     },
@@ -74,7 +98,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 1934,
+      "durationMs": 1880,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/retired.log",
       "passed": true
     },
@@ -84,7 +108,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 76,
+      "durationMs": 80,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/preload-contract.log",
       "gaps": {
         "total": 0
@@ -97,7 +121,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 128,
+      "durationMs": 134,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/ipc-channels.log",
       "gaps": {
         "total": 0
@@ -110,7 +134,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 817,
+      "durationMs": 890,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/guard-selftest.log",
       "passed": true
     },
@@ -120,7 +144,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 15484,
+      "durationMs": 18353,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/tests.log",
       "tap": "docs/margin/evidence/stage4-exit-ci/gates/tests.tap",
       "perFile": "docs/margin/evidence/stage4-exit-ci/gates/tests.files.json",
@@ -145,7 +169,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 45516,
+      "durationMs": 45860,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/regression.log",
       "passed": true
     },
@@ -155,7 +179,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 17064,
+      "durationMs": 17714,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/storage.log",
       "passed": true
     },
@@ -165,7 +189,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 37578,
+      "durationMs": 37535,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/startup.log",
       "passed": true
     },
@@ -175,7 +199,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 20774,
+      "durationMs": 21312,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/outbound-renderer.log",
       "passed": true
     },
@@ -185,11 +209,11 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 49,
+      "durationMs": 86,
       "log": "docs/margin/evidence/stage4-exit-ci/gates/diff-check.log",
       "passed": true
     }
   ],
-  "finishedAt": "2026-10-11T17:41:46.414Z",
+  "finishedAt": "2026-10-11T18:02:07.808Z",
   "allPassed": true
 }
