@@ -77,11 +77,9 @@ test('LLMHelper actual chat and stream paths never log prompt, context, system o
 
 test('STT providers log transcript metadata without transcript text', () => {
   const files = [
-    'electron/audio/GoogleSTT.ts',
     'electron/audio/RestSTT.ts',
-    'electron/audio/DeepgramStreamingSTT.ts',
     'electron/audio/OpenAIStreamingSTT.ts',
-    'electron/audio/ElevenLabsStreamingSTT.ts',
+    'electron/audio/SonioxStreamingSTT.ts',
   ];
 
   for (const file of files) {

@@ -845,37 +845,24 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     } | null>(null);
 
     // STT Provider settings
-    const [sttProvider, setSttProvider] = useState<'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox'>('none');
+    const [sttProvider, setSttProvider] = useState<'none' | 'groq' | 'openai' | 'soniox'>('none');
     // Where to get an API key for the selected speech provider; the button declares
     // this URL so the preload lets its click open it.
     const sttKeyUrl = ({
         groq: 'https://console.groq.com/keys',
         openai: 'https://platform.openai.com/api-keys',
-        deepgram: 'https://console.deepgram.com',
-        elevenlabs: 'https://elevenlabs.io/app/settings/api-keys',
-        azure: 'https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeech',
-        ibmwatson: 'https://cloud.ibm.com/catalog/services/speech-to-text'
+        soniox: 'https://console.soniox.com'
     } as Record<string, string | undefined>)[sttProvider];
     const [groqSttModel, setGroqSttModel] = useState('whisper-large-v3-turbo');
     const [sttGroqKey, setSttGroqKey] = useState('');
     const [sttOpenaiKey, setSttOpenaiKey] = useState('');
-    const [sttDeepgramKey, setSttDeepgramKey] = useState('');
-    const [sttElevenLabsKey, setSttElevenLabsKey] = useState('');
-    const [sttAzureKey, setSttAzureKey] = useState('');
-    const [sttAzureRegion, setSttAzureRegion] = useState('eastus');
-    const [sttIbmKey, setSttIbmKey] = useState('');
     const [sttOpenaiBaseUrl, setSttOpenaiBaseUrl] = useState('');
     const [sttTestStatus, setSttTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
     const [sttTestError, setSttTestError] = useState('');
     const [sttSaving, setSttSaving] = useState(false);
     const [sttSaved, setSttSaved] = useState(false);
-    const [googleServiceAccountPath, setGoogleServiceAccountPath] = useState<string | null>(null);
     const [hasStoredSttGroqKey, setHasStoredSttGroqKey] = useState(false);
     const [hasStoredSttOpenaiKey, setHasStoredSttOpenaiKey] = useState(false);
-    const [hasStoredDeepgramKey, setHasStoredDeepgramKey] = useState(false);
-    const [hasStoredElevenLabsKey, setHasStoredElevenLabsKey] = useState(false);
-    const [hasStoredAzureKey, setHasStoredAzureKey] = useState(false);
-    const [hasStoredIbmWatsonKey, setHasStoredIbmWatsonKey] = useState(false);
     const [sttSonioxKey, setSttSonioxKey] = useState('');
     const [hasStoredSonioxKey, setHasStoredSonioxKey] = useState(false);
     const [isSttDropdownOpen, setIsSttDropdownOpen] = useState(false);
@@ -903,23 +890,13 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                 if (creds) {
                     setSttProvider(creds.sttProvider || 'none');
                     if (creds.groqSttModel) setGroqSttModel(creds.groqSttModel);
-                    setGoogleServiceAccountPath(creds.googleServiceAccountPath);
                     setHasStoredSttGroqKey(creds.hasSttGroqKey);
                     setHasStoredSttOpenaiKey(creds.hasSttOpenaiKey);
-                    setHasStoredDeepgramKey(creds.hasDeepgramKey);
-                    setHasStoredElevenLabsKey(creds.hasElevenLabsKey);
-                    setHasStoredAzureKey(creds.hasAzureKey);
-                    if (creds.azureRegion) setSttAzureRegion(creds.azureRegion);
-                    setHasStoredIbmWatsonKey(creds.hasIbmWatsonKey);
                     setHasStoredSonioxKey(creds.hasSonioxKey || false);
 
                     // Populate key fields so switching providers doesn't make saved keys appear gone
                     if (creds.sttGroqKey) setSttGroqKey(creds.sttGroqKey);
                     if (creds.sttOpenaiKey) setSttOpenaiKey(creds.sttOpenaiKey);
-                    if (creds.sttDeepgramKey) setSttDeepgramKey(creds.sttDeepgramKey);
-                    if (creds.sttElevenLabsKey) setSttElevenLabsKey(creds.sttElevenLabsKey);
-                    if (creds.sttAzureKey) setSttAzureKey(creds.sttAzureKey);
-                    if (creds.sttIbmKey) setSttIbmKey(creds.sttIbmKey);
                     if (creds.sttSonioxKey) setSttSonioxKey(creds.sttSonioxKey);
                     if (typeof creds.openAiSttBaseUrl === 'string') setSttOpenaiBaseUrl(creds.openAiSttBaseUrl);
                 }
@@ -944,10 +921,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                     if (creds.groqSttModel) setGroqSttModel(creds.groqSttModel);
                     setHasStoredSttGroqKey(creds.hasSttGroqKey);
                     setHasStoredSttOpenaiKey(creds.hasSttOpenaiKey);
-                    setHasStoredDeepgramKey(creds.hasDeepgramKey);
-                    setHasStoredElevenLabsKey(creds.hasElevenLabsKey);
-                    setHasStoredAzureKey(creds.hasAzureKey);
-                    setHasStoredIbmWatsonKey(creds.hasIbmWatsonKey);
                     setHasStoredSonioxKey(creds.hasSonioxKey || false);
                 }).catch(() => { /* silently ignore */ });
             }
@@ -955,7 +928,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         return () => unsubscribe();
     }, []); // mount-once: isOpen is checked inside the callback
 
-    const handleSttProviderChange = async (provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => {
+    const handleSttProviderChange = async (provider: 'none' | 'groq' | 'openai' | 'soniox') => {
         setIsSttDropdownOpen(false);
         setSttTestStatus('idle');
         setSttTestError('');
@@ -973,7 +946,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         }
     };
 
-    const handleSttKeySubmit = async (provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox', key: string) => {
+    const handleSttKeySubmit = async (provider: 'groq' | 'openai' | 'soniox', key: string) => {
         if (!key.trim()) return;
 
         // Auto-test before saving
@@ -988,7 +961,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             const testResult = await window.electronAPI?.testSttConnection?.(
                 provider,
                 key.trim(),
-                provider === 'azure' ? sttAzureRegion : undefined
             );
 
             if (!testResult?.success) {
@@ -1007,21 +979,9 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             } else if (provider === 'openai') {
                 // @ts-ignore
                 saved = await window.electronAPI?.setOpenAiSttApiKey?.(key.trim());
-            } else if (provider === 'elevenlabs') {
-                // @ts-ignore
-                saved = await window.electronAPI?.setElevenLabsApiKey?.(key.trim());
-            } else if (provider === 'azure') {
-                // @ts-ignore
-                saved = await window.electronAPI?.setAzureApiKey?.(key.trim());
-            } else if (provider === 'ibmwatson') {
-                // @ts-ignore
-                saved = await window.electronAPI?.setIbmWatsonApiKey?.(key.trim());
             } else if (provider === 'soniox') {
                 // @ts-ignore
                 saved = await window.electronAPI?.setSonioxApiKey?.(key.trim());
-            } else {
-                // @ts-ignore
-                saved = await window.electronAPI?.setDeepgramApiKey?.(key.trim());
             }
             if (!saved?.ok) {
                 setSttTestStatus('error');
@@ -1034,11 +994,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             setCredentialNotice(saved.warning || '');
             if (provider === 'groq') setHasStoredSttGroqKey(true);
             else if (provider === 'openai') setHasStoredSttOpenaiKey(true);
-            else if (provider === 'elevenlabs') setHasStoredElevenLabsKey(true);
-            else if (provider === 'azure') setHasStoredAzureKey(true);
-            else if (provider === 'ibmwatson') setHasStoredIbmWatsonKey(true);
             else if (provider === 'soniox') setHasStoredSonioxKey(true);
-            else setHasStoredDeepgramKey(true);
 
             setSttSaved(true);
             setTimeout(() => setSttSaved(false), 2000);
@@ -1051,17 +1007,13 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         }
     };
 
-    const handleRemoveSttKey = async (provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => {
-        if (!confirm(`Are you sure you want to remove the ${provider === 'ibmwatson' ? 'IBM Watson' : provider.charAt(0).toUpperCase() + provider.slice(1)} API key?`)) return;
+    const handleRemoveSttKey = async (provider: 'groq' | 'openai' | 'soniox') => {
+        if (!confirm(`Are you sure you want to remove the ${provider.charAt(0).toUpperCase() + provider.slice(1)} API key?`)) return;
         setCredentialNotice('');
         try {
             const setters = {
                 groq: window.electronAPI?.setGroqSttApiKey,
                 openai: window.electronAPI?.setOpenAiSttApiKey,
-                deepgram: window.electronAPI?.setDeepgramApiKey,
-                elevenlabs: window.electronAPI?.setElevenLabsApiKey,
-                azure: window.electronAPI?.setAzureApiKey,
-                ibmwatson: window.electronAPI?.setIbmWatsonApiKey,
                 soniox: window.electronAPI?.setSonioxApiKey,
             };
             const result = await setters[provider]?.('');
@@ -1076,21 +1028,9 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             } else if (provider === 'openai') {
                 setSttOpenaiKey('');
                 setHasStoredSttOpenaiKey(false);
-            } else if (provider === 'elevenlabs') {
-                setSttElevenLabsKey('');
-                setHasStoredElevenLabsKey(false);
-            } else if (provider === 'azure') {
-                setSttAzureKey('');
-                setHasStoredAzureKey(false);
-            } else if (provider === 'ibmwatson') {
-                setSttIbmKey('');
-                setHasStoredIbmWatsonKey(false);
             } else if (provider === 'soniox') {
                 setSttSonioxKey('');
                 setHasStoredSonioxKey(false);
-            } else {
-                setSttDeepgramKey('');
-                setHasStoredDeepgramKey(false);
             }
         } catch {
             setCredentialNotice('The STT key could not be removed. The previous key was kept.');
@@ -1112,40 +1052,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         }
     };
 
-    const handleSelectServiceAccount = async () => {
-        setCredentialNotice('');
-        try {
-            const result = await window.electronAPI?.selectServiceAccount();
-            if (result && 'cancelled' in result) return;
-            if (!result?.ok) {
-                setCredentialNotice(result?.message || 'The service account path could not be saved.');
-                return;
-            }
-            setGoogleServiceAccountPath(result.path);
-            setCredentialNotice(result.warning || '');
-        } catch {
-            setCredentialNotice('The service account path could not be saved.');
-        }
-    };
-
-    const handleAzureRegionSave = async () => {
-        if (!sttAzureRegion.trim()) return;
-        setSttSaved(false);
-        setCredentialNotice('');
-        try {
-            const result = await window.electronAPI?.setAzureRegion(sttAzureRegion.trim());
-            if (!result?.ok) {
-                setCredentialNotice(result?.message || 'The Azure region could not be saved.');
-                return;
-            }
-            setSttSaved(true);
-            setTimeout(() => setSttSaved(false), 2000);
-            setCredentialNotice(result.warning || '');
-        } catch {
-            setCredentialNotice('The Azure region could not be saved.');
-        }
-    };
-
     const handleOpenAiSttBaseUrlSave = async () => {
         setSttSaved(false);
         setCredentialNotice('');
@@ -1164,10 +1070,9 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     };
 
     const handleTestSttConnection = async () => {
-        if (sttProvider === 'none' || sttProvider === 'google') return;
+        if (sttProvider === 'none') return;
         const keyMap: Record<string, string> = {
-            groq: sttGroqKey, openai: sttOpenaiKey, deepgram: sttDeepgramKey,
-            elevenlabs: sttElevenLabsKey, azure: sttAzureKey, ibmwatson: sttIbmKey,
+            groq: sttGroqKey, openai: sttOpenaiKey,
             soniox: sttSonioxKey,
         };
         const keyToTest = keyMap[sttProvider] || '';
@@ -1184,7 +1089,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             const result = await window.electronAPI?.testSttConnection?.(
                 sttProvider,
                 keyToTest.trim(),
-                sttProvider === 'azure' ? sttAzureRegion : undefined
             );
             if (result?.success) {
                 setSttTestStatus('success');
@@ -2192,13 +2096,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                         value={sttProvider}
                                                         onChange={(val) => handleSttProviderChange(val as any)}
                                                         options={[
-                                                            { id: 'google', label: 'Google Cloud', badge: googleServiceAccountPath ? 'Saved' : null, recommended: true, desc: 'gRPC streaming via Service Account', color: 'blue', icon: <Mic size={14} /> },
                                                             { id: 'groq', label: 'Groq Whisper', badge: hasStoredSttGroqKey ? 'Saved' : null, recommended: true, desc: 'Ultra-fast REST transcription', color: 'orange', icon: <Mic size={14} /> },
                                                             { id: 'openai', label: 'OpenAI Whisper', badge: hasStoredSttOpenaiKey ? 'Saved' : null, desc: 'OpenAI-compatible Whisper API', color: 'green', icon: <Mic size={14} /> },
-                                                            { id: 'deepgram', label: 'Deepgram Nova-3', badge: hasStoredDeepgramKey ? 'Saved' : null, recommended: true, desc: 'High-accuracy REST transcription', color: 'purple', icon: <Mic size={14} /> },
-                                                            { id: 'elevenlabs', label: 'ElevenLabs Scribe', badge: hasStoredElevenLabsKey ? 'Saved' : null, desc: 'Scribe v2 Realtime API', color: 'teal', icon: <Mic size={14} /> },
-                                                            { id: 'azure', label: 'Azure Speech', badge: hasStoredAzureKey ? 'Saved' : null, desc: 'Microsoft Cognitive Services STT', color: 'cyan', icon: <Mic size={14} /> },
-                                                            { id: 'ibmwatson', label: 'IBM Watson', badge: hasStoredIbmWatsonKey ? 'Saved' : null, desc: 'IBM Watson cloud STT service', color: 'indigo', icon: <Mic size={14} /> },
                                                             { id: 'soniox', label: 'Soniox', badge: hasStoredSonioxKey ? 'Saved' : null, recommended: true, desc: '60+ languages, multilingual, domain context', color: 'cyan', icon: <Mic size={14} /> },
                                                         ]}
                                                     />
@@ -2231,34 +2130,11 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 </div>
                                             )}
 
-                                            {/* Google Cloud Service Account */}
-                                            {sttProvider === 'google' && (
-                                                <div className="bg-bg-card rounded-xl border border-border-subtle p-4">
-                                                    <label className="text-xs font-medium text-text-secondary mb-2 block">Service Account JSON</label>
-                                                    <div className="flex gap-2">
-                                                        <div className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-secondary font-mono truncate">
-                                                            {googleServiceAccountPath
-                                                                ? <span className="text-text-primary">{googleServiceAccountPath.split('/').pop()}</span>
-                                                                : <span className="text-text-tertiary italic">No file selected</span>}
-                                                        </div>
-                                                        <button
-                                                            onClick={handleSelectServiceAccount}
-                                                            className="px-3 py-2 bg-bg-input hover:bg-bg-elevated border border-border-subtle rounded-lg text-xs font-medium text-text-primary transition-colors flex items-center gap-2"
-                                                        >
-                                                            <Upload size={14} /> Select File
-                                                        </button>
-                                                    </div>
-                                                    <p className="text-[10px] text-text-tertiary mt-2">
-                                                        Required for Google Cloud Speech-to-Text.
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            {/* API Key Input (non-Google providers) */}
-                                            {sttProvider !== 'google' && sttProvider !== 'none' && (
+                                            {/* API Key Input */}
+                                            {sttProvider !== 'none' && (
                                                 <div className="bg-bg-card rounded-xl border border-border-subtle p-4 space-y-3">
                                                     <label className="text-xs font-medium text-text-secondary block">
-                                                        {sttProvider === 'groq' ? 'Groq' : sttProvider === 'openai' ? 'OpenAI STT' : sttProvider === 'elevenlabs' ? 'ElevenLabs' : sttProvider === 'azure' ? 'Azure' : sttProvider === 'ibmwatson' ? 'IBM Watson' : sttProvider === 'soniox' ? 'Soniox' : 'Deepgram'} API Key
+                                                        {sttProvider === 'groq' ? 'Groq' : sttProvider === 'openai' ? 'OpenAI STT' : 'Soniox'} API Key
                                                     </label>
                                                     {sttProvider === 'openai' && (
                                                         <p className="text-[10px] text-text-tertiary mb-1.5">
@@ -2271,51 +2147,33 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             value={
                                                                 sttProvider === 'groq' ? sttGroqKey
                                                                     : sttProvider === 'openai' ? sttOpenaiKey
-                                                                        : sttProvider === 'elevenlabs' ? sttElevenLabsKey
-                                                                            : sttProvider === 'azure' ? sttAzureKey
-                                                                                : sttProvider === 'ibmwatson' ? sttIbmKey
-                                                                                    : sttProvider === 'soniox' ? sttSonioxKey
-                                                                                        : sttDeepgramKey
+                                                                        : sttSonioxKey
                                                             }
                                                             onChange={(e) => {
                                                                 if (sttProvider === 'groq') setSttGroqKey(e.target.value);
                                                                 else if (sttProvider === 'openai') setSttOpenaiKey(e.target.value);
-                                                                else if (sttProvider === 'elevenlabs') setSttElevenLabsKey(e.target.value);
-                                                                else if (sttProvider === 'azure') setSttAzureKey(e.target.value);
-                                                                else if (sttProvider === 'ibmwatson') setSttIbmKey(e.target.value);
                                                                 else if (sttProvider === 'soniox') setSttSonioxKey(e.target.value);
-                                                                else setSttDeepgramKey(e.target.value);
                                                             }}
                                                             placeholder={
                                                                 sttProvider === 'groq'
                                                                     ? (hasStoredSttGroqKey ? '••••••••••••' : 'Enter Groq API key')
                                                                     : sttProvider === 'openai'
                                                                         ? (hasStoredSttOpenaiKey ? '••••••••••••' : 'Enter OpenAI STT API key')
-                                                                        : sttProvider === 'elevenlabs'
-                                                                            ? (hasStoredElevenLabsKey ? '••••••••••••' : 'Enter ElevenLabs API key')
-                                                                            : sttProvider === 'azure'
-                                                                                ? (hasStoredAzureKey ? '••••••••••••' : 'Enter Azure API key')
-                                                                                : sttProvider === 'ibmwatson'
-                                                                                    ? (hasStoredIbmWatsonKey ? '••••••••••••' : 'Enter IBM Watson API key')
-                                                                                    : sttProvider === 'soniox'
-                                                                                        ? (hasStoredSonioxKey ? '••••••••••••' : 'Enter Soniox API key')
-                                                                                        : (hasStoredDeepgramKey ? '••••••••••••' : 'Enter Deepgram API key')
+                                                                        : (hasStoredSonioxKey ? '••••••••••••' : 'Enter Soniox API key')
                                                             }
                                                             className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
                                                         />
                                                         <button
                                                             onClick={() => {
                                                                 const keyMap: Record<string, string> = {
-                                                                    groq: sttGroqKey, openai: sttOpenaiKey, deepgram: sttDeepgramKey,
-                                                                    elevenlabs: sttElevenLabsKey, azure: sttAzureKey, ibmwatson: sttIbmKey,
+                                                                    groq: sttGroqKey, openai: sttOpenaiKey,
                                                                     soniox: sttSonioxKey,
                                                                 };
                                                                 handleSttKeySubmit(sttProvider as any, keyMap[sttProvider] || '');
                                                             }}
                                                             disabled={sttSaving || !(() => {
                                                                 const keyMap: Record<string, string> = {
-                                                                    groq: sttGroqKey, openai: sttOpenaiKey, deepgram: sttDeepgramKey,
-                                                                    elevenlabs: sttElevenLabsKey, azure: sttAzureKey, ibmwatson: sttIbmKey,
+                                                                    groq: sttGroqKey, openai: sttOpenaiKey,
                                                                     soniox: sttSonioxKey,
                                                                 };
                                                                 return (keyMap[sttProvider] || '').trim();
@@ -2331,10 +2189,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             const hasKeyMap: Record<string, boolean> = {
                                                                 groq: hasStoredSttGroqKey,
                                                                 openai: hasStoredSttOpenaiKey,
-                                                                deepgram: hasStoredDeepgramKey,
-                                                                elevenlabs: hasStoredElevenLabsKey,
-                                                                azure: hasStoredAzureKey,
-                                                                ibmwatson: hasStoredIbmWatsonKey,
                                                                 soniox: hasStoredSonioxKey,
                                                             };
                                                             return hasKeyMap[sttProvider] ? (
@@ -2348,30 +2202,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             ) : null;
                                                         })()}
                                                     </div>
-
-                                                    {/* Azure Region Input */}
-                                                    {sttProvider === 'azure' && (
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-xs font-medium text-text-secondary block">Region</label>
-                                                            <div className="flex gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={sttAzureRegion}
-                                                                    onChange={(e) => setSttAzureRegion(e.target.value)}
-                                                                    placeholder="e.g. eastus"
-                                                                    className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
-                                                                />
-                                                                <button
-                                                                    onClick={handleAzureRegionSave}
-                                                                    disabled={!sttAzureRegion.trim()}
-                                                                    className="px-5 py-2.5 rounded-lg text-xs font-medium bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary disabled:opacity-50 transition-colors"
-                                                                >
-                                                                    Save
-                                                                </button>
-                                                            </div>
-                                                            <p className="text-[10px] text-text-tertiary">e.g. eastus, westeurope, westus2</p>
-                                                        </div>
-                                                    )}
 
                                                     {/* OpenAI Custom Base URL — for self-hosted OpenAI-compatible servers (e.g. Speaches).
                                                         When set, the WebSocket Realtime path is skipped and REST is used against the custom host. */}

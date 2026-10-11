@@ -3,7 +3,7 @@
  * Configuration for STT providers (Google gRPC, REST, WebSocket)
  */
 
-export type SttProviderId = 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson';
+export type SttProviderId = 'groq' | 'openai';
 
 export interface SttProviderConfig {
     id: SttProviderId;
@@ -23,15 +23,6 @@ export interface SttProviderConfig {
 }
 
 export const STT_PROVIDERS: Record<SttProviderId, SttProviderConfig> = {
-    google: {
-        id: 'google',
-        name: 'Google Cloud (Default)',
-        description: 'Uses gRPC streaming via Google Cloud Service Account',
-        endpoint: '', // Google uses gRPC, not REST
-        model: '',
-        authHeader: () => ({}),
-        responseContentPath: '',
-    },
     groq: {
         id: 'groq',
         name: 'Groq Whisper (Fast)',
@@ -65,57 +56,7 @@ export const STT_PROVIDERS: Record<SttProviderId, SttProviderConfig> = {
         }),
         responseContentPath: 'text',
     },
-    deepgram: {
-        id: 'deepgram',
-        name: 'Deepgram Nova-3',
-        description: 'Real-time streaming transcription via Deepgram WebSocket',
-        endpoint: 'wss://api.deepgram.com/v1/listen',
-        model: 'nova-3',
-        uploadType: 'websocket',
-        authHeader: (apiKey: string) => ({
-            Authorization: `Token ${apiKey}`,
-        }),
-        responseContentPath: 'channel.alternatives[0].transcript',
-    },
-    elevenlabs: {
-        id: 'elevenlabs',
-        name: 'ElevenLabs Scribe',
-        description: 'Scribe v2 Realtime API',
-        endpoint: 'https://api.elevenlabs.io/v1/speech-to-text',
-        model: 'scribe_v2',
-        uploadType: 'multipart',
-        authHeader: (apiKey: string) => ({
-            'xi-api-key': apiKey,
-        }),
-        responseContentPath: 'text',
-    },
-    azure: {
-        id: 'azure',
-        name: 'Azure Speech',
-        description: 'Microsoft Azure Cognitive Services STT',
-        endpoint: 'https://{region}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1',
-        model: '',
-        uploadType: 'binary',
-        authHeader: (apiKey: string) => ({
-            'Ocp-Apim-Subscription-Key': apiKey,
-        }),
-        responseContentPath: 'DisplayText',
-    },
-    ibmwatson: {
-        id: 'ibmwatson',
-        name: 'IBM Watson',
-        description: 'IBM Watson Speech-to-Text cloud service',
-        endpoint: 'https://api.{region}.speech-to-text.watson.cloud.ibm.com/v1/recognize',
-        model: '',
-        uploadType: 'binary',
-        authHeader: (apiKey: string) => ({
-            Authorization: `Basic ${btoa(`apikey:${apiKey}`)}`,
-        }),
-        responseContentPath: 'results[0].alternatives[0].transcript',
-    },
 };
 
 export const STT_PROVIDER_OPTIONS = Object.values(STT_PROVIDERS);
-
-export const DEFAULT_STT_PROVIDER: SttProviderId = 'google';
 

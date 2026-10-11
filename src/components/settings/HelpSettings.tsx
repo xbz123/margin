@@ -537,12 +537,8 @@ const MockProviderSelectionAnim = () => {
     }, []);
 
     const options = [
-        { id: 'deepgram', label: 'Deepgram Nova-3', badge: 'Saved', recommended: false, desc: 'High-accuracy REST transcription', color: 'purple', icon: <Mic size={14} /> },
-        { id: 'google', label: 'Google Cloud', badge: 'Saved', recommended: false, desc: 'gRPC streaming via Service Account', color: 'blue', icon: <Mic size={14} /> },
-        { id: 'groq', label: 'Groq Whisper', badge: '', recommended: false, desc: 'Fast LPU whisper transcription', color: 'orange', icon: <Mic size={14} /> },
-        { id: 'azure', label: 'Azure Speech', badge: '', recommended: false, desc: 'Enterprise tier transcription', color: 'teal', icon: <Mic size={14} /> },
+        { id: 'groq', label: 'Groq Whisper', badge: '', recommended: true, desc: 'Fast LPU whisper transcription', color: 'orange', icon: <Mic size={14} /> },
         { id: 'soniox', label: 'Soniox', badge: '', recommended: false, desc: 'Medical-grade transcription', color: 'cyan', icon: <Mic size={14} /> },
-        { id: 'ibm', label: 'IBM Watson', badge: '', recommended: false, desc: 'Watson Speech-to-Text', color: 'indigo', icon: <Mic size={14} /> },
     ];
     const selected = options[0];
 
@@ -681,20 +677,6 @@ const MockApiKeyFlowAnim = () => {
     );
 };
 
-const ElevenLabsPermissionsMock = () => {
-    return (
-        <div className="w-full flex justify-center py-4 bg-bg-elevated rounded-xl border border-border-subtle mb-3 mt-2 shadow-sm">
-            <div className="flex items-center justify-between w-full max-w-[360px]">
-                <span className="text-[14.5px] text-text-primary font-medium tracking-tight">Speech to Text</span>
-                <div className="flex items-center bg-bg-main p-[3px] rounded-lg border border-border-subtle shadow-inner">
-                    <div className="px-3.5 py-1.5 text-[13px] font-medium text-text-secondary">No Access</div>
-                    <div className="px-3.5 py-1.5 text-[13px] font-medium text-black bg-white rounded-md shadow-sm relative z-10 before:absolute before:inset-0 before:rounded-md before:border-[1.5px] before:border-black before:opacity-90 before:-m-[1px]">Access</div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
 // ----------------------
 // Reusable Components
 // ----------------------
@@ -710,13 +692,13 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({ title, icon, childr
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className={`border rounded-xl mb-4 overflow-hidden transition-all duration-200 bg-bg-card border-border-subtle shadow-sm`}>
+        <div className={`border border-border-subtle rounded-xl overflow-hidden bg-bg-surface mb-3`}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between p-4 transition-colors hover:bg-bg-item-surface group`}
+                className={`w-full py-4 px-5 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors duration-150`}
             >
                 <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-bg-item-surface border border-border-subtle group-hover:border-border-muted transition-colors text-text-secondary`}>
+                    <div className="p-1.5 rounded-lg bg-bg-elevated border border-border-subtle text-text-secondary">
                         {icon}
                     </div>
                     <span className={`font-semibold text-sm text-text-primary`}>{title}</span>
@@ -753,7 +735,7 @@ const SetupGuide = () => {
         },
         {
             title: 'Set Up Audio',
-            desc: 'Open Settings → Audio and paste a key for a cloud transcription provider such as Deepgram, Soniox or Google.',
+            desc: 'Open Settings → Audio and paste a key for a cloud transcription provider such as Groq, Soniox or OpenAI.',
         },
         {
             title: 'Connect an AI Model',
@@ -954,29 +936,7 @@ export const HelpSettings: React.FC = () => {
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>1. Google Cloud STT</span>
-                                    <button data-external-url="https://console.cloud.google.com/apis/credentials" onClick={() => { (window as any).electronAPI?.openExternal('https://console.cloud.google.com/apis/credentials') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Uses a Service Account JSON instead of an API Key. You must build a GCP Project, activate the Cloud Speech API, and create a Service Account under IAM. Download the JSON Key, and drag-and-drop it into the box in the Audio Settings.
-                                </p>
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>2. ElevenLabs</span>
-                                    <button data-external-url="https://elevenlabs.io/app/settings/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://elevenlabs.io/app/settings/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    When creating a Custom API key for the "Conversational AI" streaming integration, you must explicitly enable <strong>convai.conversations.create</strong> and <strong>assistants.list</strong>.
-                                    Crucially, you must also allow <strong>Speech to Text: Access</strong> as seen below in the ElevenLabs UI:
-                                </p>
-                                <ElevenLabsPermissionsMock />
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>3. Groq</span>
+                                    <span>1. Groq</span>
                                     <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
@@ -986,7 +946,7 @@ export const HelpSettings: React.FC = () => {
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>4. OpenAI</span>
+                                    <span>2. OpenAI</span>
                                     <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
@@ -995,43 +955,13 @@ export const HelpSettings: React.FC = () => {
                             </div>
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>5. Deepgram</span>
-                                    <button data-external-url="https://console.deepgram.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.deepgram.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Extremely accurate streaming transcription (Nova-2 model). Key is generated on-demand in the Deepgram Console.
-                                </p>
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>6. Azure</span>
-                                    <button data-external-url="https://portal.azure.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://portal.azure.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Requires establishing Azure Speech Services. <strong>Important</strong>: You must also specify an Azure Region alongside your key (e.g. <em>eastus</em>, <em>westeurope</em>) or requests will bounce.
-                                </p>
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>7. IBM Watson</span>
-                                    <button data-external-url="https://cloud.ibm.com/catalog/services/speech-to-text" onClick={() => { (window as any).electronAPI?.openExternal('https://cloud.ibm.com/catalog/services/speech-to-text') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Create a Watson Speech to Text resource in IBM Cloud and generate a set of API credentials.
-                                </p>
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>8. Soniox</span>
-                                    <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Provides high-end medical/law tier transcriptions using their standard dashboard API Key.
-                                </p>
+                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
+                                     <span>3. Soniox</span>
+                                     <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                 </h5>
+                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
+                                     Provides high-end medical/law tier transcriptions using their standard dashboard API Key.
+                                 </p>
                             </div>
                         </div>
 

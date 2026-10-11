@@ -6,7 +6,7 @@ interface ChannelCardProps {
     name: string;
     /** Channel status (B2: 'awaiting-audio' = pre-verified-audio neutral state) */
     status: 'connected' | 'reconnecting' | 'failed' | 'awaiting-audio';
-    /** STT provider name (e.g. 'google', 'openai', 'deepgram') */
+    /** STT provider name (e.g. 'openai', 'groq', 'soniox') */
     provider?: string;
     /** Raw error string */
     error?: string;
@@ -22,13 +22,8 @@ interface ChannelCardProps {
 const providerLabel = (provider?: string): string => {
     if (!provider || provider === 'none') return '';
     const labels: Record<string, string> = {
-        google: 'Google',
         groq: 'Groq',
         openai: 'OpenAI',
-        deepgram: 'Deepgram',
-        elevenlabs: 'ElevenLabs',
-        azure: 'Azure',
-        ibmwatson: 'IBM Watson',
         soniox: 'Soniox',
     };
     return labels[provider.toLowerCase()] || provider;

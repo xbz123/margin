@@ -37,16 +37,13 @@ function subject(name) {
   const schedule = fn => { const timer = { fn, unref() {} }; timers.push(timer); return timer; };
   const module = { exports: {} };
   vm.runInNewContext(compile(read(`electron/audio/${name}.ts`)), {
-    exports: module.exports, module, console: quiet, Buffer, process: { env: { GOOGLE_APPLICATION_CREDENTIALS: '/synthetic/account.json' }, cwd: () => '/synthetic' },
+    exports: module.exports, module, console: quiet, Buffer, process: { env: {}, cwd: () => '/synthetic' },
     setTimeout: schedule, setInterval: schedule, clearTimeout() {}, clearInterval() {},
     require(id) {
       if (id === 'ws') return Socket;
-      if (id === '@deepgram/sdk') return { createClient: () => ({ listen: { live: () => new Socket() } }), LiveTranscriptionEvents: { Open: 'open', Transcript: 'transcript', Error: 'error', Close: 'close' } };
-      if (id === '@google-cloud/speech') return { SpeechClient: class { streamingRecognize() { return new Socket(); } } };
       if (id === '../config/languages') return { RECOGNITION_LANGUAGES: { 'english-us': { bcp47: 'en-US', iso639: 'en' } } };
       if (id === './dnsHelpers') return { streamingStttWsOptions: () => ({}) };
       if (id === '../services/outbound') return outbound;
-      if (id === '../services/googleServiceAccount') return { loadGoogleServiceAccount: () => ({}), googleSpeechClientOptions: () => ({}) };
       if (id === './openaiTranscriptTurnCoalescer') return require('../../../dist-electron/electron/audio/openaiTranscriptTurnCoalescer.js');
       return require(id);
     },
@@ -58,11 +55,10 @@ const audio = Buffer.alloc(96_000, 1);
 function ready(name, socket) {
   socket.readyState = 1; socket.emit('open');
   if (name === 'OpenAIStreamingSTT') socket.emit('message', Buffer.from('{"type":"session.created"}'));
-  if (name === 'ElevenLabsStreamingSTT') socket.emit('message', Buffer.from('{"message_type":"session_started"}'));
 }
 const hasAudio = socket => socket.sent.some(data => Buffer.isBuffer(data) || /"(?:audio|audio_base_64)"/.test(String(data)));
 
-for (const name of ['DeepgramStreamingSTT', 'SonioxStreamingSTT', 'ElevenLabsStreamingSTT', 'OpenAIStreamingSTT']) {
+for (const name of ['SonioxStreamingSTT', 'OpenAIStreamingSTT']) {
   test(`${name}: handshake/buffer/reconnect revocation, with an allowed audio control`, () => {
     const allowed = subject(name), live = new allowed.Class('synthetic-only');
     live.start(); ready(name, allowed.sockets[0]); live.write(audio);
@@ -78,7 +74,7 @@ for (const name of ['DeepgramStreamingSTT', 'SonioxStreamingSTT', 'ElevenLabsStr
     old.stop(false);
     socket.readyState = 1;
     lateOpen?.();
-    if (lateMessage) lateMessage(Buffer.from(name === 'OpenAIStreamingSTT' ? '{"type":"session.created"}' : '{"message_type":"session_started"}'));
+    if (lateMessage) lateMessage(Buffer.from('{"type":"session.created"}'));
     old.write(audio);
     for (const timer of [...revoked.timers]) timer.fn();
     if (name === 'OpenAIStreamingSTT') {
@@ -123,16 +119,6 @@ for (const [name, args, flush, upload, chunks, bytes, pending] of [
   });
 }
 
-test('Google stopped stream cannot flush queued audio or restart', () => {
-  const loaded = subject('GoogleSTT'), stt = new loaded.Class('synthetic');
-  stt.start(); stt.write(audio);
-  assert.equal(hasAudio(loaded.sockets[0]), true);
-  stt.buffer.push(audio); stt.stop(false); stt.flushBuffer(); stt.startStream(); stt.write(audio);
-  assert.equal(loaded.sockets.length, 1);
-  assert.equal(loaded.sockets[0].sent.length, 1);
-  assert.equal(loaded.sockets[0].cancelled, true);
-});
-
 test('AppState revokes both old senders before a capture-stop failure or pipeline wait', async () => {
   const { mainFixture } = await import('./mainMeetingFixture.mjs');
   const { deferred } = await import('./meetingAudioFixture.mjs');
@@ -158,18 +144,17 @@ test('AppState revokes both old senders before a capture-stop failure or pipelin
   }
 });
 
-test('AppState never guesses Google for unknown, none or missing selected keys', () => {
+test('AppState returns null for unknown, none or unconfigured providers', () => {
   const source = read('electron/main.ts');
   const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
   const klass = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
   const method = klass.members.find(node => node.name?.getText(ast) === 'createSTTProvider').getText(ast);
-  for (const provider of ['none', 'unknown', 'deepgram', 'soniox', 'elevenlabs', 'openai', 'groq', 'azure', 'ibmwatson', 'google']) {
+  for (const provider of ['none', 'unknown', 'google', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'local-whisper', 'soniox', 'openai', 'groq']) {
     const module = { exports: {} };
     const manager = new Proxy({ getSttProvider: () => provider }, { get: (target, key) => target[key] ?? (() => undefined) });
     vm.runInNewContext(compile(`class Subject { ${method} } exports.Subject = Subject;`), {
       exports: module.exports, console: quiet, process: { env: {} },
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-      GoogleSTT: class { constructor() { throw Error('unconfigured Google must not be constructed'); } },
     });
     assert.equal(new module.exports.Subject().createSTTProvider('user'), null, provider);
   }

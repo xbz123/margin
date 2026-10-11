@@ -105,7 +105,7 @@ export class SystemAudioCapture extends EventEmitter {
                     // PERF: napi-rs already returns an owned Node Buffer from Rust's
                     // Buffer::from(bytes). The previous `Buffer.from(chunk)` was a
                     // redundant ~1.9KB copy per chunk × 50/sec = ~95KB/sec of GC pressure.
-                    // Downstream (googleSTT.write) does not mutate the buffer.
+                    // Downstream STT does not mutate the buffer.
                     this.emit('data', chunk);
                 }
             }, (err: Error | null, _ended: boolean) => {

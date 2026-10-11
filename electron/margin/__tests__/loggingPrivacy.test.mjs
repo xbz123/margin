@@ -235,19 +235,6 @@ test('real log IPC uses identity logs and hostile forwarded payloads stay opaque
   assertCriticalEvents(r.file.map(e => e.data).join(''), []);
 });
 
-test('development ElevenLabs construction and audio write never create a PCM debug file', () => {
-  const r = runtime(); let dumps = 0, audioSent = 0;
-  r.fakeFs.createWriteStream = () => { dumps++; return { write() { dumps++; }, end() {} }; };
-  r.context.process.env.NODE_ENV = 'development';
-  const { ElevenLabsStreamingSTT } = r.load('electron/audio/ElevenLabsStreamingSTT.ts');
-  const stt = new ElevenLabsStreamingSTT(CANARY);
-  stt.isActive = true; stt.isSessionReady = true;
-  stt.ws = { readyState: 1, send() { audioSent++; } };
-  stt.write(Buffer.alloc(48000));
-  assert.equal(dumps, 0);
-  assert.ok(audioSent > 0, 'removing diagnostic recording leaves the audio transport working');
-  noCanary(r);
-});
 
 test('sink failures cannot expose data, throw or recurse through console', () => {
   for (const options of ['path', 'stat', 'unlink', 'rename', 'append'].map(fileFault => ({ fileFault })).concat([{ terminalFault: true }, { fileFault: true, terminalFault: true }])) {

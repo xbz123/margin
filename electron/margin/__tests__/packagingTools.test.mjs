@@ -69,8 +69,8 @@ test('forbidden content matches shipped model locations and removed packages, no
     'Resources/app.asar.unpacked/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.17.3.dylib']) {
     assert.equal(forbidden(entry), true, entry);
   }
-  for (const entry of ['Resources/app.asar/node_modules/@elevenlabs/elevenlabs-js/api/resources/models/index.js',
-    'Resources/app.asar/node_modules/@anthropic-ai/sdk/resources/models.js', 'Resources/app.asar/dist-electron/electron/ModelSelectorWindowHelper.js']) {
+  for (const entry of ['Resources/app.asar/node_modules/@anthropic-ai/sdk/resources/models.js',
+    'Resources/app.asar/dist-electron/electron/ModelSelectorWindowHelper.js']) {
     assert.equal(forbidden(entry), false, entry);
   }
 });

@@ -23,21 +23,6 @@ vm.runInNewContext(compile(read('src/types/codexSource.ts')), { module: codexMod
 const quiet = { log() {}, warn() {}, error() {} };
 const failure = { ok: false, code: 'write_failed', message: 'Synthetic save failure' };
 const plain = value => JSON.parse(JSON.stringify(value));
-const serviceAccountPath = '/synthetic/account.json';
-const serviceAccount = { type: 'service_account', project_id: 'synthetic-project', client_email: 'synthetic@synthetic-project.iam.gserviceaccount.com',
-  private_key: generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }) };
-
-function accountHelper(fakeFs) {
-  const module = { exports: {} };
-  vm.runInNewContext(compile(read('electron/services/googleServiceAccount.ts')), { module, exports: module.exports, URL, process: { env: {} },
-    require(id) {
-      if (id === 'fs') return fakeFs;
-      if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');
-      return require(id);
-    },
-  });
-  return module.exports;
-}
 
 test('generation policy persists independent deadlines and rejects invalid or identical targets without mutation', () => {
   const disk = storage(); const manager = disk.boot();
@@ -90,7 +75,7 @@ function storage() {
   const reads = [];
   const fakeFs = {
     existsSync: file => files.has(file),
-    readFileSync(file) { reads.push(file); if (fault === 'read') throw Error('synthetic read'); return files.get(file) ?? (file === serviceAccountPath ? JSON.stringify(serviceAccount) : undefined); },
+    readFileSync(file) { reads.push(file); if (fault === 'read') throw Error('synthetic read'); return files.get(file); },
     writeFileSync(file, bytes, options) {
       if (fault === 'collision') {
         files.set(file, Buffer.from('synthetic-existing-temp'));
@@ -121,7 +106,6 @@ function storage() {
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage };
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');
-        if (id === './googleServiceAccount') return accountHelper(fakeFs);
         if (id === '../../src/types/llmTarget') return targetModule.exports;
         if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
         if (id === '../../src/types/codexSource') return codexModule.exports;
@@ -133,7 +117,7 @@ function storage() {
     manager.init();
     return manager;
   };
-  return { files, filename, reads, boot, accountHelper: accountHelper(fakeFs), setFault(value) { fault = value; } };
+  return { files, filename, reads, boot, setFault(value) { fault = value; } };
 }
 
 test('R3-1 changed effective origin requires an explicitly reentered nonempty key and leaves all stored selections untouched on refusal', () => {
@@ -301,19 +285,18 @@ test('all 24 setters commit only after persistence and can be read after restart
   const names = klass.members.filter(node => ts.isMethodDeclaration(node) && node.name.getText(ast).startsWith('set')).map(node => node.name.getText(ast));
   const fields = {
     setGeminiApiKey: 'geminiApiKey', setGroqApiKey: 'groqApiKey', setOpenaiApiKey: 'openaiApiKey',
-    setClaudeApiKey: 'claudeApiKey', setDeepseekApiKey: 'deepseekApiKey', setGoogleServiceAccountPath: 'googleServiceAccountPath',
-    setSttProvider: 'sttProvider', setDeepgramApiKey: 'deepgramApiKey', setGroqSttApiKey: 'groqSttApiKey',
+    setClaudeApiKey: 'claudeApiKey', setDeepseekApiKey: 'deepseekApiKey',
+    setSttProvider: 'sttProvider', setGroqSttApiKey: 'groqSttApiKey',
     setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel',
-    setElevenLabsApiKey: 'elevenLabsApiKey', setAzureApiKey: 'azureApiKey', setAzureRegion: 'azureRegion',
-    setIbmWatsonApiKey: 'ibmWatsonApiKey', setIbmWatsonRegion: 'ibmWatsonRegion', setSonioxApiKey: 'sonioxApiKey',
+    setSonioxApiKey: 'sonioxApiKey',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
   };
-  assert.equal(names.length, 24);
+  assert.equal(names.length, 17);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setGoogleServiceAccountPath' ? serviceAccountPath : 'synthetic-value'];
+    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
@@ -372,9 +355,8 @@ const channels = [
   'set-ai-response-language', 'switch-to-gemini', 'set-gemini-api-key', 'set-groq-api-key',
   'set-openai-api-key', 'set-claude-api-key', 'set-deepseek-api-key', 'set-provider-preferred-model',
   'set-stt-provider', 'set-groq-stt-api-key', 'set-openai-stt-api-key', 'set-openai-stt-base-url',
-  'set-deepgram-api-key', 'set-groq-stt-model', 'set-elevenlabs-api-key', 'set-azure-api-key',
-  'set-azure-region', 'set-ibmwatson-api-key', 'set-soniox-api-key', 'set-ibmwatson-region',
-  'set-default-model', 'set-recognition-language', 'select-service-account', 'set-provider-configuration',
+  'set-groq-stt-model', 'set-soniox-api-key',
+  'set-default-model', 'set-recognition-language', 'set-provider-configuration',
 ];
 
 function expression(file, select, context) {
@@ -396,8 +378,7 @@ function handler(channel, context) {
   return expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent)
     && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, {
       persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId,
-      resolveModelTarget: require('../../../dist-electron/electron/llm/llmTarget.js').resolveModelTarget,
-      loadGoogleServiceAccount: () => serviceAccount, googleSpeechClientOptions: () => ({}), ...context });
+      resolveModelTarget: require('../../../dist-electron/electron/llm/llmTarget.js').resolveModelTarget, ...context });
 }
 
 test('AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart', async () => {
@@ -492,7 +473,7 @@ test('AG31 env-only startup retains explicit keys, saved slots bind their own ke
 });
 
 test('AG24: all active STT key removals discard only after a successful save', async () => {
-  for (const provider of ['groq', 'openai', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'soniox']) {
+  for (const provider of ['groq', 'openai', 'soniox']) {
     const channel = ['groq', 'openai'].includes(provider) ? `set-${provider}-stt-api-key` : `set-${provider}-api-key`;
     for (const save of [failure, { ok: true }]) {
       for (const active of [provider, 'none']) {
@@ -513,7 +494,7 @@ test('AG24: invalid region or STT endpoint never changes credentials', () => {
   const disk = storage();
   const manager = disk.boot();
   const before = disk.files.get(disk.filename);
-  for (const [method, value] of [['setAzureRegion', 'other.invalid/path'], ['setIbmWatsonRegion', 'user@other.invalid/path'], ['setOpenAiSttBaseUrl', 'https://key@other.invalid']]) {
+  for (const [method, value] of [['setOpenAiSttBaseUrl', 'https://key@other.invalid']]) {
     assert.throws(() => manager[method](value));
     assert.deepEqual(disk.files.get(disk.filename), before);
   }
@@ -525,7 +506,7 @@ test('AG24: invalid configuration crosses real manager and IPC with no save or r
   const before = disk.files.get(disk.filename);
   const memory = plain(manager.getAllCredentials());
   let applies = 0;
-  for (const [channel, value] of [['set-azure-region', 'other.invalid/path'], ['set-ibmwatson-region', 'user@other.invalid/path'], ['set-openai-stt-base-url', 'https://key@other.invalid'], ['set-stt-provider', 'unknown-provider']]) {
+  for (const [channel, value] of [['set-openai-stt-base-url', 'https://key@other.invalid'], ['set-stt-provider', 'unknown-provider']]) {
     const result = await handler(channel, {
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
       appState: { reconfigureSttProvider: () => { applies++; } }, BrowserWindow: { getAllWindows: () => [] },
@@ -537,81 +518,6 @@ test('AG24: invalid configuration crosses real manager and IPC with no save or r
   }
 });
 
-test('Google selection rejects invalid JSON/type/read before persistence or runtime; safe snapshot crosses a successful save', async () => {
-  const disk = storage(), manager = disk.boot();
-  const before = disk.files.get(disk.filename), memory = plain(manager.getAllCredentials());
-  let applies = 0;
-  const invalidPath = '/synthetic/invalid.json';
-  for (const contents of ['{', JSON.stringify({ ...serviceAccount, type: 'external_account' }), JSON.stringify({ ...serviceAccount, project_id: '' }), undefined]) {
-    if (contents === undefined) disk.files.delete(invalidPath); else disk.files.set(invalidPath, contents);
-    assert.throws(() => manager.setGoogleServiceAccountPath(invalidPath), /Invalid Google service account/);
-    const result = await handler('select-service-account', {
-      loadGoogleServiceAccount: disk.accountHelper.loadGoogleServiceAccount,
-      require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-      dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: [invalidPath] }) },
-      appState: { updateGoogleCredentials() { applies++; } },
-    })({});
-    assert.equal(result.ok, false);
-    assert.equal(applies, 0);
-    assert.deepEqual(disk.files.get(disk.filename), before);
-    assert.deepEqual(plain(manager.getAllCredentials()), memory);
-  }
-  const result = await handler('select-service-account', {
-    loadGoogleServiceAccount: disk.accountHelper.loadGoogleServiceAccount,
-    require: () => ({ CredentialsManager: { getInstance: () => ({ setGoogleServiceAccountPath(file, account) {
-      const saved = manager.setGoogleServiceAccountPath(file, account);
-      disk.files.set(file, JSON.stringify({ ...serviceAccount, type: 'external_account' }));
-      return saved;
-    } }) } }),
-    dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: [serviceAccountPath] }) },
-    appState: { updateGoogleCredentials(file, account) { applies++; assert.equal(file, serviceAccountPath); assert.equal(account.type, 'service_account'); } },
-  })({});
-  assert.equal(result.ok, true);
-  assert.equal(applies, 1);
-  assert.deepEqual(Object.keys(result).sort(), ['ok', 'path'], 'private credential fields never return across IPC');
-  assert.equal(manager.getGoogleServiceAccountPath(), serviceAccountPath);
-  assert.throws(() => disk.accountHelper.loadGoogleServiceAccount(serviceAccountPath), /Invalid Google service account/, 'next load rejects changed file contents');
-});
-
-test('Google settings do not advertise an invalid saved path as usable', async () => {
-  const disk = storage(), manager = disk.boot();
-  assert.equal(manager.setGoogleServiceAccountPath(serviceAccountPath).ok, true);
-  disk.files.set(serviceAccountPath, JSON.stringify({ ...serviceAccount, type: 'authorized_user' }));
-  const credentials = await handler('get-stored-credentials', {
-    require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    ...disk.accountHelper,
-  })({});
-  assert.equal(credentials.googleServiceAccountPath, null);
-  assert.equal(manager.getGoogleServiceAccountPath(), serviceAccountPath, 'bad legacy path is not deleted or replaced');
-  assert.equal(credentials.hasOpenaiKey, true, 'independent settings remain usable');
-});
-
-test('AG24: real Azure/IBM connection-test handlers share the runtime region boundary', async () => {
-  const outbound = require('../../../dist-electron/electron/services/outbound.js');
-  for (const provider of ['azure', 'ibmwatson']) {
-    for (const region of ['other.invalid/path', 'user@other.invalid/path', provider === 'azure' ? 'eastus' : 'us-south']) {
-      const sends = [];
-      const result = await handler('test-stt-connection', {
-        Buffer, regionalSttEndpoint: outbound.regionalSttEndpoint,
-        axios: { post: async endpoint => { sends.push(endpoint); return { data: {} }; } },
-        require, sanitizeErrorMessage: message => message,
-      })({}, provider, 'synthetic-only', region);
-      const valid = !region.includes('/');
-      assert.equal(result.success, valid);
-      assert.equal(sends.length, valid ? 1 : 0);
-      if (valid) assert.equal(sends[0], outbound.regionalSttEndpoint(provider, region));
-    }
-  }
-});
-
-test('AG24: a refused ElevenLabs redirect is not reported as a validated key', async () => {
-  const result = await handler('test-stt-connection', {
-    Buffer, require, sanitizeErrorMessage: message => message,
-    axios: { get: async () => { throw { response: { status: 307 } }; } },
-  })({}, 'elevenlabs', 'synthetic-only');
-  assert.equal(result.success, false);
-});
-
 test('all saving IPC handlers return storage failure before runtime, events or window side effects', async () => {
   for (const channel of channels) {
     const effects = [];
@@ -621,13 +527,12 @@ test('all saving IPC handlers return storage failure before runtime, events or w
       ? () => key === 'getCodexCliConfig' ? codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG : key === 'getCurrentModelSelection' ? 'gpt-5.4' : undefined : effect });
     const appState = {
       processingHelper: { getLLMHelper: () => llm }, getIntelligenceManager: () => ({ resetEngine: effect, initializeLLMs: effect }),
-      reconfigureSttProvider: effect, sendModelChanged: effect, updateGoogleCredentials: effect,
+      reconfigureSttProvider: effect, sendModelChanged: effect,
       modelSelectorWindowHelper: { hideWindow: effect },
       setRecognitionLanguage: () => failure,
     };
     const result = await handler(channel, {
       appState, BrowserWindow: { getAllWindows: () => [{ isDestroyed: () => false, webContents: { send: effect } }] },
-      dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: ['/synthetic/account.json'] }) },
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
     })({}, ...(channel === 'set-provider-preferred-model' ? ['gemini', 'synthetic-model'] : ['synthetic-value']));
     assert.deepEqual(plain(result), failure, channel);
@@ -650,10 +555,9 @@ test('IPC warns safely after a committed save fails to apply, and cancellation i
   const applied = () => { throw Error('synthetic-key-must-not-leak'); };
   const context = {
     require: () => ({ CredentialsManager: { getInstance: () => new Proxy({}, { get: () => () => ({ ok: true }) }) } }),
-    appState: { processingHelper: { getLLMHelper: () => new Proxy({}, { get: () => applied }) }, updateGoogleCredentials: applied },
-    dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: ['/synthetic/account.json'] }) },
+    appState: { processingHelper: { getLLMHelper: () => new Proxy({}, { get: () => applied }) } },
   };
-  for (const channel of ['set-openai-api-key', 'switch-to-gemini', 'select-service-account']) {
+  for (const channel of ['set-openai-api-key', 'switch-to-gemini']) {
     const result = await handler(channel, context)({}, 'synthetic-key');
     assert.equal(result.ok, true, channel);
     assert.match(result.warning, /Saved/);
@@ -661,8 +565,6 @@ test('IPC warns safely after a committed save fails to apply, and cancellation i
   }
   const unsaved = await handler('switch-to-gemini', context)({}, undefined);
   assert.match(unsaved.warning, /No credentials were saved/);
-  context.dialog.showOpenDialog = async () => ({ canceled: true, filePaths: [] });
-  assert.deepEqual(plain(await handler('select-service-account', context)({})), { cancelled: true });
 });
 
 test('recognition language applies only after its real manager setter succeeds', () => {
@@ -692,11 +594,10 @@ const apiChannels = {
   setClaudeApiKey: 'set-claude-api-key', setDeepseekApiKey: 'set-deepseek-api-key',
   setProviderPreferredModel: 'set-provider-preferred-model', setSttProvider: 'set-stt-provider',
   setGroqSttApiKey: 'set-groq-stt-api-key', setOpenAiSttApiKey: 'set-openai-stt-api-key',
-  setOpenAiSttBaseUrl: 'set-openai-stt-base-url', setDeepgramApiKey: 'set-deepgram-api-key',
-  setGroqSttModel: 'set-groq-stt-model', setElevenLabsApiKey: 'set-elevenlabs-api-key',
-  setAzureApiKey: 'set-azure-api-key', setAzureRegion: 'set-azure-region', setIbmWatsonApiKey: 'set-ibmwatson-api-key',
-  setSonioxApiKey: 'set-soniox-api-key', setIbmWatsonRegion: 'set-ibmwatson-region',
-  setDefaultModel: 'set-default-model', setRecognitionLanguage: 'set-recognition-language', selectServiceAccount: 'select-service-account',
+  setOpenAiSttBaseUrl: 'set-openai-stt-base-url',
+  setGroqSttModel: 'set-groq-stt-model',
+  setSonioxApiKey: 'set-soniox-api-key',
+  setDefaultModel: 'set-default-model', setRecognitionLanguage: 'set-recognition-language',
 };
 
 test('all credential preload callbacks preserve failure, warning and cancellation results', async () => {
@@ -715,7 +616,7 @@ function ui(file, name, result, extra = {}) {
     confirm: () => true, setTimeout: () => 1,
     providerConfigurations: targets, hasStoredKey: {}, unsaved: false,
     window: { electronAPI: new Proxy({}, { get: () => async () => result }) },
-    availableLanguages: { 'english-us': { group: 'English' } }, sttAzureRegion: 'eastus', sttOpenaiBaseUrl: 'https://synthetic.invalid',
+    availableLanguages: { 'english-us': { group: 'English' } }, sttOpenaiBaseUrl: 'https://synthetic.invalid',
     ...extra,
   };
   // Only dependency setters are faked; the actual production callbacks are compiled and executed.
@@ -747,8 +648,7 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
     [overlay, 'handleAiLanguageChange', ['english'], ['setAiResponseLanguage']],
     [overlay, 'handleSttProviderChange', ['groq'], ['setSttProvider']],
     [overlay, 'handleGroqSttModelChange', ['synthetic-model'], ['setGroqSttModel']],
-    [overlay, 'handleSelectServiceAccount', [], ['setGoogleServiceAccountPath']],
-    [overlay, 'handleAzureRegionSave', [], []], [overlay, 'handleOpenAiSttBaseUrlSave', [], []],
+    [overlay, 'handleOpenAiSttBaseUrlSave', [], []],
   ]) {
     const subject = ui(file, name, failure, { providerId: 'openai', onPreferredModelChange: () => assert.fail('selection committed') });
     await subject.fn(...args);
@@ -760,9 +660,9 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
   }
 });
 
-test('all seven STT Save/Remove callbacks distinguish connection validation from stored keys', async () => {
+test('all three STT Save/Remove callbacks distinguish connection validation from stored keys', async () => {
   const file = 'src/components/SettingsOverlay.tsx';
-  for (const provider of ['groq', 'openai', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'soniox']) {
+  for (const provider of ['groq', 'openai', 'soniox']) {
     for (const name of ['handleSttKeySubmit', 'handleRemoveSttKey']) {
       const subject = ui(file, name, failure, { window: { electronAPI: new Proxy({ testSttConnection: async () => ({ success: true }) }, {
         get: (target, key) => target[key] || (async () => failure),
@@ -781,17 +681,13 @@ test('all seven STT Save/Remove callbacks distinguish connection validation from
   }
 });
 
-test('renderer keeps Saved and displays a safe apply warning, while cancellation does not change the selected file', async () => {
+test('renderer keeps Saved and displays a safe apply warning', async () => {
   const warning = 'Saved; restart to apply the synthetic configuration.';
   const subject = ui('src/components/settings/AIProvidersSettings.tsx', 'handleSaveKey', { ok: true, warning });
   const result = await subject.fn('openai', 'synthetic-key', () => {});
   assert.equal(result.ok, true);
   assert.equal(subject.changes.get('setSavedStatus').openai, true);
   assert.equal(subject.changes.get('setCredentialNotice'), warning);
-  const cancelled = ui('src/components/SettingsOverlay.tsx', 'handleSelectServiceAccount', { cancelled: true });
-  await cancelled.fn();
-  assert.equal(cancelled.changes.has('setGoogleServiceAccountPath'), false);
-  assert.equal(cancelled.changes.get('setCredentialNotice'), '');
 });
 
 test('renderer cannot report rollback when default-model refresh fails after a committed configuration save', async () => {
@@ -914,4 +810,14 @@ test('a decrypt failure reaches settings, and only a confirmed discard crosses I
   await again.fn();
   assert.equal(again.changes.get('setResult'), 'There are no unreadable credentials to discard.');
   assert.equal(again.changes.has('setStatus'), false);
+});
+
+test('AG-41a: CredentialsManager.getSttProvider() returns none for all retired providers', () => {
+  const disk = storage();
+  const manager = disk.boot();
+  for (const retired of ['google', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'local-whisper']) {
+    // Simulate pre-existing / migrated stored value on disk
+    manager.credentials.sttProvider = retired;
+    assert.equal(manager.getSttProvider(), 'none', `stored provider '${retired}' should resolve to 'none'`);
+  }
 });

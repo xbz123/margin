@@ -1,7 +1,7 @@
 /**
  * SonioxStreamingSTT - WebSocket-based streaming Speech-to-Text using Soniox
  *
- * Implements the same EventEmitter interface as GoogleSTT / DeepgramStreamingSTT:
+ * Implements the same EventEmitter interface as STT providers:
  *   Events: 'transcript' ({ text, isFinal, confidence }), 'error' (Error)
  *   Methods: start(), stop(), write(chunk), setSampleRate(), setAudioChannelCount()
  *
@@ -62,7 +62,7 @@ export class SonioxStreamingSTT extends EventEmitter {
     }
 
     // =========================================================================
-    // Configuration (match GoogleSTT / DeepgramStreamingSTT interface)
+    // Configuration (match STT Provider interface)
     // =========================================================================
 
     public setSampleRate(rate: number): void {
@@ -130,7 +130,7 @@ export class SonioxStreamingSTT extends EventEmitter {
         }, 250);
     }
 
-    /** No-op — no Google credentials needed */
+    /** No-op for Soniox */
     public setCredentials(_path: string): void { }
 
     /**

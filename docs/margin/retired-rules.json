@@ -9,7 +9,8 @@
     "AG-16",
     "AG-17",
     "S21",
-    "AG-40"
+    "AG-40",
+    "AG-41a"
   ],
   "scanRoots": [
     "electron",
@@ -1344,6 +1345,126 @@
       "ticket": "S21",
       "kind": "dep",
       "value": "mammoth"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "path",
+      "value": "electron/audio/GoogleSTT.ts"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "path",
+      "value": "electron/audio/DeepgramStreamingSTT.ts"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "path",
+      "value": "electron/audio/ElevenLabsStreamingSTT.ts"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "path",
+      "value": "electron/services/googleServiceAccount.ts"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "dep",
+      "value": "@google-cloud/speech"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "dep",
+      "value": "@deepgram/sdk"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "dep",
+      "value": "@elevenlabs/client"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "dep",
+      "value": "@elevenlabs/elevenlabs-js"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "dep",
+      "value": "@grpc/grpc-js"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "dep",
+      "value": "@grpc/proto-loader"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "DeepgramStreamingSTT"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "ElevenLabsStreamingSTT"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "loadGoogleServiceAccount"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "googleSpeechClientOptions"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "select-service-account"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-deepgram-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-elevenlabs-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-azure-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-azure-region"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-ibmwatson-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-ibmwatson-region"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "regionalSttEndpoint"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "host",
+      "value": "stt.speech.microsoft.com"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "host",
+      "value": "speech-to-text.watson.cloud.ibm.com"
     }
   ]
 }

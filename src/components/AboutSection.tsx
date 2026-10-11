@@ -267,7 +267,7 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                 <div>
                     <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-3">Core Technology</h4>
                     <div className="flex flex-wrap gap-2">
-                        {['Groq', 'Gemini', 'OpenAI', 'Deepgram', 'ElevenLabs', 'Electron', 'React', 'Rust', 'TypeScript', 'Tailwind CSS', 'Vite', 'Google Cloud', 'SQLite'].map(tech => (
+                        {['Groq', 'Gemini', 'OpenAI', 'Electron', 'React', 'Rust', 'TypeScript', 'Tailwind CSS', 'Vite', 'SQLite'].map(tech => (
                             <span key={tech} className="px-2.5 py-1 rounded-md bg-bg-input border border-border-subtle text-[11px] font-medium text-text-secondary">
                                 {tech}
                             </span>

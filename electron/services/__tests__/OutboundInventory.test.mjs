@@ -9,13 +9,10 @@ const require = createRequire(import.meta.url);
 const ts = require('typescript');
 const registered = {
   'electron/LLMHelper.ts': { 'new Groq': 1, 'new OpenAI': 3, 'new Anthropic': 1, 'new GoogleGenAI': 1 },
-  'electron/audio/GoogleSTT.ts': { 'new SpeechClient': 2 },
-  'electron/audio/DeepgramStreamingSTT.ts': { createClient: 1 },
   'electron/audio/SonioxStreamingSTT.ts': { 'new WebSocket': 1 },
-  'electron/audio/ElevenLabsStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
-  'electron/audio/RestSTT.ts': { 'axios.post': 2 },
-  'electron/ipcHandlers.ts': { 'new WebSocket': 2, 'axios.get': 1, 'axios.post': 3 },
+  'electron/audio/RestSTT.ts': { 'axios.post': 1 },
+  'electron/ipcHandlers.ts': { 'new WebSocket': 1, 'axios.post': 1 },
   'electron/services/ModelVersionManager.ts': { fetch: 4 },
   'electron/services/CodexAuthSource.ts': { createOutboundFetch: 1 },
   'electron/services/outbound.ts': { createOutboundFetch: 2 },
@@ -62,14 +59,9 @@ test('fixed endpoint origins in transport modules match the documented provider 
     }
     visit(ast);
   }
-  assert.deepEqual(dynamicAuthorities, ['electron/services/outbound.ts:`https://${hostname}`'], 'Only the existing validated regional-STT authority builder is dynamic.');
+  assert.deepEqual(dynamicAuthorities, []);
   assert.deepEqual([...origins].sort(), [
-    'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.elevenlabs.io', 'https://api.groq.com', 'https://api.openai.com',
-    'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.deepgram.com', 'wss://api.elevenlabs.io', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
+    'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.groq.com', 'https://api.openai.com',
+    'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
   ].sort());
-  const google = fs.readFileSync(path.join(REPO, 'electron/audio/GoogleSTT.ts'), 'utf8');
-  assert.equal(google.includes('keyFilename:'), false, 'Google cannot reintroduce unvalidated JSON/ADC authentication');
-  assert.equal((google.match(/new SpeechClient\(googleSpeechClientOptions\(account\)\)/g) ?? []).length, 2);
-  const deepgram = fs.readFileSync(path.join(REPO, 'electron/audio/DeepgramStreamingSTT.ts'), 'utf8');
-  assert.match(deepgram, /createClient\(this\.apiKey\)/, 'Deepgram receives no application proxy or custom endpoint');
 });

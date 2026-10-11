@@ -753,50 +753,7 @@ Unlock the **Undetectability** add-on to keep ${APP_IDENTITY.name} invisible dur
 3. Add your API keys:
    - **Gemini**
    - **Groq**
-4. To enable real-time transcription, select the location of your **Google Cloud service account JSON file**.
-
-If you don’t already have one, follow the steps below to create it.
-
-# Creating a Google Speech-to-Text Service Account
-
-## 1. Create or Select a Project
-- Open **Google Cloud Console**
-- Create a new project or select an existing one
-- Ensure billing is enabled
-
-## 2. Enable Speech-to-Text API
-- Go to **APIs & Services → Library**
-- Enable **Speech-to-Text API**
-
-## 3. Create a Service Account
-- Navigate to **IAM & Admin → Service Accounts**
-- Click **Create Service Account**
-- **Name**: natively-stt
-- **Description**: optional
-
-## 4. Assign Permissions
-- Grant the following role: **Speech-to-Text User** (\`roles/speech.client\`)
-
-## 5. Create a JSON Key
-- Open the service account
-- Go to **Keys → Add Key → Create new key**
-- Select **JSON**
-- Download the file
-
-**Once downloaded, return to Settings → Credentials in ${APP_IDENTITY.name} and select this file to complete setup.**
-
-# Free Google Cloud Credit (New Users)
-
-New Google Cloud accounts receive **$300 in free credits**, valid for 90 days.
-
-To activate:
-1. Visit [cloud.google.com](https://cloud.google.com)
-2. Click **Get started for free**
-3. Sign in with a Google account
-4. Add billing details (card required)
-5. Activate the free trial
-
-The credit can be used for Speech-to-Text and is sufficient for extended testing and regular usage.
+4. To enable real-time transcription, select a speech-to-text provider in **Settings** and add its API key.
 
 # Support
 
