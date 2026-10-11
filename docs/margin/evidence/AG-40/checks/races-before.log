@@ -1,0 +1,56 @@
+✖ begin is deferred and starts mic before system and either STT channel (69.7885ms)
+✔ abort during a pending permission probe joins init and removes late captures (20.447292ms)
+✔ detachment clears ownership synchronously and gates the next begin on native release (17.299167ms)
+✔ a replaced capture cannot write late PCM into the live STT channel (13.744125ms)
+✔ route change and system recovery share one rebuild owner (13.936083ms)
+✔ STT reconfiguration requests serialize while both channels remain independently wired (13.621625ms)
+✔ stop while enumeration is pending cannot create captures or report a stale device (11.982166ms)
+✔ newer reconfigure supersedes a pending lookup before any old capture is created (11.343542ms)
+✔ HFP lookup does not delay PCM and ignores a result after its capture is retired (16.480875ms)
+✖ reconfigure releases a route rebuild that claimed the slot during enumeration (60001.890958ms)
+✖ reconfigure releases a recovery capture that claimed the slot during enumeration (60006.051625ms)
+✔ stop waits for an intervening capture release and prevents a late replacement (53.136ms)
+✔ reconfigure releases a second capture claimed during the first release (26.781ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 2
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120561.751125
+
+✖ failing tests:
+
+test at electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:116:1
+✖ begin is deferred and starts mic before system and either STT channel (69.7885ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'mic:start',
+  +   'system:start',
+  +   'mic:start',
+      'stt:user:start',
+  -   'system:start',
+  -   'stt:interviewer:start'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:123:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'mic:start', 'system:start', 'mic:start', 'stt:user:start' ],
+    expected: [ 'mic:start', 'stt:user:start', 'system:start', 'stt:interviewer:start' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:286:1
+✖ reconfigure releases a route rebuild that claimed the slot during enumeration (60001.890958ms)
+  'test timed out after 60000ms'
+
+test at electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:338:1
+✖ reconfigure releases a recovery capture that claimed the slot during enumeration (60006.051625ms)
+  'test timed out after 60000ms'

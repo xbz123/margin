@@ -1,0 +1,86 @@
+✔ generated inventory, raster dimensions and ICNS/ICO structures are intact (20.125333ms)
+✔ inline logo renders the approved two-line glyph and resource references exist (65.762209ms)
+✔ tray uses generated 16pt/@2x files without resizing and restore uses packaged resources (56.48525ms)
+✖ generation is repeatable in synthetic directories and system iconutil decodes the ICNS (391.742167ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 817.677417
+
+✖ failing tests:
+
+test at electron/margin/__tests__/icons.test.mjs:135:1
+✖ generation is repeatable in synthetic directories and system iconutil decodes the ICNS (391.742167ms)
+  AssertionError [ERR_ASSERTION]: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-SirnwJ/tmp/margin-isolation-icons-first-SBg6TD/tmp/margin-icon-MBBhOI/margin.iconset:Invalid Iconset.
+  /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-SirnwJ/tmp/margin-isolation-icons-first-SBg6TD/tmp/margin-icon-MBBhOI/margin.iconset:Invalid Iconset.
+  node:internal/errors:998
+    const err = new Error(message);
+                ^
+  
+  Error: Command failed: iconutil -c icns /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-SirnwJ/tmp/margin-isolation-icons-first-SBg6TD/tmp/margin-icon-MBBhOI/margin.iconset -o /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-SirnwJ/tmp/margin-isolation-icons-first-SBg6TD/tmp/margin-icon-MBBhOI/margin.icns
+  /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-SirnwJ/tmp/margin-isolation-icons-first-SBg6TD/tmp/margin-icon-MBBhOI/margin.iconset:Invalid Iconset.
+  /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-SirnwJ/tmp/margin-isolation-icons-first-SBg6TD/tmp/margin-icon-MBBhOI/margin.iconset:Invalid Iconset.
+  
+      at genericNodeError (node:internal/errors:998:15)
+      at wrappedFn (node:internal/errors:543:14)
+      at checkExecSyncError (node:child_process:925:11)
+      at execFileSync (node:child_process:961:15)
+      at guarded (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:186:17)
+      at file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/icons/generate.mjs:43:3 {
+    status: 1,
+    signal: null,
+    output: [
+      null,
+      Buffer(0) [Uint8Array] [],
+      Buffer(396) [Uint8Array] [
+         47,  85, 115, 101, 114, 115,  47, 109,  97,  99,  47,  99,
+        111, 100, 101,  47,  78,  97, 116, 105, 118, 101, 108, 121,
+         47,  46,  99, 108,  97, 117, 100, 101,  47, 119, 111, 114,
+        107, 116, 114, 101, 101, 115,  47, 109,  97, 114, 103, 105,
+        110,  45,  97, 103, 112, 108,  45, 109, 105, 103, 114,  97,
+        116, 105, 111, 110,  47,  46,  97, 103, 121,  45, 116, 109,
+        112,  47, 109,  97, 114, 103, 105, 110,  45, 105, 115, 111,
+        108,  97, 116, 105, 111, 110,  45, 110, 111, 100, 101,  45,
+         83, 105, 114, 110,
+        ... 296 more items
+      ]
+    ],
+    pid: 17085,
+    stdout: Buffer(0) [Uint8Array] [],
+    stderr: Buffer(396) [Uint8Array] [
+       47,  85, 115, 101, 114, 115,  47, 109,  97,  99,  47,  99,
+      111, 100, 101,  47,  78,  97, 116, 105, 118, 101, 108, 121,
+       47,  46,  99, 108,  97, 117, 100, 101,  47, 119, 111, 114,
+      107, 116, 114, 101, 101, 115,  47, 109,  97, 114, 103, 105,
+      110,  45,  97, 103, 112, 108,  45, 109, 105, 103, 114,  97,
+      116, 105, 111, 110,  47,  46,  97, 103, 121,  45, 116, 109,
+      112,  47, 109,  97, 114, 103, 105, 110,  45, 105, 115, 111,
+      108,  97, 116, 105, 111, 110,  45, 110, 111, 100, 101,  45,
+       83, 105, 114, 110,
+      ... 296 more items
+    ]
+  }
+  
+  Node.js v26.0.0
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/icons.test.mjs:143:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

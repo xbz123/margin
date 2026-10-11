@@ -1,0 +1,21 @@
+✔ begin is deferred and starts mic before system and either STT channel (68.296792ms)
+✔ abort during a pending permission probe joins init and removes late captures (19.176209ms)
+✔ detachment clears ownership synchronously and gates the next begin on native release (18.258583ms)
+✔ a replaced capture cannot write late PCM into the live STT channel (15.726209ms)
+✔ route change and system recovery share one rebuild owner (15.35325ms)
+✔ STT reconfiguration requests serialize while both channels remain independently wired (12.933458ms)
+✔ stop while enumeration is pending cannot create captures or report a stale device (12.937416ms)
+✔ newer reconfigure supersedes a pending lookup before any old capture is created (13.614959ms)
+✔ HFP lookup does not delay PCM and ignores a result after its capture is retired (12.395875ms)
+✔ reconfigure releases a route rebuild that claimed the slot during enumeration (13.878375ms)
+✔ reconfigure releases a recovery capture that claimed the slot during enumeration (11.454792ms)
+✔ stop waits for an intervening capture release and prevents a late replacement (10.398333ms)
+✔ reconfigure releases a second capture claimed during the first release (12.515708ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 509.266542

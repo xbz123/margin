@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: sleep, resume, display changes and disposal invoke the production subscription functions
+ok 1 - sleep, resume, display changes and disposal invoke the production subscription functions
+  ---
+  duration_ms: 3.098375
+  type: 'test'
+  ...
+# Subtest: synchronous and asynchronous restart failures do not suppress shortcut recovery or escape as rejections
+ok 2 - synchronous and asynchronous restart failures do not suppress shortcut recovery or escape as rejections
+  ---
+  duration_ms: 2.758709
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 491.562042

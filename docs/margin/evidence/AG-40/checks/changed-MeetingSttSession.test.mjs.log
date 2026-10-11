@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: a declined provider factory stays absent without inventing a configured provider
+ok 1 - a declined provider factory stays absent without inventing a configured provider
+  ---
+  duration_ms: 71.550167
+  type: 'test'
+  ...
+# Subtest: retired provider errors cannot crash or re-enter the session
+ok 2 - retired provider errors cannot crash or re-enter the session
+  ---
+  duration_ms: 18.296708
+  type: 'test'
+  ...
+# Subtest: interleaved provider item IDs retain identity and monotone revisions
+ok 3 - interleaved provider item IDs retain identity and monotone revisions
+  ---
+  duration_ms: 12.793792
+  type: 'test'
+  ...
+# Subtest: equal-text unkeyed final utterances are distinct; channels stay distinct
+ok 4 - equal-text unkeyed final utterances are distinct; channels stay distinct
+  ---
+  duration_ms: 15.007875
+  type: 'test'
+  ...
+# Subtest: stop accepts trailing finals, releases listeners, and restart excludes stale provider
+ok 5 - stop accepts trailing finals, releases listeners, and restart excludes stale provider
+  ---
+  duration_ms: 73.39375
+  type: 'test'
+  ...
+# Subtest: reconfigure changes provider identity and detaches old listeners
+ok 6 - reconfigure changes provider identity and detaches old listeners
+  ---
+  duration_ms: 10.967375
+  type: 'test'
+  ...
+# Subtest: cancel while provider stop hangs is bounded and blocks late events
+ok 7 - cancel while provider stop hangs is bounded and blocks late events
+  ---
+  duration_ms: 57.569958
+  type: 'test'
+  ...
+# Subtest: provider stub item IDs link interim and final events
+ok 8 - provider stub item IDs link interim and final events
+  ---
+  duration_ms: 15.808
+  type: 'test'
+  ...
+# Subtest: finalize and stop share one bounded drain budget
+ok 9 - finalize and stop share one bounded drain budget
+  ---
+  duration_ms: 30.798041
+  type: 'test'
+  ...
+# Subtest: drain reports provider failure without inventing a timeout
+ok 10 - drain reports provider failure without inventing a timeout
+  ---
+  duration_ms: 9.497084
+  type: 'test'
+  ...
+# Subtest: stable IDs accept final corrections while duplicate and stale interim events are ignored
+ok 11 - stable IDs accept final corrections while duplicate and stale interim events are ignored
+  ---
+  duration_ms: 7.005208
+  type: 'test'
+  ...
+# Subtest: queued callback from a replaced provider cannot enter the same session
+ok 12 - queued callback from a replaced provider cannot enter the same session
+  ---
+  duration_ms: 6.880667
+  type: 'test'
+  ...
+# Subtest: Aliyun mock stub sentence IDs reach session for interim, final and corrected final
+ok 13 - Aliyun mock stub sentence IDs reach session for interim, final and corrected final
+  ---
+  duration_ms: 14.38175
+  type: 'test'
+  ...
+# Subtest: Doubao mock stub start-time identity keeps final corrections in one segment
+ok 14 - Doubao mock stub start-time identity keeps final corrections in one segment
+  ---
+  duration_ms: 8.67075
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 610.924708

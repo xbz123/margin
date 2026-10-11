@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: quitting prevents both route polling and direct reconstruction
+ok 1 - quitting prevents both route polling and direct reconstruction
+  ---
+  duration_ms: 54.115125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 311.629042

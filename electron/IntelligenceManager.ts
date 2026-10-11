@@ -127,7 +127,8 @@ export class IntelligenceManager extends EventEmitter {
     // ============================================
 
     handleTranscript(segment: import('./SessionTracker').TranscriptSegment): void {
-        this.engine.handleTranscript(segment);
+        // S33: incoming speech updates context only; generation requires a manual action.
+        this.session.handleTranscript(segment);
     }
 
     async handleSuggestionTrigger(trigger: import('./SessionTracker').SuggestionTrigger): Promise<void> {

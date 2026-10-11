@@ -252,6 +252,11 @@ import { IntelligenceManager } from "./IntelligenceManager"
 import { SystemAudioCapture } from "./audio/SystemAudioCapture"
 import { MicrophoneCapture } from "./audio/MicrophoneCapture"
 import { AudioDevices } from "./audio/AudioDevices"
+import { MeetingAudioPipeline } from './audio/MeetingAudioPipeline';
+import { MeetingSttSession, type SessionTranscript } from './audio/MeetingSttSession';
+import { MeetingLifecycleQueue } from './audio/meetingLifecycleQueue';
+import { TranscriptDisplayThrottle } from './audio/TranscriptDisplayThrottle';
+import { registerOsEventSubscriptions } from './osEventSubscriptions';
 import { loadNativeModule } from "./audio/nativeModuleLoader"
 import { GoogleSTT } from "./audio/GoogleSTT"
 import { loadGoogleServiceAccount, googleSpeechClientOptions } from './services/googleServiceAccount';
@@ -332,39 +337,31 @@ export class AppState {
 
   private hasDebugged: boolean = false
   private isMeetingActive: boolean = false; // Guard for session state leaks
-  private _meetingGeneration = 0;
-  private _audioInitPromise: Promise<void> | null = null;
-  // AbortController handle for the in-flight startMeeting() audio init, so endMeeting()
-  // can cancel it (signal.aborted short-circuits the init's isCurrentMeeting() guards)
-  // and await its completion before tearing down captures — preventing a fresh capture
-  // from being constructed/started AFTER teardown (dangling native handle / HAL freeze).
-  private _audioInitController: AbortController | null = null;
-  // Re-entry guard for endMeeting(): set true across the early `await _audioInitPromise`
-  // (which yields the event loop before `_pendingTeardown` exists), so a second Stop
-  // click during that window can't double-run the teardown and truncate trailing finals.
-  private _endMeetingInFlight = false;
-  // True between Stop click and the end of STT drain. The transcript handler
-  // (and only the transcript handler) treats `isMeetingActive || _isDraining`
-  // as "accept trailing finals" — every other call site looks at
-  // `isMeetingActive` alone, which flips to false synchronously on Stop so the
-  // launcher's "Meeting ongoing" pill switches back to "Start Natively" the
-  // instant the user clicks Stop, with no 250 ms green-→-blue stutter.
+  private readonly meetingLifecycle = new MeetingLifecycleQueue();
+  private activeAudioSession: string | null = null;
+  private audioSuspended = false;
+  private suspendTask: Promise<void> = Promise.resolve();
+  private shutdownTask: Promise<void> | null = null;
+  private readonly transcriptDisplay = new TranscriptDisplayThrottle(payload => this.sendToMeetingSurfaces('native-audio-transcript', payload));
+  private readonly meetingStt = new MeetingSttSession<STTProvider>({
+    create: channel => this.createSTTProvider(channel),
+    onTranscript: event => this.handleSttTranscript(event),
+  });
+  private readonly meetingAudio = new MeetingAudioPipeline(this.meetingStt,
+    () => ({ active: this.isMeetingActive && !this.audioSuspended, quitting: this._isQuitting, verbose: this._verboseLogging }), {
+      captureFailed: payload => this.sendAudioCaptureFailed(payload),
+      systemPermissionDenied: message => this.sendSystemAudioPermissionDenied(message),
+      deviceSelection: payload => this.broadcastDeviceSelection(payload),
+      monitorCapture: (capture, channel) => {
+        if (channel === 'user') this.wireMicCapture(capture as MicrophoneCapture);
+        else this.wireSystemCapture(capture as SystemAudioCapture);
+      },
+    }, resolveMacScreenCaptureCapability);
+  // Only this session's final transcripts are accepted while stopping.
   private _isDraining: boolean = false;
-  // Tracks remembered output device so reconfigureAudio can no-op when nothing changed.
-  // Mirrors the existing _lastRequestedInputDeviceId for the input side.
-  private _lastRequestedOutputDeviceId: string | undefined = undefined;
-  // Promise representing in-flight endMeeting background teardown (STT.stop +
-  // intelligenceManager.stopMeeting). startMeeting() awaits this
-  // before booting a new session so the shared STT instances are not torn down
-  // mid-meeting by a stale teardown task.
-  private _pendingTeardown: Promise<void> | null = null;
+  private get _lastRequestedOutputDeviceId() { return this.meetingAudio._lastRequestedOutputDeviceId; }
   private _isQuitting: boolean = false;
   private _verboseLogging: boolean = false;
-  // Tracks whether STT sample-rate has been applied for the current capture
-  // session. Reset on every reconfigureAudio / new pipeline build so the next
-  // first-chunk handler reads the freshly-detected native rate.
-  private _sysSttRateApplied: boolean = false;
-  private _micSttRateApplied: boolean = false;
   private _disguiseTimers: NodeJS.Timeout[] = []; // Track forceUpdate timeouts
   private _dockDebounceTimer: NodeJS.Timeout | null = null; // Debounce dock state changes
   private _dockReassertTimers: NodeJS.Timeout[] = []; // Re-assert dock-hidden state after show+focus
@@ -642,9 +639,6 @@ export class AppState {
 
     this.setupIntelligenceEvents()
 
-    // --- NEW SYSTEM AUDIO PIPELINE (SOX + NODE GOOGLE STT) ---
-    // LAZY INIT: Do not setup pipeline here to prevent launch volume surge.
-    // this.setupSystemAudioPipeline()
   }
 
   private sendToWindow(win: BrowserWindow | null | undefined, channel: string, ...args: any[]): boolean {
@@ -727,12 +721,21 @@ export class AppState {
   }
 
   // New Property for System Audio & Microphone
-  private systemAudioCapture: SystemAudioCapture | null = null;
-  private microphoneCapture: MicrophoneCapture | null = null;
+  private get systemAudioCapture() { return this.meetingAudio.systemAudioCapture; }
+  private get microphoneCapture() { return this.meetingAudio.microphoneCapture; }
   private audioTestCapture: MicrophoneCapture | null = null; // For audio settings test
   private _audioTestStarting = false;               // P2-12: in-flight guard against concurrent calls
-  private googleSTT: STTProvider | null = null; // Interviewer
-  private googleSTT_User: STTProvider | null = null; // User
+  private get googleSTT() { return this.meetingStt.get('interviewer'); }
+  private set googleSTT(value: STTProvider | null) { this.meetingStt.set('interviewer', value); }
+  private get googleSTT_User() { return this.meetingStt.get('user'); }
+  private set googleSTT_User(value: STTProvider | null) { this.meetingStt.set('user', value); }
+
+  private handleSttTranscript(event: SessionTranscript): void {
+    if (event.sessionId !== this.activeAudioSession || (!this.isMeetingActive && !(this._isDraining && event.final))) return;
+    const payload = { speaker: event.channel, text: event.text, timestamp: event.timestamp, final: event.final, confidence: event.confidence };
+    this.intelligenceManager.handleTranscript(payload);
+    this.transcriptDisplay.send(payload);
+  }
 
   private createSTTProvider(speaker: 'interviewer' | 'user'): STTProvider | null {
     const { CredentialsManager } = require('./services/CredentialsManager');
@@ -827,37 +830,6 @@ export class AppState {
 
     stt.setRecognitionLanguage(sttLanguage);
 
-    // Wire Transcript Events
-    stt.on('transcript', (segment: { text: string, isFinal: boolean, confidence: number }) => {
-      // Accept transcripts while a meeting is active OR while we're draining
-      // trailing finals after Stop. `_isDraining` covers the ~250 ms grace
-      // window between Stop click and STT socket close so the user's last
-      // sentence isn't silently dropped.
-      if (!this.isMeetingActive && !this._isDraining) {
-        return;
-      }
-
-      this.intelligenceManager.handleTranscript({
-        speaker: speaker,
-        text: segment.text,
-        timestamp: Date.now(),
-        final: segment.isFinal,
-        confidence: segment.confidence
-      });
-
-      const helper = this.getWindowHelper();
-      const payload = {
-        speaker: speaker,
-        text: segment.text,
-        timestamp: Date.now(),
-        final: segment.isFinal,
-        confidence: segment.confidence
-      };
-      helper.getLauncherWindow()?.webContents.send('native-audio-transcript', payload);
-      helper.getOverlayWindow()?.webContents.send('native-audio-transcript', payload);
-
-    });
-
     // Consecutive failure counter — reset on any successful final transcript
     let _consecutiveErrors = 0;
 
@@ -869,6 +841,7 @@ export class AppState {
     let _lastState: 'connected' | 'reconnecting' | 'failed' | 'awaiting-audio' = 'awaiting-audio';
 
     stt.on('error', (err: Error) => {
+      if (this.meetingStt.get(speaker) !== stt || !this.isMeetingActive) return;
       // Google streamingRecognize's 10s silence timeout closes the stream
       // with gRPC code 11 ("Audio Timeout Error"). GoogleSTT already
       // swallows this case before it reaches us, but other providers may
@@ -947,6 +920,7 @@ export class AppState {
     // Track successful transcripts — resets consecutive error counter
     // Broadcasts 'connected' whenever we recover from reconnecting/failed
     stt.on('transcript', (segment: { text: string, isFinal: boolean, confidence: number }) => {
+      if (this.meetingStt.get(speaker) !== stt || !this.isMeetingActive) return;
       if (segment.isFinal) {
         _consecutiveErrors = 0; // Success — reset counter
         if (_lastState !== 'connected') {
@@ -966,6 +940,7 @@ export class AppState {
     // signal isn't silently dropped — the event is informational, not a status
     // change, so we don't push it through the stt-status channel.
     stt.on('warning', (w: { code?: string; message?: string; droppedBytes?: number }) => {
+      if (this.meetingStt.get(speaker) !== stt || !this.isMeetingActive) return;
       console.warn(`[Main] STT (${speaker}) warning: ${w?.code ?? 'unknown'}`,
         { provider: sttProvider, message: w?.message, droppedBytes: w?.droppedBytes });
     });
@@ -983,21 +958,7 @@ export class AppState {
     return stt;
   }
 
-  /**
-   * REFACTOR: wireSystemCapture / wireMicCapture.
-   *
-   * Previously the listener-wiring blocks for SystemAudioCapture were
-   * duplicated three times (setupSystemAudioPipeline + happy-path of
-   * reconfigureAudio + fallback-path of reconfigureAudio), each with its own
-   * closure-local chunk counter (`_sysChunkCount` / `_rcfgSysChunkCount` /
-   * `_dfltSysChunkCount`) and slightly different log prefix. That made it
-   * impossible to know which counter was active from the logs.
-   *
-   * Consolidation: a single helper attaches all four listeners against the
-   * given capture instance. The `label` parameter only affects logging so
-   * the originating call site is still identifiable. setupAudioRecoveryHandler
-   * is also called here so every wire-up path gets recovery for free.
-   */
+  // Keep baseline health calibration; the pipeline owns PCM, format and recovery.
   private wireSystemCapture(capture: SystemAudioCapture, label: string = ''): void {
     const prefix = label ? `[Main] ${label} ` : '[Main] ';
     let chunkCount = 0;
@@ -1103,6 +1064,7 @@ export class AppState {
     // UI banner — that would spam during normal device juggling.
     let lastChunkAt = 0;
     capture.on('data', (chunk: Buffer) => {
+      if (this.systemAudioCapture !== capture || !this.isMeetingActive) return;
       const now = Date.now();
       if (lastChunkAt > 0) {
         const gap = now - lastChunkAt;
@@ -1115,13 +1077,6 @@ export class AppState {
       if (chunkCount === 1 && stuckTimer) {
         clearTimeout(stuckTimer);
         stuckTimer = null;
-      }
-      if (!this._sysSttRateApplied && this.googleSTT && this.systemAudioCapture === capture) {
-        const rate = capture.getSampleRate();
-        this.googleSTT.setSampleRate(rate);
-        this.googleSTT.setAudioChannelCount?.(1);
-        this._sysSttRateApplied = true;
-        console.log(`${prefix}Interviewer STT rate locked from first chunk: ${rate}Hz`);
       }
       if (chunkCount <= 3 || chunkCount % 500 === 0) {
         console.log(`${prefix}SystemAudio->STT: chunk #${chunkCount}, ${chunk.length}B, googleSTT=${this.googleSTT ? 'active' : 'NULL'}`);
@@ -1168,19 +1123,7 @@ export class AppState {
           });
         }
       }
-
-      this.googleSTT?.write(chunk);
     });
-    capture.on('sample_rate_changed', (rate: number) => {
-      console.log(`${prefix}SystemAudioCapture rate updated dynamically to ${rate}Hz`);
-      this.googleSTT?.setSampleRate(rate);
-    });
-    capture.on('speech_ended', () => {
-      this.googleSTT?.notifySpeechEnded?.();
-    });
-    // setupAudioRecoveryHandler registers its own 'error' listener — do not
-    // add a duplicate logger here or the same error reports twice.
-    this.setupAudioRecoveryHandler();
   }
 
   private wireMicCapture(capture: MicrophoneCapture, label: string = ''): void {
@@ -1238,6 +1181,7 @@ export class AppState {
     let zerofillLatched = false;
     let zerofillTriggered = false;
     capture.on('data', (chunk: Buffer) => {
+      if (this.microphoneCapture !== capture || !this.isMeetingActive) return;
       const now = Date.now();
       if (lastChunkAt > 0) {
         const gap = now - lastChunkAt;
@@ -1250,13 +1194,6 @@ export class AppState {
       if (chunkCount === 1 && stuckTimer) {
         clearTimeout(stuckTimer);
         stuckTimer = null;
-      }
-      if (!this._micSttRateApplied && this.googleSTT_User && this.microphoneCapture === capture) {
-        const rate = capture.getSampleRate();
-        this.googleSTT_User.setSampleRate(rate);
-        this.googleSTT_User.setAudioChannelCount?.(1);
-        this._micSttRateApplied = true;
-        console.log(`${prefix}User STT rate locked from first mic chunk: ${rate}Hz`);
       }
 
       if (!zerofillLatched && !zerofillTriggered) {
@@ -1289,182 +1226,7 @@ export class AppState {
           });
         }
       }
-
-      this.googleSTT_User?.write(chunk);
     });
-    capture.on('sample_rate_changed', (rate: number) => {
-      console.log(`${prefix}MicrophoneCapture rate updated dynamically to ${rate}Hz`);
-      this.googleSTT_User?.setSampleRate(rate);
-    });
-    capture.on('speech_ended', () => {
-      this.googleSTT_User?.notifySpeechEnded?.();
-    });
-    // setupMicRecoveryHandler registers its own 'error' listener.
-    this.setupMicRecoveryHandler();
-  }
-
-  private async setupSystemAudioPipeline(): Promise<void> {
-    // REMOVED EARLY RETURN: if (this.systemAudioCapture && this.microphoneCapture) return; // Already initialized
-
-    try {
-      // 1. Initialize Captures if missing
-      // If they already exist (e.g. from reconfigureAudio), they are already wired to write to this.googleSTT/User
-      //
-      // B6: ALWAYS re-evaluate screen-recording permission at pipeline setup,
-      // regardless of whether a SystemAudioCapture wrapper already exists.
-      // Pre-fix this check was gated on `!this.systemAudioCapture`, so a stale
-      // wrapper that survived from a prior meeting (mid-stream reconfigureAudio
-      // failure, deferred teardown, etc.) would prevent the permission re-check,
-      // and a between-meeting TCC revoke would cause the next meeting to
-      // silently zero-fill with no banner — the exact pattern the audit
-      // identified for "permissions granted (then revoked), no transcription."
-      const screenCapability = await resolveMacScreenCaptureCapability('system audio pipeline setup');
-
-      if (screenCapability.effectiveDenied) {
-        const message = screenCapability.message ?? formatPermissionMessage('screen-recording-denied');
-        console.warn('[Main] Screen Recording permission denied at pipeline setup. Tearing down any stale system audio capture; meeting will run mic-only.');
-        this.sendSystemAudioPermissionDenied(message);
-        this.broadcastDeviceSelection({
-          kind: 'output',
-          requested: null,
-          actual: null,
-          fellBack: true,
-          reason: 'screen-recording-permission-denied',
-        });
-        // B6: tear down any stale capture so the 2nd meeting after a
-        // between-meeting TCC revoke doesn't continue feeding the STT
-        // pipeline zero-filled audio against a now-denied permission.
-        if (this.systemAudioCapture) {
-          try {
-            await this.systemAudioCapture.destroy();
-          } catch (destroyErr) {
-            console.warn('[Main] Stale system audio capture destroy failed during permission-denied path:', destroyErr);
-          }
-          this.systemAudioCapture = null;
-          this._sysSttRateApplied = false;
-        }
-      } else if (!this.systemAudioCapture) {
-        // B3: wrap construction + wiring in its own try/catch so a native-module
-        // failure (NAPI throw, HAL/WASAPI resource exhaustion, internal error
-        // from SystemAudioCapture ctor) doesn't silently leave systemAudioCapture
-        // null with no watchdog armed and no UI signal. Pre-fix the throw was
-        // caught by the outer catch at the bottom of the function, which only
-        // console.error'd — the caller then proceeded with a null capture, the
-        // STT WS connected, the user saw "Listening for audio…" forever, and
-        // no banner ever surfaced.
-        try {
-          this.systemAudioCapture = new SystemAudioCapture();
-          this.wireSystemCapture(this.systemAudioCapture);
-          // Transparency: tell the renderer which device is actually being captured
-          // even on the no-metadata default path. Previously only reconfigureAudio
-          // broadcast this, so a meeting started without an explicit device choice
-          // left the UI in the dark about whether system audio was using the
-          // expected output route.
-          this.broadcastDeviceSelection({
-            kind: 'output',
-            requested: null,
-            actual: 'default',
-            fellBack: false,
-          });
-        } catch (capErr) {
-          console.error('[Main] SystemAudioCapture construction failed:', capErr);
-          this.systemAudioCapture = null;
-          this.sendAudioCaptureFailed({
-            channel: 'system',
-            message: `System audio capture failed to initialize. The native audio module could not allocate the capture device. Restarting ${APP_IDENTITY.name} may help; if the problem persists, file a bug.`,
-            attempt: 0,
-            maxAttempts: 0,
-            terminal: true,
-            stuck: false,
-          });
-        }
-      }
-      // If !effectiveDenied && this.systemAudioCapture already exists, the
-      // existing wrapper is assumed correct (its watchdogs will detect any
-      // zero-fill or stuck state and surface via audio-capture-failed).
-
-      if (!this.microphoneCapture) {
-        // B3: same defense for mic ctor throws (USB device disappears on open,
-        // exclusive-mode steal). Outer try/catch only logged; user got no banner.
-        try {
-          this.microphoneCapture = new MicrophoneCapture();
-          this.wireMicCapture(this.microphoneCapture);
-        } catch (capErr) {
-          console.error('[Main] MicrophoneCapture construction failed:', capErr);
-          this.microphoneCapture = null;
-          this.sendAudioCaptureFailed({
-            channel: 'mic',
-            message: `Microphone capture failed to initialize. The native audio module could not open the default input device. Check that the device is connected and not in exclusive use by another app, then restart ${APP_IDENTITY.name}.`,
-            attempt: 0,
-            maxAttempts: 0,
-            terminal: true,
-            stuck: false,
-          });
-        }
-      }
-
-      // 2. Initialize STT Services if missing
-      // STT init wraps each createSTTProvider in its own try/catch so a single
-      // provider failure (bad API key, missing credentials file, network error
-      // during constructor) doesn't break the entire pipeline AND the user gets
-      // a specific UI signal instead of the generic "no transcript" experience.
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const sttProv = CredentialsManager.getInstance().getSttProvider();
-
-      if (!this.googleSTT) {
-        console.log(`[Main] Creating interviewer STT provider: ${sttProv}`);
-        try {
-          this.googleSTT = this.createSTTProvider('interviewer');
-        } catch (sttErr) {
-          console.error(`[Main] Interviewer STT init failed (${sttProv}):`, sttErr);
-          this.googleSTT = null;
-        }
-        if (!this.googleSTT) {
-          this.sendAudioCaptureFailed( {
-            channel: 'system',
-            message: `Speech-to-text provider "${sttProv}" failed to initialize for the interviewer channel. Check your API key and credentials in Settings.`,
-            attempt: 0,
-            maxAttempts: 0,
-            terminal: true,
-            stuck: false,
-          });
-        }
-      }
-
-      if (!this.googleSTT_User) {
-        console.log(`[Main] Creating user STT provider: ${sttProv}`);
-        try {
-          this.googleSTT_User = this.createSTTProvider('user');
-        } catch (sttErr) {
-          console.error(`[Main] User STT init failed (${sttProv}):`, sttErr);
-          this.googleSTT_User = null;
-        }
-        if (!this.googleSTT_User) {
-          this.sendAudioCaptureFailed( {
-            channel: 'mic',
-            message: `Speech-to-text provider "${sttProv}" failed to initialize for the microphone channel. Check your API key and credentials in Settings.`,
-            attempt: 0,
-            maxAttempts: 0,
-            terminal: true,
-            stuck: false,
-          });
-        }
-      }
-
-      // STT sample rate is now applied lazily on the first chunk arrival
-      // (see the 'data' handlers above). Pre-configuring here was racy because
-      // SystemAudioCapture's monitor doesn't exist until start() and returns
-      // the constructor default (48000) until the native bg-init thread
-      // publishes the real rate — which on Windows after Fix #2 is known
-      // synchronously, but on macOS CoreAudio Tap takes ~5-7s to propagate.
-      this._sysSttRateApplied = false;
-      this._micSttRateApplied = false;
-
-      if (this._verboseLogging) console.log('[Main] Full Audio Pipeline (System + Mic) Initialized (Ready)');
-
-    } catch (err) {
-      console.error('[Main] Failed to setup System Audio Pipeline:', err);
-    }
   }
 
   /**
@@ -1478,8 +1240,7 @@ export class AppState {
    * to assume. The actual streaming-WebSocket cold-start is a separate (larger)
    * optimization that should be done per-provider.
    *
-   * Safe to call multiple times: existence guards in setupSystemAudioPipeline
-   * prevent duplicate construction.
+   * Existing session providers are reused without opening another connection.
    */
   public prewarmSttProviders(): void {
     if (this.googleSTT && this.googleSTT_User) return;
@@ -1493,131 +1254,37 @@ export class AppState {
         this.googleSTT_User = this.createSTTProvider('user');
       }
     } catch (err) {
-      // Pre-warm failure is non-fatal; setupSystemAudioPipeline will retry on
-      // first meeting start with full error handling.
+      // The meeting pipeline retries provider creation on start.
       console.warn('[Main] STT pre-warm failed (will retry on meeting start):', err);
     }
   }
 
-  /**
-   * Restart system + mic captures after a macOS sleep/wake cycle.
-   *
-   * Why this exists: when the laptop sleeps (lid close, "Sleep" menu, idle
-   * timeout), CoreAudio invalidates the AggregateDevice handle, the SCK
-   * stream silently dies, and the Process Tap stops delivering buffers. On
-   * resume the OS doesn't notify our IO proc, so the captures sit there
-   * looking healthy (chunkCount > 0 from before sleep, isRecording=true)
-   * but never produce another chunk. The 8s no-chunks watchdog *would*
-   * eventually fire, but only on the path where chunkCount stays at 0 — it
-   * doesn't help mid-meeting after we've already seen audio.
-   *
-   * The WS connection is similarly half-dead: TCP keepalive won't notice
-   * for 2+ hours on macOS, and meanwhile the renderer shows a frozen
-   * transcript and a "Connected" badge.
-   *
-   * Cleanest fix: on system resume, if a meeting is active, destroy and
-   * recreate both captures using the same device IDs the user originally
-   * picked. The STT WS will close as a side effect of the capture stop and
-   * reconnect via the existing scheduleReconnect path. Total dead air is
-   * ~500ms — a small price for guaranteed recovery.
-   */
+
   public async restartCapturesAfterResume(): Promise<void> {
-    if (!this.isMeetingActive) {
-      console.log('[Main] System resume — no active meeting, nothing to restart.');
-      return;
-    }
-    console.log('[Main] System resume — restarting captures so CoreAudio/cpal handles are fresh.');
+    const session = this.activeAudioSession;
+    await this.suspendTask;
+    this.audioSuspended = false;
+    if (!this.isMeetingActive || this._isQuitting || session !== this.activeAudioSession) return;
+    this.meetingAudio.resetRecovery();
+    await this.reconfigureAudio(this.meetingAudio._lastRequestedInputDeviceId, this.meetingAudio._lastRequestedOutputDeviceId);
+  }
 
-    // B7: reset ALL audio recovery state BEFORE recreating captures. State is
-    // tied to a SPECIFIC capture instance's failure history; once we destroy
-    // + recreate, the fresh captures must get a clean slate. Mirrors the
-    // fuller reset done in startMeeting. Pre-fix:
-    //   1. Counter saturation (attempts == 3) caused the early-return guards
-    //      in setupMicRecoveryHandler / setupAudioRecoveryHandler to drop
-    //      the FIRST post-wake error event silently — cpal frequently
-    //      emits a transient 'error' on wake, which was the exact bug.
-    //   2. A pre-sleep recovery in flight (`_*RecoveryInProgress = true`)
-    //      AND its pending `_*RecoveryTimer` would still be referenced by
-    //      the abandoned recovery promise after wake, so a stale recovery
-    //      could land on a freshly recreated capture.
-    this._systemAudioRecoveryInProgress = false;
-    this._systemAudioRecoveryAttempts = 0;
-    this._systemAudioConsecutiveFailures = 0;
-    if (this._systemAudioRecoveryTimer) {
-      clearTimeout(this._systemAudioRecoveryTimer);
-      this._systemAudioRecoveryTimer = null;
-    }
-    this._micRecoveryInProgress = false;
-    this._micRecoveryAttempts = 0;
-    if (this._micRecoveryTimer) {
-      clearTimeout(this._micRecoveryTimer);
-      this._micRecoveryTimer = null;
-    }
+  public suspendAudio(): Promise<void> {
+    this.audioSuspended = true;
+    this.suspendTask = this.meetingAudio.abortInit().then(() => this.meetingAudio.detachAndDestroy());
+    return this.suspendTask;
+  }
 
-    // System audio (CoreAudio Tap is the most fragile across sleep cycles).
-    if (this.systemAudioCapture) {
-      try {
-        this.systemAudioCapture.destroy();
-      } catch (e) {
-        console.warn('[Main] Resume: system capture destroy threw:', e);
-      }
-      this.systemAudioCapture = null;
-    }
-    try {
-      const screenCapability = await resolveMacScreenCaptureCapability('resume capture restart');
-      if (screenCapability.effectiveDenied) {
-        this.sendSystemAudioPermissionDenied( screenCapability.message ?? formatPermissionMessage('screen-recording-denied'));
-        this.broadcastDeviceSelection({
-          kind: 'output',
-          requested: this._lastRequestedOutputDeviceId || null,
-          actual: null,
-          fellBack: true,
-          reason: 'screen-recording-permission-denied',
-        });
-      } else {
-        this.systemAudioCapture = new SystemAudioCapture(this._lastRequestedOutputDeviceId);
-        this._sysSttRateApplied = false;
-        this.wireSystemCapture(this.systemAudioCapture, '(Resume)');
-        this.systemAudioCapture.start();
-      }
-    } catch (err) {
-      console.error('[Main] Resume: failed to restart system capture:', err);
-      this.sendAudioCaptureFailed( {
-        channel: 'system',
-        message: 'System audio capture failed to restart after wake. End and restart the meeting to recover.',
-        attempt: 0,
-        maxAttempts: 0,
-        terminal: true,
-        stuck: false,
-      });
-    }
-
-    // Mic — usually survives sleep but recreate to be safe; cpal exclusive
-    // mode on Windows can silently drop the stream.
-    if (this.microphoneCapture) {
-      try {
-        this.microphoneCapture.destroy();
-      } catch (e) {
-        console.warn('[Main] Resume: mic capture destroy threw:', e);
-      }
-      this.microphoneCapture = null;
-    }
-    try {
-      this.microphoneCapture = new MicrophoneCapture(this._lastRequestedInputDeviceId);
-      this._micSttRateApplied = false;
-      this.wireMicCapture(this.microphoneCapture, '(Resume)');
-      this.microphoneCapture.start();
-    } catch (err) {
-      console.error('[Main] Resume: failed to restart mic capture:', err);
-      this.sendAudioCaptureFailed( {
-        channel: 'mic',
-        message: 'Microphone failed to restart after wake. Check that no other app holds the mic, then end and restart the meeting.',
-        attempt: 0,
-        maxAttempts: 0,
-        terminal: true,
-        stuck: false,
-      });
-    }
+  public shutdownAudio(): Promise<void> {
+    if (this.shutdownTask) return this.shutdownTask;
+    this.setQuitting(true);
+    this.shutdownTask = (async () => {
+      const results = await Promise.allSettled([this.stopAudioTest(), this.endMeeting()]);
+      try { await this.suspendAudio(); }
+      finally { await this.meetingStt.cancel(); }
+      if (results.some(result => result.status === 'rejected')) throw new Error('Audio shutdown did not complete cleanly');
+    })();
+    return this.shutdownTask;
   }
 
   /**
@@ -1636,34 +1303,6 @@ export class AppState {
   }): void {
     console.log(`[Main] device-selection-applied:`, payload);
     this.sendToSettingsSurfaces('device-selection-applied', payload);
-  }
-
-  /**
-   * Normalize a device id from the renderer/localStorage into the canonical
-   * "use the system default" form (undefined). Treats null, empty string, and
-   * the literal sentinel "default" as equivalent to "no preference".
-   *
-   * This matters because Rust's `list_input_devices()` returns ("default",
-   * "Default Microphone") as the first option, so the renderer's "Default"
-   * dropdown choice gets persisted as the literal string "default" — which
-   * is truthy in JS and would otherwise:
-   *   - defeat the default-output watcher's `_lastRequestedOutputDeviceId`
-   *     guard (it skipped polling for users on Default because the field
-   *     was the truthy string "default" instead of undefined),
-   *   - leave the reconfigureAudio device-id comparison dependent on the
-   *     exact string the renderer happened to send,
-   *   - cause the mic recovery handler to attempt recreation with the
-   *     literal "default" string (which Rust handles correctly, but only
-   *     because of explicit special-casing in microphone.rs/sck.rs).
-   * Centralizing the normalization here keeps every downstream consumer on
-   * the same page about what "default" actually means.
-   */
-  private normalizeDeviceId(id: string | null | undefined): string | undefined {
-    if (!id) return undefined;
-    const trimmed = id.trim();
-    if (!trimmed) return undefined;
-    if (trimmed.toLowerCase() === 'default') return undefined;
-    return trimmed;
   }
 
   /**
@@ -1715,685 +1354,39 @@ export class AppState {
     return undefined;
   }
 
-  /**
-   * Pick the best mic to use when the requested input conflicts with the
-   * audio output (same physical device — typically AirPods on both sides).
-   * Built-in mics get first preference because they are always available
-   * and never participate in the Bluetooth aggregate that's blocking the
-   * tap. Falls back to any other input that isn't the conflicting device.
-   * Returns undefined if nothing else is plugged in.
-   */
-  private pickFallbackInputDevice(conflictingName: string): { id: string; name: string } | undefined {
-    try {
-      const inputs = AudioDevices.getInputDevices();
-      if (!inputs?.length) return undefined;
-
-      const stripSuffix = (s: string) => s.replace(/:(input|output)$/i, '');
-      const conflictBase = stripSuffix(conflictingName).toLowerCase();
-      const isConflicting = (d: { id: string; name: string }) =>
-        stripSuffix(d.id).toLowerCase() === conflictBase ||
-        d.name.toLowerCase() === conflictBase;
-      // Built-in mics on macOS show up as "MacBook Pro Microphone" / "MacBook
-      // Air Microphone" / "Built-in Microphone" / "iMac Microphone". Match
-      // loosely so we don't miss future Apple naming changes.
-      const isBuiltIn = (d: { id: string; name: string }) =>
-        /macbook|built[- ]?in|imac|mac\s+studio|mac\s+mini/i.test(d.name);
-
-      return inputs.find(d => !isConflicting(d) && isBuiltIn(d))
-          ?? inputs.find(d => !isConflicting(d));
-    } catch {
-      return undefined;
-    }
-  }
 
   private async reconfigureAudio(inputDeviceId?: string | null, outputDeviceId?: string | null): Promise<void> {
-    console.log(`[Main] Reconfiguring Audio: Input=${inputDeviceId}, Output=${outputDeviceId}`);
-
-    // PERF: skip the entire destroy+recreate cycle when neither device changed
-    // since the last reconfigure AND both captures already exist. Each
-    // destroy()+new() costs 50–200ms (macOS CoreAudio Tap re-init, Windows
-    // WASAPI device contention, CPAL stream open). The common case — user
-    // starts a second meeting with the same mic/speakers — hits this path.
-    let wantedInput = this.normalizeDeviceId(inputDeviceId);
-    const wantedOutput = this.normalizeDeviceId(outputDeviceId);
-
-    // Auto-fallback for the "same device on both sides" conflict (most common
-    // with AirPods used for both listening and the meeting mic). macOS won't
-    // tap a device while it's also the active microphone — the system audio
-    // capture would silently produce zero-filled buffers and the interviewer
-    // transcript would stay empty. Switch the mic to a non-conflicting input
-    // (built-in preferred) so the user can keep their headphones for audio
-    // output without touching system settings.
-    //
-    // This check runs BEFORE the skip-if-unchanged comparison so the skip
-    // path uses the post-fallback wantedInput. Otherwise a stale identical
-    // request could short-circuit a needed re-resolution (e.g., user
-    // unplugged the built-in fallback after the first reconfigure).
-    if (wantedInput && wantedOutput) {
-      const conflict = this.checkSameInputOutputDevice(wantedInput, wantedOutput);
-      if (conflict) {
-        const fallback = this.pickFallbackInputDevice(conflict);
-        if (fallback) {
-          console.warn(`[Main] I/O conflict detected (${conflict} on both sides). Auto-switching mic to "${fallback.name}".`);
-          wantedInput = this.normalizeDeviceId(fallback.id);
-          this.broadcast('audio-input-auto-switched', {
-            from: conflict,
-            to: fallback.name,
-            reason: 'same-device-conflict',
-          });
-        } else {
-          console.warn(`[Main] I/O conflict detected (${conflict}) but no alternate input available — system audio will likely be silent.`);
-        }
-      }
-    }
-
-    if (
-      this.systemAudioCapture &&
-      this.microphoneCapture &&
-      this._lastRequestedInputDeviceId === wantedInput &&
-      this._lastRequestedOutputDeviceId === wantedOutput
-    ) {
-      console.log('[Main] Audio reconfigure skipped — device IDs unchanged.');
-      return;
-    }
-
-    // Remember the (possibly fallback-overridden) input id so the mic-recovery
-    // handler can recreate with the same selection if the cpal stream errors
-    // out mid-meeting.
-    this._lastRequestedInputDeviceId = wantedInput;
-    this._lastRequestedOutputDeviceId = wantedOutput;
-    // Reset mic recovery counter for the new device choice.
-    this._micRecoveryAttempts = 0;
-
-    // 1. System Audio (Output Capture)
-    if (this.systemAudioCapture) {
-      // destroy() calls stop() AND removeAllListeners(), preventing EventEmitter listener leaks.
-      // Using stop()+null would orphan all 'data', 'speech_ended', 'sample_rate_changed'
-      // closures (they still hold a ref to `this`) and trigger them on the next meeting.
-      this.systemAudioCapture.destroy();
-      this.systemAudioCapture = null;
-    }
-
-    const screenCapability = await resolveMacScreenCaptureCapability('audio reconfigure');
-    if (screenCapability.effectiveDenied) {
-      const message = screenCapability.message ?? formatPermissionMessage('screen-recording-denied');
-      console.warn('[Main] Skipping SystemAudioCapture reconfigure — Screen Recording permission denied. Meeting will run mic-only.');
-      this.sendSystemAudioPermissionDenied( message);
-      this.broadcastDeviceSelection({
-        kind: 'output',
-        requested: wantedOutput || null,
-        actual: null,
-        fellBack: true,
-        reason: 'screen-recording-permission-denied',
-      });
-    } else {
-      try {
-        console.log('[Main] Initializing SystemAudioCapture...');
-        this.systemAudioCapture = new SystemAudioCapture(wantedOutput);
-        this._sysSttRateApplied = false;
-        this.wireSystemCapture(this.systemAudioCapture, '(Reconfigured)');
-        console.log('[Main] SystemAudioCapture initialized.');
-        this.broadcastDeviceSelection({
-          kind: 'output',
-          requested: wantedOutput || null,
-          actual: wantedOutput || 'default',
-          fellBack: false,
-        });
-      } catch (err) {
-        console.warn('[Main] Failed to initialize SystemAudioCapture with preferred ID. Falling back to default.', err);
-        try {
-          this.systemAudioCapture = new SystemAudioCapture(); // Default
-          this._sysSttRateApplied = false;
-          this.wireSystemCapture(this.systemAudioCapture, '(Default)');
-          this.broadcastDeviceSelection({
-            kind: 'output',
-            requested: wantedOutput || null,
-            actual: 'default',
-            fellBack: true,
-            reason: (err as Error)?.message || 'unknown',
-          });
-        } catch (err2) {
-          console.error('[Main] Failed to initialize SystemAudioCapture (Default):', err2);
-          this.broadcastDeviceSelection({
-            kind: 'output',
-            requested: wantedOutput || null,
-            actual: null,
-            fellBack: true,
-            reason: `Both preferred and default failed: ${(err2 as Error)?.message || 'unknown'}`,
-          });
-        }
-      }
-    }
-
-    // 2. Microphone (Input Capture)
-    if (this.microphoneCapture) {
-      // destroy() calls stop() AND removeAllListeners(), preventing EventEmitter listener leaks.
-      this.microphoneCapture.destroy();
-      this.microphoneCapture = null;
-    }
-
-    try {
-      console.log('[Main] Initializing MicrophoneCapture...');
-      this.microphoneCapture = new MicrophoneCapture(wantedInput);
-      this._micSttRateApplied = false;
-      this.wireMicCapture(this.microphoneCapture, '(Reconfigured)');
-      console.log('[Main] MicrophoneCapture initialized.');
-      this.broadcastDeviceSelection({
-        kind: 'input',
-        requested: wantedInput || null,
-        actual: wantedInput || 'default',
-        fellBack: false,
-      });
-    } catch (err) {
-      console.warn('[Main] Failed to initialize MicrophoneCapture with preferred ID. Falling back to default.', err);
-      try {
-        this.microphoneCapture = new MicrophoneCapture(); // Default
-        this._micSttRateApplied = false;
-        this.wireMicCapture(this.microphoneCapture, '(Default)');
-        this.broadcastDeviceSelection({
-          kind: 'input',
-          requested: wantedInput || null,
-          actual: 'default',
-          fellBack: true,
-          reason: (err as Error)?.message || 'unknown',
-        });
-      } catch (err2) {
-        // Third-level fallback: enumerate every available input device and try
-        // each in order. Common case where this matters: user has only
-        // Bluetooth-HFP mics available (AirPods/Sony XM5), one of which
-        // returns an unsupported sample format from cpal. Without this,
-        // both `wantedInput` and `default` could be the SAME failing device,
-        // and the user is left with a meeting that has zero mic input.
-        console.warn('[Main] Default mic also failed. Enumerating remaining input devices to try each.', err2);
-        const tried = new Set<string>([
-          wantedInput ?? '',
-          'default',
-        ].filter(Boolean));
-        const candidates = AudioDevices.getInputDevices()
-          .map((d) => d.id)
-          .filter((id) => id && !tried.has(id));
-        let success = false;
-        let lastErr: unknown = err2;
-        for (const candidateId of candidates) {
-          try {
-            console.log(`[Main] Trying mic fallback candidate: ${candidateId}`);
-            this.microphoneCapture = new MicrophoneCapture(candidateId);
-            this._micSttRateApplied = false;
-            this.wireMicCapture(this.microphoneCapture, `(Fallback:${candidateId})`);
-            this.broadcastDeviceSelection({
-              kind: 'input',
-              requested: wantedInput || null,
-              actual: candidateId,
-              fellBack: true,
-              reason: `Preferred and default failed; using ${candidateId}.`,
-            });
-            success = true;
-            break;
-          } catch (errN) {
-            lastErr = errN;
-            console.warn(`[Main] Fallback candidate ${candidateId} failed:`, errN);
-          }
-        }
-        if (!success) {
-          console.error('[Main] All input devices failed to initialize.', lastErr);
-          this.microphoneCapture = null;
-          this.broadcastDeviceSelection({
-            kind: 'input',
-            requested: wantedInput || null,
-            actual: null,
-            fellBack: true,
-            reason: `All ${candidates.length + 2} input devices failed: ${(lastErr as Error)?.message || 'unknown'}`,
-          });
-          // Surface to UI so the user knows the meeting will be system-audio-only.
-          this.sendAudioCaptureFailed( {
-            channel: 'mic',
-            message: 'No working microphone could be initialized. Disconnect and reconnect your audio devices, or restart the app.',
-            attempt: 0,
-            maxAttempts: 0,
-            terminal: true,
-            stuck: false,
-          });
-        }
-      }
-    }
+    await this.meetingAudio.reconfigureAudio(inputDeviceId, outputDeviceId);
   }
 
-  /**
-   * Reconfigure STT provider mid-session (called from IPC when user changes provider)
-   * Destroys existing STT instances and recreates them with the new provider
-   */
+
   public async reconfigureSttProvider(): Promise<void> {
-    console.log('[Main] Reconfiguring STT Provider...');
-
-    // Reconfiguration revokes the old audio destination, unlike meeting Stop.
-    this.discardSttProviders();
-
-    // Capture teardown may fail or wait; old audio sends were already revoked.
-    if (this.isMeetingActive) {
-      this.systemAudioCapture?.stop();
-      this.microphoneCapture?.stop();
-    }
-
-    // Only reinitialize the pipeline when a meeting is already active.
-    // Outside a meeting, defer pipeline creation to startMeeting() so we never
-    // eagerly construct a MicrophoneCapture (which calls build_input_stream on
-    // macOS and immediately triggers the orange mic indicator even without .play()).
-    if (this.isMeetingActive) {
-      await this.setupSystemAudioPipeline();
-      this.systemAudioCapture?.start();
-      this.microphoneCapture?.start();
-      this.googleSTT?.start();
-      this.googleSTT_User?.start();
-    }
-
-    console.log('[Main] STT Provider reconfigured');
-
-    // Broadcast the new STT config state to all windows so they can update banners / warnings
-    const { CredentialsManager: CM } = require('./services/CredentialsManager');
-    const newProvider = CM.getInstance().getSttProvider();
-    let configured = newProvider !== 'none';
-    if (newProvider === 'google') {
-      const credentialsPath = CM.getInstance().getGoogleServiceAccountPath() || process.env.GOOGLE_APPLICATION_CREDENTIALS;
-      try { googleSpeechClientOptions(loadGoogleServiceAccount(credentialsPath ?? '')); }
+    const session = this.activeAudioSession;
+    await this.discardSttProviders();
+    if (session !== this.activeAudioSession) return;
+    await this.meetingAudio.reconfigureSttProvider();
+    const provider = CredentialsManager.getInstance().getSttProvider();
+    let configured = provider !== 'none';
+    if (provider === 'google') {
+      try { googleSpeechClientOptions(loadGoogleServiceAccount(CredentialsManager.getInstance().getGoogleServiceAccountPath() ?? '')); }
       catch { configured = false; }
     }
-    this.broadcast('stt-config-changed', { configured, provider: newProvider });
+    this.broadcast('stt-config-changed', { configured, provider });
   }
 
-  public discardSttProviders(): void {
-    const old = [this.googleSTT, this.googleSTT_User];
-    this.googleSTT = null;
-    this.googleSTT_User = null;
-    for (const stt of old) {
-      if (!stt) continue;
-      try { stt.stop(false); }
-      catch (error) { console.error('[Main] STT discard failed:', error); }
-      finally { stt.removeAllListeners(); }
-    }
+
+  public discardSttProviders(): Promise<void> {
+    const revoked = this.meetingStt.stopChannels();
+    void revoked.catch(() => console.error('[Main] STT revocation failed'));
+    return revoked;
   }
 
-  /**
-   * PR #173: Audio Recovery Handler
-   *
-   * Listens for 'audio-capture-failed' emit from SystemAudioCapture and
-   * transparently restarts the full capture + STT pipeline without ending the
-   * meeting session. Prevents silent audio loss when macOS CoreAudio or SCK
-   * drops the capture stream mid-session (e.g. device re-plug, Display Sleep).
-   */
-  private _systemAudioRecoveryInProgress = false;
-  private _systemAudioRecoveryAttempts = 0;
-  private _systemAudioRecoveryTimer: NodeJS.Timeout | null = null;
-  private _systemAudioLastFailureAt: number | null = null;
-  private _systemAudioSuccessfulRestarts = 0;
-  private _systemAudioConsecutiveFailures = 0;
 
-  private setupAudioRecoveryHandler(): void {
-    if (!this.systemAudioCapture) return;
-
-    this.systemAudioCapture.on('error', async (err: Error) => {
-      const recoveryMeetingGeneration = this._meetingGeneration;
-      const isRecoveryCurrentMeeting = () => this.isMeetingActive && this._meetingGeneration === recoveryMeetingGeneration;
-      if (!isRecoveryCurrentMeeting()) return; // Only attempt recovery during active meetings
-
-      // Cross-flow mutex with handleDefaultOutputChanged. Both flows
-      // destroy+recreate `this.systemAudioCapture`; without this guard, a
-      // route change racing with a recovery would leave one of the two `fresh`
-      // captures orphaned (still running, emitting chunks to nothing). The
-      // route change will rebuild the capture on its next watcher tick, so
-      // dropping the recovery attempt here is safe — the new capture won't
-      // carry the original error condition.
-      // Bail BEFORE incrementing _systemAudioConsecutiveFailures so the
-      // counter only reflects errors we actually attempted to recover from.
-      if (this._defaultOutputSwitchInProgress) {
-        console.warn('[AudioRecovery] Route change in progress — deferring recovery to that flow.');
-        return;
-      }
-
-      const now = Date.now();
-      this._systemAudioLastFailureAt = now;
-      this._systemAudioConsecutiveFailures++;
-
-      // Cap at 3 consecutive recovery attempts to avoid infinite restart loops
-      if (this._systemAudioRecoveryInProgress || this._systemAudioRecoveryAttempts >= 3) {
-        console.warn(
-          `[AudioRecovery] Skipping recovery — already in progress or max attempts (${this._systemAudioRecoveryAttempts}/3) reached.`,
-        );
-        return;
-      }
-
-      this._systemAudioRecoveryInProgress = true;
-      this._systemAudioRecoveryAttempts++;
-      console.warn(
-        `[AudioRecovery] SystemAudioCapture error — attempting recovery #${this._systemAudioRecoveryAttempts}: ${err.message}`,
-      );
-
-      // Surface the failure to the UI so the user sees the actual cause (e.g.
-      // "ScreenCaptureKit access denied", "No displays found") instead of just
-      // a generic STT 'reconnecting' indicator. This event is non-fatal — the
-      // recovery attempt may still succeed.
-      this.sendAudioCaptureFailed( {
-        channel: 'system',
-        message: err.message,
-        attempt: this._systemAudioRecoveryAttempts,
-        maxAttempts: 3,
-      });
-
-      try {
-        // Brief delay so the OS can release the device before re-acquisition
-        await new Promise<void>(resolve => {
-          this._systemAudioRecoveryTimer = setTimeout(resolve, 1500);
-        });
-        this._systemAudioRecoveryTimer = null;
-        if (!isRecoveryCurrentMeeting()) {
-          return;
-        }
-
-        // Recovery via destroy+recreate, NOT stop()+start():
-        //   - SystemAudioCapture.stop() defers the native teardown via setImmediate
-        //     so the synchronously-following start() runs while the Rust capture_thread
-        //     is still Some, and Rust's start() returns "Capture already running".
-        //   - The deferred stop also leaves the SCK/CoreAudio Tap holding device
-        //     resources, so even if start() succeeded the BG thread couldn't
-        //     re-acquire them.
-        // destroy() (called via the new instance shadow) synchronously removes
-        // listeners; the old monitor's stop/join still completes in setImmediate.
-        // The new instance has its own fresh state so there's no race.
-        const oldCapture = this.systemAudioCapture;
-        oldCapture?.destroy();
-        this.systemAudioCapture = null;
-        this._sysSttRateApplied = false;
-
-        const screenCapability = await resolveMacScreenCaptureCapability('system audio recovery');
-        if (!isRecoveryCurrentMeeting()) {
-          return;
-        }
-        if (screenCapability.effectiveDenied) {
-          this.sendSystemAudioPermissionDenied( screenCapability.message ?? formatPermissionMessage('screen-recording-denied'));
-          this.broadcastDeviceSelection({
-            kind: 'output',
-            requested: this._lastRequestedOutputDeviceId || null,
-            actual: null,
-            fellBack: true,
-            reason: 'screen-recording-permission-denied',
-          });
-          return;
-        }
-
-        const fresh = new SystemAudioCapture(this._lastRequestedOutputDeviceId);
-        this.systemAudioCapture = fresh;
-        this.wireSystemCapture(fresh, '(Recovery)');
-        fresh.start();
-
-        this._systemAudioSuccessfulRestarts++;
-        this._systemAudioConsecutiveFailures = 0;
-        console.log(
-          `[AudioRecovery] SystemAudioCapture recreated successfully (total restarts: ${this._systemAudioSuccessfulRestarts}).`,
-        );
-      } catch (recoveryErr: any) {
-        console.error(`[AudioRecovery] Recovery attempt #${this._systemAudioRecoveryAttempts} failed:`, recoveryErr);
-        // If we've exhausted recovery, tell the renderer the failure is now terminal
-        // for this meeting so it can stop showing "reconnecting" and surface a
-        // mic-only banner instead.
-        if (this._systemAudioRecoveryAttempts >= 3 && isRecoveryCurrentMeeting()) {
-          this.sendAudioCaptureFailed( {
-            channel: 'system',
-            message: `System audio capture gave up after 3 attempts. Last error: ${recoveryErr?.message || err.message}`,
-            attempt: this._systemAudioRecoveryAttempts,
-            maxAttempts: 3,
-            terminal: true,
-          });
-        }
-      } finally {
-        this._systemAudioRecoveryInProgress = false;
-      }
-    });
-  }
-
-  /**
-   * Default-output-device watcher.
-   *
-   * macOS CoreAudio Tap is per-device — it captures audio from one specific
-   * output device. When SystemAudioCapture is created with no device id (the
-   * common case), the Rust side binds the tap to whatever the system default
-   * output WAS at meeting start. If the user later changes their default
-   * output (plugs in headphones, switches AirPods, routes to a virtual cable),
-   * the tap stays bound to the original device and captures silence — the
-   * interviewer transcript suddenly stops with no obvious cause.
-   *
-   * Production-grade fix: poll the platform default output id every few
-   * seconds while a meeting is active. When the id changes, recreate the
-   * SystemAudioCapture so the tap follows the new route. This only runs when
-   * we're using the default route (no explicit user-selected output device);
-   * if the user picked a specific device, we honor that choice and don't
-   * second-guess it.
-   *
-   * Cost: one napi call (CoreAudio HAL property read) every 4s — negligible.
-   */
-  private _defaultOutputWatcherInterval: NodeJS.Timeout | null = null;
-  private _lastObservedDefaultOutputId: string | null = null;
-  private _defaultOutputSwitchInProgress = false;
-
-  private startDefaultOutputWatcher(): void {
-    if (this._defaultOutputWatcherInterval) return; // already running
-    const NativeModule: any = loadNativeModule();
-    if (!NativeModule || typeof NativeModule.getDefaultOutputDeviceId !== 'function') {
-      // Older binary without the export — silently skip; the rest of the
-      // pipeline still works, just without auto-recovery on route changes.
-      console.log('[DefaultOutputWatcher] Native getDefaultOutputDeviceId unavailable — skipping route-change watcher.');
-      return;
-    }
-    try {
-      this._lastObservedDefaultOutputId = NativeModule.getDefaultOutputDeviceId() || '';
-    } catch {
-      this._lastObservedDefaultOutputId = '';
-    }
-    console.log(`[DefaultOutputWatcher] Started. Initial default output: ${this._lastObservedDefaultOutputId || '(none)'}`);
-
-    this._defaultOutputWatcherInterval = setInterval(() => {
-      if (this._isQuitting) return;
-      if (!this.isMeetingActive) return;
-      // Only watch when we're on the default route. If the user explicitly
-      // picked an output device, respect that choice.
-      if (this._lastRequestedOutputDeviceId) return;
-      if (this._defaultOutputSwitchInProgress) return;
-      if (!this.systemAudioCapture) return;
-
-      let currentId = '';
-      try {
-        currentId = NativeModule.getDefaultOutputDeviceId() || '';
-      } catch (err) {
-        // CoreAudio momentarily unavailable during route change — skip this tick.
-        return;
-      }
-      if (!currentId) return;
-      if (currentId === this._lastObservedDefaultOutputId) return;
-
-      console.warn(`[DefaultOutputWatcher] Default output changed: ${this._lastObservedDefaultOutputId} → ${currentId}. Rebinding CoreAudio Tap.`);
-      this._lastObservedDefaultOutputId = currentId;
-      this.handleDefaultOutputChanged().catch(err => {
-        console.error('[DefaultOutputWatcher] Failed to rebind tap:', err);
-      });
-    }, 4000);
-  }
-
-  private stopDefaultOutputWatcher(): void {
-    if (this._defaultOutputWatcherInterval) {
-      clearInterval(this._defaultOutputWatcherInterval);
-      this._defaultOutputWatcherInterval = null;
-    }
-    this._lastObservedDefaultOutputId = null;
-  }
-
-  // Public wrapper for the before-quit hook so shutdown can cancel the
-  // interval without poking into a private method. Mirrors the meeting-end
-  // path's stopDefaultOutputWatcher() call but is invoked from a context that
-  // does not own a `this` reference inside the AppState class.
   public stopDefaultOutputWatcherForShutdown(): void {
-    this.stopDefaultOutputWatcher();
+    this.meetingAudio.stopWatching();
   }
-
-  private async handleDefaultOutputChanged(): Promise<void> {
-    const meetingGeneration = this._meetingGeneration;
-    const isCurrentMeeting = () => this.isMeetingActive && this._meetingGeneration === meetingGeneration;
-    if (this._isQuitting) return;
-    if (!isCurrentMeeting()) return;
-    if (this._defaultOutputSwitchInProgress) return;
-    // Cross-flow mutex: also bail if the recovery handler is mid-rebuild.
-    // Both flows destroy + recreate `this.systemAudioCapture` and both await
-    // resolveMacScreenCaptureCapability. Without this guard, the two `await`s
-    // can interleave such that the recovery's `fresh` instance is assigned to
-    // `this.systemAudioCapture`, then the route-change's `fresh` overwrites it
-    // — leaving recovery's instance orphaned (still running, emitting chunks,
-    // holding a CoreAudio Tap, double-writing to STT). Dropping this cycle is
-    // safe: the watcher's setInterval will re-fire and pick up the route
-    // change once recovery's instance is in place.
-    if (this._systemAudioRecoveryInProgress) {
-      console.log('[DefaultOutputWatcher] Recovery in progress — deferring route-change rebuild.');
-      return;
-    }
-    this._defaultOutputSwitchInProgress = true;
-    try {
-      // Same destroy+recreate pattern as setupAudioRecoveryHandler — never
-      // stop+start, since the deferred native teardown races the synchronous
-      // start. Reset the recovery counter so a subsequent unrelated failure
-      // gets its full 3-attempt budget.
-      const oldCapture = this.systemAudioCapture;
-      oldCapture?.destroy();
-      this.systemAudioCapture = null;
-      this._sysSttRateApplied = false;
-      this._systemAudioRecoveryAttempts = 0;
-      this._systemAudioConsecutiveFailures = 0;
-
-      const screenCapability = await resolveMacScreenCaptureCapability('default output route change');
-      if (this._isQuitting) return;
-      if (!isCurrentMeeting()) {
-        return;
-      }
-      if (screenCapability.effectiveDenied) {
-        this.sendSystemAudioPermissionDenied( screenCapability.message ?? formatPermissionMessage('screen-recording-denied'));
-        this.broadcastDeviceSelection({
-          kind: 'output',
-          requested: null,
-          actual: null,
-          fellBack: true,
-          reason: 'screen-recording-permission-denied',
-        });
-        return;
-      }
-
-      // Pass undefined (not the new device id) so CoreAudio picks up the new
-      // default at construction time. This is intentional: binding to a
-      // stable id would defeat the whole point of "follow the user's route".
-      const fresh = new SystemAudioCapture(undefined);
-      this.systemAudioCapture = fresh;
-      this.wireSystemCapture(fresh, '(RouteChanged)');
-      fresh.start();
-      // Tell the renderer what's happening so any "interviewer went silent"
-      // banners can clear once chunks resume.
-      this.broadcastDeviceSelection({
-        kind: 'output',
-        requested: null,
-        actual: 'default',
-        fellBack: false,
-        reason: 'output-route-changed',
-      });
-      console.log('[DefaultOutputWatcher] CoreAudio Tap rebound to new default output.');
-    } finally {
-      this._defaultOutputSwitchInProgress = false;
-    }
-  }
-
-  // Mic-side equivalent of setupAudioRecoveryHandler. Pre-fix the cpal err_fn
-  // (USB unplug, device-format change, exclusive-mode steal) only logged to
-  // stderr — JS never learned the mic stream had stopped producing samples
-  // and the user's voice silently disappeared from the transcript.
-  private _micRecoveryInProgress = false;
-  private _micRecoveryAttempts = 0;
-  private _micRecoveryTimer: NodeJS.Timeout | null = null;
   /** Last input device id passed to reconfigureAudio; used by mic recovery. */
-  private _lastRequestedInputDeviceId: string | undefined = undefined;
-
-  private setupMicRecoveryHandler(): void {
-    if (!this.microphoneCapture) return;
-
-    this.microphoneCapture.on('error', async (err: Error) => {
-      const micRecoveryMeetingGeneration = this._meetingGeneration;
-      const isMicRecoveryCurrentMeeting = () => this.isMeetingActive && this._meetingGeneration === micRecoveryMeetingGeneration;
-      if (!isMicRecoveryCurrentMeeting()) return;
-
-      if (this._micRecoveryInProgress || this._micRecoveryAttempts >= 3) {
-        console.warn(
-          `[MicRecovery] Skipping recovery — already in progress or max attempts (${this._micRecoveryAttempts}/3) reached.`,
-        );
-        return;
-      }
-
-      this._micRecoveryInProgress = true;
-      this._micRecoveryAttempts++;
-      console.warn(
-        `[MicRecovery] MicrophoneCapture error — attempting recovery #${this._micRecoveryAttempts}: ${err.message}`,
-      );
-
-      try {
-        await new Promise<void>(resolve => {
-          this._micRecoveryTimer = setTimeout(resolve, 1500);
-        });
-        this._micRecoveryTimer = null;
-        if (!isMicRecoveryCurrentMeeting()) {
-          return;
-        }
-
-        // Tear down + recreate the mic only (don't touch the system-audio
-        // capture; cpal needs a fresh device handle after error).
-        if (this.microphoneCapture) {
-          this.microphoneCapture.destroy();
-          this.microphoneCapture = null;
-        }
-        this._micSttRateApplied = false;
-
-        try {
-          this.microphoneCapture = new MicrophoneCapture(this._lastRequestedInputDeviceId);
-        } catch (createErr) {
-          console.warn('[MicRecovery] Saved device unavailable on recovery, falling back to default.', createErr);
-          this.microphoneCapture = new MicrophoneCapture();
-        }
-
-        // Use the canonical wiring path (wireMicCapture) instead of hand-rolling
-        // data/sample_rate_changed/speech_ended. Hand-rolled wiring drifts: this
-        // recovery path used to omit the stuck-watchdog and zero-fill detector
-        // (lines 1612-1693 of wireMicCapture), so after a mic recovery the user
-        // would silently get zero-filled audio with no UI signal — exactly the
-        // failure mode the watchdog was built to surface. setupMicRecoveryHandler
-        // is invoked at the tail of wireMicCapture so we don't need a separate
-        // call here either. Mirrors the system-audio recovery pattern at L2413.
-        this.wireMicCapture(this.microphoneCapture, '(Recovery)');
-        this.microphoneCapture.start();
-
-        this._micRecoveryAttempts = 0;
-        console.log('[MicRecovery] MicrophoneCapture restarted successfully.');
-      } catch (recoveryErr: any) {
-        console.error(`[MicRecovery] Recovery attempt #${this._micRecoveryAttempts} failed:`, recoveryErr);
-        // B4: surface a terminal failure to the CURRENT meeting after the same
-        // 3-attempt cap that setupAudioRecoveryHandler uses for system audio
-        // (see L2456-2464). Pre-fix, mic recovery exhausted attempts only via
-        // console.error and the next 'error' was silently dropped by the
-        // early-return guard at the top of this handler — user heard nothing
-        // was being transcribed but no banner ever showed. Meeting-generation
-        // check mirrors isRecoveryCurrentMeeting() in the system-side handler.
-        if (this._micRecoveryAttempts >= 3 && isMicRecoveryCurrentMeeting()) {
-          this.sendAudioCaptureFailed({
-            channel: 'mic',
-            message: `Microphone capture gave up after 3 attempts. Last error: ${recoveryErr?.message || err.message}`,
-            attempt: this._micRecoveryAttempts,
-            maxAttempts: 3,
-            terminal: true,
-          });
-        }
-      } finally {
-        this._micRecoveryInProgress = false;
-      }
-    });
-  }
+  private get _lastRequestedInputDeviceId() { return this.meetingAudio._lastRequestedInputDeviceId; }
 
 
   public async startAudioTest(deviceId?: string): Promise<void> {
@@ -2433,19 +1426,23 @@ export class AppState {
   // shutdown path. Snapshot this token before the await and bail if it has
   // changed by the time the await resolves.
   private _audioTestEpoch = 0;
+  private audioTestRelease: Promise<void> = Promise.resolve();
 
   private async _startAudioTestImpl(deviceId?: string): Promise<void> {
     console.log(`[Main] Starting Audio Test on device: ${deviceId || 'default'}`);
-    this.stopAudioTest(); // Stop any existing test (also bumps _audioTestEpoch)
+    const stopping = this.stopAudioTest();
     // UX4 hardening: snapshot epoch BEFORE the system-audio probe's awaited
     // permission probe. If stopAudioTest fires while we're awaiting, the
     // post-await check below catches it and skips system-capture construction.
-    const startEpoch = ++this._audioTestEpoch;
-    const isCurrentTest = () => this._audioTestEpoch === startEpoch;
+    const startEpoch = this._audioTestEpoch;
+    const isCurrentTest = () => this._audioTestEpoch === startEpoch && !this.isMeetingActive && !this._isQuitting;
+    await stopping;
+    if (!isCurrentTest()) return;
 
     if (!(await ensureMacMicrophoneAccess('audio test'))) {
       throw new Error(formatPermissionMessage('mic-denied'));
     }
+    if (!isCurrentTest()) return;
 
     const broadcastTargets = (): BrowserWindow[] =>
       [
@@ -2566,25 +1563,17 @@ export class AppState {
     }
   }
 
-  public stopAudioTest(): void {
-    // UX4 hardening: bump epoch so any in-flight _startAudioTestImpl that's
-    // awaiting resolveMacScreenCaptureCapability sees the change and skips
-    // constructing the system capture (avoids orphaned-capture race).
+
+  public stopAudioTest(): Promise<void> {
     this._audioTestEpoch++;
-    if (this.audioTestCapture) {
-      console.log('[Main] Stopping Audio Test');
-      this.audioTestCapture.stop();
-      this.audioTestCapture = null;
-    }
-    // UX4: also stop the parallel system probe.
-    if (this.audioTestSystemCapture) {
-      try {
-        this.audioTestSystemCapture.stop();
-      } catch (e) {
-        console.warn('[Main] Stopping system audio test threw:', e);
-      }
-      this.audioTestSystemCapture = null;
-    }
+    const captures = [this.audioTestCapture, this.audioTestSystemCapture];
+    this.audioTestCapture = null;
+    this.audioTestSystemCapture = null;
+    this.audioTestRelease = Promise.allSettled([this.audioTestRelease, ...captures.map(async capture => { await capture?.destroy(); })]).then(results => {
+      if (results.some(result => result.status === 'rejected')) throw new Error('Audio test capture release failed');
+    });
+    void this.audioTestRelease.catch(() => {});
+    return this.audioTestRelease;
   }
 
   public finalizeMicSTT(): void {
@@ -2595,346 +1584,66 @@ export class AppState {
     }
   }
 
+
   public async startMeeting(metadata?: any): Promise<void> {
-    console.log('[Main] Starting Meeting...', metadata);
-
-    // If a previous endMeeting() is still draining STT in the background, wait
-    // for it to finish before we boot a new session — otherwise the BG teardown
-    // could call STT.stop() on instances the new meeting just started using.
-    // In the common case (Stop, then Start seconds later) this awaits an
-    // already-resolved promise and is free.
-    if (this._pendingTeardown) {
-      try {
-        await this._pendingTeardown;
-      } catch {
-        // teardown already logs; safe to swallow here
-      }
-      this._pendingTeardown = null;
-    }
-
-    // PR #173: Reset audio recovery state for fresh session
-    this._systemAudioRecoveryInProgress = false;
-    this._systemAudioRecoveryAttempts = 0;
-    this._systemAudioConsecutiveFailures = 0;
-    this._micRecoveryAttempts = 0;
-    if (this._systemAudioRecoveryTimer) {
-      clearTimeout(this._systemAudioRecoveryTimer);
-      this._systemAudioRecoveryTimer = null;
-    }
-
-    if (!(await ensureMacMicrophoneAccess('meeting start'))) {
-      const message = formatPermissionMessage('mic-denied');
-      this.broadcast('meeting-audio-error', message);
-      throw new Error(message);
-    }
-
-    // Check Screen Recording permission required for system audio capture
-    // (CoreAudio Global Process Tap + ScreenCaptureKit both need this).
-    // NOTE: The 'not-determined' TCC dialog is triggered once at app startup
-    // (in initializeApp) so it never pops up mid-meeting here. We only act on
-    // explicit 'denied' — in that case warn the user but let the meeting continue
-    // with microphone-only transcription.
-    if (process.platform === 'darwin') {
-      const screenCapability = await resolveMacScreenCaptureCapability('meeting start');
-      console.log(`[Main] macOS screen recording permission status: ${screenCapability.status}; capturable=${screenCapability.capturable}; sources=${screenCapability.sourceCount}`);
-      if (screenCapability.effectiveDenied) {
-        // Permission was explicitly denied — warn the user via the UI but do NOT
-        // auto-open System Settings. Forcing that window open every meeting start
-        // is extremely disruptive, especially when mic transcription is still working.
-        // The UI will show a non-blocking banner; the user can fix it deliberately.
-        const message = screenCapability.message ?? formatPermissionMessage('screen-recording-denied');
-        console.warn('[Main]', message);
-        this.sendSystemAudioPermissionDenied( message);
-        // NOTE: Do NOT call shell.openExternal() here — it hijacks focus on every meeting
-        // start. The UI banner (system-audio-permission-denied IPC event) handles this.
-      }
-      // 'not-determined': Handled at startup. SCK/CoreAudio will trigger the TCC
-      // dialog itself when it first attempts to access screen content.
-    }
-
-    // Reset overlay position BEFORE the switch so the new meeting starts in
-    // a predictable centered position regardless of where the previous
-    // session left it. (Moved up from below so setWindowMode('overlay') reads
-    // the reset bounds.)
-    this.windowHelper.resetOverlayPosition();
-
-    // ─── WINDOW SWAP BEFORE STATE BROADCAST ───────────────────────────────
-    // Switch to the overlay BEFORE flipping `isMeetingActive` to true. If we
-    // broadcast meeting-state-changed:{isActive:true} while the launcher is
-    // still visible, the launcher's CTA pill briefly crossfades blue→green
-    // before the renderer's follow-up setWindowMode('overlay') hides it —
-    // visible as a flash. Switching first means the launcher hides before
-    // the state event arrives, so the user only ever sees the overlay.
-    this.windowHelper.setWindowMode('overlay');
-
-    const meetingGeneration = ++this._meetingGeneration;
-    this.isMeetingActive = true;
-    this.broadcastMeetingState()
-    if (metadata) {
-      this.intelligenceManager.setMeetingMetadata(metadata);
-    }
-
-
-
-    // Emit session reset to clear UI state immediately
-    this.getWindowHelper().getOverlayWindow()?.webContents.send('session-reset');
-    this.getWindowHelper().getLauncherWindow()?.webContents.send('session-reset');
-
-    // ★ ASYNC AUDIO INIT: Return INSTANTLY so the IPC response goes back
-    // to the renderer immediately, allowing the UI to switch to overlay
-    // without waiting for SCK/audio initialization (which takes 5-7 seconds).
-    const audioInitController = new AbortController();
-    this._audioInitController = audioInitController;
-    const audioInitSignal = audioInitController.signal;
-    this._audioInitPromise = (async () => {
-      const isCurrentMeeting = () => this.isMeetingActive && this._meetingGeneration === meetingGeneration && !audioInitSignal.aborted;
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
-      let systemCaptureOwnedByInit = this.systemAudioCapture;
-      let microphoneCaptureOwnedByInit = this.microphoneCapture;
-      let systemSttOwnedByInit = this.googleSTT;
-      let userSttOwnedByInit = this.googleSTT_User;
-      let systemSttStartedByInit = false;
-      let userSttStartedByInit = false;
-      const abortStaleAudioInit = () => {
-        if (this.systemAudioCapture === systemCaptureOwnedByInit) {
-          (this.systemAudioCapture as any)?.__disarmStuckWatchdog?.();
-          this.systemAudioCapture?.destroy();
-          this.systemAudioCapture = null;
-        }
-        if (this.microphoneCapture === microphoneCaptureOwnedByInit) {
-          (this.microphoneCapture as any)?.__disarmStuckWatchdog?.();
-          this.microphoneCapture?.destroy();
-          this.microphoneCapture = null;
-        }
-        if (systemSttStartedByInit) {
-          if (this.googleSTT === systemSttOwnedByInit) this.googleSTT?.stop();
-        }
-        if (userSttStartedByInit) {
-          if (this.googleSTT_User === userSttOwnedByInit) this.googleSTT_User?.stop();
-        }
-      };
-
-      if (!isCurrentMeeting()) {
-        console.warn('[Main] Meeting was cancelled before audio pipeline could start — aborting init.');
-        return;
-      }
-      try {
-        // Check for audio configuration preference
-        if (metadata?.audio) {
-          await this.reconfigureAudio(metadata.audio.inputDeviceId, metadata.audio.outputDeviceId);
-          if (!isCurrentMeeting()) {
-            abortStaleAudioInit();
-            return;
-          }
-          systemCaptureOwnedByInit = this.systemAudioCapture;
-          microphoneCaptureOwnedByInit = this.microphoneCapture;
-          systemSttOwnedByInit = this.googleSTT;
-          userSttOwnedByInit = this.googleSTT_User;
-        }
-
-        // LAZY INIT: Ensure pipeline is ready (if not reconfigured above)
-        await this.setupSystemAudioPipeline();
-        if (!isCurrentMeeting()) {
-          abortStaleAudioInit();
-          return;
-        }
-        systemCaptureOwnedByInit = this.systemAudioCapture;
-        microphoneCaptureOwnedByInit = this.microphoneCapture;
-        systemSttOwnedByInit = this.googleSTT;
-        userSttOwnedByInit = this.googleSTT_User;
-
-        // Start System Audio
-        this.systemAudioCapture?.start();
-        this.googleSTT?.start();
-        systemSttStartedByInit = true;
-
-        // Start Microphone
-        this.microphoneCapture?.start();
-        this.googleSTT_User?.start();
-        userSttStartedByInit = true;
-
-        if (!isCurrentMeeting()) {
-          abortStaleAudioInit();
-          return;
-        }
-
-        // Watch for default-output route changes so the CoreAudio Tap follows
-        // the user when they swap output devices mid-meeting (AirPods plug,
-        // headphones, virtual cable). No-op if the user picked a specific
-        // output or if the native binary lacks the getDefaultOutputDeviceId
-        // export.
-        this.startDefaultOutputWatcher();
-
-        if (this._verboseLogging) {
-          const requestedInput = metadata?.audio?.inputDeviceId || 'default';
-          const requestedOutput = metadata?.audio?.outputDeviceId || 'default';
-          const backend = requestedOutput === 'sck' ? 'sck' : 'coreaudio';
-          const sysRate = this.systemAudioCapture?.getSampleRate() || 48000;
-          const micRate = this.microphoneCapture?.getSampleRate() || 48000;
-          console.log(`[Main][debug] Audio pipeline: input=${requestedInput} output=${requestedOutput} backend=${backend} sysRate=${sysRate}Hz micRate=${micRate}Hz`);
-        }
-        console.log('[Main] Audio pipeline started successfully.');
-      } catch (err) {
-        // An endMeeting()-driven abort (or a generation change) is expected — it is
-        // NOT a real audio failure, so we must not surface a "pipeline failed" banner
-        // for a Stop the user initiated themselves.
-        const isAbort = (err as Error)?.message === 'audio_init_aborted' || !isCurrentMeeting();
-        if (!isAbort) {
-          console.error('[Main] Error initializing audio pipeline:', err);
-          // Notify UI so user knows microphone/audio failed to start
-          this.broadcast('meeting-audio-error', (err as Error).message || 'Audio pipeline failed to start');
-        } else {
-          abortStaleAudioInit();
-        }
-      } finally {
-        if (this._meetingGeneration === meetingGeneration) this._audioInitPromise = null;
-        if (this._audioInitController === audioInitController) {
-          this._audioInitController = null;
-        }
-      }
-    })(); // Defer to next event loop tick — ensures IPC response reaches renderer before audio init
+    return this.meetingLifecycle.start(async () => {
+      if (this._isQuitting) throw new Error('Application is quitting');
+      await this.meetingAudio.waitForRelease();
+      if (!(await ensureMacMicrophoneAccess('meeting start'))) throw new Error(formatPermissionMessage('mic-denied'));
+      if (this._isQuitting) throw new Error('Application is quitting');
+      await this.stopAudioTest();
+      this.windowHelper.resetOverlayPosition();
+      this.windowHelper.setWindowMode('overlay');
+      this.intelligenceManager.reset();
+      if (metadata) this.intelligenceManager.setMeetingMetadata(metadata);
+      this.activeAudioSession = crypto.randomUUID();
+      this.meetingStt.begin(this.activeAudioSession);
+      this.isMeetingActive = true;
+      this.broadcastMeetingState();
+      this.sendToMeetingSurfaces('session-reset');
+      this.meetingAudio.begin({ audio: metadata?.audio });
+    });
   }
 
+
   public async endMeeting(): Promise<void> {
-    // Idempotency guard: a double-click on Stop, or a Stop racing with a
-    // global-shortcut reset, can deliver two endMeeting() calls within ms of
-    // each other. Without this, both invocations would run the synchronous
-    // teardown block (overwriting the in-flight `_pendingTeardown` promise
-    // reference, breaking startMeeting()'s await on it, and both `finally`
-    // handlers could clear `_isDraining` prematurely — truncating the trailing
-    // transcript finals from the first teardown).
-    if (this._endMeetingInFlight || (!this.isMeetingActive && this._pendingTeardown)) {
-      console.log('[Main] endMeeting() ignored — teardown already in flight.');
-      await this._pendingTeardown?.catch(() => {});
-      return;
-    }
-    // Cover the window between here and `_pendingTeardown` assignment, during which
-    // the new in-flight-audio-init await below yields the event loop.
-    this._endMeetingInFlight = true;
-    console.log('[Main] Ending Meeting...');
-
-    // Reset Mouse Passthrough so the next meeting overlay starts fresh and focusable
-    if (this.overlayMousePassthrough) {
-      this.setOverlayMousePassthrough(false);
-    }
-
-    // ─── WINDOW SWAP BEFORE STATE BROADCAST ───────────────────────────────
-    // Mirror startMeeting()'s ordering: swap the window BEFORE flipping
-    // `isMeetingActive` and broadcasting. If the overlay receives
-    // `meeting-state-changed:{isActive:false}` while it is still visible, the
-    // overlay's React tree may begin unmount/cleanup paths (cancel streams,
-    // clear effects) while still painted — combined with a same-instance theme
-    // switch, that interleaving produces the half-painted overlay symptom the
-    // user can only escape via force-quit. Hide first, then broadcast.
-    this.windowHelper.setWindowMode('launcher');
-
-    // ─── UX STATE FLIP — SYNCHRONOUS ───────────────────────────────────────
-    // Now flip the UX-facing meeting flag and broadcast. The launcher's
-    // "Meeting ongoing" pill reverts to "Start Natively" immediately;
-    // trailing transcript finals are still accepted via `_isDraining`.
-    this.isMeetingActive = false;
-    this._meetingGeneration++;
-    this._isDraining = true;
-    this.broadcastMeetingState();
-
-    // ─── ABORT + AWAIT IN-FLIGHT AUDIO INIT (before any capture teardown) ───
-    // If startMeeting()'s async audio init is still mid-`setupSystemAudioPipeline()`
-    // it can construct/start a FRESH native capture AFTER our stop()/destroy() runs,
-    // leaving a dangling CoreAudio/SCK handle — or both the dying and fresh captures
-    // grab the HAL property-listener lock at once and freeze the main thread mid-paint.
-    // abort() is synchronous (flips audioInitSignal.aborted so the init's
-    // isCurrentMeeting() guards short-circuit and it tears down its own captures);
-    // the await is INSTANT in the common case (_audioInitPromise is already null once
-    // init completed) and only blocks in the narrow cold-start-then-immediate-Stop
-    // window — where waiting is exactly what prevents the freeze. The launcher UI
-    // already reverted above via broadcastMeetingState(), so perceived responsiveness
-    // is unaffected.
-    this._audioInitController?.abort();
-    try {
-      await this._audioInitPromise;
-    } catch {
-      // The init body may reject with the `audio_init_aborted` sentinel on abort — expected.
-    }
-    this._audioInitPromise = null;
-    // The await (the only yield point before `_pendingTeardown` is assigned) is done;
-    // the remaining teardown runs synchronously, so re-entry is no longer possible here
-    // and the `_pendingTeardown`-based guard above takes over once it's set.
-    this._endMeetingInFlight = false;
-
-    // ─── SYNCHRONOUS: things the user expects "right now" on Stop click ────
-    // Disarm the stuck-capture watchdogs BEFORE stop() — stop() flips isRecording
-    // and schedules a deferred native teardown, so we cannot rely on the on('stop')
-    // listener firing in time to cancel the 12s timer. Without this, a short meeting
-    // that captured 0 chunks can fire a false "system-audio-stuck" banner after the
-    // user already stopped. clearTimeout(null) is a no-op, so this is always safe.
-    (this.systemAudioCapture as any)?.__disarmStuckWatchdog?.();
-    (this.microphoneCapture as any)?.__disarmStuckWatchdog?.();
-
-    // Captures are deferred-stop wrappers (see SystemAudioCapture.stop /
-    // MicrophoneCapture.stop) — they flip the JS-side isRecording flag
-    // immediately so no new audio reaches STT, but defer the blocking native
-    // teardown to setImmediate. Returns within ~1ms.
-    this.systemAudioCapture?.stop();
-    this.microphoneCapture?.stop();
-
-    // Stop the default-output watcher — no point polling CoreAudio while
-    // there's no active capture to rebind.
-    this.stopDefaultOutputWatcher();
-
-    // Tell STT to mark the audio stream as ended; trailing finals will arrive
-    // over the next ~150ms while we're already returning to the renderer.
-    this.googleSTT?.finalize?.();
-    this.googleSTT_User?.finalize?.();
-
-    // ─── BACKGROUND: STT drain + meeting save ────────────────
-    // Note: `isMeetingActive` was already flipped to false synchronously above
-    // (so the launcher UI updates instantly). `_isDraining` is true during the
-    // 250 ms grace window so the transcript handler keeps accepting trailing
-    // finals — without that, the user's last sentence vanishes. We expose the
-    // in-flight teardown as `_pendingTeardown` so a fast start→stop→start
-    // sequence awaits this completion in startMeeting() before booting a new
-    // session on the (still-shared) STT instances.
-    this._pendingTeardown = (async () => {
+    this.processingHelper.cancelOngoingRequests();
+    this.intelligenceManager.resetEngine();
+    return this.meetingLifecycle.stop(async () => {
+      if (this.overlayMousePassthrough) this.setOverlayMousePassthrough(false);
+      this.windowHelper.setWindowMode('launcher');
+      this.isMeetingActive = false;
+      this._isDraining = true;
+      this.broadcastMeetingState();
+      let captureError: unknown;
       try {
-        // 0. Revert to Default Model. Moved into BG: getDefaultModel() touches
-        //    disk, and the 'model-changed' broadcast
-        //    re-renders the overlay and model selector — both block the main thread/renderer
-        //    during the Stop-click critical path. Doing it here means the
-        //    revert lands ~250 ms after Stop, by which point the launcher is
-        //    already painted and the overlay is hidden, so the user never
-        //    sees a stutter.
+        await this.meetingAudio.abortInit();
+        try { await this.meetingAudio.detachAndDestroy(); }
+        catch (error) { captureError = error; }
+        if (this.activeAudioSession === null) {
+          await this.meetingStt.cancel();
+          if (captureError) throw captureError;
+          return;
+        }
+        const result = await this.meetingStt.drain(5000);
+        if (result.timedOut || result.failedChannels.length) {
+          this.sendAudioCaptureFailed({ channel: 'audio', message: 'Transcription tail could not be completely drained', terminal: true });
+        }
+        await this.intelligenceManager.stopMeeting();
         try {
-          const { CredentialsManager } = require('./services/CredentialsManager');
-          const cm = CredentialsManager.getInstance();
-          let defaultModel = cm.getDefaultModel();
-          console.log(`[Main] Reverting model to default: ${defaultModel}`);
+          let defaultModel = CredentialsManager.getInstance().getDefaultModel();
+          console.log('[Main] Reverting model to default');
           this.processingHelper.getLLMHelper().setModel(defaultModel);
           defaultModel = this.processingHelper.getLLMHelper().getCurrentModelSelection();
           this.sendModelChanged(defaultModel);
-        } catch (e) {
-          console.error('[Main] Failed to revert model:', e);
-        }
-
-        // 1. Grace window for STT trailing finals (Google/Soniox/Deepgram all
-        //    reply to finalize() within 100–200ms). 250ms is conservative.
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        // 2. Tear down STT sockets now that finals have arrived.
-        this.googleSTT?.stop();
-        this.googleSTT_User?.stop();
-
-        // 3. Snapshot transcript + persist placeholder + queue title/summary LLM.
-        //    intelligenceManager.stopMeeting itself runs LLM in background.
-        await this.intelligenceManager.stopMeeting();
-      } catch (err) {
-        console.error('[Main] Background meeting teardown failed:', err);
+        } catch (error) { console.error('[Main] Failed to revert model:', error); }
+        if (captureError) throw captureError;
       } finally {
+        this.activeAudioSession = null;
         this._isDraining = false;
+        this.transcriptDisplay.clear();
       }
-    })();
-    // endMeeting returns NOW — the IPC handler resolves and the renderer's
-    // "Stop" button transitions instantly. Total endMeeting wall-clock time
-    // is now bounded by the synchronous block above (~1–5ms typical).
+    });
   }
 
   private setupIntelligenceEvents(): void {
@@ -3976,26 +2685,14 @@ async function initializeApp() {
   // Register global shortcuts using KeybindManager
   KeybindManager.getInstance().registerGlobalShortcuts()
 
-  // System sleep/wake handling. macOS invalidates CoreAudio AggregateDevice
-  // handles on sleep — without this the Process Tap silently stops delivering
-  // buffers on resume and the user sits in front of a frozen transcript with
-  // no idea why. Fire restartCapturesAfterResume on resume; it's a no-op if
-  // no meeting is active. The 'lock-screen' event isn't useful here (the OS
-  // doesn't tear down audio on lock) so we don't subscribe to it.
-  try {
-    const { powerMonitor } = require('electron') as typeof import('electron');
-    powerMonitor.on('resume', () => {
-      console.log('[Main] powerMonitor: system resumed from sleep.');
-      appState.restartCapturesAfterResume().catch((err) =>
-        console.error('[Main] restartCapturesAfterResume threw:', err)
-      );
-    });
-    powerMonitor.on('suspend', () => {
-      console.log('[Main] powerMonitor: system suspending. Captures will be recreated on resume if a meeting is active.');
-    });
-  } catch (err) {
-    console.warn('[Main] powerMonitor unavailable — sleep/wake recovery disabled:', err);
-  }
+  const disposeOsEvents = registerOsEventSubscriptions({
+    powerMonitor: require('electron').powerMonitor,
+    screen,
+    restartCapturesAfterResume: () => appState.restartCapturesAfterResume(),
+    suspendCaptures: () => appState.suspendAudio(),
+    revalidateShortcuts: () => KeybindManager.getInstance().revalidateShortcuts(),
+  });
+  app.once('will-quit', disposeOsEvents);
 
   // Pre-create detached overlay companion windows in background for faster first open
   appState.settingsWindowHelper.preloadWindow()
@@ -4131,10 +2828,24 @@ async function initializeApp() {
     }
   })
 
-  // Scrub API keys from memory on quit to minimize exposure window
+  // Finish native release and transcript persistence before Electron exits.
+  let audioShutdownFinished = false;
+  let audioShutdownStarted = false;
   app.on("before-quit", (event) => {
     logAppEvent('app-quitting');
     appState.setQuitting(true);
+    disposeOsEvents();
+    if (!audioShutdownFinished) {
+      event.preventDefault();
+      if (!audioShutdownStarted) {
+        audioShutdownStarted = true;
+        void appState.shutdownAudio().catch(() => console.error('[Main] Audio shutdown failed')).finally(() => {
+          audioShutdownFinished = true;
+          app.quit();
+        });
+      }
+      return;
+    }
 
     // Stop the default-output watcher so the setInterval doesn't keep calling
     // into the native module while V8 is tearing down. Without this, quitting

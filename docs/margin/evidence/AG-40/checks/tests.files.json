@@ -1,0 +1,268 @@
+{
+  "changed": [
+    {
+      "file": "electron/audio/__tests__/AudioDevices.test.mjs",
+      "log": "checks/changed-AudioDevices.test.mjs.log",
+      "exitCode": 0,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/BeforeQuitShutdownRace.test.mjs",
+      "log": "checks/changed-BeforeQuitShutdownRace.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/DefaultOutputWatcherEpoch.test.mjs",
+      "log": "checks/changed-DefaultOutputWatcherEpoch.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/DefaultOutputWatcherShutdown.test.mjs",
+      "log": "checks/changed-DefaultOutputWatcherShutdown.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/EndMeetingAbortsInFlightInit.test.mjs",
+      "log": "checks/changed-EndMeetingAbortsInFlightInit.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs",
+      "log": "checks/changed-MeetingAudioPipelineRaces.test.mjs.log",
+      "exitCode": 0,
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/MeetingLifecycleQueue.test.mjs",
+      "log": "checks/changed-MeetingLifecycleQueue.test.mjs.log",
+      "exitCode": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/MeetingSttSession.test.mjs",
+      "log": "checks/changed-MeetingSttSession.test.mjs.log",
+      "exitCode": 0,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs",
+      "log": "checks/changed-MicRecoveryUsesCanonicalWiring.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/OutboundSttRevocation.test.mjs",
+      "log": "checks/changed-OutboundSttRevocation.test.mjs.log",
+      "exitCode": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/StartStopRaceDeferredInit.test.mjs",
+      "log": "checks/changed-StartStopRaceDeferredInit.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs",
+      "log": "checks/changed-StuckWatchdogDisarmOnEndAndAbort.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/SystemAudioRecoveryRouteChangeMutex.test.mjs",
+      "log": "checks/changed-SystemAudioRecoveryRouteChangeMutex.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs",
+      "log": "checks/changed-TranscriptDisplayThrottle.test.mjs.log",
+      "exitCode": 0,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/AudioInitPromiseClearedInFinally.test.mjs",
+      "log": "checks/changed-AudioInitPromiseClearedInFinally.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs",
+      "log": "checks/changed-AudioTestSystemAudioLevelMeter.test.mjs.log",
+      "exitCode": 0,
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/MainTeardown.test.mjs",
+      "log": "checks/changed-MainTeardown.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/MeetingTranscriptIngress.test.mjs",
+      "log": "checks/changed-MeetingTranscriptIngress.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs",
+      "log": "checks/changed-Mg21StopConsumer2026_09_27.test.mjs.log",
+      "exitCode": 0,
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/MicRecoveryEmitsTerminalIpc.test.mjs",
+      "log": "checks/changed-MicRecoveryEmitsTerminalIpc.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/OsEventSubscriptions2026_09_27.test.mjs",
+      "log": "checks/changed-OsEventSubscriptions2026_09_27.test.mjs.log",
+      "exitCode": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/RestartCapturesAfterResumeResetsCounters.test.mjs",
+      "log": "checks/changed-RestartCapturesAfterResumeResetsCounters.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/SetupSystemAudioPipelineConstructionGuards.test.mjs",
+      "log": "checks/changed-SetupSystemAudioPipelineConstructionGuards.test.mjs.log",
+      "exitCode": 0,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "file": "electron/services/__tests__/SetupSystemAudioPipelinePermissionAlwaysChecked.test.mjs",
+      "log": "checks/changed-SetupSystemAudioPipelinePermissionAlwaysChecked.test.mjs.log",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  ],
+  "total": {
+    "tests": 85,
+    "pass": 85,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "unit": {
+    "exitCode": 1,
+    "files": 120,
+    "tests": 962,
+    "pass": 956,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 5
+  },
+  "guard": {
+    "exitCode": 0,
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  }
+}

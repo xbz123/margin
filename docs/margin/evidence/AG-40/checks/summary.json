@@ -1,0 +1,125 @@
+{
+  "ticket": "AG-40",
+  "date": "2026-10-11",
+  "base": "3da28cf2",
+  "branch": "codex/margin-agpl-migration",
+  "status": "实现和本地检查通过；完整门禁和复查待 Claude",
+  "checks": [
+    {
+      "id": "build-electron",
+      "command": "npm run build:electron",
+      "exitCode": 0,
+      "log": "build-electron.log"
+    },
+    {
+      "id": "vite-build",
+      "command": "npx --no-install vite build",
+      "exitCode": 0,
+      "log": "vite-build.log"
+    },
+    {
+      "id": "tsc-electron",
+      "command": "npx --no-install tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "log": "tsc-electron.log"
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "npx --no-install tsc --noEmit",
+      "exitCode": 0,
+      "log": "tsc-renderer.log"
+    },
+    {
+      "id": "changed-tests",
+      "command": "node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <each file in tests.files.json.changed>",
+      "exitCode": 0,
+      "log": "tests.files.json"
+    },
+    {
+      "id": "unit-final",
+      "command": "node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap 'electron/services/__tests__/**/*.test.mjs' 'electron/llm/__tests__/**/*.test.mjs' 'electron/audio/__tests__/**/*.test.mjs' 'electron/margin/__tests__/**/*.test.mjs' 'electron/utils/__tests__/**/*.test.mjs' 'src/lib/__tests__/**/*.test.mjs'",
+      "exitCode": 1,
+      "log": "unit-final.log"
+    },
+    {
+      "id": "guard-selftest",
+      "command": "node scripts/margin/isolation/run-node.mjs --allow-blocked --test --test-timeout=60000 --test-reporter=tap scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "log": "guard-selftest.log"
+    },
+    {
+      "id": "provenance",
+      "command": "node scripts/margin/provenance-check.mjs --max-hits 0",
+      "exitCode": 0,
+      "log": "provenance.log"
+    },
+    {
+      "id": "retired",
+      "command": "node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "log": "retired.log"
+    },
+    {
+      "id": "preload-contract",
+      "command": "node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "log": "preload-contract.log"
+    },
+    {
+      "id": "ipc-channels",
+      "command": "node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "log": "ipc-channels.log"
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff --check",
+      "exitCode": 0,
+      "log": "diff-check.log"
+    }
+  ],
+  "changedTests": {
+    "tests": 85,
+    "pass": 85,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "changedTestFiles": 24,
+  "unitTests": {
+    "exitCode": 1,
+    "files": 120,
+    "tests": 962,
+    "pass": 956,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 5
+  },
+  "guardTests": {
+    "exitCode": 0,
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "approvedException": {
+    "file": "electron/margin/__tests__/icons.test.mjs",
+    "test": "generation is repeatable in synthetic directories and system iconutil decodes the ICNS",
+    "localExitCode": 1,
+    "decision": "沙箱内 iconutil 不可用，Claude 已在沙箱外验证",
+    "externalResult": "4/4, reported by Claude in follow-up instruction; external TAP not copied here"
+  },
+  "provenanceHits": 0,
+  "retiredRules": {
+    "checked": 267,
+    "failed": 0,
+    "ticketRules": 6
+  },
+  "fullGates": "not run; reserved for Claude",
+  "realDeviceOrCloudValidation": "not run",
+  "push": "not performed",
+  "ci": "not triggered",
+  "newDependencies": false,
+  "nativeChanges": false
+}

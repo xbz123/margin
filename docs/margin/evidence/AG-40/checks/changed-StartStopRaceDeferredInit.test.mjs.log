@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: stop before the deferred initialization tick never acquires a capture
+ok 1 - stop before the deferred initialization tick never acquires a capture
+  ---
+  duration_ms: 64.490084
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 374.173417

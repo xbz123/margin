@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: a denied start can be cleaned up without saving an unrelated session
+ok 1 - a denied start can be cleaned up without saving an unrelated session
+  ---
+  duration_ms: 36.563291
+  type: 'test'
+  ...
+# Subtest: production Stop cancels answers, joins native release, drains finals, saves, then clears display
+ok 2 - production Stop cancels answers, joins native release, drains finals, saves, then clears display
+  ---
+  duration_ms: 40.791541
+  type: 'test'
+  ...
+# Subtest: duplicate stops join and next start cannot overtake saving
+ok 3 - duplicate stops join and next start cannot overtake saving
+  ---
+  duration_ms: 68.472917
+  type: 'test'
+  ...
+# Subtest: sleep release precedes wake reconstruction and a stopped session cannot resurrect
+ok 4 - sleep release precedes wake reconstruction and a stopped session cannot resurrect
+  ---
+  duration_ms: 33.675042
+  type: 'test'
+  ...
+# Subtest: shutdown joins active session tail and rejects a later start
+ok 5 - shutdown joins active session tail and rejects a later start
+  ---
+  duration_ms: 17.860959
+  type: 'test'
+  ...
+# Subtest: native release failure still saves the tail but blocks reuse of the unreleased handle
+ok 6 - native release failure still saves the tail but blocks reuse of the unreleased handle
+  ---
+  duration_ms: 14.51425
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 976.307125

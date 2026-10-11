@@ -1,0 +1,32 @@
+✔ production Stop cancels answers, joins native release, drains finals, saves, then clears display (36.09825ms)
+✖ duplicate stops join and next start cannot overtake saving (16.789ms)
+✔ sleep release precedes wake reconstruction and a stopped session cannot resurrect (15.793792ms)
+✔ shutdown joins active session tail and rejects a later start (18.489417ms)
+✔ native release failure still saves the tail but blocks reuse of the unreleased handle (13.381625ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 453.596917
+
+✖ failing tests:
+
+test at electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs:38:1
+✖ duplicate stops join and next start cannot overtake saving (16.789ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs:47:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

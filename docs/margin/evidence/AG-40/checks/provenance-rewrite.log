@@ -1,0 +1,55 @@
+
+electron/audio/MeetingSttSession.ts: 10 hit(s)
+  10: segmentId?: string;
+  11: speakerId?: string;
+  17: segmentId: string;
+  22: speakerId?: string;
+  44: dispose(): void;
+  52: private draining = false;
+  126: this.draining = true;
+  139: this.session = null;
+  169: if (timedOut) {
+  177: clearTimeout(deadline);
+
+electron/audio/MeetingAudioPipeline.ts: 3 hit(s)
+  27: private epoch = 0;
+  28: private revision = 0;
+  182: if (!capture) return;
+
+electron/audio/meetingLifecycleQueue.ts: 3 hit(s)
+  1: export type MeetingLifecycleState = 'idle' | 'starting' | 'active' | 'stopping' | 'failed';
+  4: export class MeetingLifecycleQueue {
+  8: private state: MeetingLifecycleState = 'idle';
+
+electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs: 3 hit(s)
+  16: await tick();
+  20: await tick();
+  67: await tick();
+
+electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs: 1 hit(s)
+  26: assert.equal(endpoints, 1);
+
+electron/main.ts: 1 hit(s)
+  1428: const provider = CredentialsManager.getInstance().getSttProvider();
+
+electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs: 1 hit(s)
+  188: assert.equal(done, true);
+
+electron/audio/TranscriptDisplayThrottle.ts: 1 hit(s)
+  16: if (payload.final) {
+
+electron/audio/__tests__/mainMeetingFixture.mjs: 1 hit(s)
+  71: processingHelper: {
+
+{
+  "target": "files: electron/audio/AudioDevices.ts, electron/audio/__tests__/BeforeQuitShutdownRace.test.mjs, electron/audio/__tests__/DefaultOutputWatcherEpoch.test.mjs, electron/audio/__tests__/DefaultOutputWatcherShutdown.test.mjs, electron/audio/__tests__/EndMeetingAbortsInFlightInit.test.mjs, electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs, electron/audio/__tests__/OutboundSttRevocation.test.mjs, electron/audio/__tests__/StartStopRaceDeferredInit.test.mjs, electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs, electron/audio/__tests__/SystemAudioRecoveryRouteChangeMutex.test.mjs, electron/main.ts, electron/services/__tests__/AudioInitPromiseClearedInFinally.test.mjs, electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs, electron/services/__tests__/MainTeardown.test.mjs, electron/services/__tests__/MicRecoveryEmitsTerminalIpc.test.mjs, electron/services/__tests__/RestartCapturesAfterResumeResetsCounters.test.mjs, electron/services/__tests__/SetupSystemAudioPipelineConstructionGuards.test.mjs, electron/services/__tests__/SetupSystemAudioPipelinePermissionAlwaysChecked.test.mjs, electron/audio/MeetingAudioPipeline.ts, electron/audio/MeetingSttSession.ts, electron/audio/TranscriptDisplayThrottle.ts, electron/audio/__tests__/AudioDevices.test.mjs, electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs, electron/audio/__tests__/MeetingSttSession.test.mjs, electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs, electron/audio/__tests__/mainMeetingFixture.mjs, electron/audio/__tests__/meetingAudioFixture.mjs, electron/audio/meetingLifecycleQueue.ts, electron/osEventSubscriptions.ts, electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs, electron/services/__tests__/OsEventSubscriptions2026_09_27.test.mjs",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 615901,
+  "addedSubstantiveLines": 3980,
+  "hits": 24,
+  "genericIdiomHits": 15,
+  "allowlistedHits": 29,
+  "filesWithHits": 9,
+  "binariesToReviewByHand": []
+}

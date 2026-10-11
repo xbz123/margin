@@ -1,0 +1,19 @@
+
+electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs: 1 hit(s)
+  29: await Promise.all([first, second]);
+
+electron/audio/__tests__/MeetingLifecycleQueue.test.mjs: 1 hit(s)
+  16: gate.resolve();
+
+{
+  "target": "files: electron/audio/AudioDevices.ts, electron/audio/__tests__/BeforeQuitShutdownRace.test.mjs, electron/audio/__tests__/DefaultOutputWatcherEpoch.test.mjs, electron/audio/__tests__/DefaultOutputWatcherShutdown.test.mjs, electron/audio/__tests__/EndMeetingAbortsInFlightInit.test.mjs, electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs, electron/audio/__tests__/OutboundSttRevocation.test.mjs, electron/audio/__tests__/StartStopRaceDeferredInit.test.mjs, electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs, electron/audio/__tests__/SystemAudioRecoveryRouteChangeMutex.test.mjs, electron/main.ts, electron/services/__tests__/AudioInitPromiseClearedInFinally.test.mjs, electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs, electron/services/__tests__/MainTeardown.test.mjs, electron/services/__tests__/MicRecoveryEmitsTerminalIpc.test.mjs, electron/services/__tests__/RestartCapturesAfterResumeResetsCounters.test.mjs, electron/services/__tests__/SetupSystemAudioPipelineConstructionGuards.test.mjs, electron/services/__tests__/SetupSystemAudioPipelinePermissionAlwaysChecked.test.mjs, electron/audio/MeetingAudioPipeline.ts, electron/audio/MeetingSttSession.ts, electron/audio/TranscriptDisplayThrottle.ts, electron/audio/__tests__/AudioDevices.test.mjs, electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs, electron/audio/__tests__/MeetingSttSession.test.mjs, electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs, electron/audio/__tests__/mainMeetingFixture.mjs, electron/audio/__tests__/meetingAudioFixture.mjs, electron/audio/meetingLifecycleQueue.ts, electron/osEventSubscriptions.ts, electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs, electron/services/__tests__/OsEventSubscriptions2026_09_27.test.mjs, electron/audio/__tests__/MeetingLifecycleQueue.test.mjs",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 615901,
+  "addedSubstantiveLines": 4043,
+  "hits": 2,
+  "genericIdiomHits": 15,
+  "allowlistedHits": 55,
+  "filesWithHits": 2,
+  "binariesToReviewByHand": []
+}

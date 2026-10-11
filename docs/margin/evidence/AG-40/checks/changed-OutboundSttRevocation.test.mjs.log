@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: DeepgramStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+ok 1 - DeepgramStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+  ---
+  duration_ms: 84.840792
+  type: 'test'
+  ...
+# Subtest: SonioxStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+ok 2 - SonioxStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+  ---
+  duration_ms: 29.355209
+  type: 'test'
+  ...
+# Subtest: ElevenLabsStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+ok 3 - ElevenLabsStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+  ---
+  duration_ms: 28.45075
+  type: 'test'
+  ...
+# Subtest: OpenAIStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+ok 4 - OpenAIStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control
+  ---
+  duration_ms: 131.912875
+  type: 'test'
+  ...
+# Subtest: OpenAI normal Stop drains the accumulator; discard does not
+ok 5 - OpenAI normal Stop drains the accumulator; discard does not
+  ---
+  duration_ms: 43.38875
+  type: 'test'
+  ...
+# Subtest: RestSTT: queued REST upload does not run after discard
+ok 6 - RestSTT: queued REST upload does not run after discard
+  ---
+  duration_ms: 21.595167
+  type: 'test'
+  ...
+# Subtest: OpenAIStreamingSTT: queued REST upload does not run after discard
+ok 7 - OpenAIStreamingSTT: queued REST upload does not run after discard
+  ---
+  duration_ms: 28.030375
+  type: 'test'
+  ...
+# Subtest: Google stopped stream cannot flush queued audio or restart
+ok 8 - Google stopped stream cannot flush queued audio or restart
+  ---
+  duration_ms: 9.697833
+  type: 'test'
+  ...
+# Subtest: AppState revokes both old senders before a capture-stop failure or pipeline wait
+ok 9 - AppState revokes both old senders before a capture-stop failure or pipeline wait
+  ---
+  duration_ms: 140.208959
+  type: 'test'
+  ...
+# Subtest: AppState never guesses Google for unknown, none or missing selected keys
+ok 10 - AppState never guesses Google for unknown, none or missing selected keys
+  ---
+  duration_ms: 75.4435
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 937.528459

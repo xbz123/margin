@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **阶段 4 由 AGY 执行**（S37）— AG-60a 已完成并通过 Claude 复查（PLAN §9"AG-60a 复查"）。按 S38 分配：AG-40（Codex）→ AG-41a 退役三家 STT（AGY）→ AG-41b 五家 STT（Codex）→ AG-42（Codex），Claude 派发、复查、推送；完成后做阶段 4 验收，出口 CI 须用户批准。交接文档 `docs/margin/HANDOFF-stage4-6.md`，复用依据见 PLAN §6"旧 Margin 复用清单（S35）"。
+- **AG-40 等待 Claude 完整门禁与复查** — 双路音频及会话生命周期实现和本地检查通过，仅本地提交、未推送；证据 `docs/margin/evidence/AG-40/`。修改测试 85/85、竞态 16/16，构建/类型/G2 通过；全量 iconutil 沙箱例外已由 Claude 在沙箱外验证。之后按 S38 串行派发 AG-41a（AGY）→ AG-41b（Codex）→ AG-42（Codex）；阶段出口 CI 仍须用户批准。交接与来源边界见 PLAN 和 HANDOFF-stage4-6。
 
 ## Waiting
 
@@ -18,6 +18,7 @@
 
 ## Done (rolling)
 
+- AG-40 实现和本地检查通过（2026-10-11）：生产停止链、尾段排空、重配、睡眠/唤醒及 OS 订阅接线；完整门禁和复查待 Claude，未实机验证（PLAN §8，`docs/margin/evidence/AG-40/`）。
 - AG-60a 共享翻译和设置组件（2026-10-11）：Astra 实现 `e05ad25e`，Claude 复查通过（PLAN §9"AG-60a 复查"）；AG-40 起改由 AGY 执行（S37）。
 - 阶段 4–6 执行交接（2026-10-11，S36）：`docs/margin/HANDOFF-stage4-6.md`，交给 Astra 执行。
 - S35 复用清单按 Astra 审阅修订（2026-10-11）：候选与已审分开，快照行和近似快照行逐行列出，资产和未扫描扩展名单列，依赖按 `0769715e` 分级并求闭包，新增 AG-60a；重跑结果逐字节可复现，`rule_probes.py` 8/8（PLAN §9"S35 复用清单审阅"）。

@@ -1,0 +1,119 @@
+TAP version 13
+# [isolation] blocked socket: example.com:443
+# [isolation] blocked socket: example.com:443
+# [isolation] blocked socket: 93.184.215.14:443
+# [isolation] blocked dns: example.com
+# [isolation] blocked dns: example.com
+# [isolation] blocked socket: example.com:443
+# [isolation] blocked exec: spawnSync curl
+# [isolation] blocked exec: execSync curl
+# [isolation] blocked exec: execSync (shell syntax) echo hi && curl https://example.com
+# [isolation] blocked exec: spawnSync with shell:true echo
+# [isolation] blocked exec: spawnSync /bin/sh
+# [isolation] blocked local-exec: execFileSync defaults
+# [isolation] blocked keychain: keytar.setPassword
+# Subtest: guard is active and the environment is clean
+ok 1 - guard is active and the environment is clean
+  ---
+  duration_ms: 1.84575
+  type: 'test'
+  ...
+# Subtest: fetch to a public host is blocked
+ok 2 - fetch to a public host is blocked
+  ---
+  duration_ms: 22.604625
+  type: 'test'
+  ...
+# Subtest: https.get to a public host is blocked
+ok 3 - https.get to a public host is blocked
+  ---
+  duration_ms: 2.790792
+  type: 'test'
+  ...
+# Subtest: raw TCP to a public IP is blocked
+ok 4 - raw TCP to a public IP is blocked
+  ---
+  duration_ms: 0.813959
+  type: 'test'
+  ...
+# Subtest: DNS lookups for public names are blocked
+ok 5 - DNS lookups for public names are blocked
+  ---
+  duration_ms: 1.020666
+  type: 'test'
+  ...
+# Subtest: WebSocket (ws package) to a public host is blocked
+ok 6 - WebSocket (ws package) to a public host is blocked
+  ---
+  duration_ms: 12.19375
+  type: 'test'
+  ...
+# Subtest: child processes are blocked unless allowed
+ok 7 - child processes are blocked unless allowed
+  ---
+  duration_ms: 6.208291
+  type: 'test'
+  ...
+# Subtest: node, simple utilities and sandbox-local test doubles may run
+ok 8 - node, simple utilities and sandbox-local test doubles may run
+  ---
+  duration_ms: 563.586083
+  type: 'test'
+  ...
+# Subtest: keytar is replaced by an in-memory stub
+ok 9 - keytar is replaced by an in-memory stub
+  ---
+  duration_ms: 0.713542
+  type: 'test'
+  ...
+# [isolation] blocked watched-port: 127.0.0.1:11434
+# [isolation] blocked watched-port: localhost:11434
+# Subtest: loopback traffic still works
+# [isolation] blocked watched-port: 127.0.0.1:11434
+ok 10 - loopback traffic still works
+  ---
+  duration_ms: 17.472834
+  type: 'test'
+  ...
+# Subtest: watched loopback ports (the retired Ollama port) are blocked and recorded
+ok 11 - watched loopback ports (the retired Ollama port) are blocked and recorded
+  ---
+  duration_ms: 2.804417
+  type: 'test'
+  ...
+# [isolation] blocked device: native audio module wrapped (index.js)
+# [isolation] blocked device: native audio module wrapped (index.darwin-arm64.node)
+# Subtest: native module exports audio and window helpers but no license functions
+ok 12 - native module exports audio and window helpers but no license functions
+  ---
+  duration_ms: 708.556542
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 815.675542
+[isolation] 18 blocked attempt(s); log: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-u5CJin/isolation.jsonl
+[isolation]   device native audio module wrapped (index.js)
+[isolation]   device native audio module wrapped (index.darwin-arm64.node)
+[isolation]   socket example.com:443
+[isolation]   socket example.com:443
+[isolation]   socket 93.184.215.14:443
+[isolation]   dns example.com
+[isolation]   dns example.com
+[isolation]   socket example.com:443
+[isolation]   exec spawnSync curl
+[isolation]   exec execSync curl
+[isolation]   exec execSync (shell syntax) echo hi && curl https://example.com
+[isolation]   exec spawnSync with shell:true echo
+[isolation]   exec spawnSync /bin/sh
+[isolation]   local-exec execFileSync defaults
+[isolation]   keychain keytar.setPassword
+[isolation]   watched-port 127.0.0.1:11434
+[isolation]   watched-port localhost:11434
+[isolation]   watched-port 127.0.0.1:11434

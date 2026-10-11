@@ -134,27 +134,27 @@ test('Google stopped stream cannot flush queued audio or restart', () => {
 });
 
 test('AppState revokes both old senders before a capture-stop failure or pipeline wait', async () => {
-  const source = read('electron/main.ts');
-  const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
-  const klass = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
-  const methods = ['reconfigureSttProvider', 'discardSttProviders'].map(name => klass.members.find(node => node.name?.getText(ast) === name).getText(ast));
-  const module = { exports: {} };
-  vm.runInNewContext(compile(`class Subject { ${methods.join('\n')} } exports.Subject = Subject;`), {
-    exports: module.exports, console: quiet,
-    require: () => ({ CredentialsManager: { getInstance: () => ({ getSttProvider: () => 'none' }) } }),
-  });
+  const { mainFixture } = await import('./mainMeetingFixture.mjs');
+  const { deferred } = await import('./meetingAudioFixture.mjs');
   for (const fail of [false, true]) {
-    const state = new module.exports.Subject(), stopped = [];
-    const old = () => ({ stop: graceful => stopped.push(graceful), removeAllListeners() {} });
-    let release;
-    Object.assign(state, { isMeetingActive: true, googleSTT: old(), googleSTT_User: old(), broadcast() {},
-      systemAudioCapture: { stop: () => { assert.deepEqual(stopped, [false, false]); if (fail) throw Error('synthetic capture failure'); }, start() {} },
-      setupSystemAudioPipeline: () => new Promise(resolve => { release = resolve; }),
-    });
-    const result = state.reconfigureSttProvider();
-    assert.deepEqual(stopped, [false, false]); assert.equal(state.googleSTT, null);
+    const f = mainFixture();
+    await f.start();
+    const stopped = [], entered = deferred(), release = deferred();
+    for (const provider of f.providers) provider.stop = flush => stopped.push(flush);
+    f.audio.pipeline.reconfigureSttProvider = async () => {
+      assert.deepEqual(stopped, [false, false]);
+      entered.resolve();
+      if (fail) throw Error('synthetic capture failure');
+      await release.promise;
+    };
+    const result = f.state.reconfigureSttProvider();
+    assert.deepEqual(stopped, [false, false]);
+    assert.equal(f.session.get('user'), null);
+    assert.equal(f.session.get('interviewer'), null);
+    await entered.promise;
     if (fail) await assert.rejects(result, /synthetic capture failure/);
-    else { release(); await result; }
+    else { release.resolve(); await result; }
+    await f.state.endMeeting();
   }
 });
 

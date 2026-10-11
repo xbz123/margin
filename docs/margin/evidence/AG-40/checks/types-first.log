@@ -1,0 +1,9 @@
+electron/main.ts(354,8): error TS2345: Argument of type '(context: string) => Promise<MacScreenCaptureCapability>' is not assignable to parameter of type '(_context: string) => Promise<{ effectiveDenied: boolean; message?: undefined; titleKey?: undefined; } | { effectiveDenied: boolean; message: string; titleKey: string; }>'.
+  Type 'Promise<MacScreenCaptureCapability>' is not assignable to type 'Promise<{ effectiveDenied: boolean; message?: undefined; titleKey?: undefined; } | { effectiveDenied: boolean; message: string; titleKey: string; }>'.
+    Type 'MacScreenCaptureCapability' is not assignable to type '{ effectiveDenied: boolean; message?: undefined; titleKey?: undefined; } | { effectiveDenied: boolean; message: string; titleKey: string; }'.
+      Property 'titleKey' is missing in type 'MacScreenCaptureCapability' but required in type '{ effectiveDenied: boolean; message: string; titleKey: string; }'.
+npm notice
+npm notice New major version of npm available! 11.12.1 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

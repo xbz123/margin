@@ -1,0 +1,103 @@
+✔ native enumeration is synchronous, validates rows and excludes private capture aggregates only (68.476625ms)
+✔ missing native module, malformed results and enumeration exceptions yield empty lists (52.403667ms)
+✔ existing IPC consumers return the synchronous native inventory (66.987333ms)
+✔ selection uses exact IDs, not names; missing selections fall back on both channels (30.640625ms)
+✔ production endMeeting joins an in-flight permission probe before releasing capture (42.545625ms)
+✔ begin is deferred and starts mic before system and either STT channel (154.002583ms)
+✔ abort during a pending permission probe joins init and removes late captures (37.305125ms)
+✔ detachment clears ownership synchronously and gates the next begin on native release (26.834791ms)
+✔ a replaced capture cannot write late PCM into the live STT channel (35.745ms)
+✔ route change and system recovery share one rebuild owner (19.80175ms)
+✔ STT reconfiguration requests serialize while both channels remain independently wired (12.870458ms)
+✔ stop while enumeration is pending cannot create captures or report a stale device (11.401666ms)
+✔ newer reconfigure supersedes a pending lookup before any old capture is created (9.39875ms)
+✔ HFP lookup does not delay PCM and ignores a result after its capture is retired (17.755ms)
+✔ reconfigure releases a route rebuild that claimed the slot during enumeration (23.056542ms)
+✔ reconfigure releases a recovery capture that claimed the slot during enumeration (11.511667ms)
+✔ stop waits for an intervening capture release and prevents a late replacement (9.355625ms)
+✔ reconfigure releases a second capture claimed during the first release (8.109792ms)
+✔ interleaved provider item IDs retain identity and monotone revisions (81.322375ms)
+✔ equal-text unkeyed final utterances are distinct; channels stay distinct (32.8005ms)
+✔ stop accepts trailing finals, releases listeners, and restart excludes stale provider (75.871042ms)
+✔ reconfigure changes provider identity and detaches old listeners (16.722959ms)
+✔ cancel while provider stop hangs is bounded and blocks late events (104.907458ms)
+✔ provider stub item IDs link interim and final events (14.942125ms)
+✔ finalize and stop share one bounded drain budget (37.310041ms)
+✔ drain reports provider failure without inventing a timeout (17.583208ms)
+✔ stable IDs accept final corrections while duplicate and stale interim events are ignored (6.368042ms)
+✔ queued callback from a replaced provider cannot enter the same session (8.812292ms)
+✔ Aliyun mock stub sentence IDs reach session for interim, final and corrected final (8.175167ms)
+✔ Doubao mock stub start-time identity keeps final corrections in one segment (13.157083ms)
+✔ DeepgramStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (128.472917ms)
+✔ SonioxStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (60.589333ms)
+✔ ElevenLabsStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (52.484125ms)
+✔ OpenAIStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (187.693041ms)
+✔ OpenAI normal Stop drains the accumulator; discard does not (38.971292ms)
+✔ RestSTT: queued REST upload does not run after discard (10.313958ms)
+✔ OpenAIStreamingSTT: queued REST upload does not run after discard (19.0575ms)
+✔ Google stopped stream cannot flush queued audio or restart (9.111209ms)
+✔ AppState revokes both old senders before a capture-stop failure or pipeline wait (122.654709ms)
+✔ AppState never guesses Google for unknown, none or missing selected keys (58.06ms)
+✔ production health watchdogs are disarmed before native destroy on stop and replacement (176.739166ms)
+▶ UX4: audio test probes system audio in parallel with the mic
+  ✖ 0. _startAudioTestImpl and stopAudioTest function bodies extract cleanly (3.523625ms)
+  ✔ 1. _startAudioTestImpl constructs a parallel SystemAudioCapture (0.681333ms)
+  ✔ 2. _startAudioTestImpl emits `audio-test-system-level` IPC events (0.174833ms)
+  ✔ 3. _startAudioTestImpl emits `audio-test-system-error` on probe failure (0.155625ms)
+  ✔ 4. _startAudioTestImpl calls resolveMacScreenCaptureCapability BEFORE constructing the system probe (0.35275ms)
+  ✖ 5. stopAudioTest detaches both probes immediately and awaits both native releases (0.587334ms)
+  ✔ 6. preload.ts exposes onAudioTestSystemLevel AND onAudioTestSystemError bridges (0.780834ms)
+  ✔ 7. electron.d.ts declares onAudioTestSystemLevel and onAudioTestSystemError type signatures (0.434708ms)
+  ✔ 8. SettingsOverlay.tsx subscribes to onAudioTestSystemLevel AND onAudioTestSystemError (0.354ms)
+  ✔ 9. SettingsOverlay.tsx renders the literal "System Audio Level" label (0.44425ms)
+  ✔ 10. SettingsOverlay.tsx binds the level bar width to `systemAudioLevel` (0.780333ms)
+✖ UX4: audio test probes system audio in parallel with the mic (10.7635ms)
+✔ production Stop cancels answers, joins native release, drains finals, saves, then clears display (25.815458ms)
+✔ duplicate stops join and next start cannot overtake saving (19.760375ms)
+✔ sleep release precedes wake reconstruction and a stopped session cannot resurrect (12.045375ms)
+✔ shutdown joins active session tail and rejects a later start (13.283208ms)
+✔ native release failure still saves the tail but blocks reuse of the unreleased handle (12.171291ms)
+✔ sleep, resume, display changes and disposal invoke the production subscription functions (2.019375ms)
+✔ synchronous and asynchronous restart failures do not suppress shortcut recovery or escape as rejections (3.105708ms)
+ℹ tests 59
+ℹ suites 1
+ℹ pass 57
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1053.451416
+
+✖ failing tests:
+
+test at electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs:121:3
+✖ 0. _startAudioTestImpl and stopAudioTest function bodies extract cleanly (3.523625ms)
+  AssertionError [ERR_ASSERTION]: BUG: could not extract stopAudioTest body. Signature shape changed — update the test if rename was intentional.
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs:126:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at node:internal/test_runner/test:1617:71
+      at node:internal/per_context/primordials:466:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:435:3)
+      at node:internal/per_context/primordials:466:9
+      at Array.map (<anonymous>) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs:170:3
+✖ 5. stopAudioTest detaches both probes immediately and awaits both native releases (0.587334ms)
+  TypeError: Cannot read properties of undefined (reading 'then')
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs:179:52)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7)

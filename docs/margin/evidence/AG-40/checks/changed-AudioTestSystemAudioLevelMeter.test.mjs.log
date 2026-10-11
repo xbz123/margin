@@ -1,0 +1,89 @@
+TAP version 13
+# Subtest: UX4: audio test probes system audio in parallel with the mic
+    # Subtest: 0. _startAudioTestImpl and stopAudioTest function bodies extract cleanly
+    ok 1 - 0. _startAudioTestImpl and stopAudioTest function bodies extract cleanly
+      ---
+      duration_ms: 0.935834
+      type: 'test'
+      ...
+    # Subtest: 1. _startAudioTestImpl constructs a parallel SystemAudioCapture
+    ok 2 - 1. _startAudioTestImpl constructs a parallel SystemAudioCapture
+      ---
+      duration_ms: 0.211625
+      type: 'test'
+      ...
+    # Subtest: 2. _startAudioTestImpl emits `audio-test-system-level` IPC events
+    ok 3 - 2. _startAudioTestImpl emits `audio-test-system-level` IPC events
+      ---
+      duration_ms: 0.074375
+      type: 'test'
+      ...
+    # Subtest: 3. _startAudioTestImpl emits `audio-test-system-error` on probe failure
+    ok 4 - 3. _startAudioTestImpl emits `audio-test-system-error` on probe failure
+      ---
+      duration_ms: 0.067417
+      type: 'test'
+      ...
+    # Subtest: 4. _startAudioTestImpl calls resolveMacScreenCaptureCapability BEFORE constructing the system probe
+    ok 5 - 4. _startAudioTestImpl calls resolveMacScreenCaptureCapability BEFORE constructing the system probe
+      ---
+      duration_ms: 0.136875
+      type: 'test'
+      ...
+    # Subtest: 5. stopAudioTest detaches both probes immediately and awaits both native releases
+    ok 6 - 5. stopAudioTest detaches both probes immediately and awaits both native releases
+      ---
+      duration_ms: 0.284292
+      type: 'test'
+      ...
+    # Subtest: stopping while microphone permission is pending cannot create a late test capture
+    ok 7 - stopping while microphone permission is pending cannot create a late test capture
+      ---
+      duration_ms: 96.002125
+      type: 'test'
+      ...
+    # Subtest: 6. preload.ts exposes onAudioTestSystemLevel AND onAudioTestSystemError bridges
+    ok 8 - 6. preload.ts exposes onAudioTestSystemLevel AND onAudioTestSystemError bridges
+      ---
+      duration_ms: 0.529042
+      type: 'test'
+      ...
+    # Subtest: 7. electron.d.ts declares onAudioTestSystemLevel and onAudioTestSystemError type signatures
+    ok 9 - 7. electron.d.ts declares onAudioTestSystemLevel and onAudioTestSystemError type signatures
+      ---
+      duration_ms: 0.233583
+      type: 'test'
+      ...
+    # Subtest: 8. SettingsOverlay.tsx subscribes to onAudioTestSystemLevel AND onAudioTestSystemError
+    ok 10 - 8. SettingsOverlay.tsx subscribes to onAudioTestSystemLevel AND onAudioTestSystemError
+      ---
+      duration_ms: 0.435667
+      type: 'test'
+      ...
+    # Subtest: 9. SettingsOverlay.tsx renders the literal "System Audio Level" label
+    ok 11 - 9. SettingsOverlay.tsx renders the literal "System Audio Level" label
+      ---
+      duration_ms: 0.390541
+      type: 'test'
+      ...
+    # Subtest: 10. SettingsOverlay.tsx binds the level bar width to `systemAudioLevel`
+    ok 12 - 10. SettingsOverlay.tsx binds the level bar width to `systemAudioLevel`
+      ---
+      duration_ms: 1.544125
+      type: 'test'
+      ...
+    1..12
+ok 1 - UX4: audio test probes system audio in parallel with the mic
+  ---
+  duration_ms: 102.087458
+  type: 'suite'
+  ...
+1..1
+# tests 12
+# suites 1
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 632.739333

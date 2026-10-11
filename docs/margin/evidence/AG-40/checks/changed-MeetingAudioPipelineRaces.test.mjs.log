@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: abort revokes PCM and speech callbacks immediately even while joining a pending reconfigure
+ok 1 - abort revokes PCM and speech callbacks immediately even while joining a pending reconfigure
+  ---
+  duration_ms: 57.867083
+  type: 'test'
+  ...
+# Subtest: native release barriers also cover route changes during microphone replacement
+ok 2 - native release barriers also cover route changes during microphone replacement
+  ---
+  duration_ms: 15.332666
+  type: 'test'
+  ...
+# Subtest: a superseded begin cannot clear the new init or allocate late captures
+ok 3 - a superseded begin cannot clear the new init or allocate late captures
+  ---
+  duration_ms: 11.318084
+  type: 'test'
+  ...
+# Subtest: begin is deferred and starts mic before system and either STT channel
+ok 4 - begin is deferred and starts mic before system and either STT channel
+  ---
+  duration_ms: 11.506375
+  type: 'test'
+  ...
+# Subtest: abort during a pending permission probe joins init and removes late captures
+ok 5 - abort during a pending permission probe joins init and removes late captures
+  ---
+  duration_ms: 10.849916
+  type: 'test'
+  ...
+# Subtest: detachment clears ownership synchronously and gates the next begin on native release
+ok 6 - detachment clears ownership synchronously and gates the next begin on native release
+  ---
+  duration_ms: 10.165125
+  type: 'test'
+  ...
+# Subtest: a replaced capture cannot write late PCM into the live STT channel
+ok 7 - a replaced capture cannot write late PCM into the live STT channel
+  ---
+  duration_ms: 9.665959
+  type: 'test'
+  ...
+# Subtest: route change and system recovery share one rebuild owner
+ok 8 - route change and system recovery share one rebuild owner
+  ---
+  duration_ms: 9.526333
+  type: 'test'
+  ...
+# Subtest: STT reconfiguration requests serialize while both channels remain independently wired
+ok 9 - STT reconfiguration requests serialize while both channels remain independently wired
+  ---
+  duration_ms: 11.222209
+  type: 'test'
+  ...
+# Subtest: stop while enumeration is pending cannot create captures or report a stale device
+ok 10 - stop while enumeration is pending cannot create captures or report a stale device
+  ---
+  duration_ms: 8.727625
+  type: 'test'
+  ...
+# Subtest: newer reconfigure supersedes a pending lookup before any old capture is created
+ok 11 - newer reconfigure supersedes a pending lookup before any old capture is created
+  ---
+  duration_ms: 8.014583
+  type: 'test'
+  ...
+# Subtest: low-rate PCM is forwarded without enumeration or automatic device switching; retired PCM is ignored
+ok 12 - low-rate PCM is forwarded without enumeration or automatic device switching; retired PCM is ignored
+  ---
+  duration_ms: 10.098041
+  type: 'test'
+  ...
+# Subtest: reconfigure releases a route rebuild that claimed the slot during enumeration
+ok 13 - reconfigure releases a route rebuild that claimed the slot during enumeration
+  ---
+  duration_ms: 7.093959
+  type: 'test'
+  ...
+# Subtest: reconfigure releases a recovery capture that claimed the slot during enumeration
+ok 14 - reconfigure releases a recovery capture that claimed the slot during enumeration
+  ---
+  duration_ms: 7.556917
+  type: 'test'
+  ...
+# Subtest: stop waits for an intervening capture release and prevents a late replacement
+ok 15 - stop waits for an intervening capture release and prevents a late replacement
+  ---
+  duration_ms: 7.799542
+  type: 'test'
+  ...
+# Subtest: reconfigure releases a second capture claimed during the first release
+ok 16 - reconfigure releases a second capture claimed during the first release
+  ---
+  duration_ms: 16.597042
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 480.341083

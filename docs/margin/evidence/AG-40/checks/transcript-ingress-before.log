@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: production transcript ingress records interim and final text without triggering any answer engine
+not ok 1 - production transcript ingress records interim and final text without triggering any answer engine
+  ---
+  duration_ms: 32.689542
+  type: 'test'
+  location: '/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/MeetingTranscriptIngress.test.mjs:6:1'
+  failureType: 'testCodeFailure'
+  error: 'automatic generation must not be reachable'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    Object.handleTranscript (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/MeetingTranscriptIngress.test.mjs:17:54)
+    Manager.handleTranscript (eval at <anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/MeetingTranscriptIngress.test.mjs:11:17), <anonymous>:5:21)
+    TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/MeetingTranscriptIngress.test.mjs:20:11)
+    Test.runInAsyncScope (node:async_hooks:226:14)
+    Test.run (node:internal/test_runner/test:1201:25)
+    Test.start (node:internal/test_runner/test:1096:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 348.403917

@@ -21,6 +21,104 @@ Notes:
 
 ## Ledger
 
+### AG-40 dual audio and meeting lifecycle (2026-10-11)
+
+Written for this branch from HANDOFF §4.2, the race/stop behavior requirements,
+and Claude's follow-up source dispositions. This is not a verified clean-room claim.
+No post-June upstream implementation or old Margin runtime module is imported.
+
+- `AudioDevices.ts` is independently redesigned against this branch's synchronous
+  `native-module/index.d.ts` exports. One internal enumeration loop validates rows,
+  excludes the capture backend's own `NativelySystemAudioTap` aggregate (name from
+  the current branch's `native-module/src/speaker/core_audio.rs`), and deduplicates IDs.
+  It does not blanket-ban legitimate user virtual cables. Input/output selection
+  in the new pipeline uses exact IDs and defaults when absent; no fuzzy-name/status
+  resolution API is reused. Native files and binaries are unchanged.
+- `MeetingAudioPipeline.ts` replaces the entire AGY implementation: owned capture
+  slots, epoch/revision invalidation, tracked in-flight work, native-release barriers,
+  bounded recovery and serialized STT replacement. HFP auto-switching is not included.
+  Existing branch capture wrappers and permission checks are used, not a duplicate
+  permission module.
+- `MeetingSttSession.ts`, `meetingLifecycleQueue.ts`,
+  `TranscriptDisplayThrottle.ts` and `osEventSubscriptions.ts` are rewritten:
+  per-provider listener bindings, a single drain deadline, adjacent-intent queuing,
+  independently coalesced speaker display, and disposable OS subscriptions.
+  The annotated declarations and artificial `extends Object` wrappers in
+  the draft are not retained as a way to suppress matches.
+- `main.ts` connects these modules, retains the branch's calibrated health monitors,
+  permission resolver and provider factory, and removes duplicate capture/recovery
+  implementations. It uses the existing processing/engine cancellation and meeting
+  persistence services. `IntelligenceManager.handleTranscript` now sends incoming
+  speech to the session tracker, bypassing speculative/follow-up **answer** triggers
+  (S33). This does not redesign the existing SessionTracker context/compaction policy.
+- No new dependency, native implementation, cloud STT protocol or settings UI is added.
+
+Old Margin read-only references were limited to `git show b8ade3f7:<path>`:
+`MeetingSttSession.ts` (behavior/reference only, rewritten),
+`MeetingAudioPipelineRaces.test.mjs`, `MeetingSttSession.test.mjs`,
+`TranscriptDisplayThrottle.test.mjs`, and `Mg21StopConsumer2026_09_27.test.mjs`.
+For the retained/adapted tests, the full functions and short lines were reviewed
+alongside the S35 per-file ranges:
+
+| Old test | Reuse / disposition |
+| --- | --- |
+| `MeetingAudioPipelineRaces.test.mjs` | S35 candidate/short ranges across 1–449 supply the mock harness and scenarios. Old hit lines 11, 66, 220, 241 are deferred/timer/await idioms registered below. Old hit 8 is a generic deferred function declaration; the helper is now exported for actual shared-test consumers, so its unused draft allowLine is removed. Snapshot lines 2 and 4 are ordinary assert/fs imports already found in approved baseline code. The HFP case is replaced by a no-auto-switch / stale-PCM case per Claude. The superseding-enumeration case now explicitly enters the first lookup; assertions are retained. The fixture is split into `meetingAudioFixture.mjs`, targeting ES2022 to preserve Set iteration just like the production build. |
+| `MeetingSttSession.test.mjs` | S35 candidate/short ranges across 1–213 describe identity, revision, late-event and drain behavior. Snapshot lines 4–5 are ordinary Node module-loader setup; the current fixture transpiles the actual source with synthetic providers. OpenAI/Aliyun/Doubao adapter integration is not imported: AG-41 owns it. The unconnected credential-helper draft test is replaced by the real session's declined-factory boundary, not claimed as AG-41 preflight coverage. |
+| `TranscriptDisplayThrottle.test.mjs` | S35 candidate/short ranges across 4–64 supply speaker-coalescing/final/clear scenarios. Old hit 17 is `return timer;`, a generic fake timer return. Snapshot imports 1–3 are common approved Node test/assert/fs imports. |
+| `Mg21StopConsumer2026_09_27.test.mjs` | Behavior reference only. The draft's fake stop implementation is replaced by actual AppState methods plus real queue/session/pipeline modules with mock native captures. No prewarm, automatic-answer or Judge steps are imported. |
+
+The required restricted draft dispositions are completed:
+
+| Rejected draft content | Disposition |
+| --- | --- |
+| `audioDeviceSelection.mjs` and `.d.mts`, including `filterSelectableDevices` / `resolveRequestedInputDevice` and their status objects | Deleted; independent ID selection and synchronous enumeration above. Their three import/filter-call allowLines and the `resolution.status === 'missing'` allowLine are removed. |
+| `if (nativeRate > 0 && nativeRate <= 24000) {` and surrounding HFP fallback | Entire behavior and allowLine removed, not reformatted. |
+| Draft capture-identity guard allowLines | Removed as unused after the pipeline rewrite; ownership validation remains in the new design. |
+| Draft `screenCapturePermissions.ts` | Deleted; main passes the existing approved branch resolver. |
+| Draft standalone fake stop test | Replaced by production-consumer behavior tests. |
+
+All remaining exact G2 matches are ordinary declarations, control flow, API calls or
+test infrastructure, not approvals for upstream algorithms. Each exact line is
+registered individually in `provenance-config.json`; repeated occurrences are
+listed together below. Scan pools, approved sources and exclusions are unchanged.
+
+| Exact line | Current occurrences | Reason |
+| --- | --- | --- |
+| `timedOut: boolean;` | `electron/audio/MeetingSttSession.ts:5` | Generic boolean field in the drain result contract, retained plainly rather than hidden by an inline declaration. |
+| `await Promise.all([first, second]);` | `electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:51` | Generic test synchronization awaiting two synthetic begin operations. |
+| `gate.resolve();` | `electron/audio/__tests__/MeetingLifecycleQueue.test.mjs:16` | Resolves a synthetic deferred promise in the lifecycle queue ordering test. |
+| `segmentId?: string;` | `electron/audio/MeetingSttSession.ts:13` | Optional transcript identifier field; public stub contract, not a normalization algorithm. |
+| `speakerId?: string;` | `electron/audio/MeetingSttSession.ts:14`<br>`electron/audio/MeetingSttSession.ts:25` | Optional speaker metadata field in input/output types; both occurrences are generic declarations. |
+| `segmentId: string;` | `electron/audio/MeetingSttSession.ts:20` | Required transcript identifier field in the session output type. |
+| `dispose(): void;` | `electron/audio/MeetingSttSession.ts:47` | Generic cleanup method signature for a listener binding. |
+| `private draining = false;` | `electron/audio/MeetingSttSession.ts:55` | Boolean lifecycle flag initialized to false in the newly written binding-based session. |
+| `this.draining = true;` | `electron/audio/MeetingSttSession.ts:133` | Assignment entering the final-only drain phase; no provider algorithm is imported. |
+| `this.session = null;` | `electron/audio/MeetingSttSession.ts:146` | Clears the local active-session identifier on cancellation. |
+| `if (timedOut) {` | `electron/audio/MeetingSttSession.ts:176` | Generic timeout-result branch in the newly written single-deadline drain. |
+| `clearTimeout(deadline);` | `electron/audio/MeetingSttSession.ts:184` | Standard timer cleanup in finally. |
+| `private epoch = 0;` | `electron/audio/MeetingAudioPipeline.ts:26` | Numeric cancellation generation initialized to zero. |
+| `private revision = 0;` | `electron/audio/MeetingAudioPipeline.ts:27` | Numeric latest-device-request revision initialized to zero. |
+| `if (!capture) return;` | `electron/audio/MeetingAudioPipeline.ts:190` | Generic null capture guard before channel startup. |
+| `export type MeetingLifecycleState = 'idle' \| 'starting' \| 'active' \| 'stopping' \| 'failed';` | `electron/audio/meetingLifecycleQueue.ts:1` | Public lifecycle state vocabulary; queue implementation is newly written as adjacent-intent joining. |
+| `export class MeetingLifecycleQueue {` | `electron/audio/meetingLifecycleQueue.ts:4` | Generic exported class declaration; no old queue implementation is retained. |
+| `private state: MeetingLifecycleState = 'idle';` | `electron/audio/meetingLifecycleQueue.ts:8` | Typed initialization of the lifecycle state to idle. |
+| `await tick();` | `electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs:24`<br>`electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs:28`<br>`electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs:75` | Generic test event-loop synchronization; each use awaits a synthetic capture/drain boundary. |
+| `assert.equal(endpoints, 1);` | `electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs:26` | Generic count assertion for one synthetic speech-end notification. |
+| `const provider = CredentialsManager.getInstance().getSttProvider();` | `electron/main.ts:1368` | Call to this branch's existing settings getter, returning only the selected provider name. |
+| `assert.equal(done, true);` | `electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs:193` | Generic boolean completion assertion for a mock native-release promise. |
+| `if (payload.final) {` | `electron/audio/TranscriptDisplayThrottle.ts:16` | Generic discriminant check in the newly written transcript display coalescer. |
+| `processingHelper: {` | `electron/audio/__tests__/mainMeetingFixture.mjs:71` | Opening property of the synthetic AppState service stub. |
+| `return { promise, resolve };` | `electron/audio/__tests__/meetingAudioFixture.mjs:9` | generic return statement of deferred promise and its resolve callback. |
+| `return timer;` | `electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs:22`<br>`electron/audio/__tests__/meetingAudioFixture.mjs:63` | generic return statement in mock setTimeout test helper. |
+| `await Promise.all([a, b]);` | `electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:162` | generic Promise.all concurrency synchronization in race test. |
+| `await stopping;` | `electron/main.ts:1439`<br>`electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs:183`<br>`electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs:35` | generic await of an in-flight stopping promise in test harness. |
+
+The scan history is in `evidence/AG-40/checks/provenance-*.log`; the final whole-branch
+G2 check is `checks/provenance.log`. Six AG-40 retired rules guard the rejected
+module paths/APIs and HFP draft flag. `completedTickets` activates these rules,
+not Claude's full-gates/review acceptance. See `evidence/AG-40/README.md` for
+the test replacement map, raw results, sandbox icon exception and unverified items.
+
 ### AG-60a translation and shared settings foundation
 
 Written on this branch from PLAN S35/S36 and the AG-60a behavior requirements.

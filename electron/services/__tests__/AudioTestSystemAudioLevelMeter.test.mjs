@@ -26,6 +26,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
+import { deferred } from '../../audio/__tests__/meetingAudioFixture.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../../..');
@@ -114,7 +116,7 @@ const startBody = extractFunctionBody(
 );
 const stopBody = extractFunctionBody(
   mainSrc,
-  String.raw`public\s+stopAudioTest\s*\(\s*\)\s*:\s*void\s*\{`,
+  String.raw`public\s+stopAudioTest\s*\(\s*\)\s*:\s*Promise<void>\s*\{`,
 );
 
 describe('UX4: audio test probes system audio in parallel with the mic', () => {
@@ -167,19 +169,49 @@ describe('UX4: audio test probes system audio in parallel with the mic', () => {
     );
   });
 
-  it('5. stopAudioTest tears down `audioTestSystemCapture` with a .stop() call', () => {
-    assert.ok(
-      /audioTestSystemCapture/.test(stopBody),
-      'BUG (UX4 REGRESSION): stopAudioTest no longer references `audioTestSystemCapture`. The parallel system probe must be torn down alongside the mic capture — leaving it running after the dialog closes leaks native capture threads and holds an exclusive system-audio handle into the next meeting.',
-    );
-    assert.ok(
-      /audioTestSystemCapture[\s\S]*?\.stop\s*\(\s*\)/.test(stopBody),
-      'BUG (UX4 REGRESSION): stopAudioTest references audioTestSystemCapture but never calls .stop() on it. Nulling the reference without stopping leaks the native capture thread.',
-    );
-    assert.ok(
-      /this\.audioTestSystemCapture\s*=\s*null/.test(stopBody),
-      'BUG (UX4 REGRESSION): stopAudioTest does not null `this.audioTestSystemCapture` after .stop(). Leaving the dead wrapper around causes the next startAudioTest call to skip constructing a fresh probe (if the construction path is gated on the field being null).',
-    );
+  it('5. stopAudioTest detaches both probes immediately and awaits both native releases', async () => {
+    let releaseMic, releaseSystem;
+    const mic = new Promise(resolve => { releaseMic = resolve; });
+    const system = new Promise(resolve => { releaseSystem = resolve; });
+    const state = { _audioTestEpoch: 0,
+      audioTestCapture: { destroy: () => mic },
+      audioTestSystemCapture: { destroy: () => system },
+    };
+    let done = false;
+    const task = new Function(stopBody).call(state).then(() => { done = true; });
+    let secondDone = false;
+    const second = new Function(stopBody).call(state).then(() => { secondDone = true; });
+    assert.equal(state.audioTestCapture, null);
+    assert.equal(state.audioTestSystemCapture, null);
+    assert.equal(state._audioTestEpoch, 2);
+    releaseMic();
+    await Promise.resolve();
+    assert.equal(done, false);
+    assert.equal(secondDone, false);
+    releaseSystem();
+    await Promise.all([task, second]);
+    assert.equal(done, true);
+  });
+
+  it('stopping while microphone permission is pending cannot create a late test capture', async () => {
+    const entered = deferred(), permission = deferred();
+    let created = 0;
+    const run = new Function('ensureMacMicrophoneAccess', 'MicrophoneCapture', 'console',
+      ts.transpileModule('async function run(deviceId?: string) {' + startBody + '} return run;', {
+        compilerOptions: { target: ts.ScriptTarget.ES2022 },
+      }).outputText)(
+        () => { entered.resolve(); return permission.promise; },
+        class { constructor() { created++; } }, { log() {} });
+    const state = { _audioTestEpoch: 0, isMeetingActive: false, _isQuitting: false,
+      audioTestCapture: null, audioTestSystemCapture: null, audioTestRelease: Promise.resolve(),
+      stopAudioTest: new Function(stopBody),
+    };
+    const starting = run.call(state);
+    await entered.promise;
+    await state.stopAudioTest();
+    permission.resolve(true);
+    await starting;
+    assert.equal(created, 0);
   });
 
   it('6. preload.ts exposes onAudioTestSystemLevel AND onAudioTestSystemError bridges', () => {

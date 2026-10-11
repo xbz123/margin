@@ -8,7 +8,8 @@
     "AG-15",
     "AG-16",
     "AG-17",
-    "S21"
+    "S21",
+    "AG-40"
   ],
   "scanRoots": [
     "electron",
@@ -33,6 +34,12 @@
     "native-module/package-lock.json"
   ],
   "rules": [
+    { "ticket": "AG-40", "kind": "path", "value": "electron/audio/audioDeviceSelection.mjs" },
+    { "ticket": "AG-40", "kind": "path", "value": "electron/audio/audioDeviceSelection.d.mts" },
+    { "ticket": "AG-40", "kind": "symbol", "value": "filterSelectableDevices" },
+    { "ticket": "AG-40", "kind": "symbol", "value": "resolveRequestedInputDevice" },
+    { "ticket": "AG-40", "kind": "symbol", "value": "INTERNAL_CAPTURE_DEVICE_NAMES" },
+    { "ticket": "AG-40", "kind": "symbol", "value": "checkedHfp" },
     {
       "ticket": "AG-10",
       "kind": "path",
