@@ -1,6 +1,6 @@
 # AG-50 local verification
 
-Implementation on `codex/margin-agpl-migration`, based on `0116c6c2`, 2026-10-11.
+Implementation `2dc6a835` on `codex/margin-agpl-migration`, based on `0116c6c2`, 2026-10-11.
 Final policy: PLAN S40 (no Local Context data-scope switch). This is local execution
 evidence, not Claude review, full Electron gates, CI, release or stage-5 acceptance.
 

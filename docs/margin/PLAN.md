@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-**当前执行点（2026-10-11）**：**阶段 4 已签收**（用户指示"签收阶段 4，开始阶段 5"；§9"阶段 4 签收"）。阶段 5 开始：AG-50（Local Context 全文）交 Codex，之后 AG-51。
+**当前执行点（2026-10-11）**：**阶段 4 已签收**（用户指示"签收阶段 4，开始阶段 5"；§9"阶段 4 签收"）。AG-50（Local Context 全文）已本地实现 `2dc6a835`，待 Claude 复查与完整门禁（§8 AG-50）；未推送，之后 AG-51。
 
 状态：**阶段 4 已签收（2026-10-11，出口 CI `38162294825`，§9"阶段 4 签收"）。阶段 3 已签收（2026-10-11，用户指示"做 W4 本机核对，通过后签收阶段 3"）。** 签收依据为提交 `d2bd8146` 的 W3 出口 CI `38123550800`（gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7）及 W4 本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 3 签收"。阶段 4–6 按 S36 交给 Codex Astra 执行（[HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)），从用户把交接交给 Astra 时开始。以下为阶段 2 的状态说明。**阶段 2 出口已签收（2026-10-10，用户指示"做本机核对，通过后签收阶段2"）。** Claude 实现并自验收（S21）；Astra 独立验收（2026-10-09）提出的 4 项经两轮复验（2026-10-10）全部关闭；包内 libvips 的 Rust 工具链已固定，CI 两次复现记录的 `64bcfea7…`；验收条件按 S26 精简。签收依据为提交 `2c7f1e42` 的完整 CI `38057787157`（三个作业全部通过）及其下载核对和本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 2 出口签收"。AG-20–26、AG-24 后续、S19-C 及 S22 均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
@@ -67,6 +67,7 @@
 | S37 | AG-40 起改由 AGY 执行（用户指示）：<br>1. **执行人**：AG-60a 由 Astra 完成，Claude 复查通过。AG-40、AG-41、AG-42、AG-50、AG-51、AG-60、AG-61、AG-62 改由 AGY CLI 执行，模型 `gemini-3.8-flash-medium`。Astra 不再执行本阶段的 ticket。<br>2. **派发与验收**：Claude 每次派发一张 ticket，任务说明按交接文档写明范围和边界。AGY 实现、测试、跑本地 gates 并在本地提交。Claude 读 diff、独立复核关键检查，通过后推送两个远端、写复查记录；不通过就把问题汇总后发回同一会话修复。<br>3. **权限**：用户同意 Claude 派发的阶段 4–6 AGY 调用开启自动批准（`--dangerously-skip-permissions`），使 AGY 能运行测试、关闭沙箱的门禁和本地 git。自动批准不是文件沙箱，所以每次运行后 Claude 检查原工作区是否干净、分支是否未变。AGY 不推送，不触发 CI，也不改全局配置。<br>4. **其余不变**：S8–S36 的边界、交接文档的流程和停止条件、阶段出口 CI 须用户批准、用户签收阶段出口 | 用户，2026-10-11，"确认由你复查，astra已经完成60a，复查这个ticket，接下来交给agy的3.8 flash medium去执行"；自动批准：用户选择"开启自动批准" |
 | S38 | 阶段 4 起按难度分配执行人（用户指示）：<br>1. **分工**：边界清晰、需求明确的任务交 AGY（`gemini-3.8-flash-medium`）；需要模型自主判断和决策的任务交 Codex CLI（`gpt-6-astra`，推理强度 medium）。用户随后细化为"把边界清晰，需求明确的任务交给gemini 3.8 flash去做，需要模型自主判断决策的任务交给astra medium"。<br>2. **阶段 4 的分配**：AG-40 改交 Codex，原因是旧管线 2399 行要按需求重写，判断多；AGY 未验收的草稿已备份，留在工作区供 Codex 参考或重写。AG-41 拆成两部分：AG-41a 退役 Google、Deepgram、ElevenLabs（删实现、设置入口、专属测试和依赖，写退役规则），交 AGY；AG-41b 五家 STT、未配置时阻止开始、恢复 4 个 Realtime 用例、缓冲上限，交 Codex。AG-42 交 Codex。按 AG-40 → AG-41a → AG-41b → AG-42 串行执行（并行仍须用户另外同意）。<br>3. **Codex 的权限**：`codex exec` 在 `workspace-write` 沙箱里运行，可写目录加上本仓库的 `.git`（用于本地提交），不开自动审批（`--approve-for-me` 被 Claude Code 自动模式拦下）。需要启动 Electron 的完整 gates 由 Claude 在沙箱外跑。<br>5. **并行**（用户同意"AG-41a 和 AG-40 可以并行跑"）：AG-41a 在被忽略的 `tmp/wt-AG-41a` 独立工作树（分支 `codex/margin-ag41a`）中执行，与 AG-40 互不写同一工作区；共享 `node_modules` 只读，PLAN、wayfinder、PROVENANCE 由 Claude 合并时写。<br>4. **其余按 S37**：每次派一张，执行人本地提交、不推送；Claude 先读代码再检查，通过后推送；测试一律经隔离守卫并设超时 | 用户，2026-10-11，"接下来你对任务进行分配，把简单的任务交给gemini 3.8 flash去做，其他任务调用codex cli的 astra medium去完成" |
 | S39 | Azure Speech 和 IBM Watson 一并退役（Claude 复查 AG-41a 时发现 S35 漏列，用户选择"一起退役"）：S35 第 1 条定的五家（OpenAI、Soniox、Groq、阿里云百炼、豆包）来自旧 Margin，旧 Margin 没有这两家的 STT；S35 列退役名单时只写了 Google、Deepgram、ElevenLabs。两家由 AG-41a 一并删除实现、设置入口、连接测试和专属测试，写退役规则；没有独立 npm 依赖。已存选择按"未选择服务商"处理 | 用户，2026-10-11，选择"一起退役（推荐）" |
+| S40 | **AG-50 Local Context 不设数据开关**：用户添加内容即同意随生成请求发送给所选模型服务商，删除后不再发送。不新增 `local_context`，不并入 `profile_history`，不恢复已退役的 `reference_files`；ProviderDataScope、IPC 白名单和现有三个范围的规则不改，原本被 transcript 等拒绝的请求仍按现有方式处理。设置卡片明确告知发送行为，文案走 useI18n。本条取代已撤回的“新增 local_context，默认开”指示 | 用户，2026-10-11，原话：“这部分不需要设立数据开关，写入local context的内容默认发送到服务商” |
 
 **S21 细则**：
 
@@ -1318,6 +1319,19 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-41a | 完成；Claude 复查通过，合并后完整 gates 16/16（§9"AG-41a 复查"） | `8f05e4cc`、`921517e3`、`cf534db3`；合并 `d25d48ff` | 退役 Google、Deepgram、ElevenLabs（S35）和 Azure、IBM Watson（S39）；删除 6 个依赖；合并后 116 个文件 937 项测试，932 通过、5 个既有跳过；证据 `evidence/AG-41a/` |
 | AG-41b | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-41b 复查"） | `759a6484`、`520dc16e`、`9b92f883` | 五家云端 STT（新增阿里云百炼、豆包，整体按需求重写）、凭据设置、未配置时拒绝开始会议、恢复四个 Realtime 用例、160 KiB 严格缓冲上限（超限拒绝）、麦克风恢复断言；gates 119 个文件 955 项测试，954 通过、1 个既有跳过；证据 `evidence/AG-41b/`；未实机验证 |
 | AG-42 | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-42 复查"） | `3ff20cbc`、`3bfcbe47`、`25528531` | 手动回答接现有 generate-what-to-say → IntelligenceManager/Engine → 阶段 3 生成链路；配置预检、mic 尾段 finalize（尽力而为，上限 1500 ms）、取消、回答身份封口、固定错误文案（英文源文 + 中文译文）；gates 121 个文件 970 项测试，969 通过、1 个既有跳过；证据 `evidence/AG-42/`；未实机验证 |
+| AG-50 | 实现和本地检查通过；完整门禁和复查待 Claude | `2dc6a835`（未推送） | Local Context 全文、S40 无数据开关、固定请求位置、容量拒绝、文本快照存储和设置卡片；123 文件 978 项：976 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过。证据 `evidence/AG-50/checks/`；未实机验证 |
+
+### AG-50 记录（2026-10-11）
+
+- **范围**：仅 Local Context 文件导入、查看全文、删除、本地保存及共享生成入口。源码英文，卡片与错误的中文译文在 `src/i18n.zh.ts`，使用 useI18n 和 SettingsKit。未引入预热、PDF/DOCX 解析器、Skills、设置页重组、依赖或许可清单变化。
+- **读取上限**：沿用旧 Margin 行为的 8 个文件、单文件 32 KiB、总正文 64 KiB。它们限制同步主进程读取、存储和每次发送的开销，不等于模型必能容纳；先检查扩展名，只收 `.md`、`.markdown`、`.txt`。读取普通文件的 descriptor，拒绝符号链接/目录，限长加一字节检测并发增长；UTF-8 fatal 解码和控制字符检查拒绝无效编码/二进制。批量导入整批验证后原子替换，不部分保存。序列化本地存储另有 512 KiB 上限，覆盖 JSON 转义和元数据开销。
+- **存储**：自写 LocalContextStore 保存文本快照，不保存源文件绝对路径，不在生成时重读源文件；原文件改动不会改变已同意发送的内容，需要删除后重新导入。只在当前应用身份的 userData 保存 `local-context.json`，新文件 mode 0600。测试只用隔离临时目录。新增/删除成功后取消在途生成，避免旧快照继续排队或重试；文件选择取消或导入失败不取消生成。
+- **请求位置**：在 `LLMHelper.selectedGeneration` 统一附加，手动 WhatToAnswer 与文字提问共用；Local Context 是第一个 user turn，正文以 JSON 数据表示并标明为参考材料，后接本次请求原有 contents/角色/图片，systemInstruction 不变。四个 API 协议与 Codex 分支使用同一组装结果，重试按实际目标重新检查容量。连接兼容性测试 purpose=compatibility 不发送用户资料。没有 Local Context 时原请求不变。
+- **容量检查**：使用本分支 `getModelCapabilities(request.model).maxContextTokens`，对 systemInstruction、完整文字/结构的 UTF-8 JSON 字节乘 1.25 加 256 framing 估算，再加本次 maxOutputTokens 预留；超过则在任何服务商/cache 请求之前报明确的 LocalContextCapacityError，不为塞入 Local Context 截断任何内容。手动回答显示固定的可翻译错误，绝不转发供应商原始错误。图片仅计结构（与旧行为一致），不计 base64。容量来自本分支现有模型分类，是保守估算而非服务商精确 tokenizer 或实测上限；未知/自定义模型沿用本分支 128k 假设，Codex 同样沿用模型分类与客户端预留，不声称后端实际容量已确认。
+- **数据范围（S40）**：用户原话“这部分不需要设立数据开关，写入local context的内容默认发送到服务商”。不新增 local_context、不恢复 reference_files、不并入 profile_history，不修改 ProviderDataScope、IPC 范围白名单或范围设置。Local Context 本身没有 dataScopes 标签；加入时即同意发送，删除后不再带入。关闭现有任一范围不会单独过滤 Local Context，但整个请求原有的范围拒绝仍有效，例如非空文字问题在 transcript=false 时仍零发送；不会绕过这一规则单发 Local Context。
+- **行为验收**：新增 8 项行为测试，实际运行存储、mock generateOnce、LLMHelper/WhatToAnswer、三个 IPC/preload 方法、设置组件动作；覆盖读取三类上限、非文本/扩展名/链接拒绝、无部分保存、固定位置、原角色保持、容量失败零发送、现有范围独立、原有 transcript 拒绝、增删变化、设置文案双语、原生选择取消、不可信 sender 及保存错误展示。不新增跳过，不删除旧测试；两个旧 IPC 测试替身补注册空实现，原断言保持。
+- **最终本地检查**：Electron/Vite 构建、两套 tsc、preload-contract、IPC channel、retired `--all`（296 条，0 命中）、G2（受限池 621107，0 命中）、diff-check 均 exit 0。隔离逐文件测试 123 文件、978 项：976 通过、1 失败（任务已声明的 `icons.test.mjs` / iconutil 沙箱限制）、1 既有跳过；无隔离拦截、无挂起/超时、无无法解释的退出。首轮日志隐私替身缺失已修复，最终日志覆盖在 `evidence/AG-50/checks/`，不留中间轮次。来源逐处处置见 PROVENANCE AG-50。
+- **交付边界**：仅本地提交，不推送、不触发 CI。完整 Electron gates、原生文件选择器实机、真实服务、真实数据及打包未运行，由 Claude 复查与沙箱外门禁；不代签阶段 5。原先数据范围停止条件已由 S40 解除，无新增范围/依赖停止条件。
 
 ### AG-42 记录（2026-10-11）
 
