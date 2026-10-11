@@ -30,10 +30,7 @@ test('routeLLMProviders marks cloud providers unavailable when a scope is denied
   assert.deepEqual(routeWithScopeFallback(options), attempts);
 });
 
-// Behavior check (rewritten in PLAN.md AG-17 after the Astra review): runs the built
-// generateMeetingSummary against a stub Groq client and inspects the request body.
-// The meeting context is the transcript, so denying either `transcript` or
-// `post_call_summary` must keep it from being sent at all.
+// Loads the built LLMHelper with a stub electron module, for the behavior checks below.
 function loadBuiltLLMHelper() {
   const require = createRequire(import.meta.url);
   const built = path.resolve(__dirname, '../../../dist-electron/electron/LLMHelper.js');
@@ -49,51 +46,6 @@ function loadBuiltLLMHelper() {
     if (previous) require.cache[electronId] = previous; else delete require.cache[electronId];
   }
 }
-
-async function summarizeWith(policy, extraDataScopes) {
-  const LLMHelper = loadBuiltLLMHelper();
-  const requests = [];
-  const self = Object.assign(Object.create(LLMHelper.prototype), {
-    currentModelId: 'llama-3.3-70b-versatile', selectedTarget: { provider: 'groq', protocol: 'chat-completions', model: 'llama-3.3-70b-versatile' },
-    codexCliConfig: { enabled: false },
-    groqClient: { chat: { completions: { create: async (body) => { requests.push(body); return { choices: [{ message: { content: 'SUMMARY' }, finish_reason: 'stop' }] }; } } } },
-    getProviderScopePolicy: () => policy,
-    logScopeFallback: () => {},
-    withTimeout: (promise) => promise,
-    processResponse: (text) => text,
-  });
-  const result = await LLMHelper.prototype.generateMeetingSummary.call(self, 'SYSTEM', 'TRANSCRIPT_SENTINEL said hello', 'GROQ_SYSTEM', extraDataScopes);
-  return { result, requests };
-}
-
-test('meeting summaries send the transcript only when both transcript and post_call_summary are allowed', async () => {
-  const allowed = await summarizeWith({});
-  assert.equal(allowed.result, 'SUMMARY');
-  assert.equal(allowed.requests.length, 1);
-  assert.match(JSON.stringify(allowed.requests[0].messages), /TRANSCRIPT_SENTINEL/);
-
-  for (const policy of [{ transcript: false }, { post_call_summary: false }, { transcript: false, post_call_summary: false }]) {
-    const denied = await summarizeWith(policy);
-    assert.equal(denied.result, '', `no summary when ${JSON.stringify(policy)}`);
-    assert.equal(denied.requests.length, 0, `no request at all when ${JSON.stringify(policy)}`);
-  }
-});
-
-// Startup recovery (PLAN.md AG-17 sixth review): a meeting left over from an earlier
-// run is saved history, so recovery declares profile_history as well. With it denied
-// nothing is sent; the current meeting (no extra scope) is unaffected by it.
-test('meeting summaries with a declared profile_history scope are not sent while it is denied', async () => {
-  const recovered = await summarizeWith({ profile_history: false }, ['profile_history']);
-  assert.equal(recovered.result, '');
-  assert.equal(recovered.requests.length, 0);
-
-  const allowed = await summarizeWith({}, ['profile_history']);
-  assert.equal(allowed.requests.length, 1);
-  assert.match(JSON.stringify(allowed.requests[0].messages), /TRANSCRIPT_SENTINEL/);
-
-  const current = await summarizeWith({ profile_history: false });
-  assert.equal(current.requests.length, 1, 'the current meeting does not carry profile_history');
-});
 
 // Both Codex entry points check scopes before reading the synthetic login or sending.
 
@@ -420,41 +372,11 @@ test('WhatToAnswer sends earlier answers only while profile_history is allowed',
   assert.deepEqual(denied.scopes, []);
 });
 
-// Fifth review (PLAN.md AG-17): the meeting chat's context is built in the main process
-// from the saved meeting. A saved meeting is profile_history data; its summary parts
-// are post_call_summary data too and are left out on request.
-test('the meeting chat context carries the scopes of what it contains', () => {
-  const { buildMeetingChatContext } = createRequire(import.meta.url)(path.resolve(__dirname, '../../../dist-electron/electron/services/meetingChatContext.js'));
-  const meeting = {
-    title: 'TITLE_SENTINEL',
-    detailedSummary: { overview: 'OVERVIEW_SENTINEL', keyPoints: ['KEYPOINT_SENTINEL'], actionItems: ['ACTION_SENTINEL'] },
-    transcript: [{ speaker: 'user', text: 'TRANSCRIPT_SENTINEL one' }, { speaker: 'interviewer', text: 'TRANSCRIPT_SENTINEL two' }],
-  };
-  const full = buildMeetingChatContext(meeting, true);
-  for (const s of ['TITLE_SENTINEL', 'OVERVIEW_SENTINEL', 'KEYPOINT_SENTINEL', 'ACTION_SENTINEL', 'TRANSCRIPT_SENTINEL']) assert.match(full.context, new RegExp(s));
-  assert.deepEqual(full.scopes, ['profile_history', 'post_call_summary']);
-
-  const noSummary = buildMeetingChatContext(meeting, false);
-  assert.doesNotMatch(noSummary.context, /OVERVIEW_SENTINEL|KEYPOINT_SENTINEL|ACTION_SENTINEL/);
-  assert.match(noSummary.context, /TRANSCRIPT_SENTINEL/);
-  assert.deepEqual(noSummary.scopes, ['profile_history']);
-});
-
-test('the keyword fallback recognizes the meeting chat headings in a window-built context', () => {
+test('the keyword fallback recognizes saved-meeting headings in a window-built context', () => {
   const self = helperWith({}, () => ({}));
-  assert.deepEqual(self.inferContextScopes('MEETING: x\n\nSUMMARY:\ny'), ['profile_history', 'post_call_summary']);
-  assert.deepEqual(self.inferContextScopes('notes\nKEY POINTS:\n- a'), ['post_call_summary']);
+  assert.deepEqual(self.inferContextScopes('MEETING: x\n\nSUMMARY:\ny'), ['profile_history']);
+  assert.deepEqual(self.inferContextScopes('notes\nKEY POINTS:\n- a'), []);
   assert.deepEqual(self.inferContextScopes('plain conversation about a summary of nothing'), []);
-});
-
-test('meeting summaries stop the explicit backup when a scope is turned off after the first send', async () => {
-  for (const [scope, extra] of [['profile_history', ['profile_history']], ['post_call_summary', []], ['transcript', []]]) {
-    const policy = {}; const requests = [];
-    const self = helperWith(policy, geminiClient(body => { requests.push(body); policy[scope] = false; throw Object.assign(Error('overloaded'), { status: 503 }); }));
-    self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
-    assert.equal(await self.generateMeetingSummary('SYSTEM', 'TRANSCRIPT_SENTINEL', undefined, extra), '');
-    assert.equal(requests.length, 1, `${scope}: no backup after revocation`);
-  }
 });
 
 test('streamChat keeps declared and inferred context scopes through the limiter and explicit backup', async () => {
@@ -484,7 +406,7 @@ test('chatWithGemini keeps the scopes of its context for every send', async () =
   const requests = [];
   const self = helperWith(policy, {
     ...claudeClient((body) => { requests.push(body); throw new Error(SEND_STUB); }),
-    rateLimiters: { claude: { acquire: async () => { policy.post_call_summary = false; } }, groq: { acquire: async () => {} }, gemini: { acquire: async () => {} }, openai: { acquire: async () => {} }, deepseek: { acquire: async () => {} } },
+    rateLimiters: { claude: { acquire: async () => { policy.profile_history = false; } }, groq: { acquire: async () => {} }, gemini: { acquire: async () => {} }, openai: { acquire: async () => {} }, deepseek: { acquire: async () => {} } },
   });
   await assert.rejects(() => self.chatWithGemini('QUESTION', undefined, 'MEETING: Weekly sync\n\nSUMMARY:\nSUMMARY_SENTINEL'), { name: 'ProviderScopeError', message: /Data scope denied/ });
   assert.equal(requests.length, 0, 'the context was allowed at the start, but not when Claude was about to be asked');

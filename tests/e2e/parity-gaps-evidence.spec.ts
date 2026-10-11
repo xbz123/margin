@@ -52,7 +52,6 @@ test.describe('Cluely-parity gap E2E evidence', () => {
         transcript: false,
         screenshots: false,
         profile_history: true,
-        post_call_summary: true,
       });
     });
     expect(ack.success).toBe(true);

@@ -4101,11 +4101,6 @@ async function initializeApp() {
     }, 800);
   }
 
-  // Recover unprocessed meetings (persistence check)
-  appState.getIntelligenceManager().recoverUnprocessedMeetings().catch(err => {
-    console.error('[Main] Failed to recover unprocessed meetings:', err);
-  });
-
   // Note: We do NOT force dock show here anymore, respecting stealth mode.
 
   app.on("activate", () => {

@@ -5,7 +5,7 @@
 // Sub-modules:
 //   SessionTracker     — state, transcript arrays, context management, epoch compaction
 //   IntelligenceEngine — LLM mode routing (6 modes), event emission
-//   MeetingPersistence — meeting stop/save/recovery
+//   MeetingPersistence — meeting stop/save
 
 import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
@@ -26,7 +26,7 @@ export const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview";
  * Delegates to:
  * - SessionTracker:     context, transcripts, epoch summaries
  * - IntelligenceEngine: LLM modes (assist, whatToSay, followUp, recap, clarify, manual, followUpQuestions)
- * - MeetingPersistence: meeting stop/save/recovery
+ * - MeetingPersistence: meeting stop/save
  */
 export class IntelligenceManager extends EventEmitter {
     private session: SessionTracker;
@@ -37,7 +37,7 @@ export class IntelligenceManager extends EventEmitter {
         super();
         this.session = new SessionTracker();
         this.engine = new IntelligenceEngine(llmHelper, this.session);
-        this.persistence = new MeetingPersistence(this.session, llmHelper);
+        this.persistence = new MeetingPersistence(this.session);
 
         // Forward all engine events through the facade
         this.forwardEngineEvents();
@@ -205,10 +205,6 @@ export class IntelligenceManager extends EventEmitter {
 
     async stopMeeting(): Promise<string | null> {
         return this.persistence.stopMeeting();
-    }
-
-    async recoverUnprocessedMeetings(): Promise<void> {
-        return this.persistence.recoverUnprocessedMeetings();
     }
 
     // ============================================

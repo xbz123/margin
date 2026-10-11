@@ -159,25 +159,26 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 
-test('AG33 real Global and Meeting React overlays preserve partial failure, fence closed callbacks and create a new retry record', async () => {
+test('AG33 real Global React overlay preserves partial failure, fences closed callbacks and creates a new retry record', async () => {
   const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
     import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
-    import Global from './src/components/GlobalChatOverlay'; import Meeting from './src/components/MeetingChatOverlay';
+    import Global from './src/components/GlobalChatOverlay';
     const root = createRoot(document.getElementById('root')); const listeners = []; const calls = [];
     window.calls = calls; window.listeners = listeners;
     const subscribe = kind => (callback, owner) => { const item = { kind, callback, owner, live: true }; listeners.push(item); return () => item.live = false; };
     window.electronAPI = { onGeminiStreamToken: subscribe('token'), onGeminiStreamDone: subscribe('done'), onGeminiStreamError: subscribe('error'),
       cancelChatStream(owner) { for (const item of listeners.filter(item => item.live && item.owner === owner && item.kind === 'error')) item.callback('Generation cancelled', { requestId: 'cancelled', provider: 'synthetic', model: 'opaque', status: 'cancelled', partial: true, attempts: 1 }); },
       streamGeminiChat(question, images, context, options) { return new Promise((resolve, reject) => calls.push({ question, options, resolve, reject })); } };
-    window.show = (kind, query = '', isOpen = true) => flushSync(() => root.render(React.createElement(kind === 'global' ? Global : Meeting,
-      { key: kind, isOpen, initialQuery: query, meetingContext: { id: 'synthetic-meeting', title: 'Synthetic' }, onClose: () => {}, onNewQuery: () => {} })));
+    window.show = (kind, query = '', isOpen = true) => flushSync(() => root.render(React.createElement(Global,
+      { key: kind, isOpen, initialQuery: query, onClose: () => {} })));
     window.emit = (kind, value, metadata, force = false) => { for (const item of [...listeners].filter(item => item.kind === kind && (force || item.live))) item.callback(value, metadata); };
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('ag33-components'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
     await windowWithQuery(app, 'window=launcher', 30_000);
-    for (const owner of ['global', 'meeting']) {
+    // The meeting chat overlay was removed in AG-52 (PLAN S33); only the global one is left.
+    for (const owner of ['global']) {
       const created = app.waitForEvent('window');
       await app.evaluate(async ({ BrowserWindow }) => {
         const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
@@ -240,16 +241,16 @@ test('AG33 real Global and Meeting React overlays preserve partial failure, fenc
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 
-test('all nine Markdown callers and streaming sanitize block image loads in a real renderer', async () => {
+test('all seven Markdown callers and streaming sanitize block image loads in a real renderer', async () => {
   let callers = 0;
-  for (const name of ['NativelyInterface', 'MeetingDetails', 'MeetingChatOverlay']) {
+  for (const name of ['NativelyInterface', 'MeetingDetails']) {
     const source = fs.readFileSync(`${REPO}/src/components/${name}.tsx`, 'utf8');
     assert.match(source, /import ReactMarkdown from '\.\/SafeMarkdown'/);
     const ast = ts.createSourceFile(`${name}.tsx`, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     function visit(node) { if (ts.isJsxOpeningElement(node) && node.tagName.getText(ast) === 'ReactMarkdown') callers++; ts.forEachChild(node, visit); }
     visit(ast);
   }
-  assert.equal(callers, 9);
+  assert.equal(callers, 7);
   const source = fs.readFileSync(`${REPO}/src/components/NativelyInterface.tsx`, 'utf8');
   const ast = ts.createSourceFile('NativelyInterface.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   let sanitizer;

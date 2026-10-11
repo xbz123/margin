@@ -267,16 +267,6 @@ interface ElectronAPI {
   >;
   getMeetingDetails: (id: string) => Promise<any>;
   updateMeetingTitle: (id: string, title: string) => Promise<boolean>;
-  updateMeetingSummary: (
-    id: string,
-    updates: {
-      overview?: string;
-      actionItems?: string[];
-      keyPoints?: string[];
-      actionItemsTitle?: string;
-      keyPointsTitle?: string;
-    },
-  ) => Promise<boolean>;
   onMeetingsUpdated: (callback: () => void) => () => void;
 
   // Intelligence Mode Events
@@ -359,7 +349,7 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; meetingId?: string; owner?: string; generationKind?: 'interview' | 'written' },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written' },
   ) => Promise<void>;
   onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void;
   onGeminiStreamDone: (callback: (metadata?: GenerationMetadata) => void, owner?: string) => () => void;
@@ -445,20 +435,17 @@ interface ElectronAPI {
     transcript?: boolean;
     screenshots?: boolean;
     profile_history?: boolean;
-    post_call_summary?: boolean;
   }>;
   setProviderDataScopes: (scopes: {
     transcript?: boolean;
     screenshots?: boolean;
     profile_history?: boolean;
-    post_call_summary?: boolean;
   }) => Promise<{ success: boolean; error?: string }>;
   onProviderDataScopesChanged: (
     callback: (scopes: {
       transcript?: boolean;
       screenshots?: boolean;
       profile_history?: boolean;
-      post_call_summary?: boolean;
     }) => void,
   ) => () => void;
   getTechnicalInterviewVisionFirst: () => Promise<boolean>;
@@ -1027,8 +1014,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getMeetingDetails: (id: string) => ipcRenderer.invoke('get-meeting-details', id),
   updateMeetingTitle: (id: string, title: string) =>
     ipcRenderer.invoke('update-meeting-title', { id, title }),
-  updateMeetingSummary: (id: string, updates: any) =>
-    ipcRenderer.invoke('update-meeting-summary', { id, updates }),
   deleteMeeting: (id: string) => ipcRenderer.invoke('delete-meeting', id),
 
   onMeetingsUpdated: (callback: () => void) => {
@@ -1190,7 +1175,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; meetingId?: string; owner?: string; generationKind?: 'interview' | 'written' },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written' },
   ) => {
     const clientStreamId = ++chatStreamSeq;
     if (chatInFlight) cancelActiveChat(activeChatOwner);

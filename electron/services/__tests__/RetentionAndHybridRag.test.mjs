@@ -25,7 +25,7 @@ describe('Phase 9 — Retention & doNotPersist gate in MeetingPersistence', () =
     assert.match(src, /retention\s*===\s*['"]never['"]/, 'must check for "never" retention');
     // Per-meeting toggle.
     assert.match(src, /doNotPersist/, 'must support per-meeting doNotPersist');
-    // Early-return code path: no DB save, no processAndSaveMeeting call.
+    // Early-return code path: no DB save.
     const window = src.slice(src.indexOf('public async stopMeeting'), src.indexOf('public async stopMeeting') + 3000);
     assert.match(window, /this\.session\.reset\(\);\s*\n\s*return null;/, 'do-not-persist path must reset and return null without saving');
   });

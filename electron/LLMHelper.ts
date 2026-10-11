@@ -244,11 +244,8 @@ export class LLMHelper {
   private inferContextScopes(context?: string): ProviderDataScope[] {
     const scopes: ProviderDataScope[] = [];
     if (!context?.trim()) return scopes;
-    // Keyword fallback for context a window sends itself. The meeting chat's context is
-    // built in the main process with explicit scopes (meetingChatContext.ts); its
-    // headings are recognized here too (PLAN.md AG-17 fifth review).
+    // Keyword fallback for context a window sends itself (PLAN.md AG-17 fifth review).
     if (/<meeting_history|USER-PROVIDED PERSONA CONTEXT|<user_context|\[RECENT ASSISTANT RESPONSES\]|^MEETING: /im.test(context)) scopes.push('profile_history');
-    if (/<post_call_summary|meeting summary|silent meeting summarizer|silent meeting note-taker|^(?:SUMMARY|KEY POINTS|ACTION ITEMS):/im.test(context)) scopes.push('post_call_summary');
     return scopes;
   }
 
@@ -1029,7 +1026,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       }
       if (deniedOutboundScopes.includes('transcript')) context = undefined;
       if (deniedOutboundScopes.includes('profile_history')) context = undefined;
-      if (deniedOutboundScopes.includes('post_call_summary')) context = undefined;
       if (deniedOutboundScopes.includes('screenshots')) imagePaths = undefined;
     }
     // The context that is kept carries its scopes to every send of this request.
@@ -1088,25 +1084,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   public hasDeepseek(): boolean {
     return this.deepseekClient !== null;
-  }
-
-  public async generateMeetingSummary(systemPrompt: string, context: string, _groqSystemPrompt?: string, extraDataScopes: ProviderDataScope[] = []): Promise<string> {
-    const task = this.beginGenerationTask('background');
-    try {
-      if (!context.trim()) return '';
-      const scopes: ProviderDataScope[] = ['transcript', 'post_call_summary', ...extraDataScopes];
-      const denied = getDeniedDataScopes(scopes, this.getProviderScopePolicy());
-      if (denied.length) { for (const scope of denied) this.logScopeFallback(scope); return ''; }
-      return await requestDataScopes.run({ scopes: new Set(scopes) }, async () => {
-        let text = '';
-        for await (const chunk of this.selectedGeneration(`Context:\n${context}`, undefined, systemPrompt, false, 'summary', task)) text += chunk;
-        return this.processResponse(text);
-      });
-    } catch (error) {
-      if (!(error instanceof ProviderScopeError)) throw error;
-      for (const scope of error.deniedScopes) this.logScopeFallback(scope);
-      return '';
-    } finally { task.close(); }
   }
 
   public async switchToGemini(apiKey?: string, modelId?: string): Promise<void> {

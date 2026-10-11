@@ -17,7 +17,6 @@ import { SkillsManager } from './services/SkillsManager';
 
 import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages';
 import { CHAT_MODE_PROMPT } from './llm/prompts';
-import { buildMeetingChatContext } from './services/meetingChatContext';
 import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { outboundAxios as axios, regionalSttEndpoint, openAiSttEndpoint } from './services/outbound';
 import { openExternalLink } from './services/navigationPolicy';
@@ -373,18 +372,10 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; meetingId?: unknown; generationKind?: 'interview' | 'written' },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written' },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
-      // Scopes of the data in this request beyond the transcript; streamChat refuses
-      // the request when one of them is denied. Set only here in the main process, from
-      // data it reads itself (PLAN.md AG-17 fourth and fifth reviews).
-      let declaredScopes: Array<'profile_history' | 'post_call_summary'> = [];
-      // A question about a saved meeting, and its answer, are not part of the current
-      // conversation: they are not added to the live session, which would carry them into
-      // the next meeting's transcript, usage and summary (PLAN.md AG-17 sixth review).
-      const recordInSession = options?.meetingId === undefined;
       // The preload's id for this request, sent back with every event so the window
       // can drop events of a cancelled or superseded stream (PLAN.md AG-17 review).
       const clientStreamId = options?.clientStreamId;
@@ -398,21 +389,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal);
         chatTask.rendererOwner = event.sender;
         chatTask.deferVisibleText = true;
-
-        // Meeting chat: the window sends only the meeting id. The context comes from the
-        // saved meeting, with the summary left out when post_call_summary is denied; a
-        // context sent by the window is ignored. A saved meeting is profile_history data,
-        // so with that scope denied streamChat refuses the request.
-        if (options?.meetingId !== undefined) {
-          const meeting = typeof options.meetingId === 'string'
-            ? DatabaseManager.getInstance().getMeetingDetails(options.meetingId)
-            : null;
-          if (!meeting) throw new Error('Meeting not found for chat');
-          const includeSummary = llmHelper.deniedDataScopes(['post_call_summary']).length === 0;
-          const built = buildMeetingChatContext(meeting, includeSummary);
-          context = built.context;
-          declaredScopes = built.scopes as Array<'profile_history' | 'post_call_summary'>;
-        }
 
         const senderId = event.sender.id;
         const myStreamId = ++_chatStreamId;
@@ -432,7 +408,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             ? `I'm ${APP_IDENTITY.name}, an AI assistant.`
             : null;
           if (identityHit) {
-            if (recordInSession) intelligenceManager.addTranscript(
+            intelligenceManager.addTranscript(
               { text: message, speaker: 'user', timestamp: Date.now(), final: true },
               true,
             );
@@ -448,10 +424,8 @@ export function initializeIpcHandlers(appState: AppState): void {
             event.sender.send('gemini-stream-token', identityHit, clientStreamId, { ...llmHelper.getTaskMetadata(chatTask), provider: 'application', model: APP_IDENTITY.name });
             chatTask.terminalStatus = 'completed';
             event.sender.send('gemini-stream-done', clientStreamId, { ...llmHelper.getTaskMetadata(chatTask), provider: 'application', model: APP_IDENTITY.name });
-            if (recordInSession) {
-              intelligenceManager.addAssistantMessage(identityHit);
-              intelligenceManager.logUsage('chat', message, identityHit);
-            }
+            intelligenceManager.addAssistantMessage(identityHit);
+            intelligenceManager.logUsage('chat', message, identityHit);
             return null;
           }
         }
@@ -470,7 +444,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         }
 
         // Now add USER message to IntelligenceManager (after context snapshot)
-        if (recordInSession) intelligenceManager.addTranscript(
+        intelligenceManager.addTranscript(
           {
             text: message,
             speaker: 'user',
@@ -510,7 +484,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             systemPromptOverride,
             options?.ignoreKnowledgeMode,
             false, // skipModeInjection
-            declaredScopes, // extraDataScopes
+            [], // extraDataScopes
             myController!.signal,
           ), generationKind, myController.signal, chatTask);
 
@@ -533,7 +507,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             event.sender.send('gemini-stream-done', clientStreamId, llmHelper.getTaskMetadata(chatTask));
 
             // Update IntelligenceManager with ASSISTANT message after completion
-            if (recordInSession && fullResponse.trim().length > 0) {
+            if (fullResponse.trim().length > 0) {
               intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
               // Log Usage for streaming chat
               intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
@@ -541,7 +515,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           }
         } catch (streamError: any) {
           console.error('[IPC] Streaming error:', streamError);
-          if (recordInSession && chatTask) {
+          if (chatTask) {
             if (fullResponse.trim()) intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
             intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
           }
@@ -738,7 +712,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       'transcript',
       'screenshots',
       'profile_history',
-      'post_call_summary',
     ]);
     const sanitized: Record<string, boolean> = {};
     for (const [key, value] of Object.entries(scopes)) {
@@ -1766,10 +1739,6 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('update-meeting-title', async (_, { id, title }: { id: string; title: string }) => {
     return DatabaseManager.getInstance().updateMeetingTitle(id, title);
-  });
-
-  safeHandle('update-meeting-summary', async (_, { id, updates }: { id: string; updates: any }) => {
-    return DatabaseManager.getInstance().updateMeetingSummary(id, updates);
   });
 
   safeHandle('seed-demo', async () => {

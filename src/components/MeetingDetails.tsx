@@ -2,8 +2,6 @@ import React, { useRef, useState } from 'react';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { ArrowLeft, Search, Mail, Link, ChevronDown, Play, ArrowUp, Copy, Check, MoreHorizontal, Settings, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { genMessageId } from '../utils/messageId';
-import MeetingChatOverlay from './MeetingChatOverlay';
 import EditableTextBlock from './EditableTextBlock';
 import NativelyLogo from './icon.png';
 import ReactMarkdown from './SafeMarkdown';
@@ -34,24 +32,6 @@ interface Meeting {
     date: string;
     duration: string;
     summary: string;
-    detailedSummary?: {
-        overview?: string;
-        actionItems: string[];
-        keyPoints: string[];
-        actionItemsTitle?: string;
-        keyPointsTitle?: string;
-        sections?: Array<{ title: string; bullets: string[] }>;
-        // Phase 7 — PostCallWorkflow enhancements (schema v2). Backend writes
-        // these via buildPostCallEnhancements(); UI renders them when present.
-        schemaVersion?: 2;
-        actionItemsStructured?: Array<{
-            id: string;
-            text: string;
-            owner?: string;
-            deadline?: string;
-            sourceTimestamp?: number;
-        }>;
-    };
     transcript?: Array<{
         speaker: string;
         text: string;
@@ -67,21 +47,11 @@ interface Meeting {
     }>;
 }
 
-type EditField = 'title' | 'overview' | 'actionItems' | 'keyPoints' | 'actionItemsTitle' | 'keyPointsTitle';
+type EditField = 'title';
 
-// Copies one edited field from `source` (the stored meeting, or the state before the
-// edit) into `current`, leaving every other field as it is.
-const restoreField = (current: Meeting, source: Meeting, field: EditField): Meeting => {
-    if (field === 'title') return { ...current, title: source.title };
-    const summary = source.detailedSummary;
-    return {
-        ...current,
-        detailedSummary: {
-            ...current.detailedSummary!,
-            [field]: field === 'actionItems' || field === 'keyPoints' ? [...(summary?.[field] ?? [])] : summary?.[field],
-        },
-    };
-};
+// Restores the edited title from `source` (the stored meeting, or the state before
+// the edit), leaving every other field as it is.
+const restoreField = (current: Meeting, source: Meeting, _field: EditField): Meeting => ({ ...current, title: source.title });
 
 interface MeetingDetailsProps {
     meeting: Meeting;
@@ -93,11 +63,8 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
     const isLight = useResolvedTheme() === 'light';
     // We need local state for the meeting object to reflect optimistic updates
     const [meeting, setMeeting] = useState<Meeting>(initialMeeting);
-    const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'usage'>('summary');
-    const [query, setQuery] = useState('');
+    const [activeTab, setActiveTab] = useState<'transcript' | 'usage'>('transcript');
     const [isCopied, setIsCopied] = useState(false);
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [submittedQuery, setSubmittedQuery] = useState('');
     // The notice of the last failed save, with the field it belongs to.
     const [saveError, setSaveError] = useState<{ field: EditField; message: string } | null>(null);
     // The latest meeting state, for handlers called from older closures (a debounced
@@ -107,56 +74,10 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
     // A version per field: only the response to the latest edit of a field acts.
     const editVersions = useRef(new Map<EditField, number>());
 
-    // Stable client-side keys for the action-item and key-point lists. The
-    // persisted shape is string[], so React keyed the rows by index, but the
-    // onEnter handler splices a new empty row in mid-list — shifting indices
-    // and causing React to reuse the wrong EditableTextBlock instance for the
-    // shifted rows (focus, draft text, and selection jump to the wrong row).
-    // Same bug class as issue #253; keep the ids array in lockstep with the
-    // items array via state updates rather than a ref so React re-renders
-    // see the post-splice ordering atomically.
-    const [actionItemKeys, setActionItemKeys] = useState<string[]>(() =>
-        (initialMeeting.detailedSummary?.actionItems ?? []).map(() => genMessageId()),
-    );
-    const [keyPointKeys, setKeyPointKeys] = useState<string[]>(() =>
-        (initialMeeting.detailedSummary?.keyPoints ?? []).map(() => genMessageId()),
-    );
-
-    const handleSubmitQuestion = () => {
-        if (query.trim()) {
-            setSubmittedQuery(query);
-            if (!isChatOpen) {
-                setIsChatOpen(true);
-            }
-            setQuery('');
-        }
-    };
-
-    const handleInputKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && query.trim()) {
-            e.preventDefault();
-            handleSubmitQuestion();
-        }
-    };
-
     const handleCopy = async () => {
         let textToCopy = '';
 
-        if (activeTab === 'summary' && meeting.detailedSummary) {
-            textToCopy = `
-Meeting: ${meeting.title}
-Date: ${new Date(meeting.date).toLocaleDateString()}
-
-OVERVIEW:
-${meeting.detailedSummary.overview || ''}
-
-ACTION ITEMS:
-${meeting.detailedSummary.actionItems?.map(item => `- ${item}`).join('\n') || 'None'}
-
-KEY POINTS:
-${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'None'}
-            `.trim();
-        } else if (activeTab === 'transcript' && meeting.transcript) {
+        if (activeTab === 'transcript' && meeting.transcript) {
             textToCopy = meeting.transcript.map(t => `[${formatTime(t.timestamp)}] ${t.speaker === 'user' ? 'Me' : 'Them'}: ${t.text}`).join('\n');
         } else if (activeTab === 'usage' && meeting.usage) {
             textToCopy = meeting.usage.map(u => `Q: ${u.question || ''}\nA: ${u.answer || ''}`).join('\n\n');
@@ -179,9 +100,8 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
     // AG-17 sixth and seventh reviews):
     // - only the response to the latest edit of a field acts; earlier ones are ignored;
     // - the failed field alone is restored, from the database, or, when the meeting
-    //   cannot be read, to the value it had before the edit; other fields, drafts still
-    //   being typed and list keys are left alone (list keys are rebuilt only when the
-    //   restored list has a different length);
+    //   cannot be read, to the value it had before the edit; other fields and drafts
+    //   still being typed are left alone;
     // - the notice names the failure and is cleared only by a later successful save of
     //   the same field.
     const persistEdit = async (
@@ -216,14 +136,6 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
         if (!isLatest()) return;
         const source = stored ?? previous;
         setMeeting(prev => restoreField(prev, source, field));
-        if (field === 'actionItems') {
-            const length = source.detailedSummary?.actionItems?.length ?? 0;
-            setActionItemKeys(prev => (prev.length === length ? prev : Array.from({ length }, () => genMessageId())));
-        }
-        if (field === 'keyPoints') {
-            const length = source.detailedSummary?.keyPoints?.length ?? 0;
-            setKeyPointKeys(prev => (prev.length === length ? prev : Array.from({ length }, () => genMessageId())));
-        }
         setSaveError({ field, message: !stored && !reloadFailed
             ? 'This change could not be saved: the meeting no longer exists.'
             : 'This change could not be saved.' });
@@ -242,30 +154,6 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
         (m) => ({ ...m, title: newTitle }),
         (m) => window.electronAPI?.updateMeetingTitle?.(m.id, newTitle));
 
-    const handleOverviewSave = (newOverview: string) => editField('overview',
-        (m) => ({ ...m, detailedSummary: { ...m.detailedSummary!, overview: newOverview } }),
-        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { overview: newOverview }));
-
-    const handleActionItemSave = (index: number, newVal: string) => editField('actionItems',
-        (m) => {
-            const items = [...(m.detailedSummary?.actionItems || [])];
-            items[index] = newVal;
-            return { ...m, detailedSummary: { ...m.detailedSummary!, actionItems: items } };
-        },
-        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { actionItems: m.detailedSummary?.actionItems ?? [] }));
-
-    const handleKeyPointSave = (index: number, newVal: string) => editField('keyPoints',
-        (m) => {
-            const items = [...(m.detailedSummary?.keyPoints || [])];
-            items[index] = newVal;
-            return { ...m, detailedSummary: { ...m.detailedSummary!, keyPoints: items } };
-        },
-        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { keyPoints: m.detailedSummary?.keyPoints ?? [] }));
-
-    const handleSectionTitleSave = (field: 'actionItemsTitle' | 'keyPointsTitle', val: string) => editField(field,
-        (m) => ({ ...m, detailedSummary: { ...m.detailedSummary!, [field]: val } }),
-        (m) => window.electronAPI?.updateMeetingSummary?.(m.id, { [field]: val }));
-
 
     return (
         <div className="h-full w-full flex flex-col bg-bg-secondary text-text-secondary font-sans overflow-hidden">
@@ -275,7 +163,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1, duration: 0.3 }}
-                    className="max-w-4xl mx-auto px-8 py-8 pb-32" // Added pb-32 for floating footer clearance
+                    className="max-w-4xl mx-auto px-8 py-8 pb-16"
                 >
                     {/* Meta Info & Actions Row */}
                     <div className="flex items-start justify-between mb-6">
@@ -306,7 +194,7 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                     {/* Designing Tabs to match reference 1:1 (Dark Pill Container) */}
                     <div className="flex items-center justify-between mb-8">
                         <div className={`p-1 rounded-xl inline-flex items-center gap-0.5 ${isLight ? 'bg-[#E5E5EA] border border-black/[0.04]' : 'bg-[#121214] border border-white/[0.08]'}`}>
-                            {['summary', 'transcript', 'usage'].map((tab) => (
+                            {['transcript', 'usage'].map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab as any)}
@@ -334,179 +222,13 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                             className="flex items-center gap-2 text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
                         >
                             {isCopied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                            {isCopied ? 'Copied' : activeTab === 'summary' ? 'Copy full summary' : activeTab === 'transcript' ? 'Copy full transcript' : 'Copy usage'}
+                            {isCopied ? 'Copied' : activeTab === 'transcript' ? 'Copy full transcript' : 'Copy usage'}
                         </button>
                     </div>
 
                     {/* Tab Content */}
                     <div className="space-y-8">
                         {/* Using standard divs for content, framer motion for layout */}
-                        {activeTab === 'summary' && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                {/* Overview - Rendered as Markdown */}
-                                {meeting.detailedSummary?.overview && (
-                                <div className="mb-6 pb-6 border-b border-border-subtle prose prose-sm max-w-none">
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        components={{
-                                            h1: ({ node, ...props }) => <h1 className="text-xl font-bold text-text-primary mt-4 mb-2" {...props} />,
-                                            h2: ({ node, ...props }) => <h2 className="text-lg font-semibold text-text-primary mt-4 mb-2" {...props} />,
-                                            h3: ({ node, ...props }) => <h3 className="text-base font-semibold text-text-primary mt-3 mb-1" {...props} />,
-                                            p: ({ node, ...props }) => <p className="text-sm text-text-secondary leading-relaxed mb-2" {...props} />,
-                                            ul: ({ node, ...props }) => <ul className="list-disc ml-4 mb-2 space-y-1" {...props} />,
-                                            ol: ({ node, ...props }) => <ol className="list-decimal ml-4 mb-2 space-y-1" {...props} />,
-                                            li: ({ node, ...props }) => <li className="text-sm text-text-secondary" {...props} />,
-                                            strong: ({ node, ...props }) => <strong className="font-semibold text-text-primary" {...props} />,
-                                            a: ({ node, ...props }) => <a className="text-blue-500 hover:underline" {...props} />,
-                                        }}
-                                    >
-                                        {meeting.detailedSummary?.overview || ''}
-                                    </ReactMarkdown>
-                                </div>
-                                )}
-
-                                {/* Action Items - Only show if there are items */}
-                                {meeting.detailedSummary?.actionItems && meeting.detailedSummary.actionItems.length > 0 && (
-                                    <section className="mb-8">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <EditableTextBlock
-                                                initialValue={meeting.detailedSummary?.actionItemsTitle || 'Action Items'}
-                                                onSave={(val) => { void handleSectionTitleSave('actionItemsTitle', val); }}
-                                                tagName="h2"
-                                                className="text-lg font-semibold text-text-primary -ml-2 px-2 py-1 rounded-sm transition-colors"
-                                                multiline={false}
-                                            />
-                                        </div>
-                                        <ul className="space-y-3">
-                                            {meeting.detailedSummary.actionItems.map((item, i) => (
-                                                <li key={actionItemKeys[i] ?? i} className="flex items-start gap-3 group">
-                                                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-text-secondary group-hover:bg-blue-500 transition-colors shrink-0" />
-                                                    <div className="flex-1">
-                                                        <EditableTextBlock
-                                                            initialValue={item}
-                                                            onSave={(val) => handleActionItemSave(i, val)}
-                                                            tagName="p"
-                                                            className="text-sm text-text-secondary leading-relaxed -ml-2 px-2 rounded-sm transition-colors"
-                                                            placeholder="Type an action item..."
-                                                            onEnter={() => {
-                                                                const newItems = [...(meetingRef.current.detailedSummary?.actionItems || [])];
-                                                                newItems.splice(i + 1, 0, "");
-                                                                meetingRef.current = { ...meetingRef.current, detailedSummary: { ...meetingRef.current.detailedSummary!, actionItems: newItems } };
-                                                                setActionItemKeys(prev => {
-                                                                    const next = [...prev];
-                                                                    next.splice(i + 1, 0, genMessageId());
-                                                                    return next;
-                                                                });
-                                                                setMeeting(prev => ({
-                                                                    ...prev,
-                                                                    detailedSummary: { ...prev.detailedSummary!, actionItems: newItems }
-                                                                }));
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
-
-                                {/* Key Points - Only show if there are items */}
-                                {meeting.detailedSummary?.keyPoints && meeting.detailedSummary.keyPoints.length > 0 && (
-                                    <section>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <EditableTextBlock
-                                                initialValue={meeting.detailedSummary?.keyPointsTitle || 'Key Points'}
-                                                onSave={(val) => { void handleSectionTitleSave('keyPointsTitle', val); }}
-                                                tagName="h2"
-                                                className="text-lg font-semibold text-text-primary -ml-2 px-2 py-1 rounded-sm transition-colors"
-                                                multiline={false}
-                                            />
-                                        </div>
-                                        <ul className="space-y-3">
-                                            {meeting.detailedSummary.keyPoints.map((item, i) => (
-                                                <li key={keyPointKeys[i] ?? i} className="flex items-start gap-3 group">
-                                                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-text-secondary group-hover:bg-purple-500 transition-colors shrink-0" />
-                                                    <div className="flex-1">
-                                                        <EditableTextBlock
-                                                            initialValue={item}
-                                                            onSave={(val) => handleKeyPointSave(i, val)}
-                                                            tagName="p"
-                                                            className="text-sm text-text-secondary leading-relaxed -ml-2 px-2 rounded-sm transition-colors"
-                                                            placeholder="Type a key point..."
-                                                            onEnter={() => {
-                                                                const newItems = [...(meetingRef.current.detailedSummary?.keyPoints || [])];
-                                                                newItems.splice(i + 1, 0, "");
-                                                                meetingRef.current = { ...meetingRef.current, detailedSummary: { ...meetingRef.current.detailedSummary!, keyPoints: newItems } };
-                                                                setKeyPointKeys(prev => {
-                                                                    const next = [...prev];
-                                                                    next.splice(i + 1, 0, genMessageId());
-                                                                    return next;
-                                                                });
-                                                                setMeeting(prev => ({
-                                                                    ...prev,
-                                                                    detailedSummary: { ...prev.detailedSummary!, keyPoints: newItems }
-                                                                }));
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
-
-                                {/* Phase 7 — Structured action items (with owner / deadline).
-                                    Rendered ONLY when PostCallWorkflow has produced them
-                                    (schemaVersion === 2). Falls through silently otherwise so
-                                    pre-Phase-7 meetings still look the same. */}
-                                {meeting.detailedSummary?.actionItemsStructured && meeting.detailedSummary.actionItemsStructured.length > 0 && (
-                                    <section className="mb-8">
-                                        <h2 className="text-lg font-semibold text-text-primary mb-4">Next Steps</h2>
-                                        <ul className="space-y-2">
-                                            {meeting.detailedSummary.actionItemsStructured.map(item => (
-                                                <li key={item.id} className="flex items-start gap-3 group">
-                                                    <div className="mt-2 w-1.5 h-1.5 rounded-full bg-emerald-500/70 group-hover:bg-emerald-400 shrink-0" />
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-text-secondary leading-relaxed">{item.text}</p>
-                                                        {(item.owner || item.deadline) && (
-                                                            <p className="text-[11px] text-text-tertiary mt-0.5">
-                                                                {item.owner && <span className="font-medium">{item.owner}</span>}
-                                                                {item.owner && item.deadline && <span> · </span>}
-                                                                {item.deadline && <span>by {item.deadline}</span>}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                )}
-
-                                {/* Mode-specific sections (when active mode has a notes template) */}
-                                {meeting.detailedSummary?.sections && meeting.detailedSummary.sections.length > 0 && (
-                                    <div className="space-y-8">
-                                        {meeting.detailedSummary.sections.map((section, si) => (
-                                            section.bullets.length > 0 && (
-                                                <section key={si}>
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <h2 className="text-lg font-semibold text-text-primary">{section.title}</h2>
-                                                    </div>
-                                                    <ul className="space-y-3">
-                                                        {section.bullets.map((bullet, bi) => (
-                                                            <li key={bi} className="flex items-start gap-3 group">
-                                                                <div className="mt-2 w-1.5 h-1.5 rounded-full bg-text-secondary shrink-0" />
-                                                                <p className="text-sm text-text-secondary leading-relaxed">{bullet}</p>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </section>
-                                            )
-                                        ))}
-                                    </div>
-                                )}
-                            </motion.div>
-                        )}
-
                         {activeTab === 'transcript' && (
                             <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                                 <div className="space-y-6">
@@ -632,50 +354,6 @@ ${meeting.detailedSummary.keyPoints?.map(item => `- ${item}`).join('\n') || 'Non
                     </div>
                 </motion.div>
             </main>
-
-            {/* Floating Footer (Ask Bar) */}
-            <div className={`absolute bottom-0 left-0 right-0 p-6 flex justify-center pointer-events-none ${isChatOpen ? 'z-50' : 'z-20'}`}>
-                <div className="w-full max-w-[440px] relative group pointer-events-auto">
-                    {/* Dark Glass Effect Input (Matching Reference) */}
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={handleInputKeyDown}
-                        placeholder="Ask about this meeting..."
-                        className="w-full pl-5 pr-12 py-3 bg-transparent backdrop-blur-[24px] backdrop-saturate-[140%] shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/20 rounded-full text-sm text-text-primary placeholder-text-tertiary/70 focus:outline-none transition-shadow duration-200"
-                    />
-                    <button
-                        onClick={handleSubmitQuestion}
-                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all duration-200 border border-white/5 ${query.trim() ? 'bg-text-primary text-bg-primary hover:scale-105' : 'bg-bg-item-active text-text-primary hover:bg-bg-item-hover'
-                            }`}
-                    >
-                        <ArrowUp size={16} className="transform rotate-45" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Chat Overlay */}
-            <MeetingChatOverlay
-                isOpen={isChatOpen}
-                onClose={() => {
-                    setIsChatOpen(false);
-                    setQuery('');
-                    setSubmittedQuery('');
-                }}
-                meetingContext={{
-                    id: meeting.id,
-                    title: meeting.title,
-                    summary: meeting.detailedSummary?.overview,
-                    keyPoints: meeting.detailedSummary?.keyPoints,
-                    actionItems: meeting.detailedSummary?.actionItems,
-                    transcript: meeting.transcript
-                }}
-                initialQuery={submittedQuery}
-                onNewQuery={(newQuery) => {
-                    setSubmittedQuery(newQuery);
-                }}
-            />
         </div>
     );
 };

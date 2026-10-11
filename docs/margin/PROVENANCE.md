@@ -21,6 +21,23 @@ Notes:
 
 ## Ledger
 
+### AG-52 meeting record trim (Claude, 2026-10-11, PLAN S33 item 3 and S34)
+
+- Removal only, plus a smaller rewrite of what stays: `MeetingPersistence.stopMeeting`
+  now saves one finished meeting (transcript and usage) directly, keeping the existing
+  one-second minimum and the retention/do-not-persist gate. No new upstream or
+  earlier-Margin code is imported.
+- Removed: post-call summary and title generation (`LLMHelper.generateMeetingSummary`,
+  `PostCallWorkflow`, the Groq title and summary prompts), startup recovery
+  (`recoverUnprocessedMeetings`, `getUnprocessedMeetings`), meeting chat
+  (`MeetingChatOverlay`, `meetingChatContext`, the `meetingId` chat option), summary
+  editing (`update-meeting-summary`), the `post_call_summary` data scope and its
+  settings toggle, and the summary tab and "Processing..." list state in the UI.
+- Tests: `MeetingPersistence.test.mjs` replaces `MeetingPersistenceRace.test.mjs` with a
+  behavior test of the direct save; `tests/margin/meeting-storage.test.mjs` is rewritten
+  for meetings saved without any request, and its history-list click reports the
+  covering element when a click is intercepted.
+
 ### S34 nativeImage in place of sharp (Claude, 2026-10-11)
 
 - `electron/services/screen/imageCodec.ts`: written for this branch from the X6

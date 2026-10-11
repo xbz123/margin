@@ -700,7 +700,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | --- | --- | --- | --- |
 | W1 只读复查 | Claude | 已完成（§9"阶段 3 复查（Claude）"，R3-1 至 R3-5，无阻断） | 无 |
 | W2 修复与关闭 | Codex 修，Claude 核对关闭 | 已关闭（2026-10-11，§9"W2 关闭核对"）：R3-1、R3-2、R3-5 在 `3e779466` 修复；R3-3 移交阶段 7，R3-4 不改 | W1 的发现清单（实现） |
-| W3 出口 CI | Claude | 运行 38090230126 未通过（2026-10-11）：storage 门禁 1 项界面测试失败，其余验收项通过，正式身份契约因此跳过（§9"W3 出口 CI 38090230126"）；S34 决定先删除 sharp 和做 AG-52 删减，再重跑（须用户批准触发） | W2 已关闭；用户批准触发 CI |
+| W3 出口 CI | Claude | 运行 38090230126 未通过（2026-10-11）：storage 门禁 1 项界面测试失败，其余验收项通过，正式身份契约因此跳过（§9"W3 出口 CI 38090230126"）；S34 决定先删除 sharp 和做 AG-52 删减，再重跑（须用户批准触发）。两项均已完成，本地 gates 16/16（§9"S34 删除 sharp""AG-52 删减"），等用户批准重跑 | W2 已关闭；用户批准触发 CI |
 | W4 本机核对与签收 | Claude 核对，用户签收 | 等待 | W3 的产物（验收） |
 
 四项不能并行：W2 要改 W1 复查的代码；W3 要在最终代码上只跑一次；W4 要用 W3 的产物。复查和 CI 期间分支只接受 W2 的修复。阶段 4（AG-40 起）在阶段 3 签收并经用户允许后开始；如要提前并行，须另开工作树并征得用户同意，且不能移动 W3 的提交。
@@ -772,7 +772,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | AG-43 | **已删除（S33）**：原为自动回答与 Gemini Flash-Lite 双语 Judge | — |
 | AG-50 | Local Context 全文（预热已删除，S33） | AG-33 |
 | AG-51 | 提示词类 Skills；并入 S29 的提示词分层（基础层加面试/笔试场景层，按入口自动选择、可手动切换）和高级设置中按场景的附加指令（只追加、不可整段替换、限长、可恢复默认、只存本机） | AG-33 |
-| AG-52 | 会议记录缩减（S33）：保留本地转写的列表、详情和复制；删除会前设置、自动摘要、标题生成、启动恢复、会议内聊天及其 IPC、界面、专属测试和只为它们存在的数据范围，删除前核对调用方 | AG-41 |
+| AG-52 | 会议记录缩减（S33）：保留本地转写的列表、详情和复制；删除会前设置、自动摘要、标题生成、启动恢复、会议内聊天及其 IPC、界面、专属测试和只为它们存在的数据范围，删除前核对调用方。**S34 提前完成**（§9"AG-52 删减"） | AG-41 |
 | AG-60 | 设置页重组、中英双语界面 | AG-33、AG-52 |
 | AG-61 | 窗口保护、快捷键、鼠标穿透、伪装（实机部分需 D2 授权）。恢复 AG-17 跳过的 `ActivationPolicyOrdering` 用例，或按定下的激活策略改写后启用 | 阶段 2 |
 | AG-62 | 首次启动引导；README 和 PRIVACY 最终版；Mac 包。分发前必须先放开 `electron/margin/appIdentity.ts` 中"正式身份只能在 GitHub Actions 中运行"的保护（S15），否则正式包在用户机器上启动即退出；放开方式和本机何时改用正式身份由用户决定 | 全部 |
@@ -1656,7 +1656,7 @@ AG-16 结束时 Electron `tsc` 还剩 8 类诊断，处理如下：
 - **只证明了能编译**：没有运行测试，没有加载这个 `.node`，没有打包，也没有实机运行，这些属于 AG-71 起的工作。
 - **用户决定（S31）**：并入每票门禁。工作流已改为推送时自动运行，只在公开仓库运行。
 
-**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；下一步由 Claude 做 AG-52 删减并查清覆盖层，然后重跑 W3（须用户批准）。S8–S34 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；AG-52 删减已完成（§9"AG-52 删减"，本地 gates 16/16），覆盖层在本机无法复现，storage 测试改为点击失败时记录挡住的元素。下一步：请用户批准重跑 W3 出口 CI。S8–S34 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2172,3 +2172,22 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
   - 首轮 `gates-first-failed/` 有 1 个来源命中：`imageCodec.ts` 中的通用写法 `const size = image.getSize();` 与上游受限代码字面相同。已改写，未加白名单。
   - 本机 storage 5/5，包括 W3 在 CI 上失败的那个点击。
 - **未验证**：`desktopCapturer` 返回的截图是否为原生像素密度（`ScreenshotHelper` 注释如此说明）需要真实屏幕才能确认，截取环节未改动。打包后的效果待 W3 重跑。
+
+### AG-52 删减（Claude，2026-10-11，S33 第 3 条、S34 第 2–3 条）
+
+- **保存**：`MeetingPersistence.stopMeeting` 结束会议时直接保存一条完整记录（转写和用量），标题为开始时给的标题或 `Untitled Session`，摘要为空，`isProcessed` 为 true，然后通知界面刷新。保留不足 1 秒不保存，以及 `meetingRetention` 为 never 或本场"不保存"时不写库。不再有占位记录、后台处理或模型调用。
+- **删除**（删除前已核对调用方）：
+  - 自动摘要和标题生成：`LLMHelper.generateMeetingSummary`、`PostCallWorkflow`、Groq 标题和摘要提示词。
+  - 启动恢复：`recoverUnprocessedMeetings`、`getUnprocessedMeetings` 及 `main.ts` 中的调用。
+  - 会议内聊天：`MeetingChatOverlay`、`meetingChatContext`、聊天 IPC 的 `meetingId` 选项（launcher 聊天照常记入当前会话）。
+  - 摘要编辑：`update-meeting-summary` 和 `DatabaseManager.updateMeetingSummary`。
+  - 数据范围 `post_call_summary`：类型、设置开关、关键词推断和拒绝分支。`profile_history` 保留，WhatToAnswer、IntelligenceEngine 和准备好的转写上下文仍在用。
+  - 界面：会议详情只留转写和用量两个标签（标题仍可编辑），列表去掉 "Processing..." 状态，帮助页去掉摘要和会议聊天的介绍。
+- **会前设置**：代码中不存在，无需删除。保留期限和"不保存"开关是隐私设置，不属于会前设置，保留。
+- **测试**：
+  - `MeetingPersistenceRace.test.mjs` 改为 `MeetingPersistence.test.mjs`：转译后用替身数据库、设置和窗口直接运行，验证一次保存、标题、转写在重置前复制、不足 1 秒、never、不保存和写库失败。
+  - 删除只测已删功能的用例（会后总结、会议聊天上下文、摘要备用、恢复）；其余改用保留的入口（`generateContentStructured`、`chatWithGemini`）。会议聊天浮层的 renderer 测试只留全局浮层，Markdown 调用点从 9 处变为 7 处。
+  - `meeting-storage.test.mjs` 重写为 2 项：会议保存时不发任何请求（仍配置 Groq 密钥和默认模型，回归时请求会落到 mock 而失败），重启后读回、删除后保持删除、库结构；从历史列表打开会议，用量视图显示 "Incomplete · timeout:total"，没有摘要标签，标题保存失败时回滚并提示（原 7 步中关于要点的 2 步随摘要删除）。
+- **覆盖层排查**：W3 在 CI 上点击 `Untitled Session` 时被一个 `<div>` 挡住，本机多次运行均无法复现。新测试的列表点击改用 `clickOrExplain`：失败时报出目标中心点上的元素（`elementFromPoint`）及其 outerHTML、往上 6 层的定位、层级、透明度和 pointer-events，以及目标和视口尺寸，并截图到沙箱。原测试失败时列表里有多条同名会议，新测试只有一条且标题唯一。若 W3 重跑仍失败，按报出的元素修复。
+- **本地 gates**：`evidence/AG-52-trim/gates/` 16/16。111 个文件、964 个测试（959 通过、0 失败、5 个既有跳过）；AG-09 16/16、storage 2/2、startup 1/1、renderer 5/5；来源检查 0 命中，261 条退役规则通过，IPC 和 preload 契约无缺口。
+  - 首轮 `gates-first-failed/` 只有 1 个来源命中：新测试中的通用写法 `const stubs = {`。已改名，未加白名单。

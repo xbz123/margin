@@ -258,7 +258,7 @@ test('Gemini custom target uses the same v1alpha prefix for generation, test and
   assert.deepEqual(urls, ['/proxy/v1alpha/models/opaque-model:generateContent', '/proxy/v1alpha/models', '/proxy/v1alpha/models/opaque-model:generateContent']);
 });
 
-test('meeting summary never discovers an unselected OpenAI target, then uses explicitly selected Responses', async () => {
+test('structured generation never discovers an unselected OpenAI target, then uses explicitly selected Responses', async () => {
   let sends = 0;
   await serve(async (req, res) => {
     sends++;
@@ -267,18 +267,16 @@ test('meeting summary never discovers an unselected OpenAI target, then uses exp
     assert.equal(req.url, '/v1/responses');
     assert.equal(payload.store, false);
     assert.equal(payload.model, 'opaque-model');
-    assert.equal(payload.instructions, 'SUMMARY_SYSTEM');
-    assert.match(JSON.stringify(payload.input), /TRANSCRIPT/);
-    assert.equal(payload.input[0].content[0].text, 'Context:\nTRANSCRIPT', 'keep the established actual newline in summary context');
+    assert.match(JSON.stringify(payload.input), /STRUCTURED_USER/);
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'SUMMARY' }] }] }));
+    res.end(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'STRUCTURED' }] }] }));
   }, async base => {
     const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
     helper.configureProvider({ provider: 'openai', protocol: 'responses', model: 'opaque-model', baseUrl: `${base}/v1` }, 'synthetic-only');
-    await assert.rejects(() => helper.generateMeetingSummary('SUMMARY_SYSTEM', 'TRANSCRIPT'), /gemini client not initialized/);
+    await assert.rejects(() => helper.generateContentStructured('STRUCTURED_USER'), /gemini client not initialized/);
     assert.equal(sends, 0, 'an unconfigured selected target cannot silently switch to another configured provider');
     helper.setModel('llm-target:openai:responses:opaque-model');
-    assert.equal(await helper.generateMeetingSummary('SUMMARY_SYSTEM', 'TRANSCRIPT'), 'SUMMARY');
+    assert.equal(await helper.generateContentStructured('STRUCTURED_USER'), 'STRUCTURED');
   });
   assert.equal(sends, 1);
 });

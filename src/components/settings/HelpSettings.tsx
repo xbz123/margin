@@ -167,10 +167,10 @@ const MockAppInterface = () => {
 };
 
 const MockMeetingInterfaceAnim = () => {
-    const [tab, setTab] = useState('summary');
+    const [tab, setTab] = useState('transcript');
 
     useEffect(() => {
-        const tabs = ['summary', 'transcript', 'usage'];
+        const tabs = ['transcript', 'usage'];
         let i = 0;
         const interval = setInterval(() => { i = (i + 1) % tabs.length; setTab(tabs[i]); }, 3500);
         return () => clearInterval(interval);
@@ -188,7 +188,7 @@ const MockMeetingInterfaceAnim = () => {
             {/* Tabs row */}
             <div className="flex items-center justify-between px-6 pt-4 pb-3 shrink-0">
                 <div className="p-1 rounded-xl inline-flex items-center gap-0.5 bg-bg-input border border-border-subtle">
-                    {['summary', 'transcript', 'usage'].map((t) => (
+                    {['transcript', 'usage'].map((t) => (
                         <button key={t} className={`relative px-3 py-1 text-[12px] font-medium rounded-lg z-10 transition-colors ${tab === t ? 'text-text-primary bg-bg-elevated shadow-sm border border-border-subtle' : 'text-text-tertiary'}`}>
                             {t.charAt(0).toUpperCase() + t.slice(1)}
                         </button>
@@ -202,38 +202,6 @@ const MockMeetingInterfaceAnim = () => {
             {/* Tab content */}
             <div className="flex-1 overflow-hidden px-6 pb-14">
                 <AnimatePresence mode="wait">
-                    {tab === 'summary' && (
-                        <motion.div key="summary" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-                            {/* Overview — plain paragraph + border-b, matches MeetingDetails prose block */}
-                            <div className="mb-5 pb-5 border-b border-border-subtle">
-                                <p className="text-sm text-text-secondary leading-relaxed">Discussed microservice architecture for the new payment gateway. Analyzed Redis vs Memcached for caching with a focus on data persistence to prevent race conditions during checkout.</p>
-                            </div>
-                            {/* Action Items — h2 heading + dot-bullet list, matches MeetingDetails exactly */}
-                            <section className="mb-6">
-                                <h2 className="text-base font-semibold text-text-primary mb-3">Action Items</h2>
-                                <ul className="space-y-3">
-                                    {['Draft Redis implementation constraints doc.', 'Schedule follow-up on Memcached benchmarks.'].map((item, i) => (
-                                        <li key={i} className="flex items-start gap-3">
-                                            <div className="mt-2 w-1.5 h-1.5 rounded-full bg-text-secondary shrink-0" />
-                                            <p className="text-sm text-text-secondary leading-relaxed">{item}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </section>
-                            {/* Key Points */}
-                            <section>
-                                <h2 className="text-base font-semibold text-text-primary mb-3">Key Points</h2>
-                                <ul className="space-y-3">
-                                    {['Redis chosen for sorted set support enabling O(log N) rate limiting.', 'Horizontal scaling via distributed cache layer discussed.'].map((item, i) => (
-                                        <li key={i} className="flex items-start gap-3">
-                                            <div className="mt-2 w-1.5 h-1.5 rounded-full bg-text-secondary shrink-0" />
-                                            <p className="text-sm text-text-secondary leading-relaxed">{item}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </section>
-                        </motion.div>
-                    )}
                     {tab === 'transcript' && (
                         <motion.div key="transcript" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="space-y-6">
                             {/* Matches MeetingDetails: speaker + timestamp inline, then text below — no card/border */}
@@ -278,38 +246,6 @@ const MockMeetingInterfaceAnim = () => {
                     <div className="w-full pl-4 pr-11 py-2.5 bg-bg-item-surface shadow-sm border border-border-subtle rounded-full text-xs text-text-tertiary/70">Ask about this meeting...</div>
                     <div className="absolute right-2 p-1.5 rounded-full bg-bg-item-active text-text-primary border border-border-subtle shadow-sm">
                         <ArrowUp size={13} className="rotate-45" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const MockMeetingChatAnim = () => {
-    return (
-        <div className="w-full bg-bg-secondary rounded-[20px] border border-border-subtle overflow-hidden flex flex-col select-none pointer-events-none shadow-lg max-h-[280px]">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle shrink-0">
-                <div className="flex items-center gap-2 text-text-tertiary">
-                    <img src={nativelyIcon} className="w-3.5 h-3.5 force-black-icon opacity-50" alt="logo" />
-                    <span className="text-[13px] font-medium">Search this meeting</span>
-                </div>
-                <X size={16} className="text-text-tertiary" />
-            </div>
-
-            {/* Messages */}
-            <div className="p-5 space-y-5">
-                <div className="flex justify-end">
-                    <div className="bg-accent-primary text-white px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[75%] text-sm leading-relaxed shadow-sm">
-                        What API dependencies did they mention?
-                    </div>
-                </div>
-                <div className="flex flex-col items-start">
-                    <p className="text-sm text-text-primary leading-relaxed max-w-[85%]">
-                        Based on the transcript near 10:45 AM, they explicitly mentioned integrating <code className="bg-bg-tertiary px-1.5 py-0.5 rounded text-[12px] font-mono text-text-primary border border-border-subtle">Stripe Payment Intents</code> to handle the recurring tier logic securely.
-                    </p>
-                    <div className="flex items-center gap-2 mt-2.5 text-xs text-text-tertiary">
-                        <Copy size={13} /> Copy message
                     </div>
                 </div>
             </div>
@@ -1252,20 +1188,11 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="5. Meeting Intelligence" icon={<Calendar className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p className="text-[13px]">When an active session concludes, it gets saved directly to your local file system as a complete intelligence dossier spanning the transcript, AI token usage, and automated structural summaries.</p>
+                        <p className="text-[13px]">When an active session concludes, its transcript and the questions and answers of the session are saved on this computer. Nothing is sent to a model to title or summarize it.</p>
 
                         <MockMeetingInterfaceAnim />
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
-                                <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                    <FileText className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" /> Summary Execution
-                                </h4>
-                                <p className="text-[12px] text-text-secondary leading-relaxed">
-                                    {APP_NAME} fires a local background job as soon as the meeting finishes to compress the entire raw audio transcript into clean, formatted markdown representing structural overviews and explicit action items.
-                                </p>
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
                                 <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
                                     <Volume2 className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" /> Raw Transcripts
@@ -1282,35 +1209,6 @@ export const HelpSettings: React.FC = () => {
                                 <p className="text-[12px] text-text-secondary leading-relaxed">
                                     View exactly how many tokens the AI consumed globally across the meeting, tracking visual and textual inputs separately.
                                 </p>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-border-subtle pt-6">
-                            <h4 className="font-bold text-sm text-text-primary flex items-center gap-2 mb-4">
-                                <MessageSquare className="w-4 h-4 text-accent-primary" /> Ask About a Meeting
-                            </h4>
-                            <p className="text-[13px] mb-6">Instead of re-reading the entire transcript to find what happened, ask in the chat box pinned to the bottom of the Meeting details window.</p>
-
-                            <MockMeetingChatAnim />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
-                                <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
-                                    <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                        <Search className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" /> Answers From the Meeting
-                                    </h4>
-                                    <p className="text-[12px] text-text-secondary leading-relaxed">
-                                        You don't need to craft long AI prompts. Simply ask, "What API dependencies did they list?" and the meeting's transcript and notes are sent along with your question.
-                                    </p>
-                                </div>
-
-                                <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
-                                    <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                        <Brain className="w-4 h-4 text-teal-500 group-hover:scale-110 transition-transform" /> Memory Isolation
-                                    </h4>
-                                    <p className="text-[12px] text-text-secondary leading-relaxed">
-                                        Conversations here are strictly isolated to the selected meeting boundaries. They do not utilize global memory, ensuring hyper-focused extraction without cross-contamination.
-                                    </p>
-                                </div>
                             </div>
                         </div>
                     </div>

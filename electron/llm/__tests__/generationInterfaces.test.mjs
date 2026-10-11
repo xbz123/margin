@@ -127,10 +127,10 @@ function helper(onSend, scopes = {}) {
   return { self, requests, client, scopes };
 }
 
-for (const entry of ['chatWithGemini', 'generateContentStructured', 'generateMeetingSummary', 'streamChat']) test(`${entry}: transient failure uses only explicit backup and at most two sends`, async () => {
+for (const entry of ['chatWithGemini', 'generateContentStructured', 'streamChat']) test(`${entry}: transient failure uses only explicit backup and at most two sends`, async () => {
   const { self, requests } = helper((args, number) => { if (number === 1) throw Object.assign(Error('unavailable'), { status: 503 }); return packet('backup'); });
   self.setGenerationPolicy(policy(selector('gemini-b')));
-  const answer = entry === 'generateMeetingSummary' ? await self[entry]('SYSTEM', 'TRANSCRIPT') : entry === 'streamChat' ? await collect(self[entry]('QUESTION')) : await self[entry]('QUESTION');
+  const answer = entry === 'streamChat' ? await collect(self[entry]('QUESTION')) : await self[entry]('QUESTION');
   assert.equal(answer, 'backup'); assert.deepEqual(requests.map(r => r.model), ['gemini-a', 'gemini-b']);
 });
 
@@ -231,7 +231,6 @@ test('application quit cancels existing tasks and refuses all later generation e
   assert.throws(() => self.streamChat('QUESTION'), { name: 'AbortError' });
   await assert.rejects(() => self.chatWithGemini('QUESTION'), { name: 'AbortError' });
   await assert.rejects(() => self.generateContentStructured('QUESTION'), { name: 'AbortError' });
-  await assert.rejects(() => self.generateMeetingSummary('SYSTEM', 'TRANSCRIPT'), { name: 'AbortError' });
   assert.equal(requests.length, 0);
 });
 

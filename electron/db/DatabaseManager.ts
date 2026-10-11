@@ -517,48 +517,6 @@ export class DatabaseManager {
         }
     }
 
-    public updateMeetingSummary(id: string, updates: { overview?: string, actionItems?: string[], keyPoints?: string[], actionItemsTitle?: string, keyPointsTitle?: string }): boolean {
-        if (!this.db) return false;
-
-        try {
-            // 1. Get current summary_json
-            const row = this.db.prepare('SELECT summary_json FROM meetings WHERE id = ?').get(id) as any;
-            if (!row) return false;
-
-            const existingData = JSON.parse(row.summary_json || '{}');
-            const currentDetailed = existingData.detailedSummary || {};
-
-            // 2. Merge updates
-            const newDetailed = {
-                ...currentDetailed,
-                ...updates
-            };
-
-            // Should likely filter out undefined updates if spread doesn't handle them how we want,
-            // but spread over undefined is fine. We want to overwrite if provided.
-            // If updates.overview is empty string, it overwrites.
-            // If updates.overview is undefined, we use ...updates trick:
-            // Actually spread only includes own enumerable properties. If I pass { overview: "new" }, it works.
-
-            // However, we need to be careful not to wipe legacySummary if it exists
-            const newData = {
-                ...existingData,
-                detailedSummary: newDetailed
-            };
-
-            const jsonStr = JSON.stringify(newData);
-
-            // 3. Write back
-            const stmt = this.db.prepare('UPDATE meetings SET summary_json = ? WHERE id = ?');
-            const info = stmt.run(jsonStr, id);
-            return info.changes > 0;
-
-        } catch (error) {
-            console.error(`[DatabaseManager] Failed to update summary for meeting ${id}:`, error);
-            return false;
-        }
-    }
-
     public getRecentMeetings(limit: number = 50): Meeting[] {
         if (!this.db) return [];
 
@@ -676,42 +634,6 @@ export class DatabaseManager {
             console.error(`[DatabaseManager] Failed to delete meeting ${id}:`, error);
             return false;
         }
-    }
-
-    public getUnprocessedMeetings(): Meeting[] {
-        if (!this.db) return [];
-
-        // is_processed = 0 means false
-        const stmt = this.db.prepare(`
-            SELECT * FROM meetings
-            WHERE is_processed = 0
-            ORDER BY created_at DESC
-        `);
-
-        const rows = stmt.all() as any[];
-
-        return rows.map(row => {
-            // Reconstruct minimal meeting object for processing
-            // We mainly need ID to fetch transcripts later
-            const summaryData = JSON.parse(row.summary_json || '{}');
-            const minutes = Math.floor(row.duration_ms / 60000);
-            const seconds = Math.floor((row.duration_ms % 60000) / 1000);
-            const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-            return {
-                id: row.id,
-                title: row.title,
-                date: row.created_at,
-                duration: durationStr,
-                summary: summaryData.legacySummary || '',
-                detailedSummary: summaryData.detailedSummary,
-                calendarEventId: row.calendar_event_id,
-                source: row.source,
-                isProcessed: false,
-                transcript: [] as any[], // Fetched separately via getMeetingDetails or manually if needed
-                usage: [] as any[]
-            };
-        });
     }
 
     public clearAllData(): boolean {

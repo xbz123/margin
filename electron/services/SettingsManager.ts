@@ -31,7 +31,6 @@ export interface AppSettings {
         transcript?: boolean;
         screenshots?: boolean;
         profile_history?: boolean;
-        post_call_summary?: boolean;
     };
     // When true (default) and the active mode is a technical / coding interview, prefer
     // direct vision LLM over structured-extract-then-answer for lowest latency.

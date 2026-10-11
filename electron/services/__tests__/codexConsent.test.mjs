@@ -29,10 +29,10 @@ function boot(files, fail = false) {
 }
 for (const mode of ['private', 'private_vision']) for (const fail of [false, true, { rename: true }]) test(`R3-5 ${mode} preserves screenshot refusal, other scopes and restart protection with migration save failure ${JSON.stringify(fail)}`, () => {
   const original = JSON.stringify({ screenUnderstandingMode: mode, providerDataScopes: {
-    screenshots: true, transcript: false, profile_history: true, post_call_summary: false,
+    screenshots: true, transcript: false, profile_history: true,
   }, verboseLogging: true });
   const files = new Map([['/synthetic/settings.json', original]]);
-  const expected = { screenshots: false, transcript: false, profile_history: true, post_call_summary: false };
+  const expected = { screenshots: false, transcript: false, profile_history: true };
   const manager = boot(files, fail);
   assert.deepEqual(JSON.parse(JSON.stringify(manager.get('providerDataScopes'))), expected);
   assert.equal(manager.get('verboseLogging'), true);

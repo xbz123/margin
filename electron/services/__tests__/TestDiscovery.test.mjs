@@ -23,6 +23,6 @@ test('package test discovery includes every Node test file in services and llm f
   assert.ok(llmTests.length >= 5, `expected at least 5 llm tests, found ${llmTests.length}`);
   assert.equal(allTests.length, new Set(allTests).size, 'test discovery should not include duplicates');
   assert.ok(allTests.some(filePath => filePath.endsWith('ScopeLocalFallback.test.mjs')));
-  assert.ok(allTests.some(filePath => filePath.endsWith('PostCallWorkflow.test.mjs')));
+  assert.ok(allTests.some(filePath => filePath.endsWith('MeetingPersistence.test.mjs')));
   assert.ok(allTests.some(filePath => filePath.endsWith('ProviderRouter.test.mjs')));
 });

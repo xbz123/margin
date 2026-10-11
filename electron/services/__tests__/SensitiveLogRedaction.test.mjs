@@ -93,7 +93,7 @@ test('STT providers log transcript metadata without transcript text', () => {
   }
 });
 
-test('IPC and meeting summary logs avoid answer and LLM response snippets', () => {
+test('IPC and meeting save logs avoid answer and LLM response snippets', () => {
   const ipc = read('electron/ipcHandlers.ts');
   const persistence = read('electron/MeetingPersistence.ts');
   const intent = read('electron/llm/IntentClassifier.ts');
@@ -103,10 +103,9 @@ test('IPC and meeting summary logs avoid answer and LLM response snippets', () =
   assert.doesNotMatch(ipc, /console\.log[\s\S]{0,140}result\.substring\(/);
   assert.doesNotMatch(ipc, /console\.log[\s\S]{0,140}getLastAssistantMessage\(\)\?\.substring\(/);
 
-  assert.match(persistence, /LLM summary response received', \{ length: jsonStr\.length \}/);
-  assert.match(persistence, /Failed to parse summary JSON', \{ responseLength: jsonStr\.length, error: e \}/);
-  assert.doesNotMatch(persistence, /Raw LLM summary response/);
-  assert.doesNotMatch(persistence, /Raw response:', jsonStr\.substring/);
+  // Meetings are no longer summarized (AG-52, PLAN S33); the save logs no meeting text.
+  assert.doesNotMatch(persistence, /console\.\w+\([^)]*(transcript|usage|title)\b/i);
+  assert.doesNotMatch(persistence, /Raw LLM summary response|jsonStr/);
 
   assert.doesNotMatch(intent, /text\.substring\(/);
 });

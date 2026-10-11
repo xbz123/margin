@@ -201,7 +201,8 @@ test('SettingsManager exposes providerDataScopes setting', () => {
   const src = read('electron/services/SettingsManager.ts');
 
   assert.match(src, /providerDataScopes\?:\s*\{[\s\S]+transcript\?: boolean;/);
-  assert.match(src, /post_call_summary\?: boolean;/);
+  assert.match(src, /profile_history\?: boolean;/);
+  assert.doesNotMatch(src, /post_call_summary/, 'post-call summaries were removed (PLAN S33)');
 });
 
 test('IPC handlers expose get/set provider-data-scopes and broadcast updates', () => {
