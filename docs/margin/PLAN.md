@@ -2879,7 +2879,7 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 
 ### 阶段 4 出口 CI 38159055916（2026-10-11）
 
-**状态：修复已在本地通过，待 Claude 复验和用户批准重跑。** 此处指本次获准的离线检查，保留 icons 已知沙箱例外；不是完整 gates 16/16、Electron 回归或阶段出口验收通过。起点 `cc554522`；本次仅本地提交，不推送，不运行 CI。
+**状态：修复已经 Claude 复验，完整 gates 16/16，等用户批准重跑出口 CI。** 此处指本次获准的离线检查，保留 icons 已知沙箱例外；不是完整 gates 16/16、Electron 回归或阶段出口验收通过。起点 `cc554522`；本次仅本地提交，不推送，不运行 CI。
 
 **CI 事实**：公开仓库 `xbz123/margin`，运行 `38159055916`，提交 `cc554522`，`package_apps=true`。同提交本地完整 gates 16/16，但 CI gates 为 14/16：provenance 和 regression 失败；temp/release 打包均在 afterPack 失败，源码包失败，两个启动检查均为 6/7。证据来自该运行下载报告中的 `margin-gates/{summary.json,provenance.log,regression.log}`、`margin-app-{temp,release}/{electron-builder.log,launch.json}` 和 `failed.log`，本次只读检查。
 
@@ -2893,3 +2893,15 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 **本地检查**：日志与逐命令退出码在 `evidence/stage4-exit-ci/checks/commands.json`。Electron 构建、两套 tsc、Vite build、preload-contract、`retired-check --all`（292 条、0 命中）、`provenance-check --max-hits 0`（0 命中）、回归语法检查、许可离线检查及 `git diff --check` 均 exit 0。全部单元测试使用现有隔离逐文件 runner：121 文件、970 项，968 通过、1 既有跳过、1 个已知 `icons.test.mjs` / iconutil 沙箱失败（整体 exit 1）；无隔离拦截、超时或不明退出。新增检查脚本首轮相对根路径错误（exit 1），修正路径后通过；保留失败与最终日志，不将其算作产品缺陷。未新增测试跳过项。
 
 **边界与后续**：不读真实凭据、钥匙串或真实用户数据，不调用真实设备或模型；临时产物限于 `.agy-tmp/` 并在提交前清理。原工作区保持干净及原分支。Claude 复跑 Electron 回归、icons 和完整门禁，并更新受限 refs 复验 G2；之后须用户批准出口 CI，核对打包、源码包、两个启动检查，再由用户签收。阶段 4 尚未通过出口。
+
+**Claude 复验（2026-10-11）**：先读 `925fa207` 的改动：
+- 三条许可绑定只属于已删依赖，删除正确；许可清单是用脚本重新生成的。
+- 两条 allowLines 是通用写法。
+- 取消测试改为"按取消时界面上的内容扣减"，其余断言保留，强度没有降低。
+
+随后在沙箱外按 CI 的写法拉取上游全部分支（`+refs/heads/*:refs/remotes/upstream/*`，只更新远端跟踪 ref，原工作区仍然干净、分支未变）。之后完整 gates 16/16（`evidence/stage4-exit-ci/gates/`）：
+- 受限池 `restrictedLineKeys=621107`，与 CI 一致，G2 0 命中；
+- regression 中的取消测试通过；
+- tests 共 121 个文件、970 项：969 通过、1 个既有跳过。
+
+打包、源码包和打包后启动检查只能在 CI 上验证。
