@@ -21,6 +21,43 @@ Notes:
 
 ## Ledger
 
+### AG-42 manual answer (2026-10-11)
+
+Written for this branch from HANDOFF 4.4 and the existing stage-3 contract. This is
+not a clean-room claim. No later upstream implementation, dependency or asset is
+imported. The request/event mapping and existing caller chain are documented in
+`evidence/AG-42/README.md`. The minimal preparation adapter uses the existing
+WhatToAnswerLLM/LLMHelper transport; no old generation types are reconstructed.
+
+Only `git show b8ade3f7:<path>` was used to inspect the old service and identity
+module. Both are behavior references only; **zero old code lines are imported**.
+Their flagged lines (and adjacent short lines) are rejected with their entire
+implementations rather than edited until the scan passes:
+
+| Old file | Disposition and basis |
+| --- | --- |
+| `electron/direct-assist/DirectAssistService.ts` | Not introduced. All hit lines 12, 39, 89, 108 and snapshot lines 1, 9–10, 32, 36 are excluded. The old service requires an incompatible request/transport and out-of-scope Local Context/Skills. Existing logical-task ownership makes a second service unnecessary |
+| `src/lib/directAssistAnswerState.ts` | Rewritten for current UUID and sealed-stream state. Old hit line 33 (`errorCode?: string;`) is not imported; neither are the old session/generation-id format, automatic-answer classification, error taxonomy or labels. Current GenerationMetadata remains authoritative |
+| `electron/direct-assist/errors.ts` | Self-written fixed messages and a local configuration-error category; no old body or its 66 snapshot lines introduced |
+| `electron/ipc/answerHandlers.ts`, `answerActionHandlers.ts`, `directAssistValidation.ts`, `legacyChatHandlers.ts`, `electron/preload/answerBridge.ts` | Not introduced or used as templates. All S35-listed hits (202, 2, 150, 0, 0 respectively), near-snapshot and snapshot ranges stay excluded. Modify this branch's existing ipcHandlers/preload in place; image validation and other existing entries remain |
+| Old `requestBuilder.ts`, `types.ts`, `answerGeneration.ts`, `GenerateTurn`, `AnswerGenerationInput` | Not introduced. New answerGeneration.ts is a preparation adapter, not a reconstruction of the old generator |
+| Old IntelligenceEngine/NativelyInterface/overlayActionDedup and all 11 AG-42 test candidates | No old fragments introduced. Current branch code and existing synthetic harnesses are extended; new tests implement the ticket's behavior requirements |
+
+G2 found four newly written generic statements; each is registered exactly in
+`provenance-config.json`, without expanding source pools or exclusions:
+
+| Location | Exact line | Reason |
+| --- | --- | --- |
+| MeetingSttSession.finalizeUser | `await new Promise<void>((resolve, reject) => {` | Standard typed Promise construction for the bounded final-event wait |
+| Same method | `if (error) reject(error); else resolve();` | Standard settlement after timer/listener cleanup |
+| MeetingSttSession and Mg21StopConsumer behavior tests | `await pending;` | Await the synthetic final-event operation in both session and main integration tests |
+| ManualAnswerBridge behavior test | `assert.equal(received.length, 0);` | Zero-delivery assertion after session reset |
+
+No tests removed or new skips. Existing malicious-image cases retain their
+no-send assertions with fixed manual error text. Electron regression's single
+error/no-send check is updated for that same contract, not removed. Full gates
+and real-service/device behavior are not claimed by local checks.
+
 ### AG-41b five cloud STT providers (2026-10-11)
 
 Full-gate follow-up after `520dc16e`: the three existing domestic STT bridge

@@ -348,7 +348,7 @@ const MessageRow = React.memo(
             )}
             {renderMessageText(msg)}
             {msg.generation && <div className="text-[10px] opacity-60 mt-1" data-generation-status={msg.generation.status}>
-              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status}
+              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status === 'cancelled' ? '已取消' : msg.generation.status}
             </div>}
           </div>
         </div>
@@ -2403,15 +2403,14 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const handleAnswerNow = async () => {
     if (isManualRecording) {
       if (!tryBeginOverlayAction('answer_now')) return;
+      const epoch = ++generationEpochRef.current;
       try {
+        await window.electronAPI.finalizeMicSTT();
+        if (generationEpochRef.current !== epoch) return;
         // Stop recording - send accumulated voice input to Gemini
         isRecordingRef.current = false;
         setIsManualRecording(false);
         setManualTranscript('');
-
-        window.electronAPI
-          .finalizeMicSTT()
-          .catch((err) => console.error('[NativelyInterface] Failed to send finalizeMicSTT:', err));
 
         const currentAttachments = attachedContext;
         submittedChatRef.current = { text: '', paths: currentAttachments.map(item => item.path) };
@@ -2546,9 +2545,11 @@ Provide only the answer, nothing else.`;
             ];
           });
         }
-      } finally {
-        endOverlayAction('answer_now');
-      }
+      } catch {
+        if (generationEpochRef.current === epoch) setMessages(prev => [...prev, {
+          id: genMessageId(), role: 'system', text: '语音转写未完成，请稍后重试。',
+        }]);
+      } finally { endOverlayAction('answer_now'); }
     } else {
       // Start recording - reset voice input state
       setVoiceInput('');

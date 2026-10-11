@@ -11,7 +11,8 @@
     "S21",
     "AG-40",
     "AG-41a",
-    "AG-41b"
+    "AG-41b",
+    "AG-42"
   ],
   "scanRoots": [
     "electron",

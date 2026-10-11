@@ -9,6 +9,35 @@ import { createRequire } from 'node:module';
 const requireFromRepo = createRequire(new URL('../../package.json', import.meta.url));
 const ts = requireFromRepo('typescript');
 
+test('AG42 finalize waits for only the microphone final and removes temporary listeners', async () => {
+  const { session, events } = fixture(); session.begin('manual');
+  const mic = session.ensure('user'), remote = session.ensure('interviewer');
+  let calls = 0, done = false;
+  mic.finalize = () => { calls++; };
+  remote.finalize = () => { throw Error('must not finalize interviewer'); };
+  const count = mic.listenerCount('transcript');
+  const pending = session.finalizeUser(undefined, 1000).then(() => { done = true; });
+  remote.emit('transcript', { text: 'remote', isFinal: true });
+  await Promise.resolve(); assert.equal(done, false);
+  mic.emit('transcript', { text: 'tail', isFinal: true });
+  await pending;
+  assert.equal(calls, 1); assert.equal(events.at(-1).text, 'tail');
+  assert.equal(mic.listenerCount('transcript'), count);
+});
+
+test('AG42 finalize is bounded and cancellation detaches the waiting listener', async () => {
+  const { session } = fixture(); session.begin('manual'); const mic = session.ensure('user');
+  const count = mic.listenerCount('transcript');
+  await session.finalizeUser(undefined, 5);
+  const controller = new AbortController();
+  const pending = session.finalizeUser(controller.signal, 1000);
+  controller.abort(); await assert.rejects(pending, { name: 'AbortError' });
+  assert.equal(mic.listenerCount('transcript'), count);
+  mic.finalize = async () => { throw Error('synthetic finalization failure'); };
+  await assert.rejects(session.finalizeUser(undefined, 1000));
+  assert.equal(mic.listenerCount('transcript'), count);
+});
+
 test('a declined provider factory stays absent without inventing a configured provider', () => {
   const { session } = fixture(() => null);
   session.begin('synthetic');

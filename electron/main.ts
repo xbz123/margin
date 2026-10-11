@@ -1527,12 +1527,8 @@ export class AppState {
     return this.audioTestRelease;
   }
 
-  public finalizeMicSTT(): void {
-    // We only want to finalize the user microphone, because the context is Manual Answer
-    if (this.googleSTT_User?.finalize) {
-      console.log('[Main] Finalizing STT');
-      void Promise.resolve(this.googleSTT_User.finalize()).catch(() => console.warn('[Main] STT finalization failed'));
-    }
+  public async finalizeMicSTT(signal?: AbortSignal): Promise<void> {
+    if (this.isMeetingActive) await this.meetingStt.finalizeUser(signal);
   }
 
 
@@ -1750,6 +1746,11 @@ export class AppState {
       send('intelligence-error', { error: error.message, mode }, metadata);
     })
     this.intelligenceManager.on('generation_terminal', (metadata) => {
+      if (metadata.status === 'cancelled') {
+        for (const [key, batch] of tokenBatches) {
+          if (batch.metadata.requestId === metadata.requestId) tokenBatches.delete(key);
+        }
+      }
       flushBatchesBeforeFinal();
       send('intelligence-generation-terminal', {}, metadata);
       owners.delete(metadata.requestId);

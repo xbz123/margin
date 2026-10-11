@@ -34,6 +34,7 @@ function handlers(root, queue = []) {
     require(id) {
       if (id === 'electron') return { app: { getPath: () => root }, ipcMain: { removeHandler() {}, handle: (name, callback) => callbacks.set(name, callback), removeAllListeners() {}, on() {} } };
       if (id === './utils/imagePathValidation') return { validateImagePath };
+      if (id === './direct-assist/errors') return require('../../../dist-electron/electron/direct-assist/errors.js');
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };
       if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);
@@ -41,8 +42,23 @@ function handlers(root, queue = []) {
     },
   });
   module.exports.initializeIpcHandlers({ processingHelper: { getLLMHelper: () => helper }, getIntelligenceManager: () => manager, getScreenshotQueue: () => queue });
-  return { callbacks, sends, startedTasks, resets };
+  return { callbacks, sends, startedTasks, resets, helper, manager };
 }
+
+test('AG42 registered manual IPC returns fixed failures even before a task can start', async () => {
+  const f = handlers(os.tmpdir()); const invoke = () => f.callbacks.get('generate-what-to-say')({ sender: { id: 42 } });
+  f.manager.runWhatShouldISay = async (_question, _confidence, _images, options) => {
+    assert.equal(options.manual, true);
+    assert.equal(typeof options.beforeGenerate, 'function');
+    throw Error('SERVER_SECRET and full request');
+  };
+  const failed = await invoke();
+  assert.equal(failed.answer, null); assert.equal(failed.error, '回答失败，请检查模型配置后重试。');
+  assert.doesNotMatch(JSON.stringify(failed), /SERVER_SECRET|full request/);
+  f.helper.beginGenerationTask = () => { throw Error('invalid selection with SECRET'); };
+  assert.equal((await invoke()).error, '请先配置回答模型及其凭据。');
+  assert.equal(f.sends.length, 0);
+});
 
 for (const channel of ['generate-code-hint', 'generate-brainstorm']) test(`R3-2 ${channel} validates selected queue once before generation and uses canonical symlinks`, async t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'r3-queue-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
@@ -106,7 +122,9 @@ for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-sa
   const sender = { id: 1, send() {}, isDestroyed: () => false };
   const invoke = images => channel === 'analyze-image-file' ? callback({ sender }, Array.isArray(images) && images.length === 1 ? images[0] : images) : channel.startsWith('gemini-') ? callback({ sender }, 'QUESTION', images) : channel === 'generate-what-to-say' ? callback({ sender }, 'QUESTION', images) : callback({ sender }, images, 'QUESTION');
   for (const images of [{ length: 1 }, [null], [''], Array(6).fill(escape), [path.join(root, '../outside.png')], ['/etc/passwd'], ['C:\\Windows\\secret.png'], [path.join(root, 'missing.png')], [escape]]) {
-    try { const result = await invoke(images); assert.equal(result.answer ?? result.hint ?? result.script ?? null, null); assert.match(result.error, /Invalid image path/); }
+    try { const result = await invoke(images); assert.equal(result.answer ?? result.hint ?? result.script ?? null, null);
+      if (channel === 'generate-what-to-say') assert.equal(result.error, '回答失败，请检查模型配置后重试。');
+      else assert.match(result.error, /Invalid image path/); }
     catch (error) { assert.match(error.message, /Invalid image path/); }
     assert.equal(sends.length, 0);
   }

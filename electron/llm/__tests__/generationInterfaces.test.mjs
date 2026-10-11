@@ -6,6 +6,7 @@ import os from 'node:os';
 import http from 'node:http';
 import fs from 'node:fs';
 import OpenAI from 'openai';
+import { mainFixture } from '../../audio/__tests__/mainMeetingFixture.mjs';
 
 const require = createRequire(import.meta.url);
 const built = path.resolve(import.meta.dirname, '../../../dist-electron/electron/LLMHelper.js');
@@ -29,6 +30,98 @@ const target = (model = 'gemini-a') => ({ provider: 'gemini', protocol: 'gemini'
   imageSupportConfirmedFor: JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', model]) });
 const policy = backupModel => ({ backupModel, ...(backupModel ? { backupImageSupportConfirmedFor: target(decodeURIComponent(backupModel.split(':').at(-1))).imageSupportConfirmedFor } : {}), interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 });
 const selector = model => `llm-target:gemini:gemini:${model}`;
+
+test('AG42 manual preparation waits for mic tail and includes current session in one streamed answer', async () => {
+  const f = helper(() => (async function* () { yield packet('First ', null); yield packet('second.'); })());
+  const session = new SessionTracker();
+  const engine = new IntelligenceEngine(f.self, session);
+  const tail = deferred(), entered = deferred(), tokens = [], terminals = [];
+  engine.on('suggested_answer_token', text => tokens.push(text));
+  engine.on('generation_terminal', event => terminals.push(event));
+  const pending = engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, beforeGenerate: async () => {
+    entered.resolve(); await tail.promise;
+    session.handleTranscript({ speaker: 'user', text: 'AG42 final mic context', timestamp: Date.now(), final: true });
+  } });
+  await entered.promise;
+  assert.equal(f.requests.length, 0);
+  tail.resolve();
+  assert.equal(await pending, tokens.join(''));
+  assert.equal(tokens.join(''), 'First second.');
+  assert.match(JSON.stringify(f.requests[0].contents), /ag42 final mic context/);
+  assert.equal(terminals[0].status, 'completed');
+  assert.equal(f.requests.length, 1);
+  await engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true });
+  assert.equal(f.requests.length, 2, 'manual actions have no automatic-trigger cooldown');
+  assert.notEqual(terminals[0].requestId, terminals[1].requestId);
+});
+
+test('AG42 missing configuration refuses before finalization or transport', async () => {
+  const f = helper(); f.self.client = null;
+  const engine = new IntelligenceEngine(f.self, new SessionTracker());
+  let finalized = false;
+  await assert.rejects(engine.runWhatShouldISay(undefined, 0.8, undefined, {
+    manual: true, beforeGenerate: async () => { finalized = true; },
+  }), /请先配置回答模型/);
+  assert.equal(finalized, false);
+  assert.equal(f.requests.length, 0);
+});
+
+test('AG42 replacement and session reset cancel preparation without a late send', async () => {
+  const f = helper(); const engine = new IntelligenceEngine(f.self, new SessionTracker());
+  const first = deferred(), entered = deferred();
+  const old = engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, beforeGenerate: async () => {
+    entered.resolve(); await first.promise;
+  } });
+  const rejected = assert.rejects(old, { name: 'AbortError' });
+  await entered.promise;
+  await engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true });
+  await rejected; first.resolve();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(f.requests.length, 1);
+  const second = deferred(), preparing = deferred();
+  const stopping = engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, beforeGenerate: async () => {
+    preparing.resolve(); await second.promise;
+  } });
+  const stopped = assert.rejects(stopping, { name: 'AbortError' });
+  await preparing.promise; engine.reset(); await stopped; second.resolve();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(f.requests.length, 1);
+});
+
+test('AG42 terminal failure cannot expose the provider error', async () => {
+  const f = helper(() => { throw Object.assign(Error('SECRET_KEY full request server text'), { status: 400 }); });
+  const engine = new IntelligenceEngine(f.self, new SessionTracker()); const terminal = [];
+  engine.on('generation_terminal', event => terminal.push(event));
+  await assert.rejects(engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, errorDelivery: 'caller' }));
+  assert.equal(terminal[0].error, '回答失败，请检查模型配置后重试。');
+  assert.doesNotMatch(JSON.stringify(terminal), /SECRET_KEY|full request|server text/);
+});
+
+test('AG42 production meeting end aborts streaming and main never forwards late deltas or stale terminals', async () => {
+  const entered = deferred(), late = deferred(); let signal;
+  const f = helper(args => {
+    signal = args.config.abortSignal;
+    return (async function* () { yield packet('prefix ', null); entered.resolve(); await late.promise; yield packet('LATE'); })();
+  });
+  const meeting = mainFixture(); await meeting.start();
+  const engine = new IntelligenceEngine(f.self, new SessionTracker());
+  engine.resetEngine = () => engine.reset(); engine.stopMeeting = async () => {};
+  meeting.state.intelligenceManager = engine;
+  const sent = [];
+  meeting.state.getMainWindow = () => ({ webContents: { id: 42, isDestroyed: () => false, send: (...args) => sent.push(args) } });
+  meeting.state.setupIntelligenceEvents();
+  const pending = engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true });
+  const rejected = assert.rejects(pending, { name: 'AbortError' });
+  await entered.promise;
+  await meeting.state.endMeeting(); await rejected;
+  assert.equal(signal.aborted, true);
+  const terminal = sent.find(([name]) => name === 'intelligence-generation-terminal')[1];
+  assert.equal(terminal.status, 'cancelled');
+  const count = sent.length; late.resolve();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(sent.length, count);
+  assert.doesNotMatch(JSON.stringify(sent), /LATE/);
+});
 const { CodexAuthSource } = require('../../../dist-electron/electron/services/CodexAuthSource.js');
 const codexBinding = model => JSON.stringify(['codex', 'responses', 'https://chatgpt.com/backend-api/codex/responses', model]);
 function codexHelper(options = {}) {

@@ -11,6 +11,10 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"await new Promise<void>((resolve, reject) => {","reason":"AG-42: Standard typed Promise construction for a locally written bounded STT final-event wait; no upstream wait implementation is imported."},
+    {"line":"if (error) reject(error); else resolve();","reason":"AG-42: Standard Promise settlement after listener cleanup; the local callback receives only finalization failure or abort."},
+    {"line":"await pending;","reason":"AG-42: Generic test await for the synthetic microphone final event, not an imported test scenario implementation."},
+    {"line":"assert.equal(received.length, 0);","reason":"AG-42: Generic zero-delivery assertion for stale events after session reset in the new preload behavior test."},
     {"line":"const expected = {","reason":"AG-41b review repair: Generic object declaration for a newly written table of fixed connection-test error expectations; no upstream implementation logic."},
     {"line":"private ready = false;","reason":"AG-41b: Ordinary boolean initialization for protocol readiness in the newly written transport."},
     {"line":"private channels = 1;","reason":"AG-41b: PCM input channel count initialization, not a copied resampling algorithm."},

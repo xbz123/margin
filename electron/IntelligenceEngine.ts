@@ -6,6 +6,8 @@ import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
 import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import type { GenerationTask } from './llm/generateTask';
+import { prepareManualAnswer } from './llm/answerGeneration';
+import { manualAnswerError } from './direct-assist/errors';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
@@ -122,7 +124,7 @@ export class IntelligenceEngine extends EventEmitter {
             if (task.terminalStatus !== 'completed') recordPartial();
             return answer;
         }, error => {
-            terminalError = error?.message ?? 'Generation failed';
+            terminalError = task.errorMessage ?? error?.message ?? 'Generation failed';
             recordPartial();
             throw error;
         }).finally(() => {
@@ -463,15 +465,24 @@ export class IntelligenceEngine extends EventEmitter {
      * Scope refusals reach the error boundary, never become a suggested answer.
      */
     runWhatShouldISay(...args: Parameters<IntelligenceEngine['runWhatShouldISayInner']>): Promise<string | null> {
-        return this.runGenerationRequest(() => this.runWhatShouldISayInner(...args));
+        return this.runGenerationRequest(async () => {
+            const task = this.llmHelper.getCurrentGenerationTask();
+            try {
+                if (args[3]?.manual) await prepareManualAnswer(this.llmHelper, args[3].beforeGenerate);
+                return await this.runWhatShouldISayInner(...args);
+            } catch (error) {
+                if (args[3]?.manual && task) task.errorMessage = manualAnswerError(error);
+                throw error;
+            }
+        });
     }
 
-    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
+    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<void>; speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
         const task = this.llmHelper.getCurrentGenerationTask();
         if (task) task.deferVisibleText = true;
         const now = Date.now();
         const isSpeculative = options?.speculative === true;
-        const skipCooldown = options?.skipCooldown === true;
+        const skipCooldown = options?.manual === true || options?.skipCooldown === true;
 
         // Cooldown bypass: explicit images (user intent), speculative pre-fetch, or test harness.
         const hasImages = imagePaths && imagePaths.length > 0;

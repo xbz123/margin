@@ -313,7 +313,7 @@ test('a WhatToSay scope refusal through the real renderer action displays one er
   const transcriptBefore = (await overlayText()).split('Data scope denied').length - 1;
   try {
     await overlay.evaluate(() => window.electronAPI.setProviderDataScopes({ transcript: false }));
-    // Explicit image bypasses the engine cooldown without synthetic time changes.
+    // Exercise the existing screenshot attachment path along with manual answering.
     const removeAll = overlay.locator('button[title="Remove all"]');
     if (await removeAll.count()) await removeAll.click();
     await overlay.waitForFunction(() => !document.querySelector('img[alt="Screenshot 1"]'));
@@ -325,7 +325,8 @@ test('a WhatToSay scope refusal through the real renderer action displays one er
     await overlay.waitForFunction(count => document.body.innerText.split('Error (what_to_say):').length - 1 === count + 1, errorsBefore, { timeout: 15_000 });
     const text = await overlayText();
     assert.equal(text.split('Error (what_to_say):').length - 1, errorsBefore + 1);
-    assert.equal(text.split('Data scope denied').length - 1, transcriptBefore + 1, 'the IPC null-answer path must not append the same refusal again');
+    assert.equal(text.split('Data scope denied').length - 1, transcriptBefore, 'manual failures do not expose internal error text');
+    assert.ok(text.includes('回答失败，请检查模型配置后重试。'));
     assert.equal(mock.chatRequests().length, before);
   } finally { await overlay.evaluate(scopes => window.electronAPI.setProviderDataScopes(scopes), original); }
 });

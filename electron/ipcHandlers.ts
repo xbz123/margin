@@ -23,6 +23,7 @@ import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
+import { manualAnswerError, MANUAL_ANSWER_UNCONFIGURED } from './direct-assist/errors';
 
 export function initializeIpcHandlers(appState: AppState): void {
   const validateImages = (value: unknown): string[] | undefined => {
@@ -67,12 +68,17 @@ export function initializeIpcHandlers(appState: AppState): void {
     ipcMain.handle(channel, async (event, ...args) => {
       if (!['generate-assist', 'generate-what-to-say', 'generate-clarify', 'generate-follow-up', 'generate-recap', 'generate-follow-up-questions', 'submit-manual-question', 'generate-code-hint', 'generate-brainstorm'].includes(channel)) return listener(event, ...args);
       const helper = appState.processingHelper.getLLMHelper();
-      const task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
+      let task: GenerationTask<any> | undefined;
       try {
+        task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
         const result = await helper.runGeneration(() => listener(event, ...args), 'interview', undefined, task);
         task.terminalStatus ??= (result as any)?.error ? 'failed' : 'empty';
         return { ...(result as any), ...helper.getTaskMetadata(task) };
-      } finally { task.close(); }
+      } catch (error) {
+        if (channel !== 'generate-what-to-say') throw error;
+        return { answer: null, ...(task ? helper.getTaskMetadata(task) : { status: 'failed' }),
+          error: !task ? MANUAL_ANSWER_UNCONFIGURED : task.terminalStatus === 'cancelled' ? '已取消' : manualAnswerError(error) };
+      } finally { task?.close(); }
     });
   };
 
@@ -283,7 +289,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('finalize-mic-stt', async () => {
-    appState.finalizeMicSTT();
+    await appState.finalizeMicSTT();
   });
 
   // IPC handler for analyzing image from file path
@@ -1692,7 +1698,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  // MODE 2: What Should I Say (Primary auto-answer)
+  // MODE 2: User-triggered answer using the current session.
   //
   // Validated original images reach the selected answer task without generative preanalysis.
   safeHandle(
@@ -1724,7 +1730,8 @@ export function initializeIpcHandlers(appState: AppState): void {
           0.8,
           validatedImagePaths,
           {
-            skipCooldown: process.env.NODE_ENV === 'test',
+            manual: true,
+            beforeGenerate: signal => appState.finalizeMicSTT(signal),
             errorDelivery: 'caller',
             screenContext,
           },
@@ -1748,7 +1755,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         return {
           answer: null,
           question: question || 'unknown',
-          error: error?.message || 'unknown_error',
+          error: task?.terminalStatus === 'cancelled' ? '已取消' : manualAnswerError(error),
           generationStatus: task?.terminalStatus,
         };
       } finally {

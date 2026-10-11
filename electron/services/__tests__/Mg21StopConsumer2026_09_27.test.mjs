@@ -5,6 +5,18 @@ import { deferred } from '../../audio/__tests__/meetingAudioFixture.mjs';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('AG42 production manual finalize forwards the microphone tail before returning without stopping capture', async () => {
+  const f = mainFixture(); await f.start();
+  const pending = f.state.finalizeMicSTT();
+  assert.equal(f.order.filter(item => item === 'finalize:user').length, 1);
+  assert.equal(f.order.includes('finalize:interviewer'), false);
+  f.providers.find(item => item.channel === 'user').emit('transcript', { text: 'manual tail', isFinal: true });
+  await pending;
+  assert.equal(f.transcripts.at(-1).text, 'manual tail');
+  assert.equal(f.audio.microphones[0].destroyed, false);
+  await f.state.endMeeting();
+});
+
 test('a denied start can be cleaned up without saving an unrelated session', async () => {
   const f = mainFixture({ microphonePermission: async () => false });
   await assert.rejects(f.state.startMeeting(), /permission denied/);

@@ -2,6 +2,7 @@ import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } fr
 import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
+import { matchesDirectAssistAnswer } from '../src/lib/directAssistAnswerState';
 import type { DomesticSttProvider, DomesticSttSettings } from '../src/types/domesticStt';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
@@ -511,17 +512,21 @@ let activeChatMetadata: GenerationMetadata | undefined;
 let chatInFlight = false;
 const isActiveChatStream = (id: unknown) => activeChatStreamId !== null && id === activeChatStreamId;
 let activeIntelligenceRequestId: string | null = null;
+let intelligenceSealed = true;
 let activeIntelligenceMetadata: GenerationMetadata | undefined;
 ipcRenderer.on('intelligence-generation-started', (_event, data: GenerationMetadata) => {
   if (chatInFlight && activeChatOwner === 'natively') return;
   activeIntelligenceRequestId = data.requestId;
+  intelligenceSealed = false;
   activeIntelligenceMetadata = data;
 });
 ipcRenderer.on('session-reset', () => { activeIntelligenceRequestId = null; activeChatStreamId = null; });
-const intelligenceSubscription = (callback: (data: any) => void) => (_event: any, data: any) => {
-  if (data?.requestId ? data.requestId === activeIntelligenceRequestId : activeIntelligenceRequestId === null) {
+const intelligenceSubscription = (callback: (data: any) => void, terminal = false) => (_event: any, data: any) => {
+  if (data?.requestId ? (terminal ? data.requestId === activeIntelligenceRequestId
+    : matchesDirectAssistAnswer(activeIntelligenceRequestId, intelligenceSealed, data.requestId)) : activeIntelligenceRequestId === null) {
     if (data?.requestId) activeIntelligenceMetadata = data;
     callback(data);
+    if (terminal) intelligenceSealed = true;
   }
 };
 const cancelActiveChat = (owner = 'natively') => {
@@ -1137,7 +1142,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => { ipcRenderer.removeListener('intelligence-generation-started', subscription); };
   },
   onIntelligenceGenerationTerminal: (callback: (metadata: GenerationMetadata & { error?: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
+    const subscription = intelligenceSubscription(callback, true);
     ipcRenderer.on('intelligence-generation-terminal', subscription);
     return () => { ipcRenderer.removeListener('intelligence-generation-terminal', subscription); };
   },
