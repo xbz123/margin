@@ -11,8 +11,8 @@
 // `finally` re-entered flushAndUpload — and there was no guard against
 // proceeding. The function would then re-arm a fresh setInterval if any
 // safetyNetTimer slot had become non-null in any race window, and most
-// importantly it would upload another batch of audio to Whisper / Groq /
-// ElevenLabs for the rest of the process lifetime.
+// importantly it would upload another batch of audio to Whisper / Groq
+// for the rest of the process lifetime.
 //
 // Fix: `if (!this.isActive) return;` at the very top of flushAndUpload.
 // This:

@@ -1,13 +1,13 @@
 /**
- * RestSTT - REST-based Speech-to-Text for Groq, OpenAI Whisper, ElevenLabs, Azure, and IBM Watson
+ * RestSTT - REST-based Speech-to-Text for Groq, OpenAI Whisper, Azure, and IBM Watson
  *
- * Implements the same EventEmitter interface as GoogleSTT:
+ * Implements the standard STT EventEmitter interface:
  *   Events: 'transcript' ({ text, isFinal, confidence }), 'error' (Error)
  *   Methods: start(), stop(), write(chunk: Buffer)
  *
  * Buffers raw PCM chunks, prepends a WAV header, and uploads via REST every ~3 seconds.
  * Supports two upload modes:
- *   - Multipart FormData (Groq, OpenAI, ElevenLabs)
+ *   - Multipart FormData (Groq, OpenAI)
  *   - Raw binary body (Azure, IBM Watson)
  */
 
@@ -16,7 +16,7 @@ import { outboundAxios as axios, regionalSttEndpoint } from '../services/outboun
 import FormData from 'form-data';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 
-export type RestSttProvider = 'groq' | 'openai' | 'elevenlabs' | 'azure' | 'ibmwatson';
+export type RestSttProvider = 'groq' | 'openai' | 'azure' | 'ibmwatson';
 
 interface RestSttProviderConfig {
     endpoint: string;
@@ -58,22 +58,6 @@ const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
             uploadType: 'multipart',
             extraFormFields: {
                 ...(lang ? { language: lang } : {})
-            },
-            extractTranscript: (data: any) => {
-                if (typeof data === 'string') return data;
-                return data?.text ?? '';
-            },
-        };
-    },
-    elevenlabs: (apiKey, region, languageKey) => {
-        const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.iso639 : undefined;
-        return {
-            endpoint: 'https://api.elevenlabs.io/v1/speech-to-text',
-            model: 'scribe_v2',
-            authHeader: { 'xi-api-key': apiKey },
-            uploadType: 'multipart',
-            extraFormFields: {
-                ...(lang ? { language_code: lang } : {})
             },
             extractTranscript: (data: any) => {
                 if (typeof data === 'string') return data;
@@ -192,7 +176,7 @@ export class RestSTT extends EventEmitter {
     }
 
     /**
-     * No-op for RestSTT (no Google credentials needed)
+     * No-op for RestSTT
      */
     public setCredentials(_keyFilePath: string): void {
         console.log(`[RestSTT] setCredentials called (no-op for REST provider)`);
@@ -363,7 +347,7 @@ export class RestSTT extends EventEmitter {
     }
 
     /**
-     * Upload via multipart FormData (Groq, OpenAI, ElevenLabs)
+     * Upload via multipart FormData (Groq, OpenAI)
      */
     private async uploadMultipart(wavBuffer: Buffer): Promise<string> {
         const form = new FormData();
@@ -373,12 +357,7 @@ export class RestSTT extends EventEmitter {
             contentType: 'audio/wav',
         });
 
-        // ElevenLabs uses 'model_id' instead of 'model'
-        if (this.provider === 'elevenlabs') {
-            form.append('model_id', this.config.model);
-        } else {
-            form.append('model', this.config.model);
-        }
+        form.append('model', this.config.model);
 
         if (this.config.extraFormFields) {
             for (const [key, value] of Object.entries(this.config.extraFormFields)) {

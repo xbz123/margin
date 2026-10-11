@@ -15,8 +15,8 @@ function read(relativePath) {
 /**
  * ISSUE 1 (P0): Raw STT API Keys returned to renderer
  *
- * The get-stored-credentials IPC handler returns raw STT API keys (Deepgram,
- * ElevenLabs, OpenAI, Groq, Azure, IBM, Soniox) as plaintext strings to the
+ * The get-stored-credentials IPC handler returns raw STT API keys (OpenAI,
+ * Groq, Azure, IBM, Soniox) as plaintext strings to the
  * renderer. These keys are stored in renderer state and used to pre-populate
  * input fields, exposing them in the DOM/memory.
  *
@@ -42,26 +42,22 @@ test('get-stored-credentials IPC does not return raw STT API keys', () => {
   // This returns the raw API key to the renderer
 
   // Check that raw credential access is NOT returned directly
-  assert.doesNotMatch(handler, /sttGroqKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttOpenaiKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttDeepgramKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttElevenLabsKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttAzureKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttIbmKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttSonioxKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|deepgramApiKey|elevenLabsApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttGroqKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttOpenaiKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttAzureKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttIbmKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttSonioxKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
 
   // Verify that boolean flags still exist (to tell UI if key is present)
   assert.match(handler, /hasSttGroqKey:/);
   assert.match(handler, /hasSttOpenaiKey:/);
-  assert.match(handler, /hasDeepgramKey:/);
-  assert.match(handler, /hasElevenLabsKey:/);
   assert.match(handler, /hasAzureKey:/);
   assert.match(handler, /hasIbmWatsonKey:/);
   assert.match(handler, /hasSonioxKey:/);
 
   // If stt*Key fields are returned at all, they must be masked (e.g., "sk-...abcd" or empty string)
   // The correct pattern is: sttGroqKey: masked(creds.groqSttApiKey) or just omit the field entirely
-  const rawKeyAssignments = handler.match(/stt(Groq|Openai|Deepgram|ElevenLabs|Azure|Ibm|Soniox)Key:\s*creds\.\w+\s*\|\|/g);
+  const rawKeyAssignments = handler.match(/stt(Groq|Openai|Azure|Ibm|Soniox)Key:\s*creds\.\w+\s*\|\|/g);
   if (rawKeyAssignments) {
     assert.fail(`Found raw STT key assignments: ${rawKeyAssignments.join(', ')}. These return API keys to the renderer.`);
   }
@@ -82,7 +78,7 @@ test('error fallback in get-stored-credentials does not return raw STT keys', ()
 
   // Error fallback should NOT contain raw STT keys (non-empty strings)
   // Empty strings (sttGroqKey: '') are safe and acceptable
-  assert.doesNotMatch(errorFallback, /stt(Groq|Openai|Deepgram|ElevenLabs|Azure|Ibm|Soniox)Key:\s*creds\.\w+/);
+  assert.doesNotMatch(errorFallback, /stt(Groq|Openai|Azure|Ibm|Soniox)Key:\s*creds\.\w+/);
 });
 
 test('renderer settings overlay does not rely on raw STT keys from IPC', () => {
@@ -97,7 +93,6 @@ test('renderer settings overlay does not rely on raw STT keys from IPC', () => {
   // Check that the renderer uses boolean flags for key presence
   assert.match(settingsOverlay, /hasStoredSttGroqKey/);
   assert.match(settingsOverlay, /hasStoredSttOpenaiKey/);
-  assert.match(settingsOverlay, /hasStoredDeepgramKey/);
 });
 
 test('STT key fields in IPC response follow masked or boolean-only pattern', () => {
@@ -105,7 +100,7 @@ test('STT key fields in IPC response follow masked or boolean-only pattern', () 
   const handler = sliceSafeHandleBlock(source, 'get-stored-credentials');
 
   // Count stt*Key field assignments
-  const keyFieldMatches = handler.match(/stt(Groq|Openai|Deepgram|ElevenLabs|Azure|Ibm|Soniox)Key:/g) || [];
+  const keyFieldMatches = handler.match(/stt(Groq|Openai|Azure|Ibm|Soniox)Key:/g) || [];
 
   // If stt*Key fields are returned, they must NOT be raw creds access
   // Valid patterns: masked version, empty string, OR field not returned at all (rely on has* flag)

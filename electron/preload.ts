@@ -4,7 +4,7 @@ import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '..
 import type { GenerationMetadata } from '../src/types/generationMetadata';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
-import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult, ServiceAccountSelectionResult } from '../src/types/credentialSave';
+import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
 
 let verboseLog = false;
 installConsoleLogging(console, (level, line) => {
@@ -94,7 +94,6 @@ interface ElectronAPI {
     provider: 'gemini' | 'groq' | 'openai' | 'claude',
     apiKey?: string,
   ) => Promise<{ success: boolean; error?: string }>;
-  selectServiceAccount: () => Promise<ServiceAccountSelectionResult>;
 
   // API Key Management
   setProviderConfiguration: (value: ProviderConfigurationSave) => Promise<CredentialSaveResult>;
@@ -115,12 +114,9 @@ interface ElectronAPI {
     hasOpenaiKey: boolean;
     hasClaudeKey: boolean;
     hasDeepseekKey: boolean;
-    googleServiceAccountPath: string | null;
     sttProvider: string;
     hasSttGroqKey: boolean;
     hasSttOpenaiKey: boolean;
-    hasDeepgramKey: boolean;
-    hasElevenLabsKey: boolean;
     hasAzureKey: boolean;
     azureRegion: string;
     hasIbmWatsonKey: boolean;
@@ -132,11 +128,8 @@ interface ElectronAPI {
   setSttProvider: (
     provider:
       | 'none'
-      | 'google'
       | 'groq'
       | 'openai'
-      | 'deepgram'
-      | 'elevenlabs'
       | 'azure'
       | 'ibmwatson'
       | 'soniox',
@@ -145,8 +138,6 @@ interface ElectronAPI {
   setGroqSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenAiSttBaseUrl: (url: string) => Promise<CredentialSaveResult>;
-  setDeepgramApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setElevenLabsApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setAzureApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setAzureRegion: (region: string) => Promise<CredentialSaveResult>;
   setIbmWatsonApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
@@ -154,7 +145,7 @@ interface ElectronAPI {
   setSonioxApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setIbmWatsonRegion: (region: string) => Promise<CredentialSaveResult>;
   testSttConnection: (
-    provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox',
+    provider: 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox',
     apiKey: string,
     region?: string,
   ) => Promise<{ success: boolean; error?: string }>;
@@ -769,7 +760,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('switch-to-gemini', apiKey, modelId),
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) =>
     ipcRenderer.invoke('test-llm-connection', provider, apiKey),
-  selectServiceAccount: () => ipcRenderer.invoke('select-service-account'),
 
   // API Key Management
   setProviderConfiguration: (value: ProviderConfigurationSave) => ipcRenderer.invoke('set-provider-configuration', value),
@@ -793,11 +783,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setSttProvider: (
     provider:
       | 'none'
-      | 'google'
       | 'groq'
       | 'openai'
-      | 'deepgram'
-      | 'elevenlabs'
       | 'azure'
       | 'ibmwatson'
       | 'soniox',
@@ -806,8 +793,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setGroqSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-stt-api-key', apiKey),
   setOpenAiSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-stt-api-key', apiKey),
   setOpenAiSttBaseUrl: (url: string) => ipcRenderer.invoke('set-openai-stt-base-url', url),
-  setDeepgramApiKey: (apiKey: string) => ipcRenderer.invoke('set-deepgram-api-key', apiKey),
-  setElevenLabsApiKey: (apiKey: string) => ipcRenderer.invoke('set-elevenlabs-api-key', apiKey),
   setAzureApiKey: (apiKey: string) => ipcRenderer.invoke('set-azure-api-key', apiKey),
   setAzureRegion: (region: string) => ipcRenderer.invoke('set-azure-region', region),
   setIbmWatsonApiKey: (apiKey: string) => ipcRenderer.invoke('set-ibmwatson-api-key', apiKey),
@@ -815,7 +800,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setSonioxApiKey: (apiKey: string) => ipcRenderer.invoke('set-soniox-api-key', apiKey),
   setIbmWatsonRegion: (region: string) => ipcRenderer.invoke('set-ibmwatson-region', region),
   testSttConnection: (
-    provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox',
+    provider: 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox',
     apiKey: string,
     region?: string,
   ) => ipcRenderer.invoke('test-stt-connection', provider, apiKey, region),

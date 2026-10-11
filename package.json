@@ -191,13 +191,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
-    "@deepgram/sdk": "^3.13.0",
-    "@elevenlabs/client": "^0.15.1",
-    "@elevenlabs/elevenlabs-js": "^2.39.0",
-    "@google-cloud/speech": "^7.2.1",
     "@google/genai": "^1.44.0",
-    "@grpc/grpc-js": "^1.14.3",
-    "@grpc/proto-loader": "^0.8.0",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-toast": "^1.2.2",
     "@tanstack/react-query": "^5.100.10",

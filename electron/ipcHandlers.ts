@@ -21,7 +21,6 @@ import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { outboundAxios as axios, regionalSttEndpoint, openAiSttEndpoint } from './services/outbound';
 import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
-import { loadGoogleServiceAccount, googleSpeechClientOptions } from './services/googleServiceAccount';
 import { validateImagePath } from './utils/imagePathValidation';
 
 export function initializeIpcHandlers(appState: AppState): void {
@@ -997,12 +996,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const creds = CredentialsManager.getInstance().getAllCredentials();
-      let googleServiceAccountPath = creds.googleServiceAccountPath || null;
-      if (googleServiceAccountPath) {
-        try { googleSpeechClientOptions(loadGoogleServiceAccount(googleServiceAccountPath)); }
-        catch { googleServiceAccountPath = null; }
-      }
-
       // Return masked versions for security (just indicate if set)
       const hasKey = (key?: string) => !!(key && key.trim().length > 0);
 
@@ -1013,13 +1006,10 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasOpenaiKey: hasKey(creds.openaiApiKey),
         hasClaudeKey: hasKey(creds.claudeApiKey),
         hasDeepseekKey: hasKey(creds.deepseekApiKey),
-        googleServiceAccountPath,
         sttProvider: CredentialsManager.getInstance().getSttProvider(),
         groqSttModel: creds.groqSttModel || 'whisper-large-v3-turbo',
         hasSttGroqKey: hasKey(creds.groqSttApiKey),
         hasSttOpenaiKey: hasKey(creds.openAiSttApiKey),
-        hasDeepgramKey: hasKey(creds.deepgramApiKey),
-        hasElevenLabsKey: hasKey(creds.elevenLabsApiKey),
         hasAzureKey: hasKey(creds.azureApiKey),
         azureRegion: creds.azureRegion || 'eastus',
         hasIbmWatsonKey: hasKey(creds.ibmWatsonApiKey),
@@ -1030,8 +1020,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         // The hasSttGroqKey boolean tells UI if key exists — no raw key needed.
         sttGroqKey: creds.groqSttApiKey ? `sk-...${creds.groqSttApiKey.slice(-4)}` : '',
         sttOpenaiKey: creds.openAiSttApiKey ? `sk-...${creds.openAiSttApiKey.slice(-4)}` : '',
-        sttDeepgramKey: creds.deepgramApiKey ? `sk-...${creds.deepgramApiKey.slice(-4)}` : '',
-        sttElevenLabsKey: creds.elevenLabsApiKey ? `sk-...${creds.elevenLabsApiKey.slice(-4)}` : '',
         sttAzureKey: creds.azureApiKey ? `sk-...${creds.azureApiKey.slice(-4)}` : '',
         sttIbmKey: creds.ibmWatsonApiKey ? `sk-...${creds.ibmWatsonApiKey.slice(-4)}` : '',
         sttSonioxKey: creds.sonioxApiKey ? `sk-...${creds.sonioxApiKey.slice(-4)}` : '',
@@ -1051,13 +1039,10 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasOpenaiKey: false,
         hasClaudeKey: false,
         hasDeepseekKey: false,
-        googleServiceAccountPath: null,
         sttProvider: 'none',
         groqSttModel: 'whisper-large-v3-turbo',
         hasSttGroqKey: false,
         hasSttOpenaiKey: false,
-        hasDeepgramKey: false,
-        hasElevenLabsKey: false,
         hasAzureKey: false,
         azureRegion: 'eastus',
         hasIbmWatsonKey: false,
@@ -1065,8 +1050,6 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasSonioxKey: false,
         sttGroqKey: '',
         sttOpenaiKey: '',
-        sttDeepgramKey: '',
-        sttElevenLabsKey: '',
         sttAzureKey: '',
         sttIbmKey: '',
         sttSonioxKey: '',
@@ -1131,7 +1114,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle(
     'set-stt-provider',
-    async (_, provider: 'none' | 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox') => {
+    async (_, provider: 'none' | 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox') => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setSttProvider(provider), async () => {
       await appState.reconfigureSttProvider();
@@ -1181,30 +1164,10 @@ export function initializeIpcHandlers(appState: AppState): void {
     });
   });
 
-  safeHandle('set-deepgram-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setDeepgramApiKey(apiKey), async () => {
-      discardRemovedSttKey('deepgram', apiKey);
-      BrowserWindow.getAllWindows().forEach((win) => {
-        if (!win.isDestroyed()) win.webContents.send('credentials-changed');
-      });
-    });
-  });
-
   safeHandle('set-groq-stt-model', async (_, model: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setGroqSttModel(model), async () => {
       await appState.reconfigureSttProvider();
-    });
-  });
-
-  safeHandle('set-elevenlabs-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setElevenLabsApiKey(apiKey), async () => {
-      discardRemovedSttKey('elevenlabs', apiKey);
-      BrowserWindow.getAllWindows().forEach((win) => {
-        if (!win.isDestroyed()) win.webContents.send('credentials-changed');
-      });
     });
   });
 
@@ -1252,59 +1215,13 @@ export function initializeIpcHandlers(appState: AppState): void {
     'test-stt-connection',
     async (
       _,
-      provider: 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson' | 'soniox',
+      provider: 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox',
       apiKey: string,
       region?: string,
     ) => {
       console.log(`[IPC] Received test - stt - connection request for provider: ${provider} `);
       try {
-        if (!['groq', 'openai', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'soniox'].includes(provider)) return { success: false, error: 'Invalid STT provider' };
-        if (provider === 'deepgram') {
-          const WebSocket = require('ws');
-          const token = apiKey.trim();
-          return await new Promise<{ success: boolean; error?: string }>((resolve) => {
-            const url =
-              'wss://api.deepgram.com/v1/listen?model=nova-2&encoding=linear16&sample_rate=16000&channels=1';
-            const ws = new WebSocket(url, {
-              headers: { Authorization: `Token ${token}` },
-            });
-
-            const timeout = setTimeout(() => {
-              ws.close();
-              console.error('[IPC] Deepgram test failed: Connection timed out');
-              resolve({ success: false, error: 'Connection timed out' });
-            }, 15000);
-
-            ws.on('open', () => {
-              clearTimeout(timeout);
-              try {
-                ws.send(JSON.stringify({ type: 'CloseStream' }));
-              } catch {}
-              ws.close();
-              resolve({ success: true });
-            });
-
-            ws.on('unexpected-response', (request: any, response: any) => {
-              clearTimeout(timeout);
-              const status = response.statusCode;
-              let body = '';
-              response.on('data', (chunk: Buffer) => {
-                body += chunk.toString();
-              });
-              response.on('end', () => {
-                const errMsg = `Unexpected server response: ${status} - ${body}`;
-                console.error(`[IPC] Deepgram test failed: ${errMsg}`);
-                resolve({ success: false, error: errMsg });
-              });
-            });
-
-            ws.on('error', (err: any) => {
-              clearTimeout(timeout);
-              console.error(`[IPC] Deepgram test error: ${err.message}`);
-              resolve({ success: false, error: err.message || 'Connection failed' });
-            });
-          });
-        }
+        if (!['groq', 'openai', 'azure', 'ibmwatson', 'soniox'].includes(provider)) return { success: false, error: 'Invalid STT provider' };
 
         if (provider === 'soniox') {
           // Test Soniox via WebSocket connection.
@@ -1395,28 +1312,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         wavHeader.writeUInt32LE(pcmData.length, 40);
         const testWav = Buffer.concat([wavHeader, pcmData]);
 
-        if (provider === 'elevenlabs') {
-          // ElevenLabs: Use /v1/voices to validate the API key (minimal scope required).
-          // Scoped keys may lack speech_to_text or user_read but still be usable once permissions are added.
-          try {
-            await axios.get('https://api.elevenlabs.io/v1/voices', {
-              headers: { 'xi-api-key': apiKey },
-              timeout: 10000,
-            });
-          } catch (elErr: any) {
-            if (elErr?.response?.status >= 300 && elErr?.response?.status < 400) throw elErr;
-            const elStatus = elErr?.response?.data?.detail?.status;
-            // If the error is "invalid_api_key", the key itself is wrong — fail.
-            // Any other error (missing permission, etc.) means the key IS valid, just possibly scoped.
-            if (elStatus === 'invalid_api_key') {
-              throw elErr;
-            }
-            // Key is valid but scoped — pass with a warning
-            console.log(
-              '[IPC] ElevenLabs key is valid but may have restricted scopes. Saving key.',
-            );
-          }
-        } else if (provider === 'azure') {
+        if (provider === 'azure') {
           // Azure: raw binary with subscription key
           const azureRegion = region || 'eastus';
           await axios.post(
@@ -2098,24 +1994,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     },
   );
 
-  // Service Account Selection
-  safeHandle('select-service-account', async () => {
-    try {
-      const selected: any = await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'JSON', extensions: ['json'] }] });
-      if (selected.canceled || selected.filePaths.length === 0) return { cancelled: true };
-      const filePath = selected.filePaths[0];
-      const account = loadGoogleServiceAccount(filePath);
-      googleSpeechClientOptions(account);
-      const { CredentialsManager } = require('./services/CredentialsManager');
-      const result = await persistCredentials(
-        () => CredentialsManager.getInstance().setGoogleServiceAccountPath(filePath, account),
-        () => appState.updateGoogleCredentials(filePath, account),
-      );
-      return result.ok ? { ...result, path: filePath } : result;
-    } catch {
-      return { ok: false, code: 'write_failed', message: 'The service account file could not be selected or saved.' };
-    }
-  });
+
 
   // ==========================================
   // Theme System Handlers

@@ -3,7 +3,7 @@
  * Configuration for STT providers (Google gRPC, REST, WebSocket)
  */
 
-export type SttProviderId = 'google' | 'groq' | 'openai' | 'deepgram' | 'elevenlabs' | 'azure' | 'ibmwatson';
+export type SttProviderId = 'groq' | 'openai' | 'azure' | 'ibmwatson';
 
 export interface SttProviderConfig {
     id: SttProviderId;
@@ -23,15 +23,6 @@ export interface SttProviderConfig {
 }
 
 export const STT_PROVIDERS: Record<SttProviderId, SttProviderConfig> = {
-    google: {
-        id: 'google',
-        name: 'Google Cloud (Default)',
-        description: 'Uses gRPC streaming via Google Cloud Service Account',
-        endpoint: '', // Google uses gRPC, not REST
-        model: '',
-        authHeader: () => ({}),
-        responseContentPath: '',
-    },
     groq: {
         id: 'groq',
         name: 'Groq Whisper (Fast)',
@@ -65,30 +56,6 @@ export const STT_PROVIDERS: Record<SttProviderId, SttProviderConfig> = {
         }),
         responseContentPath: 'text',
     },
-    deepgram: {
-        id: 'deepgram',
-        name: 'Deepgram Nova-3',
-        description: 'Real-time streaming transcription via Deepgram WebSocket',
-        endpoint: 'wss://api.deepgram.com/v1/listen',
-        model: 'nova-3',
-        uploadType: 'websocket',
-        authHeader: (apiKey: string) => ({
-            Authorization: `Token ${apiKey}`,
-        }),
-        responseContentPath: 'channel.alternatives[0].transcript',
-    },
-    elevenlabs: {
-        id: 'elevenlabs',
-        name: 'ElevenLabs Scribe',
-        description: 'Scribe v2 Realtime API',
-        endpoint: 'https://api.elevenlabs.io/v1/speech-to-text',
-        model: 'scribe_v2',
-        uploadType: 'multipart',
-        authHeader: (apiKey: string) => ({
-            'xi-api-key': apiKey,
-        }),
-        responseContentPath: 'text',
-    },
     azure: {
         id: 'azure',
         name: 'Azure Speech',
@@ -117,5 +84,5 @@ export const STT_PROVIDERS: Record<SttProviderId, SttProviderConfig> = {
 
 export const STT_PROVIDER_OPTIONS = Object.values(STT_PROVIDERS);
 
-export const DEFAULT_STT_PROVIDER: SttProviderId = 'google';
+export const DEFAULT_STT_PROVIDER: SttProviderId = 'groq';
 
