@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-60a 等待推送及只读复查** — 实现 `e05ad25e`，本地 gates 单次 16/16；证据 `docs/margin/evidence/AG-60a/`，记录 PLAN §8。两个远端尚未上传，需确认目标；完成推送及 Claude 复查后才开始 AG-40。
+- **AG-60a 等待只读复查** — 实现 `e05ad25e`、记录 `4a782acc` 已按用户批准推送两个远端并核对，本地 gates 单次 16/16；证据 `docs/margin/evidence/AG-60a/`，记录 PLAN §8。Claude 复查完成后才开始 AG-40；阶段出口 CI 仍须用户批准。
 
 - **阶段 4–6 交给 Astra 执行**（S36）— 交接文档 `docs/margin/HANDOFF-stage4-6.md`：顺序 AG-60a → AG-40 → AG-41 → AG-42 →（阶段 4 出口）→ AG-50 → AG-51 →（阶段 5 出口）→ AG-60 → AG-61 → AG-62 →（阶段 6 出口）；每票 Claude 只读复查，出口 CI 须用户批准。复用依据见 PLAN §6"旧 Margin 复用清单（S35）"。
 
