@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-42 三项复查修正完成，待 Claude 完整门禁和复验** — 在 `3ff20cbc` / `3bfcbe47` 之后另起本地提交：恢复明确错误分类和断言、接共享翻译、finalize 尽力而为。定向 117/117；全量 970 项，968 通过、已知 iconutil 沙箱例外失败、1 个既有跳过。不推送；最终证据见 PLAN §8 和 `docs/margin/evidence/AG-42/`。阶段 4 出口 CI 仍须用户批准。
+- **阶段 4 出口 CI 等用户批准** — 阶段 4 的 ticket 全部完成：AG-60a、AG-40、AG-41a、AG-41b、AG-42 均经 Claude 复查，完整 gates 16/16。自验收见 PLAN §9"阶段 4 出口自验收"。CI 通过、核对产物后由用户签收，然后进入阶段 5（AG-50）。
 
 ## Waiting
 
