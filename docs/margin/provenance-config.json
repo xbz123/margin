@@ -11,6 +11,10 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"calls.length = 0;","reason":"AG-51: Generic test-array reset after preload initialization, isolating the new bridge calls from the preexisting logging-status call."},
+    {"line":"return settings;","reason":"AG-51: Generic return of the validated or saved local PromptSettings snapshot in read/save; new implementation uses Node primitives, not old SkillUploader logic."},
+    {"line":"store.clear();","reason":"AG-51: Generic invocation of the newly written recovery method in a synthetic storage test."},
+    {"line":"const { LLMHelper } = require('../../../dist-electron/electron/LLMHelper.js');","reason":"AG-51: CommonJS import of this branch's built LLMHelper for the mock consumer chain; not imported upstream test logic."},
     {"line":"const [confirmClear, setConfirmClear] = useState(false);","reason":"AG-50 recovery: Standard React boolean state for the newly written explicit destructive-action confirmation; no upstream UI logic imported."},
     {"line":"if (result.ok) {","reason":"AG-50 recovery: Generic success-result branch in LocalContextSettings.run, used to dismiss recovery only after a successful local operation."},
     {"line":"setConfirmClear(false);","reason":"AG-50 recovery: Standard React state update to close the confirmation after successful local recovery; no old implementation imported."},

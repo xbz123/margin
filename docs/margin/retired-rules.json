@@ -13,7 +13,8 @@
     "AG-41a",
     "AG-41b",
     "AG-42",
-    "AG-50"
+    "AG-50",
+    "AG-51"
   ],
   "scanRoots": [
     "electron",

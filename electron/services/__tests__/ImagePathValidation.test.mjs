@@ -22,6 +22,7 @@ function handlers(root, queue = []) {
     analyzeImageFiles: async (...args) => { sends.push(args); return 'answer'; },
     runGenerationStream: factory => factory(), streamChat: async function* (...args) { sends.push(args); yield 'answer'; },
     deniedDataScopes: () => [],
+    getPromptTier: () => 'standard',
   };
   const manager = { getFormattedContext: () => '', getLastAssistantMessage: () => null, addTranscript() {}, addAssistantMessage() {}, logUsage() {},
     resetEngine() { resets.push('engine'); }, reset() { resets.push('session'); },
@@ -35,6 +36,7 @@ function handlers(root, queue = []) {
       if (id === 'electron') return { app: { getPath: () => root }, ipcMain: { removeHandler() {}, handle: (name, callback) => callbacks.set(name, callback), removeAllListeners() {}, on() {} } };
       if (id === './utils/imagePathValidation') return { validateImagePath };
       if (id === './direct-assist/errors') return require('../../../dist-electron/electron/direct-assist/errors.js');
+      if (id === './llm/scenarioPrompts') return require('../../../dist-electron/electron/llm/scenarioPrompts.js');
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };

@@ -565,7 +565,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
   // Model Selection State
   const [currentModel, setCurrentModel] = useState<string>('gemini-3-flash-preview');
-  const [questionMode, setQuestionMode] = useState<'interview' | 'written'>('interview');
+  const [questionMode, setQuestionMode] = useState<'auto' | 'interview' | 'written'>('auto');
 
   // Dynamic Action Button Mode (Recap vs Brainstorm)
   const [actionButtonMode, setActionButtonMode] = useState<'recap' | 'brainstorm'>('recap');
@@ -2658,7 +2658,7 @@ Provide only the answer, nothing else.`;
         userText || 'Analyze this screenshot',
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         conversationContext, // Pass context so "answer this" works
-        { generationKind: questionMode },
+        { generationKind: questionMode === 'auto' ? undefined : questionMode },
       );
     } catch (err) {
       if (generationEpochRef.current !== epoch) return;
@@ -4520,10 +4520,11 @@ Provide only the answer, nothing else.`;
                                     tap and break inputs in Settings/Model
                                     Selector windows. */}
                 <label className="flex items-center gap-2 text-xs overlay-text-muted mb-2" data-stealth-ignore="true">
-                  Question mode
-                  <select aria-label="Question mode" value={questionMode} onChange={event => setQuestionMode(event.target.value as 'interview' | 'written')} className="bg-transparent border rounded px-2 py-1">
-                    <option value="interview">Interview</option>
-                    <option value="written">Written</option>
+                  {t('Question mode')}
+                  <select aria-label="Question mode" value={questionMode} onChange={event => setQuestionMode(event.target.value as 'auto' | 'interview' | 'written')} className="bg-transparent border rounded px-2 py-1">
+                    <option value="auto">{t('Automatic (by entry)')}</option>
+                    <option value="interview">{t('Interview')}</option>
+                    <option value="written">{t('Written')}</option>
                   </select>
                 </label>
                 <div className="relative group" data-stealth-engage="true">

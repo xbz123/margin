@@ -14,9 +14,11 @@ import { AppState } from './main';
 import { DEFAULT_CODEX_SOURCE_CONFIG } from '../src/types/codexSource';
 import { SettingsManager } from './services/SettingsManager';
 import { SkillsManager } from './services/SkillsManager';
+import { PromptSettingsError } from './services/PromptSettingsStore';
+import { scenarioPrompt } from './llm/scenarioPrompts';
+import type { PromptScene, PromptSettingsResult } from '../src/types/promptSettings';
 
 import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages';
-import { CHAT_MODE_PROMPT } from './llm/prompts';
 import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { outboundAxios as axios, openAiSttEndpoint } from './services/outbound';
 import { openExternalLink } from './services/navigationPolicy';
@@ -394,7 +396,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         const llmHelper = appState.processingHelper.getLLMHelper();
         myController = new AbortController();
         if (options?.generationKind !== undefined && !['interview', 'written'].includes(options.generationKind)) throw new Error('Invalid question mode');
-        const generationKind = options?.generationKind ?? 'interview';
+        const generationKind = options?.generationKind ?? 'written';
         chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal);
         chatTask.rendererOwner = event.sender;
         chatTask.deferVisibleText = true;
@@ -472,13 +474,8 @@ export function initializeIpcHandlers(appState: AppState): void {
           );
         }
 
-        // Use CHAT_MODE_PROMPT for general chat — bypasses the interview-copilot
-        // framing in HARD_SYSTEM_PROMPT/ASSIST_MODE_PROMPT that was causing coding
-        // questions to be answered with "At Aetherbot AI, I was responsible for..."
-        // (resume hijack via CONTEXT_INTELLIGENCE_LAYER's "you ARE the user").
-        const systemPromptOverride: string | undefined = options?.skipSystemPrompt
-          ? ''
-          : CHAT_MODE_PROMPT;
+        // Typed questions default to written; the existing Question mode can override it.
+        const systemPromptOverride = scenarioPrompt(generationKind, llmHelper.getPromptTier() === 'tiny');
 
         try {
           // USE streamChat which handles routing. Pass the abort signal as
@@ -492,7 +489,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             context,
             systemPromptOverride,
             options?.ignoreKnowledgeMode,
-            false, // skipModeInjection
+            true, // scenarioPrompt already includes the settled default layers
             [], // extraDataScopes
             myController!.signal,
           ), generationKind, myController.signal, chatTask);
@@ -1700,6 +1697,38 @@ export function initializeIpcHandlers(appState: AppState): void {
       throw error;
     }
   });
+
+  const promptOperation = (action: (event: any, input: any) => Promise<void> | void, changes = true) =>
+    async (event: any, input?: any): Promise<PromptSettingsResult> => {
+      try {
+        if (!BrowserWindow.fromWebContents(event.sender)) throw new PromptSettingsError('The settings window is unavailable.');
+        await action(event, input);
+        const settings = SkillsManager.getInstance().promptSettings().read();
+        if (changes) appState.processingHelper.getLLMHelper().cancelGenerationTasks('Prompt settings changed');
+        return { ok: true, settings };
+      } catch (error) {
+        // Main and standalone service bundles have separate class identities.
+        const failure = error as PromptSettingsError;
+        return { ok: false, error: failure?.name === 'PromptSettingsError' ? failure.message : 'Prompt settings could not be saved. Previous settings were kept.',
+          recovery: failure?.name === 'PromptSettingsError' && failure.recovery === true };
+      }
+    };
+  safeHandle('prompt-settings:get', promptOperation(() => {}, false));
+  safeHandle('prompt-settings:save', promptOperation((_event, input) => {
+    if (!input || typeof input !== 'object') throw new PromptSettingsError('Invalid prompt settings.');
+    SkillsManager.getInstance().promptSettings().configure(input.scene as PromptScene, input.skillId, input.additional);
+  }));
+  safeHandle('prompt-settings:clear', promptOperation(() => { SkillsManager.getInstance().promptSettings().clear(); }));
+  safeHandle('prompt-settings:remove', promptOperation((_event, id) => {
+    if (typeof id !== 'string') throw new PromptSettingsError('Invalid prompt skill.');
+    SkillsManager.getInstance().promptSettings().remove(id);
+  }));
+  safeHandle('prompt-settings:import', promptOperation(async event => {
+    const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
+      properties: ['openFile'], filters: [{ name: 'Prompt Skill', extensions: ['md'] }],
+    }) as unknown as Electron.OpenDialogReturnValue;
+    if (!selected.canceled && selected.filePaths.length === 1) SkillsManager.getInstance().importPromptSkill(selected.filePaths[0]);
+  }));
 
   // MODE 2: User-triggered answer using the current session.
   //

@@ -1098,7 +1098,7 @@ export const DEFAULT_ANSWER_PROMPT_SUFFIX: string = (() => {
 // <creator_identity> deflection (handled by pre-filter regex in IPC),
 // no <strict_behavior_rules> greeting fallback, no "you ARE the candidate"
 // framing. Small models stop firing the wrong canned reply.
-export const CHAT_MODE_PROMPT = `
+export const WRITTEN_BASE_PROMPT = `
 <core_identity>
 You are Margin, a helpful AI assistant.
 </core_identity>
@@ -1123,7 +1123,9 @@ ASSISTANT IDENTITY IS NEVER THE USER'S IDENTITY:
 The name "Margin" describes ONLY this assistant. It is NEVER the user's name, the candidate's name, the speaker's name, or a real person in any meeting, interview, sales call, or lecture context. In any first-person voice output (live modes that speak as the user), do NOT introduce the speaker as "Margin". If the user's actual name is not provided in grounded context (resume, candidate profile, custom notes), open WITHOUT a name — never invent or borrow the assistant's name as the user's identity. This is a critical failure mode.
 </security>
 
-<style>
+`;
+
+export const WRITTEN_SCENE_PROMPT = `<style>
 - Answer the question directly. No preamble like "Sure!", "Of course!", "Here's...".
 - No trailing pleasantries ("Let me know if you need more...", "Hope that helps!").
 - Use markdown. Fenced code blocks with language tags for code.
@@ -1140,6 +1142,8 @@ When the user asks for code:
 - Do NOT speak in first person ("In my experience..."). The user wants the code, not a candidate's monologue.
 </coding>
 `;
+
+export const CHAT_MODE_PROMPT = WRITTEN_BASE_PROMPT + WRITTEN_SCENE_PROMPT;
 
 // ==========================================
 // GENERIC / LEGACY SUPPORT
@@ -1198,11 +1202,13 @@ RULES:
  * UNIVERSAL: What To Answer (Strategic Response)
  * Generates exactly what the candidate should say next.
  */
-export const UNIVERSAL_WHAT_TO_ANSWER_PROMPT = `${CORE_IDENTITY}
+export const INTERVIEW_BASE_PROMPT = `${CORE_IDENTITY}
 ${EXECUTION_CONTRACT}
 ${CONTEXT_INTELLIGENCE_LAYER}
 ${SHARED_CODING_RULES}
-If <active_mode_custom_instructions> is present, it is the highest-priority behavior contract. Follow its role, language, format, and interview style over the generic candidate rules below.
+`;
+
+export const INTERVIEW_SCENE_PROMPT = `If <active_mode_custom_instructions> is present, it is the highest-priority behavior contract. Follow its role, language, format, and interview style over the generic candidate rules below.
 If a <current_turn> block is present, it is the newest live turn. Respond to it first and use older transcript content only as background. Do not continue an older topic unless the current turn asks for it.
 For custom discovery/interviewer modes, every follow-up question must be grounded in a concrete noun, role, system, document, pain point, or requested next step from <current_turn>. Do not ask about older transcript details unless they directly connect to the newest client answer.
 If <current_turn> lists goals, improvements, priorities, recommendations, or closing needs, move the meeting forward: ask about priority, owner, success criteria, workshop order, go-live risk, or next step. Do not restart detailed discovery from an older area.
@@ -1225,6 +1231,8 @@ RULES:
 5. Must sound like a real person in the live conversation. Answer → Stop.
 
 Output ONLY the answer. Nothing else.`;
+
+export const UNIVERSAL_WHAT_TO_ANSWER_PROMPT = INTERVIEW_BASE_PROMPT + INTERVIEW_SCENE_PROMPT;
 
 /**
  * UNIVERSAL: Recap / Summary

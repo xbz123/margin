@@ -20,6 +20,7 @@ test('AG60a mounted Skills settings switch language without resetting controls o
     window.changeLanguage = setUiLanguage;
     window.refreshes = 0; window.folderOpens = 0;
     window.electronAPI = {
+      getPromptSettings: async () => ({ ok: true, settings: { skills: [], scenes: { interview: { skillId: null, additional: '' }, written: { skillId: null, additional: '' } } } }),
       skillsRefresh: async () => { window.refreshes++; return []; },
       skillsOpenFolder: async () => { window.folderOpens++; return { success: true, path: '/synthetic/skills' }; }
     };

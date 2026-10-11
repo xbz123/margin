@@ -1,6 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
-import { UNIVERSAL_WHAT_TO_ANSWER_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX } from "./prompts";
-import { TINY_WHAT_TO_ANSWER_PROMPT } from "./tinyPrompts";
+import { scenarioPrompt, appendPromptGuidance } from './scenarioPrompts';
 import { estimateTokens } from "./modelCapabilities";
 import { TemporalContext } from "./TemporalContextBuilder";
 import { IntentResult } from "./IntentClassifier";
@@ -44,8 +43,7 @@ export class WhatToAnswerLLM {
         intentResult?: IntentResult,
         imagePaths?: string[],
         screenContext?: ScreenContext,
-        // When set, the skill's promptBlock REPLACES the default answer suffix —
-        // the skill defines the entire intent.
+        // Supplemental only; never replace the settled default prompt.
         activeSkill?: { id: string; name: string; promptBlock: string }
     ): AsyncGenerator<string> {
         const MEASURE = process.env.MEASURE_LATENCY === 'true';
@@ -95,13 +93,11 @@ ANSWER SHAPE: ${intentResult.answerShape}
         // suffix (formerly the active General mode, PLAN.md AG-13) is layered on top.
         if (MEASURE) tMode = performance.now();
 
-        const basePrompt = this.llmHelper.getPromptTier() === 'tiny'
-            ? TINY_WHAT_TO_ANSWER_PROMPT
-            : UNIVERSAL_WHAT_TO_ANSWER_PROMPT;
-
+        const basePrompt = scenarioPrompt('interview', this.llmHelper.getPromptTier() === 'tiny');
         const finalPromptOverride = activeSkill
-            ? `${basePrompt}\n\n## ACTIVE SKILL\n${activeSkill.promptBlock}`
-            : `${basePrompt}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
+            ? appendPromptGuidance(basePrompt, 'interview', { skills: [{ ...activeSkill, description: '', instructions: activeSkill.promptBlock }],
+                scenes: { interview: { skillId: activeSkill.id, additional: '' }, written: { skillId: null, additional: '' } } })
+            : basePrompt;
 
         // Earlier answers are profile_history data: leave them out when the user has
         // denied that scope (PLAN.md AG-17 fourth review).

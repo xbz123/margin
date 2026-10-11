@@ -519,8 +519,23 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
     assert.equal(mock.chatRequests().length, beforeCapture + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
   } finally {
-    await overlay.getByLabel('Question mode').selectOption('interview');
+    await overlay.getByLabel('Question mode').selectOption('auto');
   }
+});
+
+test('AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire', async () => {
+  const { scenarioPrompt } = require('../../dist-electron/electron/llm/scenarioPrompts.js');
+  try {
+    for (const [selection, scene] of [['auto', 'written'], ['interview', 'interview'], ['written', 'written']]) {
+      await overlay.getByLabel('Question mode').selectOption(selection);
+      const answer = `AG51 ${selection} completed.`;
+      mock.setScript({ errorStatus: 0, chunks: [answer], delayMs: 20 });
+      await ask(`AG51 synthetic ${selection} question`);
+      await overlay.getByText(answer, { exact: true }).waitFor();
+      const system = mock.chatRequests().at(-1).body.messages.find(message => message.role === 'system').content;
+      assert.ok(system.startsWith(scenarioPrompt(scene)));
+    }
+  } finally { await overlay.getByLabel('Question mode').selectOption('auto'); }
 });
 
 test('AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder', async () => {

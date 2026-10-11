@@ -1,6 +1,7 @@
 import { app, shell } from 'electron';
 import fs from 'fs';
 import path from 'path';
+import { PromptSettingsStore, PromptSettingsError, parsePromptSkill, readPromptFile } from './PromptSettingsStore';
 
 export type SkillSource = 'userData' | 'builtin';
 
@@ -574,6 +575,15 @@ export class SkillsManager {
     this.ensureSkillsDir();
     this.ensureBuiltinSkills();
     return this.skillsDir;
+  }
+
+  public promptSettings(): PromptSettingsStore {
+    return new PromptSettingsStore(path.join(app.getPath('userData'), 'prompt-settings.json'));
+  }
+
+  public importPromptSkill(file: string) {
+    if (!/\.md$/i.test(file)) throw new PromptSettingsError('Select a regular UTF-8 SKILL.md file up to 32 KiB.');
+    return this.promptSettings().install(parsePromptSkill(readPromptFile(file)));
   }
 
   public listSkills(): SkillSummary[] {

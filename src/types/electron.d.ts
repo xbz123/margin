@@ -5,6 +5,11 @@ import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResul
 
 import type { DomesticSttProvider, DomesticSttSettings } from './domesticStt';
 export interface ElectronAPI {
+  getPromptSettings: () => Promise<import('./promptSettings').PromptSettingsResult>;
+  savePromptSettings: (input: { scene: import('./promptSettings').PromptScene; skillId: string | null; additional: string }) => Promise<import('./promptSettings').PromptSettingsResult>;
+  clearPromptSettings: () => Promise<import('./promptSettings').PromptSettingsResult>;
+  importPromptSkill: () => Promise<import('./promptSettings').PromptSettingsResult>;
+  removePromptSkill: (id: string) => Promise<import('./promptSettings').PromptSettingsResult>;
   listLocalContext: () => Promise<import('./localContext').LocalContextResult>;
   clearLocalContext: () => Promise<import('./localContext').LocalContextResult>;
   addLocalContext: () => Promise<import('./localContext').LocalContextResult>;

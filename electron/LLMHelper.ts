@@ -23,6 +23,8 @@ import { generateOnce } from './llm/generateOnce';
 import { app } from 'electron';
 import { join } from 'node:path';
 import { LocalContextStore } from './services/LocalContextStore';
+import { PromptSettingsStore } from './services/PromptSettingsStore';
+import { scenarioPrompt, appendPromptGuidance } from './llm/scenarioPrompts';
 import { attachLocalContext } from './llm/localContextRequest';
 import { GenerationResultError, rethrowTerminalGenerationError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
 import { assertProviderDataScopes, getDeniedDataScopes, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
@@ -1042,7 +1044,11 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // Determine the system prompt to use
     // logic: if override provided, use it. otherwise use HARD_SYSTEM_PROMPT (which is the universal base)
     const baseSystemPrompt = systemPromptOverride || HARD_SYSTEM_PROMPT;
-    const finalSystemPrompt = this.injectLanguageInstruction(baseSystemPrompt);
+    const scene = baseSystemPrompt === scenarioPrompt('written') ? 'written'
+      : baseSystemPrompt.startsWith(scenarioPrompt('interview')) || baseSystemPrompt.startsWith(scenarioPrompt('interview', true)) ? 'interview' : undefined;
+    const supplemented = scene ? appendPromptGuidance(baseSystemPrompt, scene,
+      new PromptSettingsStore(join(app.getPath('userData'), 'prompt-settings.json')).read()) : baseSystemPrompt;
+    const finalSystemPrompt = this.injectLanguageInstruction(supplemented);
     const cloudCombinedContext = context;
 
     // Helper to build combined user message

@@ -21,6 +21,52 @@ Notes:
 
 ## Ledger
 
+### AG-51 prompt layers and prompt-only Skills (2026-10-11)
+
+Written on this branch from HANDOFF 4.6 and PLAN S29. No dependencies, assets,
+post-June upstream implementation or old implementation fragments are imported.
+Not a clean-room claim. Old Margin was inspected only with `git show b8ade3f7:<path>`.
+
+The starting `SkillsManager.ts` is byte-identical to baseline `a786910e` (empty
+baseline diff at `dd6ef564`); it therefore falls under this ledger's baseline
+rule, not an unrecorded old-Margin import. Its library/parser/builtin text remains
+unchanged. New methods delegate prompt installation to an independent local
+snapshot store. `activeSkill` and the replacement behavior also exist in baseline
+WhatToAnswerLLM; the option remains compatible but now appends supplemental guidance
+instead of removing DEFAULT_ANSWER_PROMPT_SUFFIX. The live selected Skill is
+resolved from local settings at the shared stream consumer, not renderer text.
+
+| Old candidate | Disposition |
+| --- | --- |
+| `electron/services/skills/PromptSkillImporter.ts` | Behavior reference only; all 191 lines excluded. Native selection + validation + local installation are implemented against this branch, without the upload outcome/type system, folder attachments or Local Context dependency. Hit 19 `super(message);`, 49 `let fd: number \| undefined;`, 82 `let text: string;`, and 185 `return outcome;` are all excluded with the old file, not cosmetically edited. |
+| `SkillValidator.ts`, `SkillUploader.ts`, old `LocalContextStore.ts` | Not read or imported for AG-51. New PromptSettingsStore owns its schema, limits, bounded descriptor reads and atomic snapshot replacement. AG-50 storage is not shared. |
+| `electron/services/__tests__/PromptSkillConsumerChain.test.mjs` | Behavior reference only. All old lines excluded, including hits 28, 32, 62, 80 and snapshot 1–6, 26–27, 66–67. The new test drives current IPC, IntelligenceManager/Engine, AG-42 preparation, WhatToAnswer and stage-3 mock Chat Completions. No old DirectAssistService/generateAnswer contract is reconstructed. |
+| Old `PromptSkillImporter.test.mjs` | Not imported: hits 30, 39, 52, 67, 115, 137 and snapshot 2–3, 5 remain excluded. New behavior tests exercise this branch's store and native-dialog selection. |
+| Old `SkillsSettings.tsx` | No old body used. Its hits 261/291, all 10 near-snapshot and 105 snapshot lines listed in S35 remain excluded, together with adjacent short lines. Existing branch SkillsSettings stays a library view; a new SettingsKit/useI18n card handles installed copies and scene preferences. |
+| Other S35 AG-51 tests (`CodeHintV3Adoption`, `ProactiveV3PromptSubstitution`, `ResponseLanguageUnified`, `modePrompts`, `Issue303SkillInvocation`, old `SkillsIpcWiring`) | Not imported, including every S35 hit/near-snapshot/snapshot range. No retired modes or automatic answers return. Existing branch tests remain; ImagePathValidation's stub gains current scene prompt resolution and prompt tier only. |
+
+Default strings are split at their existing boundaries, not rewritten. Tests bind
+the joined written and interview strings to SHA-256 values from `dd6ef564` (see
+AG-51 README). The base retains the already-settled identity/security variant of
+each prompt; forcing a single identical identity paragraph would change S29 text.
+Tiny-tier interview text and the default suffix remain unchanged.
+
+Five new G2 occurrences (four distinct generic statements) are registered exactly
+in provenance-config.json, with no source-pool or exclusion changes:
+
+| New location | Exact line | Judgment |
+| --- | --- | --- |
+| PromptSettingsStore.read | `return settings;` | Return newly validated snapshot; ordinary control flow |
+| PromptSettingsStore.save | `return settings;` | Return committed snapshot; ordinary control flow |
+| PromptSkillConsumerChain storage recovery test | `store.clear();` | Invoke this branch's recovery method |
+| PromptSkillConsumerChain protocol test | `const { LLMHelper } = require('../../../dist-electron/electron/LLMHelper.js');` | Import the current compiled consumer for behavioral testing |
+| PromptSettingsUi preload test | `calls.length = 0;` | Reset the mock call log after existing preload initialization |
+
+Existing approved generic idioms are reused unchanged. No scanner-evasion edits,
+deleted tests or new skips. The existing Electron renderer gate gets a synthetic
+settings API and request-level scene assertions; only syntax is checked here.
+Full Electron gates and Claude review are pending, not claimed by local results.
+
 ### AG-50 full-text Local Context (2026-10-11)
 
 Review repair (2026-10-11): written from Claude's unreadable-storage finding.

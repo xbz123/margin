@@ -20,6 +20,7 @@ export function manualAnswerError(error: unknown): string {
     case 'ProviderScopeError': return 'Data scope denied. Check Data Scopes in Settings.';
     case 'InvalidImagePathError': return 'Invalid image path';
     case 'LocalContextError': return 'Local Context could not be read. Check its local storage.';
+    case 'PromptSettingsError': return 'Prompt settings could not be read. Clear them in Settings to recover.';
     case 'LocalContextCapacityError': return LOCAL_CONTEXT_CAPACITY_MESSAGE;
     default: return MANUAL_ANSWER_FAILED;
   }

@@ -3,6 +3,7 @@ import { CheckCircle, FolderOpen, RefreshCw, Sparkles } from 'lucide-react';
 import type { SkillSummary } from '../../types/electron';
 import { useI18n } from '../../i18n';
 import { SettingsCard, SettingsHeading } from './SettingsKit';
+import { PromptSettings } from './PromptSettings';
 
 export const SkillsSettings: React.FC = () => {
     const { t } = useI18n();
@@ -49,8 +50,9 @@ export const SkillsSettings: React.FC = () => {
 
     return (
         <div className="space-y-5 animated fadeIn select-text pb-4">
+            <PromptSettings />
             <div className="flex items-start justify-between gap-4">
-                <SettingsHeading title={t('Skills')} description="Local SKILL.md instructions that can be invoked from the overlay dropdown or by typing $skill-name or /skill-name." />
+                <SettingsHeading title={t('Skills')} description={t('Local Skill library. Import and install a prompt copy above to select it for a scenario.')} />
                 <button
                     onClick={loadSkills}
                     disabled={loading}

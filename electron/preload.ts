@@ -49,6 +49,11 @@ window.addEventListener('auxclick', openClickedLink);
 
 // Types for the exposed Electron API
 interface ElectronAPI {
+  getPromptSettings: () => Promise<import('../src/types/promptSettings').PromptSettingsResult>;
+  savePromptSettings: (input: { scene: import('../src/types/promptSettings').PromptScene; skillId: string | null; additional: string }) => Promise<import('../src/types/promptSettings').PromptSettingsResult>;
+  clearPromptSettings: () => Promise<import('../src/types/promptSettings').PromptSettingsResult>;
+  importPromptSkill: () => Promise<import('../src/types/promptSettings').PromptSettingsResult>;
+  removePromptSkill: (id: string) => Promise<import('../src/types/promptSettings').PromptSettingsResult>;
   listLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
   clearLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
   addLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
@@ -552,6 +557,11 @@ const cancelActiveIntelligence = () => {
 };
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  getPromptSettings: () => ipcRenderer.invoke('prompt-settings:get'),
+  savePromptSettings: (input) => ipcRenderer.invoke('prompt-settings:save', input),
+  clearPromptSettings: () => ipcRenderer.invoke('prompt-settings:clear'),
+  importPromptSkill: () => ipcRenderer.invoke('prompt-settings:import'),
+  removePromptSkill: (id) => ipcRenderer.invoke('prompt-settings:remove', id),
   listLocalContext: () => ipcRenderer.invoke('local-context:list'),
   clearLocalContext: () => ipcRenderer.invoke('local-context:clear'),
   addLocalContext: () => ipcRenderer.invoke('local-context:add'),
