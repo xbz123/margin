@@ -23,6 +23,29 @@ Notes:
 
 ### AG-42 manual answer (2026-10-11)
 
+Review repair after `3ff20cbc` / `3bfcbe47`: written from Claude's three findings,
+using this branch's ProviderScopeError, shared image validator, i18n hook and STT
+session. No additional old Margin/upstream files were read or imported. Local
+scope, invalid-image, configuration and cancelled outcomes use distinct fixed
+English strings; provider/unknown errors remain generic. No provider message
+content is used to classify a failure. Error names retain the branch's existing
+cross-bundle convention. Chinese UI text lives in i18n.zh.ts and is displayed
+through useI18n. Non-cancellation mic-finalize failures only emit a fixed warning
+and use available context; the renderer also keeps retained speech after IPC
+finalize rejection and fences a cancelled/superseded wait.
+
+The image-path test now separates invocation rejection from result assertions,
+so an AssertionError cannot satisfy its own Invalid-image-path exception check.
+The Electron regression again requires exactly one Data-scope-denied message and
+zero sends. Added tests exercise the production recording callback and answer row,
+both UI languages, fixed warnings, best-effort generation and cancellation.
+No tests were deleted or skipped. Two exact generic G2 matches are registered:
+`assert.equal(warnings.length, 0);` (MeetingSttSession test, cancelled wait emits no
+warning) and `assert.equal(warnings.length, 1);` (manualAnswerRenderer test, one
+fixed warning on finalize rejection). No source pool/exclusion changes or scan
+evasion edits were made. The statements below remain the initial implementation's
+dispositions, not new approvals of old code.
+
 Written for this branch from HANDOFF 4.4 and the existing stage-3 contract. This is
 not a clean-room claim. No later upstream implementation, dependency or asset is
 imported. The request/event mapping and existing caller chain are documented in

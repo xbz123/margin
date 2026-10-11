@@ -26,16 +26,22 @@ test('AG42 finalize waits for only the microphone final and removes temporary li
 });
 
 test('AG42 finalize is bounded and cancellation detaches the waiting listener', async () => {
-  const { session } = fixture(); session.begin('manual'); const mic = session.ensure('user');
+  const { session, warnings } = fixture(); session.begin('manual'); const mic = session.ensure('user');
   const count = mic.listenerCount('transcript');
   await session.finalizeUser(undefined, 5);
   const controller = new AbortController();
   const pending = session.finalizeUser(controller.signal, 1000);
   controller.abort(); await assert.rejects(pending, { name: 'AbortError' });
+  assert.equal(warnings.length, 0);
   assert.equal(mic.listenerCount('transcript'), count);
   mic.finalize = async () => { throw Error('synthetic finalization failure'); };
-  await assert.rejects(session.finalizeUser(undefined, 1000));
+  await session.finalizeUser(undefined, 1000);
   assert.equal(mic.listenerCount('transcript'), count);
+  assert.deepEqual(warnings, [['[ManualAnswer] Microphone finalization failed; using available transcript.']]);
+  mic.finalize = () => { throw Object.assign(Error('PRIVATE_PROVIDER_ABORT'), { name: 'AbortError' }); };
+  await session.finalizeUser(undefined, 1000);
+  assert.equal(warnings.length, 2, 'a provider AbortError without user cancellation is still best effort');
+  assert.doesNotMatch(JSON.stringify(warnings), /PRIVATE_PROVIDER_ABORT|synthetic finalization failure/);
 });
 
 test('a declined provider factory stays absent without inventing a configured provider', () => {
@@ -58,7 +64,9 @@ function fixture(createProvider) {
   const source = fs.readFileSync(new URL('../MeetingSttSession.ts', import.meta.url), 'utf8');
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const exports = {};
-  vm.runInNewContext(code, { exports, setTimeout, clearTimeout, Promise, Error, Set, Map, Date, Array, Object });
+  const warnings = [];
+  vm.runInNewContext(code, { exports, setTimeout, clearTimeout, Promise, Error, Set, Map, Date, Array, Object,
+    console: { warn: (...args) => warnings.push(args) } });
   const events = [];
   const makeProvider = createProvider ?? (() => {
     const emitter = new EventEmitter();
@@ -72,7 +80,7 @@ function fixture(createProvider) {
     create: makeProvider,
     onTranscript: event => events.push(event),
   });
-  return { session, events, MeetingSttSession: exports.MeetingSttSession };
+  return { session, events, warnings, MeetingSttSession: exports.MeetingSttSession };
 }
 
 test('interleaved provider item IDs retain identity and monotone revisions', () => {

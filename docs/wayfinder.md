@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-42 待 Claude 完整门禁和复查** — `3ff20cbc` 实现及本地检查通过，定向 108/108；全量 965 项仅已知 iconutil 沙箱例外失败、1 个既有跳过。本地提交、不推送；入口/来源/证据见 PLAN §8 和 `docs/margin/evidence/AG-42/`。阶段 4 出口 CI 仍须用户批准。
+- **AG-42 三项复查修正完成，待 Claude 完整门禁和复验** — 在 `3ff20cbc` / `3bfcbe47` 之后另起本地提交：恢复明确错误分类和断言、接共享翻译、finalize 尽力而为。定向 117/117；全量 970 项，968 通过、已知 iconutil 沙箱例外失败、1 个既有跳过。不推送；最终证据见 PLAN §8 和 `docs/margin/evidence/AG-42/`。阶段 4 出口 CI 仍须用户批准。
 
 ## Waiting
 

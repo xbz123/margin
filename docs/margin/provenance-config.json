@@ -11,6 +11,8 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"assert.equal(warnings.length, 0);","reason":"AG-42 review repair: Generic count assertion that user cancellation emits no best-effort STT warning; this synthetic behavior test was written here."},
+    {"line":"assert.equal(warnings.length, 1);","reason":"AG-42 review repair: Generic count assertion for one fixed warning after a synthetic renderer finalize rejection; no upstream test logic is imported."},
     {"line":"await new Promise<void>((resolve, reject) => {","reason":"AG-42: Standard typed Promise construction for a locally written bounded STT final-event wait; no upstream wait implementation is imported."},
     {"line":"if (error) reject(error); else resolve();","reason":"AG-42: Standard Promise settlement after listener cleanup; the local callback receives only finalization failure or abort."},
     {"line":"await pending;","reason":"AG-42: Generic test await for the synthetic microphone final event, not an imported test scenario implementation."},

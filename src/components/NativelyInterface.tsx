@@ -1,4 +1,5 @@
 import { APP_NAME } from '../appIdentity';
+import { useI18n } from '../i18n';
 import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion';
 import {
   ArrowRight,
@@ -290,6 +291,7 @@ const MessageRow = React.memo(
     onCopy,
     renderMessageText,
   }: MessageRowProps) {
+    const { t } = useI18n();
     const isCodeMsg = msg.role === 'system' && (msg.isCode || msg.text.includes('```'));
     // bubbleMaxClass: user bubbles are tighter; system + code use the same width.
     const bubbleMaxClass =
@@ -348,7 +350,7 @@ const MessageRow = React.memo(
             )}
             {renderMessageText(msg)}
             {msg.generation && <div className="text-[10px] opacity-60 mt-1" data-generation-status={msg.generation.status}>
-              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status === 'cancelled' ? '已取消' : msg.generation.status}
+              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status === 'cancelled' ? t('Cancelled') : msg.generation.status}
             </div>}
           </div>
         </div>
@@ -369,6 +371,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   interfaceTheme = 'default',
 }) => {
   const isLightTheme = useResolvedTheme() === 'light';
+  const { t } = useI18n();
   const isGlassTheme = interfaceTheme === 'liquid-glass';
   const isModernTheme = interfaceTheme === 'modern';
   const shellRef = React.useRef<HTMLDivElement>(null);
@@ -2061,7 +2064,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       if (result.answer == null) {
         if (streamingTextRef.current) flushToken();
         const feedback =
-          (result.error ? `❌ Error (what_to_say): ${result.error}` : undefined) ??
+          (result.error ? `❌ Error (what_to_say): ${t(result.error)}` : undefined) ??
           'Could not generate an answer yet. Wait a few seconds after speech and try again.';
         // CRITICAL ORDERING: clear streaming refs and wipe imperative DOM
         // BEFORE the `setMessages` that commits the null-feedback. The old
@@ -2095,7 +2098,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${err}`,
+          text: `Error: ${t('Answer failed. Check the model configuration and try again.')}`,
         },
       ]);
       pinAnswerPanel();
@@ -2405,7 +2408,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       if (!tryBeginOverlayAction('answer_now')) return;
       const epoch = ++generationEpochRef.current;
       try {
-        await window.electronAPI.finalizeMicSTT();
+        await window.electronAPI.finalizeMicSTT().catch(() => {
+          console.warn('[ManualAnswer] Microphone finalization failed; using available transcript.');
+        });
         if (generationEpochRef.current !== epoch) return;
         // Stop recording - send accumulated voice input to Gemini
         isRecordingRef.current = false;
@@ -2545,10 +2550,6 @@ Provide only the answer, nothing else.`;
             ];
           });
         }
-      } catch {
-        if (generationEpochRef.current === epoch) setMessages(prev => [...prev, {
-          id: genMessageId(), role: 'system', text: '语音转写未完成，请稍后重试。',
-        }]);
       } finally { endOverlayAction('answer_now'); }
     } else {
       // Start recording - reset voice input state

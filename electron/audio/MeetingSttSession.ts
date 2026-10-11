@@ -139,21 +139,26 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     signal?.throwIfAborted();
     const mic = this.get('user');
     if (!this.session || this.draining || !mic?.finalize) return;
-    await new Promise<void>((resolve, reject) => {
-      const finish = (error?: unknown) => {
-        clearTimeout(timer);
-        mic.removeListener('transcript', onTranscript);
-        signal?.removeEventListener('abort', onAbort);
-        if (error) reject(error); else resolve();
-      };
-      const onTranscript = (event: SttTranscript) => { if (event.isFinal) finish(); };
-      const onAbort = () => finish(signal?.reason);
-      // Some providers only acknowledge via a final transcript; silence has no acknowledgement.
-      const timer = setTimeout(finish, timeoutMs);
-      mic.on('transcript', onTranscript);
-      signal?.addEventListener('abort', onAbort, { once: true });
-      try { Promise.resolve(mic.finalize!()).catch(finish); } catch (error) { finish(error); }
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const finish = (error?: unknown) => {
+          clearTimeout(timer);
+          mic.removeListener('transcript', onTranscript);
+          signal?.removeEventListener('abort', onAbort);
+          if (error) reject(error); else resolve();
+        };
+        const onTranscript = (event: SttTranscript) => { if (event.isFinal) finish(); };
+        const onAbort = () => finish(signal?.reason);
+        // Some providers only acknowledge via a final transcript; silence has no acknowledgement.
+        const timer = setTimeout(finish, timeoutMs);
+        mic.on('transcript', onTranscript);
+        signal?.addEventListener('abort', onAbort, { once: true });
+        try { Promise.resolve(mic.finalize!()).catch(finish); } catch (error) { finish(error); }
+      });
+    } catch {
+      signal?.throwIfAborted();
+      console.warn('[ManualAnswer] Microphone finalization failed; using available transcript.');
+    }
   }
 
   async stopChannels(timeoutMs = 5000): Promise<void> {

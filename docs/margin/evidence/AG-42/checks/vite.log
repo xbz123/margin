@@ -75,10 +75,10 @@ dist/assets/index-CgvuF6yW.css                           150.62 kB │ gzip:  27
 dist/assets/Cropper-9nosM__k.js                            4.11 kB │ gzip:   1.71 kB
 dist/assets/ui-B9Pc5Hv_.js                                68.00 kB │ gzip:  18.79 kB
 dist/assets/vendor-C6xqPYM1.js                           135.44 kB │ gzip:  44.70 kB
-dist/assets/index.es-DoVz_Ghj.js                         150.31 kB │ gzip:  51.30 kB
+dist/assets/index.es-8EmOCKlh.js                         150.31 kB │ gzip:  51.29 kB
 dist/assets/html2canvas.esm-CBrSDip1.js                  201.42 kB │ gzip:  47.70 kB
-dist/assets/index-D8wRoTOx.js                          2,158.36 kB │ gzip: 678.24 kB
-✓ built in 4.97s
+dist/assets/index-AvmnOlOw.js                          2,158.75 kB │ gzip: 678.45 kB
+✓ built in 5.94s
 [plugin:vite:reporter] [plugin vite:reporter] 
 (!) <worktree>/src/lib/sttErrorMapper.ts is dynamically imported by <worktree>/src/components/NativelyInterface.tsx but also statically imported by <worktree>/src/components/ui/RollingTranscript.tsx, dynamic import will not move module into another chunk.
 

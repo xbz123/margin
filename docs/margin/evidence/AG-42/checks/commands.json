@@ -62,7 +62,9 @@
       "electron/audio/__tests__/MeetingSttSession.test.mjs",
       "electron/services/__tests__/ManualAnswerBridge.test.mjs",
       "electron/services/__tests__/ImagePathValidation.test.mjs",
-      "electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs"
+      "electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs",
+      "src/lib/__tests__/settingsFoundation.test.mjs",
+      "src/lib/__tests__/manualAnswerRenderer.test.mjs"
     ],
     "exitCode": 0
   },

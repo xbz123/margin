@@ -1,11 +1,22 @@
-export const MANUAL_ANSWER_FAILED = '回答失败，请检查模型配置后重试。';
-export const MANUAL_ANSWER_UNCONFIGURED = '请先配置回答模型及其凭据。';
+export const MANUAL_ANSWER_FAILED = 'Answer failed. Check the model configuration and try again.';
+export const MANUAL_ANSWER_UNCONFIGURED = 'Configure an answer model and its credentials first.';
+export const MANUAL_ANSWER_CANCELLED = 'Cancelled';
 
 export class ManualAnswerConfigurationError extends Error {
   constructor() { super(MANUAL_ANSWER_UNCONFIGURED); this.name = 'ManualAnswerConfigurationError'; }
 }
 
+export class InvalidImagePathError extends Error {
+  constructor() { super('Invalid image path'); this.name = 'InvalidImagePathError'; }
+}
+
 // Only locally assigned error types select UI text; provider messages are never inspected.
 export function manualAnswerError(error: unknown): string {
-  return (error as Error)?.name === 'ManualAnswerConfigurationError' ? MANUAL_ANSWER_UNCONFIGURED : MANUAL_ANSWER_FAILED;
+  // Separate Electron bundles have separate class identities, so use the local error names.
+  switch ((error as Error)?.name) {
+    case 'ManualAnswerConfigurationError': return MANUAL_ANSWER_UNCONFIGURED;
+    case 'ProviderScopeError': return 'Data scope denied. Check Data Scopes in Settings.';
+    case 'InvalidImagePathError': return 'Invalid image path';
+    default: return MANUAL_ANSWER_FAILED;
+  }
 }

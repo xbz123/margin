@@ -61,7 +61,7 @@ test('AG42 missing configuration refuses before finalization or transport', asyn
   let finalized = false;
   await assert.rejects(engine.runWhatShouldISay(undefined, 0.8, undefined, {
     manual: true, beforeGenerate: async () => { finalized = true; },
-  }), /请先配置回答模型/);
+  }), /Configure an answer model/);
   assert.equal(finalized, false);
   assert.equal(f.requests.length, 0);
 });
@@ -93,7 +93,7 @@ test('AG42 terminal failure cannot expose the provider error', async () => {
   const engine = new IntelligenceEngine(f.self, new SessionTracker()); const terminal = [];
   engine.on('generation_terminal', event => terminal.push(event));
   await assert.rejects(engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, errorDelivery: 'caller' }));
-  assert.equal(terminal[0].error, '回答失败，请检查模型配置后重试。');
+  assert.equal(terminal[0].error, 'Answer failed. Check the model configuration and try again.');
   assert.doesNotMatch(JSON.stringify(terminal), /SECRET_KEY|full request|server text/);
 });
 
@@ -121,6 +121,37 @@ test('AG42 production meeting end aborts streaming and main never forwards late 
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(sent.length, count);
   assert.doesNotMatch(JSON.stringify(sent), /LATE/);
+});
+
+test('AG42 review: a rejected mic finalize is best effort, but user cancellation sends nothing', async () => {
+  const f = helper(); const meeting = mainFixture(); await meeting.start();
+  const session = new SessionTracker();
+  session.handleTranscript({ speaker: 'interviewer', text: 'Existing context before mic failure', timestamp: Date.now(), final: true });
+  const engine = new IntelligenceEngine(f.self, session);
+  const mic = meeting.providers.find(provider => provider.channel === 'user');
+  mic.finalize = async () => { throw Error('PRIVATE_PROVIDER_PAYLOAD'); };
+  assert.equal(await engine.runWhatShouldISay(undefined, 0.8, undefined, {
+    manual: true, beforeGenerate: signal => meeting.state.finalizeMicSTT(signal),
+  }), 'answer');
+  assert.equal(f.requests.length, 1);
+  assert.match(JSON.stringify(f.requests[0].contents), /existing context before mic failure/);
+  const entered = deferred(); mic.finalize = () => { entered.resolve(); };
+  const pending = engine.runWhatShouldISay(undefined, 0.8, undefined, {
+    manual: true, beforeGenerate: signal => meeting.state.finalizeMicSTT(signal),
+  });
+  const cancelled = assert.rejects(pending, { name: 'AbortError' });
+  await entered.promise; engine.reset(); await cancelled;
+  assert.equal(f.requests.length, 1);
+  await meeting.state.endMeeting();
+});
+
+test('AG42 review: denied transcript scope is a fixed local failure, never a model configuration hint', async () => {
+  const f = helper(undefined, { transcript: false }); const terminals = [];
+  const engine = new IntelligenceEngine(f.self, new SessionTracker());
+  engine.on('generation_terminal', data => terminals.push(data));
+  await assert.rejects(engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, errorDelivery: 'caller' }), { name: 'ProviderScopeError' });
+  assert.equal(terminals[0].error, 'Data scope denied. Check Data Scopes in Settings.');
+  assert.equal(f.requests.length, 0);
 });
 const { CodexAuthSource } = require('../../../dist-electron/electron/services/CodexAuthSource.js');
 const codexBinding = model => JSON.stringify(['codex', 'responses', 'https://chatgpt.com/backend-api/codex/responses', model]);

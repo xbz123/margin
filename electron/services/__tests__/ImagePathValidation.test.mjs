@@ -50,13 +50,20 @@ test('AG42 registered manual IPC returns fixed failures even before a task can s
   f.manager.runWhatShouldISay = async (_question, _confidence, _images, options) => {
     assert.equal(options.manual, true);
     assert.equal(typeof options.beforeGenerate, 'function');
-    throw Error('SERVER_SECRET and full request');
+    throw Error('SERVER_SECRET and full request: Data scope denied; Invalid image path');
   };
   const failed = await invoke();
-  assert.equal(failed.answer, null); assert.equal(failed.error, '回答失败，请检查模型配置后重试。');
+  assert.equal(failed.answer, null); assert.equal(failed.error, 'Answer failed. Check the model configuration and try again.');
   assert.doesNotMatch(JSON.stringify(failed), /SERVER_SECRET|full request/);
+  const { ProviderScopeError } = require('../../../dist-electron/electron/llm/ProviderRouter.js');
+  f.manager.runWhatShouldISay = async () => { throw new ProviderScopeError('SERVER_SECRET', ['transcript']); };
+  const denied = await invoke();
+  assert.equal(denied.error, 'Data scope denied. Check Data Scopes in Settings.');
+  assert.doesNotMatch(JSON.stringify(denied), /SERVER_SECRET/);
+  f.manager.runWhatShouldISay = async () => { f.helper.getCurrentGenerationTask().terminalStatus = 'cancelled'; throw Error('PRIVATE_ABORT'); };
+  assert.equal((await invoke()).error, 'Cancelled');
   f.helper.beginGenerationTask = () => { throw Error('invalid selection with SECRET'); };
-  assert.equal((await invoke()).error, '请先配置回答模型及其凭据。');
+  assert.equal((await invoke()).error, 'Configure an answer model and its credentials first.');
   assert.equal(f.sends.length, 0);
 });
 
@@ -122,10 +129,12 @@ for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-sa
   const sender = { id: 1, send() {}, isDestroyed: () => false };
   const invoke = images => channel === 'analyze-image-file' ? callback({ sender }, Array.isArray(images) && images.length === 1 ? images[0] : images) : channel.startsWith('gemini-') ? callback({ sender }, 'QUESTION', images) : channel === 'generate-what-to-say' ? callback({ sender }, 'QUESTION', images) : callback({ sender }, images, 'QUESTION');
   for (const images of [{ length: 1 }, [null], [''], Array(6).fill(escape), [path.join(root, '../outside.png')], ['/etc/passwd'], ['C:\\Windows\\secret.png'], [path.join(root, 'missing.png')], [escape]]) {
-    try { const result = await invoke(images); assert.equal(result.answer ?? result.hint ?? result.script ?? null, null);
-      if (channel === 'generate-what-to-say') assert.equal(result.error, '回答失败，请检查模型配置后重试。');
-      else assert.match(result.error, /Invalid image path/); }
-    catch (error) { assert.match(error.message, /Invalid image path/); }
+    const outcome = await invoke(images).then(result => ({ result }), error => ({ error }));
+    if (outcome.error) assert.match(outcome.error.message, /Invalid image path/);
+    else {
+      assert.equal(outcome.result.answer ?? outcome.result.hint ?? outcome.result.script ?? null, null);
+      assert.match(outcome.result.error, /Invalid image path/);
+    }
     assert.equal(sends.length, 0);
   }
   const image = path.join(root, 'legitimate.png'); fs.writeFileSync(image, Buffer.from('iVBORw0KGgo=', 'base64'));

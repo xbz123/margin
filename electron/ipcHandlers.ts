@@ -23,15 +23,15 @@ import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
-import { manualAnswerError, MANUAL_ANSWER_UNCONFIGURED } from './direct-assist/errors';
+import { manualAnswerError, MANUAL_ANSWER_UNCONFIGURED, MANUAL_ANSWER_CANCELLED, InvalidImagePathError } from './direct-assist/errors';
 
 export function initializeIpcHandlers(appState: AppState): void {
   const validateImages = (value: unknown): string[] | undefined => {
     if (value === undefined) return undefined;
-    if (!Array.isArray(value) || value.length > 5 || value.some(item => typeof item !== 'string' || !item.trim())) throw new Error('Invalid image path payload');
+    if (!Array.isArray(value) || value.length > 5 || value.some(item => typeof item !== 'string' || !item.trim())) throw new InvalidImagePathError();
     return value.map(imagePath => {
       const result = validateImagePath(imagePath, app.getPath('userData'));
-      if (!result.isValid) throw new Error(`Invalid image path: ${result.reason}`);
+      if (!result.isValid) throw new InvalidImagePathError();
       return result.resolvedPath!;
     });
   };
@@ -77,7 +77,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       } catch (error) {
         if (channel !== 'generate-what-to-say') throw error;
         return { answer: null, ...(task ? helper.getTaskMetadata(task) : { status: 'failed' }),
-          error: !task ? MANUAL_ANSWER_UNCONFIGURED : task.terminalStatus === 'cancelled' ? '已取消' : manualAnswerError(error) };
+          error: !task ? MANUAL_ANSWER_UNCONFIGURED : task.terminalStatus === 'cancelled' ? MANUAL_ANSWER_CANCELLED : manualAnswerError(error) };
       } finally { task?.close(); }
     });
   };
@@ -1755,7 +1755,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         return {
           answer: null,
           question: question || 'unknown',
-          error: task?.terminalStatus === 'cancelled' ? '已取消' : manualAnswerError(error),
+          error: task?.terminalStatus === 'cancelled' ? MANUAL_ANSWER_CANCELLED : manualAnswerError(error),
           generationStatus: task?.terminalStatus,
         };
       } finally {

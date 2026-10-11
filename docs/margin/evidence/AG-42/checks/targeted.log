@@ -2,97 +2,97 @@ TAP version 13
 # Subtest: AG42 finalize waits for only the microphone final and removes temporary listeners
 ok 1 - AG42 finalize waits for only the microphone final and removes temporary listeners
   ---
-  duration_ms: 52.7715
+  duration_ms: 83.638417
   type: 'test'
   ...
 # Subtest: AG42 finalize is bounded and cancellation detaches the waiting listener
 ok 2 - AG42 finalize is bounded and cancellation detaches the waiting listener
   ---
-  duration_ms: 18.8355
+  duration_ms: 26.248333
   type: 'test'
   ...
 # Subtest: a declined provider factory stays absent without inventing a configured provider
 ok 3 - a declined provider factory stays absent without inventing a configured provider
   ---
-  duration_ms: 15.581291
+  duration_ms: 21.959584
   type: 'test'
   ...
 # Subtest: retired provider errors cannot crash or re-enter the session
 ok 4 - retired provider errors cannot crash or re-enter the session
   ---
-  duration_ms: 8.224958
+  duration_ms: 14.942333
   type: 'test'
   ...
 # Subtest: interleaved provider item IDs retain identity and monotone revisions
 ok 5 - interleaved provider item IDs retain identity and monotone revisions
   ---
-  duration_ms: 12.273375
+  duration_ms: 22.308916
   type: 'test'
   ...
 # Subtest: equal-text unkeyed final utterances are distinct; channels stay distinct
 ok 6 - equal-text unkeyed final utterances are distinct; channels stay distinct
   ---
-  duration_ms: 6.703625
+  duration_ms: 26.561917
   type: 'test'
   ...
 # Subtest: stop accepts trailing finals, releases listeners, and restart excludes stale provider
 ok 7 - stop accepts trailing finals, releases listeners, and restart excludes stale provider
   ---
-  duration_ms: 63.275041
+  duration_ms: 67.378291
   type: 'test'
   ...
 # Subtest: reconfigure changes provider identity and detaches old listeners
 ok 8 - reconfigure changes provider identity and detaches old listeners
   ---
-  duration_ms: 10.206542
+  duration_ms: 7.5955
   type: 'test'
   ...
 # Subtest: cancel while provider stop hangs is bounded and blocks late events
 ok 9 - cancel while provider stop hangs is bounded and blocks late events
   ---
-  duration_ms: 61.841167
+  duration_ms: 61.918375
   type: 'test'
   ...
 # Subtest: provider stub item IDs link interim and final events
 ok 10 - provider stub item IDs link interim and final events
   ---
-  duration_ms: 9.129792
+  duration_ms: 9.414958
   type: 'test'
   ...
 # Subtest: finalize and stop share one bounded drain budget
 ok 11 - finalize and stop share one bounded drain budget
   ---
-  duration_ms: 33.733917
+  duration_ms: 35.960792
   type: 'test'
   ...
 # Subtest: drain reports provider failure without inventing a timeout
 ok 12 - drain reports provider failure without inventing a timeout
   ---
-  duration_ms: 7.802041
+  duration_ms: 8.616209
   type: 'test'
   ...
 # Subtest: stable IDs accept final corrections while duplicate and stale interim events are ignored
 ok 13 - stable IDs accept final corrections while duplicate and stale interim events are ignored
   ---
-  duration_ms: 6.364
+  duration_ms: 6.538959
   type: 'test'
   ...
 # Subtest: queued callback from a replaced provider cannot enter the same session
 ok 14 - queued callback from a replaced provider cannot enter the same session
   ---
-  duration_ms: 6.5685
+  duration_ms: 7.221791
   type: 'test'
   ...
 # Subtest: Aliyun mock stub sentence IDs reach session for interim, final and corrected final
 ok 15 - Aliyun mock stub sentence IDs reach session for interim, final and corrected final
   ---
-  duration_ms: 7.931875
+  duration_ms: 6.40575
   type: 'test'
   ...
 # Subtest: Doubao mock stub start-time identity keeps final corrections in one segment
 ok 16 - Doubao mock stub start-time identity keeps final corrections in one segment
   ---
-  duration_ms: 13.177083
+  duration_ms: 11.084542
   type: 'test'
   ...
 # [IntelligenceEngine] Initializing LLMs with LLMHelper
@@ -128,18 +128,18 @@ ok 16 - Doubao mock stub start-time identity keeps final corrections in one segm
 # }
 # [SessionTracker] addAssistantMessage called { length: 6 }
 # [SessionTracker] lastAssistantMessage updated, history size: 1
-# (node:69072) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (node:73049) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
 # (Use `node --trace-deprecation ...` to show where the warning was created)
 # Subtest: AG42 manual preparation waits for mic tail and includes current session in one streamed answer
 ok 17 - AG42 manual preparation waits for mic tail and includes current session in one streamed answer
   ---
-  duration_ms: 8.470666
+  duration_ms: 8.328958
   type: 'test'
   ...
 # Subtest: AG42 missing configuration refuses before finalization or transport
 ok 18 - AG42 missing configuration refuses before finalization or transport
   ---
-  duration_ms: 0.5775
+  duration_ms: 0.612
   type: 'test'
   ...
 # [IntelligenceEngine] Initializing LLMs with LLMHelper
@@ -165,15 +165,42 @@ ok 18 - AG42 missing configuration refuses before finalization or transport
 # Subtest: AG42 replacement and session reset cancel preparation without a late send
 ok 19 - AG42 replacement and session reset cancel preparation without a late send
   ---
-  duration_ms: 4.613834
+  duration_ms: 4.630084
   type: 'test'
   ...
 # Subtest: AG42 terminal failure cannot expose the provider error
 ok 20 - AG42 terminal failure cannot expose the provider error
   ---
-  duration_ms: 0.891125
+  duration_ms: 0.862833
   type: 'test'
   ...
+# [IntelligenceEngine] Initializing LLMs with LLMHelper
+# [ManualAnswer] Microphone finalization failed; using available transcript.
+# [IntelligenceEngine] Temporal RAG {
+#   previousResponses: 0,
+#   tone: 'neutral',
+#   intent: 'general',
+#   imageCount: 0,
+#   screenOcrAvailable: false,
+#   screenOcrTextLength: 0
+# }
+# [SessionTracker] addAssistantMessage called { length: 6 }
+# [SessionTracker] lastAssistantMessage updated, history size: 1
+# Subtest: AG42 production meeting end aborts streaming and main never forwards late deltas or stale terminals
+ok 21 - AG42 production meeting end aborts streaming and main never forwards late deltas or stale terminals
+  ---
+  duration_ms: 19.790584
+  type: 'test'
+  ...
+# [IntelligenceEngine] Initializing LLMs with LLMHelper
+# [IntelligenceEngine] Temporal RAG {
+#   previousResponses: 0,
+#   tone: 'neutral',
+#   intent: 'general',
+#   imageCount: 0,
+#   screenOcrAvailable: false,
+#   screenOcrTextLength: 0
+# }
 # [LLMHelper] Switched to Model: codex-cli
 # [LLMHelper] Switched to Model: codex-cli
 # [LLMHelper] Switched to Model: codex-cli
@@ -183,81 +210,87 @@ ok 20 - AG42 terminal failure cannot expose the provider error
 # [LLMHelper] Groq Fast Text Mode: true
 # [LLMHelper] Switched to Model: codex-cli
 # [LLMHelper] Switched to Model: codex-cli
-# Subtest: AG42 production meeting end aborts streaming and main never forwards late deltas or stale terminals
-ok 21 - AG42 production meeting end aborts streaming and main never forwards late deltas or stale terminals
+# Subtest: AG42 review: a rejected mic finalize is best effort, but user cancellation sends nothing
+ok 22 - AG42 review: a rejected mic finalize is best effort, but user cancellation sends nothing
   ---
-  duration_ms: 19.7305
+  duration_ms: 14.210834
+  type: 'test'
+  ...
+# Subtest: AG42 review: denied transcript scope is a fixed local failure, never a model configuration hint
+ok 23 - AG42 review: denied transcript scope is a fixed local failure, never a model configuration hint
+  ---
+  duration_ms: 0.604291
   type: 'test'
   ...
 # Subtest: AG34 source snapshot has no API client/base URL and refuses unconfirmed backend images before auth read
-ok 22 - AG34 source snapshot has no API client/base URL and refuses unconfirmed backend images before auth read
+ok 24 - AG34 source snapshot has no API client/base URL and refuses unconfirmed backend images before auth read
   ---
-  duration_ms: 0.809584
+  duration_ms: 0.815958
   type: 'test'
   ...
 # Subtest: AG34 preparedContents inline image screenshots scope: denied
-ok 23 - AG34 preparedContents inline image screenshots scope: denied
+ok 25 - AG34 preparedContents inline image screenshots scope: denied
   ---
-  duration_ms: 0.353834
+  duration_ms: 0.368459
   type: 'test'
   ...
 # Subtest: AG34 preparedContents inline image screenshots scope: revoked-during-read
-ok 24 - AG34 preparedContents inline image screenshots scope: revoked-during-read
+ok 26 - AG34 preparedContents inline image screenshots scope: revoked-during-read
   ---
-  duration_ms: 0.364334
+  duration_ms: 0.365167
   type: 'test'
   ...
 # Subtest: AG34 preparedContents inline image screenshots scope: allowed
-ok 25 - AG34 preparedContents inline image screenshots scope: allowed
+ok 27 - AG34 preparedContents inline image screenshots scope: allowed
   ---
-  duration_ms: 7.157333
+  duration_ms: 7.287
   type: 'test'
   ...
 # Subtest: AG34 Codex backup image confirmation cannot inherit primary confirmation
-ok 26 - AG34 Codex backup image confirmation cannot inherit primary confirmation
+ok 28 - AG34 Codex backup image confirmation cannot inherit primary confirmation
   ---
-  duration_ms: 1.6205
+  duration_ms: 1.620166
   type: 'test'
   ...
 # Subtest: AG34 changing main/fast model invalidates only matching image bindings
-ok 27 - AG34 changing main/fast model invalidates only matching image bindings
+ok 29 - AG34 changing main/fast model invalidates only matching image bindings
   ---
-  duration_ms: 0.121792
+  duration_ms: 0.117166
   type: 'test'
   ...
 # Subtest: AG34 equal normal/fast models still require their independent image confirmations
-ok 28 - AG34 equal normal/fast models still require their independent image confirmations
+ok 30 - AG34 equal normal/fast models still require their independent image confirmations
   ---
-  duration_ms: 0.696
+  duration_ms: 0.711583
   type: 'test'
   ...
 # Subtest: AG34 external same-account changed token recovers once within the real LLMHelper task
-ok 29 - AG34 external same-account changed token recovers once within the real LLMHelper task
+ok 31 - AG34 external same-account changed token recovers once within the real LLMHelper task
   ---
-  duration_ms: 0.743416
+  duration_ms: 0.836208
   type: 'test'
   ...
 # [LLMHelper] Switched to Model: codex-cli
 # [LLMHelper] Switched to Model: codex-cli:changed
 # Subtest: AG34 consent change cancels auth-waiting task without late send
-ok 30 - AG34 consent change cancels auth-waiting task without late send
+ok 32 - AG34 consent change cancels auth-waiting task without late send
   ---
-  duration_ms: 5.736458
+  duration_ms: 5.711625
   type: 'test'
   ...
 # [LLMHelper] Switched to Model: codex-cli
 # [LLMHelper] Groq Fast Text Mode: true
 # Subtest: AG34 model change cancels auth-waiting task without late send
-ok 31 - AG34 model change cancels auth-waiting task without late send
+ok 33 - AG34 model change cancels auth-waiting task without late send
   ---
-  duration_ms: 6.041208
+  duration_ms: 6.051084
   type: 'test'
   ...
 # [LLMHelper] Switched to Model: codex-cli
 # Subtest: AG34 fast change cancels auth-waiting task without late send
-ok 32 - AG34 fast change cancels auth-waiting task without late send
+ok 34 - AG34 fast change cancels auth-waiting task without late send
   ---
-  duration_ms: 6.020959
+  duration_ms: 6.041541
   type: 'test'
   ...
 # [LLMHelper] Switched to Model: codex-cli
@@ -266,153 +299,153 @@ ok 32 - AG34 fast change cancels auth-waiting task without late send
 # [LLMHelper] Switched to Model: gemini-a
 # [LLMHelper] Switched to Model: gemini-a
 # Subtest: AG34 policy change cancels auth-waiting task without late send
-ok 33 - AG34 policy change cancels auth-waiting task without late send
+ok 35 - AG34 policy change cancels auth-waiting task without late send
   ---
-  duration_ms: 6.116708
+  duration_ms: 6.057583
   type: 'test'
   ...
 # Subtest: AG34 source getters/selectors and disabled/unconfirmed requests never read auth
-ok 34 - AG34 source getters/selectors and disabled/unconfirmed requests never read auth
+ok 36 - AG34 source getters/selectors and disabled/unconfirmed requests never read auth
   ---
-  duration_ms: 0.743541
+  duration_ms: 0.673375
   type: 'test'
   ...
 # Subtest: AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it
-ok 35 - AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it
+ok 37 - AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it
   ---
-  duration_ms: 0.13875
+  duration_ms: 0.134375
   type: 'test'
   ...
 # Subtest: chatWithGemini: transient failure uses only explicit backup and at most two sends
-ok 36 - chatWithGemini: transient failure uses only explicit backup and at most two sends
+ok 38 - chatWithGemini: transient failure uses only explicit backup and at most two sends
   ---
-  duration_ms: 0.881875
+  duration_ms: 0.878875
   type: 'test'
   ...
 # Subtest: generateContentStructured: transient failure uses only explicit backup and at most two sends
-ok 37 - generateContentStructured: transient failure uses only explicit backup and at most two sends
+ok 39 - generateContentStructured: transient failure uses only explicit backup and at most two sends
   ---
-  duration_ms: 0.372208
+  duration_ms: 0.359458
   type: 'test'
   ...
 # Subtest: streamChat: transient failure uses only explicit backup and at most two sends
-ok 38 - streamChat: transient failure uses only explicit backup and at most two sends
+ok 40 - streamChat: transient failure uses only explicit backup and at most two sends
   ---
-  duration_ms: 0.356458
+  duration_ms: 0.355292
   type: 'test'
   ...
 # Subtest: real answer interface: SAFETY terminates without backup
-ok 39 - real answer interface: SAFETY terminates without backup
+ok 41 - real answer interface: SAFETY terminates without backup
   ---
-  duration_ms: 0.773708
+  duration_ms: 0.789667
   type: 'test'
   ...
 # Subtest: real answer interface: MAX_TOKENS terminates without backup
-ok 40 - real answer interface: MAX_TOKENS terminates without backup
+ok 42 - real answer interface: MAX_TOKENS terminates without backup
   ---
-  duration_ms: 0.332334
+  duration_ms: 0.306584
   type: 'test'
   ...
 # Subtest: real answer interface: EMPTY terminates without backup
-ok 41 - real answer interface: EMPTY terminates without backup
+ok 43 - real answer interface: EMPTY terminates without backup
   ---
-  duration_ms: 0.28025
+  duration_ms: 0.265208
   type: 'test'
   ...
 # Subtest: real answer interface: AUTH terminates without backup
-ok 42 - real answer interface: AUTH terminates without backup
+ok 44 - real answer interface: AUTH terminates without backup
   ---
-  duration_ms: 0.303167
+  duration_ms: 0.321125
   type: 'test'
   ...
 # Subtest: real answer interface: CONFIG terminates without backup
-ok 43 - real answer interface: CONFIG terminates without backup
+ok 45 - real answer interface: CONFIG terminates without backup
   ---
-  duration_ms: 0.312
+  duration_ms: 0.364917
   type: 'test'
   ...
 # Subtest: real answer interface: PARTIAL terminates without backup
-ok 44 - real answer interface: PARTIAL terminates without backup
+ok 46 - real answer interface: PARTIAL terminates without backup
   ---
-  duration_ms: 0.373833
+  duration_ms: 0.401625
   type: 'test'
   ...
 # Subtest: WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis
-ok 45 - WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis
+ok 47 - WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis
   ---
-  duration_ms: 0.445625
+  duration_ms: 0.505333
   type: 'test'
   ...
 # Subtest: snapshot survives hot client/model/backup changes during image preparation
-ok 46 - snapshot survives hot client/model/backup changes during image preparation
+ok 48 - snapshot survives hot client/model/backup changes during image preparation
   ---
-  duration_ms: 0.417708
+  duration_ms: 0.443417
   type: 'test'
   ...
 # Subtest: permission revoked during limiter stops all later sends
-ok 47 - permission revoked during limiter stops all later sends
+ok 49 - permission revoked during limiter stops all later sends
   ---
-  duration_ms: 0.412916
+  duration_ms: 0.343791
   type: 'test'
   ...
 # Subtest: permission revoked during image stops all later sends
-ok 48 - permission revoked during image stops all later sends
+ok 50 - permission revoked during image stops all later sends
   ---
-  duration_ms: 0.210958
+  duration_ms: 0.231208
   type: 'test'
   ...
 # Subtest: permission revoked during cache stops all later sends
-ok 49 - permission revoked during cache stops all later sends
+ok 51 - permission revoked during cache stops all later sends
   ---
-  duration_ms: 0.265042
+  duration_ms: 0.2895
   type: 'test'
   ...
 # Subtest: permission revoked during retry-after stops all later sends
-ok 50 - permission revoked during retry-after stops all later sends
+ok 52 - permission revoked during retry-after stops all later sends
   ---
-  duration_ms: 0.284375
+  duration_ms: 0.320083
   type: 'test'
   ...
 # Subtest: explicit cache recovery valid: same model, full original content, only two sends
-ok 51 - explicit cache recovery valid: same model, full original content, only two sends
+ok 53 - explicit cache recovery valid: same model, full original content, only two sends
   ---
-  duration_ms: 0.431292
+  duration_ms: 0.476791
   type: 'test'
   ...
 # Subtest: explicit cache recovery invalid: same model, full original content, only two sends
-ok 52 - explicit cache recovery invalid: same model, full original content, only two sends
+ok 54 - explicit cache recovery invalid: same model, full original content, only two sends
   ---
-  duration_ms: 0.393667
+  duration_ms: 0.354625
   type: 'test'
   ...
 # Subtest: cancel aborts underlying generation before first text and ignores late results
-ok 53 - cancel aborts underlying generation before first text and ignores late results
+ok 55 - cancel aborts underlying generation before first text and ignores late results
   ---
-  duration_ms: 0.266
+  duration_ms: 0.3065
   type: 'test'
   ...
 # Subtest: switch aborts underlying generation before first text and ignores late results
-ok 54 - switch aborts underlying generation before first text and ignores late results
+ok 56 - switch aborts underlying generation before first text and ignores late results
   ---
-  duration_ms: 0.242875
+  duration_ms: 0.25375
   type: 'test'
   ...
 # Subtest: consumer-return aborts underlying generation before first text and ignores late results
-ok 55 - consumer-return aborts underlying generation before first text and ignores late results
+ok 57 - consumer-return aborts underlying generation before first text and ignores late results
   ---
-  duration_ms: 0.216125
+  duration_ms: 0.228125
   type: 'test'
   ...
 # Subtest: reselecting the same canonical target through qualified or raw model id keeps active transport alive
-ok 56 - reselecting the same canonical target through qualified or raw model id keeps active transport alive
+ok 58 - reselecting the same canonical target through qualified or raw model id keeps active transport alive
   ---
-  duration_ms: 0.327
+  duration_ms: 0.351459
   type: 'test'
   ...
 # Subtest: application quit cancels existing tasks and refuses all later generation entries before any send
-ok 57 - application quit cancels existing tasks and refuses all later generation entries before any send
+ok 59 - application quit cancels existing tasks and refuses all later generation entries before any send
   ---
-  duration_ms: 0.269125
+  duration_ms: 0.291958
   type: 'test'
   ...
 # [IntelligenceEngine] Initializing LLMs with LLMHelper
@@ -481,87 +514,87 @@ ok 57 - application quit cancels existing tasks and refuses all later generation
 #   screenOcrTextLength: 0
 # }
 # Subtest: real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled
-ok 58 - real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled
+ok 60 - real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled
   ---
-  duration_ms: 28.354875
+  duration_ms: 29.329875
   type: 'test'
   ...
 # Subtest: model switch cannot select configured backup and preserves previous primary/task state
-ok 59 - model switch cannot select configured backup and preserves previous primary/task state
+ok 61 - model switch cannot select configured backup and preserves previous primary/task state
   ---
-  duration_ms: 0.218042
+  duration_ms: 0.238584
   type: 'test'
   ...
 # Subtest: Groq fast mode preserves the explicitly selected model for both text and images
-ok 60 - Groq fast mode preserves the explicitly selected model for both text and images
+ok 62 - Groq fast mode preserves the explicitly selected model for both text and images
   ---
-  duration_ms: 0.409125
+  duration_ms: 0.478958
   type: 'test'
   ...
 # Subtest: saved provider connection test ignores the answer backup and sends its own failed target only once
-ok 61 - saved provider connection test ignores the answer backup and sends its own failed target only once
+ok 63 - saved provider connection test ignores the answer backup and sends its own failed target only once
   ---
-  duration_ms: 0.289375
+  duration_ms: 0.3105
   type: 'test'
   ...
 # Subtest: the configured answer backup can itself be connection-tested once without a primary/backup conflict
-ok 62 - the configured answer backup can itself be connection-tested once without a primary/backup conflict
+ok 64 - the configured answer backup can itself be connection-tested once without a primary/backup conflict
   ---
-  duration_ms: 0.192209
+  duration_ms: 0.2175
   type: 'test'
   ...
 # Subtest: actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport
-ok 63 - actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport
+ok 65 - actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport
   ---
-  duration_ms: 0.828334
+  duration_ms: 0.710791
   type: 'test'
   ...
 # Subtest: actual debug ProcessingHelper shares the two-send budget: first-step retry false
-ok 64 - actual debug ProcessingHelper shares the two-send budget: first-step retry false
+ok 66 - actual debug ProcessingHelper shares the two-send budget: first-step retry false
   ---
-  duration_ms: 0.674917
+  duration_ms: 0.695791
   type: 'test'
   ...
 # Subtest: actual debug ProcessingHelper shares the two-send budget: first-step retry true
-ok 65 - actual debug ProcessingHelper shares the two-send budget: first-step retry true
+ok 67 - actual debug ProcessingHelper shares the two-send budget: first-step retry true
   ---
-  duration_ms: 0.357458
+  duration_ms: 0.424875
   type: 'test'
   ...
 # Subtest: AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result
-ok 66 - AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result
+ok 68 - AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result
   ---
-  duration_ms: 0.534625
+  duration_ms: 0.52275
   type: 'test'
   ...
 # Subtest: AG33 actual Engine stores empty even without a visible partial
-ok 67 - AG33 actual Engine stores empty even without a visible partial
+ok 69 - AG33 actual Engine stores empty even without a visible partial
   ---
-  duration_ms: 0.388792
+  duration_ms: 0.488
   type: 'test'
   ...
 # Subtest: AG33 actual Engine stores refused even without a visible partial
-ok 68 - AG33 actual Engine stores refused even without a visible partial
+ok 70 - AG33 actual Engine stores refused even without a visible partial
   ---
-  duration_ms: 0.3095
+  duration_ms: 0.408375
   type: 'test'
   ...
 # Subtest: AG33 actual Engine stores incomplete even without a visible partial
-ok 69 - AG33 actual Engine stores incomplete even without a visible partial
+ok 71 - AG33 actual Engine stores incomplete even without a visible partial
   ---
-  duration_ms: 0.335709
+  duration_ms: 0.345167
   type: 'test'
   ...
 # Subtest: actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false
-ok 70 - actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false
+ok 72 - actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false
   ---
-  duration_ms: 1.204
+  duration_ms: 1.069209
   type: 'test'
   ...
 # Subtest: actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true
-ok 71 - actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true
+ok 73 - actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true
   ---
-  duration_ms: 0.579958
+  duration_ms: 0.577458
   type: 'test'
   ...
 # [IntelligenceEngine] Initializing LLMs with LLMHelper
@@ -575,9 +608,9 @@ ok 71 - actual Engine TTFT clears only at displayed body, not a held sentinel pr
 # }
 # [LLMHelper] Switched to Model: gemini-next
 # Subtest: AG33 Engine timeout releases its mode and allows the next assist request
-ok 72 - AG33 Engine timeout releases its mode and allows the next assist request
+ok 74 - AG33 Engine timeout releases its mode and allows the next assist request
   ---
-  duration_ms: 2.37225
+  duration_ms: 2.305041
   type: 'test'
   ...
 # [IntelligenceEngine] Initializing LLMs with LLMHelper
@@ -590,9 +623,9 @@ ok 72 - AG33 Engine timeout releases its mode and allows the next assist request
 #   screenOcrTextLength: 0
 # }
 # Subtest: AG33 Engine model-switch releases its mode and allows the next assist request
-ok 73 - AG33 Engine model-switch releases its mode and allows the next assist request
+ok 75 - AG33 Engine model-switch releases its mode and allows the next assist request
   ---
-  duration_ms: 1.014
+  duration_ms: 1.127583
   type: 'test'
   ...
 # [SessionTracker] addAssistantMessage called { length: 12 }
@@ -619,75 +652,75 @@ ok 73 - AG33 Engine model-switch releases its mode and allows the next assist re
 #   screenOcrTextLength: 0
 # }
 # Subtest: AG33 old Engine finally cannot reset the newer active request mode
-ok 74 - AG33 old Engine finally cannot reset the newer active request mode
+ok 76 - AG33 old Engine finally cannot reset the newer active request mode
   ---
-  duration_ms: 1.099
+  duration_ms: 1.250167
   type: 'test'
   ...
 # Subtest: compression starts an independent background task inside an interview context and closes that supplied task
-ok 75 - compression starts an independent background task inside an interview context and closes that supplied task
+ok 77 - compression starts an independent background task inside an interview context and closes that supplied task
   ---
-  duration_ms: 1.825125
+  duration_ms: 1.841708
   type: 'test'
   ...
 # Subtest: actual prompt entry snapshots language and prompt tier before assembly starts
-ok 76 - actual prompt entry snapshots language and prompt tier before assembly starts
+ok 78 - actual prompt entry snapshots language and prompt tier before assembly starts
   ---
-  duration_ms: 1.780875
+  duration_ms: 1.629375
   type: 'test'
   ...
 # Subtest: image metadata reflects actual send and screenshot omission, not the validated input list
-ok 77 - image metadata reflects actual send and screenshot omission, not the validated input list
+ok 79 - image metadata reflects actual send and screenshot omission, not the validated input list
   ---
-  duration_ms: 0.449584
+  duration_ms: 0.438916
   type: 'test'
   ...
 # Subtest: backup updates and selected provider reconfiguration reject identical targets without changing active state
-ok 78 - backup updates and selected provider reconfiguration reject identical targets without changing active state
+ok 80 - backup updates and selected provider reconfiguration reject identical targets without changing active state
   ---
-  duration_ms: 0.189125
+  duration_ms: 0.201
   type: 'test'
   ...
 # Subtest: explicit Codex selector clears stale API selection and snapshots its configured fast model
-ok 79 - explicit Codex selector clears stale API selection and snapshots its configured fast model
+ok 81 - explicit Codex selector clears stale API selection and snapshots its configured fast model
   ---
-  duration_ms: 0.116583
+  duration_ms: 0.114041
   type: 'test'
   ...
 # Subtest: AG33 actual Engine preserves a legitimate short answer and its request metadata
-ok 80 - AG33 actual Engine preserves a legitimate short answer and its request metadata
+ok 82 - AG33 actual Engine preserves a legitimate short answer and its request metadata
   ---
-  duration_ms: 0.6245
+  duration_ms: 0.647542
   type: 'test'
   ...
 # Subtest: AG33 outer cancellation fences late inner errors, held sentinel text and mode changes
-ok 81 - AG33 outer cancellation fences late inner errors, held sentinel text and mode changes
+ok 83 - AG33 outer cancellation fences late inner errors, held sentinel text and mode changes
   ---
-  duration_ms: 1.130584
+  duration_ms: 1.243625
   type: 'test'
   ...
 # Subtest: AG33 shared written task records a second-step failure rather than first-step completion
-ok 82 - AG33 shared written task records a second-step failure rather than first-step completion
+ok 84 - AG33 shared written task records a second-step failure rather than first-step completion
   ---
-  duration_ms: 0.418459
+  duration_ms: 0.545333
   type: 'test'
   ...
 # Subtest: AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup
-ok 83 - AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup
+ok 85 - AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup
   ---
-  duration_ms: 0.620375
+  duration_ms: 0.58425
   type: 'test'
   ...
 # Subtest: AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden
-ok 84 - AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden
+ok 86 - AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden
   ---
-  duration_ms: 0.594333
+  duration_ms: 0.624542
   type: 'test'
   ...
 # Subtest: AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count
-ok 85 - AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count
+ok 87 - AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count
   ---
-  duration_ms: 0.208458
+  duration_ms: 0.233208
   type: 'test'
   ...
 # [LLMHelper] Failed to process image: TypeError: Cannot read properties of undefined (reading 'createFromBuffer')
@@ -706,149 +739,191 @@ ok 85 - AG33 second-step timeout overwrites an earlier completed state and keeps
 # [SessionTracker] addAssistantMessage called { length: 14 }
 # [SessionTracker] lastAssistantMessage updated, history size: 1
 # Subtest: AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes
-ok 86 - AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes
+ok 88 - AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes
   ---
-  duration_ms: 3.4065
+  duration_ms: 7.987166
   type: 'test'
   ...
 # Subtest: AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning
-ok 87 - AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning
+ok 89 - AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning
   ---
-  duration_ms: 1.586875
+  duration_ms: 1.614417
   type: 'test'
   ...
 # Subtest: AG33 partial cancellation records exact target and cancelled status in existing session usage
-ok 88 - AG33 partial cancellation records exact target and cancelled status in existing session usage
+ok 90 - AG33 partial cancellation records exact target and cancelled status in existing session usage
   ---
-  duration_ms: 0.568375
+  duration_ms: 0.545417
   type: 'test'
   ...
 # Subtest: AG42 registered manual IPC returns fixed failures even before a task can start
-ok 89 - AG42 registered manual IPC returns fixed failures even before a task can start
+ok 91 - AG42 registered manual IPC returns fixed failures even before a task can start
   ---
-  duration_ms: 7.971791
+  duration_ms: 21.708333
   type: 'test'
   ...
 # Subtest: R3-2 generate-code-hint validates selected queue once before generation and uses canonical symlinks
-ok 90 - R3-2 generate-code-hint validates selected queue once before generation and uses canonical symlinks
+ok 92 - R3-2 generate-code-hint validates selected queue once before generation and uses canonical symlinks
   ---
-  duration_ms: 29.091958
+  duration_ms: 36.639542
   type: 'test'
   ...
 # Subtest: R3-2 generate-brainstorm validates selected queue once before generation and uses canonical symlinks
-ok 91 - R3-2 generate-brainstorm validates selected queue once before generation and uses canonical symlinks
+ok 93 - R3-2 generate-brainstorm validates selected queue once before generation and uses canonical symlinks
   ---
-  duration_ms: 23.685917
+  duration_ms: 52.7845
   type: 'test'
   ...
 # Subtest: R3-2 what-to-say canonicalizes explicit images and never selects the screenshot queue
-ok 92 - R3-2 what-to-say canonicalizes explicit images and never selects the screenshot queue
+ok 94 - R3-2 what-to-say canonicalizes explicit images and never selects the screenshot queue
   ---
-  duration_ms: 7.991042
+  duration_ms: 20.328625
   type: 'test'
   ...
 # Subtest: AG33 actual registered cancellation uses engine-only reset and keeps explicit reset semantics distinct
-ok 93 - AG33 actual registered cancellation uses engine-only reset and keeps explicit reset semantics distinct
+ok 95 - AG33 actual registered cancellation uses engine-only reset and keeps explicit reset semantics distinct
   ---
-  duration_ms: 0.92525
+  duration_ms: 1.6435
   type: 'test'
   ...
 # Subtest: AG33 actual registered chat handler fixes written/interview task budgets and refuses unknown modes
-ok 94 - AG33 actual registered chat handler fixes written/interview task budgets and refuses unknown modes
+ok 96 - AG33 actual registered chat handler fixes written/interview task budgets and refuses unknown modes
   ---
-  duration_ms: 1.802625
+  duration_ms: 2.09075
   type: 'test'
   ...
 # Subtest: AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
-ok 95 - AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+ok 97 - AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
   ---
-  duration_ms: 8.310833
+  duration_ms: 8.145958
   type: 'test'
   ...
 # Subtest: AG33 real registered gemini-chat-stream rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
-ok 96 - AG33 real registered gemini-chat-stream rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+ok 98 - AG33 real registered gemini-chat-stream rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
   ---
-  duration_ms: 9.382291
+  duration_ms: 8.340875
   type: 'test'
   ...
 # Subtest: AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
-ok 97 - AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+ok 99 - AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
   ---
-  duration_ms: 19.417375
+  duration_ms: 6.738459
   type: 'test'
   ...
 # Subtest: AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
-ok 98 - AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+ok 100 - AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
   ---
-  duration_ms: 15.767084
+  duration_ms: 9.5755
   type: 'test'
   ...
 # Subtest: AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
-ok 99 - AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+ok 101 - AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
   ---
-  duration_ms: 6.440834
+  duration_ms: 8.685625
   type: 'test'
   ...
 # Subtest: AG33 real registered analyze-image-file rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
-ok 100 - AG33 real registered analyze-image-file rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+ok 102 - AG33 real registered analyze-image-file rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
   ---
-  duration_ms: 7.100916
+  duration_ms: 7.125833
   type: 'test'
   ...
 # Subtest: AG42 actual preload delivers ordered batches, seals terminal and rejects old IDs
-ok 101 - AG42 actual preload delivers ordered batches, seals terminal and rejects old IDs
+ok 103 - AG42 actual preload delivers ordered batches, seals terminal and rejects old IDs
   ---
-  duration_ms: 11.221333
+  duration_ms: 7.327833
   type: 'test'
   ...
 # Subtest: AG42 production manual finalize forwards the microphone tail before returning without stopping capture
-ok 102 - AG42 production manual finalize forwards the microphone tail before returning without stopping capture
+ok 104 - AG42 production manual finalize forwards the microphone tail before returning without stopping capture
   ---
-  duration_ms: 19.78925
+  duration_ms: 23.134209
   type: 'test'
   ...
 # Subtest: a denied start can be cleaned up without saving an unrelated session
-ok 103 - a denied start can be cleaned up without saving an unrelated session
+ok 105 - a denied start can be cleaned up without saving an unrelated session
   ---
-  duration_ms: 10.702416
+  duration_ms: 21.515375
   type: 'test'
   ...
 # Subtest: production Stop cancels answers, joins native release, drains finals, saves, then clears display
-ok 104 - production Stop cancels answers, joins native release, drains finals, saves, then clears display
+ok 106 - production Stop cancels answers, joins native release, drains finals, saves, then clears display
   ---
-  duration_ms: 15.5155
+  duration_ms: 31.216333
   type: 'test'
   ...
 # Subtest: duplicate stops join and next start cannot overtake saving
-ok 105 - duplicate stops join and next start cannot overtake saving
+ok 107 - duplicate stops join and next start cannot overtake saving
   ---
-  duration_ms: 21.648875
+  duration_ms: 32.96875
   type: 'test'
   ...
 # Subtest: sleep release precedes wake reconstruction and a stopped session cannot resurrect
-ok 106 - sleep release precedes wake reconstruction and a stopped session cannot resurrect
+ok 108 - sleep release precedes wake reconstruction and a stopped session cannot resurrect
   ---
-  duration_ms: 13.426
+  duration_ms: 13.6695
   type: 'test'
   ...
 # Subtest: shutdown joins active session tail and rejects a later start
-ok 107 - shutdown joins active session tail and rejects a later start
+ok 109 - shutdown joins active session tail and rejects a later start
   ---
-  duration_ms: 13.055167
+  duration_ms: 15.203208
   type: 'test'
   ...
 # Subtest: native release failure still saves the tail but blocks reuse of the unreleased handle
-ok 108 - native release failure still saves the tail but blocks reuse of the unreleased handle
+ok 110 - native release failure still saves the tail but blocks reuse of the unreleased handle
   ---
-  duration_ms: 11.499375
+  duration_ms: 11.708166
   type: 'test'
   ...
-1..108
-# tests 108
+# Subtest: AG42 recording sends retained speech on finalize rejection and drops a cancelled wait
+ok 111 - AG42 recording sends retained speech on finalize rejection and drops a cancelled wait
+  ---
+  duration_ms: 27.950292
+  type: 'test'
+  ...
+# Subtest: AG42 real answer row and feedback callback use shared translations and show one scope error
+ok 112 - AG42 real answer row and feedback callback use shared translations and show one scope error
+  ---
+  duration_ms: 23.1145
+  type: 'test'
+  ...
+# Subtest: AG60a translation uses English source text when a Chinese entry is missing
+ok 113 - AG60a translation uses English source text when a Chinese entry is missing
+  ---
+  duration_ms: 59.324542
+  type: 'test'
+  ...
+# Subtest: AG42 fixed manual-answer messages use the shared English and Chinese translations
+ok 114 - AG42 fixed manual-answer messages use the shared English and Chinese translations
+  ---
+  duration_ms: 4.203959
+  type: 'test'
+  ...
+# Subtest: AG41b domestic STT cards use the shared translations and accessible credential controls
+ok 115 - AG41b domestic STT cards use the shared translations and accessible credential controls
+  ---
+  duration_ms: 76.771083
+  type: 'test'
+  ...
+# Subtest: AG60a language switching changes hook output and rejects unsupported languages
+ok 116 - AG60a language switching changes hook output and rejects unsupported languages
+  ---
+  duration_ms: 0.499583
+  type: 'test'
+  ...
+# Subtest: AG60a shared heading and card preserve content, native controls and text escaping
+ok 117 - AG60a shared heading and card preserve content, native controls and text escaping
+  ---
+  duration_ms: 0.380584
+  type: 'test'
+  ...
+1..117
+# tests 117
 # suites 0
-# pass 108
+# pass 117
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 805.555416
+# duration_ms 957.950792

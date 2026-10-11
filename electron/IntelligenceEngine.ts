@@ -7,7 +7,7 @@ import { LLMHelper } from './LLMHelper';
 import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import type { GenerationTask } from './llm/generateTask';
 import { prepareManualAnswer } from './llm/answerGeneration';
-import { manualAnswerError } from './direct-assist/errors';
+import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
@@ -124,7 +124,7 @@ export class IntelligenceEngine extends EventEmitter {
             if (task.terminalStatus !== 'completed') recordPartial();
             return answer;
         }, error => {
-            terminalError = task.errorMessage ?? error?.message ?? 'Generation failed';
+            terminalError = task.terminalStatus === 'cancelled' ? MANUAL_ANSWER_CANCELLED : task.errorMessage ?? error?.message ?? 'Generation failed';
             recordPartial();
             throw error;
         }).finally(() => {

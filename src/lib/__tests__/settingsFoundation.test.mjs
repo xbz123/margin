@@ -35,6 +35,24 @@ test('AG60a translation uses English source text when a Chinese entry is missing
   assert.equal(translate('zh-CN', ''), '');
 });
 
+test('AG42 fixed manual-answer messages use the shared English and Chinese translations', () => {
+  const { useI18n, setUiLanguage } = sourceModule('src/i18n.tsx');
+  const messages = [
+    ['Cancelled', '已取消'],
+    ['Configure an answer model and its credentials first.', '请先配置回答模型及其凭据。'],
+    ['Answer failed. Check the model configuration and try again.', '回答失败，请检查模型配置后重试。'],
+    ['Data scope denied. Check Data Scopes in Settings.', '数据范围已禁用，请检查设置中的数据范围。'],
+    ['Invalid image path', '图片路径无效'],
+  ];
+  function Message({ text }) { const { t } = useI18n(); return React.createElement('span', null, t(text)); }
+  try {
+    for (const [language, index] of [['en', 0], ['zh-CN', 1]]) {
+      setUiLanguage(language);
+      for (const pair of messages) assert.equal(renderToStaticMarkup(React.createElement(Message, { text: pair[0] })), `<span>${pair[index]}</span>`);
+    }
+  } finally { setUiLanguage('en'); }
+});
+
 test('AG41b domestic STT cards use the shared translations and accessible credential controls', () => {
   const { SpeechProviderSettings } = sourceModule('src/components/settings/SpeechProviderSettings.tsx');
   const { setUiLanguage } = sourceModule('src/i18n.tsx');

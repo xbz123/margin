@@ -1,5 +1,10 @@
 // Only strings used by the current consumers belong here; English is the fallback.
 export const chinese: Readonly<Record<string, string>> = {
+    'Cancelled': '已取消',
+    'Answer failed. Check the model configuration and try again.': '回答失败，请检查模型配置后重试。',
+    'Configure an answer model and its credentials first.': '请先配置回答模型及其凭据。',
+    'Data scope denied. Check Data Scopes in Settings.': '数据范围已禁用，请检查设置中的数据范围。',
+    'Invalid image path': '图片路径无效',
     'Alibaba Cloud Bailian': '阿里云百炼',
     'Doubao': '豆包',
     'Save credentials before testing. Tests send synthetic silence.': '请先保存凭据；连接测试会发送合成静音。',
