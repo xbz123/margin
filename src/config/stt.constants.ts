@@ -3,7 +3,7 @@
  * Configuration for STT providers (Google gRPC, REST, WebSocket)
  */
 
-export type SttProviderId = 'groq' | 'openai' | 'azure' | 'ibmwatson';
+export type SttProviderId = 'groq' | 'openai';
 
 export interface SttProviderConfig {
     id: SttProviderId;
@@ -56,33 +56,7 @@ export const STT_PROVIDERS: Record<SttProviderId, SttProviderConfig> = {
         }),
         responseContentPath: 'text',
     },
-    azure: {
-        id: 'azure',
-        name: 'Azure Speech',
-        description: 'Microsoft Azure Cognitive Services STT',
-        endpoint: 'https://{region}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1',
-        model: '',
-        uploadType: 'binary',
-        authHeader: (apiKey: string) => ({
-            'Ocp-Apim-Subscription-Key': apiKey,
-        }),
-        responseContentPath: 'DisplayText',
-    },
-    ibmwatson: {
-        id: 'ibmwatson',
-        name: 'IBM Watson',
-        description: 'IBM Watson Speech-to-Text cloud service',
-        endpoint: 'https://api.{region}.speech-to-text.watson.cloud.ibm.com/v1/recognize',
-        model: '',
-        uploadType: 'binary',
-        authHeader: (apiKey: string) => ({
-            Authorization: `Basic ${btoa(`apikey:${apiKey}`)}`,
-        }),
-        responseContentPath: 'results[0].alternatives[0].transcript',
-    },
 };
 
 export const STT_PROVIDER_OPTIONS = Object.values(STT_PROVIDERS);
-
-export const DEFAULT_STT_PROVIDER: SttProviderId = 'groq';
 

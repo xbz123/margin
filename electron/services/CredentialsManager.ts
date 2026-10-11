@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
-import { regionalSttEndpoint, openAiSttEndpoint } from './outbound';
+import { openAiSttEndpoint } from './outbound';
 import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
 import { validateProviderConfiguration, resolveModelTarget, effectiveProviderConfiguration } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
@@ -26,17 +26,13 @@ export interface StoredCredentials {
     providerConfigurations?: Partial<Record<LlmProvider, ProviderConfiguration>>;
     generationPolicy?: GenerationPolicy;
     // STT Provider settings
-    sttProvider?: 'none' | 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox';
+    sttProvider?: 'none' | 'groq' | 'openai' | 'soniox';
     groqSttApiKey?: string;
     groqSttModel?: string;
     openAiSttApiKey?: string;
     /** Custom OpenAI-compatible STT base URL (e.g. self-hosted Speaches).
      *  Empty / unset → use https://api.openai.com. */
     openAiSttBaseUrl?: string;
-    azureApiKey?: string;
-    azureRegion?: string;
-    ibmWatsonApiKey?: string;
-    ibmWatsonRegion?: string;
     sonioxApiKey?: string;
     sttLanguage?: string;
     aiResponseLanguage?: string;
@@ -101,15 +97,15 @@ export class CredentialsManager {
         return this.credentials.deepseekApiKey;
     }
 
-    public getSttProvider(): 'none' | 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox' {
+    public getSttProvider(): 'none' | 'groq' | 'openai' | 'soniox' {
         // 'local-whisper' was retired with local STT (PLAN.md AG-15).
-        // 'google', 'deepgram', 'elevenlabs' were retired in AG-41a.
+        // 'google', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson' were retired in AG-41a.
         // Treat retired providers as "none" so audio is never sent to a retired cloud provider.
-        const stored = this.credentials.sttProvider as string | undefined;
-        if (stored === 'local-whisper' || stored === 'google' || stored === 'deepgram' || stored === 'elevenlabs') {
-            return 'none';
+        const stored = this.credentials.sttProvider;
+        if (stored === 'groq' || stored === 'openai' || stored === 'soniox') {
+            return stored;
         }
-        return (this.credentials.sttProvider as any) || 'none';
+        return 'none';
     }
 
     public getGroqSttApiKey(): string | undefined {
@@ -126,22 +122,6 @@ export class CredentialsManager {
 
     public getOpenAiSttBaseUrl(): string | undefined {
         return this.credentials.openAiSttBaseUrl;
-    }
-
-    public getAzureApiKey(): string | undefined {
-        return this.credentials.azureApiKey;
-    }
-
-    public getAzureRegion(): string {
-        return this.credentials.azureRegion || 'eastus';
-    }
-
-    public getIbmWatsonApiKey(): string | undefined {
-        return this.credentials.ibmWatsonApiKey;
-    }
-
-    public getIbmWatsonRegion(): string {
-        return this.credentials.ibmWatsonRegion || 'us-south';
     }
 
     public getSonioxApiKey(): string | undefined {
@@ -283,8 +263,8 @@ export class CredentialsManager {
         return this.saveCredentials({ deepseekApiKey: trimmed || undefined });
     }
 
-    public setSttProvider(provider: 'none' | 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox'): CredentialSaveResult {
-        if (!['none', 'groq', 'openai', 'azure', 'ibmwatson', 'soniox'].includes(provider)) throw new Error('Invalid STT provider');
+    public setSttProvider(provider: 'none' | 'groq' | 'openai' | 'soniox'): CredentialSaveResult {
+        if (!['none', 'groq', 'openai', 'soniox'].includes(provider)) throw new Error('Invalid STT provider');
         return this.saveCredentials({ sttProvider: provider });
     }
 
@@ -306,24 +286,6 @@ export class CredentialsManager {
 
     public setGroqSttModel(model: string): CredentialSaveResult {
         return this.saveCredentials({ groqSttModel: model });
-    }
-
-    public setAzureApiKey(key: string): CredentialSaveResult {
-        return this.saveCredentials({ azureApiKey: key });
-    }
-
-    public setAzureRegion(region: string): CredentialSaveResult {
-        regionalSttEndpoint('azure', region);
-        return this.saveCredentials({ azureRegion: region });
-    }
-
-    public setIbmWatsonApiKey(key: string): CredentialSaveResult {
-        return this.saveCredentials({ ibmWatsonApiKey: key });
-    }
-
-    public setIbmWatsonRegion(region: string): CredentialSaveResult {
-        regionalSttEndpoint('ibmwatson', region);
-        return this.saveCredentials({ ibmWatsonRegion: region });
     }
 
     public setSonioxApiKey(key: string): CredentialSaveResult {

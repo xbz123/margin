@@ -11,8 +11,8 @@ const registered = {
   'electron/LLMHelper.ts': { 'new Groq': 1, 'new OpenAI': 3, 'new Anthropic': 1, 'new GoogleGenAI': 1 },
   'electron/audio/SonioxStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
-  'electron/audio/RestSTT.ts': { 'axios.post': 2 },
-  'electron/ipcHandlers.ts': { 'new WebSocket': 1, 'axios.post': 3 },
+  'electron/audio/RestSTT.ts': { 'axios.post': 1 },
+  'electron/ipcHandlers.ts': { 'new WebSocket': 1, 'axios.post': 1 },
   'electron/services/ModelVersionManager.ts': { fetch: 4 },
   'electron/services/CodexAuthSource.ts': { createOutboundFetch: 1 },
   'electron/services/outbound.ts': { createOutboundFetch: 2 },
@@ -59,7 +59,7 @@ test('fixed endpoint origins in transport modules match the documented provider 
     }
     visit(ast);
   }
-  assert.deepEqual(dynamicAuthorities, ['electron/services/outbound.ts:`https://${hostname}`'], 'Only the existing validated regional-STT authority builder is dynamic.');
+  assert.deepEqual(dynamicAuthorities, []);
   assert.deepEqual([...origins].sort(), [
     'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.groq.com', 'https://api.openai.com',
     'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',

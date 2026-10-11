@@ -538,9 +538,7 @@ const MockProviderSelectionAnim = () => {
 
     const options = [
         { id: 'groq', label: 'Groq Whisper', badge: '', recommended: true, desc: 'Fast LPU whisper transcription', color: 'orange', icon: <Mic size={14} /> },
-        { id: 'azure', label: 'Azure Speech', badge: '', recommended: false, desc: 'Enterprise tier transcription', color: 'teal', icon: <Mic size={14} /> },
         { id: 'soniox', label: 'Soniox', badge: '', recommended: false, desc: 'Medical-grade transcription', color: 'cyan', icon: <Mic size={14} /> },
-        { id: 'ibm', label: 'IBM Watson', badge: '', recommended: false, desc: 'Watson Speech-to-Text', color: 'indigo', icon: <Mic size={14} /> },
     ];
     const selected = options[0];
 
@@ -957,33 +955,13 @@ export const HelpSettings: React.FC = () => {
                             </div>
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>3. Azure</span>
-                                    <button data-external-url="https://portal.azure.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://portal.azure.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Requires establishing Azure Speech Services. <strong>Important</strong>: You must also specify an Azure Region alongside your key (e.g. <em>eastus</em>, <em>westeurope</em>) or requests will bounce.
-                                </p>
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>4. IBM Watson</span>
-                                    <button data-external-url="https://cloud.ibm.com/catalog/services/speech-to-text" onClick={() => { (window as any).electronAPI?.openExternal('https://cloud.ibm.com/catalog/services/speech-to-text') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Create a Watson Speech to Text resource in IBM Cloud and generate a set of API credentials.
-                                </p>
-                            </div>
-
-                            <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
-                                <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
-                                    <span>5. Soniox</span>
-                                    <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
-                                </h5>
-                                <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Provides high-end medical/law tier transcriptions using their standard dashboard API Key.
-                                </p>
+                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
+                                     <span>3. Soniox</span>
+                                     <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                 </h5>
+                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
+                                     Provides high-end medical/law tier transcriptions using their standard dashboard API Key.
+                                 </p>
                             </div>
                         </div>
 

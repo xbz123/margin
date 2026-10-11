@@ -17,9 +17,7 @@ import { SkillsManager } from './services/SkillsManager';
 
 import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages';
 import { CHAT_MODE_PROMPT } from './llm/prompts';
-import type { CredentialSaveResult } from '../src/types/credentialSave';
-import { outboundAxios as axios, regionalSttEndpoint, openAiSttEndpoint } from './services/outbound';
-import { openExternalLink } from './services/navigationPolicy';
+import { outboundAxios as axios, openAiSttEndpoint } from './services/outbound';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 
@@ -1010,18 +1008,12 @@ export function initializeIpcHandlers(appState: AppState): void {
         groqSttModel: creds.groqSttModel || 'whisper-large-v3-turbo',
         hasSttGroqKey: hasKey(creds.groqSttApiKey),
         hasSttOpenaiKey: hasKey(creds.openAiSttApiKey),
-        hasAzureKey: hasKey(creds.azureApiKey),
-        azureRegion: creds.azureRegion || 'eastus',
-        hasIbmWatsonKey: hasKey(creds.ibmWatsonApiKey),
-        ibmWatsonRegion: creds.ibmWatsonRegion || 'us-south',
         hasSonioxKey: hasKey(creds.sonioxApiKey),
         // STT key values — returned so the settings UI can pre-populate input fields.
         // SECURITY FIX (P0): Return masked keys only, never raw API keys.
         // The hasSttGroqKey boolean tells UI if key exists — no raw key needed.
         sttGroqKey: creds.groqSttApiKey ? `sk-...${creds.groqSttApiKey.slice(-4)}` : '',
         sttOpenaiKey: creds.openAiSttApiKey ? `sk-...${creds.openAiSttApiKey.slice(-4)}` : '',
-        sttAzureKey: creds.azureApiKey ? `sk-...${creds.azureApiKey.slice(-4)}` : '',
-        sttIbmKey: creds.ibmWatsonApiKey ? `sk-...${creds.ibmWatsonApiKey.slice(-4)}` : '',
         sttSonioxKey: creds.sonioxApiKey ? `sk-...${creds.sonioxApiKey.slice(-4)}` : '',
         openAiSttBaseUrl: creds.openAiSttBaseUrl || '',
         // Dynamic Model Discovery - preferred models
@@ -1043,15 +1035,9 @@ export function initializeIpcHandlers(appState: AppState): void {
         groqSttModel: 'whisper-large-v3-turbo',
         hasSttGroqKey: false,
         hasSttOpenaiKey: false,
-        hasAzureKey: false,
-        azureRegion: 'eastus',
-        hasIbmWatsonKey: false,
-        ibmWatsonRegion: 'us-south',
         hasSonioxKey: false,
         sttGroqKey: '',
         sttOpenaiKey: '',
-        sttAzureKey: '',
-        sttIbmKey: '',
         sttSonioxKey: '',
       };
     }
@@ -1114,7 +1100,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle(
     'set-stt-provider',
-    async (_, provider: 'none' | 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox') => {
+    async (_, provider: 'none' | 'groq' | 'openai' | 'soniox') => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setSttProvider(provider), async () => {
       await appState.reconfigureSttProvider();
@@ -1171,23 +1157,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     });
   });
 
-  safeHandle('set-azure-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setAzureApiKey(apiKey), () => discardRemovedSttKey('azure', apiKey));
-  });
-
-  safeHandle('set-azure-region', async (_, region: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setAzureRegion(region), async () => {
-      await appState.reconfigureSttProvider();
-    });
-  });
-
-  safeHandle('set-ibmwatson-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setIbmWatsonApiKey(apiKey), () => discardRemovedSttKey('ibmwatson', apiKey));
-  });
-
   safeHandle('set-soniox-api-key', async (_, apiKey: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setSonioxApiKey(apiKey), async () => {
@@ -1195,13 +1164,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       BrowserWindow.getAllWindows().forEach((win) => {
         if (!win.isDestroyed()) win.webContents.send('credentials-changed');
       });
-    });
-  });
-
-  safeHandle('set-ibmwatson-region', async (_, region: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setIbmWatsonRegion(region), async () => {
-      await appState.reconfigureSttProvider();
     });
   });
 
@@ -1215,13 +1177,12 @@ export function initializeIpcHandlers(appState: AppState): void {
     'test-stt-connection',
     async (
       _,
-      provider: 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox',
+      provider: 'groq' | 'openai' | 'soniox',
       apiKey: string,
-      region?: string,
     ) => {
       console.log(`[IPC] Received test - stt - connection request for provider: ${provider} `);
       try {
-        if (!['groq', 'openai', 'azure', 'ibmwatson', 'soniox'].includes(provider)) return { success: false, error: 'Invalid STT provider' };
+        if (!['groq', 'openai', 'soniox'].includes(provider)) return { success: false, error: 'Invalid STT provider' };
 
         if (provider === 'soniox') {
           // Test Soniox via WebSocket connection.
@@ -1312,62 +1273,35 @@ export function initializeIpcHandlers(appState: AppState): void {
         wavHeader.writeUInt32LE(pcmData.length, 40);
         const testWav = Buffer.concat([wavHeader, pcmData]);
 
-        if (provider === 'azure') {
-          // Azure: raw binary with subscription key
-          const azureRegion = region || 'eastus';
-          await axios.post(
-            regionalSttEndpoint('azure', azureRegion),
-            testWav,
-            {
-              headers: { 'Ocp-Apim-Subscription-Key': apiKey, 'Content-Type': 'audio/wav' },
-              timeout: 15000,
-            },
-          );
-        } else if (provider === 'ibmwatson') {
-          // IBM Watson: raw binary with Basic auth
-          const ibmRegion = region || 'us-south';
-          await axios.post(
-            regionalSttEndpoint('ibmwatson', ibmRegion),
-            testWav,
-            {
-              headers: {
-                Authorization: `Basic ${Buffer.from(`apikey:${apiKey}`).toString('base64')}`,
-                'Content-Type': 'audio/wav',
-              },
-              timeout: 15000,
-            },
-          );
-        } else {
-          // Groq / OpenAI: multipart FormData
-          let openAiEndpoint = 'https://api.openai.com/v1/audio/transcriptions';
-          if (provider === 'openai') {
-            // If a custom OpenAI-compatible base URL is configured, test against it.
-            const { CredentialsManager } = require('./services/CredentialsManager');
-            const customBase = (
-              CredentialsManager.getInstance().getOpenAiSttBaseUrl() || ''
-            ).trim();
-            if (customBase) {
-              openAiEndpoint = openAiSttEndpoint(customBase);
-            }
+        // Groq / OpenAI: multipart FormData
+        let openAiEndpoint = 'https://api.openai.com/v1/audio/transcriptions';
+        if (provider === 'openai') {
+          // If a custom OpenAI-compatible base URL is configured, test against it.
+          const { CredentialsManager } = require('./services/CredentialsManager');
+          const customBase = (
+            CredentialsManager.getInstance().getOpenAiSttBaseUrl() || ''
+          ).trim();
+          if (customBase) {
+            openAiEndpoint = openAiSttEndpoint(customBase);
           }
-          const endpoint =
-            provider === 'groq'
-              ? 'https://api.groq.com/openai/v1/audio/transcriptions'
-              : openAiEndpoint;
-          const model = provider === 'groq' ? 'whisper-large-v3-turbo' : 'whisper-1';
-
-          const form = new FormData();
-          form.append('file', testWav, { filename: 'test.wav', contentType: 'audio/wav' });
-          form.append('model', model);
-
-          await axios.post(endpoint, form, {
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              ...form.getHeaders(),
-            },
-            timeout: 15000,
-          });
         }
+        const endpoint =
+          provider === 'groq'
+            ? 'https://api.groq.com/openai/v1/audio/transcriptions'
+            : openAiEndpoint;
+        const model = provider === 'groq' ? 'whisper-large-v3-turbo' : 'whisper-1';
+
+        const form = new FormData();
+        form.append('file', testWav, { filename: 'test.wav', contentType: 'audio/wav' });
+        form.append('model', model);
+
+        await axios.post(endpoint, form, {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            ...form.getHeaders(),
+          },
+          timeout: 15000,
+        });
 
         return { success: true };
       } catch (error: any) {

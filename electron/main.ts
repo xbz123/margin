@@ -766,25 +766,13 @@ export class AppState {
         console.warn(`[Main] No API key for OpenAI STT; transcription disabled`);
         return null;
       }
-    } else if (sttProvider === 'groq' || sttProvider === 'azure' || sttProvider === 'ibmwatson') {
-      let apiKey: string | undefined;
-      let region: string | undefined;
-      let modelOverride: string | undefined;
-
-      if (sttProvider === 'groq') {
-        apiKey = CredentialsManager.getInstance().getGroqSttApiKey();
-        modelOverride = CredentialsManager.getInstance().getGroqSttModel();
-      } else if (sttProvider === 'azure') {
-        apiKey = CredentialsManager.getInstance().getAzureApiKey();
-        region = CredentialsManager.getInstance().getAzureRegion();
-      } else if (sttProvider === 'ibmwatson') {
-        apiKey = CredentialsManager.getInstance().getIbmWatsonApiKey();
-        region = CredentialsManager.getInstance().getIbmWatsonRegion();
-      }
+    } else if (sttProvider === 'groq') {
+      const apiKey = CredentialsManager.getInstance().getGroqSttApiKey();
+      const modelOverride = CredentialsManager.getInstance().getGroqSttModel();
 
       if (apiKey?.trim()) {
         console.log(`[Main] Using RestSTT (${sttProvider}) for ${speaker}`);
-        stt = new RestSTT(sttProvider, apiKey, modelOverride, region);
+        stt = new RestSTT(sttProvider, apiKey, modelOverride);
       } else {
         console.warn(`[Main] No API key for ${sttProvider} STT; transcription disabled`);
         return null;

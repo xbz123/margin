@@ -1,28 +1,25 @@
 /**
- * RestSTT - REST-based Speech-to-Text for Groq, OpenAI Whisper, Azure, and IBM Watson
+ * RestSTT - REST-based Speech-to-Text for Groq and OpenAI Whisper
  *
  * Implements the standard STT EventEmitter interface:
  *   Events: 'transcript' ({ text, isFinal, confidence }), 'error' (Error)
  *   Methods: start(), stop(), write(chunk: Buffer)
  *
  * Buffers raw PCM chunks, prepends a WAV header, and uploads via REST every ~3 seconds.
- * Supports two upload modes:
- *   - Multipart FormData (Groq, OpenAI)
- *   - Raw binary body (Azure, IBM Watson)
+ * Supports Multipart FormData (Groq, OpenAI).
  */
 
 import { EventEmitter } from 'events';
-import { outboundAxios as axios, regionalSttEndpoint } from '../services/outbound';
+import { outboundAxios as axios } from '../services/outbound';
 import FormData from 'form-data';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 
-export type RestSttProvider = 'groq' | 'openai' | 'azure' | 'ibmwatson';
+export type RestSttProvider = 'groq' | 'openai';
 
 interface RestSttProviderConfig {
     endpoint: string;
     model: string;
     authHeader: Record<string, string>;
-    uploadType: 'multipart' | 'binary';
     extraFormFields?: Record<string, string>;
     /** Extract transcript text from the API response */
     extractTranscript: (data: any) => string;
@@ -37,7 +34,6 @@ const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
             endpoint: 'https://api.groq.com/openai/v1/audio/transcriptions',
             model: 'whisper-large-v3-turbo',
             authHeader: { Authorization: `Bearer ${apiKey}` },
-            uploadType: 'multipart',
             extraFormFields: {
                 temperature: '0',
                 response_format: 'json',
@@ -55,43 +51,12 @@ const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
             endpoint: 'https://api.openai.com/v1/audio/transcriptions',
             model: 'whisper-1',
             authHeader: { Authorization: `Bearer ${apiKey}` },
-            uploadType: 'multipart',
             extraFormFields: {
                 ...(lang ? { language: lang } : {})
             },
             extractTranscript: (data: any) => {
                 if (typeof data === 'string') return data;
                 return data?.text ?? '';
-            },
-        };
-    },
-    azure: (apiKey, region = 'eastus', languageKey) => {
-        const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.bcp47 : undefined;
-        const finalLang = lang || 'en-US';
-        return {
-            endpoint: regionalSttEndpoint('azure', region, finalLang),
-            model: '',
-            authHeader: { 'Ocp-Apim-Subscription-Key': apiKey },
-            uploadType: 'binary',
-            extractTranscript: (data: any) => {
-                return data?.DisplayText ?? '';
-            },
-        };
-    },
-    ibmwatson: (apiKey, region = 'us-south', languageKey) => {
-        const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.bcp47 : undefined;
-        const finalLang = lang || 'en-US';
-        return {
-            endpoint: regionalSttEndpoint('ibmwatson', region, finalLang),
-            model: '',
-            authHeader: { Authorization: `Basic ${Buffer.from(`apikey:${apiKey}`).toString('base64')}` },
-            uploadType: 'binary',
-            extractTranscript: (data: any) => {
-                try {
-                    return data?.results?.[0]?.alternatives?.[0]?.transcript ?? '';
-                } catch {
-                    return '';
-                }
             },
         };
     },
@@ -337,19 +302,9 @@ export class RestSTT extends EventEmitter {
     }
 
     /**
-     * Upload WAV audio to the REST endpoint
+     * Upload WAV audio to the REST endpoint via multipart FormData (Groq, OpenAI)
      */
     private async uploadAudio(wavBuffer: Buffer): Promise<string> {
-        if (this.config.uploadType === 'binary') {
-            return this.uploadBinary(wavBuffer);
-        }
-        return this.uploadMultipart(wavBuffer);
-    }
-
-    /**
-     * Upload via multipart FormData (Groq, OpenAI)
-     */
-    private async uploadMultipart(wavBuffer: Buffer): Promise<string> {
         const form = new FormData();
 
         form.append('file', wavBuffer, {
@@ -369,21 +324,6 @@ export class RestSTT extends EventEmitter {
             headers: {
                 ...this.config.authHeader,
                 ...form.getHeaders(),
-            },
-            timeout: 30000,
-        });
-
-        return this.config.extractTranscript(response.data);
-    }
-
-    /**
-     * Upload via raw binary body (Azure, IBM Watson)
-     */
-    private async uploadBinary(wavBuffer: Buffer): Promise<string> {
-        const response = await axios.post(this.config.endpoint, wavBuffer, {
-            headers: {
-                ...this.config.authHeader,
-                'Content-Type': 'audio/wav',
             },
             timeout: 30000,
         });

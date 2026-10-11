@@ -1423,6 +1423,41 @@
       "ticket": "AG-41a",
       "kind": "symbol",
       "value": "set-elevenlabs-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-azure-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-azure-region"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-ibmwatson-api-key"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "set-ibmwatson-region"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "symbol",
+      "value": "regionalSttEndpoint"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "host",
+      "value": "stt.speech.microsoft.com"
+    },
+    {
+      "ticket": "AG-41a",
+      "kind": "host",
+      "value": "speech-to-text.watson.cloud.ibm.com"
     }
   ]
 }

@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { once } from 'node:events';
 
 const require = createRequire(import.meta.url);
-const { createOutboundFetch, installOutboundFetchPolicy, outboundFetch, outboundAxios, validateHttpEndpoint, regionalSttEndpoint, openAiSttEndpoint, googleSpeechUniverseDomain } = require('../../../dist-electron/electron/services/outbound.js');
+const { createOutboundFetch, installOutboundFetchPolicy, outboundFetch, outboundAxios, validateHttpEndpoint, openAiSttEndpoint, googleSpeechUniverseDomain } = require('../../../dist-electron/electron/services/outbound.js');
 
 test('explicit HTTP/HTTPS endpoints survive; ambiguous URL syntax is rejected', () => {
   for (const url of ['https://custom.invalid/v1', 'http://127.0.0.1:1234/v1', 'https://api.openai.com/v1']) assert.equal(validateHttpEndpoint(url), url);
@@ -14,12 +14,7 @@ test('explicit HTTP/HTTPS endpoints survive; ambiguous URL syntax is rejected', 
   assert.equal(openAiSttEndpoint('http://127.0.0.1:1234'), 'http://127.0.0.1:1234/v1/audio/transcriptions');
 });
 
-test('regional STT builders reject authority injection before any request', () => {
-  for (const provider of ['azure', 'ibmwatson']) {
-    for (const region of ['other.invalid/path', 'user@other.invalid/path', 'other.invalid?', 'other.invalid#', 'eastus:443', 'east us', 'Ｅast-us', '']) assert.throws(() => regionalSttEndpoint(provider, region));
-  }
-  assert.equal(new URL(regionalSttEndpoint('azure', 'eastus')).hostname, 'eastus.stt.speech.microsoft.com');
-  assert.equal(new URL(regionalSttEndpoint('ibmwatson', 'us-south')).hostname, 'api.us-south.speech-to-text.watson.cloud.ibm.com');
+test('Google speech universe domain rejects authority injection before any request', () => {
   assert.equal(googleSpeechUniverseDomain('configured.example'), 'configured.example');
   for (const value of ['other.invalid/path', 'user@other.invalid', 'other.invalid:443', 'other.invalid?']) assert.throws(() => googleSpeechUniverseDomain(value));
 });

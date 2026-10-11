@@ -42,22 +42,18 @@ test('get-stored-credentials IPC does not return raw STT API keys', () => {
   // This returns the raw API key to the renderer
 
   // Check that raw credential access is NOT returned directly
-  assert.doesNotMatch(handler, /sttGroqKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttOpenaiKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttAzureKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttIbmKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
-  assert.doesNotMatch(handler, /sttSonioxKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|azureApiKey|ibmWatsonApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttGroqKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttOpenaiKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|sonioxApiKey)\s*\|\|/);
+  assert.doesNotMatch(handler, /sttSonioxKey:\s*creds\.(groqSttApiKey|openAiSttApiKey|sonioxApiKey)\s*\|\|/);
 
   // Verify that boolean flags still exist (to tell UI if key is present)
   assert.match(handler, /hasSttGroqKey:/);
   assert.match(handler, /hasSttOpenaiKey:/);
-  assert.match(handler, /hasAzureKey:/);
-  assert.match(handler, /hasIbmWatsonKey:/);
   assert.match(handler, /hasSonioxKey:/);
 
   // If stt*Key fields are returned at all, they must be masked (e.g., "sk-...abcd" or empty string)
   // The correct pattern is: sttGroqKey: masked(creds.groqSttApiKey) or just omit the field entirely
-  const rawKeyAssignments = handler.match(/stt(Groq|Openai|Azure|Ibm|Soniox)Key:\s*creds\.\w+\s*\|\|/g);
+  const rawKeyAssignments = handler.match(/stt(Groq|Openai|Soniox)Key:\s*creds\.\w+\s*\|\|/g);
   if (rawKeyAssignments) {
     assert.fail(`Found raw STT key assignments: ${rawKeyAssignments.join(', ')}. These return API keys to the renderer.`);
   }

@@ -24,8 +24,6 @@ const providerLabel = (provider?: string): string => {
     const labels: Record<string, string> = {
         groq: 'Groq',
         openai: 'OpenAI',
-        azure: 'Azure',
-        ibmwatson: 'IBM Watson',
         soniox: 'Soniox',
     };
     return labels[provider.toLowerCase()] || provider;

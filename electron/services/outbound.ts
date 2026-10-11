@@ -38,17 +38,6 @@ outboundAxios.interceptors.request.use(config => {
   return config;
 }, error => { throw error; }, { synchronous: true });
 
-export function regionalSttEndpoint(provider: 'azure' | 'ibmwatson', region: string, language = 'en-US'): string {
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(region)) throw new Error('Invalid STT region');
-  const hostname = provider === 'azure'
-    ? `${region}.stt.speech.microsoft.com`
-    : `api.${region}.speech-to-text.watson.cloud.ibm.com`;
-  const url = new URL(`https://${hostname}`);
-  if (url.hostname !== hostname) throw new Error('Invalid STT region');
-  url.pathname = provider === 'azure' ? '/speech/recognition/conversation/cognitiveservices/v1' : '/v1/recognize';
-  url.searchParams.set('language', language);
-  return url.href;
-}
 
 export function openAiSttEndpoint(base = 'https://api.openai.com'): string {
   const url = new URL(validateHttpEndpoint(base));

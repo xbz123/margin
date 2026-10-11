@@ -288,11 +288,10 @@ test('all 24 setters commit only after persistence and can be read after restart
     setClaudeApiKey: 'claudeApiKey', setDeepseekApiKey: 'deepseekApiKey',
     setSttProvider: 'sttProvider', setGroqSttApiKey: 'groqSttApiKey',
     setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel',
-    setAzureApiKey: 'azureApiKey', setAzureRegion: 'azureRegion',
-    setIbmWatsonApiKey: 'ibmWatsonApiKey', setIbmWatsonRegion: 'ibmWatsonRegion', setSonioxApiKey: 'sonioxApiKey',
+    setSonioxApiKey: 'sonioxApiKey',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
   };
-  assert.equal(names.length, 21);
+  assert.equal(names.length, 17);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
@@ -356,8 +355,7 @@ const channels = [
   'set-ai-response-language', 'switch-to-gemini', 'set-gemini-api-key', 'set-groq-api-key',
   'set-openai-api-key', 'set-claude-api-key', 'set-deepseek-api-key', 'set-provider-preferred-model',
   'set-stt-provider', 'set-groq-stt-api-key', 'set-openai-stt-api-key', 'set-openai-stt-base-url',
-  'set-groq-stt-model', 'set-azure-api-key',
-  'set-azure-region', 'set-ibmwatson-api-key', 'set-soniox-api-key', 'set-ibmwatson-region',
+  'set-groq-stt-model', 'set-soniox-api-key',
   'set-default-model', 'set-recognition-language', 'set-provider-configuration',
 ];
 
@@ -475,7 +473,7 @@ test('AG31 env-only startup retains explicit keys, saved slots bind their own ke
 });
 
 test('AG24: all active STT key removals discard only after a successful save', async () => {
-  for (const provider of ['groq', 'openai', 'azure', 'ibmwatson', 'soniox']) {
+  for (const provider of ['groq', 'openai', 'soniox']) {
     const channel = ['groq', 'openai'].includes(provider) ? `set-${provider}-stt-api-key` : `set-${provider}-api-key`;
     for (const save of [failure, { ok: true }]) {
       for (const active of [provider, 'none']) {
@@ -496,7 +494,7 @@ test('AG24: invalid region or STT endpoint never changes credentials', () => {
   const disk = storage();
   const manager = disk.boot();
   const before = disk.files.get(disk.filename);
-  for (const [method, value] of [['setAzureRegion', 'other.invalid/path'], ['setIbmWatsonRegion', 'user@other.invalid/path'], ['setOpenAiSttBaseUrl', 'https://key@other.invalid']]) {
+  for (const [method, value] of [['setOpenAiSttBaseUrl', 'https://key@other.invalid']]) {
     assert.throws(() => manager[method](value));
     assert.deepEqual(disk.files.get(disk.filename), before);
   }
@@ -508,7 +506,7 @@ test('AG24: invalid configuration crosses real manager and IPC with no save or r
   const before = disk.files.get(disk.filename);
   const memory = plain(manager.getAllCredentials());
   let applies = 0;
-  for (const [channel, value] of [['set-azure-region', 'other.invalid/path'], ['set-ibmwatson-region', 'user@other.invalid/path'], ['set-openai-stt-base-url', 'https://key@other.invalid'], ['set-stt-provider', 'unknown-provider']]) {
+  for (const [channel, value] of [['set-openai-stt-base-url', 'https://key@other.invalid'], ['set-stt-provider', 'unknown-provider']]) {
     const result = await handler(channel, {
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
       appState: { reconfigureSttProvider: () => { applies++; } }, BrowserWindow: { getAllWindows: () => [] },
@@ -517,24 +515,6 @@ test('AG24: invalid configuration crosses real manager and IPC with no save or r
     assert.equal(applies, 0);
     assert.deepEqual(disk.files.get(disk.filename), before);
     assert.deepEqual(plain(manager.getAllCredentials()), memory);
-  }
-});
-
-test('AG24: real Azure/IBM connection-test handlers share the runtime region boundary', async () => {
-  const outbound = require('../../../dist-electron/electron/services/outbound.js');
-  for (const provider of ['azure', 'ibmwatson']) {
-    for (const region of ['other.invalid/path', 'user@other.invalid/path', provider === 'azure' ? 'eastus' : 'us-south']) {
-      const sends = [];
-      const result = await handler('test-stt-connection', {
-        Buffer, regionalSttEndpoint: outbound.regionalSttEndpoint,
-        axios: { post: async endpoint => { sends.push(endpoint); return { data: {} }; } },
-        require, sanitizeErrorMessage: message => message,
-      })({}, provider, 'synthetic-only', region);
-      const valid = !region.includes('/');
-      assert.equal(result.success, valid);
-      assert.equal(sends.length, valid ? 1 : 0);
-      if (valid) assert.equal(sends[0], outbound.regionalSttEndpoint(provider, region));
-    }
   }
 });
 
@@ -616,8 +596,7 @@ const apiChannels = {
   setGroqSttApiKey: 'set-groq-stt-api-key', setOpenAiSttApiKey: 'set-openai-stt-api-key',
   setOpenAiSttBaseUrl: 'set-openai-stt-base-url',
   setGroqSttModel: 'set-groq-stt-model',
-  setAzureApiKey: 'set-azure-api-key', setAzureRegion: 'set-azure-region', setIbmWatsonApiKey: 'set-ibmwatson-api-key',
-  setSonioxApiKey: 'set-soniox-api-key', setIbmWatsonRegion: 'set-ibmwatson-region',
+  setSonioxApiKey: 'set-soniox-api-key',
   setDefaultModel: 'set-default-model', setRecognitionLanguage: 'set-recognition-language',
 };
 
@@ -637,7 +616,7 @@ function ui(file, name, result, extra = {}) {
     confirm: () => true, setTimeout: () => 1,
     providerConfigurations: targets, hasStoredKey: {}, unsaved: false,
     window: { electronAPI: new Proxy({}, { get: () => async () => result }) },
-    availableLanguages: { 'english-us': { group: 'English' } }, sttAzureRegion: 'eastus', sttOpenaiBaseUrl: 'https://synthetic.invalid',
+    availableLanguages: { 'english-us': { group: 'English' } }, sttOpenaiBaseUrl: 'https://synthetic.invalid',
     ...extra,
   };
   // Only dependency setters are faked; the actual production callbacks are compiled and executed.
@@ -669,7 +648,7 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
     [overlay, 'handleAiLanguageChange', ['english'], ['setAiResponseLanguage']],
     [overlay, 'handleSttProviderChange', ['groq'], ['setSttProvider']],
     [overlay, 'handleGroqSttModelChange', ['synthetic-model'], ['setGroqSttModel']],
-    [overlay, 'handleAzureRegionSave', [], []], [overlay, 'handleOpenAiSttBaseUrlSave', [], []],
+    [overlay, 'handleOpenAiSttBaseUrlSave', [], []],
   ]) {
     const subject = ui(file, name, failure, { providerId: 'openai', onPreferredModelChange: () => assert.fail('selection committed') });
     await subject.fn(...args);
@@ -681,9 +660,9 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
   }
 });
 
-test('all five STT Save/Remove callbacks distinguish connection validation from stored keys', async () => {
+test('all three STT Save/Remove callbacks distinguish connection validation from stored keys', async () => {
   const file = 'src/components/SettingsOverlay.tsx';
-  for (const provider of ['groq', 'openai', 'azure', 'ibmwatson', 'soniox']) {
+  for (const provider of ['groq', 'openai', 'soniox']) {
     for (const name of ['handleSttKeySubmit', 'handleRemoveSttKey']) {
       const subject = ui(file, name, failure, { window: { electronAPI: new Proxy({ testSttConnection: async () => ({ success: true }) }, {
         get: (target, key) => target[key] || (async () => failure),
@@ -832,3 +811,14 @@ test('a decrypt failure reaches settings, and only a confirmed discard crosses I
   assert.equal(again.changes.get('setResult'), 'There are no unreadable credentials to discard.');
   assert.equal(again.changes.has('setStatus'), false);
 });
+
+test('AG-41a: CredentialsManager.getSttProvider() returns none for all retired providers', () => {
+  const disk = storage();
+  const manager = disk.boot();
+  for (const retired of ['google', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'local-whisper']) {
+    // Simulate pre-existing / migrated stored value on disk
+    manager.credentials.sttProvider = retired;
+    assert.equal(manager.getSttProvider(), 'none', `stored provider '${retired}' should resolve to 'none'`);
+  }
+});
+

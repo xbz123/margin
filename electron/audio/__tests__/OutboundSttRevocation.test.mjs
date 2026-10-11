@@ -149,7 +149,7 @@ test('AppState returns null for unknown, none or unconfigured providers', () => 
   const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
   const klass = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
   const method = klass.members.find(node => node.name?.getText(ast) === 'createSTTProvider').getText(ast);
-  for (const provider of ['none', 'unknown', 'soniox', 'openai', 'groq', 'azure', 'ibmwatson']) {
+  for (const provider of ['none', 'unknown', 'google', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson', 'local-whisper', 'soniox', 'openai', 'groq']) {
     const module = { exports: {} };
     const manager = new Proxy({ getSttProvider: () => provider }, { get: (target, key) => target[key] ?? (() => undefined) });
     vm.runInNewContext(compile(`class Subject { ${method} } exports.Subject = Subject;`), {

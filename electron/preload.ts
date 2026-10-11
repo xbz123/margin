@@ -117,10 +117,6 @@ interface ElectronAPI {
     sttProvider: string;
     hasSttGroqKey: boolean;
     hasSttOpenaiKey: boolean;
-    hasAzureKey: boolean;
-    azureRegion: string;
-    hasIbmWatsonKey: boolean;
-    ibmWatsonRegion: string;
     hasSonioxKey: boolean;
   }>;
 
@@ -130,24 +126,17 @@ interface ElectronAPI {
       | 'none'
       | 'groq'
       | 'openai'
-      | 'azure'
-      | 'ibmwatson'
       | 'soniox',
   ) => Promise<CredentialSaveResult>;
   getSttProvider: () => Promise<string>;
   setGroqSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenAiSttBaseUrl: (url: string) => Promise<CredentialSaveResult>;
-  setAzureApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setAzureRegion: (region: string) => Promise<CredentialSaveResult>;
-  setIbmWatsonApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setGroqSttModel: (model: string) => Promise<CredentialSaveResult>;
   setSonioxApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setIbmWatsonRegion: (region: string) => Promise<CredentialSaveResult>;
   testSttConnection: (
-    provider: 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox',
+    provider: 'groq' | 'openai' | 'soniox',
     apiKey: string,
-    region?: string,
   ) => Promise<{ success: boolean; error?: string }>;
 
   // STT Config Events
@@ -785,25 +774,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
       | 'none'
       | 'groq'
       | 'openai'
-      | 'azure'
-      | 'ibmwatson'
       | 'soniox',
   ) => ipcRenderer.invoke('set-stt-provider', provider),
   getSttProvider: () => ipcRenderer.invoke('get-stt-provider'),
   setGroqSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-stt-api-key', apiKey),
   setOpenAiSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-stt-api-key', apiKey),
   setOpenAiSttBaseUrl: (url: string) => ipcRenderer.invoke('set-openai-stt-base-url', url),
-  setAzureApiKey: (apiKey: string) => ipcRenderer.invoke('set-azure-api-key', apiKey),
-  setAzureRegion: (region: string) => ipcRenderer.invoke('set-azure-region', region),
-  setIbmWatsonApiKey: (apiKey: string) => ipcRenderer.invoke('set-ibmwatson-api-key', apiKey),
   setGroqSttModel: (model: string) => ipcRenderer.invoke('set-groq-stt-model', model),
   setSonioxApiKey: (apiKey: string) => ipcRenderer.invoke('set-soniox-api-key', apiKey),
-  setIbmWatsonRegion: (region: string) => ipcRenderer.invoke('set-ibmwatson-region', region),
   testSttConnection: (
-    provider: 'groq' | 'openai' | 'azure' | 'ibmwatson' | 'soniox',
+    provider: 'groq' | 'openai' | 'soniox',
     apiKey: string,
-    region?: string,
-  ) => ipcRenderer.invoke('test-stt-connection', provider, apiKey, region),
+  ) => ipcRenderer.invoke('test-stt-connection', provider, apiKey),
 
   // STT Config Events (Adapted from public PR #173)
   onSttConfigChanged: (callback: (data: { configured: boolean; provider: string }) => void) => {
