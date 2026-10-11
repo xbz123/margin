@@ -91,6 +91,10 @@ export class LocalContextStore {
         return this.save(entries);
     }
 
+    clear(): LocalContextEntry[] {
+        return this.save([]);
+    }
+
     remove(id: string): LocalContextEntry[] {
         if (typeof id !== 'string') throw new LocalContextError('Invalid Local Context entry.');
         return this.save(this.list().filter(entry => entry.id !== id));

@@ -48,6 +48,21 @@ test('AG50 enforces inclusive byte and count boundaries', () => {
   assert.throws(() => many.addFiles([fixture('ninth.md', 'x')]), /8 files/);
 });
 
+test('AG50 clear replaces unreadable storage without parsing it, including an unreadable file mode', () => {
+  const file = path.join(root, 'recovery.json');
+  const s = new LocalContextStore(file);
+  for (const content of ['{broken', '{}', 'x'.repeat(512 * 1024 + 1), '[]']) {
+    fs.writeFileSync(file, content);
+    if (content === '[]') fs.chmodSync(file, 0o000);
+    try {
+      assert.throws(() => s.list(), { name: 'LocalContextError', message: 'Local Context could not be read. Check its local storage.' });
+      assert.deepEqual(s.clear(), []);
+      assert.deepEqual(s.list(), []);
+      assert.equal(fs.readFileSync(file, 'utf8'), '[]');
+    } finally { fs.chmodSync(file, 0o600); }
+  }
+});
+
 test('AG50 mock wire has fixed reference-first position, no scope tag, and changes after removal', async () => {
   const s = store('wire.json');
   s.addFiles([fixture('wire.txt', 'ENTIRE REFERENCE')]);
@@ -130,4 +145,13 @@ test('AG50 shared generation covers manual answer and text chat; existing scope 
   const beforeBudgetFailure = sent.length;
   await assert.rejects(() => helper.chat('TOO LARGE'), { name: 'LocalContextCapacityError' });
   assert.equal(sent.length, beforeBudgetFailure);
+  helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' };
+  fs.writeFileSync(path.join(root, 'local-context.json'), '{CORRUPTED');
+  const unreadable = { name: 'LocalContextError', message: 'Local Context could not be read. Check its local storage.' };
+  await assert.rejects(() => helper.chat('TEXT WHILE CORRUPT'), unreadable);
+  await assert.rejects(() => collect(new WhatToAnswerLLM(helper).generateStream('MANUAL WHILE CORRUPT')), unreadable);
+  assert.equal(sent.length, beforeBudgetFailure);
+  s.clear();
+  assert.equal(await helper.chat('RECOVERED QUESTION'), 'ANSWER');
+  assert.doesNotMatch(JSON.stringify(sent.at(-1)), /LOCAL CONTEXT|CORRUPTED/);
 });

@@ -1319,9 +1319,11 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-41a | 完成；Claude 复查通过，合并后完整 gates 16/16（§9"AG-41a 复查"） | `8f05e4cc`、`921517e3`、`cf534db3`；合并 `d25d48ff` | 退役 Google、Deepgram、ElevenLabs（S35）和 Azure、IBM Watson（S39）；删除 6 个依赖；合并后 116 个文件 937 项测试，932 通过、5 个既有跳过；证据 `evidence/AG-41a/` |
 | AG-41b | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-41b 复查"） | `759a6484`、`520dc16e`、`9b92f883` | 五家云端 STT（新增阿里云百炼、豆包，整体按需求重写）、凭据设置、未配置时拒绝开始会议、恢复四个 Realtime 用例、160 KiB 严格缓冲上限（超限拒绝）、麦克风恢复断言；gates 119 个文件 955 项测试，954 通过、1 个既有跳过；证据 `evidence/AG-41b/`；未实机验证 |
 | AG-42 | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-42 复查"） | `3ff20cbc`、`3bfcbe47`、`25528531` | 手动回答接现有 generate-what-to-say → IntelligenceManager/Engine → 阶段 3 生成链路；配置预检、mic 尾段 finalize（尽力而为，上限 1500 ms）、取消、回答身份封口、固定错误文案（英文源文 + 中文译文）；gates 121 个文件 970 项测试，969 通过、1 个既有跳过；证据 `evidence/AG-42/`；未实机验证 |
-| AG-50 | 实现和本地检查通过；完整门禁和复查待 Claude | `2dc6a835`（未推送） | Local Context 全文、S40 无数据开关、固定请求位置、容量拒绝、文本快照存储和设置卡片；123 文件 978 项：976 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过。证据 `evidence/AG-50/checks/`；未实机验证 |
+| AG-50 | 实现及存储恢复修正的本地检查通过；修正版复验待 Claude | `2dc6a835`、`a04cf568` 及本次恢复修正（未推送） | 原版 Claude gates 16/16；本次新增损坏存储的确认清空恢复。最终本地 123 文件 979 项：977 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过。证据 `evidence/AG-50/checks/`；未实机验证 |
 
 ### AG-50 记录（2026-10-11）
+
+**Claude 复查与恢复修正（2026-10-11）**：Claude 报告 `2dc6a835` / `a04cf568` 完整 gates 16/16、978 项（977 通过、1 既有跳过），但指出损坏的本地存储使 list/add/remove 和所有生成一起失败、界面无恢复入口。本次不修改或提交其未跟踪的 `evidence/AG-50/gates/`。修复仅新增 LocalContextStore.clear → 既有原子 save([])，不读取或解析旧文件；新 clear IPC/preload 直接声明，保留可信窗口检查，成功后取消在途生成。设置仅在不可读状态提供“清空 Local Context”，先显示不可撤销确认并可取消；原始导入文件不受影响，失败时保留恢复入口及固定提示。生成仍在读取失败时明确报错，不静默忽略。新增/扩充行为测试覆盖 JSON 损坏、校验失败、512 KiB 超限、无读权限、生成零发送、清空后正常生成且不带 Local Context、IPC/preload、界面恢复入口、取消确认及写入失败；无新增跳过。若父目录不可写或磁盘故障，原子替换仍会明确失败，不尝试绕过权限。此次修正待 Claude 复验，不将前一版 gates 当作修正版证据。
 
 - **范围**：仅 Local Context 文件导入、查看全文、删除、本地保存及共享生成入口。源码英文，卡片与错误的中文译文在 `src/i18n.zh.ts`，使用 useI18n 和 SettingsKit。未引入预热、PDF/DOCX 解析器、Skills、设置页重组、依赖或许可清单变化。
 - **读取上限**：沿用旧 Margin 行为的 8 个文件、单文件 32 KiB、总正文 64 KiB。它们限制同步主进程读取、存储和每次发送的开销，不等于模型必能容纳；先检查扩展名，只收 `.md`、`.markdown`、`.txt`。读取普通文件的 descriptor，拒绝符号链接/目录，限长加一字节检测并发增长；UTF-8 fatal 解码和控制字符检查拒绝无效编码/二进制。批量导入整批验证后原子替换，不部分保存。序列化本地存储另有 512 KiB 上限，覆盖 JSON 转义和元数据开销。
@@ -1329,8 +1331,8 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 - **请求位置**：在 `LLMHelper.selectedGeneration` 统一附加，手动 WhatToAnswer 与文字提问共用；Local Context 是第一个 user turn，正文以 JSON 数据表示并标明为参考材料，后接本次请求原有 contents/角色/图片，systemInstruction 不变。四个 API 协议与 Codex 分支使用同一组装结果，重试按实际目标重新检查容量。连接兼容性测试 purpose=compatibility 不发送用户资料。没有 Local Context 时原请求不变。
 - **容量检查**：使用本分支 `getModelCapabilities(request.model).maxContextTokens`，对 systemInstruction、完整文字/结构的 UTF-8 JSON 字节乘 1.25 加 256 framing 估算，再加本次 maxOutputTokens 预留；超过则在任何服务商/cache 请求之前报明确的 LocalContextCapacityError，不为塞入 Local Context 截断任何内容。手动回答显示固定的可翻译错误，绝不转发供应商原始错误。图片仅计结构（与旧行为一致），不计 base64。容量来自本分支现有模型分类，是保守估算而非服务商精确 tokenizer 或实测上限；未知/自定义模型沿用本分支 128k 假设，Codex 同样沿用模型分类与客户端预留，不声称后端实际容量已确认。
 - **数据范围（S40）**：用户原话“这部分不需要设立数据开关，写入local context的内容默认发送到服务商”。不新增 local_context、不恢复 reference_files、不并入 profile_history，不修改 ProviderDataScope、IPC 范围白名单或范围设置。Local Context 本身没有 dataScopes 标签；加入时即同意发送，删除后不再带入。关闭现有任一范围不会单独过滤 Local Context，但整个请求原有的范围拒绝仍有效，例如非空文字问题在 transcript=false 时仍零发送；不会绕过这一规则单发 Local Context。
-- **行为验收**：新增 8 项行为测试，实际运行存储、mock generateOnce、LLMHelper/WhatToAnswer、三个 IPC/preload 方法、设置组件动作；覆盖读取三类上限、非文本/扩展名/链接拒绝、无部分保存、固定位置、原角色保持、容量失败零发送、现有范围独立、原有 transcript 拒绝、增删变化、设置文案双语、原生选择取消、不可信 sender 及保存错误展示。不新增跳过，不删除旧测试；两个旧 IPC 测试替身补注册空实现，原断言保持。
-- **最终本地检查**：Electron/Vite 构建、两套 tsc、preload-contract、IPC channel、retired `--all`（296 条，0 命中）、G2（受限池 621107，0 命中）、diff-check 均 exit 0。隔离逐文件测试 123 文件、978 项：976 通过、1 失败（任务已声明的 `icons.test.mjs` / iconutil 沙箱限制）、1 既有跳过；无隔离拦截、无挂起/超时、无无法解释的退出。首轮日志隐私替身缺失已修复，最终日志覆盖在 `evidence/AG-50/checks/`，不留中间轮次。来源逐处处置见 PROVENANCE AG-50。
+- **行为验收**：本票共 9 项行为测试，实际运行存储、mock generateOnce、LLMHelper/WhatToAnswer、四个 IPC/preload 方法、设置组件动作；覆盖读取三类上限、非文本/扩展名/链接拒绝、无部分保存、固定位置、原角色保持、容量失败零发送、现有范围独立、原有 transcript 拒绝、增删变化、损坏后确认清空与恢复、设置文案双语、原生选择取消、不可信 sender 及保存错误展示。不新增跳过，不删除旧测试；两个旧 IPC 测试替身补注册空实现，原断言保持。
+- **最终本地检查（恢复修正版）**：Electron/Vite 构建、两套 tsc、preload-contract、IPC channel、retired `--all`（296 条，0 命中）、G2（受限池 621107，0 命中）、diff-check 均 exit 0。隔离逐文件测试 123 文件、979 项：977 通过、1 失败（任务已声明的 `icons.test.mjs` / iconutil 沙箱限制）、1 既有跳过；无隔离拦截、无挂起/超时、无无法解释的退出。先复现 clear 缺失的红色测试，再实现恢复；最终日志覆盖在 `evidence/AG-50/checks/`，不留中间轮次，不改 Claude 的 gates 目录。来源逐处处置见 PROVENANCE AG-50。
 - **交付边界**：仅本地提交，不推送、不触发 CI。完整 Electron gates、原生文件选择器实机、真实服务、真实数据及打包未运行，由 Claude 复查与沙箱外门禁；不代签阶段 5。原先数据范围停止条件已由 S40 解除，无新增范围/依赖停止条件。
 
 ### AG-42 记录（2026-10-11）

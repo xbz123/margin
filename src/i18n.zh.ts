@@ -1,6 +1,10 @@
 // Only strings used by the current consumers belong here; English is the fallback.
 export const chinese: Readonly<Record<string, string>> = {
     'Local Context': '本地上下文',
+    'Clear Local Context': '清空 Local Context',
+    'Confirm clear': '确认清空',
+    'Cancel': '取消',
+    'Permanently clear all Local Context? This cannot be undone. Original imported files will not be changed.': '确定永久清空全部本地上下文吗？此操作不可撤销，不会修改原始导入文件。',
     'Contents are sent with requests to the selected model provider. Delete them to stop sending.': '内容会随请求发送给所选的模型服务商。删除内容即可停止发送。',
     'UTF-8 .md, .markdown or .txt only. Up to 8 files, 32 KiB each and 64 KiB total. Imported copies stay unchanged until removed.': '仅支持 UTF-8 编码的 .md、.markdown 和 .txt，最多 8 个文件、每个 32 KiB、合计 64 KiB。导入的是固定副本，删除前不会随原文件变化。',
     'Add text files': '添加文本文件',

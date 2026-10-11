@@ -50,6 +50,13 @@ test('AG50 real IPC and preload add/view/delete through native selection, reject
   assert.equal((await handlers.get('local-context:list')({ sender: {} })).ok, false);
   assert.equal((await api.removeLocalContext(added.entries[0].id)).entries.length, 0);
   assert.equal(changes, 2);
+  fs.writeFileSync(path.join(root, 'local-context.json'), '{broken');
+  assert.equal((await api.listLocalContext()).error, 'Local Context could not be read. Check its local storage.');
+  assert.equal((await handlers.get('local-context:clear')({ sender: {} })).ok, false);
+  assert.equal(fs.readFileSync(path.join(root, 'local-context.json'), 'utf8'), '{broken');
+  assert.equal((await api.clearLocalContext()).entries.length, 0);
+  assert.equal((await api.listLocalContext()).entries.length, 0);
+  assert.equal(changes, 3);
 });
 
 test('AG50 settings card actions display full text, save removal and show localized failure and consent', async () => {
@@ -88,5 +95,27 @@ test('AG50 settings card actions display full text, save removal and show locali
     api.addLocalContext = () => pending = Promise.resolve({ ok: false, error: 'Local Context accepts at most 8 files.' });
     await perform(nodes(render()).find(node => node.type === 'button').props.onClick);
     assert.match(nodes(render()).find(node => node.props?.role === 'alert').props.children, language === 'en' ? /at most 8/ : /最多接受 8/);
+    api.listLocalContext = () => Promise.resolve({ ok: false, error: 'Local Context could not be read. Check its local storage.' });
+    let failClear = true;
+    api.clearLocalContext = () => {
+      calls.push('clear');
+      return Promise.resolve(failClear ? { ok: false, error: 'Local Context could not be saved. The previous contents were kept.' } : { ok: true, entries: [] });
+    };
+    await perform(effects.at(-1));
+    const button = label => nodes(render()).find(node => node.type === 'button' && node.props.children === (language === 'zh-CN' ? dictionary.chinese[label] : label));
+    assert.match(nodes(render()).find(node => node.props?.role === 'alert').props.children, language === 'en' ? /could not be read/ : /无法读取/);
+    assert.ok(button('Clear Local Context'));
+    button('Clear Local Context').props.onClick();
+    assert.ok(button('Confirm clear'));
+    button('Cancel').props.onClick();
+    assert.deepEqual(calls, ['add', 'id']);
+    button('Clear Local Context').props.onClick();
+    await perform(button('Confirm clear').props.onClick);
+    assert.ok(button('Confirm clear'), 'failed write must retain the recovery path');
+    failClear = false;
+    await perform(button('Confirm clear').props.onClick);
+    assert.equal(button('Clear Local Context'), undefined);
+    assert.equal(nodes(render()).some(node => node.props?.role === 'alert'), false);
+    assert.deepEqual(calls, ['add', 'id', 'clear', 'clear']);
   }
 });

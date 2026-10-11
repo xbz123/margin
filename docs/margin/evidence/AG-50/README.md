@@ -4,6 +4,15 @@ Implementation `2dc6a835` on `codex/margin-agpl-migration`, based on `0116c6c2`,
 Final policy: PLAN S40 (no Local Context data-scope switch). This is local execution
 evidence, not Claude review, full Electron gates, CI, release or stage-5 acceptance.
 
+Review repair: unreadable storage now has a confirmed clear action. It atomically
+replaces the store with `[]` without parsing it and cancels in-flight generation.
+Generation still fails closed before clearing; normal storage has no bulk-clear
+button. Failed writes keep the recovery controls. Original imported files are
+never changed. Read permission on the old file is not needed, but the containing
+directory must still permit atomic replacement; permissions are never bypassed.
+Claude's previous 16/16 report applies to the original implementation only; its
+untracked `gates/` directory is not modified or included in this repair commit.
+
 ## Behavior and source
 
 - Text snapshots: 8 entries, 32 KiB each, 64 KiB combined UTF-8 body; bounded
@@ -29,13 +38,13 @@ the existing isolated per-file runner's TAP, file inventory and summary.
 
 - Electron and Vite builds, both tsc checks, preload contract, IPC channels,
   retirement scan, G2 and whitespace: exit 0.
-- Unit suite: 123 files / 978 tests; 976 pass, 1 fail, 1 existing skip. Only failure:
+- Unit suite after recovery repair: 123 files / 979 tests; 977 pass, 1 fail, 1 existing skip. Only failure:
   `electron/margin/__tests__/icons.test.mjs`, system iconutil under the sandbox
   (known exception in the task). No timeout, unfinished file or isolation violation.
-- New AG-50 tests: 8/8. Mock transport and actual production store, helper,
+- AG-50 tests including recovery: 9/9. Mock transport and actual production store, helper,
   WhatToAnswer, IPC, preload and card actions are exercised. No real account,
   provider, user-data directory, keychain or device is used.
-- Initial fixture registration failure was fixed without weakening assertions.
+- The recovery regression failed before the new clear operation was implemented.
   Only final logs are retained. Absolute workspace paths in reports are normalized
   to `<worktree>`; the temporary helper and isolated sandboxes are removed.
 

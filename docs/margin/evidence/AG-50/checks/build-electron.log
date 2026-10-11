@@ -2,4 +2,4 @@
 > natively@2.7.0 build:electron
 > node scripts/build-electron.js
 
-[build-electron] Done in 729ms
+[build-electron] Done in 639ms

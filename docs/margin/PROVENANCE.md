@@ -23,6 +23,22 @@ Notes:
 
 ### AG-50 full-text Local Context (2026-10-11)
 
+Review repair (2026-10-11): written from Claude's unreadable-storage finding.
+`clear()` invokes the existing atomic `save([])` without parsing the previous
+file; the new guarded IPC/preload entry retains sender validation and generation
+invalidation. The card offers recovery only after the fixed local read failure,
+with a separate confirmation/cancel step. No old/upstream code or new dependency
+was read or introduced. Existing fail-closed generation behavior is unchanged.
+Behavior tests cover malformed JSON/schema/oversize/unreadable file mode, real
+generation failure and recovery, IPC/preload, confirmation cancellation, failed
+clear retention and both UI languages. No tests were removed or skipped.
+
+Three additional exact generic G2 lines in LocalContextSettings are retained and
+registered with individual reasons: `const [confirmClear, setConfirmClear] = useState(false);`
+(React confirmation state), `if (result.ok) {` (result success branch), and
+`setConfirmClear(false);` (reset confirmation after success). No evasion edits or
+source-pool changes. The initial seven occurrences below are unchanged.
+
 Written for this branch from HANDOFF 4.5, the final S40 user decision and the
 stage-3 GenerateRequest contract. Not a clean-room claim. No old implementation
 fragments, later upstream implementation, assets or dependencies were imported.

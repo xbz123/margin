@@ -11,6 +11,9 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"const [confirmClear, setConfirmClear] = useState(false);","reason":"AG-50 recovery: Standard React boolean state for the newly written explicit destructive-action confirmation; no upstream UI logic imported."},
+    {"line":"if (result.ok) {","reason":"AG-50 recovery: Generic success-result branch in LocalContextSettings.run, used to dismiss recovery only after a successful local operation."},
+    {"line":"setConfirmClear(false);","reason":"AG-50 recovery: Standard React state update to close the confirmation after successful local recovery; no old implementation imported."},
     {"line":"assert.equal(changes, 2);","reason":"AG-50: Generic mutation-callback count assertion in LocalContextBridge.test.mjs; only successful add/remove invalidate in-flight generations, not cancelled selection or rejected imports."},
     {"line":"const api = {","reason":"AG-50: Generic mock object declaration in LocalContextBridge.test.mjs; it drives the production settings card and is not copied UI behavior."},
     {"line":"return entries;","reason":"AG-50: Generic return of the validated local snapshot array in LocalContextStore.list/save (two sites); store is newly written with imported-content snapshots, not the old path-based store."},

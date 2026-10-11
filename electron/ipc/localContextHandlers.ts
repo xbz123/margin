@@ -16,6 +16,7 @@ export function registerLocalContextHandlers(handle: (channel: string, callback:
         }
     };
     handle('local-context:list', operation(() => {}));
+    handle('local-context:clear', operation(() => { store().clear(); changed(); }));
     handle('local-context:add', operation(async event => {
         const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
             properties: ['openFile', 'multiSelections'], filters: [{ name: 'Markdown / Text', extensions: ['md', 'markdown', 'txt'] }],

@@ -1,29 +1,24 @@
 {
-  "startedAt": "2026-10-11T18:31:28.403Z",
-  "head": "0116c6c2fddc71ddf84113ccdd0507f340096eb2",
-  "uncommittedPaths": 21,
+  "startedAt": "2026-10-11T18:43:21.641Z",
+  "head": "a04cf56858ead806b7d286757d886a9863889bb5",
+  "uncommittedPaths": 16,
   "uncommittedPathList": [
-    "M docs/margin/PLAN.md",
+    "M docs/margin/evidence/AG-50/checks/build-electron.log",
+    " M docs/margin/evidence/AG-50/checks/commands.json",
+    " M docs/margin/evidence/AG-50/checks/ipc-channels.log",
+    " M docs/margin/evidence/AG-50/checks/preload-contract.log",
+    " M docs/margin/evidence/AG-50/checks/vite-build.log",
     " M docs/margin/provenance-config.json",
-    " M docs/margin/retired-rules.json",
-    " M electron/LLMHelper.ts",
-    " M electron/direct-assist/errors.ts",
-    " M electron/ipcHandlers.ts",
-    " M electron/margin/__tests__/loggingPrivacy.test.mjs",
+    " M electron/ipc/localContextHandlers.ts",
     " M electron/preload.ts",
-    " M electron/services/__tests__/ImagePathValidation.test.mjs",
-    " M src/components/SettingsOverlay.tsx",
+    " M electron/services/LocalContextStore.ts",
+    " M electron/services/__tests__/LocalContext.test.mjs",
+    " M electron/services/__tests__/LocalContextBridge.test.mjs",
+    " M src/components/settings/LocalContextSettings.tsx",
     " M src/i18n.zh.ts",
     " M src/types/electron.d.ts",
     "?? .agy-tmp/",
-    "?? docs/margin/evidence/AG-50/",
-    "?? electron/ipc/localContextHandlers.ts",
-    "?? electron/llm/localContextRequest.ts",
-    "?? electron/services/LocalContextStore.ts",
-    "?? electron/services/__tests__/LocalContext.test.mjs",
-    "?? electron/services/__tests__/LocalContextBridge.test.mjs",
-    "?? src/components/settings/LocalContextSettings.tsx",
-    "?? src/types/localContext.ts"
+    "?? docs/margin/evidence/AG-50/gates/"
   ],
   "reference": null,
   "steps": [
@@ -33,7 +28,7 @@
       "exitCode": 1,
       "signal": null,
       "timedOut": false,
-      "durationMs": 16533,
+      "durationMs": 16002,
       "log": "docs/margin/evidence/AG-50/checks/unit/tests.log",
       "tap": "docs/margin/evidence/AG-50/checks/unit/tests.tap",
       "perFile": "docs/margin/evidence/AG-50/checks/unit/tests.files.json",
@@ -41,8 +36,8 @@
       "filesNotFinished": [],
       "filesEndedAfterFooter": [],
       "counts": {
-        "tests": 978,
-        "pass": 976,
+        "tests": 979,
+        "pass": 977,
         "fail": 1,
         "skipped": 1,
         "cancelled": 0,
@@ -53,6 +48,6 @@
       "passed": false
     }
   ],
-  "finishedAt": "2026-10-11T18:31:44.939Z",
+  "finishedAt": "2026-10-11T18:43:37.646Z",
   "allPassed": false
 }

@@ -8,14 +8,25 @@ export function LocalContextSettings() {
     const [entries, setEntries] = useState<LocalContextEntry[]>([]);
     const [busy, setBusy] = useState(true);
     const [error, setError] = useState('');
+    const [needsRecovery, setNeedsRecovery] = useState(false);
+    const [confirmClear, setConfirmClear] = useState(false);
     const button = 'px-3 py-1.5 text-xs rounded-lg bg-bg-item-surface border border-border-subtle text-text-primary disabled:opacity-50';
     async function run(action: () => Promise<LocalContextResult>) {
         setBusy(true);
         setError('');
         try {
             const result = await action();
-            if (result.ok) setEntries(result.entries);
-            else setError(result.error);
+            if (result.ok) {
+                setEntries(result.entries);
+                setNeedsRecovery(false);
+                setConfirmClear(false);
+            } else {
+                setError(result.error);
+                if (result.error === 'Local Context could not be read. Check its local storage.') {
+                    setNeedsRecovery(true);
+                    setEntries([]);
+                }
+            }
         } catch { setError('Local Context is unavailable. Please try again.'); }
         finally { setBusy(false); }
     }
@@ -24,8 +35,15 @@ export function LocalContextSettings() {
         <div className="space-y-3">
             <SettingsHeading title={t('Local Context')} description={t('Contents are sent with requests to the selected model provider. Delete them to stop sending.')} />
             <p className="text-xs text-text-secondary">{t('UTF-8 .md, .markdown or .txt only. Up to 8 files, 32 KiB each and 64 KiB total. Imported copies stay unchanged until removed.')}</p>
-            <button type="button" className={button} disabled={busy} onClick={() => void run(() => window.electronAPI.addLocalContext())}>{t('Add text files')}</button>
+            <button type="button" className={button} disabled={busy || needsRecovery} onClick={() => void run(() => window.electronAPI.addLocalContext())}>{t('Add text files')}</button>
             {error && <p role="alert" className="text-xs text-red-400">{t(error)}</p>}
+            {needsRecovery && (confirmClear ? <div className="space-y-2">
+                <p className="text-xs text-text-secondary">{t('Permanently clear all Local Context? This cannot be undone. Original imported files will not be changed.')}</p>
+                <div className="flex gap-3">
+                    <button type="button" className={button} disabled={busy} onClick={() => void run(() => window.electronAPI.clearLocalContext())}>{t('Confirm clear')}</button>
+                    <button type="button" className={button} disabled={busy} onClick={() => setConfirmClear(false)}>{t('Cancel')}</button>
+                </div>
+            </div> : <button type="button" className={button} disabled={busy} onClick={() => setConfirmClear(true)}>{t('Clear Local Context')}</button>)}
             {entries.map(entry => <div key={entry.id} className="border-t border-border-subtle pt-3 space-y-2">
                 <details>
                     <summary className="cursor-pointer text-sm text-text-primary">{entry.name}</summary>
