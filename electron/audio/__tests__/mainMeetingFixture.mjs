@@ -34,7 +34,8 @@ export function mainFixture(options = {}) {
   const Class = new Function('ensureMacMicrophoneAccess', 'formatPermissionMessage', 'crypto', 'CredentialsManager', 'console', js)(
     options.microphonePermission ?? (async () => true), () => 'permission denied',
     { randomUUID: () => 'meeting-' + providers.length + '-' + order.length },
-    { getInstance: () => ({ getDefaultModel: () => 'synthetic-model', getSttProvider: () => 'synthetic' }) },
+    { getInstance: () => ({ getDefaultModel: () => 'synthetic-model', getSttProvider: () => 'synthetic',
+      requireSttConfigured: options.requireSttConfigured ?? (() => {}) }) },
     { log() {}, warn() {}, error() {} },
   );
   const state = new Class();

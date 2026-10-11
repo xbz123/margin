@@ -1,7 +1,7 @@
 # Outbound boundary inventory (AG-24)
 
-This is an implementation inventory, not an AG-24 acceptance record. Google STT
-uses the service-account-only contract approved in PLAN S16. No live credentials, services,
+This is an implementation inventory, not an AG-24 acceptance record. AG-41a retired
+Google, Deepgram, ElevenLabs, Azure and IBM STT (S35/S39). No live credentials, services,
 audio devices, keychain or Codex CLI are used by the synthetic checks.
 
 ## Application HTTP
@@ -33,7 +33,8 @@ preserved. Nothing patches node_modules or SDK prototypes.
 | ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic/Groq model-list URLs, fetch; custom targets receive no discovery key | Key/config only; startup/background/model-error discovery |
 | utils/modelFetcher, fetch-provider-models IPC | Saved effective target; unfiltered model IDs for compatible targets, no official fallback | User-triggered saved key/config only |
 | test-llm-connection IPC | Same saved effective target and protocol through generateOnce | Fixed Hello and saved key |
-| test-stt-connection IPC | Deepgram/Soniox WS, ElevenLabs voices GET, regional Azure/IBM POST, Groq/OpenAI transcription POST | Manual validation; synthetic WAV only |
+| test-stt-connection IPC | Soniox WS, Groq/OpenAI transcription POST | Manual validation; synthetic WAV only |
+| DomesticStreamingSTT / test-domestic-stt | Aliyun: `wss://<validated-workspace>.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`; Doubao: `wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async` | Only explicitly selected credentials and PCM; manual test uses synthetic silence. Aliyun workspace is a validated single DNS label, not an arbitrary authority. No redirects. |
 
 LLMHelper's final sends recheck request scopes after limiter/image processing and
 before application retries/fallback. Groq/OpenAI/Anthropic/DeepSeek SDK retries
@@ -137,28 +138,24 @@ are inserted into it; systemPromptOverride and the optional skill prompt interfa
 also exist. The latter has no identified current renderer/IPC supplier. Cache
 creation receives no exemption when a request scope has been refused.
 
-Azure and IBM share regionalSttEndpoint across credential save, RestSTT runtime
-and connection tests. Region accepts ASCII letter/digit/hyphen tokens, and the
-constructed official hostname is verified. Invalid persisted or incoming values
-fail closed, rather than becoming a request to an injected authority. OpenAI STT
-base URL save/runtime/test share openAiSttEndpoint; compatibility remains until AG-41.
+OpenAI STT base URL save uses validateSttBaseUrl (AG-41b); runtime and connection
+tests share openAiSttEndpoint. Both reuse the branch's HTTP authority validation
+and reject query strings. Aliyun's workspace identifier is validated before socket creation.
 
 ## Actual STT audio
 
 | Provider | Endpoint / transport | Deferred sends |
 | --- | --- | --- |
-| Deepgram | SDK listen.live, wss://api.deepgram.com/v1/listen | Handshake buffer, application reconnect |
 | Soniox | wss://stt-rt.soniox.com/transcribe-websocket | Config/buffer flush, reconnect timer |
-| ElevenLabs | wss://api.elevenlabs.io/v1/speech-to-text/realtime | Session-ready buffer, accumulator, reconnect |
 | OpenAI | wss://api.openai.com/v1/realtime?intent=transcription; official or explicit compatible REST endpoint | Model reconnect, ring replay, accumulator, REST fallback/queued upload |
 | Groq | https://api.groq.com/openai/v1/audio/transcriptions | REST safety timer and queued flush |
-| Azure / IBM | Validated regional official endpoints | REST safety timer and queued flush |
-| Google | SpeechClient.streamingRecognize, speech.googleapis.com:443 by default; validated explicit universe | gRPC write/buffer, lazy/proactive restart; service-account-only local JWT |
+| Aliyun Bailian | Validated workspace hostname above | Task-started ACK, bounded PCM queue, capped reconnect |
+| Doubao | Fixed openspeech.bytedance.com endpoint above | Binary gzip frames, bounded PCM queue, capped reconnect |
 
-RestSTT retains helper branches for OpenAI/ElevenLabs but the current main factory
-selects their streaming classes. All application WS URLs are fixed; `ws` does not
-follow redirects by default. The Deepgram listen SDK default is its official URL;
-the application supplies no proxy/custom websocket endpoint.
+RestSTT implements Groq and the OpenAI-compatible REST fallback. New domestic
+adapters share a task transport; `ws` does not follow redirects. Their settings
+IPC never returns the stored key to the renderer. Provider bodies and transport
+errors are not forwarded to logs or UI because they can echo credentials.
 
 Transcripts is a **text-to-LLM** permission, not raw-audio consent. No audio scope
 is added. Explicit STT provider selection plus meeting start governs cloud audio;

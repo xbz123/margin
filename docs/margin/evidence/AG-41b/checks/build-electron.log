@@ -1,0 +1,5 @@
+
+> natively@2.7.0 build:electron
+> node scripts/build-electron.js
+
+[build-electron] Done in 766ms

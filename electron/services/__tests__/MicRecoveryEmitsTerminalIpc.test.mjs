@@ -5,10 +5,12 @@ import { fixture, deferred } from '../../audio/__tests__/meetingAudioFixture.mjs
 test('mic recovery is bounded, reports terminal exhaustion once and ignores retired errors', async () => {
   const f = fixture();
   await f.begin();
+  assert.equal(f.microphones.length, 1);
   const retired = f.microphones[0];
   for (let i = 0; i < 3; i++) {
     f.microphones.at(-1).emit('error', Error('recover'));
     await f.settle();
+    assert.equal(f.microphones.length, i + 2);
   }
   const count = f.microphones.length;
   f.microphones.at(-1).emit('error', Error('exhausted'));

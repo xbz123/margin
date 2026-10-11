@@ -109,7 +109,7 @@ test('every preload ipcRenderer.invoke channel has a matching ipcMain.handle reg
   // tree (not just ipcHandlers.ts) because subsystems like KeybindManager
   // and the stealth-tap shim register their own channels.
   const registered = new Set();
-  const handleRe = /(?:ipcMain\.handle|safeHandle|registerStealthHandler|registerHandler)\(\s*['"]([a-z0-9:_\-./]+)['"]/gi;
+  const handleRe = /(?:ipcMain\.handle|safeHandle|registerStealthHandler|registerHandler|handle)\(\s*['"]([a-z0-9:_\-./]+)['"]/gi;
 
   const walk = (dir) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

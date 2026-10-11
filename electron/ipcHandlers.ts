@@ -22,6 +22,7 @@ import { outboundAxios as axios, openAiSttEndpoint } from './services/outbound';
 import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
+import { registerDomesticSttHandlers } from './ipc/sttHandlers';
 
 export function initializeIpcHandlers(appState: AppState): void {
   const validateImages = (value: unknown): string[] | undefined => {
@@ -1100,9 +1101,16 @@ export function initializeIpcHandlers(appState: AppState): void {
   // STT Provider Management Handlers
   // ==========================================
 
+  registerDomesticSttHandlers(safeHandle, async () => {
+    await appState.reconfigureSttProvider();
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed()) win.webContents.send('credentials-changed');
+    }
+  });
+
   safeHandle(
     'set-stt-provider',
-    async (_, provider: 'none' | 'groq' | 'openai' | 'soniox') => {
+    async (_, provider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao') => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setSttProvider(provider), async () => {
       await appState.reconfigureSttProvider();

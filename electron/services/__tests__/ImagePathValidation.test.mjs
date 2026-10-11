@@ -34,6 +34,7 @@ function handlers(root, queue = []) {
     require(id) {
       if (id === 'electron') return { app: { getPath: () => root }, ipcMain: { removeHandler() {}, handle: (name, callback) => callbacks.set(name, callback), removeAllListeners() {}, on() {} } };
       if (id === './utils/imagePathValidation') return { validateImagePath };
+      if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };
       if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);
       return {};

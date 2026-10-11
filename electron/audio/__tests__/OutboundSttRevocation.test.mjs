@@ -54,7 +54,7 @@ function subject(name) {
 const audio = Buffer.alloc(96_000, 1);
 function ready(name, socket) {
   socket.readyState = 1; socket.emit('open');
-  if (name === 'OpenAIStreamingSTT') socket.emit('message', Buffer.from('{"type":"session.created"}'));
+  if (name === 'OpenAIStreamingSTT') socket.emit('message', Buffer.from('{"type":"session.updated"}'));
 }
 const hasAudio = socket => socket.sent.some(data => Buffer.isBuffer(data) || /"(?:audio|audio_base_64)"/.test(String(data)));
 

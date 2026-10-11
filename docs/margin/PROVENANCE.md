@@ -21,6 +21,70 @@ Notes:
 
 ## Ledger
 
+### AG-41b five cloud STT providers (2026-10-11)
+
+Written for this branch from HANDOFF 4.3 and the official protocol descriptions
+linked in `evidence/AG-41b/README.md`. No dependency was added or upgraded.
+This is not a verified clean-room claim. No post-June upstream implementation
+was imported or used as a template.
+
+Old Margin was read only with `git show b8ade3f7:<path>`:
+`electron/audio/AliyunStreamingSTT.ts`, `electron/audio/DoubaoStreamingSTT.ts`,
+and the behavior scenarios in `DomesticStreamingLifecycle.test.mjs`,
+`DoubaoProtocol.test.mjs`, `MeetingStartAudioGate2026_09_27.test.mjs` under
+`electron/audio/__tests__/`. These are behavior references only, not imported files.
+
+Both old provider classes are rejected as reusable implementations. Their many
+overlapping connection/active/reconnect/finish flags, close overloads, retry and
+buffer routines carry the same template-shaped lifecycle, with snapshot-attributed
+state and queue logic. Attribution to a Margin commit does not establish an
+independent origin. The new implementation separates one socket-owning task
+transport from two protocol adapters. All old class bodies, including short lines,
+are replaced rather than cosmetically edited. PCM conversion is newly written and
+tested for split-frame/chunk continuity. Overflow is rejected with a fixed error,
+not silently retained or truncated.
+
+| Old class / S35 ranges | Disposition of every listed line |
+| --- | --- |
+| Aliyun hits: 20, 129, 131, 150, 212, 254, 269, 285, 351, 399, 439, 440, 451, 488 | All 14 rejected with the old implementation; no allowLine grants for these old lines |
+| Aliyun snapshot: 10–11, 13, 133–135, 141–142, 147–148, 173, 201–203, 206, 209–210, 410–413, 419, 426–427, 462 | All 25 rejected; notably the non-strict queue at 410–413 is not reused |
+| Doubao hits: 30, 67, 99, 178, 200, 249, 264, 309, 320, 417, 484, 516, 517, 529, 573, 588, 597, 601 | All 18 rejected with the old implementation; no allowLine grants for these old lines |
+| Doubao snapshot: 12–13, 16, 192, 197–198, 225, 253–254, 258, 261–262, 468, 474–477, 496, 503–504 | All 20 rejected; notably the non-strict queue at 474–477 is not reused |
+
+The old `SpeechProviderSettings`, `SpeechTranscriptionSettings`, `sttHandlers`,
+`requestSafety`, constants, Soniox and REST implementations are not imported.
+The new domestic settings card uses this branch's AG-60a hooks/components;
+the surrounding existing settings layout is retained. `validateSttBaseUrl` is
+new, reusing the approved branch's HTTP authority validator. The current branch's
+OpenAI implementation already has no `wsSafeTeardown` or F-201 block; neither is
+introduced. Its readiness moves to the official `session.updated` ACK. Two skipped
+source assertions become actual emitted-configuration checks; the other two are
+enabled with the corrected ACK contract. No tests are deleted or newly skipped.
+
+New G2 exact matches are individually registered in `provenance-config.json`.
+There were 14 occurrences / 11 distinct lines, all ordinary language/API idioms:
+
+| File | Exact matched line | Reason |
+| --- | --- | --- |
+| DomesticStreamingSTT.ts | `private ready = false;` | Boolean initialization |
+| DomesticStreamingSTT.ts | `private channels = 1;` | PCM channel count initialization |
+| DomesticStreamingSTT.ts | `this.flush();` (3 occurrences) | Calls to this branch's newly written queue, on finalize/write/readiness |
+| DomesticStreamingSTT.ts | `return promise;` | Local drain promise return |
+| DomesticStreamingSTT.ts | `response.resume();` | Node HTTP response disposal |
+| SpeechProviderSettings.tsx | `if (!current) return;` | Unmounted-effect guard |
+| SpeechProviderSettings.tsx | `finally { setBusy(false); }` (2 occurrences) | Clear action state after success or failure |
+| DomesticStreamingLifecycle.test.mjs | `assert.equal(errors.length, 1);` | Count assertion for rejected oversize input |
+| DomesticStreamingLifecycle.test.mjs | `stt.notifySpeechEnded();` | Existing VAD interface call |
+| OpenAIRealtimeGAProtocol.test.mjs | `stt._handleWsMessage({ type: 'session.updated' });` | Official protocol event fed into the parser |
+| i18n.zh.ts | `'Save': '保存',` | Ordinary single-word UI translation |
+
+No scan pool, exclusion or generic-idiom rule is changed. Other fixture updates
+only load the new dependency, recognize the new registrar, include the new setter
+in atomic-persistence coverage, and send the corrected OpenAI ACK. Outbound
+inventory includes the new shared WebSocket site and the validated Aliyun dynamic
+DNS label. The original assertions remain. Final scan evidence is in
+`evidence/AG-41b/checks/provenance.log`.
+
 ### AG-41a retire five cloud STT providers (AGY, merged by Claude, 2026-10-11, PLAN S35 item 1, S38, S39)
 
 - Removal only. Google Cloud Speech, Deepgram, ElevenLabs, Azure Speech and IBM

@@ -548,6 +548,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
         switch (msg.type) {
             case 'session.created':
             case 'transcription_session.created':
+                break; // Wait for acknowledgement of our transcription configuration.
+            case 'session.updated':
                 if (this.sessionSetupTimer) {
                     clearTimeout(this.sessionSetupTimer);
                     this.sessionSetupTimer = null;
@@ -611,7 +613,6 @@ export class OpenAIStreamingSTT extends EventEmitter {
 
             // Server's ACK of our session.update. Useful for confirming the server
             // applied our requested config — log only, no behavior change required.
-            case 'session.updated':
             case 'transcription_session.updated':
                 console.log('[OpenAIStreaming] Session config applied by server');
                 break;

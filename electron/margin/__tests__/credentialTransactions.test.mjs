@@ -106,6 +106,7 @@ function storage() {
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage };
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');
+        if (id === '../utils/validateSttBaseUrl') return require('../../../dist-electron/electron/utils/validateSttBaseUrl.js');
         if (id === '../../src/types/llmTarget') return targetModule.exports;
         if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
         if (id === '../../src/types/codexSource') return codexModule.exports;
@@ -277,7 +278,7 @@ test('a failed backup during discard keeps the unreadable file and the save bloc
   assert.equal(manager.setOpenaiApiKey('synthetic-new').ok, false);
 });
 
-test('all 24 setters commit only after persistence and can be read after restart', () => {
+test('all credential setters commit only after persistence and can be read after restart', () => {
   const disk = storage();
   const manager = disk.boot();
   const ast = ts.createSourceFile('manager.ts', read('electron/services/CredentialsManager.ts'), ts.ScriptTarget.Latest, true);
@@ -289,20 +290,23 @@ test('all 24 setters commit only after persistence and can be read after restart
     setSttProvider: 'sttProvider', setGroqSttApiKey: 'groqSttApiKey',
     setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel',
     setSonioxApiKey: 'sonioxApiKey',
+    setDomesticStt: 'domesticStt',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
   };
-  assert.equal(names.length, 17);
+  assert.equal(names.length, 18);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
     const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
+    if (name === 'setDomesticStt') args.splice(0, args.length, 'aliyun', { key: 'synthetic-key', workspaceId: 'workspace', appId: '' });
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
     assert.equal(manager[name](...args).ok, true, name);
     if (name === 'setProviderConfiguration') { const { apiKey, ...config } = args[0]; assert.deepEqual(plain(manager.getAllCredentials().providerConfigurations.openai), plain(config)); }
     else if (name === 'setGenerationPolicy') assert.deepEqual(plain(manager.getAllCredentials().generationPolicy), plain(args[0]));
+    else if (name === 'setDomesticStt') assert.deepEqual(plain(manager.getDomesticStt('aliyun')), plain(args[1]));
     else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
     assert.deepEqual(plain(disk.boot().getAllCredentials()), plain(manager.getAllCredentials()), name);
   }

@@ -8,6 +8,7 @@ import { REPO } from '../../../scripts/margin/isolation/env.mjs';
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
 const registered = {
+  'electron/audio/DomesticStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/LLMHelper.ts': { 'new Groq': 1, 'new OpenAI': 3, 'new Anthropic': 1, 'new GoogleGenAI': 1 },
   'electron/audio/SonioxStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
@@ -47,7 +48,7 @@ test('known application HTTP/WS/SDK construction sites match the outbound invent
 test('fixed endpoint origins in transport modules match the documented provider inventory', () => {
   const origins = new Set();
   const dynamicAuthorities = [];
-  for (const file of [...Object.keys(registered), 'electron/llm/llmTarget.ts', 'src/types/codexSource.ts']) {
+  for (const file of [...Object.keys(registered), 'electron/audio/AliyunStreamingSTT.ts', 'electron/audio/DoubaoStreamingSTT.ts', 'electron/llm/llmTarget.ts', 'src/types/codexSource.ts']) {
     const ast = ts.createSourceFile(file, fs.readFileSync(path.join(REPO, file), 'utf8'), ts.ScriptTarget.Latest, true);
     function visit(node) {
       if (ts.isStringLiteralLike(node) && /^(?:https?|wss?):\/\//.test(node.text)) origins.add(new URL(node.text).origin);
@@ -59,9 +60,10 @@ test('fixed endpoint origins in transport modules match the documented provider 
     }
     visit(ast);
   }
-  assert.deepEqual(dynamicAuthorities, []);
+  assert.deepEqual(dynamicAuthorities, ['electron/audio/AliyunStreamingSTT.ts:`wss://${this.options.workspaceId}.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`']);
   assert.deepEqual([...origins].sort(), [
     'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.groq.com', 'https://api.openai.com',
     'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
+    'wss://openspeech.bytedance.com',
   ].sort());
 });

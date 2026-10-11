@@ -3,7 +3,8 @@ import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
 
-export interface ElectronAPI {
+import type { DomesticSttAPI } from './domesticStt';
+export interface ElectronAPI extends DomesticSttAPI {
   updateContentDimensions: (dimensions: {
     width: number
     height: number
@@ -96,13 +97,13 @@ export interface ElectronAPI {
   setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>
-  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
+  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>
   requestMicPermission: () => Promise<boolean>
 
   // STT Provider Management
-  setSttProvider: (provider: 'none' | 'groq' | 'openai' | 'soniox') => Promise<CredentialSaveResult>
+  setSttProvider: (provider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao') => Promise<CredentialSaveResult>
   getSttProvider: () => Promise<string>
   setGroqSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>

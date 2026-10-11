@@ -2,6 +2,7 @@ import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } fr
 import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
+import type { DomesticSttAPI } from '../src/types/domesticStt';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
@@ -46,7 +47,7 @@ window.addEventListener('click', openClickedLink);
 window.addEventListener('auxclick', openClickedLink);
 
 // Types for the exposed Electron API
-interface ElectronAPI {
+interface ElectronAPI extends DomesticSttAPI {
   updateContentDimensions: (dimensions: { width: number; height: number }) => Promise<void>;
   updateContentDimensionsCentered: (dimensions: { width: number; height: number }) => Promise<void>;
   getRecognitionLanguages: () => Promise<Record<string, any>>;
@@ -126,7 +127,7 @@ interface ElectronAPI {
       | 'none'
       | 'groq'
       | 'openai'
-      | 'soniox',
+      | 'soniox' | 'aliyun' | 'doubao',
   ) => Promise<CredentialSaveResult>;
   getSttProvider: () => Promise<string>;
   setGroqSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
@@ -769,12 +770,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 
   // STT Provider Management
+  getDomesticStt: provider => ipcRenderer.invoke('get-domestic-stt', provider),
+  saveDomesticStt: (provider, input) => ipcRenderer.invoke('save-domestic-stt', provider, input),
+  testDomesticStt: provider => ipcRenderer.invoke('test-domestic-stt', provider),
   setSttProvider: (
     provider:
       | 'none'
       | 'groq'
       | 'openai'
-      | 'soniox',
+      | 'soniox' | 'aliyun' | 'doubao',
   ) => ipcRenderer.invoke('set-stt-provider', provider),
   getSttProvider: () => ipcRenderer.invoke('get-stt-provider'),
   setGroqSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-stt-api-key', apiKey),

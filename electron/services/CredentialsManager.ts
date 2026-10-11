@@ -9,6 +9,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
 import { openAiSttEndpoint } from './outbound';
+import { validateSttBaseUrl } from '../utils/validateSttBaseUrl';
 import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
 import { validateProviderConfiguration, resolveModelTarget, effectiveProviderConfiguration } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
@@ -26,7 +27,8 @@ export interface StoredCredentials {
     providerConfigurations?: Partial<Record<LlmProvider, ProviderConfiguration>>;
     generationPolicy?: GenerationPolicy;
     // STT Provider settings
-    sttProvider?: 'none' | 'groq' | 'openai' | 'soniox';
+    sttProvider?: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao';
+    domesticStt?: Partial<Record<'aliyun' | 'doubao', { key: string; workspaceId: string; appId: string }>>;
     groqSttApiKey?: string;
     groqSttModel?: string;
     openAiSttApiKey?: string;
@@ -97,12 +99,12 @@ export class CredentialsManager {
         return this.credentials.deepseekApiKey;
     }
 
-    public getSttProvider(): 'none' | 'groq' | 'openai' | 'soniox' {
+    public getSttProvider(): NonNullable<StoredCredentials['sttProvider']> {
         // 'local-whisper' was retired with local STT (PLAN.md AG-15).
         // 'google', 'deepgram', 'elevenlabs', 'azure', 'ibmwatson' were retired in AG-41a.
         // Treat retired providers as "none" so audio is never sent to a retired cloud provider.
         const stored = this.credentials.sttProvider;
-        if (stored === 'groq' || stored === 'openai' || stored === 'soniox') {
+        if (stored === 'groq' || stored === 'openai' || stored === 'soniox' || stored === 'aliyun' || stored === 'doubao') {
             return stored;
         }
         return 'none';
@@ -110,6 +112,31 @@ export class CredentialsManager {
 
     public getGroqSttApiKey(): string | undefined {
         return this.credentials.groqSttApiKey;
+    }
+
+    public getDomesticStt(provider: 'aliyun' | 'doubao') {
+        return this.credentials.domesticStt?.[provider];
+    }
+
+    public setDomesticStt(provider: 'aliyun' | 'doubao', input: { key: string; workspaceId: string; appId: string }): CredentialSaveResult {
+        if (provider !== 'aliyun' && provider !== 'doubao') throw Error('Invalid STT provider');
+        if (!input || [input.key, input.workspaceId, input.appId].some(value => typeof value !== 'string' || value.length > 4096 || /[\r\n]/.test(value))) {
+            throw Error('Invalid STT credentials');
+        }
+        const key = input.key.trim(), workspaceId = input.workspaceId.trim(), appId = input.appId.trim();
+        if (key && provider === 'aliyun' && !/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/.test(workspaceId)) throw Error('Invalid workspace ID');
+        if (key && appId && !/^[A-Za-z0-9_-]{1,128}$/.test(appId)) throw Error('Invalid App ID');
+        return this.saveCredentials({ domesticStt: { ...this.credentials.domesticStt,
+            [provider]: key ? { key, workspaceId, appId } : undefined } });
+    }
+
+    public requireSttConfigured(): void {
+        const provider = this.getSttProvider();
+        const key = provider === 'groq' ? this.getGroqSttApiKey() : provider === 'openai' ? this.getOpenAiSttApiKey()
+            : provider === 'soniox' ? this.getSonioxApiKey() : provider === 'none' ? undefined : this.getDomesticStt(provider)?.key;
+        if (!key?.trim() || (provider === 'aliyun' && !this.getDomesticStt(provider)?.workspaceId)) {
+            throw Error('STT is not configured. Select a speech provider and save its credentials before starting a meeting. / 请先选择语音服务商并保存凭据。');
+        }
     }
 
     public getGroqSttModel(): string {
@@ -263,8 +290,8 @@ export class CredentialsManager {
         return this.saveCredentials({ deepseekApiKey: trimmed || undefined });
     }
 
-    public setSttProvider(provider: 'none' | 'groq' | 'openai' | 'soniox'): CredentialSaveResult {
-        if (!['none', 'groq', 'openai', 'soniox'].includes(provider)) throw new Error('Invalid STT provider');
+    public setSttProvider(provider: NonNullable<StoredCredentials['sttProvider']>): CredentialSaveResult {
+        if (!['none', 'groq', 'openai', 'soniox', 'aliyun', 'doubao'].includes(provider)) throw new Error('Invalid STT provider');
         return this.saveCredentials({ sttProvider: provider });
     }
 
@@ -279,7 +306,7 @@ export class CredentialsManager {
     public setOpenAiSttBaseUrl(url: string): CredentialSaveResult {
         // Store undefined (not empty string) when clearing, so callers can fall back
         // to the default api.openai.com endpoint with a simple truthiness check.
-        const trimmed = url.trim();
+        const trimmed = validateSttBaseUrl(url);
         if (trimmed) openAiSttEndpoint(trimmed);
         return this.saveCredentials({ openAiSttBaseUrl: trimmed || undefined });
     }

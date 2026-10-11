@@ -10,7 +10,8 @@
     "AG-17",
     "S21",
     "AG-40",
-    "AG-41a"
+    "AG-41a",
+    "AG-41b"
   ],
   "scanRoots": [
     "electron",
@@ -35,6 +36,7 @@
     "native-module/package-lock.json"
   ],
   "rules": [
+    { "ticket": "AG-41b", "kind": "path", "value": "electron/audio/wsSafeTeardown.ts" },
     { "ticket": "AG-40", "kind": "path", "value": "electron/audio/audioDeviceSelection.mjs" },
     { "ticket": "AG-40", "kind": "path", "value": "electron/audio/audioDeviceSelection.d.mts" },
     { "ticket": "AG-40", "kind": "symbol", "value": "filterSelectableDevices" },

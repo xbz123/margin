@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+import { EventEmitter } from 'node:events';
+import ts from 'typescript';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -22,14 +25,27 @@ if (!fs.existsSync(compiledPath)) {
 }
 const { OpenAIStreamingSTT } = await import(pathToFileURL(compiledPath).href);
 
-// Deferred in PLAN.md AG-17: these cases expect transcription_session.update with
-// input_audio_format, while the baseline code sends session.update with the
-// audio.input block and treats session.created as ready. Which one OpenAI's
-// current Realtime transcription API wants has to be checked against its docs and
-// a real call (D2), so the protocol is settled in AG-40/AG-41, not here. Running
-// the session.created case against the current code also leaves a 20 s keep-alive
-// interval behind, which kept this file from ever finishing.
-const PROTOCOL_DEFERRED = 'Realtime transcription protocol deferred to AG-40/AG-41 (PLAN.md AG-17)';
+function sessionConfig(t) {
+    class Socket extends EventEmitter {
+        static OPEN = 1;
+        readyState = 1;
+        sent = [];
+        send(value) { this.sent.push(JSON.parse(value)); }
+        close() { this.readyState = 3; }
+    }
+    const exports = {};
+    const require = createRequire(compiledPath);
+    new Function('require', 'exports', ts.transpileModule(source, { compilerOptions: {
+        module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true,
+    } }).outputText)(id => id === 'ws' ? Socket : require(id), exports);
+    const stt = new exports.OpenAIStreamingSTT('synthetic-key');
+    t.after(() => stt.stop(false));
+    stt.isActive = true;
+    stt.shouldReconnect = true;
+    stt._connectWs();
+    stt.ws.emit('open');
+    return stt.ws.sent[0];
+}
 
 const WS_OPEN = 1; // ws.WebSocket.OPEN
 
@@ -91,14 +107,16 @@ describe('wire format', () => {
         assert.doesNotMatch(source, /OpenAI-Beta/);
     });
 
-    test('sends transcription_session.update not session.update', { skip: PROTOCOL_DEFERRED }, () => {
-        assert.match(source, /type: 'transcription_session\.update'/);
-        assert.doesNotMatch(source, /type: 'session\.update'/);
+    test('sends the documented GA session.update transcription configuration', t => {
+        const config = sessionConfig(t);
+        assert.equal(config.type, 'session.update');
+        assert.equal(config.session.type, 'transcription');
     });
 
-    test('uses GA input_audio_format field not beta audio.input.format', { skip: PROTOCOL_DEFERRED }, () => {
-        assert.match(source, /input_audio_format: 'pcm16'/);
-        assert.doesNotMatch(source, /audio\.input\.format/);
+    test('GA input audio is 24kHz PCM with the existing transcription model', t => {
+        const config = sessionConfig(t);
+        assert.deepEqual(config.session.audio.input.format, { type: 'audio/pcm', rate: 24000 });
+        assert.equal(config.session.audio.input.transcription.model, 'gpt-4o-transcribe');
     });
 
     test('handles GA transcript delta event name', () => {
@@ -120,7 +138,7 @@ describe('wire format', () => {
         );
     });
 
-    test('does not fall through session.created to transcription_session.created handler', { skip: PROTOCOL_DEFERRED }, () => {
+    test('does not mark session.created as configured', () => {
         // The fallthrough has been replaced with a logged-and-ignored warning.
         // Require the case to exist (so a future rename/removal doesn't make
         // this assertion trivially pass) and require its body to NOT set
@@ -216,12 +234,13 @@ describe('lifecycle — unconditional commit', () => {
 // ──────────────────────────────────────────────────────────────────────────
 
 describe('race / late-arrival safety', () => {
-    test('inbound session.created (general-intent event) is inert on transcription session', { skip: PROTOCOL_DEFERRED }, () => {
+    test('inbound session.created waits for configuration acknowledgement without timers or audio', t => {
         // HIGH 1 behavioral coverage: _handleWsMessage({type:'session.created'})
         // must NOT set isSessionReady, must NOT start a keep-alive, must NOT
         // flush the ring buffer. The session.created case body should be a
         // pure warn-and-ignore.
         const stt = new OpenAIStreamingSTT('sk-test-key');
+        t.after(() => stt.stop(false));
         stt.isActive = true;
         stt.mode = 'ws';
         stt.isSessionReady = false;
@@ -241,14 +260,15 @@ describe('race / late-arrival safety', () => {
         assert.strictEqual(stt.ringBuffer.length, 1);
     });
 
-    test('inbound transcription_session.created DOES set isSessionReady (positive control)', () => {
+    test('inbound session.updated sets isSessionReady (positive control)', t => {
         // Asymmetric pair: this proves the negative test above is meaningful.
         const stt = new OpenAIStreamingSTT('sk-test-key');
+        t.after(() => stt.stop(false));
         stt.isActive = true;
         stt.mode = 'ws';
         stt.isSessionReady = false;
 
-        stt._handleWsMessage({ type: 'transcription_session.created' });
+        stt._handleWsMessage({ type: 'session.updated' });
 
         assert.strictEqual(stt.isSessionReady, true);
         assert.notStrictEqual(stt.keepAliveTimer, null,

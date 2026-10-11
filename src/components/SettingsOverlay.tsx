@@ -1,4 +1,5 @@
 import { APP_NAME } from '../appIdentity';
+import { SpeechProviderSettings } from './settings/SpeechProviderSettings';
 import type { CredentialSaveResult } from '../types/credentialSave';
 import React, { useState, useEffect, useMemo } from 'react';
 import packageJson from '../../package.json';
@@ -845,7 +846,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     } | null>(null);
 
     // STT Provider settings
-    const [sttProvider, setSttProvider] = useState<'none' | 'groq' | 'openai' | 'soniox'>('none');
+    const [sttProvider, setSttProvider] = useState<'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'>('none');
     // Where to get an API key for the selected speech provider; the button declares
     // this URL so the preload lets its click open it.
     const sttKeyUrl = ({
@@ -928,7 +929,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         return () => unsubscribe();
     }, []); // mount-once: isOpen is checked inside the callback
 
-    const handleSttProviderChange = async (provider: 'none' | 'groq' | 'openai' | 'soniox') => {
+    const handleSttProviderChange = async (provider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao') => {
         setIsSttDropdownOpen(false);
         setSttTestStatus('idle');
         setSttTestError('');
@@ -1070,7 +1071,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     };
 
     const handleTestSttConnection = async () => {
-        if (sttProvider === 'none') return;
+        if (sttProvider === 'none' || sttProvider === 'aliyun' || sttProvider === 'doubao') return;
         const keyMap: Record<string, string> = {
             groq: sttGroqKey, openai: sttOpenaiKey,
             soniox: sttSonioxKey,
@@ -2096,6 +2097,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                         value={sttProvider}
                                                         onChange={(val) => handleSttProviderChange(val as any)}
                                                         options={[
+                                                            { id: 'aliyun', label: '阿里云百炼 / Alibaba Cloud', desc: 'Streaming STT', color: 'orange', icon: <Mic size={14} /> },
+                                                            { id: 'doubao', label: '豆包 / Doubao', desc: 'Streaming STT', color: 'blue', icon: <Mic size={14} /> },
                                                             { id: 'groq', label: 'Groq Whisper', badge: hasStoredSttGroqKey ? 'Saved' : null, recommended: true, desc: 'Ultra-fast REST transcription', color: 'orange', icon: <Mic size={14} /> },
                                                             { id: 'openai', label: 'OpenAI Whisper', badge: hasStoredSttOpenaiKey ? 'Saved' : null, desc: 'OpenAI-compatible Whisper API', color: 'green', icon: <Mic size={14} /> },
                                                             { id: 'soniox', label: 'Soniox', badge: hasStoredSonioxKey ? 'Saved' : null, recommended: true, desc: '60+ languages, multilingual, domain context', color: 'cyan', icon: <Mic size={14} /> },
@@ -2131,7 +2134,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             )}
 
                                             {/* API Key Input */}
-                                            {sttProvider !== 'none' && (
+                                            {(sttProvider === 'aliyun' || sttProvider === 'doubao') && <SpeechProviderSettings key={sttProvider} provider={sttProvider} />}
+                                            {sttProvider !== 'none' && sttProvider !== 'aliyun' && sttProvider !== 'doubao' && (
                                                 <div className="bg-bg-card rounded-xl border border-border-subtle p-4 space-y-3">
                                                     <label className="text-xs font-medium text-text-secondary block">
                                                         {sttProvider === 'groq' ? 'Groq' : sttProvider === 'openai' ? 'OpenAI STT' : 'Soniox'} API Key

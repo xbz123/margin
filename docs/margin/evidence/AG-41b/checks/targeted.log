@@ -1,0 +1,182 @@
+✔ Aliyun: bounded queue, protocol order, drain, revocation and stale sockets (96.347625ms)
+✔ Doubao: bounded queue, protocol order, drain, revocation and stale sockets (18.651375ms)
+✔ missing STT configuration fails before permission, captures, or meeting state changes (20.437375ms)
+✔ mic recovery is bounded, reports terminal exhaustion once and ignores retired errors (63.913ms)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Connecting WebSocket (model=gpt-4o-transcribe, attempt=1)...
+[OpenAIStreaming] WebSocket open — sending session config (model=gpt-4o-transcribe)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Connecting WebSocket (model=gpt-4o-transcribe, attempt=1)...
+[OpenAIStreaming] WebSocket open — sending session config (model=gpt-4o-transcribe)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop append failed (continuing to commit): Error: simulated ws.send failure on type=input_audio_buffer.append
+    at Object.send (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:67:23)
+    at _OpenAIStreamingSTT.stop (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/OpenAIStreamingSTT.js:20761:19)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:212:13)
+    at Test.runInAsyncScope (node:async_hooks:226:14)
+    at Test.run (node:internal/test_runner/test:1201:25)
+    at Suite.processPendingSubtests (node:internal/test_runner/test:831:18)
+    at Test.postRun (node:internal/test_runner/test:1330:19)
+    at Test.run (node:internal/test_runner/test:1258:12)
+    at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7)
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize append failed (continuing to commit): Error: simulated ws.send failure on type=input_audio_buffer.append
+    at Object.send (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:67:23)
+    at _OpenAIStreamingSTT.finalize (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/OpenAIStreamingSTT.js:20833:17)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:223:13)
+    at Test.runInAsyncScope (node:async_hooks:226:14)
+    at Test.run (node:internal/test_runner/test:1201:25)
+    at Suite.processPendingSubtests (node:internal/test_runner/test:831:18)
+    at Test.postRun (node:internal/test_runner/test:1330:19)
+    at Test.run (node:internal/test_runner/test:1258:12)
+    at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Session created — flushing ring buffer
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] WS closed (code=1006, reason=synthetic)
+[OpenAIStreaming] All WebSocket transcription models failed — falling back to whisper-1 REST
+[OpenAIStreaming][REST] Switched to whisper-1 REST fallback
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] API key updated
+[OpenAIStreaming] Reconnecting WS to apply new API key
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] API key updated
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] API key updated
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Server error: auth failed for Bearer [REDACTED] rejected
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Server error: unauthorized: sk-[REDACTED]
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] WS closed (code=1006, reason=late close after stop)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] WS closed (code=1006, reason=synthetic)
+[OpenAIStreaming][REST] Switched to whisper-1 REST fallback
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] All WebSocket transcription models failed — falling back to whisper-1 REST
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Rate limit low: tokens 4000/50000 (8.0%, resets in 60s)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Rate limit low: tokens 4000/50000 (8.0%, resets in 60s)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Rate limit low: requests 50/1000 (5.0%, resets in 60s)
+[OpenAIStreaming] Rate limit low: tokens 4000/50000 (8.0%, resets in 60s)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Rate limit low: tokens 100/50000 (0.2%, resets in 60s)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Starting...
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Rate limit low: tokens 100/50000 (0.2%, resets in 60s)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] WS closed (code=1006, reason=exhaust)
+[OpenAIStreaming][REST] Transferring 2048 ring-buffer bytes to REST accumulator
+[OpenAIStreaming] All WebSocket transcription models failed — falling back to whisper-1 REST
+[OpenAIStreaming][REST] Switched to whisper-1 REST fallback
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Ring buffer evicted 6000000 bytes (cap=5760000). Session not yet ready — leading audio dropped.
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Server error: auth failed for Bearer [REDACTED] rejected
+▶ wire format
+  ✔ does not send OpenAI-Beta header (beta API removed) (0.799291ms)
+  ✔ sends the documented GA session.update transcription configuration (122.351458ms)
+  ✔ GA input audio is 24kHz PCM with the existing transcription model (20.9315ms)
+  ✔ handles GA transcript delta event name (0.113041ms)
+  ✔ handles GA transcript completed event name (0.071ms)
+  ✔ does not send beta session.close to server (transcription intent has no such client event) (0.196542ms)
+  ✔ does not mark session.created as configured (0.167042ms)
+✔ wire format (145.433291ms)
+▶ lifecycle — unconditional commit
+  ✔ stop() commits even when pcmAccumulator is empty (0.505791ms)
+  ✔ finalize() commits even when pcmAccumulator is empty (0.144ms)
+  ✔ stop() appends THEN commits when pcmAccumulator has audio (0.174167ms)
+  ✔ finalize() appends THEN commits when pcmAccumulator has audio (0.11075ms)
+  ✔ stop() commits even when append throws (data-loss prevention) (1.811208ms)
+  ✔ finalize() commits even when append throws (0.174ms)
+✔ lifecycle — unconditional commit (3.056708ms)
+▶ race / late-arrival safety
+  ✔ inbound session.created waits for configuration acknowledgement without timers or audio (0.246666ms)
+  ✔ inbound session.updated sets isSessionReady (positive control) (0.194417ms)
+  ✔ late transcription_session.created arriving AFTER stop() does not leak keepAlive (0.123292ms)
+✔ race / late-arrival safety (0.610583ms)
+▶ timer ownership
+  ✔ _closeWs() clears reconnectTimer (no phantom reconnect after language change) (0.096667ms)
+  ✔ _closeWs() also clears connectionTimeoutTimer and sessionSetupTimer (0.056416ms)
+  ✔ _connectWs() clears stale connectionTimeoutTimer before re-arming (0.183167ms)
+✔ timer ownership (0.377083ms)
+▶ exhaustion error propagation
+  ✔ emits error when all WS models exhaust before REST fallback (0.214ms)
+✔ exhaustion error propagation (0.238042ms)
+▶ setApiKey live rotation
+  ✔ setApiKey on active WS triggers close+reconnect with the new key in place (0.112709ms)
+  ✔ setApiKey on inactive instance does NOT reconnect (just stores the key) (0.042583ms)
+  ✔ setApiKey with same key is a no-op (no reconnect) (0.046041ms)
+✔ setApiKey live rotation (0.237542ms)
+▶ security — log scrubbing (case-insensitive)
+  ✔ scrubs lowercase bearer (proxies / lowercased headers) (0.189292ms)
+  ✔ scrubs sk-proj- project key variants (0.082291ms)
+✔ security — log scrubbing (case-insensitive) (0.301833ms)
+▶ lifecycle — post-stop safety
+  ✔ _handleWsClose is a no-op after stop() (no reconnect timer armed) (0.0835ms)
+  ✔ stop() clears restSafetyTimer when STT is in REST mode (0.097916ms)
+✔ lifecycle — post-stop safety (0.211375ms)
+▶ observability — rate_limits.updated
+  ✔ emits warning when a rate limit drops below 10% remaining (0.106708ms)
+  ✔ does not re-warn for the same limit name within a session (0.063542ms)
+  ✔ warns separately for different limit names (0.08925ms)
+  ✔ handles malformed entries gracefully (no throw) (0.062292ms)
+  ✔ start() resets the per-session warning dedup (0.123875ms)
+✔ observability — rate_limits.updated (0.508917ms)
+▶ fallback — ring-buffer transfer
+  ✔ WS exhaustion transfers ring-buffer bytes to REST accumulator (0.2095ms)
+✔ fallback — ring-buffer transfer (0.236ms)
+▶ lifecycle — close behavior
+  ✔ _closeWs() never sends session.close on the wire (0.063708ms)
+  ✔ _closeWs(graceful=true) flushes pcm + commit before closing (0.064208ms)
+  ✔ _closeWs() clears keepAliveTimer (no stale interval on reconnect) (0.050042ms)
+✔ lifecycle — close behavior (0.212875ms)
+▶ telemetry — ring buffer eviction
+  ✔ emits warning event on first eviction; subsequent evictions stay silent (0.242792ms)
+✔ telemetry — ring buffer eviction (0.261041ms)
+▶ security — log scrubbing
+  ✔ Bearer tokens in server error bodies are not propagated upstream (0.098333ms)
+✔ security — log scrubbing (0.115792ms)
+ℹ tests 42
+ℹ suites 13
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 498.590625

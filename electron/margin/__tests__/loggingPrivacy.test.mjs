@@ -68,6 +68,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
     const module = { exports: {} }; cache.set(fileName, module);
     const localRequire = id => {
       if (id === 'electron') return electron;
+      if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
       if (id === 'fs' || id === 'node:fs') return fakeFs;
       if (id === 'path' || id === 'node:path') return path;
       if (id === 'react') return { createElement() {}, StrictMode: 'synthetic' };

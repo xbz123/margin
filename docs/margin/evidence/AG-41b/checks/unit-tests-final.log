@@ -1,0 +1,1725 @@
+﹣ non-stealth cold launch stays on accessory until the disguised window is painted (0.981208ms) # startup activation policy deferred to AG-61 (PLAN.md AG-17)
+✔ native enumeration is synchronous, validates rows and excludes private capture aggregates only (59.144458ms)
+✔ missing native module, malformed results and enumeration exceptions yield empty lists (49.956667ms)
+✔ existing IPC consumers return the synchronous native inventory (62.588375ms)
+✔ selection uses exact IDs, not names; missing selections fall back on both channels (40.365166ms)
+✔ audio and STT status channels target meeting surfaces (3.303959ms)
+✔ device-selection-applied targets settings surfaces only (0.619625ms)
+✔ quitting prevents both route polling and direct reconstruction (148.891333ms)
+[SystemAudioCapture] Initialized (lazy). Device ID: same-device-id
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Stopping capture (deferred native teardown)...
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Chunk #1: 1920 bytes from Rust
+[SystemAudioCapture] Stopping capture (deferred native teardown)...
+[MicrophoneCapture] Initialized wrapper. Device ID: same-mic-id
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ SystemAudioCapture restart after stop must not reuse a torn-down native monitor (4.896125ms)
+[MicrophoneCapture] Pre-warming native monitor for next meeting...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ MicrophoneCapture restart after stop must not reuse a torn-down native monitor (1.530917ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: test-mic
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+[MicrophoneCapture] Pre-warming native monitor for next meeting...
+[SystemAudioCapture] Initialized (lazy). Device ID: test-output
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Stopping capture (deferred native teardown)...
+✔ MicrophoneCapture.stop() returns a Promise that resolves after native teardown (3.021334ms)
+[SystemAudioCapture] Initialized (lazy). Device ID: idempotent-test
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Stopping capture (deferred native teardown)...
+✔ SystemAudioCapture.stop() returns a Promise that resolves after native teardown (0.731667ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: destroy-await-test
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ stop() is idempotent: two concurrent stop() calls return the same in-flight promise (1.47825ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: fire-and-forget-test
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ destroy() awaits stop() before removing listeners (0.434791ms)
+[MicrophoneCapture] Pre-warming native monitor for next meeting...
+✔ Promise<void> shape: stop() can be safely fire-and-forget (no unhandled-rejection regression) (0.695125ms)
+✔ a route probe from the stopped epoch cannot populate the next session (110.43825ms)
+✔ production shutdown cancels the route interval and releases both captures (30.168083ms)
+✔ Aliyun: retry budget, drain timeout and permanent authentication failure (140.266291ms)
+✔ Aliyun: bounded queue, protocol order, drain, revocation and stale sockets (17.176125ms)
+✔ Doubao: retry budget, drain timeout and permanent authentication failure (15.957ms)
+✔ Doubao: bounded queue, protocol order, drain, revocation and stale sockets (4.468833ms)
+✔ PCM downmix is chunk-invariant at 48kHz stereo, including partial frames (0.915542ms)
+✔ Doubao decoder rejects truncated and invalid compression frames (0.151042ms)
+✔ Doubao repeated multi-utterance results emit each final only once (0.387958ms)
+✔ MeetingSttSession drains a domestic provider final before disposing its listener (41.421791ms)
+✔ production endMeeting joins an in-flight permission probe before releasing capture (47.144375ms)
+✔ forward-log-to-file validates types, scrubs control characters, caps length, rate-limits, and tags sender (2.10625ms)
+✔ main routes global-shortcut events only to launcher and overlay surfaces (1.553875ms)
+✔ ipcHandlers.ts declares VALID_INTERFACE_THEMES Set with exactly the three valid keys (2.071625ms)
+✔ 'interface-theme:set' handler rejects values not in VALID_INTERFACE_THEMES (0.153875ms)
+✔ guard returns BEFORE BrowserWindow.getAllWindows().forEach broadcast (0.200916ms)
+✔ ipcHandlers.ts allowlist matches src/lib/meetingInterfaceTheme.ts source of truth (0.505875ms)
+✔ send-style IPC registrations use safeOn to avoid listener accumulation (1.712375ms)
+✔ ipcHandlers tracks active gemini chat streams by sender id (3.63475ms)
+✔ gemini-chat-stream handler supersedes only the current sender and passes signal to streamChat (2.091542ms)
+✔ gemini-chat-stream-stop handler aborts only the requesting sender stream (3.787125ms)
+✔ preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-stream-stop") (0.96675ms)
+✔ preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream (0.232542ms)
+✔ abort revokes PCM and speech callbacks immediately even while joining a pending reconfigure (184.293625ms)
+✔ native release barriers also cover route changes during microphone replacement (37.681667ms)
+✔ a superseded begin cannot clear the new init or allocate late captures (31.895167ms)
+✔ begin is deferred and starts mic before system and either STT channel (18.591542ms)
+✔ abort during a pending permission probe joins init and removes late captures (14.4845ms)
+✔ detachment clears ownership synchronously and gates the next begin on native release (12.4855ms)
+✔ a replaced capture cannot write late PCM into the live STT channel (17.151333ms)
+✔ route change and system recovery share one rebuild owner (27.918458ms)
+✔ STT reconfiguration requests serialize while both channels remain independently wired (42.389917ms)
+✔ stop while enumeration is pending cannot create captures or report a stale device (14.659291ms)
+✔ newer reconfigure supersedes a pending lookup before any old capture is created (23.598166ms)
+✔ low-rate PCM is forwarded without enumeration or automatic device switching; retired PCM is ignored (19.332584ms)
+✔ reconfigure releases a route rebuild that claimed the slot during enumeration (29.448375ms)
+✔ reconfigure releases a recovery capture that claimed the slot during enumeration (10.674667ms)
+✔ stop waits for an intervening capture release and prevents a late replacement (16.530958ms)
+✔ reconfigure releases a second capture claimed during the first release (10.391709ms)
+✔ adjacent duplicate starts join while start-stop-start keeps its order (2.014709ms)
+✔ failed transitions are reported without poisoning cleanup or a later start (0.467792ms)
+✔ missing STT configuration fails before permission, captures, or meeting state changes (45.889958ms)
+✔ a declined provider factory stays absent without inventing a configured provider (104.860667ms)
+✔ retired provider errors cannot crash or re-enter the session (89.127917ms)
+✔ interleaved provider item IDs retain identity and monotone revisions (10.290083ms)
+✔ equal-text unkeyed final utterances are distinct; channels stay distinct (29.313375ms)
+✔ stop accepts trailing finals, releases listeners, and restart excludes stale provider (64.665083ms)
+✔ reconfigure changes provider identity and detaches old listeners (19.411875ms)
+✔ cancel while provider stop hangs is bounded and blocks late events (69.136333ms)
+✔ provider stub item IDs link interim and final events (20.4815ms)
+✔ finalize and stop share one bounded drain budget (45.25625ms)
+✔ drain reports provider failure without inventing a timeout (8.637083ms)
+✔ stable IDs accept final corrections while duplicate and stale interim events are ignored (16.009042ms)
+✔ queued callback from a replaced provider cannot enter the same session (12.944125ms)
+✔ Aliyun mock stub sentence IDs reach session for interim, final and corrected final (8.294916ms)
+✔ Doubao mock stub start-time identity keeps final corrections in one segment (11.749375ms)
+✔ replacement mic uses the same PCM, format and speech-end wiring; old mic is inert (187.886042ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: mic-device-id
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+[MicrophoneCapture] Pre-warming native monitor for next meeting...
+[MicrophoneCapture] Pre-warm failed (next start() will retry): Error: simulated pre-warm cpal init failure
+    at new MicrophoneCaptureCtor (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/MicrophoneCapturePreWarmFailed.test.mjs:68:19)
+    at /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/MicrophoneCapture.js:455:24
+✔ MicrophoneCapture emits pre_warm_failed when deferred pre-warm constructor throws (4.294125ms)
+✔ AppState sends model-changed only to current model listeners (1.56175ms)
+✔ model-changed call sites use the targeted helper (0.421625ms)
+✔ mega-effect anchored on onNativeAudioConnected is the expected ~1434-1807 block (1.027ms)
+✔ mega-effect dep array does not include expansion state (0.147709ms)
+✔ mega-effect body does NOT read bare isExpanded (only isExpandedRef.current is OK) (0.305041ms)
+✔ SonioxStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (137.128125ms)
+✔ OpenAIStreamingSTT: handshake/buffer/reconnect revocation, with an allowed audio control (259.967916ms)
+✔ OpenAI normal Stop drains the accumulator; discard does not (73.73275ms)
+✔ RestSTT: queued REST upload does not run after discard (39.310625ms)
+✔ OpenAIStreamingSTT: queued REST upload does not run after discard (47.114084ms)
+✔ AppState revokes both old senders before a capture-stop failure or pipeline wait (264.258292ms)
+✔ AppState returns null for unknown, none or unconfigured providers (67.527333ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: default-prewarm
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+[MicrophoneCapture] Pre-warming native monitor for next meeting...
+[MicrophoneCapture] Initialized wrapper. Device ID: destroy-no-prewarm
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ default stop() pre-warms — constructor count increments by exactly 1 after teardown (6.005542ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: disable-prewarm-test
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ destroy() does NOT pre-warm (0.831167ms)
+[MicrophoneCapture] Initialized wrapper. Device ID: ordering-test
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ disablePreWarm() before stop() suppresses the pre-warm (0.666041ms)
+[MicrophoneCapture] Pre-warming native monitor for next meeting...
+[MicrophoneCapture] Initialized wrapper. Device ID: start-races-prewarm
+[MicrophoneCapture] Creating native monitor (Eager Init)...
+[MicrophoneCapture] Starting native capture...
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+[MicrophoneCapture] Monitor not initialized. Re-initializing...
+[MicrophoneCapture] Starting native capture...
+✔ pre-warm is queued, not run, during the synchronous portion of stop() (2.688ms)
+[MicrophoneCapture] Stopping capture (deferred native teardown)...
+✔ start() racing pre-warm: a fast start() before the .then() fires constructs its own native instance, and the pre-warm then skips (1.231583ms)
+✔ flushAndUpload guards on isActive at entry (1.156ms)
+✔ re-arm setInterval block is itself gated on this.isActive (defense in depth) (0.25725ms)
+✔ stop() clears safetyNetTimer before any further flush logic (0.440375ms)
+✔ WindowHelper.setContentProtection contains the dedupe comparison (3.064709ms)
+✔ WindowHelper.setContentProtection has an early-return guard before the native call (0.922917ms)
+✔ SettingsWindowHelper.setContentProtection contains the dedupe comparison (0.072166ms)
+✔ SettingsWindowHelper.setContentProtection has an early-return guard before the native call (0.232125ms)
+✔ ModelSelectorWindowHelper.setContentProtection contains the dedupe comparison (0.090958ms)
+✔ ModelSelectorWindowHelper.setContentProtection has an early-return guard before the native call (0.063125ms)
+✔ SettingsWindowHelper anchors off the deterministic main window, not getAllWindows iteration order (2.787875ms)
+✔ main requests the single-instance lock once (1.202958ms)
+✔ the lock is taken before the first await of startup and a losing instance exits (0.425291ms)
+✔ SonioxStreamingSTT declares pendingRestartTimer field (1.312417ms)
+✔ setSampleRate uses scheduleRestart() instead of synchronous stop()+start() (0.485292ms)
+✔ setRecognitionLanguage uses scheduleRestart() instead of synchronous stop()+start() (1.02275ms)
+✔ scheduleRestart() debounces at 250ms and bails when no longer active (1.404167ms)
+✔ start() cancels pendingRestartTimer to prevent leftover restarts firing into a fresh session (1.0695ms)
+✔ clearTimers() clears pendingRestartTimer alongside reconnectTimer and keepAliveTimer (1.12475ms)
+✔ stop before the deferred initialization tick never acquires a capture (168.053416ms)
+✔ production health watchdogs are disarmed before native destroy on stop and replacement (200.3975ms)
+[SystemAudioCapture] Initialized (lazy). Device ID: orphan-test-output
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Failed to start: Error: simulated CoreAudio Tap init failure
+    at Object.start (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/SystemAudioOrphanHandleOnStartFailure.test.mjs:58:23)
+    at SystemAudioCapture.start (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/SystemAudioCapture.js:383:20)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/SystemAudioOrphanHandleOnStartFailure.test.mjs:112:9)
+    at Test.runInAsyncScope (node:async_hooks:226:14)
+    at Test.run (node:internal/test_runner/test:1201:25)
+    at Test.start (node:internal/test_runner/test:1096:17)
+    at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)
+[SystemAudioCapture] Initialized (lazy). Device ID: retry-after-failed-start
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Failed to start: Error: simulated CoreAudio Tap init failure
+    at Object.start (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/SystemAudioOrphanHandleOnStartFailure.test.mjs:58:23)
+    at SystemAudioCapture.start (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/SystemAudioCapture.js:383:20)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/audio/__tests__/SystemAudioOrphanHandleOnStartFailure.test.mjs:173:9)
+    at Test.runInAsyncScope (node:async_hooks:226:14)
+    at Test.run (node:internal/test_runner/test:1201:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+    at Test.postRun (node:internal/test_runner/test:1330:19)
+    at Test.run (node:internal/test_runner/test:1258:12)
+    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+✔ SystemAudioCapture.start() failure must stop the orphaned native monitor (3.662791ms)
+[SystemAudioCapture] Creating native monitor (lazy init)...
+[SystemAudioCapture] Starting native capture...
+[SystemAudioCapture] Stopping capture (deferred native teardown)...
+✔ After failed start + orphan cleanup, a retry start() constructs a fresh native instance (4.55225ms)
+✔ route switch joins an already-running recovery rather than opening another native handle (123.842208ms)
+✔ clearImmediate semantics match the patch: a queued flush is cancellable, and a re-arm after flush still fires (6.4725ms)
+✔ intelligence token batch flush cancels its pending setImmediate so trailing tokens cannot land after a final answer (0.559958ms)
+✔ partials coalesce independently per speaker and preserve the latest payload (44.799583ms)
+✔ final emits synchronously and cancels an unsent partial (12.079125ms)
+✔ clear cancels pending timers and permits a clean next session (7.662708ms)
+▶ OpenAITranscriptTurnCoalescer
+  ✔ does not emit final on word-level completed events until speech_stopped (1.72ms)
+  ✔ accumulates deltas into one partial preview string (0.11225ms)
+  ✔ speech_started flushes orphan turn from prior utterance (0.074541ms)
+  ✔ flush emits pending text without speech_stopped (stop()/finalize path) (0.074958ms)
+  ✔ reset clears all pending state (0.065208ms)
+✔ OpenAITranscriptTurnCoalescer (3.555166ms)
+▶ CodeSanityCheck — subtraction-as-tuple (FINDING-012)
+  ✔ flags `complement = target, num` inside a python code block (4.325167ms)
+  ✔ does NOT flag the correct `complement = target - num` form (0.585792ms)
+  ✔ flags the bug across several variable names (diff, remainder, needed) (0.349125ms)
+  ✔ does NOT flag prose containing the word "tuple" outside a code fence (0.195625ms)
+✔ CodeSanityCheck — subtraction-as-tuple (FINDING-012) (7.43025ms)
+▶ CodeSanityCheck — assignment-in-conditional
+  ✔ flags `if x = target:` inside a code block (1.136833ms)
+  ✔ does NOT flag `if x == target:` or `if (x === target)` (0.142875ms)
+✔ CodeSanityCheck — assignment-in-conditional (1.435375ms)
+▶ CodeSanityCheck — narration-level tuple bug
+  ✔ flags dry-run prose that reads "calculate 9, 7 = 2" (0.197084ms)
+  ✔ does NOT flag correct narration "calculate 9 - 7 = 2" (0.079584ms)
+✔ CodeSanityCheck — narration-level tuple bug (0.374459ms)
+▶ CodeSanityCheck — empty / non-code answers
+  ✔ returns ok for empty string and non-string input (1.057291ms)
+  ✔ returns ok for an answer without any code blocks (0.128208ms)
+✔ CodeSanityCheck — empty / non-code answers (1.24775ms)
+▶ CodeSanityCheck — prompt invariant exists in SHARED_CODING_RULES
+  ✔ SHARED_CODING_RULES contains the anti-pattern guidance for two-sum tuple bug (17.732875ms)
+✔ CodeSanityCheck — prompt invariant exists in SHARED_CODING_RULES (17.783667ms)
+✔ formatSummaryAsBlock escapes transcript-derived summary fields (41.051708ms)
+▶ IdentityGuard — TINY_CORE carries the name-claim guard
+  ✔ TINY_CORE contains marker: IDENTITY GUARD (0.810292ms)
+  ✔ TINY_CORE contains marker: "Margin" (0.067083ms)
+  ✔ TINY_CORE contains marker: NEVER (0.055541ms)
+  ✔ TINY_CORE explicitly forbids "I'm Margin" as a self-introduction (0.066083ms)
+✔ IdentityGuard — TINY_CORE carries the name-claim guard (1.751541ms)
+▶ IdentityGuard — every first-person tiny prompt inherits the guard
+  ✔ TINY_ANSWER_PROMPT includes the IDENTITY GUARD block (0.084417ms)
+  ✔ TINY_WHAT_TO_ANSWER_PROMPT includes the IDENTITY GUARD block (0.056875ms)
+✔ IdentityGuard — every first-person tiny prompt inherits the guard (0.225292ms)
+▶ IdentityGuard — full-tier prompts.ts retains the rule
+  ✔ UNIVERSAL_WHAT_TO_ANSWER_PROMPT contains the name-confusion rule (0.087041ms)
+✔ IdentityGuard — full-tier prompts.ts retains the rule (0.157125ms)
+▶ IdentityGuard — prompts name Margin and no creator
+  ✔ no exported prompt carries the upstream assistant or creator name (0.432291ms)
+  ✔ identity answers name Margin (0.136292ms)
+✔ IdentityGuard — prompts name Margin and no creator (0.640167ms)
+✔ PlannerDecision stays silent for low-confidence non-visual triggers (22.754583ms)
+✔ PlannerDecision stays silent during cooldown (0.519125ms)
+✔ PlannerDecision routes answerable questions to answer (0.588917ms)
+✔ PlannerDecision routes explicit recap requests to recap (0.314958ms)
+✔ PlannerDecision routes follow-up question requests (0.615333ms)
+✔ PlannerDecision routes clarify requests (0.1695ms)
+✔ PlannerDecision routes incomplete technical restatements to clarify (0.242667ms)
+✔ PlannerDecision still answers complete restated technical questions (0.222083ms)
+✔ PlannerDecision routes strategy and visual problem context to brainstorm (0.188625ms)
+✔ routeLLMProviders returns deterministic text fallback order with availability (38.949916ms)
+✔ routeLLMProviders omits DeepSeek from multimodal fallback (text-only provider) (0.53275ms)
+✔ routeLLMProviders marks DeepSeek missing_api_key when key absent (1.803917ms)
+✔ routeLLMProviders returns multimodal fallback order (0.392416ms)
+✔ routeLLMProviders marks missing providers unavailable with reasons (0.199709ms)
+✔ routeLLMProviders reports disabled Groq distinctly from missing key (0.149625ms)
+✔ routeLLMProviders marks unsupported capabilities without dropping attempts (0.154959ms)
+✔ routeLLMProviders does not mutate input objects (0.136292ms)
+✔ ProviderRouter opens circuit after repeated provider failures and routes around it (0.404916ms)
+✔ ProviderRouter half-open retry is limited for rate-limit recovery (0.1835ms)
+✔ the default answer suffix is the General prompt without the shared prefix (1.108541ms)
+✔ the General prompt includes shared prompt-leakage and safety controls (0.144625ms)
+✔ the General prompt handles injected custom context and reference files (0.117583ms)
+✔ the General prompt prevents hallucination for absent file-specific claims (0.145167ms)
+✔ the General prompt carries its behavior contract without the retired profile blocks (0.281875ms)
+✔ code hint examples avoid named problems and em dashes (0.169334ms)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] created cached/test for model=gemini-test (7000 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:52748) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ single response preserves completed (STOP) (2.75025ms)
+✔ single response preserves incomplete (MAX_TOKENS) (0.315584ms)
+✔ single response preserves incomplete (no finish) (0.274375ms)
+✔ single response preserves empty (STOP) (0.215417ms)
+✔ single response preserves refused (SAFETY) (0.300792ms)
+✔ single response preserves refused (no finish) (0.235292ms)
+✔ stream separates system and user/image data, filters thoughts and preserves real finish (2.530084ms)
+✔ final scope refusal retains the original object and never sends (1.109292ms)
+✔ cancel before start and late response cannot produce deltas (1.021ms)
+✔ Gemini legacy streams never turn partial failure/refusal/incomplete into success or another provider (6.718625ms)
+✔ selected vision entry preserves terminal results and partial text without a backup send (1.66325ms)
+✔ actual prompt wrappers propagate terminal results without adding a fallback answer; engine rejects instead of returning an answer (154.616042ms)
+✔ empty primary is terminal even with a valid explicit backup configured (0.608583ms)
+✔ cache guard refusal is not swallowed and a stale cache can fall back to system without cachedContent (0.889458ms)
+✔ suggestion and screenshot wrappers reach the physical Gemini entry with separated content (1.641667ms)
+✔ context scopes survive limiter wait and denied context is omitted before Gemini sending (1.009834ms)
+✔ real Gemini SDK loopback: one 503 send, STOP/partial status and transport cancellation (52.373792ms)
+✔ AG33 a written task uses 180 seconds and has no interview first-token deadline (6.586084ms)
+✔ AG33 an abort before an attempt preserves its terminal classification and never sends (1.985583ms)
+✔ AG33 cancellation between attempts preserves status and does not open the backup (1.395084ms)
+✔ AG33 explicit server image rejection is terminal even with a transient HTTP status (0.379583ms)
+✔ backup before same-model retry (0.541041ms)
+✔ transient without backup (0.176667ms)
+✔ unavailable without backup (0.113833ms)
+✔ auth takes precedence over model code (0.100667ms)
+✔ ordinary 404 is terminal (0.128625ms)
+✔ Retry-After exceeds budget (0.127ms)
+✔ empty never retries (0.139416ms)
+✔ refused never retries (0.056334ms)
+✔ incomplete never retries (0.0545ms)
+✔ any emitted content prevents retry; EOF is incomplete (0.443792ms)
+✔ explicit invalid cache recovers once on same target; second invalid reference ends task (0.180792ms)
+✔ task scope survives every lazy next and cancellation fences uncooperative preparation (0.305917ms)
+✔ TTFT starts at construction, not first next; total continues after visible text; background has no TTFT (1.291167ms)
+✔ user positive finite budgets are not arbitrarily capped at a day (0.50825ms)
+✔ Retry-After above the Node timer limit is not shortened to one millisecond (12.767375ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Groq Fast Text Mode: true
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli
+(node:52750) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG34 source snapshot has no API client/base URL and refuses unconfirmed backend images before auth read (4.606583ms)
+✔ AG34 preparedContents inline image screenshots scope: denied (1.132542ms)
+✔ AG34 preparedContents inline image screenshots scope: revoked-during-read (0.498209ms)
+✔ AG34 preparedContents inline image screenshots scope: allowed (8.206584ms)
+✔ AG34 Codex backup image confirmation cannot inherit primary confirmation (2.815333ms)
+✔ AG34 changing main/fast model invalidates only matching image bindings (0.179833ms)
+✔ AG34 equal normal/fast models still require their independent image confirmations (1.083542ms)
+✔ AG34 external same-account changed token recovers once within the real LLMHelper task (1.053417ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli:changed
+✔ AG34 consent change cancels auth-waiting task without late send (12.183292ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Groq Fast Text Mode: true
+✔ AG34 model change cancels auth-waiting task without late send (8.397958ms)
+[LLMHelper] Switched to Model: codex-cli
+✔ AG34 fast change cancels auth-waiting task without late send (9.763875ms)
+[LLMHelper] Switched to Model: codex-cli
+[LLMHelper] Switched to Model: codex-cli:gpt-5.4
+[LLMHelper] Switched to Model: gemini-new
+[LLMHelper] Switched to Model: gemini-a
+[LLMHelper] Switched to Model: gemini-a
+✔ AG34 policy change cancels auth-waiting task without late send (7.113083ms)
+✔ AG34 source getters/selectors and disabled/unconfirmed requests never read auth (3.00725ms)
+✔ AG33 actual Manager engine cancellation preserves session usage; explicit reset still clears it (0.388542ms)
+✔ chatWithGemini: transient failure uses only explicit backup and at most two sends (8.261375ms)
+✔ generateContentStructured: transient failure uses only explicit backup and at most two sends (0.44ms)
+✔ streamChat: transient failure uses only explicit backup and at most two sends (0.352584ms)
+✔ real answer interface: SAFETY terminates without backup (1.011125ms)
+✔ real answer interface: MAX_TOKENS terminates without backup (0.320625ms)
+✔ real answer interface: EMPTY terminates without backup (0.256709ms)
+✔ real answer interface: AUTH terminates without backup (0.305875ms)
+✔ real answer interface: CONFIG terminates without backup (0.282834ms)
+✔ real answer interface: PARTIAL terminates without backup (0.394917ms)
+✔ WhatToSay actual prompt entry sends every original image directly, with no generative preanalysis (0.607333ms)
+✔ snapshot survives hot client/model/backup changes during image preparation (0.449958ms)
+✔ permission revoked during limiter stops all later sends (0.372208ms)
+✔ permission revoked during image stops all later sends (0.271ms)
+✔ permission revoked during cache stops all later sends (0.256792ms)
+✔ permission revoked during retry-after stops all later sends (0.270708ms)
+✔ explicit cache recovery valid: same model, full original content, only two sends (0.780584ms)
+✔ explicit cache recovery invalid: same model, full original content, only two sends (0.388834ms)
+✔ cancel aborts underlying generation before first text and ignores late results (0.385583ms)
+✔ switch aborts underlying generation before first text and ignores late results (0.265625ms)
+✔ consumer-return aborts underlying generation before first text and ignores late results (0.22525ms)
+✔ reselecting the same canonical target through qualified or raw model id keeps active transport alive (0.325083ms)
+✔ application quit cancels existing tasks and refuses all later generation entries before any send (0.30425ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 19 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ real OpenAI SDK loopback dropped socket is transient, with SDK retries disabled (63.587375ms)
+✔ model switch cannot select configured backup and preserves previous primary/task state (0.28625ms)
+✔ Groq fast mode preserves the explicitly selected model for both text and images (0.52275ms)
+✔ saved provider connection test ignores the answer backup and sends its own failed target only once (0.386209ms)
+✔ the configured answer backup can itself be connection-tested once without a primary/backup conflict (0.220208ms)
+✔ actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport (3.287291ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry false (0.857375ms)
+✔ actual debug ProcessingHelper shares the two-send budget: first-step retry true (0.5325ms)
+✔ AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result (0.626958ms)
+✔ AG33 actual Engine stores empty even without a visible partial (0.534875ms)
+✔ AG33 actual Engine stores refused even without a visible partial (0.459541ms)
+✔ AG33 actual Engine stores incomplete even without a visible partial (0.404875ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible false (1.475041ms)
+✔ actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible true (0.845083ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[LLMHelper] Switched to Model: gemini-next
+✔ AG33 Engine timeout releases its mode and allows the next assist request (2.636125ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 Engine model-switch releases its mode and allows the next assist request (1.393583ms)
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[LLMHelper] Switched to Model: codex-cli
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 1 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+✔ AG33 old Engine finally cannot reset the newer active request mode (1.925708ms)
+✔ compression starts an independent background task inside an interview context and closes that supplied task (5.106459ms)
+✔ actual prompt entry snapshots language and prompt tier before assembly starts (5.189792ms)
+✔ image metadata reflects actual send and screenshot omission, not the validated input list (2.029ms)
+✔ backup updates and selected provider reconfiguration reject identical targets without changing active state (0.78725ms)
+✔ explicit Codex selector clears stale API selection and snapshots its configured fast model (0.480125ms)
+✔ AG33 actual Engine preserves a legitimate short answer and its request metadata (2.861458ms)
+✔ AG33 outer cancellation fences late inner errors, held sentinel text and mode changes (8.125042ms)
+✔ AG33 shared written task records a second-step failure rather than first-step completion (0.628666ms)
+✔ AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup (0.694459ms)
+✔ AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden (0.692583ms)
+✔ AG33 second-step timeout overwrites an earlier completed state and keeps the first-step send count (0.310708ms)
+[LLMHelper] Failed to process image: TypeError: Cannot read properties of undefined (reading 'createFromBuffer')
+    at decodeImage (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:83058:31)
+    at toJpeg (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:83063:10)
+    at LLMHelper.processImage (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/LLMHelper.js:86847:31)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 14 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ AG33 non-image data disguised as PNG fails real image decoding and never uploads raw bytes (95.281583ms)
+✔ AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning (2.044167ms)
+✔ AG33 partial cancellation records exact target and cancelled status in existing session usage (1.5535ms)
+(node:52751) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+✔ chat-completions preserves completed from actual protocol terminal (4.411375ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.443417ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.237792ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.125292ms)
+✔ chat-completions preserves refused from actual protocol terminal (0.120458ms)
+✔ chat-completions preserves empty from actual protocol terminal (0.125292ms)
+✔ chat-completions preserves incomplete from actual protocol terminal (0.1195ms)
+✔ chat-completions final scope and cancel checks happen before a physical send (1.496084ms)
+✔ chat-completions late response and consumer return abort the transport (0.267833ms)
+✔ responses preserves completed from actual protocol terminal (0.283042ms)
+✔ responses preserves incomplete from actual protocol terminal (0.091541ms)
+✔ responses preserves failed from actual protocol terminal (0.091125ms)
+✔ responses preserves refused from actual protocol terminal (0.087959ms)
+✔ responses preserves empty from actual protocol terminal (0.13475ms)
+✔ responses preserves incomplete from actual protocol terminal (0.067167ms)
+✔ responses final scope and cancel checks happen before a physical send (0.167625ms)
+✔ responses late response and consumer return abort the transport (0.124625ms)
+✔ messages preserves completed from actual protocol terminal (0.132583ms)
+✔ messages preserves completed from actual protocol terminal (0.097791ms)
+✔ messages preserves incomplete from actual protocol terminal (0.07425ms)
+✔ messages preserves incomplete from actual protocol terminal (0.055916ms)
+✔ messages preserves incomplete from actual protocol terminal (0.057834ms)
+✔ messages preserves refused from actual protocol terminal (0.0505ms)
+✔ messages preserves empty from actual protocol terminal (0.049625ms)
+✔ messages preserves incomplete from actual protocol terminal (0.05025ms)
+✔ messages final scope and cancel checks happen before a physical send (0.173042ms)
+✔ messages late response and consumer return abort the transport (0.10275ms)
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+[LLMHelper] AI Response Language set to: English
+[ModelVersionManager] 🔍 Starting model discovery...
+[ModelVersionManager] ✅ Discovery complete. No tier changes needed.
+✔ real SDK text/image serialization, saved opaque target, test and model list share one API base (135.321ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ real OpenAI and Anthropic adapters disable SDK retry on 503 and never follow redirects (40.975541ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-selected-model
+✔ an explicitly selected custom model is the wire model, while connection tests retain the saved model (25.98875ms)
+✔ real three-protocol SDK terminal events remain incomplete/refused when the stream finishes normally (9.673167ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ real SDK cancellation after the server receives the request suppresses all late deltas (5.689333ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-model
+✔ Gemini custom target uses the same v1alpha prefix for generation, test and unfiltered model listing (45.669541ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+✔ structured generation never discovers an unselected OpenAI target, then uses explicitly selected Responses (9.950292ms)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: opaque-groq
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: old-model
+[GeminiPromptCache] created cache/new for model=test (6000 chars)
+[ModelVersionManager] Loaded persisted state from disk
+[LLMHelper] Switched to Model: same
+✔ legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged (33.452917ms)
+✔ hot configuration changes keep active provider, protocol and wire model together (1.959083ms)
+✔ saved Gemini base takes precedence over explicit environment base without adding a second API version (0.270792ms)
+✔ Gemini hot configuration clear never accepts an old in-flight cache (0.581416ms)
+✔ endpoint validation and explicit selection refuse wrong protocol, version and model ambiguity (0.977ms)
+(node:52752) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ generateSuggestion sends custom notes and the transcript as user content, not in the system prompt (225.811916ms)
+✔ intent answer shapes require grounding for examples and behavioral stories (0.37175ms)
+✔ WhatToAnswerLLM sends the default answer prompt as system prompt and the transcript as user content (33.463125ms)
+✔ WhatToAnswerLLM assembles runtime intent, prior responses, and screen context as user content (0.488834ms)
+✔ WhatToAnswerLLM delegates attached images to the selected streamChat task (0.190292ms)
+[SettingsManager] Settings loaded successfully { keys: 1 }
+[SettingsManager] Settings loaded
+✔ build selection defaults to temp and rejects release outside CI (4.758167ms)
+✔ guard first-launch preflight uses the built identity before path setup (3.709917ms)
+✔ bootstrap precedes real credentials/storage imports and settings survive a restart (177.94275ms)
+✔ synthetic protected directories reject reads, writes, alternate APIs and symlink aliases (338.584375ms)
+✔ recursive and directory operations refuse parents containing protected data (241.784916ms)
+✔ disguise restores the build name and leaves persisted paths in its own directory (53.027875ms)
+✔ generation policy persists independent deadlines and rejects invalid or identical targets without mutation (251.184583ms)
+✔ generation policy failed atomic save keeps old memory and disk deadlines (26.887208ms)
+✔ AG34 Codex alias and actual fast target equality are rejected before credential persistence (14.220375ms)
+✔ R3-1 changed effective origin requires an explicitly reentered nonempty key and leaves all stored selections untouched on refusal (65.362458ms)
+✔ R3-1 effective environment and development endpoints participate in origin comparison (51.157875ms)
+✔ R3-1 real save handler refuses origin changes and failed atomic saves before any runtime effect (126.162ms)
+✔ AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes (93.315917ms)
+✔ credential transaction rejects unavailable without losing memory or the old ciphertext (71.138875ms)
+✔ credential transaction rejects encrypt without losing memory or the old ciphertext (52.031125ms)
+✔ credential transaction rejects write without losing memory or the old ciphertext (53.263334ms)
+✔ credential transaction rejects rename without losing memory or the old ciphertext (53.956708ms)
+✔ credential transaction rejects decrypt without losing memory or the old ciphertext (70.541959ms)
+✔ credential transaction rejects parse without losing memory or the old ciphertext (65.6615ms)
+✔ credential transaction rejects read without losing memory or the old ciphertext (101.482084ms)
+✔ credential transaction rejects load-unavailable without losing memory or the old ciphertext (38.373375ms)
+✔ unreadable credentials are offered for discard only after a decrypt or parse failure (178.094625ms)
+✔ a failed backup during discard keeps the unreadable file and the save block (26.044334ms)
+✔ all credential setters commit only after persistence and can be read after restart (445.816125ms)
+✔ an exclusive-create collision never deletes the pre-existing temporary file (20.779916ms)
+✔ legacy plaintext is removed without being read or used as credentials (19.855458ms)
+✔ a warm instance clears old memory and stays locked until a successful reload (21.209166ms)
+✔ AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart (102.773333ms)
+✔ legacy default and raw switch input reach model UI as the canonical runtime selection (184.082833ms)
+✔ AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back (162.452667ms)
+✔ AG24: all active STT key removals discard only after a successful save (459.286ms)
+✔ AG24: invalid region or STT endpoint never changes credentials (24.222125ms)
+✔ AG24: invalid configuration crosses real manager and IPC with no save or runtime change (68.776125ms)
+✔ all saving IPC handlers return storage failure before runtime, events or window side effects (903.920667ms)
+✔ ProviderCard stops model Fetch while complete configuration is unsaved (12.01875ms)
+✔ IPC warns safely after a committed save fails to apply, and cancellation is not a write failure (177.040083ms)
+✔ recognition language applies only after its real manager setter succeeds (18.8455ms)
+✔ all credential preload callbacks preserve failure, warning and cancellation results (537.174125ms)
+✔ renderer save, remove and selection callbacks retain the previous UI on failure (237.669458ms)
+✔ all three STT Save/Remove callbacks distinguish connection validation from stored keys (302.349167ms)
+✔ renderer keeps Saved and displays a safe apply warning (17.026791ms)
+✔ renderer cannot report rollback when default-model refresh fails after a committed configuration save (11.190417ms)
+✔ all five LLM Save/Remove branches use their matching endpoint and show failure without clearing input (151.583416ms)
+✔ detected-language save failure does not submit an unsaved language selection (47.704333ms)
+✔ Fetch lists models without implicitly selecting or saving the first model (4.483625ms)
+✔ storage failures cross the real manager, IPC, preload and renderer without committing live state (536.931416ms)
+✔ a decrypt failure reaches settings, and only a confirmed discard crosses IPC and preload (107.74975ms)
+✔ AG-41a: CredentialsManager.getSttProvider() returns none for all retired providers (13.850833ms)
+✔ base URL override is honoured only for loopback http in unpackaged builds (1.209334ms)
+✔ base URL override is ignored in packaged builds (0.08075ms)
+✔ base URL override rejects anything that is not plain loopback http (0.08775ms)
+✔ screenshot fixture requires an unpackaged build and an existing file (0.094458ms)
+✔ outside Electron the wrappers fail closed (4.639917ms)
+✔ generated inventory, raster dimensions and ICNS/ICO structures are intact (93.006959ms)
+✔ inline logo renders the approved two-line glyph and resource references exist (101.998333ms)
+✔ tray uses generated 16pt/@2x files without resizing and restore uses packaged resources (63.655542ms)
+✖ generation is repeatable in synthetic directories and system iconutil decodes the ICNS (1125.493875ms)
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":1,"unresolved":3,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":1,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":2,"uniqueTexts":2,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":4,"excluded":0,"unresolved":0,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":4,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":3,"uniqueTexts":3,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":4,"uniqueTexts":4,"excluded":0,"unresolved":1,"deferred":2}
+{"candidates":2,"uniqueTexts":3,"excluded":0,"unresolved":0,"deferred":2}
+✔ collection preserves exact CRLF notice bytes and validates copied Resources (149.904166ms)
+✔ README license detection keeps all holders and original surrounding bytes (405.948291ms)
+✔ missing required and compatible optional candidates remain unresolved (178.735958ms)
+✔ installed version cannot borrow a different lock version integrity (16.293ms)
+✔ cached remote notices require matching integrity and exact Git metadata (99.560833ms)
+✔ missing or substituted Chromium notice cannot pass package checks (235.559584ms)
+✔ known official repo mapping preserves a missing-repository crate cache offline (255.493ms)
+✔ notice symlinks and escaped destinations fail closed (220.078375ms)
+✔ changed locks invalidate inventory and generated Cargo metadata is strict (649.822875ms)
+✔ summary regeneration preserves legal prose, ignores unlisted leftovers and includes mapped dev candidates (295.040542ms)
+✔ missing or duplicated inventory markers fail rather than overwrite legal prose (188.7405ms)
+✔ approved exact MIT metadata and standard terms remain a separate evidence category (1260.997958ms)
+▶ metadata acceptance rejects unapproved identities and incomplete or changed evidence
+  ✔ npm: missing category cannot use the ordinary binding (238.636583ms)
+  ✔ npm: wrong package (256.356666ms)
+  ✔ npm: wrong version (309.914458ms)
+  ✔ npm: missing approval artifact pin (353.487125ms)
+  ✔ npm: changed approval artifact pin (179.34275ms)
+  ✔ npm: missing current artifact pin (178.786625ms)
+  ✔ npm: changed current artifact pin (119.911458ms)
+  ✔ npm: missing metadata pin (95.4545ms)
+  ✔ npm: changed metadata pin (83.076333ms)
+  ✔ npm: changed installed metadata bytes (59.829ms)
+  ✔ npm: installed metadata is a file symlink (41.0845ms)
+  ✔ npm: changed original metadata even with updated container hashes (55.426209ms)
+  ✔ npm: metadata license mismatch (49.605084ms)
+  ✔ npm: missing original declaration (51.072083ms)
+  ✔ npm: missing SPDX hash (51.03ms)
+  ✔ npm: missing SPDX Git blob (58.089666ms)
+  ✔ npm: changed SPDX Git blob (44.34875ms)
+  ✔ npm: changed SPDX reference (38.007834ms)
+  ✔ npm: replaced SPDX text with matching invented hashes (40.702125ms)
+  ✔ cargo: missing category cannot use the ordinary binding (41.024792ms)
+  ✔ cargo: wrong package (44.5365ms)
+  ✔ cargo: wrong version (75.008125ms)
+  ✔ cargo: missing approval artifact pin (42.058ms)
+  ✔ cargo: changed approval artifact pin (42.92975ms)
+  ✔ cargo: missing current artifact pin (43.467083ms)
+  ✔ cargo: changed current artifact pin (46.238125ms)
+  ✔ cargo: missing metadata pin (72.955041ms)
+  ✔ cargo: changed metadata pin (44.412166ms)
+  ✔ cargo: changed installed metadata bytes (47.904958ms)
+  ✔ cargo: installed metadata is a file symlink (42.915167ms)
+  ✔ cargo: changed original metadata even with updated container hashes (44.644541ms)
+  ✔ cargo: metadata license mismatch (58.645292ms)
+  ✔ cargo: missing original declaration (41.934292ms)
+  ✔ cargo: missing SPDX hash (45.434459ms)
+  ✔ cargo: missing SPDX Git blob (45.63625ms)
+  ✔ cargo: changed SPDX Git blob (38.517417ms)
+  ✔ cargo: changed SPDX reference (49.232417ms)
+  ✔ cargo: replaced SPDX text with matching invented hashes (36.426625ms)
+✔ metadata acceptance rejects unapproved identities and incomplete or changed evidence (3211.60025ms)
+✔ metadata alone and a remaining unrelated missing notice cannot pass inventory checks (217.440084ms)
+✔ local supplemental notices keep verbatim bytes, reject changed inputs and bind the packaged inventory (82.373333ms)
+✔ real bootstrap protects import-time logs and all console exits including stdout/stderr (366.4335ms)
+✔ sanitizer load failure stays closed in every exit and critical handler (186.540792ms)
+✔ sanitizer call failure stays closed in every exit and critical handler (147.701709ms)
+✔ isolated preload never emits raw console arguments even with verbose forwarding (60.130125ms)
+✔ redactor suppresses arbitrary strings, errors, object keys and serialization hooks (3.68475ms)
+✔ main-world renderer protects business imports independently of preload (9.864375ms)
+✔ verbose toggling only forwards already-safe metadata (54.99725ms)
+✔ duplicate bundled installers keep one console boundary and controlled events (5.796959ms)
+✔ separate real build bundles share app events through the console marker (179.196834ms)
+✔ critical evidence rejects missing, extra and unknown events and has no payload-prefix trust (111.030875ms)
+✔ real log IPC uses identity logs and hostile forwarded payloads stay opaque (199.129375ms)
+✔ sink failures cannot expose data, throw or recurse through console (742.106666ms)
+✔ recursive inspectors and sinks are dropped without losing later safe events (10.212916ms)
+✔ only the bundled page counts as the app page; the dev origin only in an unpackaged dev run (130.013667ms)
+✔ links open externally only for https without userinfo, or macOS settings on macOS (56.513542ms)
+✔ window.open and navigation away from the app page are refused without opening the browser (11.578584ms)
+✔ the linker map separates linked crates, sysroot, vendored C and dead-stripped inputs (10.870834ms)
+✔ artifact files are used only when every BUILD-INFO sha256 matches (18.760792ms)
+✔ forbidden content matches shipped model locations and removed packages, not SDK resource names (1.557042ms)
+▶ B8: audio-capture-failed must reach BOTH launcher and overlay surfaces
+  ✔ sendAudioCaptureFailed routes via sendToMeetingSurfaces, NOT sendToOverlay (1.168125ms)
+  ✔ sendToMeetingSurfaces is defined and fans out to launcher AND overlay (0.305333ms)
+  ✔ sendToMeetingSurfaces de-dupes targets via a Set<window.id> (so the same window is not double-sent) (0.198458ms)
+  ✔ sendToMeetingSurfaces does NOT leak to settings / cropper / modelSelector surfaces (0.161167ms)
+  ✔ audio-capture-failed channel is never sent via a global broadcast (cross-check leak guard) (0.326584ms)
+✔ B8: audio-capture-failed must reach BOTH launcher and overlay surfaces (2.987333ms)
+✔ initialization slot clears after success and failure without leaking native handles (146.0065ms)
+▶ UX4: audio test probes system audio in parallel with the mic
+  ✔ 0. _startAudioTestImpl and stopAudioTest function bodies extract cleanly (0.916792ms)
+  ✔ 1. _startAudioTestImpl constructs a parallel SystemAudioCapture (0.181042ms)
+  ✔ 2. _startAudioTestImpl emits `audio-test-system-level` IPC events (0.069292ms)
+  ✔ 3. _startAudioTestImpl emits `audio-test-system-error` on probe failure (0.0625ms)
+  ✔ 4. _startAudioTestImpl calls resolveMacScreenCaptureCapability BEFORE constructing the system probe (0.135959ms)
+  ✔ 5. stopAudioTest detaches both probes immediately and awaits both native releases (0.283708ms)
+  ✔ stopping while microphone permission is pending cannot create a late test capture (67.485291ms)
+  ✔ 6. preload.ts exposes onAudioTestSystemLevel AND onAudioTestSystemError bridges (2.0215ms)
+  ✔ 7. electron.d.ts declares onAudioTestSystemLevel and onAudioTestSystemError type signatures (0.246542ms)
+  ✔ 8. SettingsOverlay.tsx subscribes to onAudioTestSystemLevel AND onAudioTestSystemError (0.164625ms)
+  ✔ 9. SettingsOverlay.tsx renders the literal "System Audio Level" label (0.749667ms)
+  ✔ 10. SettingsOverlay.tsx binds the level bar width to `systemAudioLevel` (0.312125ms)
+✔ UX4: audio test probes system audio in parallel with the mic (73.606542ms)
+▶ UX3: audio warning banner deep-links to the correct macOS System Settings pane
+  ✔ SystemAudioWarning type includes an optional `channel: 'system' | 'mic'` field (1.186875ms)
+  ✔ onSystemAudioPermissionDenied stamps `channel: 'system'` on setSystemAudioWarning (0.515709ms)
+  ✔ onAudioCaptureFailed forwards `payload.channel` to setSystemAudioWarning (0.451709ms)
+  ✔ banner JSX references the macOS Microphone deep-link URL literally (0.092209ms)
+  ✔ banner JSX references the macOS Screen Recording deep-link URL literally (0.083583ms)
+  ✔ banner JSX renders both "Open Mic Settings" and "Open Screen Settings" labels (0.178875ms)
+  ✔ NEGATIVE: no "Open Settings" literal is wired straight to toggleSettingsWindow without channel/deep-link gating (0.252041ms)
+✔ UX3: audio warning banner deep-links to the correct macOS System Settings pane (3.584417ms)
+✔ migration 01 defaults retain main/fast models and disabled source (no path/sandbox/timeout) (5.819584ms)
+✔ enabled is strict boolean and current risk version is not inferred (0.218542ms)
+✔ migration 02 invalid tiers and efforts fail, rather than sandbox privilege options (0.151084ms)
+✔ migration 03 source default is no auth read (0.615416ms)
+✔ migration 04 timeout belongs to logical task, not executable config (18.201ms)
+✔ migration 05 no caller executable or compatible endpoint affects fixed request (3.714958ms)
+✔ migration 06 legacy enabled without current confirmation has zero reads (0.169458ms)
+✔ migration 07 API-key auth mode is rejected (0.123416ms)
+✔ migration 08 whitespace/header-injection account is rejected (0.10875ms)
+✔ migration 09 fixed request preserves system/user separation and stream/store flags (0.436709ms)
+✔ migration 10 default tier/effort omit unclaimed API parameters (0.079125ms)
+✔ migration 11 explicit allowlisted tier/effort serialize without fallback (0.083458ms)
+✔ migration 12 image input becomes independent inline input, never CLI argv (0.053417ms)
+✔ flat text/image parts share one user message; history role order and instructions remain separate (0.1025ms)
+✔ migration 13 explicit completed delta stream succeeds (0.393209ms)
+✔ migration 14 plain text is not silently considered completed (2.006208ms)
+✔ migration 15 markdown/JSON-looking text stays literal model text (1.469459ms)
+✔ migration 16 lifecycle without explicit completion is incomplete (0.735959ms)
+✔ migration 17 only actual output-text deltas are emitted (0.403708ms)
+✔ migration 18 explicit remote failure is safe and not success (0.388916ms)
+✔ migration 19 terminal output_text field alone does not fabricate delta output (0.327333ms)
+✔ migration 20 split multibyte SSE frames reconstruct actual content (1.001834ms)
+✔ migration 21 empty explicit completion remains empty (0.289125ms)
+✔ migration 22 error envelope preserves only allowlisted safe classification (0.3455ms)
+✔ migration 23 no remote error means no synthetic error on success (0.229791ms)
+✔ migration 24 arbitrary remote message/code never enter errors (0.22675ms)
+✔ migration 25 missing auth path never triggers discovery/CLI (5.102667ms)
+✔ migration 26 synthetic regular file read is bounded and readonly (31.438625ms)
+✔ migration 27 local status reports only local checks, not connection (0.391708ms)
+✔ migration 28 malformed/oversize/unsupported auth fails without alternate storage (0.2095ms)
+✔ migration 29 unavailable reader returns safe local status (0.110417ms)
+✔ migration 30 expired login requires external re-login, no refresh (0.07425ms)
+✔ migration 31 first-visible/total deadlines cannot acquire extra retry time (17.003125ms)
+✔ migration 32 pre-aborted request has zero reads and sends (0.680458ms)
+✔ migration 33 in-flight abort cancels reader and ignores late text (13.138083ms)
+✔ migration 34 stream preabort likewise cannot read credentials (0.517958ms)
+✔ migration 35 consumer close releases body without a late event (7.087583ms)
+✔ 401 recovery: changed (1.343917ms)
+✔ 401 recovery: unchanged (0.279375ms)
+✔ 401 recovery: account-changed (0.562458ms)
+✔ 401 recovery: expired (0.281625ms)
+✔ 401 recovery: revoked (0.212042ms)
+✔ second 401 cannot cause a third physical send/read (0.361ms)
+✔ shared budget already consumed by first target permits no source recovery send (0.434333ms)
+✔ partial output prohibits replay even on transient network interruption (0.620791ms)
+✔ network classification preserves safe transient code but no raw secret/cause (0.349833ms)
+✔ 503 unsupported_image is terminal without backup (0.236375ms)
+✔ explicit model_not_found can switch backup; generic 404 cannot (1.183083ms)
+✔ HTTP 200 SSE response.failed safely classifies model_not_found (0.736417ms)
+✔ HTTP 200 SSE response.failed safely classifies SECRET (0.220167ms)
+✔ HTTP 200 SSE response.failed safely classifies unsupported_image (0.199541ms)
+✔ HTTP 200 SSE error safely classifies model_not_found (0.241125ms)
+✔ HTTP 200 SSE error safely classifies SECRET (0.251125ms)
+✔ HTTP 200 SSE error safely classifies unsupported_image (0.342917ms)
+✔ HTTP 200 SSE partial model_not_found never replays or switches backup (0.309292ms)
+✔ Retry-After exceeding shared remaining time terminates with one send (0.327042ms)
+✔ redirect response cannot leak token into another endpoint (0.268083ms)
+✔ post-fetch live gate failure releases response body (0.7535ms)
+✔ symlink and oversized file fail closed (13.749083ms)
+✔ account claim mismatch and unknown expiry are not locally accepted (0.246958ms)
+✔ refusal and incomplete responses remain terminal non-success without extra send (0.489708ms)
+▶ B5: dev-mode TCC bypass is opt-in (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) only
+  ✔ isDevTccBypassEnabled() helper exists and checks BOTH !app.isPackaged AND the env flag (2.534375ms)
+  ✔ getMacScreenCaptureStatus calls isDevTccBypassEnabled() and has no bare !app.isPackaged early-return (0.940041ms)
+  ✔ resolveMacScreenCaptureCapability calls isDevTccBypassEnabled() and has no bare !app.isPackaged early-return (1.368291ms)
+  ✔ env var NATIVELY_DEV_BYPASS_SCREEN_TCC is documented somewhere in main.ts (0.2555ms)
+  ✔ no function in main.ts returns 'granted' solely on !app.isPackaged (global audit) (0.791ms)
+  ✔ documentation block near isDevTccBypassEnabled mentions both 'granted' and the env-var name (0.462042ms)
+✔ B5: dev-mode TCC bypass is opt-in (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) only (8.76825ms)
+✔ STT base URL rejects hidden authorities and query/fragment credentials (101.030584ms)
+✔ exactly five cloud selections, missing keys fail closed, domestic credentials save and delete (0.531583ms)
+✔ STT IPC only exposes presence, applies deletion and closes mock connection tests (21.100209ms)
+✔ every `mac-` PermissionReason has a defensive isMac fallback inside the helper (1.433084ms)
+✔ every call site that passes a `mac-` PermissionReason is gated on darwin (0.492333ms)
+✔ macOS build declares screen, microphone, and system audio usage descriptions (0.103459ms)
+✔ screen recording denied broadcasts are guarded by effective capability checks (0.296084ms)
+✔ no renderer file outside src/utils references x-apple.systempreferences without a darwin/isMac gate (43.039875ms)
+✔ R3-2 generate-code-hint validates selected queue once before generation and uses canonical symlinks (50.832292ms)
+✔ R3-2 generate-brainstorm validates selected queue once before generation and uses canonical symlinks (37.617375ms)
+✔ R3-2 what-to-say canonicalizes explicit images and never selects the screenshot queue (9.284ms)
+✔ AG33 actual registered cancellation uses engine-only reset and keeps explicit reset semantics distinct (2.160625ms)
+✔ AG33 actual registered chat handler fixes written/interview task budgets and refuses unknown modes (7.463834ms)
+✔ AG33 real registered gemini-chat rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (34.491542ms)
+✔ AG33 real registered gemini-chat-stream rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (35.73425ms)
+✔ AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (19.652ms)
+✔ AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (16.738125ms)
+✔ AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (21.709709ms)
+✔ AG33 real registered analyze-image-file rejects malformed, traversal, missing, sensitive and symlink-escape images before generation (25.464625ms)
+▶ ImeDetector module surface
+  ✔ exports both expected functions (4.19875ms)
+✔ ImeDetector module surface (6.217792ms)
+▶ shouldAutoEngageStealthTap: platform branching
+  ✔ returns true on win32 (no CGEventTap → gate irrelevant) (0.244459ms)
+  ✔ returns true on linux (no CGEventTap → gate irrelevant) (0.161042ms)
+  ✔ non-darwin path does NOT shell out to `defaults` (would 100ms-stall on every call) (0.903042ms)
+  ✔ darwin with only keyboard layouts: probes `defaults` once and allows auto-engage (0.283625ms)
+  ✔ darwin with an input method enabled: does not auto-engage (0.174083ms)
+  ✔ darwin probe failure fails open (auto-engage allowed) (0.11025ms)
+  ✔ darwin result is cached until refreshImeDetection(), then re-probed (M3) (0.140292ms)
+✔ shouldAutoEngageStealthTap: platform branching (2.22875ms)
+▶ refreshImeDetection: cache invalidation
+  ✔ does not throw when called with no prior probe (0.178125ms)
+  ✔ does not throw when called after a probe (0.135375ms)
+  ✔ repeated invalidation is safe (0.120375ms)
+  ✔ M3 contract: refresh + shouldAutoEngage still returns boolean on every platform (0.110709ms)
+✔ refreshImeDetection: cache invalidation (0.650167ms)
+▶ IPC wire-up sanity — the renderer + main code paths reference these exports
+  ✔ main.ts stealth-tap:refresh-ime handler still calls both ImeDetector exports (0.836834ms)
+✔ IPC wire-up sanity — the renderer + main code paths reference these exports (0.876125ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Code hint — question source: screenshot, transcript lines: 0, images: 1
+[SessionTracker] addAssistantMessage called { length: 12 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] code_hint stream aborted by new generation
+(node:52840) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ runCodeHint returns stream on cancellation, preserves its partial record and does not emit stale final result (12.062167ms)
+▶ SessionTracker — formatted context with interim transcript
+  ✔ getFormattedContextWithInterim includes pending interviewer partial (8.365834ms)
+  ✔ getFormattedContextWithInterim dedupes interim that matches last final (2.341125ms)
+✔ SessionTracker — formatted context with interim transcript (28.066708ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'coding',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 67 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 81 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+(node:52842) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ handleSuggestionTrigger stays silent for low confidence without emitting or storing history (9.469959ms)
+✔ handleSuggestionTrigger routes recap requests to recap executor (1.341958ms)
+✔ handleSuggestionTrigger routes answerable questions to what-to-say executor (23.472958ms)
+✔ handleSuggestionTrigger routes incomplete technical restatements to clarify executor (0.653334ms)
+✔ handleSuggestionTrigger still answers complete technical restatements (0.934709ms)
+[SessionTracker] addAssistantMessage called { length: 44 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+▶ buildPreparedTranscriptContext
+  ✔ includes interim interviewer text alongside final turns (16.315375ms)
+  ✔ includes the recent assistant responses block only when asked to (7.86875ms)
+  ✔ returns empty string for empty session (negative) (0.348166ms)
+✔ buildPreparedTranscriptContext (25.346458ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 1,
+  screenOcrAvailable: true,
+  screenOcrTextLength: 43
+}
+[SessionTracker] addAssistantMessage called { length: 49 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 28 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay passes screenContext and preserves imagePaths (18.930792ms)
+✔ runWhatShouldISay works without screenContext (0.806292ms)
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 66 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Initializing LLMs with LLMHelper
+[IntelligenceEngine] Temporal RAG {
+  previousResponses: 0,
+  tone: 'neutral',
+  intent: 'general',
+  imageCount: 0,
+  screenOcrAvailable: false,
+  screenOcrTextLength: 0
+}
+[SessionTracker] addAssistantMessage called { length: 75 }
+[SessionTracker] lastAssistantMessage updated, history size: 1
+✔ runWhatShouldISay suppresses nothing-actionable sentinel output (13.388666ms)
+✔ runWhatShouldISay suppresses nothing-to-capture sentinel output (0.60375ms)
+✔ runWhatShouldISay suppresses normalized sentinel variants (0.42075ms)
+(node:52845) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ runWhatShouldISay does not suppress near-match real answers (0.731125ms)
+✔ runWhatShouldISay suppresses speculative sentinel output (0.415708ms)
+✔ runWhatShouldISay hides speculative real answers from renderer and history (0.421709ms)
+✔ runWhatShouldISay hides speculative fallback answers from renderer and history (0.406208ms)
+✔ runWhatShouldISay still emits and stores real answers (0.613209ms)
+✔ issue #252: audio-capture-failed handler does not reuse the screen-recording banner kind (1.8165ms)
+✔ issue #252: system-audio-permission-denied handler tags its banner as screen-recording-permission (0.329ms)
+✔ issue #252: banner title is not hardcoded to "Screen Recording Permission Denied" (7.085667ms)
+✔ issue #252: Open Settings button does not unconditionally fire x-apple.systempreferences (3.395417ms)
+✔ production stop clears draining and display state even when saving rejects (88.691833ms)
+✔ stopMeeting saves the finished transcript and usage once, without generating anything (6.942833ms)
+✔ an untitled meeting is saved as Untitled Session (0.7ms)
+✔ short, never-retained, do-not-persist and failed saves leave no meeting id (3.960708ms)
+✔ production transcript ingress records interim and final text without triggering any answer engine (73.116625ms)
+✔ Date.now().toString() collides when called twice in one tick (documents the bug) (1.100916ms)
+✔ genMessageId yields a unique id on every call within one tick (0.463292ms)
+✔ genMessageId stays unique across many synchronous setMessages bursts (0.129333ms)
+✔ a denied start can be cleaned up without saving an unrelated session (34.648708ms)
+✔ production Stop cancels answers, joins native release, drains finals, saves, then clears display (19.214292ms)
+✔ duplicate stops join and next start cannot overtake saving (30.645625ms)
+✔ sleep release precedes wake reconstruction and a stopped session cannot resurrect (22.934625ms)
+✔ shutdown joins active session tail and rejects a later start (30.767709ms)
+✔ native release failure still saves the tail but blocks reuse of the unreleased handle (28.351458ms)
+▶ B1: mic-channel audio-capture-failed must surface in the renderer
+  ✔ contains exactly one onAudioCaptureFailed subscription (0.901459ms)
+  ✔ handler body does NOT contain the regression sentinel `payload.channel !== 'system'` (0.492416ms)
+  ✔ handler body does NOT contain any `channel !== 'system'` comparison (loose catch) (0.255625ms)
+  ✔ handler still gates on `terminal` or `stuck` to avoid banner spam during transient recovery (0.296ms)
+  ✔ handler calls setSystemAudioWarning with kind:'audio-capture-failure' (0.229791ms)
+  ✔ the gate and the setSystemAudioWarning call live within ~30 lines of each other (0.162083ms)
+✔ B1: mic-channel audio-capture-failed must surface in the renderer (3.161583ms)
+✔ mic recovery is bounded, reports terminal exhaustion once and ignores retired errors (86.679792ms)
+✔ auto recognition includes Russian as a detection alternate (1.031917ms)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Connecting WebSocket (model=gpt-4o-transcribe, attempt=1)...
+[OpenAIStreaming] WebSocket open — sending session config (model=gpt-4o-transcribe)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Connecting WebSocket (model=gpt-4o-transcribe, attempt=1)...
+[OpenAIStreaming] WebSocket open — sending session config (model=gpt-4o-transcribe)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop append failed (continuing to commit): Error: simulated ws.send failure on type=input_audio_buffer.append
+    at Object.send (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:67:23)
+    at _OpenAIStreamingSTT.stop (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/OpenAIStreamingSTT.js:20761:19)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:212:13)
+    at Test.runInAsyncScope (node:async_hooks:226:14)
+    at Test.run (node:internal/test_runner/test:1201:25)
+    at Suite.processPendingSubtests (node:internal/test_runner/test:831:18)
+    at Test.postRun (node:internal/test_runner/test:1330:19)
+    at Test.run (node:internal/test_runner/test:1258:12)
+    at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7)
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming][WS] Finalize append failed (continuing to commit): Error: simulated ws.send failure on type=input_audio_buffer.append
+    at Object.send (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:67:23)
+    at _OpenAIStreamingSTT.finalize (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/dist-electron/electron/audio/OpenAIStreamingSTT.js:20833:17)
+    at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs:223:13)
+    at Test.runInAsyncScope (node:async_hooks:226:14)
+    at Test.run (node:internal/test_runner/test:1201:25)
+    at Suite.processPendingSubtests (node:internal/test_runner/test:831:18)
+    at Test.postRun (node:internal/test_runner/test:1330:19)
+    at Test.run (node:internal/test_runner/test:1258:12)
+    at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7)
+[OpenAIStreaming][WS] Finalize — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Session created — flushing ring buffer
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] WS closed (code=1006, reason=synthetic)
+[OpenAIStreaming][REST] Switched to whisper-1 REST fallback
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] All WebSocket transcription models failed — falling back to whisper-1 REST
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] API key updated
+[OpenAIStreaming] Reconnecting WS to apply new API key
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] API key updated
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] API key updated
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming][WS] Stop — committed input buffer
+[OpenAIStreaming] WS closed (code=1006, reason=late close after stop)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] WS closed (code=1006, reason=synthetic)
+[OpenAIStreaming][REST] Switched to whisper-1 REST fallback
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Starting...
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] WS closed (code=1006, reason=exhaust)
+[OpenAIStreaming][REST] Transferring 2048 ring-buffer bytes to REST accumulator
+[OpenAIStreaming][REST] Switched to whisper-1 REST fallback
+[OpenAIStreaming] Stopping...
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+[OpenAIStreaming] Initialized — WebSocket priority (gpt-4o-transcribe → gpt-4o-mini-transcribe → whisper-1 REST)
+▶ wire format
+  ✔ does not send OpenAI-Beta header (beta API removed) (0.960584ms)
+[OpenAIStreaming] Server error: auth failed for Bearer [REDACTED] rejected
+[OpenAIStreaming] Server error: unauthorized: sk-[REDACTED]
+[OpenAIStreaming] All WebSocket transcription models failed — falling back to whisper-1 REST
+[OpenAIStreaming] Rate limit low: tokens 4000/50000 (8.0%, resets in 60s)
+[OpenAIStreaming] Rate limit low: tokens 4000/50000 (8.0%, resets in 60s)
+[OpenAIStreaming] Rate limit low: requests 50/1000 (5.0%, resets in 60s)
+[OpenAIStreaming] Rate limit low: tokens 4000/50000 (8.0%, resets in 60s)
+[OpenAIStreaming] Rate limit low: tokens 100/50000 (0.2%, resets in 60s)
+[OpenAIStreaming] Rate limit low: tokens 100/50000 (0.2%, resets in 60s)
+[OpenAIStreaming] All WebSocket transcription models failed — falling back to whisper-1 REST
+[OpenAIStreaming] Ring buffer evicted 6000000 bytes (cap=5760000). Session not yet ready — leading audio dropped.
+[OpenAIStreaming] Server error: auth failed for Bearer [REDACTED] rejected
+  ✔ sends the documented GA session.update transcription configuration (241.630625ms)
+  ✔ GA input audio is 24kHz PCM with the existing transcription model (60.15125ms)
+  ✔ handles GA transcript delta event name (0.121959ms)
+  ✔ handles GA transcript completed event name (0.0795ms)
+  ✔ does not send beta session.close to server (transcription intent has no such client event) (0.211792ms)
+  ✔ does not mark session.created as configured (0.183834ms)
+✔ wire format (304.4715ms)
+▶ lifecycle — unconditional commit
+  ✔ stop() commits even when pcmAccumulator is empty (2.23225ms)
+  ✔ finalize() commits even when pcmAccumulator is empty (0.158541ms)
+  ✔ stop() appends THEN commits when pcmAccumulator has audio (0.197292ms)
+  ✔ finalize() appends THEN commits when pcmAccumulator has audio (0.115333ms)
+  ✔ stop() commits even when append throws (data-loss prevention) (2.096709ms)
+  ✔ finalize() commits even when append throws (0.276625ms)
+✔ lifecycle — unconditional commit (5.251667ms)
+▶ race / late-arrival safety
+  ✔ inbound session.created waits for configuration acknowledgement without timers or audio (0.325333ms)
+  ✔ inbound session.updated sets isSessionReady (positive control) (0.219458ms)
+  ✔ late transcription_session.created arriving AFTER stop() does not leak keepAlive (2.172083ms)
+✔ race / late-arrival safety (2.804166ms)
+▶ timer ownership
+  ✔ _closeWs() clears reconnectTimer (no phantom reconnect after language change) (0.163042ms)
+  ✔ _closeWs() also clears connectionTimeoutTimer and sessionSetupTimer (0.077042ms)
+  ✔ _connectWs() clears stale connectionTimeoutTimer before re-arming (1.222458ms)
+✔ timer ownership (1.962375ms)
+▶ exhaustion error propagation
+  ✔ emits error when all WS models exhaust before REST fallback (1.891375ms)
+✔ exhaustion error propagation (2.058292ms)
+▶ setApiKey live rotation
+  ✔ setApiKey on active WS triggers close+reconnect with the new key in place (0.576625ms)
+  ✔ setApiKey on inactive instance does NOT reconnect (just stores the key) (0.183625ms)
+  ✔ setApiKey with same key is a no-op (no reconnect) (2.663833ms)
+✔ setApiKey live rotation (3.580333ms)
+▶ security — log scrubbing (case-insensitive)
+  ✔ scrubs lowercase bearer (proxies / lowercased headers) (0.284959ms)
+  ✔ scrubs sk-proj- project key variants (0.105958ms)
+✔ security — log scrubbing (case-insensitive) (0.440708ms)
+▶ lifecycle — post-stop safety
+  ✔ _handleWsClose is a no-op after stop() (no reconnect timer armed) (0.148208ms)
+  ✔ stop() clears restSafetyTimer when STT is in REST mode (0.124792ms)
+✔ lifecycle — post-stop safety (0.311625ms)
+▶ observability — rate_limits.updated
+  ✔ emits warning when a rate limit drops below 10% remaining (0.119333ms)
+  ✔ does not re-warn for the same limit name within a session (0.071584ms)
+  ✔ warns separately for different limit names (0.106416ms)
+  ✔ handles malformed entries gracefully (no throw) (0.065333ms)
+  ✔ start() resets the per-session warning dedup (0.132875ms)
+✔ observability — rate_limits.updated (0.56075ms)
+▶ fallback — ring-buffer transfer
+  ✔ WS exhaustion transfers ring-buffer bytes to REST accumulator (0.223416ms)
+✔ fallback — ring-buffer transfer (0.253333ms)
+▶ lifecycle — close behavior
+  ✔ _closeWs() never sends session.close on the wire (0.080792ms)
+  ✔ _closeWs(graceful=true) flushes pcm + commit before closing (0.088167ms)
+  ✔ _closeWs() clears keepAliveTimer (no stale interval on reconnect) (0.059041ms)
+✔ lifecycle — close behavior (0.270959ms)
+▶ telemetry — ring buffer eviction
+  ✔ emits warning event on first eviction; subsequent evictions stay silent (0.308875ms)
+✔ telemetry — ring buffer eviction (0.334209ms)
+▶ security — log scrubbing
+  ✔ Bearer tokens in server error bodies are not propagated upstream (0.128ms)
+✔ security — log scrubbing (0.154084ms)
+✔ sleep, resume, display changes and disposal invoke the production subscription functions (5.762125ms)
+✔ synchronous and asynchronous restart failures do not suppress shortcut recovery or escape as rejections (6.34175ms)
+✔ explicit HTTP/HTTPS endpoints survive; ambiguous URL syntax is rejected (1.4885ms)
+✔ Google speech universe domain rejects authority injection before any request (0.318583ms)
+✔ fetch wrapper is idempotent and preserves Request, signal, stream and receiver (1.127041ms)
+(node:52958) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ real fetch, axios and Gemini SDK refuse 307 instead of forwarding content (792.251958ms)
+✔ known application HTTP/WS/SDK construction sites match the outbound inventory; additions require registration (452.96575ms)
+✔ fixed endpoint origins in transport modules match the documented provider inventory (43.133334ms)
+▶ PromptAssembler
+  ✔ transcript with prompt injection pattern is not acted upon (21.50375ms)
+  ✔ screen context block has UNTRUSTED_SCREEN trust level (0.428959ms)
+  ✔ token budget enforcement truncates lowest-priority blocks (0.2615ms)
+  ✔ assemble orders blocks by trust level (highest first) (0.307834ms)
+  ✔ escapeUserContent properly escapes XML characters (0.256209ms)
+  ✔ escapeUserContent escapes single quotes (0.211917ms)
+  ✔ assemble handles empty transcript without crashing (0.160708ms)
+  ✔ assemble handles empty priorResponses array (0.140667ms)
+  ✔ meeting history block is included and marked untrusted (0.20625ms)
+  ✔ intent context is included as developer policy before untrusted transcript (4.35375ms)
+  ✔ assemble sets metadata correctly (0.271ms)
+✔ PromptAssembler (29.637667ms)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] created cached/test for model=gemini-test (7248 chars)
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-test: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+[GeminiPromptCache] caches.create failed for model=gemini-backup: Cannot read properties of undefined (reading 'create'). Falling back to systemInstruction.
+(node:53038) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ LLM SDK construction and key updates preserve explicitly configured env endpoints (144.831834ms)
+✔ selected Gemini stream: image-preparation revocation prevents cache and generation (6.733709ms)
+✔ selected Gemini stream: cache allowed, inflight revocation and explicit expiry recovery (11.971125ms)
+✔ selected Gemini nonstream: image-preparation revocation prevents cache and generation (0.474792ms)
+✔ selected Gemini nonstream: cache allowed, inflight revocation and explicit expiry recovery (1.57925ms)
+✔ assertProviderDataScopes throws ProviderScopeError when a denied scope is requested (4.36775ms)
+✔ assertProviderDataScopes is a no-op when scopes are allowed or unset (0.622958ms)
+✔ routeLLMProviders marks all providers unavailable when scope is denied (0.9515ms)
+✔ routeLLMProviders keeps providers available when scopes are allowed (0.414ms)
+✔ selected gemini nonstream: final scope recheck after limiter wait (4.067ms)
+✔ selected gemini stream: final scope recheck after limiter wait (2.455958ms)
+✔ selected groq nonstream: final scope recheck after limiter wait (3.819833ms)
+✔ selected groq stream: final scope recheck after limiter wait (0.743583ms)
+✔ selected openai nonstream: final scope recheck after limiter wait (0.797667ms)
+✔ selected openai stream: final scope recheck after limiter wait (0.686584ms)
+✔ selected claude nonstream: final scope recheck after limiter wait (1.186166ms)
+✔ selected claude stream: final scope recheck after limiter wait (0.714208ms)
+✔ selected deepseek nonstream: final scope recheck after limiter wait (0.683667ms)
+✔ selected deepseek stream: final scope recheck after limiter wait (0.490709ms)
+✔ generateContent: final send rechecks after limiter wait (0.592084ms)
+✔ fixed generateContent: retry uses current permissions, with allowed control (0.60775ms)
+✔ structured generation: limiter, same-model retry and explicit backup all recheck scopes (2.048667ms)
+✔ selected Groq stream: limiter and explicit Gemini backup preserve current permissions (5.063916ms)
+✔ SettingsManager exposes providerDataScopes setting (0.606583ms)
+✔ IPC handlers expose get/set provider-data-scopes and broadcast updates (0.999167ms)
+✔ preload and renderer types expose provider data scope controls (3.98775ms)
+✔ AIProvidersSettings renders cloud provider data scope controls wired to real IPC (6.722916ms)
+▶ RateLimiter
+  ✔ createProviderRateLimiters creates rate limiters for all providers (5.283791ms)
+  ✔ acquire() allows requests when tokens available (0.301ms)
+  ✔ acquire() throws when queue is full (13.725542ms)
+  ✔ destroy() rejects all queued waiters (52.403417ms)
+✔ RateLimiter (72.6955ms)
+▶ CircuitBreaker
+  ✔ initial state is closed (3.9185ms)
+  ✔ recordSuccess resets failure count and closes circuit (0.187625ms)
+  ✔ circuit opens after threshold failures (0.129375ms)
+  ✔ canExecute returns false when open (0.124375ms)
+  ✔ circuit transitions to half-open after resetTimeout (60.954833ms)
+  ✔ half-open allows limited calls (1.630625ms)
+✔ CircuitBreaker (67.282583ms)
+▶ ProviderRouter
+  ✔ selectProvider defaults to groq (0.792625ms)
+  ✔ needsVision prefers vision-capable provider (0.393875ms)
+  ✔ preferLowLatency prefers fast provider (0.325083ms)
+  ✔ summary action prefers quality provider (0.1185ms)
+  ✔ down provider is skipped (0.08975ms)
+  ✔ mode-based routing selects appropriate provider (0.126166ms)
+  ✔ recordSuccess and recordFailure update circuit breaker (0.108208ms)
+  ✔ getProviderHealth returns health status for all providers (0.109958ms)
+✔ ProviderRouter (2.280834ms)
+▶ Integration: RateLimiter wiring in LLMHelper
+  ✔ rate limiter acquire is called before provider request (mock test) (0.089791ms)
+✔ Integration: RateLimiter wiring in LLMHelper (0.115417ms)
+✔ arbitrary credential and user strings have no preview, pattern or minimum-length exception (3.456666ms)
+✔ objects stay opaque, including private property names and nested content (0.214791ms)
+✔ numbers, bigint, booleans, symbols and functions never print values or descriptions (0.127084ms)
+✔ Errors and cycles cannot disclose message, stack, cause or custom properties (0.137083ms)
+✔ hostile serializers, getters, revoked proxies and array proxies remain safe (2.3275ms)
+✔ production wake restores a full recovery budget and rejects pre-sleep delayed errors (44.680417ms)
+▶ Phase 9 — Retention & doNotPersist gate in MeetingPersistence
+  ✔ SettingsManager exposes meetingRetention setting (4.668166ms)
+  ✔ stopMeeting short-circuits when meetingRetention is never (1.516584ms)
+✔ Phase 9 — Retention & doNotPersist gate in MeetingPersistence (7.697584ms)
+✔ meeting retention IPC exposes get/set and broadcasts updates (1.750375ms)
+✔ preload and renderer types expose meeting retention controls (0.756792ms)
+✔ SettingsOverlay renders a real do-not-save meetings control (1.575458ms)
+✔ launcher startMeeting metadata carries doNotPersist when retention is never (0.89675ms)
+✔ partial updates replace in-progress tail without clearing committed segments (2.0645ms)
+✔ final matching in-progress preview does not duplicate segment (0.117584ms)
+✔ coalescer-style partial growth then speech_stopped final (0.661375ms)
+✔ final replaces prefix-matching in-progress partial (0.105917ms)
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[ScopeFallback] transcript denied for cloud providers; omitting from context
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+[LLMHelper] Switched to Model: llama-3.3-70b-versatile
+[LLMHelper] Switched to Model: gpt-5.4
+[LLMHelper] Switched to Model: claude-sonnet-4-6
+[LLMHelper] Switched to Model: deepseek-v4-flash
+(node:53057) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ routeLLMProviders marks cloud providers unavailable when a scope is denied (9.024333ms)
+✔ Codex login source (generate) refuses auth reads and sends when transcript scope is denied (181.995792ms)
+✔ Codex login source (stream) refuses auth reads and sends when transcript scope is denied (1.252541ms)
+✔ groq constructor: SDK cannot resend after scope revocation (15.254167ms)
+✔ openai constructor: SDK cannot resend after scope revocation (13.09625ms)
+✔ claude constructor: SDK cannot resend after scope revocation (2.785875ms)
+✔ deepseek constructor: SDK cannot resend after scope revocation (1.444833ms)
+✔ groq key update: SDK cannot resend after scope revocation (1.078792ms)
+✔ openai key update: SDK cannot resend after scope revocation (1.848333ms)
+✔ claude key update: SDK cannot resend after scope revocation (1.646958ms)
+✔ deepseek key update: SDK cannot resend after scope revocation (1.354417ms)
+✔ vision denial is terminal without another send (0.598583ms)
+✔ Gemini explicit backup preserves refusal without a speculative sibling (1.293709ms)
+✔ Gemini explicit backup recovers a transient failure, while cancellation terminates it (0.919792ms)
+✔ an aborted Gemini collection cannot send after its cache wait (0.35275ms)
+✔ prompt wrappers propagate a refusal instead of inventing an answer (17.479375ms)
+✔ WhatToSay emits the refusal and rejects without a fabricated answer (3.100917ms)
+✔ default chat routing refuses transcript denial but can omit denied history (0.864916ms)
+✔ non-streaming chat: scope refusal stays terminal with an explicit backup (0.4555ms)
+✔ structured generation: scope refusal stays terminal with an explicit backup (0.336167ms)
+✔ streaming text: scope refusal stays terminal with an explicit backup (0.355458ms)
+✔ streaming images: scope refusal stays terminal with an explicit backup (0.454917ms)
+✔ selected content generation: scope refusal stays terminal with an explicit backup (0.357417ms)
+✔ selected Gemini preserves scope refusal at limiter wait 1 (0.327458ms)
+✔ selected Gemini preserves scope refusal at limiter wait 2 (0.384375ms)
+✔ Claude sends nothing when a declared transcript or screenshot scope is denied (0.865958ms)
+✔ Groq images sends nothing when a declared transcript or screenshot scope is denied (2.698417ms)
+✔ Gemini images sends nothing when a declared transcript or screenshot scope is denied (3.723375ms)
+✔ chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied (0.734417ms)
+✔ generateContentStructured refuses transcript denial at the actual send boundary (0.381792ms)
+✔ generateContent refuses transcript denial at the actual send boundary (0.338709ms)
+✔ streamChat selected model refuses transcript denial at the actual send boundary (0.427542ms)
+✔ streamChat refuses a request whose declared scope is denied, before anything is sent (3.123291ms)
+✔ WhatToAnswer sends earlier answers only while profile_history is allowed (1.715125ms)
+✔ the keyword fallback recognizes saved-meeting headings in a window-built context (0.319208ms)
+✔ streamChat keeps declared and inferred context scopes through the limiter and explicit backup (5.45775ms)
+✔ chatWithGemini keeps the scopes of its context for every send (2.158459ms)
+(node:53062) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ SessionTracker logs transcript and assistant message metadata without text snippets (4.831167ms)
+✔ IntelligenceEngine logs interim transcript metadata without text snippets (0.572125ms)
+✔ LLMHelper actual chat and stream paths never log prompt, context, system or response text (184.396583ms)
+✔ STT providers log transcript metadata without transcript text (4.338375ms)
+✔ IPC and meeting save logs avoid answer and LLM response snippets (1.193042ms)
+✔ each capture construction failure is visible and does not suppress the other channel (134.438042ms)
+✔ provider creation failure is visible while the other capture still starts (15.923834ms)
+✔ permission is rechecked with existing captures and denial releases the system side (133.323375ms)
+✔ skills:list and skills:open-folder handlers are registered in ipcHandlers.ts (2.352166ms)
+✔ preload exposes skillsRefresh / skillsOpenFolder on window.electronAPI (1.486125ms)
+✔ electron.d.ts declares SkillSummary and the two skills methods (0.7135ms)
+✔ SkillsSettings renderer guards against a missing bridge instead of silent optional-chain (0.408833ms)
+✔ every preload ipcRenderer.invoke channel has a matching ipcMain.handle registration (51.63ms)
+✔ SkillsManager.listSkills() returns the builtin humanize-ai-text skill (30.157375ms)
+▶ UX1: startup mic permission banner (returning-user feedback)
+  ✔ initializeApp function exists in electron/main.ts (1.128083ms)
+  ✔ initializeApp body contains a call to getMediaAccessStatus('microphone') (1.6755ms)
+  ✔ the mic check lives inside the existing `if (process.platform === 'darwin')` startup TCC block (0.884833ms)
+  ✔ the mic check emits sendAudioCaptureFailed with channel:'mic' AND terminal:true (1.149791ms)
+  ✔ the mic check handles BOTH 'denied' and 'restricted' statuses (0.99325ms)
+  ✔ the 'denied' branch uses formatPermissionMessage('mic-denied') (0.976583ms)
+  ✔ the mic check is wrapped in its own try/catch (independent of the outer screen-check try/catch) (1.1115ms)
+  ✔ NEGATIVE: the mic check is NOT nested inside an `else if (screenStatus === 'denied')` branch (3.495ms)
+✔ UX1: startup mic permission banner (returning-user feedback) (13.82875ms)
+▶ blockInputFocus: ref-driven focus-blocking truth table
+  ✔ Windows (CGEventTap unavailable) does NOT block input focus — fixes #246 (0.865125ms)
+  ✔ Linux (CGEventTap unavailable) does NOT block input focus (0.073375ms)
+  ✔ macOS with tap available DOES block focus (stealth invariant) (0.074625ms)
+  ✔ macOS with IME enabled (Pinyin/Hangul/Kanji) does NOT block focus — CJK composition path (0.063ms)
+  ✔ macOS with tap loaded but Accessibility revoked at runtime does NOT block focus — fixes M1 (0.059583ms)
+  ✔ default-false safety: input clickable until IPC confirms availability (0.068917ms)
+  ✔ macOS with both refs false (worst case during boot) does NOT block focus (0.048542ms)
+✔ blockInputFocus: ref-driven focus-blocking truth table (2.042458ms)
+▶ mount-effect onMouseDown: ref-driven tap-engage truth table
+  ✔ Windows: does NOT fire stealthTapStart — M2 symmetry with blockInputFocus (0.123333ms)
+  ✔ macOS happy path: tap available, no IME, not yet active → fires start (0.164459ms)
+  ✔ macOS tap already active: does not re-fire start (would be a no-op anyway) (0.108458ms)
+  ✔ macOS with IME present: does not fire start (CJK composition would break) (0.075875ms)
+  ✔ symmetry: blockInputFocus and onMouseDown agree on every shape that isCgEventTapAvailable=false (0.088166ms)
+✔ mount-effect onMouseDown: ref-driven tap-engage truth table (2.025417ms)
+▶ NativelyInterface.tsx: guard implementation must keep checking both refs
+  ✔ isCgEventTapAvailableRef defaults to false (M1 safe default) (0.262167ms)
+  ✔ blockInputFocus checks isCgEventTapAvailableRef before preventDefault (0.168709ms)
+  ✔ mount-effect onMouseDown checks isCgEventTapAvailableRef before stealthTapStart (M2) (0.298917ms)
+  ✔ stealthTapStart() failure is logged, not swallowed (m5) (0.178417ms)
+  ✔ onStealthTapState flips isCgEventTapAvailableRef to false on permission revoke and true on active (0.207667ms)
+  ✔ window.focus listener calls stealthTapRefreshIme (M3) (0.249125ms)
+✔ NativelyInterface.tsx: guard implementation must keep checking both refs (1.463ms)
+▶ dead stealth IPCs are fully removed across renderer surface
+  ✔ no caller of stealthTapPermissionGranted, stealthTapRequestPermission, or stealthTapIsActive remains (59.650417ms)
+✔ dead stealth IPCs are fully removed across renderer surface (59.704292ms)
+✔ registerStealthHandler pattern is idempotent across re-registration (1.28925ms)
+✔ registerStealthHandler pattern handles all six stealth-tap channels independently (0.625333ms)
+✔ raw ipcMain.handle pattern (without removeHandler) DOES throw — confirms our fake matches Electron semantics (0.862084ms)
+✔ every stealth-tap:* registration in main.ts goes through registerStealthHandler (4.333209ms)
+▶ B8b: stt-status and system-audio-permission-denied must reach BOTH launcher and overlay surfaces
+  ✔ sendSttStatus routes via sendToMeetingSurfaces, NOT sendToOverlay (1.1505ms)
+  ✔ sendSystemAudioPermissionDenied routes via sendToMeetingSurfaces, NOT sendToOverlay (0.302625ms)
+  ✔ channel-string invariance: literal channel names match preload.ts subscribers (0.167667ms)
+  ✔ no accidental broadcast leak: neither method uses this.broadcast or BrowserWindow.getAllWindows (0.210416ms)
+  ✔ subscriber side intact: NativelyInterface.tsx still subscribes to both channels (0.232166ms)
+  ✔ symmetry: all THREE user-facing diagnostic IPCs use sendToMeetingSurfaces (0.268542ms)
+✔ B8b: stt-status and system-audio-permission-denied must reach BOTH launcher and overlay surfaces (3.139125ms)
+✔ get-stored-credentials IPC does not return raw STT API keys (2.459834ms)
+✔ error fallback in get-stored-credentials does not return raw STT keys (0.841667ms)
+✔ renderer settings overlay does not rely on raw STT keys from IPC (2.142709ms)
+✔ STT key fields in IPC response follow masked or boolean-only pattern (0.943917ms)
+▶ B2: STT user/interviewer status must initialize to 'awaiting-audio'
+  ✔ NativelyInterface.tsx initializes sttUserStatus to 'awaiting-audio' (not 'connected') (1.617875ms)
+  ✔ NativelyInterface.tsx initializes sttInterviewerStatus to 'awaiting-audio' (not 'connected') (0.495ms)
+  ✔ electron/main.ts SttStatusPayload state union includes 'awaiting-audio' (0.212333ms)
+  ✔ electron/preload.ts onSttStatusChanged state union includes 'awaiting-audio' (0.120917ms)
+  ✔ src/types/electron.d.ts onSttStatusChanged state union includes 'awaiting-audio' (0.098292ms)
+  ✔ electron/main.ts emits a sendSttStatus call with state:'awaiting-audio' at provider wire-up (0.317916ms)
+  ✔ NativelyInterface.tsx calls setSttUserStatus('awaiting-audio') and setSttInterviewerStatus('awaiting-audio') (meeting-end reset) (0.244125ms)
+  ✔ cross-file consistency: all four type unions contain 'awaiting-audio' (0.421208ms)
+✔ B2: STT user/interviewer status must initialize to 'awaiting-audio' (4.390917ms)
+✔ a stored local-whisper STT provider reads back as none (7.297833ms)
+✔ choosing a provider afterwards stores and returns it (7.330541ms)
+▶ B11 stuck-watchdog 12000ms regression — electron/main.ts
+  ✔ extractMethodBody finds both wire* bodies (2.588416ms)
+  ✔ wireSystemCapture declares `const STUCK_WATCHDOG_MS = 12000` (0.311083ms)
+  ✔ wireSystemCapture calls setTimeout(..., STUCK_WATCHDOG_MS) (0.159625ms)
+  ✔ wireMicCapture declares `const STUCK_WATCHDOG_MS = 12000` (0.0695ms)
+  ✔ wireMicCapture calls setTimeout(..., STUCK_WATCHDOG_MS) (0.080291ms)
+  ✔ neither wire* body uses `setTimeout(..., 8000)` literal (0.174042ms)
+  ✔ no `setTimeout(..., 8000)` anywhere inside the wire* function bodies (0.157166ms)
+  ✔ STUCK_WATCHDOG_MS value is >= 10000 in both bodies (0.185667ms)
+✔ B11 stuck-watchdog 12000ms regression — electron/main.ts (4.63825ms)
+✔ ipcHandlers.ts registers safeHandle('repair-tcc-permissions', ...) (3.344292ms)
+✔ repair-tcc-permissions handler uses execFile, NOT shell exec (0.348958ms)
+✔ handler invokes tccutil with exact capitalized 'Microphone' service name (0.097916ms)
+✔ handler invokes tccutil with exact capitalized 'ScreenCapture' service name (0.082958ms)
+✔ handler is gated on process.platform === 'darwin' with early-return (0.1305ms)
+✔ handler passes a timeout option to execFile to prevent indefinite hang (0.106708ms)
+✔ preload.ts exposes repairTccPermissions bridging 'repair-tcc-permissions' (0.216708ms)
+✔ electron.d.ts declares repairTccPermissions with ok:boolean and message:string (0.306958ms)
+✔ NativelyInterface.tsx renders a Repair Permissions button gated by isMac (0.260458ms)
+✔ renderer button calls window.electronAPI?.repairTccPermissions (0.257375ms)
+✔ NEGATIVE: ipcHandlers.ts has no lowercase tccutil service names near tccutil (0.961667ms)
+✔ package test discovery includes every Node test file in services and llm folders (8.223459ms)
+✔ off → on: changed, next=true, always broadcast (6.620958ms)
+✔ on → off: changed, next=false, always broadcast (0.20725ms)
+✔ REGRESSION RC-2: on → on (no-op) still broadcasts, no side-effects (0.142292ms)
+✔ REGRESSION RC-2: off → off (no-op) still broadcasts, no side-effects (0.113792ms)
+✔ broadcast is invariantly true across all four transitions (1.905166ms)
+✔ B10: wireSystemCapture zero-fill block contains no Math.abs (1.289166ms)
+✔ B10: wireSystemCapture computes peakToPeak as maxS - minS (0.215416ms)
+✔ B10: wireSystemCapture uses peakToPeak > 100 threshold (0.118833ms)
+✔ B10: wireMicCapture zero-fill block contains no Math.abs (0.087ms)
+✔ B10: wireMicCapture computes peakToPeak as maxS - minS (0.074791ms)
+✔ B10: wireMicCapture uses peakToPeak > 100 threshold (0.053792ms)
+✔ B10: wireSystemCapture initializes minS=32767 and maxS=-32768 (int16 extremes) (0.162875ms)
+✔ B10: wireMicCapture initializes minS=32767 and maxS=-32768 (int16 extremes) (0.071375ms)
+✔ B10: legacy `> 8` zero-fill threshold no longer appears near zerofillLatched anywhere in main.ts (1.262375ms)
+✔ B10: wireSystemCapture zero-fill emits sendAudioCaptureFailed with channel="system" and mac-screen-recording-revoked-rebuild (0.197709ms)
+✔ B10: wireMicCapture zero-fill emits sendAudioCaptureFailed with channel="mic" and mic-zero-fill (0.096166ms)
+✔ R3-5 private preserves screenshot refusal, other scopes and restart protection with migration save failure false (129.06575ms)
+✔ R3-5 private preserves screenshot refusal, other scopes and restart protection with migration save failure true (33.821166ms)
+✔ R3-5 private preserves screenshot refusal, other scopes and restart protection with migration save failure {"rename":true} (30.295875ms)
+✔ R3-5 private_vision preserves screenshot refusal, other scopes and restart protection with migration save failure false (30.746125ms)
+✔ R3-5 private_vision preserves screenshot refusal, other scopes and restart protection with migration save failure true (30.190875ms)
+✔ R3-5 private_vision preserves screenshot refusal, other scopes and restart protection with migration save failure {"rename":true} (28.059666ms)
+✔ AG34 enabling requires current explicit confirmation, not legacy enabled (8.762416ms)
+✔ AG34 failed confirmation save publishes no consent and restart stays disabled (19.519667ms)
+✔ AG34 legacy writer counterexample: failed disk save must not publish enabled (9.322584ms)
+✔ AG34 consent and tier/effort survive restart; legacy enabled does not migrate consent (28.1835ms)
+✔ AG34 failed withdrawal stays closed live; later partial saves cannot silently restore consent (24.0435ms)
+✔ AG34 rename failure keeps old consent/model memory and disk (8.142875ms)
+▶ validateImagePath — macOS userData ordering (obs 2631)
+  ✔ allows screenshot path inside userData even though it starts with /Users/ (2.239209ms)
+  ✔ allows extra_screenshots path inside userData (2.135334ms)
+  ✔ blocks /Users/ path outside userData (0.428583ms)
+  ✔ blocks /etc/ regardless of userData (0.445916ms)
+  ✔ blocks path traversal even when prefix matches userData (0.073ms)
+  ✔ blocks Windows drive paths (0.064792ms)
+  ✔ rejects empty / non-string input (0.06425ms)
+  ✔ blocks /etc/passwd via realpath resolution (0.858833ms)
+  ✔ blocks Unix home paths via realpath resolution (60.584625ms)
+  ✔ blocks /tmp arbitrary paths via realpath resolution (0.882958ms)
+✔ validateImagePath — macOS userData ordering (obs 2631) (68.728709ms)
+▶ overlayActionDedup
+  ✔ normalizeActionKey trims and lowercases (0.897208ms)
+  ✔ shouldDedupeOverlayAction returns false with no prior action (0.095834ms)
+  ✔ shouldDedupeOverlayAction returns true for same action inside window (0.068333ms)
+  ✔ shouldDedupeOverlayAction returns false for different actions (0.065292ms)
+  ✔ shouldDedupeOverlayAction returns false after window expires (0.075959ms)
+  ✔ collapseConsecutiveDuplicateSystemMessages removes adjacent duplicates (0.104416ms)
+  ✔ collapseConsecutiveDuplicateSystemMessages keeps non-adjacent duplicate what_to_answer (RC-D flood) (0.851584ms)
+✔ overlayActionDedup (2.966ms)
+✔ clarify placeholder does not clear messages (1.526333ms)
+✔ clarify finalize does not clear messages (0.170625ms)
+✔ clarify finalize updates last matching intent row only (0.093ms)
+✔ what_to_answer finalize updates last row only (findLastIndex — RC-D) (0.090292ms)
+✔ what_to_answer finalize prefers explicit streamingMsgId over findLastIndex (Fix 3) (0.108667ms)
+✔ what_to_answer finalize appends when no prior system row (blank first click path) (0.072292ms)
+✔ RC-E: explicit streamingMsgId finalizes correct row when user message is between WTA rows (0.093084ms)
+✔ finalize appends with reserved streamingMsgId when row not yet mounted (0.129708ms)
+✔ finalize without streamingMsgId appends new row when no open stream exists (0.135708ms)
+✔ applyWhatToAnswerNullFeedback ignores stray late token after refs cleared (5.94175ms)
+✔ finalize-before-mount race resolves to a single row (E2E) (0.228583ms)
+✔ STT partial does not clear messages (1.081375ms)
+✔ STT final does not clear messages (0.098375ms)
+▶ overlaySubmitDedup
+  ✔ normalizeSubmitText trims and collapses whitespace (2.257375ms)
+  ✔ shouldDedupeManualSubmit returns false with no prior submit (0.147625ms)
+  ✔ shouldDedupeManualSubmit returns true for same text inside window (0.080916ms)
+  ✔ shouldDedupeManualSubmit returns false after window expires (0.075ms)
+  ✔ shouldDedupeManualSubmit treats whitespace-normalized text as duplicate (0.068875ms)
+✔ overlaySubmitDedup (4.541084ms)
+✔ AG60a translation uses English source text when a Chinese entry is missing (48.605541ms)
+✔ AG41b domestic STT cards use the shared translations and accessible credential controls (35.9285ms)
+✔ AG60a language switching changes hook output and rejects unsupported languages (0.921416ms)
+✔ AG60a shared heading and card preserve content, native controls and text escaping (0.912042ms)
+✔ shouldFlushPreviousStream keeps same-intent tokens in one bubble (2.771333ms)
+✔ shouldFlushPreviousStream flushes when intent changes mid-stream (0.085458ms)
+✔ shouldFlushPreviousStream flushes chat stream when what_to_answer arrives (manual submit flood path) (0.059666ms)
+✔ shouldFlushPreviousStream does not flush when no active stream (0.070542ms)
+✔ hasActiveOpenStream treats placeholder (empty text) as active (0.282125ms)
+✔ same-intent stream keeps one bubble (no flush between tokens) (0.199ms)
+✔ multi-token same-intent simulation produces exactly one streaming row (0.48475ms)
+✔ multi-token same-intent reuses placeholder row instead of appending (0.238834ms)
+✔ resolveStreamingMessageId reuses open placeholder id (0.294458ms)
+✔ applyFirstStreamingToken updates existing row by id (0.429417ms)
+✔ applyFirstStreamingToken is idempotent against a pre-finalized row (0.20325ms)
+✔ applyFirstStreamingToken appends a new row when id differs from a pre-finalized row (collision-avoidance) (0.363625ms)
+✔ commitStreamingFlush writes buffered tokens onto placeholder row (0.098833ms)
+✔ pre-wired placeholder stream keeps one bubble with visible text after flush (0.119667ms)
+✔ tokens visible in one bubble — no duplicate rows during pre-wired stream (0.068167ms)
+✔ discardStreamingBufferWhenNoMsgId clears buffered text when msgId unset (RC-C flushToken) (0.071583ms)
+✔ deferred first token + sync finalize must yield one what_to_answer row (RC-C repro) (0.203292ms)
+✔ findLastIndex finalize + deferred first token must not add a third what_to_answer row (RC-D repro) (0.082ms)
+✔ pre-wired what_to_answer placeholder + sync finalize stays one row (control) (0.078417ms)
+✔ RC-F: late WTA finalize ignored when chat placeholder active after manual submit (0.098084ms)
+✔ seal-orphans pattern: orphan same-intent row gets isStreaming=false and a new reservedId row is appended (0.138917ms)
+✔ cross-intent finalize does not clobber different-intent placeholder (0.195125ms)
+✔ shouldAcceptIntelligenceIpc rejects late WTA when chat stream is open (0.164708ms)
+✔ null invoke with open WTA placeholder updates one row with feedback (RC-A UI path) (1.124708ms)
+✔ null invoke without placeholder appends new system row (0.13025ms)
+✔ null invoke ignores sealed what_to_answer rows (negative: no duplicate) (0.091125ms)
+ℹ tests 950
+ℹ suites 51
+ℹ pass 948
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 10718.429417
+
+✖ failing tests:
+
+test at electron/margin/__tests__/icons.test.mjs:135:1
+✖ generation is repeatable in synthetic directories and system iconutil decodes the ICNS (1125.493875ms)
+  AssertionError [ERR_ASSERTION]: /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-MizjuK/tmp/margin-isolation-icons-first-qyanwp/tmp/margin-icon-znLioX/margin.iconset:Invalid Iconset.
+  /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-MizjuK/tmp/margin-isolation-icons-first-qyanwp/tmp/margin-icon-znLioX/margin.iconset:Invalid Iconset.
+  node:internal/errors:998
+    const err = new Error(message);
+                ^
+  
+  Error: Command failed: iconutil -c icns /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-MizjuK/tmp/margin-isolation-icons-first-qyanwp/tmp/margin-icon-znLioX/margin.iconset -o /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-MizjuK/tmp/margin-isolation-icons-first-qyanwp/tmp/margin-icon-znLioX/margin.icns
+  /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-MizjuK/tmp/margin-isolation-icons-first-qyanwp/tmp/margin-icon-znLioX/margin.iconset:Invalid Iconset.
+  /Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/.agy-tmp/margin-isolation-node-MizjuK/tmp/margin-isolation-icons-first-qyanwp/tmp/margin-icon-znLioX/margin.iconset:Invalid Iconset.
+  
+      at genericNodeError (node:internal/errors:998:15)
+      at wrappedFn (node:internal/errors:543:14)
+      at checkExecSyncError (node:child_process:925:11)
+      at execFileSync (node:child_process:961:15)
+      at guarded (/Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/margin/isolation/guard.cjs:186:17)
+      at file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/scripts/icons/generate.mjs:43:3 {
+    status: 1,
+    signal: null,
+    output: [
+      null,
+      Buffer(0) [Uint8Array] [],
+      Buffer(396) [Uint8Array] [
+         47,  85, 115, 101, 114, 115,  47, 109,  97,  99,  47,  99,
+        111, 100, 101,  47,  78,  97, 116, 105, 118, 101, 108, 121,
+         47,  46,  99, 108,  97, 117, 100, 101,  47, 119, 111, 114,
+        107, 116, 114, 101, 101, 115,  47, 109,  97, 114, 103, 105,
+        110,  45,  97, 103, 112, 108,  45, 109, 105, 103, 114,  97,
+        116, 105, 111, 110,  47,  46,  97, 103, 121,  45, 116, 109,
+        112,  47, 109,  97, 114, 103, 105, 110,  45, 105, 115, 111,
+        108,  97, 116, 105, 111, 110,  45, 110, 111, 100, 101,  45,
+         77, 105, 122, 106,
+        ... 296 more items
+      ]
+    ],
+    pid: 52833,
+    stdout: Buffer(0) [Uint8Array] [],
+    stderr: Buffer(396) [Uint8Array] [
+       47,  85, 115, 101, 114, 115,  47, 109,  97,  99,  47,  99,
+      111, 100, 101,  47,  78,  97, 116, 105, 118, 101, 108, 121,
+       47,  46,  99, 108,  97, 117, 100, 101,  47, 119, 111, 114,
+      107, 116, 114, 101, 101, 115,  47, 109,  97, 114, 103, 105,
+      110,  45,  97, 103, 112, 108,  45, 109, 105, 103, 114,  97,
+      116, 105, 111, 110,  47,  46,  97, 103, 121,  45, 116, 109,
+      112,  47, 109,  97, 114, 103, 105, 110,  45, 105, 115, 111,
+      108,  97, 116, 105, 111, 110,  45, 110, 111, 100, 101,  45,
+       77, 105, 122, 106,
+      ... 296 more items
+    ]
+  }
+  
+  Node.js v26.0.0
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/electron/margin/__tests__/icons.test.mjs:143:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

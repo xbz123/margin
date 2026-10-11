@@ -18,7 +18,9 @@ function sourceModule(file) {
   }).outputText;
   vm.runInNewContext(compiled, {
     module, exports: module.exports,
-    require: id => id === './i18n.zh' ? sourceModule('src/i18n.zh.ts') : require(id),
+    require: id => id === './i18n.zh' ? sourceModule('src/i18n.zh.ts')
+      : id === '../../i18n' ? sourceModule('src/i18n.tsx')
+      : id === './SettingsKit' ? sourceModule('src/components/settings/SettingsKit.tsx') : require(id),
   });
   loaded.set(file, module.exports);
   return module.exports;
@@ -31,6 +33,22 @@ test('AG60a translation uses English source text when a Chinese entry is missing
   assert.equal(translate('zh-CN', 'Untranslated text'), 'Untranslated text');
   assert.equal(translate('zh-CN', 'constructor'), 'constructor');
   assert.equal(translate('zh-CN', ''), '');
+});
+
+test('AG41b domestic STT cards use the shared translations and accessible credential controls', () => {
+  const { SpeechProviderSettings } = sourceModule('src/components/settings/SpeechProviderSettings.tsx');
+  const { setUiLanguage } = sourceModule('src/i18n.tsx');
+  try {
+    setUiLanguage('zh-CN');
+    for (const provider of ['aliyun', 'doubao']) {
+      const html = renderToStaticMarkup(React.createElement(SpeechProviderSettings, { provider }));
+      assert.match(html, /type="password"/);
+      assert.match(html, /删除凭据/);
+      assert.match(html, /测试连接/);
+      assert.match(html, /role="status"/);
+      assert.match(html, provider === 'aliyun' ? /业务空间 ID/ : /App ID/);
+    }
+  } finally { setUiLanguage('en'); }
 });
 
 test('AG60a language switching changes hook output and rejects unsupported languages', () => {

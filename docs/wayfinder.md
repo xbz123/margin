@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-41b 五家 STT（Codex）** — AG-40、AG-41a 已完成并通过复查（PLAN §9"AG-40 复查""AG-41a 复查"），已推送。下一步按 S38 派 AG-41b：OpenAI、Soniox、Groq、阿里云百炼、豆包，未配置时阻止开始，恢复 4 个 Realtime 用例，确定缓冲上限的处理方式；之后是 AG-42（Codex），然后做阶段 4 验收，出口 CI 须用户批准。
+- **AG-41b 待 Claude 完整门禁和复查** — 五家 STT、启动门禁、两家凭据设置和四个 Realtime 用例已实现，本地检查见 `margin/evidence/AG-41b/`。全量 950 项：948 通过、1 个已知 iconutil 沙箱例外、1 个既有跳过；仅本地提交、不推送、未实机验证。Claude 复查通过后才交付后续 AG-42；阶段出口 CI 须用户批准。
 
 ## Waiting
 

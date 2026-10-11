@@ -261,11 +261,13 @@ import { loadNativeModule } from "./audio/nativeModuleLoader"
 import { RestSTT } from "./audio/RestSTT"
 import { SonioxStreamingSTT } from "./audio/SonioxStreamingSTT"
 import { OpenAIStreamingSTT } from "./audio/OpenAIStreamingSTT"
+import { AliyunStreamingSTT } from './audio/AliyunStreamingSTT';
+import { DoubaoStreamingSTT } from './audio/DoubaoStreamingSTT';
 import { ThemeManager } from "./ThemeManager"
 import { DatabaseManager } from "./db/DatabaseManager"
 
 /** Unified type for all STT providers with optional extended capabilities */
-type STTProvider = (RestSTT | SonioxStreamingSTT | OpenAIStreamingSTT) & {
+type STTProvider = (RestSTT | SonioxStreamingSTT | OpenAIStreamingSTT | AliyunStreamingSTT | DoubaoStreamingSTT) & {
   finalize?: () => void;
   setAudioChannelCount?: (count: number) => void;
   notifySpeechEnded?: () => void;
@@ -741,13 +743,16 @@ export class AppState {
     // 'none' means the user has explicitly disabled STT (no provider selected).
     // Return null so the pipeline skips STT without falling back to Google.
     if (sttProvider === 'none') {
-      console.log(`[Main] STT provider is 'none' — audio capture will proceed but transcription is disabled.`);
       return null;
     }
 
     let stt: STTProvider;
 
-    if (sttProvider === 'soniox') {
+    if (sttProvider === 'aliyun' || sttProvider === 'doubao') {
+      const config = CredentialsManager.getInstance().getDomesticStt(sttProvider);
+      if (!config?.key) return null;
+      stt = sttProvider === 'aliyun' ? new AliyunStreamingSTT(config.key, config) : new DoubaoStreamingSTT(config.key, config);
+    } else if (sttProvider === 'soniox') {
       const apiKey = CredentialsManager.getInstance().getSonioxApiKey();
       if (apiKey?.trim()) {
         console.log(`[Main] Using SonioxStreamingSTT for ${speaker}`);
@@ -1526,7 +1531,7 @@ export class AppState {
     // We only want to finalize the user microphone, because the context is Manual Answer
     if (this.googleSTT_User?.finalize) {
       console.log('[Main] Finalizing STT');
-      this.googleSTT_User.finalize();
+      void Promise.resolve(this.googleSTT_User.finalize()).catch(() => console.warn('[Main] STT finalization failed'));
     }
   }
 
@@ -1534,6 +1539,7 @@ export class AppState {
   public async startMeeting(metadata?: any): Promise<void> {
     return this.meetingLifecycle.start(async () => {
       if (this._isQuitting) throw new Error('Application is quitting');
+      CredentialsManager.getInstance().requireSttConfigured();
       await this.meetingAudio.waitForRelease();
       if (!(await ensureMacMicrophoneAccess('meeting start'))) throw new Error(formatPermissionMessage('mic-denied'));
       if (this._isQuitting) throw new Error('Application is quitting');
