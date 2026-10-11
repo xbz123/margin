@@ -2,13 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
 
-**Current answer:** 阶段 4 已签收（2026-10-11，出口 CI `38162294825`）。Claude 已复查 AG-50 原版并报告 gates 16/16；发现的存储损坏恢复问题已修正、本地检查完成（已知 iconutil 沙箱例外），待 Claude 复验；未推送，详见 PLAN §8 AG-50 和 evidence/AG-50/checks。
+**Current answer:** 阶段 4 已签收；AG-50 已完成，Claude 复查通过，完整 gates 16/16（2026-10-11）。下一张 AG-51 交 Codex。
 
 **Current focus:** 阶段 5：AG-50 → AG-51 → 阶段 5 出口（CI 须用户批准，用户签收）。
 
 ## Waiting
 
-- **AG-50** — 原版 `2dc6a835` / `a04cf568` 已经 Claude 复查；本次补损坏存储的确认清空入口，待 Claude 复验；resume: `docs/margin/PLAN.md` §8 AG-50、`docs/margin/evidence/AG-50/checks/`。未修改其未跟踪的 gates 证据；未推送，Claude 通过后负责推送。
+- **AG-51 交 Codex** — 提示词类 Skills：S29 第 3 条的提示词分层（基础层加面试或笔试场景层），以及按场景的附加指令（只追加、限长、可恢复默认、只存本机）。完成后进入阶段 5 出口。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching

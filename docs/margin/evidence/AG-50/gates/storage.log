@@ -1,0 +1,10 @@
+✔ a meeting is saved without any request, survives a restart, and stays deleted (7164.092292ms)
+✔ a meeting opened from the history list shows its usage and rolls back a failed title edit (8958.813875ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16624.452125

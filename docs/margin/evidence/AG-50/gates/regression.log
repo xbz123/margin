@@ -1,0 +1,24 @@
+✔ a typed question streams the mock answer into the overlay (2555.305958ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (8051.544ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3315.905459ms)
+✔ a screenshot question sends the fixture image to the model (394.647458ms)
+✔ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (144.829125ms)
+✔ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (153.467083ms)
+✔ a provider error is shown and the next question still works (1569.336042ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (1988.763917ms)
+✔ R3-1 real preload refuses a changed origin without key reentry and keeps runtime, stored selections and key availability (6.973208ms)
+✔ a complete compatible target saved through preload drives a real typed UI question (310.522417ms)
+✔ AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry (185.415209ms)
+✔ AG33 one webContents delivers chat events only to the owning UI subscription (32.729083ms)
+✔ AG33 real Written typed and captured-image questions survive interview TTFT, preserve cancellation and retry as separate records (24109.0995ms)
+✔ AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder (402.308875ms)
+✔ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (25.877417ms)
+✔ AG33 real Natively late action invoke cannot change the newer manual answer or erase prior UI records (873.9415ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44807.825667
