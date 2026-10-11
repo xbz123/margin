@@ -1320,6 +1320,19 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-41b | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-41b 复查"） | `759a6484`、`520dc16e`、`9b92f883` | 五家云端 STT（新增阿里云百炼、豆包，整体按需求重写）、凭据设置、未配置时拒绝开始会议、恢复四个 Realtime 用例、160 KiB 严格缓冲上限（超限拒绝）、麦克风恢复断言；gates 119 个文件 955 项测试，954 通过、1 个既有跳过；证据 `evidence/AG-41b/`；未实机验证 |
 | AG-42 | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-42 复查"） | `3ff20cbc`、`3bfcbe47`、`25528531` | 手动回答接现有 generate-what-to-say → IntelligenceManager/Engine → 阶段 3 生成链路；配置预检、mic 尾段 finalize（尽力而为，上限 1500 ms）、取消、回答身份封口、固定错误文案（英文源文 + 中文译文）；gates 121 个文件 970 项测试，969 通过、1 个既有跳过；证据 `evidence/AG-42/`；未实机验证 |
 | AG-50 | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-50 复查"） | `2dc6a835`、`a04cf568`、`595c5872` | Local Context 全文：只接受 UTF-8 `.md`、`.markdown`、`.txt`，最多 8 个文件、单个 32 KiB、合计 64 KiB；存导入时的文本快照；放在共享生成出口的第一条 user turn；容量超限时报错不截断；不设数据开关（S40）；存储不可读时可确认后清空恢复。gates 123 个文件、979 项，978 通过、1 个既有跳过；证据 `evidence/AG-50/`；未实机验证 |
+| AG-51 | 实现和本地检查通过；完整门禁和复查待 Claude | `45a4e9ce` | 提示词分层、自动/手动场景、按场景附加指令、提示词 Skill 导入安装选择、损坏存储确认恢复；证据 `evidence/AG-51/`。986 项单元测试：984 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过；不推送，未实机验证 |
+
+### AG-51 记录（2026-10-11）
+
+- **授权与状态**：从 `dd6ef564` 在迁移工作树串行实施，实现提交 `45a4e9ce`，不派代理，仅本地提交、不推送、不触发 CI。按本次派发及 S38，完整 Electron gates 和 Claude 复查待办；不代签阶段 5 出口。提交前原工作区为空且仍在 `codex/ai-assistant-refactor`；本票临时目录已删除。
+- **分层**：在 `prompts.ts` 原有段落边界拆出基础层与面试/笔试场景层，由 `scenarioPrompts.ts` 组装。基础层保留定案的身份/安全及执行约束变体，不为统一一段文字而改写 S29。面试仍为 Universal WhatToAnswer + DEFAULT_ANSWER_PROMPT_SUFFIX，tiny 保留既有 tiny 前缀；笔试仍为 CHAT_MODE_PROMPT。与起始提交逐字一致，固定 SHA-256 行为断言见 `PromptSkillConsumerChain.test.mjs` 和证据 README，措辞差异为零。
+- **选择规则**：沿用 Question mode，增加 `auto`（默认）。`generate-what-to-say` 自动面试；文字/附图 `gemini-chat-stream` 自动笔试。手动 interview/written 同时选择提示词和既有生成预算；Written 的手动回答按钮仍沿用现有文字提交路径。身份探测保留本地固定回复；recap/follow-up/code-hint 等专用动作保持自身提示词，不恢复退役模式。入口及兼容 API 范围详见证据 README。
+- **附加指令**：每场景最多 4000 UTF-16 code units（前后端均校验），只追加在默认提示词之后、既有语言后缀之前。与 Skill 一起放入标明不能覆盖默认/系统/数据范围约束的 user_guidance 区块；JSON 文本转义 `<`、`>`、`&`，避免构造边界标签。恢复场景默认会清空文本并取消 Skill 选择。提示词不能赋予工具、代码、文件或网络能力；原出站范围检查仍生效。
+- **Skills 格式与存储**：现有 SkillsManager 是基线未改文件，activeSkill 来自基线（PROVENANCE 已登记核对）；保留其库接口及内置文本，将默认后缀替换改成追加。新导入走主进程原生文件选择，不接受 renderer 路径；单个 UTF-8 `.md`，32 KiB，严格 name/description 前置信息+非空正文，最多 16 个，同名拒绝；拒绝其他元数据、控制字符、无效 UTF-8、目录/叶符号链接及超限。仅保存文本快照、场景选择和附加指令到独立 `prompt-settings.json`，不与 AG-50 LocalContextStore 混用，不引入旧 SkillValidator/SkillUploader。文件库与新安装列表分开，旧库文件不自动启用；格式例子见证据。
+- **损坏恢复**：有界读取及验证失败时，场景回答拒绝发送并给出固定错误；设置卡片内提供二次确认清空，不先解析坏文件，原子写入空存储。取消不写，清空失败保留恢复入口；不删原始导入文件或基线技能库。保存/安装/移除取消在途生成。
+- **界面与兼容**：新卡片嵌入现有 Skills 页，复用 SettingsKit/useI18n，英文源码、中文词条，按钮沿用本分支样式；五个新方法直接声明在两处 ElectronAPI，不用 extends。没有设置页重组、语言持久化、窗口保护、自动回答或依赖变更。
+- **证据**：`evidence/AG-51/checks/` 仅最终一轮。Electron/Vite build、两套 tsc、preload/IPC 契约、隔离自测、retired `--all`、G2 `--max-hits 0`、diff-check 均 exit 0。全量 125 文件/986 项：984 通过、1 个事先声明的 iconutil 沙箱例外、1 个既有跳过；无挂起或无法解释的退出。七项新增行为用例跑真实手动 IPC → Manager/Engine → AG-42 → 阶段 3 mock 协议，覆盖默认字节、场景、导入安装选择、上限、数据范围零发送、preload 和中英恢复 UI。未删测试、未新增跳过。受影响的 Electron regression/outbound-renderer 已调整并 `node --check`，未启动 Electron gates。
+- **来源与边界**：只读参考旧 importer 和 consumer-chain 的行为，零片段引入。S35 每组范围及五处新增 G2 通用写法的处理见 PROVENANCE AG-51；不改字躲扫描、不改池和排除项。`completedTickets` 加 AG-51；本票未退役现存模块，没有新增退役规则。未碰 licenses/ 或 lockfile。未发生领域停止条件；未真实模型评估、实机 UI/文件选择器、服务/设备、打包、CI。完整门禁/复查由 Claude 承接。
 
 ### AG-50 记录（2026-10-11）
 

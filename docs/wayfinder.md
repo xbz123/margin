@@ -2,19 +2,19 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
 
-**Current answer:** 阶段 4 已签收；AG-50 已完成，Claude 复查通过，完整 gates 16/16（2026-10-11）。下一张 AG-51 交 Codex。
+**Current answer:** 阶段 4 已签收；AG-50 已通过 Claude 复查及完整门禁。AG-51 实现和本地检查通过（2026-10-11，已知 iconutil 沙箱例外），仅本地提交；完整 Electron 门禁和复查待 Claude，阶段 5 尚未签收。证据见 `docs/margin/evidence/AG-51/`。
 
 **Current focus:** 阶段 5：AG-50 → AG-51 → 阶段 5 出口（CI 须用户批准，用户签收）。
 
 ## Waiting
 
-- **AG-51 交 Codex** — 提示词类 Skills：S29 第 3 条的提示词分层（基础层加面试或笔试场景层），以及按场景的附加指令（只追加、限长、可恢复默认、只存本机）。完成后进入阶段 5 出口。
+- **AG-51 待 Claude** — 分层、场景选择、附加指令、Skills 导入安装选择和损坏存储恢复已实现（`45a4e9ce`）；恢复点：PLAN §8 AG-51、`docs/margin/evidence/AG-51/checks/`。下一步由 Claude 跑沙箱外完整门禁并复查，再决定推送；之后阶段 5 出口 CI 仍须用户批准。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching
 
 - 未经真实环境验证：Codex 登录（AG-34）、真实模型服务的兼容性、S29 提示词改动对回答质量的影响。已写入阶段 3 签收（PLAN §8"阶段 3 签收"）。
-- 提示词分层和按场景的附加指令已记入 AG-51，属于后期工作（PLAN S29 第 3 条）。
+- AG-51 默认提示词拼接字节已核对；真实模型的质量和对附加指令的遵从性未评估（S27/S29），不以 mock 代替。
 - 截图截取环节是否为原生像素密度只能用真实屏幕确认（PLAN §9"S34 删除 sharp"）。
 
 ## Done (rolling)
