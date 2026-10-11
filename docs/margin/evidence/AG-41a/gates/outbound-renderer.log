@@ -1,0 +1,17 @@
+(node:45286) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG60a mounted Skills settings switch language without resetting controls or calling extra IPC (1916.705625ms)
+[LLMHelper] Switched to Model: codex-cli
+✔ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (2282.421583ms)
+✔ AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads (1398.859416ms)
+✔ AG33 real Global React overlay preserves partial failure, fences closed callbacks and creates a new retry record (3696.925666ms)
+✔ all seven Markdown callers and streaming sanitize block image loads in a real renderer (2037.771875ms)
+✔ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8751.702125ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20536.842875

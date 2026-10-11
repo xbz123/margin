@@ -1315,6 +1315,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-34 | 实现和本地门禁通过；待 Claude 只读复查 | `b1ed9fe3`（仅私有远端已更新） | 独立只读 Codex 登录来源；单次完整 16/16，971 测试/966 通过/5 既有跳过；证据 `evidence/AG-34/`。无真实登录或服务验收，阶段出口未完成 |
 | AG-60a | 完成；Claude 只读复查通过（2026-10-11，§9"AG-60a 复查"） | `e05ad25e`；记录 `4a782acc`、`1f469b94` | 翻译查找/回退/切换及共用设置组件，本地 gates 单次 16/16，112 文件、967 测试（962 通过、5 既有跳过），G2 零命中；证据 `evidence/AG-60a/`。实现及记录已推送两个远端并核对；无出口 CI、真实服务或设备验收 |
 | AG-40 | 完成；Claude 复查通过，完整 gates 16/16（Claude 在沙箱外运行，§9"AG-40 复查"） | `5241e414`；记录 `1733427a` | 主进程双路音频/会话生命周期接线；修改测试 85/85、竞态 16/16，构建和两套类型检查通过，G2 零命中。全量仅有已获准的 iconutil 沙箱例外，5 个既有跳过不变；证据 `evidence/AG-40/`。本地提交、不推送；未运行完整 gates 或实机验收 |
+| AG-41a | 完成；Claude 复查通过，合并后完整 gates 16/16（§9"AG-41a 复查"） | `8f05e4cc`、`921517e3`、`cf534db3`；合并 `d25d48ff` | 退役 Google、Deepgram、ElevenLabs（S35）和 Azure、IBM Watson（S39）；删除 6 个依赖；合并后 116 个文件 937 项测试，932 通过、5 个既有跳过；证据 `evidence/AG-41a/` |
 
 ### AG-40 记录（2026-10-11）
 
@@ -2783,3 +2784,15 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 **低优先级问题（下一张票顺带修）**：`MicRecoveryEmitsTerminalIpc.test.mjs` 没有断言前 3 次错误真的重建了麦克风；恢复逻辑完全失效时，它也会通过。
 
 **检查**：完整 gates 16/16（`evidence/AG-40/gates/`，提交 `1733427a`，无未提交路径）。tests 共 120 个文件、962 项：957 通过、0 失败、5 个既有跳过，其中图标测试在沙箱外通过；regression、storage、startup、outbound-renderer 全部通过。未做实机验证：真实麦克风、系统音频、睡眠唤醒和蓝牙设备都只用了 mock。
+
+### AG-41a 复查（Claude，2026-10-11，S38 执行人 AGY `gemini-3.8-flash-medium`，在独立工作树 `tmp/wt-AG-41a` 中与 AG-40 并行）
+
+先读代码后检查，共三轮。
+
+| 轮次 | 发现 | 处理 |
+| --- | --- | --- |
+| `8f05e4cc` 读代码 | 主体正确：实现、入口、依赖、专属测试都删干净，剩下几家的测试断言保留，`ReconnectStormCap` 只测 Deepgram，可以删。另有以下问题：<br>1. Azure、IBM Watson 未退役，S35 漏列（见 S39）。<br>2. `DatabaseManager.ts` 的引导文字仍在教用户选 Google Cloud 服务账号。<br>3. 缺"已存的退役选择不创建 STT"的测试，原循环直接删掉了退役 id。<br>4. `as any`、无用类型 `ServiceAccountSelectionResult`、无用常量 `DEFAULT_STT_PROVIDER` 被改成 `groq` | AGY 在 `921517e3` 全部修正。`getSttProvider()` 改成只放行现存三家，其余返回 `none` |
+| 工作树上的完整 gates：13/16 | `tsc-electron` 和 `outbound-renderer` 失败，是同一个回归：删 Google 导入时，把仍在使用的 `CredentialSaveResult` 和 `openExternalLink` 导入一起删了。点击 https 链接会抛 ReferenceError。esbuild 构建不做类型检查，所以 AGY 自己没发现。`provenance` 失败是工作树里 `node_modules` 符号链接造成的 EISDIR，属于环境问题 | AGY 在 `cf534db3` 恢复导入。主进程类型检查此前漏列在给 AGY 的必跑项里，已补上 |
+| 合并 | `main.ts` 有 4 处冲突、`retired-rules.json` 有 1 处，Claude 按 AG-40 的结构解决，并删掉 `reconfigureSttProvider` 里的 Google 分支；去掉一处行尾空行 | 合并提交 `d25d48ff` |
+
+**检查**：合并后完整 gates 16/16（`evidence/AG-41a/gates/`，HEAD `d25d48ff`，无未提交路径）。tests 共 116 个文件、937 项：932 通过、0 失败、5 个既有跳过。退役规则 291 条，0 命中。未做实机验证：没有真实服务，也没有真实设置界面的人工操作。

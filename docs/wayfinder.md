@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-40 等待 Claude 完整门禁与复查** — 双路音频及会话生命周期实现和本地检查通过，仅本地提交、未推送；证据 `docs/margin/evidence/AG-40/`。修改测试 85/85、竞态 16/16，构建/类型/G2 通过；全量 iconutil 沙箱例外已由 Claude 在沙箱外验证。之后按 S38 串行派发 AG-41a（AGY）→ AG-41b（Codex）→ AG-42（Codex）；阶段出口 CI 仍须用户批准。交接与来源边界见 PLAN 和 HANDOFF-stage4-6。
+- **AG-41b 五家 STT（Codex）** — AG-40、AG-41a 已完成并通过复查（PLAN §9"AG-40 复查""AG-41a 复查"），已推送。下一步按 S38 派 AG-41b：OpenAI、Soniox、Groq、阿里云百炼、豆包，未配置时阻止开始，恢复 4 个 Realtime 用例，确定缓冲上限的处理方式；之后是 AG-42（Codex），然后做阶段 4 验收，出口 CI 须用户批准。
 
 ## Waiting
 
@@ -18,6 +18,7 @@
 
 ## Done (rolling)
 
+- AG-40（Codex）和 AG-41a（AGY，与 AG-40 并行）（2026-10-11）：双路音频与会话生命周期；退役 Google、Deepgram、ElevenLabs、Azure、IBM Watson 五家 STT（S39）。合并后完整 gates 16/16。
 - AG-40 实现和本地检查通过（2026-10-11，`5241e414`）：生产停止链、尾段排空、重配、睡眠/唤醒及 OS 订阅接线；完整门禁和复查待 Claude，未推送、未实机验证（PLAN §8，`docs/margin/evidence/AG-40/`）。
 - AG-60a 共享翻译和设置组件（2026-10-11）：Astra 实现 `e05ad25e`，Claude 复查通过（PLAN §9"AG-60a 复查"）；AG-40 起改由 AGY 执行（S37）。
 - 阶段 4–6 执行交接（2026-10-11，S36）：`docs/margin/HANDOFF-stage4-6.md`，交给 Astra 执行。

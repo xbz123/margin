@@ -21,6 +21,23 @@ Notes:
 
 ## Ledger
 
+### AG-41a retire five cloud STT providers (AGY, merged by Claude, 2026-10-11, PLAN S35 item 1, S38, S39)
+
+- Removal only. Google Cloud Speech, Deepgram, ElevenLabs, Azure Speech and IBM
+  Watson are deleted from this branch: implementations (`GoogleSTT.ts`,
+  `DeepgramStreamingSTT.ts`, `ElevenLabsStreamingSTT.ts`, `googleServiceAccount.ts`,
+  the Azure/IBM `RestSTT` configs and binary upload path, `regionalSttEndpoint`),
+  IPC, preload, credential fields, settings and help UI, constants and onboarding text.
+- Dependencies removed: `@google-cloud/speech`, `@deepgram/sdk`, `@elevenlabs/client`,
+  `@elevenlabs/elevenlabs-js`, `@grpc/grpc-js`, `@grpc/proto-loader` (no other code
+  users). The lock file was synchronized with `--package-lock-only`.
+- A stored `sttProvider` naming a retired provider resolves to `none`. Old stored
+  keys are neither read nor deleted.
+- No old Margin or upstream code is imported. The only new code is the type-narrowed
+  `getSttProvider()` and its behavior test. Retired rules are owned by `AG-41a`.
+- Tests that only exercised retired providers are deleted with the feature; the
+  others drop only the retired cases. Details are in `evidence/AG-41a/README.md`.
+
 ### AG-40 dual audio and meeting lifecycle (2026-10-11)
 
 Written for this branch from HANDOFF §4.2, the race/stop behavior requirements,
