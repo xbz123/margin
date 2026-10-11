@@ -1,20 +1,36 @@
-# Stage 4 reuse of old Margin files (PLAN S35)
+# Old Margin reuse list for stages 4–7 (PLAN S35)
 
 Claude, 2026-10-11. Read-only inspection of the earlier Margin branch at
-`b8ade3f7` (`codex/ai-assistant-refactor`) for stage 4 (AG-40, AG-41, AG-42).
-Nothing was copied into this branch; this is the basis on which files may be
-imported later, each one still reviewed line by line and recorded in PROVENANCE.
+`b8ade3f7` (`codex/ai-assistant-refactor`): every file it adds or changes
+against the baseline `a786910e` (1655 files: 1410 added, 245 modified). Nothing
+was copied into this branch. The list is PLAN §6 "旧 Margin 复用清单（S35）";
+each import is still reviewed line by line and recorded in PROVENANCE.
 
-- `files.txt`: the 204 audio, STT, session and answer files considered.
-- `analyze.py`: blames each line from `fcfbb02a` (the imported snapshot, no
-  shared history with the baseline) to `b8ade3f7` with move and copy detection.
-- `profile.json`: per file, substantive lines (`total`), lines written in
-  Margin's own commits (`margin`), snapshot lines not in the baseline file
-  (`snapshotNotBaseline`, treated as upstream content), restricted-line hits of
-  the provenance check (`hits`) and those on Margin-written lines (`marginHits`).
+Rebuild, from the repository root:
 
-The provenance check over the whole of `b8ade3f7` found 157,271 hits in 1,472
-files (205,353 added substantive lines), as in the X1 calibration. Its full JSON
-is not kept; it is regenerated with the command in `analyze.py`.
+    node scripts/margin/provenance-check.mjs --target b8ade3f7 --json --max-hits 0 > /tmp/prov.json
+    python3 -I docs/margin/evidence/S35-stage4-reuse/analyze_all.py "$PWD" \
+      docs/margin/evidence/S35-stage4-reuse/files-all.txt /tmp/prov.json \
+      docs/margin/evidence/S35-stage4-reuse/profile-all.json
+    python3 -I docs/margin/evidence/S35-stage4-reuse/build_reuse_list.py \
+      docs/margin/evidence/S35-stage4-reuse "$PWD"
 
-The resulting list is PLAN §6 "阶段 4 复用清单（S35）".
+`files-all.txt` is `git diff --name-status --no-renames a786910e b8ade3f7` without
+the deleted files. `head-state.json` records, for each candidate, whether this
+branch has the same blob (`identical`), another version (`differs`) or no file
+(`absent`); it was taken at `a6446d02`.
+
+- `analyze_all.py` → `profile-all.json`: per file, substantive lines (`total`,
+  more than 12 characters as in the provenance check), lines written in Margin's
+  own commits (`margin`, by `git blame -w -M -C -C fcfbb02a..b8ade3f7`), snapshot
+  lines absent from the same baseline file (`snapshotNotBaseline`, treated as
+  upstream content), restricted-line hits (`hits`), those on Margin lines
+  (`marginHits`, `marginHitLines`) and the runs of clean Margin lines
+  (`cleanRanges`).
+- `build_reuse_list.py` → `reuse-map.json` (ticket, action, counts, line ranges
+  and missing dependencies per candidate), `reuse-ranges.md` (the same for
+  reading) and `plan-tables.md` (the per-ticket tables in PLAN). Ticket
+  assignment is the ordered `RULES` list in the script.
+
+The whole-branch provenance check found 157,271 hits in 1,472 files (205,353
+added substantive lines), as in the X1 calibration; its JSON is not kept.
