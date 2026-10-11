@@ -46,6 +46,13 @@ test('AG41b domestic STT cards use the shared translations and accessible creden
       assert.match(html, /删除凭据/);
       assert.match(html, /测试连接/);
       assert.match(html, /role="status"/);
+      const buttons = html.match(/<button\b[^>]*>/g);
+      assert.equal(buttons.length, 3);
+      for (const button of buttons) {
+        assert.match(button, /class="[^"]*bg-bg-input/);
+        assert.match(button, /rounded/);
+        assert.match(button, /disabled:opacity-50/);
+      }
       assert.match(html, provider === 'aliyun' ? /业务空间 ID/ : /App ID/);
     }
   } finally { setUiLanguage('en'); }

@@ -1,0 +1,28 @@
+✔ Aliyun: overflow reports once until audio is accepted or the connection recovers (71.66375ms)
+✔ Aliyun: retry budget, drain timeout and permanent authentication failure (1.382334ms)
+✔ Aliyun: bounded queue, protocol order, drain, revocation and stale sockets (2.368417ms)
+✔ Doubao: overflow reports once until audio is accepted or the connection recovers (16.966583ms)
+✔ Doubao: retry budget, drain timeout and permanent authentication failure (0.907583ms)
+✔ Doubao: bounded queue, protocol order, drain, revocation and stale sockets (2.767292ms)
+✔ PCM downmix is chunk-invariant at 48kHz stereo, including partial frames (0.976208ms)
+✔ Doubao decoder rejects truncated and invalid compression frames (0.146541ms)
+✔ Doubao parameter and empty-audio errors are not authentication failures; empty finalize can resume (0.715667ms)
+✔ Doubao repeated multi-utterance results emit each final only once (0.337333ms)
+✔ MeetingSttSession drains a domestic provider final before disposing its listener (17.2495ms)
+✔ STT base URL rejects hidden authorities and query/fragment credentials (69.555ms)
+✔ exactly five cloud selections, missing keys fail closed, domestic credentials save and delete (0.543958ms)
+✔ STT IPC only exposes presence, applies deletion and closes mock connection tests (12.412625ms)
+✔ connection test separates construction, configuration, authentication, timeout and network failures without echoing secrets (5.144458ms)
+✔ main reports a permanent configuration error as failed, not as authentication or reconnecting (32.112333ms)
+✔ AG60a translation uses English source text when a Chinese entry is missing (42.830792ms)
+✔ AG41b domestic STT cards use the shared translations and accessible credential controls (30.139459ms)
+✔ AG60a language switching changes hook output and rejects unsupported languages (0.563917ms)
+✔ AG60a shared heading and card preserve content, native controls and text escaping (0.421666ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 454.911958

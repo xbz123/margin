@@ -5,13 +5,12 @@ docs/margin/evidence/AG-41b/README.md
 docs/margin/evidence/AG-41b/checks/build-electron.log
 docs/margin/evidence/AG-41b/checks/provenance.log
 docs/margin/evidence/AG-41b/checks/retired.log
+docs/margin/evidence/AG-41b/checks/review-targeted.log
 docs/margin/evidence/AG-41b/checks/settings.log
 docs/margin/evidence/AG-41b/checks/targeted.log
 docs/margin/evidence/AG-41b/checks/tsc-electron.log
 docs/margin/evidence/AG-41b/checks/tsc-renderer.log
 docs/margin/evidence/AG-41b/checks/unit-tests-final.log
-docs/margin/evidence/AG-41b/checks/unit-tests-r2.log
-docs/margin/evidence/AG-41b/checks/unit-tests.log
 docs/margin/evidence/AG-41b/checks/vite-build.log
 docs/margin/provenance-config.json
 docs/margin/retired-rules.json

@@ -16,6 +16,7 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
   private finishing = false;
   private queue: Buffer[] = [];
   private queuedBytes = 0;
+  private overflowReported = false;
   private rate = 16000;
   private channels = 1;
   private remainder = Buffer.alloc(0);
@@ -50,6 +51,7 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
     this.retry = undefined;
     this.queue = [];
     this.queuedBytes = 0;
+    this.overflowReported = false;
     this.resetPcm();
     this.release();
   }
@@ -62,7 +64,7 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
     this.drain = { promise, resolve, reject };
     clearTimeout(this.deadline);
     this.deadline = setTimeout(() => {
-      this.report('STT finish acknowledgement timed out');
+      this.report('STT finish acknowledgement timed out', 'timeout');
       this.release(new Error('STT drain timed out'));
     }, 4500);
     this.flush();
@@ -73,15 +75,16 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
     // Reject before conversion/allocation, including a single oversized input block.
     const projected = Math.ceil((chunk.length + this.remainder.length) / (2 * this.channels) * 16000 / this.rate) * 2;
     if (chunk.length > QUEUE_LIMIT || projected + this.queuedBytes > QUEUE_LIMIT) {
-      this.report('STT audio buffer limit exceeded; audio chunk rejected');
+      this.reportOverflow();
       return;
     }
     const pcm = this.convert(chunk);
     if (pcm.length + this.queuedBytes > QUEUE_LIMIT) {
-      this.report('STT audio buffer limit exceeded; audio chunk rejected');
+      this.reportOverflow();
       return;
     }
     if (!pcm.length) return;
+    this.overflowReported = false;
     this.queue.push(pcm);
     this.queuedBytes += pcm.length;
     if (!this.socket && !this.retry) this.connect();
@@ -95,9 +98,10 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
   }
   protected acceptAudio(): void {
     this.ready = true;
+    this.overflowReported = false;
     clearTimeout(this.deadline);
     if (!this.drain) this.deadline = undefined;
-    else this.deadline = setTimeout(() => { this.report('STT finish acknowledgement timed out'); this.release(new Error('STT drain timed out')); }, 4500);
+    else this.deadline = setTimeout(() => { this.report('STT finish acknowledgement timed out', 'timeout'); this.release(new Error('STT drain timed out')); }, 4500);
     this.flush();
   }
   protected healthy(): void { this.attempts = 0; }
@@ -106,16 +110,27 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
     this.release();
     if (this.enabled && this.queuedBytes) this.connect();
   }
-  protected failed(permanent: boolean): void {
-    this.report(permanent ? 'STT authentication failed; check credentials and resource access' : 'STT connection or protocol failed');
+  protected failed(permanent: boolean, reason: 'authentication' | 'configuration' | 'empty-audio' | 'connection' = permanent ? 'authentication' : 'connection'): void {
+    const messages = {
+      authentication: 'STT authentication failed; check credentials and resource access',
+      configuration: 'STT configuration or protocol parameters are invalid',
+      'empty-audio': 'STT received empty audio; continue speaking to resume transcription',
+      connection: 'STT connection or protocol failed',
+    };
+    this.report(messages[reason], reason);
     const wasDraining = !!this.drain;
     this.release(new Error('STT drain interrupted'));
     if (permanent) this.stop(false);
-    else if (!wasDraining) this.schedule();
+    else if (!wasDraining && reason !== 'empty-audio') this.schedule();
   }
-  protected report(message: string): void {
+  private reportOverflow(): void {
+    if (this.overflowReported) return;
+    this.overflowReported = true;
+    this.report('STT audio buffer limit exceeded; audio chunk rejected');
+  }
+  protected report(message: string, code = 'connection'): void {
     // Provider response bodies and transport errors can echo credentials: never forward them.
-    this.emit('error', new Error(message));
+    this.emit('error', Object.assign(new Error(message), { code }));
   }
   private connect(): void {
     if (!this.enabled || this.socket) return;
@@ -140,7 +155,7 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
       });
       ws.on('error', () => { if (this.socket === ws) this.failed(false); });
       ws.on('close', () => { if (this.socket === ws) this.failed(false); });
-    } catch { this.failed(true); }
+    } catch { this.failed(true, 'configuration'); }
   }
   private flush(): void {
     if (!this.ready || this.finishing) return;

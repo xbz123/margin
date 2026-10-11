@@ -71,7 +71,12 @@ export class DoubaoStreamingSTT extends DomesticStreamingSTT {
   protected finish(): void { this.send(encodeDoubaoFrame(2, -this.sequence++, Buffer.alloc(0))); }
   protected received(data: Buffer): void {
     const response = decodeDoubaoResponse(data);
-    if (response.code) { this.failed([401, 403, 45000001, 45000002].includes(response.code)); return; }
+    if (response.code) {
+      if (response.code === 45000001) this.failed(true, 'configuration');
+      else if (response.code === 45000002) this.failed(false, 'empty-audio');
+      else this.failed(false);
+      return;
+    }
     this.healthy();
     const result = response.body.result;
     const utterances = Array.isArray(result?.utterances) && result.utterances.length

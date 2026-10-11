@@ -23,6 +23,24 @@ Notes:
 
 ### AG-41b five cloud STT providers (2026-10-11)
 
+Review repairs after `759a6484` are written against Claude's five reported issues,
+without reading or importing additional old Margin or upstream source. Overflow
+notifications are latched until accepted PCM, connection readiness or stop; the
+strict rejection policy is unchanged. Failure events carry locally assigned codes
+and the IPC maps only recognized codes to fixed UI strings. Doubao 45000001 is a
+permanent configuration failure, 45000002 ends an empty task without disabling
+the provider; only handshake 401/403 is classified as authentication in this
+adapter. Three button styles come from this branch's existing STT controls in
+SettingsOverlay, not a new component or an old upstream settings implementation.
+
+One additional G2 match is individually registered: `const expected = {` in
+`electron/services/__tests__/DomesticSttSettings.test.mjs`, an ordinary object
+declaration for fixed result expectations. The tests and expectation table were
+written here; this does not approve an upstream algorithm. Existing scan scope
+and all previous dispositions below are unchanged. Intermediate full-run logs
+`unit-tests.log` and `unit-tests-r2.log` were removed at the user's request; they
+remain recoverable from `759a6484`. The final log is replaced by the repair run.
+
 Written for this branch from HANDOFF 4.3 and the official protocol descriptions
 linked in `evidence/AG-41b/README.md`. No dependency was added or upgraded.
 This is not a verified clean-room claim. No post-June upstream implementation

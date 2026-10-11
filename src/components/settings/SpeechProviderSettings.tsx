@@ -34,7 +34,7 @@ export function SpeechProviderSettings({ provider }: { provider: DomesticSttProv
         setBusy(true);
         try {
             const result = await window.electronAPI.testDomesticStt(provider);
-            setMessage(result.success ? t('Connected') : t('STT connection failed. Check credentials and network.'));
+            setMessage(result.success ? t('Connected') : t(result.error ?? 'STT connection failed. Check credentials and network.'));
         } catch { setMessage(t('STT connection failed. Check credentials and network.')); }
         finally { setBusy(false); }
     };
@@ -53,9 +53,12 @@ export function SpeechProviderSettings({ provider }: { provider: DomesticSttProv
                     className="block w-full bg-bg-input rounded px-3 py-2" />
             </label>
             <div className="flex gap-3">
-                <button disabled={busy || !key.trim()} onClick={() => void save(false)}>{t('Save')}</button>
-                <button disabled={busy || !hasKey} onClick={() => void save(true)}>{t('Delete credentials')}</button>
-                <button disabled={busy || !hasKey} onClick={() => void test()}>{t('Test connection')}</button>
+                <button className="px-5 py-2.5 rounded-lg text-xs font-medium transition-colors bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary disabled:opacity-50"
+                    disabled={busy || !key.trim()} onClick={() => void save(false)}>{t('Save')}</button>
+                <button className="px-5 py-2.5 rounded-lg text-xs font-medium transition-colors bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary disabled:opacity-50"
+                    disabled={busy || !hasKey} onClick={() => void save(true)}>{t('Delete credentials')}</button>
+                <button className="text-xs bg-bg-input hover:bg-bg-elevated text-text-primary px-3 py-1.5 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50"
+                    disabled={busy || !hasKey} onClick={() => void test()}>{t('Test connection')}</button>
             </div>
             <p role="status">{message}</p>
         </div>

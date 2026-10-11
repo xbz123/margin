@@ -79,3 +79,65 @@ test('STT IPC only exposes presence, applies deletion and closes mock connection
   }
   assert.equal(applied, 4);
 });
+
+test('connection test separates construction, configuration, authentication, timeout and network failures without echoing secrets', async () => {
+  const handlers = new Map();
+  let mode = 'construct', stopped = 0;
+  class Stream extends EventEmitter {
+    constructor() { super(); if (mode === 'construct') throw Error('synthetic-secret'); }
+    start() { if (mode === 'configuration') this.emit('error', Object.assign(Error('synthetic-secret'), { code: mode })); }
+    write() {}
+    async finalize() {
+      if (mode === 'success') { this.emit('completed'); return; }
+      if (mode === 'authentication' || mode === 'empty-audio') this.emit('error', Object.assign(Error('synthetic-secret'), { code: mode }));
+      throw Object.assign(Error('synthetic-secret'), { code: mode === 'timeout' ? 'timeout' : 'untrusted-code' });
+    }
+    stop() { stopped++; }
+  }
+  const module = {};
+  const text = fs.readFileSync(new URL('../../ipc/sttHandlers.ts', import.meta.url), 'utf8');
+  new Function('require', 'exports', compile(text))(id => id.includes('CredentialsManager')
+    ? { CredentialsManager: { getInstance: () => ({ getDomesticStt: () => ({ key: 'synthetic-secret' }) }) } }
+    : { AliyunStreamingSTT: Stream, DoubaoStreamingSTT: Stream }, module);
+  module.registerDomesticSttHandlers((name, callback) => handlers.set(name, callback), async () => {});
+  const expected = {
+    construct: 'Invalid STT configuration.', configuration: 'Invalid STT configuration.',
+    authentication: 'STT authentication failed. Check credentials and resource access.',
+    timeout: 'STT connection test timed out.',
+    'empty-audio': 'STT connection test received empty audio.',
+    network: 'STT connection test failed. Check credentials and network.',
+  };
+  for (mode of Object.keys(expected)) {
+    const result = await handlers.get('test-domestic-stt')(null, 'doubao');
+    assert.equal(result.success, false);
+    assert.equal(result.error, expected[mode]);
+    assert.doesNotMatch(JSON.stringify(result), /synthetic-secret|untrusted-code/);
+  }
+  mode = 'success';
+  assert.equal((await handlers.get('test-domestic-stt')(null, 'doubao')).success, true);
+  assert.equal(stopped, 6);
+});
+
+test('main reports a permanent configuration error as failed, not as authentication or reconnecting', () => {
+  const source = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8');
+  const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
+  let listener;
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'stt.on' && node.arguments[0]?.text === 'error') {
+      listener = node.arguments[1].getText(ast);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(ast);
+  assert.ok(listener);
+  const statuses = [], provider = {};
+  const state = { isMeetingActive: true, meetingStt: { get: () => provider }, sendSttStatus: row => statuses.push(row) };
+  const onError = new Function('stt', 'speaker', 'sttProvider', 'console',
+    compile("let _consecutiveErrors = 0; let _lastState = 'awaiting-audio'; return " + listener))
+    .call(state, provider, 'user', 'doubao', { warn() {}, error() {} });
+  onError(Object.assign(Error('STT configuration or protocol parameters are invalid'), { code: 'configuration' }));
+  assert.equal(statuses[0].state, 'failed');
+  assert.doesNotMatch(statuses[0].error, /auth|credential/i);
+  onError(Object.assign(Error('STT connection or protocol failed'), { code: 'connection' }));
+  assert.equal(statuses[1].state, 'reconnecting');
+});

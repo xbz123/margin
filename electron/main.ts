@@ -833,7 +833,7 @@ export class AppState {
       const isQuotaError = err.message.toLowerCase().includes('transcription_quota_exceeded')
         || err.message.toLowerCase().includes('quota');
 
-      if (isAuthError) {
+      if (isAuthError || grpcCode === 'configuration') {
         _consecutiveErrors = 0;
         _lastState = 'failed';
         this.sendSttStatus( {

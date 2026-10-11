@@ -9,6 +9,16 @@ function providerId(value: unknown): Provider {
   return value;
 }
 
+function connectionFailure(failure: unknown): string {
+  switch ((failure as { code?: string } | undefined)?.code) {
+    case 'configuration': return 'Invalid STT configuration.';
+    case 'authentication': return 'STT authentication failed. Check credentials and resource access.';
+    case 'timeout': return 'STT connection test timed out.';
+    case 'empty-audio': return 'STT connection test received empty audio.';
+    default: return 'STT connection test failed. Check credentials and network.';
+  }
+}
+
 export function registerDomesticSttHandlers(
   handle: (channel: string, listener: (event: unknown, ...args: any[]) => any) => void,
   apply: () => Promise<void>,
@@ -34,12 +44,14 @@ export function registerDomesticSttHandlers(
       let success = false;
       let error = '';
       stream.on('completed', () => { success = true; });
-      stream.on('error', () => { error = 'STT connection test failed. Check credentials and network.'; });
+      stream.on('error', failure => { error = connectionFailure(failure); });
       try {
         stream.start();
         stream.write(Buffer.alloc(16000));
         await stream.finalize();
         return { success: success && !error, error: success && !error ? undefined : error || 'STT connection test timed out.' };
+      } catch (failure) {
+        return { success: false, error: error || connectionFailure(failure) };
       } finally { stream.stop(false); }
     } catch { return { success: false, error: 'Invalid STT configuration.' }; }
   });

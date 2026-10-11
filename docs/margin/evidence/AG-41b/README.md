@@ -1,6 +1,8 @@
 # AG-41b local implementation evidence
 
 Starting point: `1ca4be0b`, branch `codex/margin-agpl-migration`, 2026-10-11.
+Initial implementation: `759a6484`. The retained final full-test log is the
+2026-10-11 Claude-review repair run on top of that commit, not the initial run.
 Implementation and local checks only. Claude owns full gates, independent review
 and pushing. No agent delegation, CI, installation, real credentials, live STT,
 microphone, screen recording or formal application identity was used.
@@ -66,18 +68,47 @@ files are removed before commit. Node tests all use the isolation runner.
 | `npx --no-install vite build` | 0 | checks/vite-build.log |
 | `npx --no-install tsc -p electron/tsconfig.json --noEmit` | 0 | checks/tsc-electron.log |
 | `npx --no-install tsc --noEmit -p tsconfig.json` | 0 | checks/tsc-renderer.log |
-| `node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000` with all six package.json test directory globs | 1 | checks/unit-tests-final.log: 950 total, 948 pass, 1 fail (known sandbox iconutil), 1 existing skip |
-| Same runner, credentialTransactions / settingsFoundation / DomesticSttSettings | 0 | checks/settings.log |
-| Same runner, OpenAIRealtimeGAProtocol / DomesticStreamingLifecycle / MeetingStartAudioGate / MicRecoveryEmitsTerminalIpc (early targeted run) | 0 | checks/targeted.log: 42 pass, no skips |
+| `node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000` with all six package.json test directory globs | 1 | checks/unit-tests-final.log: 955 total, 953 pass, 1 fail (known sandbox iconutil), 1 existing skip |
+| Same runner, DomesticStreamingLifecycle / DomesticSttSettings / settingsFoundation (review repairs) | 0 | checks/review-targeted.log: 20 pass, no skips |
+| Same runner, credentialTransactions / settingsFoundation / DomesticSttSettings (historical initial implementation) | 0 | checks/settings.log, retained from 759a6484 |
+| Same runner, OpenAIRealtimeGAProtocol / DomesticStreamingLifecycle / MeetingStartAudioGate / MicRecoveryEmitsTerminalIpc (historical initial implementation) | 0 | checks/targeted.log, retained from 759a6484: 42 pass, no skips |
 | `node scripts/margin/retired-check.mjs --all` | 0 | checks/retired.log |
 | `node scripts/margin/provenance-check.mjs --max-hits 0` | 0 | checks/provenance.log |
 | `git diff --check` | 0 | checked before staging and commit |
 
-Earlier full-run failures are preserved in unit-tests.log and unit-tests-r2.log.
-They were fixture dependency/ACK/registration inventory drift and the new setter
-missing from the atomic transaction test table; no assertions were weakened to
-resolve them. The iconutil failure remains explicit and is for Claude to verify
-outside the sandbox. No additional test skip was added (four removed).
+At the user's request, intermediate full-run logs unit-tests.log and
+unit-tests-r2.log are deleted (recoverable from 759a6484). Only the final repair
+full run is retained. The iconutil failure remains explicit and is for Claude to
+verify outside the sandbox. No additional test skip was added (four removed in
+the initial implementation).
+
+## Claude review repairs after 759a6484
+
+1. Continuous rejected PCM reports one overflow error, rearmed by accepted PCM,
+   connection readiness or queue reset on stop. The 160 KiB rejection limit and
+   discarded audio policy are unchanged. Tests cover both providers, 20 repeated
+   rejects, recovery, another overflow and rearming on accepted audio.
+2. Runtime connection-test rejections are caught inside the connection phase.
+   Only configuration/construction failures return the configuration message.
+   Locally assigned error codes select fixed authentication, timeout, empty-audio
+   or connection-failure text; arbitrary error bodies and unknown codes are not
+   echoed. The settings card displays the translated fixed IPC result.
+3. Doubao 45000001 is configuration/protocol failure, 45000002 is empty audio.
+   Neither is classified as authentication. The former stops the provider and
+   main reports a failed configuration rather than claiming it is reconnecting.
+   The latter closes only this task, rejects its drain and waits for new audio;
+   it neither permanently disables the instance nor runs an empty retry loop.
+   Authentication is classified only on HTTP upgrade 401/403 in this adapter.
+4. Save/delete reuse the existing STT save-button classes; test uses the existing
+   STT test-button classes. Background, padding, rounded borders and disabled
+   styling are asserted in the rendered HTML. No component or settings reorganization.
+5. Evidence cleanup above; README, PLAN, provenance and retained file inventory
+   are synchronized. The initial red loop had 19 tests, 5 failures matching the
+   review; the final targeted loop has 20 passing tests including main's terminal
+   configuration status. No debug instrumentation or new dependencies were added.
+
+The sole new G2 match, `const expected = {`, is a generic test object declaration
+registered individually with its reason; no code was cosmetically changed to evade G2.
 
 ## Boundaries
 

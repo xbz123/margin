@@ -32,6 +32,27 @@ function load(name) {
 }
 
 for (const name of ['Aliyun', 'Doubao']) {
+  test(name + ': overflow reports once until audio is accepted or the connection recovers', t => {
+    const { [name + 'StreamingSTT']: Provider } = load(name + 'StreamingSTT');
+    const stt = new Provider('synthetic-secret', { workspaceId: 'workspace' });
+    t.after(() => stt.stop(false));
+    const errors = [];
+    stt.on('error', error => errors.push(error));
+    stt.start();
+    stt.write(Buffer.alloc(160 * 1024));
+    for (let i = 0; i < 20; i++) stt.write(Buffer.alloc(1024));
+    assert.equal(errors.length, 1);
+    assert.equal(stt.queuedBytes, 160 * 1024);
+    const ws = Socket.instances.at(-1);
+    ws.open();
+    if (name === 'Aliyun') ws.emit('message', Buffer.from(JSON.stringify({ header: { event: 'task-started' } })));
+    assert.equal(stt.queuedBytes, 0);
+    for (let i = 0; i < 20; i++) stt.write(Buffer.alloc(160 * 1024 + 2));
+    assert.equal(errors.length, 2);
+    stt.write(Buffer.alloc(2));
+    stt.write(Buffer.alloc(160 * 1024 + 2));
+    assert.equal(errors.length, 3, 'accepted audio rearms the overflow notification');
+  });
   test(name + ': retry budget, drain timeout and permanent authentication failure', async t => {
     t.mock.timers.enable({ apis: ['setTimeout'] });
     Socket.instances = [];
@@ -142,6 +163,41 @@ test('Doubao decoder rejects truncated and invalid compression frames', () => {
   const { decodeDoubaoResponse } = load('DoubaoStreamingSTT');
   assert.throws(() => decodeDoubaoResponse(Buffer.from([0x11, 0x91, 0x11, 0, 0, 0, 0, 1])), /Invalid/);
   assert.throws(() => decodeDoubaoResponse(Buffer.from([0x11, 0x92, 0x12, 0, 0, 0, 0, 0])), /Invalid/);
+});
+
+test('Doubao parameter and empty-audio errors are not authentication failures; empty finalize can resume', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const { DoubaoStreamingSTT } = load('DoubaoStreamingSTT');
+  for (const code of [45000001, 45000002]) {
+    const stt = new DoubaoStreamingSTT('synthetic-secret');
+    t.after(() => stt.stop(false));
+    const errors = [];
+    stt.on('error', error => errors.push(error));
+    stt.start();
+    const ws = Socket.instances.at(-1);
+    ws.open();
+    const drain = stt.finalize();
+    const payload = Buffer.from(JSON.stringify({ message: 'synthetic-secret' }));
+    const frame = Buffer.alloc(12 + payload.length);
+    frame.set([0x11, 0xf0, 0x10, 0]);
+    frame.writeUInt32BE(code, 4);
+    frame.writeUInt32BE(payload.length, 8);
+    payload.copy(frame, 12);
+    ws.emit('message', frame);
+    await assert.rejects(drain);
+    assert.equal(errors[0].code, code === 45000001 ? 'configuration' : 'empty-audio');
+    assert.doesNotMatch(errors[0].message, /auth|credential|synthetic-secret/i);
+    const before = Socket.instances.length;
+    t.mock.timers.tick(30000);
+    assert.equal(Socket.instances.length, before, 'empty audio must not create a retry loop');
+    stt.write(Buffer.alloc(320));
+    assert.equal(Socket.instances.length, before + (code === 45000002 ? 1 : 0));
+    if (code === 45000002) {
+      const resumed = Socket.instances.at(-1);
+      resumed.open();
+      assert.equal(resumed.sent[1][1], 0x21, 'same provider sends audio again after empty finalize');
+    }
+  }
 });
 
 test('Doubao repeated multi-utterance results emit each final only once', t => {

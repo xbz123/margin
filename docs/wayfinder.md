@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-41b 待 Claude 完整门禁和复查** — 五家 STT、启动门禁、两家凭据设置和四个 Realtime 用例已实现，本地检查见 `margin/evidence/AG-41b/`。全量 950 项：948 通过、1 个已知 iconutil 沙箱例外、1 个既有跳过；仅本地提交、不推送、未实机验证。Claude 复查通过后才交付后续 AG-42；阶段出口 CI 须用户批准。
+- **AG-41b 待 Claude 完整门禁和复验** — 759a6484 的五条复查意见已修复，本地检查见 `margin/evidence/AG-41b/`。全量 955 项：953 通过、1 个已知 iconutil 沙箱例外、1 个既有跳过；仅本地另笔提交、不推送、未实机验证。Claude 复验通过后才交付后续 AG-42；阶段出口 CI 须用户批准。
 
 ## Waiting
 
