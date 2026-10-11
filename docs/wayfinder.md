@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **阶段 4（AG-40 起）**（等用户允许）— 阶段 3 已签收；按 PLAN §6"阶段 3–6"表开始。
+- **阶段 4（AG-40 起）**（等用户允许）— 阶段 3 已签收；STT 定为旧 Margin 的五家，旧 Margin 文件的复用依据见 PLAN §6"阶段 4 复用清单（S35）"。
 
 ## Waiting
 
@@ -18,6 +18,7 @@
 
 ## Done (rolling)
 
+- S35（2026-10-11）：AG-41 的 STT 定为 OpenAI、Soniox、Groq、阿里云百炼、豆包；阶段 4 复用清单写入 PLAN §6（`docs/margin/evidence/S35-stage4-reuse/`）。
 - 阶段 3 签收（2026-10-11）：W4 本机核对通过（源码包 587 个文件一致、与 `git archive` 逐字节相同；`asar-smoke` 10/10），依据 W3 出口 CI 38123550800（PLAN §8"阶段 3 签收"，`docs/margin/evidence/W4-local-verify/`）。
 - W3 出口 CI 38123550800 通过（2026-10-11）：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、原生 `0f92a0b1`、包内许可含 stdarch、源码包 `cleanTree`（`docs/margin/evidence/CI-38123550800/`）。
 - W3 重跑 38120147426 已记录（2026-10-11）：失败，原因是测试没有关闭首次启动的权限卡片，已修复；原生 `0f92a0b1`、两个身份 12/12 和启动 7/7、源码包都通过（`docs/margin/evidence/CI-38120147426/`）。

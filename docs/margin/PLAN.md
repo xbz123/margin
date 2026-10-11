@@ -59,6 +59,7 @@
 | S32 | **引用其他项目的许可要求放宽**：今后的代码引用或借鉴其他项目时，只需确认被引用的代码使用开源协议，记下项目和协议即可，不再逐项做许可兼容性分析。不放宽的部分：不引入 Natively 上游 6 月之后的代码（来源边界，不是许可分析）；已有的自动检查（来源扫描、许可清单与锁文件一致）在触发时仍须通过 | 用户，2026-10-11，"接下来的代码在引用其他项目的时候不需要过分在意许可证的问题，只需要知道引用的代码是使用开源协议即可" |
 | S33 | 按第一性原理和奥卡姆剃刀精简范围（Claude 建议，用户逐条答复）：<br>1. **删除 AG-43**：不做自动回答和双语 Judge，回答只由用户手动触发（AG-42）。<br>2. **删除 Local Context 预热**：AG-50 只做 Local Context 全文输入，旧 Margin 计划中的预热规则全部不实施。<br>3. **AG-52 缩减**：会议记录只保留本地转写的列表、详情和复制；会前设置、自动摘要、标题生成、启动恢复、会议内聊天删除，包括已有实现、IPC、界面和专属测试，以及只为这些功能存在的数据范围（删除前核对调用方）。<br>4. **Windows 推迟**：阶段 7 的 AG-71–73 暂缓，先只发布 macOS，AG-74 改为只发 macOS；`windows-compile.yml` 改为只手动触发，不再是每票门禁。修改 S30 和 S31 第 2 条。<br>5. **sharp 替换先做实验**：结果见 §4 X6；是否删除 sharp 和 libvips 由用户决定。<br>未答复的建议保持原计划：AG-61 的伪装、AG-60 中英双语、四协议和 Codex、数据范围的细分开关 | 用户，2026-10-11，回复"这两个可以删除""接受建议""这部分同意""这部分进行测试实验，然后说明效果" |
 | S34 | W3 重跑前先精简（Claude 建议，用户同意）：<br>1. **删除 sharp 和 libvips**（X6 结论）：截图改用 Electron 的 nativeImage 编码和拼接；sharp 只留作开发依赖（图标生成和测试），不进安装包；删除 libvips 重编、替换检查、源码产物和许可声明。<br>2. **AG-52 删减提前到 W3 重跑之前**：W3 失败的启动恢复测试随之删除；历史列表保留，挡住点击的覆盖层仍要查清。<br>3. **由 Claude 实现**这两项，每步跑本地 gates。<br>4. **截图按原图分辨率发送**：不再缩到 1536 px；Claude 选择仍编码为 JPEG（质量 80），因为 Retina PNG 可能超过部分服务商的单图大小上限。<br>5. **不支持 WebP 和 GIF**：截图只有 PNG 或 JPG，图片校验收窄到这两种 | 用户，2026-10-11，回复"同意这两点"，选择"Claude 直接实现"，"实际使用的时候按照原图分辨率进行发送"，"应该是不需要解析webp和gif格式的" |
+| S35 | 阶段 4 的 STT 范围与复用依据（Claude 建议，用户同意）：<br>1. **AG-41 的云端 STT 按旧 Margin 定为五家**：OpenAI、Soniox、Groq（分段转写）、阿里云百炼、豆包。基线的 Google、Deepgram、ElevenLabs 退役，删除实现、设置入口、依赖和专属测试；Google 退役后 S16 不再适用。<br>2. **阶段 4 复用旧 Margin 代码以 §6"阶段 4 复用清单（S35）"为依据**：清单只说明哪些文件可以考虑引入，每个文件引入前仍按 PROVENANCE 逐行审查并登记，来源边界和 G2 不变 | 用户，2026-10-11，"按照旧的margin的这五家设定来""可以把这份清单写进 PLAN，作为阶段 4 的复用依据" |
 
 **S21 细则**：
 
@@ -767,7 +768,7 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | AG-33 | 截图和文字提问、笔试模式、流式显示与取消。默认回答提示词的去留由用户直接决定，不做真实模型对比，也不用真实模型复测切换延迟（S27）；`ImagePathValidation.test.mjs` 改为调用 handler 的行为测试 | AG-31、AG-32 |
 | AG-34 | Codex CLI 只读凭据来源（替换基线里的子进程生成方式）；同时解决 CLI 自身重试不受数据范围约束的问题（见 AG-24） | AG-30 |
 | AG-40 | 双路音频与会话生命周期（开始、停止、尾段排空） | 阶段 2 |
-| AG-41 | 收窄云端 STT 的选择范围；未配置时阻止开始。按核实后的 Realtime 接口改写并恢复 AG-17 跳过的 4 个 `OpenAIRealtimeGAProtocol` 用例（用例自己清理保活定时器） | AG-40 |
+| AG-41 | 云端 STT 收窄为五家（S35）：OpenAI、Soniox、Groq、阿里云百炼、豆包，退役 Google、Deepgram、ElevenLabs；未配置时阻止开始。按核实后的 Realtime 接口改写并恢复 AG-17 跳过的 4 个 `OpenAIRealtimeGAProtocol` 用例（用例自己清理保活定时器） | AG-40 |
 | AG-42 | 手动回答 | AG-33、AG-41 |
 | AG-43 | **已删除（S33）**：原为自动回答与 Gemini Flash-Lite 双语 Judge | — |
 | AG-50 | Local Context 全文（预热已删除，S33） | AG-33 |
@@ -776,6 +777,49 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | AG-60 | 设置页重组、中英双语界面 | AG-33、AG-52 |
 | AG-61 | 窗口保护、快捷键、鼠标穿透、伪装（实机部分需 D2 授权）。恢复 AG-17 跳过的 `ActivationPolicyOrdering` 用例，或按定下的激活策略改写后启用 | 阶段 2 |
 | AG-62 | 首次启动引导；README 和 PRIVACY 最终版；Mac 包。分发前必须先放开 `electron/margin/appIdentity.ts` 中"正式身份只能在 GitHub Actions 中运行"的保护（S15），否则正式包在用户机器上启动即退出；放开方式和本机何时改用正式身份由用户决定 | 全部 |
+
+### 阶段 4 复用清单（S35，Claude，2026-10-11）
+
+只读检查旧 Margin `b8ade3f7` 中与 AG-40–42 相关的 204 个文件，证据见 `evidence/S35-stage4-reuse/`。
+
+- **方法**：
+  - 旧分支的 `fcfbb02a` 是导入的快照，与基线没有共同历史，含上游 6 月之后的内容；其后 132 个提交（没有合并）是 Margin 自己写的。
+  - 每行用 `git blame -w -M -C -C fcfbb02a..b8ade3f7` 找到最初写入的提交，挪动或拆分的代码也能追到原处。
+  - 快照中且基线同一文件里没有的行一律按上游内容处理（其中可能有 6 月前的上游代码，但无法证明）。
+  - Margin 写的行若与受限上游字面相同（来源扫描 `--target b8ade3f7`），须改写或排除。
+- **引入时的要求**：每个文件引入前逐行审查，在 PROVENANCE 登记旧 Margin 提交、路径和所做检查，并通过 G2。本清单不代替这一审查。
+
+**一、核对后可整文件引入**
+
+| 文件 | Ticket | Margin 行 / 有效行 | 受限命中 | 说明 |
+| --- | --- | --- | --- | --- |
+| `src/config/stt.constants.ts` | AG-41 | 66/66 | 1（通用：`terms: string[];`） | 五家列表、设置校验、豆包热词；无依赖 |
+| `electron/ipc/sttHandlers.ts` | AG-41 | 44/45 | 0 | 依赖的 `validateSttBaseUrl` 本分支没有，需补写 |
+| `src/components/settings/SpeechProviderSettings.tsx` | AG-41 | 70/70 | 6（import、`useState` 等通用写法） | 依赖 `useT`，按本分支 i18n 情况调整 |
+| `electron/audio/MeetingSttSession.ts` | AG-40 | 188/190 | 17（多为字段声明和通用写法，须逐行确认） | 双路 STT 的创建、重配和有界尾段排空 |
+| 测试 `MeetingSttSession`、`SttHandlers`、`SttSettingsContract`、`SttApiKeyRedaction`、`DoubaoProtocol` | AG-40/41 | 基本为 Margin 写的 | 0–5 | 随对应文件引入 |
+
+**二、改写命中行后引入**
+
+| 文件 | Margin 行 / 有效行 | 问题 |
+| --- | --- | --- |
+| `electron/audio/AliyunStreamingSTT.ts` | 330/355 | 18 处命中（缓冲上限、裁剪等与上游后期 STT 类字面相同），另 25 行来自快照 |
+| `electron/audio/DoubaoStreamingSTT.ts` | 425/445 | 22 处同类命中，另 20 行来自快照；依赖 Aliyun 文件中的重采样 |
+
+这两个类可能以上游后期的 STT 类为模板。PROVENANCE 不允许把后期上游当模板，引入前要判断整体结构，不只是改写命中行。
+
+**三、只取 Margin 改动的片段（文件主体是基线）**
+
+- `electron/audio/RestSTT.ts`（Groq 分段转写）：Margin 改了 154 行，没有混入快照中的上游行；9 处与上游后期版本相同（如 `this.config = this.buildConfig();`），须逐处确认。
+- `electron/audio/OpenAIStreamingSTT.ts`：Margin 改了 224 行；`wsSafeTeardown` 和 F-201 相关部分来自上游，去掉后取其余改动。
+- `electron/audio/AudioDevices.ts`：Margin 改了 42 行；依赖的 `audioDeviceSelection.mjs` 是上游内容，需自写过滤函数。
+- `native-module/src/microphone.rs`：Margin 改了 18 行，2 处命中为通用写法。
+
+**四、不能复用，按需求重写**
+
+- AG-40：`MeetingAudioPipeline.ts`（Margin 的 1409 行中 459 行命中，另 384 行来自快照）、`meetingLifecycleQueue.ts`（102 行来自快照）、`AudioSettingsTestSession.ts`（58 行命中）、`TranscriptDisplayThrottle.ts`、`screenCapturePermissions.ts`、`systemAudioHealthClassifier`、`wsSafeTeardown.ts`、`speechEdge.ts`、`audioDeviceSelection`，原生模块的 `stop_signal`、`channel_state`、`app_chord`、`process_name`。
+- AG-42 手动回答：`answerHandlers.ts`（Margin 的 452 行中 202 行命中）、`answerActionHandlers.ts`（193 行来自快照）、`interviewSessionHandlers.ts`（101 行中 47 行命中）。没有可直接引入的代码。
+- 其他：`SpeechTranscriptionSettings.tsx`（296 行来自快照）、`SonioxStreamingSTT.ts` 上的 Margin 改动（建在上游后期版本之上）、`SessionTracker`、`IntelligenceManager`、`IntelligenceEngine` 上的 Margin 改动（与上游内容混在一起）。
 
 ### 阶段 7：Windows 与双平台发布（概要，S30）
 
@@ -1678,7 +1722,7 @@ W4 本机核对 W3 出口 CI `38123550800`（`d2bd8146`）的下载产物，证�
 - 截图截取环节是否为原生像素密度，需要真实屏幕确认（§9"S34 删除 sharp"）。
 - Windows 只证明能编译；功能、打包和发布按 S33 推迟到阶段 7（R3-3 也在阶段 7）。
 
-**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；AG-52 删减已完成（§9"AG-52 删减"，本地 gates 16/16）。W3 重跑 38120147426（`180a87c0`）只有 storage 失败：挡住点击的是首次启动的权限卡片，测试未关闭它，本机已复现并修复（§9"W3 出口 CI 38120147426"）。**W3 出口 CI 38123550800（`d2bd8146`）通过**：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、原生 `0f92a0b1`、包内许可含 stdarch、源码包 `cleanTree`（§9"W3 出口 CI 38123550800"）。W4 本机核对通过，**阶段 3 已签收**（2026-10-11，§8"阶段 3 签收"）。下一步：阶段 4（AG-40 起）等用户允许后开始。S8–S34 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；AG-52 删减已完成（§9"AG-52 删减"，本地 gates 16/16）。W3 重跑 38120147426（`180a87c0`）只有 storage 失败：挡住点击的是首次启动的权限卡片，测试未关闭它，本机已复现并修复（§9"W3 出口 CI 38120147426"）。**W3 出口 CI 38123550800（`d2bd8146`）通过**：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、原生 `0f92a0b1`、包内许可含 stdarch、源码包 `cleanTree`（§9"W3 出口 CI 38123550800"）。W4 本机核对通过，**阶段 3 已签收**（2026-10-11，§8"阶段 3 签收"）。下一步：阶段 4（AG-40 起）等用户允许后开始；STT 范围和复用依据见 S35 与 §6"阶段 4 复用清单（S35）"。S8–S35 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
