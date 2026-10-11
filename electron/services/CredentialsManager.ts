@@ -1,5 +1,5 @@
 /**
- * CredentialsManager - Secure storage for API keys and service account paths
+ * CredentialsManager - Secure storage for API keys
  * Uses Electron's safeStorage API for encryption at rest
  */
 

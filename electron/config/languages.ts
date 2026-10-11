@@ -2,7 +2,7 @@
 export type LanguageOption = {
     label: string;
     code: string; // Internal key (e.g. 'russian')
-    bcp47: string; // For Google, Azure (e.g. 'ru-RU')
+    bcp47: string; // Standard BCP-47 tag (e.g. 'ru-RU')
     iso639: string; // For OpenAI, Groq (e.g. 'ru')
     group: string; // For UI grouping
     alternates?: string[];

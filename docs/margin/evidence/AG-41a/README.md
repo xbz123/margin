@@ -95,7 +95,9 @@
 
 所有检查命令均在独立隔离守卫下执行通过，日志保存在 `docs/margin/evidence/AG-41a/checks/`：
 1. `npm run build:electron`: 退出码 0（日志: `build-electron.txt`）
-2. `npx tsc --noEmit -p tsconfig.json`: 退出码 0，无类型报错（日志: `tsc-renderer.txt`）
-3. `npm test`: 退出码 0，942 个用例全部执行通过（937 pass, 0 fail, 5 skipped）（日志: `npm-test.txt`）
-4. `node scripts/margin/retired-check.mjs --all`: 退出码 0，285 条退役规则 0 failing（日志: `retired-check.txt`）
-5. `node scripts/margin/provenance-check.mjs`: 在清理后无任何非白名单命中的新增行。
+2. `npx tsc -p electron/tsconfig.json --noEmit`: 退出码 0，主进程 0 errors（日志: `tsc-electron.txt`）
+3. `npx tsc --noEmit -p tsconfig.json`: 退出码 0，渲染端 0 errors（日志: `tsc-renderer.txt`）
+4. `npm test`: 退出码 0，942 个用例全部执行通过（937 pass, 0 fail, 5 skipped）（日志: `npm-test.txt`）
+5. `node scripts/margin/isolation/run-node.mjs --allow-exec Electron:esbuild --test --test-timeout=120000 tests/margin/outbound-renderer.test.mjs`: 退出码 0，6/6 测试全部通过（日志: `outbound-renderer.txt`）
+6. `node scripts/margin/retired-check.mjs --all`: 退出码 0，285 条退役规则 0 failing（日志: `retired-check.txt`）
+7. `node scripts/margin/provenance-check.mjs --target HEAD`: 退出码 0，0 hits。

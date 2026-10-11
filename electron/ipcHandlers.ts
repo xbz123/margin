@@ -17,7 +17,9 @@ import { SkillsManager } from './services/SkillsManager';
 
 import { AI_RESPONSE_LANGUAGES, RECOGNITION_LANGUAGES } from './config/languages';
 import { CHAT_MODE_PROMPT } from './llm/prompts';
+import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { outboundAxios as axios, openAiSttEndpoint } from './services/outbound';
+import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 
