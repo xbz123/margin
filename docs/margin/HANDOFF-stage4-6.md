@@ -4,7 +4,7 @@ Claude 整理，2026-10-11，依据用户指示"可以把这些整理好，然�
 
 ## 1. 范围和起点
 
-- **执行人**：Codex Astra。按 S36，阶段 4–6 的实现由 Astra 完成。Claude 只读复查，每张 ticket 完成后和每个阶段出口各一次，只报告、不改代码。用户负责签收阶段出口。
+- **执行人**：AG-60a 由 Codex Astra 完成（S36）。**按 S37，AG-40 起改由 AGY（`gemini-3.8-flash-medium`）执行**：Claude 每次派发一张 ticket，AGY 实现、测试、跑 gates 并在本地提交，**不推送**；Claude 复查通过后推送两个远端。下文写"Astra"的地方，从 AG-40 起都指 AGY。Claude 在每张 ticket 完成后和每个阶段出口各复查一次。用户负责签收阶段出口。
 - **范围**：剩余 9 张 ticket，AG-60a、AG-40、AG-41、AG-42、AG-50、AG-51、AG-60、AG-61、AG-62。
   - 已完成或已删除的不做：AG-43 已按 S33 删除；AG-52 已按 S34 提前完成。
   - 阶段 7（Windows 和发布）不在本次范围。

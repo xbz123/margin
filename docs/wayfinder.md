@@ -4,9 +4,7 @@
 
 ## Next actions
 
-- **AG-60a 等待只读复查** — 实现 `e05ad25e`、记录 `4a782acc` 已按用户批准推送两个远端并核对，本地 gates 单次 16/16；证据 `docs/margin/evidence/AG-60a/`，记录 PLAN §8。Claude 复查完成后才开始 AG-40；阶段出口 CI 仍须用户批准。
-
-- **阶段 4–6 交给 Astra 执行**（S36）— 交接文档 `docs/margin/HANDOFF-stage4-6.md`：顺序 AG-60a → AG-40 → AG-41 → AG-42 →（阶段 4 出口）→ AG-50 → AG-51 →（阶段 5 出口）→ AG-60 → AG-61 → AG-62 →（阶段 6 出口）；每票 Claude 只读复查，出口 CI 须用户批准。复用依据见 PLAN §6"旧 Margin 复用清单（S35）"。
+- **阶段 4 由 AGY 执行**（S37）— AG-60a 已完成并通过 Claude 复查（PLAN §9"AG-60a 复查"）。AG-40 → AG-41 → AG-42 由 AGY（`gemini-3.8-flash-medium`）逐票执行，Claude 派发、复查、推送；完成后做阶段 4 验收，出口 CI 须用户批准。交接文档 `docs/margin/HANDOFF-stage4-6.md`，复用依据见 PLAN §6"旧 Margin 复用清单（S35）"。
 
 ## Waiting
 
@@ -20,6 +18,7 @@
 
 ## Done (rolling)
 
+- AG-60a 共享翻译和设置组件（2026-10-11）：Astra 实现 `e05ad25e`，Claude 复查通过（PLAN §9"AG-60a 复查"）；AG-40 起改由 AGY 执行（S37）。
 - 阶段 4–6 执行交接（2026-10-11，S36）：`docs/margin/HANDOFF-stage4-6.md`，交给 Astra 执行。
 - S35 复用清单按 Astra 审阅修订（2026-10-11）：候选与已审分开，快照行和近似快照行逐行列出，资产和未扫描扩展名单列，依赖按 `0769715e` 分级并求闭包，新增 AG-60a；重跑结果逐字节可复现，`rule_probes.py` 8/8（PLAN §9"S35 复用清单审阅"）。
 - S35（2026-10-11）：AG-41 的 STT 定为 OpenAI、Soniox、Groq、阿里云百炼、豆包；旧 Margin 复用清单（阶段 4–7，1655 个文件）写入 PLAN §6（`docs/margin/evidence/S35-stage4-reuse/`）。
