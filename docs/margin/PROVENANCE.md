@@ -23,6 +23,15 @@ Notes:
 
 ### AG-41b five cloud STT providers (2026-10-11)
 
+Full-gate follow-up after `520dc16e`: the three existing domestic STT bridge
+signatures are declared directly in both ElectronAPI interfaces, retaining the
+existing checker rather than relaxing it; the now-unused aggregate interface is
+removed. The existing isolated storage harness adds an unconfigured-start
+assertion followed by synthetic OpenAI STT credentials and its own loopback REST
+endpoint via IPC. Its request assertions are strengthened, not removed. These
+changes use only this branch's code and the reported gate behavior; no old Margin
+or upstream source is imported. G2 reports no additional exact matches.
+
 Review repairs after `759a6484` are written against Claude's five reported issues,
 without reading or importing additional old Margin or upstream source. Overflow
 notifications are latched until accepted PCM, connection readiness or stop; the

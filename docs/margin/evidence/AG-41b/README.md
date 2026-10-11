@@ -1,8 +1,9 @@
 # AG-41b local implementation evidence
 
 Starting point: `1ca4be0b`, branch `codex/margin-agpl-migration`, 2026-10-11.
-Initial implementation: `759a6484`. The retained final full-test log is the
-2026-10-11 Claude-review repair run on top of that commit, not the initial run.
+Initial implementation: `759a6484`; first review repair: `520dc16e`. The retained
+final full-test log is the 2026-10-11 local gate-fix run on top of `520dc16e`, not
+the initial run or Claude's Electron gates.
 Implementation and local checks only. Claude owns full gates, independent review
 and pushing. No agent delegation, CI, installation, real credentials, live STT,
 microphone, screen recording or formal application identity was used.
@@ -68,8 +69,10 @@ files are removed before commit. Node tests all use the isolation runner.
 | `npx --no-install vite build` | 0 | checks/vite-build.log |
 | `npx --no-install tsc -p electron/tsconfig.json --noEmit` | 0 | checks/tsc-electron.log |
 | `npx --no-install tsc --noEmit -p tsconfig.json` | 0 | checks/tsc-renderer.log |
+| `node scripts/margin/preload-contract-check.mjs` | 0 | checks/preload-contract.log: declared 223, provided 231, missing 0 |
+| `node --check tests/margin/meeting-storage.test.mjs` | 0 | checks/storage-syntax.log; syntax only, Electron execution deferred to Claude |
 | `node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000` with all six package.json test directory globs | 1 | checks/unit-tests-final.log: 955 total, 953 pass, 1 fail (known sandbox iconutil), 1 existing skip |
-| Same runner, DomesticStreamingLifecycle / DomesticSttSettings / settingsFoundation (review repairs) | 0 | checks/review-targeted.log: 20 pass, no skips |
+| Same runner, DomesticStreamingLifecycle / DomesticSttSettings / settingsFoundation (historical first review repair) | 0 | checks/review-targeted.log, retained from 520dc16e: 20 pass, no skips |
 | Same runner, credentialTransactions / settingsFoundation / DomesticSttSettings (historical initial implementation) | 0 | checks/settings.log, retained from 759a6484 |
 | Same runner, OpenAIRealtimeGAProtocol / DomesticStreamingLifecycle / MeetingStartAudioGate / MicRecoveryEmitsTerminalIpc (historical initial implementation) | 0 | checks/targeted.log, retained from 759a6484: 42 pass, no skips |
 | `node scripts/margin/retired-check.mjs --all` | 0 | checks/retired.log |
@@ -111,6 +114,34 @@ The sole new G2 match, `const expected = {`, is a generic test object declaratio
 registered individually with its reason; no code was cosmetically changed to evade G2.
 
 ## Boundaries
+
+### Follow-up: two full-gate failures on 520dc16e
+
+Claude ran full gates outside the sandbox: 14/16 passed. `gates/preload-contract.log`
+reports that `interface ElectronAPI` could not be found, because `extends` did not
+match the checker's direct-member contract. `gates/storage.log` reports both
+storage cases rejected by the intended unconfigured-STT preflight. Those gate
+artifacts are Claude's existing files; this repair does not modify or stage them.
+
+- Both ElectronAPI declarations now list getDomesticStt, saveDomesticStt and
+  testDomesticStt directly, with explicit parameter/return types. Provider/settings
+  types remain shared; the unused DomesticSttAPI interface is removed. The checker
+  is unchanged. Its local reproduction changed from exit 1 to exit 0.
+- Storage's common setup first asserts provider `none`, rejected start with the
+  unconfigured message, and `getMeetingActive() === false`. Only then does it save
+  an explicitly fake OpenAI STT key and the loopback mock's custom REST base via
+  IPC and select OpenAI STT. No cloud Realtime socket is used. The existing native
+  isolation guard supplies no captured audio, and the normal STT startup guard
+  is unchanged. Credentials remain in the test sandbox across its restarts.
+- The existing Groq LLM key/default-model loopback trap remains. Save/history
+  assertions now inspect all mock requests rather than chat alone; teardown also
+  rejects any POST (transcription or generation) across the entire run. The header
+  explains why configuring STT must not weaken the no-request storage regression.
+- Build, both type checks, Vite, all package unit tests, retired/provenance checks
+  and diff checks were rerun locally. No new G2 match or allowLine was needed.
+  Storage was **only syntax-checked** as instructed; its two Electron cases and
+  the full 16 gates still require Claude's rerun. Do not read the local unit result
+  as a passed storage gate.
 
 No HANDOFF section 6 stop condition was encountered. Original checkout was checked
 read-only: clean and still on its specified branch. No full Electron gates, real

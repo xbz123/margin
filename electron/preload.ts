@@ -2,7 +2,7 @@ import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } fr
 import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
-import type { DomesticSttAPI } from '../src/types/domesticStt';
+import type { DomesticSttProvider, DomesticSttSettings } from '../src/types/domesticStt';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
@@ -47,7 +47,10 @@ window.addEventListener('click', openClickedLink);
 window.addEventListener('auxclick', openClickedLink);
 
 // Types for the exposed Electron API
-interface ElectronAPI extends DomesticSttAPI {
+interface ElectronAPI {
+  getDomesticStt: (provider: DomesticSttProvider) => Promise<{ hasKey: boolean; workspaceId: string; appId: string }>;
+  saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
+  testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
   updateContentDimensions: (dimensions: { width: number; height: number }) => Promise<void>;
   updateContentDimensionsCentered: (dimensions: { width: number; height: number }) => Promise<void>;
   getRecognitionLanguages: () => Promise<Record<string, any>>;

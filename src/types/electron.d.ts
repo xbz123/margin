@@ -3,8 +3,11 @@ import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
 
-import type { DomesticSttAPI } from './domesticStt';
-export interface ElectronAPI extends DomesticSttAPI {
+import type { DomesticSttProvider, DomesticSttSettings } from './domesticStt';
+export interface ElectronAPI {
+  getDomesticStt: (provider: DomesticSttProvider) => Promise<{ hasKey: boolean; workspaceId: string; appId: string }>;
+  saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
+  testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
   updateContentDimensions: (dimensions: {
     width: number
     height: number

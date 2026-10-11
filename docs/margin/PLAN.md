@@ -1335,6 +1335,14 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 - 定向回归初始 19 项有 5 项复现失败；修复及主进程配置终态验证后 **20/20**。最终全量 **955 项：953 通过、1 个既有 iconutil 沙箱例外、1 个既有跳过**。build:electron、两套 tsc、vite build、292 条退役检查和 diff --check 通过；G2 零命中，唯一新增的通用命中 `const expected = {` 已逐条登记理由。
 - 按要求删除中间全量日志 unit-tests.log、unit-tests-r2.log（可从 759a6484 恢复），unit-tests-final.log 只保留本次修复后的最终一轮。README 说明轮次并区分初版定向证据。临时文件在提交前删除；仅本地新提交，不推送。完整 gates、实服、实机仍未运行；未遇到停止条件。
 
+#### AG-41b 完整门禁后续修复（2026-10-11，基于 520dc16e）
+
+- Claude 沙箱外完整门禁 **14/16**：preload-contract 因 `ElectronAPI extends DomesticSttAPI` 无法被直接成员检查识别而失败；storage 两个用例因未配置 STT 被 startMeeting 正确拒绝（`evidence/AG-41b/gates/`）。本次不修改或提交 Claude 的现有 gates 产物。
+- 两处 ElectronAPI 改为直接声明三个 domestic STT 方法，参数/返回类型显式写出并复用共享参数类型；删除已无引用的 DomesticSttAPI 聚合接口。**检查脚本不变**，本地复现退出 1，修复后退出 0（223 声明、231 实现、缺失 0）。
+- storage 的公共初始化先经 IPC 断言未配置启动失败、提示匹配且会议未激活，再经 IPC 保存合成假 OpenAI STT key、loopback mock 的 REST base 并选择该服务商。原生隔离守卫保持不采集音频；自定义 REST 地址避免云端 Realtime 连接。保留 Groq LLM 的 loopback 回归陷阱，保存/历史操作检查所有请求，收尾拒绝全程任何 POST；不放宽生产启动拦截。
+- 本地 build:electron、两套 tsc、Vite、preload-contract、292 条退役规则、G2 零命中和 diff --check 通过。全量单元测试 **955 项：953 通过、1 个已知 iconutil 沙箱例外、1 个既有跳过**。storage **只做 node --check，退出 0**；未启动 Electron，不能据此关闭 storage 门禁，完整门禁仍待 Claude 重跑。README 区分本轮最终单元日志与前轮定向证据。
+- 另笔本地提交，不改写历史、不推送、不触发 CI；未新增依赖、来源豁免或功能范围，未遇到停止条件。
+
 ### AG-40 记录（2026-10-11）
 
 - **状态**：实现和本地检查通过；完整门禁和复查待 Claude。实现及证据提交 `5241e414`；仅本地提交，未推送。

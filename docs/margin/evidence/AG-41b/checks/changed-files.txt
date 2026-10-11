@@ -4,9 +4,11 @@ docs/margin/PROVENANCE.md
 docs/margin/evidence/AG-41b/README.md
 docs/margin/evidence/AG-41b/checks/build-electron.log
 docs/margin/evidence/AG-41b/checks/provenance.log
+docs/margin/evidence/AG-41b/checks/preload-contract.log
 docs/margin/evidence/AG-41b/checks/retired.log
 docs/margin/evidence/AG-41b/checks/review-targeted.log
 docs/margin/evidence/AG-41b/checks/settings.log
+docs/margin/evidence/AG-41b/checks/storage-syntax.log
 docs/margin/evidence/AG-41b/checks/targeted.log
 docs/margin/evidence/AG-41b/checks/tsc-electron.log
 docs/margin/evidence/AG-41b/checks/tsc-renderer.log
@@ -43,3 +45,4 @@ src/i18n.zh.ts
 src/lib/__tests__/settingsFoundation.test.mjs
 src/types/domesticStt.ts
 src/types/electron.d.ts
+tests/margin/meeting-storage.test.mjs

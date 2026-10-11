@@ -10,6 +10,11 @@
 // default model are still set, so a regression that sends the meeting reaches the
 // loopback mock and fails the test. The second test opens a meeting from the history
 // list, checks its usage view, and rolls back a title edit that fails to save.
+// AG-41b: first assert that unconfigured STT refuses meeting start. Then save a
+// synthetic STT key in this sandbox through IPC, with OpenAI's custom REST base
+// pointing at the same loopback mock (no Realtime socket). The native isolation
+// guard supplies no audio. The mock still catches requests caused by saving a
+// meeting, and any STT upload or generation POST makes the test fail.
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:
@@ -24,6 +29,7 @@ import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
 const FAKE_GROQ_KEY = 'gsk-margin-regression-not-a-real-key';
+const FAKE_STT_KEY = 'sk-margin-storage-stt-not-a-real-key';
 const TITLE = 'Margin Storage Check';
 
 let mock;
@@ -116,11 +122,21 @@ test.before(async () => {
     GROQ_BASE_URL: mock.baseURL.replace(/\/v1$/, ''),
   };
   await launch();
+  const launcher = await launcherWindow();
+  assert.equal(await launcher.evaluate(() => window.electronAPI.getSttProvider()), 'none');
+  const refused = await launcher.evaluate(() => window.electronAPI.startMeeting());
+  assert.equal(refused?.success, false, 'unconfigured STT must refuse meeting start');
+  assert.match(refused.error, /STT is not configured/);
+  assert.equal(await launcher.evaluate(() => window.electronAPI.getMeetingActive()), false, 'rejected start leaves the meeting inactive');
+  assert.deepEqual(await launcher.evaluate(url => window.electronAPI.setOpenAiSttBaseUrl(url), mock.baseURL), { ok: true });
+  assert.deepEqual(await launcher.evaluate(key => window.electronAPI.setOpenAiSttApiKey(key), FAKE_STT_KEY), { ok: true });
+  assert.deepEqual(await launcher.evaluate(() => window.electronAPI.setSttProvider('openai')), { ok: true });
 });
 
 test.after(async () => {
   try { await app?.close(); } catch { /* already gone */ }
   await mock?.close();
+  assert.deepEqual(mock?.requests.filter(r => r.method === 'POST').map(r => r.url) ?? [], [], 'no STT upload or generation request during the storage run');
   const blocked = sandbox ? readBlocked(sandbox).filter((b) => !['permission', 'device', 'local-exec'].includes(b.kind)) : [];
   assert.deepEqual(blocked.map((b) => `${b.kind} ${b.detail}`), [], 'no outbound attempts during the storage run');
   // AG-14: nothing may probe, start or reach Ollama (port 11434 is a watched port, so a
@@ -145,7 +161,7 @@ test('a meeting is saved without any request, survives a restart, and stays dele
   assert.deepEqual(await launcher.evaluate(() => window.electronAPI.getRecentMeetings()), [], 'fresh database has no meetings');
 
   // 1. Meeting with a transcript: saved at once, and nothing is sent.
-  const requestsBefore = mock.chatRequests().length;
+  const requestsBefore = mock.requests.length;
   const lines = [
     ['interviewer', 'Let us plan the storage test for meetings.'],
     ['user', 'Meetings must survive a restart of the app.'],
@@ -160,7 +176,7 @@ test('a meeting is saved without any request, survives a restart, and stays dele
   assert.equal(details.transcript.length, lines.length);
   assert.ok(details.transcript.some((t) => t.text.includes('survive a restart')));
   await new Promise((r) => setTimeout(r, 1_000));
-  assert.deepEqual(mock.chatRequests().slice(requestsBefore).map((r) => r.url), [], 'saving a meeting sends nothing');
+  assert.deepEqual(mock.requests.slice(requestsBefore).map((r) => r.url), [], 'saving a meeting sends nothing');
 
   // 3. Restart: the meeting is read back from the same database file.
   launcher = await restart();
@@ -210,7 +226,7 @@ test('a meeting is saved without any request, survives a restart, and stays dele
 // rolled back and reported (AG-17 review 7).
 test('a meeting opened from the history list shows its usage and rolls back a failed title edit', async () => {
   const launcher = await launcherWindow();
-  const requestsBefore = mock.chatRequests().length;
+  const requestsBefore = mock.requests.length;
   const meeting = await saveMeeting(launcher, [
     ['interviewer', 'HISTORY one: we plan the offsite.'],
     ['user', 'HISTORY two: the offsite is in May.'],
@@ -309,5 +325,5 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
   assert.equal(await alert.count(), 0, 'no notice from the outdated response');
 
   assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: meeting.id, t: TITLE }), true);
-  assert.deepEqual(mock.chatRequests().slice(requestsBefore).map((r) => r.url), [], 'opening and editing a meeting sends nothing');
+  assert.deepEqual(mock.requests.slice(requestsBefore).map((r) => r.url), [], 'opening and editing a meeting sends nothing');
 });
