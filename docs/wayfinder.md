@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **AG-41b 待 Claude 重跑完整门禁** — 520dc16e 沙箱外 gates 为 14/16；preload 直接声明已修复并本地通过，storage 已补假 STT 配置和未配置拒绝断言，仅做语法检查。全量单元 955 项：953 通过、1 个已知 iconutil 沙箱例外、1 个既有跳过；证据见 `margin/evidence/AG-41b/`。仅本地另笔提交、不推送；storage 实际执行和完整门禁待 Claude。通过后再交付 AG-42；阶段出口 CI 须用户批准。
+- **AG-42（手动回答）交 Codex** — AG-41b 已完成，Claude 复查通过，完整 gates 16/16（PLAN §9"AG-41b 复查"）。AG-42 完成后做阶段 4 验收；阶段出口 CI 须用户批准。
 
 ## Waiting
 
