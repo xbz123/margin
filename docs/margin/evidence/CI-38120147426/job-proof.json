@@ -1,0 +1,169 @@
+{
+  "artifacts": [
+    {
+      "digest": "sha256:a255f8f94bbb226d60c8d080a8d9184d58fa3de3479373236d13b9231caede25",
+      "expires_at": "2026-10-25T07:17:47Z",
+      "name": "margin-app-release-180a87c0f2a0083f12e8146389df7545cb80a8dd",
+      "size_in_bytes": 29821
+    },
+    {
+      "digest": "sha256:9ea095eaa9fa4c4fea011a02c5a7c86d52dd12c51921819530b2c1a4b79cca28",
+      "expires_at": "2026-10-25T07:17:43Z",
+      "name": "margin-app-temp-180a87c0f2a0083f12e8146389df7545cb80a8dd",
+      "size_in_bytes": 313154879
+    },
+    {
+      "digest": "sha256:33461a6faf1665991a32da78adabc687c0155a0621809f042c58f9173c1cdede",
+      "expires_at": "2026-11-10T07:17:51Z",
+      "name": "margin-gates-180a87c0f2a0083f12e8146389df7545cb80a8dd",
+      "size_in_bytes": 60002
+    },
+    {
+      "digest": "sha256:15292399424aabe1d2a28a0e40674627cdf78a69e369f8f2b8d03ebaab587a01",
+      "expires_at": "2026-11-10T07:07:29Z",
+      "name": "margin-native-180a87c0f2a0083f12e8146389df7545cb80a8dd",
+      "size_in_bytes": 718276
+    },
+    {
+      "digest": "sha256:b3b1a0cac80e24958e16caee32168bbbc7f84ec655cc5d670f3b07b27fc87f21",
+      "expires_at": "2026-11-10T07:17:48Z",
+      "name": "margin-source-180a87c0f2a0083f12e8146389df7545cb80a8dd",
+      "size_in_bytes": 217473456
+    }
+  ],
+  "jobs": [
+    {
+      "completed_at": "2026-10-11T07:17:56Z",
+      "conclusion": "failure",
+      "labels": [
+        "macos-15"
+      ],
+      "name": "gates",
+      "runner_name": "GitHub Actions 1000000813",
+      "started_at": "2026-10-11T07:04:41Z",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Fetch upstream refs and extra restricted commits (read-only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Toolchain versions"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/cache@v6"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/cache@v6"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run npm ci"
+        },
+        {
+          "conclusion": "success",
+          "name": "Native setup"
+        },
+        {
+          "conclusion": "success",
+          "name": "Collect the native module"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Run gates against the newest local ticket evidence"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Check release identity contract (CI only; no packaging)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Package the temp app (AG-25; workflow artifacts only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Package the release app (AG-25; workflow artifacts only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Launch the packaged temp app in a throwaway home (CI only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Launch the packaged release app in a throwaway home (CI only)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Corresponding source bundle (S19-C; workflow artifact)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upload the temp app"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upload the release app reports"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upload the source bundle"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@v7"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/cache@v6"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/cache@v6"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    }
+  ],
+  "run": {
+    "conclusion": "failure",
+    "created_at": "2026-10-11T07:04:30Z",
+    "event": "workflow_dispatch",
+    "head_branch": "codex/margin-agpl-migration",
+    "head_sha": "180a87c0f2a0083f12e8146389df7545cb80a8dd",
+    "id": 38120147426,
+    "inputs": null,
+    "path": ".github/workflows/margin-gates.yml",
+    "run_attempt": 1,
+    "status": "completed",
+    "updated_at": "2026-10-11T07:17:57Z"
+  }
+}

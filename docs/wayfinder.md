@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **W3 重跑**（须用户批准）— AG-52 删减和 sharp 删除都已完成，本地 gates 16/16；验收按 S34 修订（只有 gates 作业，包检查 12/12）。
+- **W3 再次重跑**（须用户批准）— 重跑 38120147426 只有 storage 失败：首次启动的权限卡片挡住点击，测试已修复，本地 gates 16/16；其余验收项都通过（PLAN §9"W3 出口 CI 38120147426"）。
 
 ## Waiting
 
@@ -17,10 +17,10 @@
 - 未经真实环境验证：Codex 登录（AG-34）、真实模型服务的兼容性、S29 提示词改动对回答质量的影响。签收时要写明（PLAN S27、S29、W4）。
 - 提示词分层和按场景的附加指令已记入 AG-51，属于后期工作（PLAN S29 第 3 条）。
 - 截图截取环节是否为原生像素密度只能用真实屏幕确认（PLAN §9"S34 删除 sharp"）。
-- W3 中挡住历史列表点击的覆盖层在本机无法复现；storage 测试点击失败时会报出挡住的元素，W3 重跑时看结果（PLAN §9"AG-52 删减"）。
 
 ## Done (rolling)
 
+- W3 重跑 38120147426 已记录（2026-10-11）：失败，原因是测试没有关闭首次启动的权限卡片，已修复；原生 `0f92a0b1`、两个身份 12/12 和启动 7/7、源码包都通过（`docs/margin/evidence/CI-38120147426/`）。
 - AG-52 删减（2026-10-11）：会议只保存本地转写和用量，删除自动摘要、标题生成、启动恢复、会议聊天和 `post_call_summary`；本地 gates 16/16（`docs/margin/evidence/AG-52-trim/gates/`）。
 - S34 删除 sharp 和 libvips（2026-10-11）：截图改用 nativeImage、按原图分辨率发送；本地 gates 16/16（`docs/margin/evidence/S34-sharp-removal/gates/`）。
 - S33 范围精简（2026-10-11）：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、`windows-compile.yml` 改为只手动触发；nativeImage 实验见 `docs/margin/evidence/nativeimage-pilot/`。

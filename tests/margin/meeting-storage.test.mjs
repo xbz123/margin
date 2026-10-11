@@ -225,9 +225,16 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
   }, { filename: path.join(REPO, 'dist-electron/electron/db/DatabaseManager.js'), id: meeting.id });
   assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: meeting.id, t: TITLE }), true);
 
-  await launcher.evaluate(() => localStorage.setItem('natively_seen_startup_v1', 'true'));
+  // A returning user has passed the startup sequence and dismissed the permissions card.
+  // The card opens 1.4 s after load until dismissed and covers the whole window; CI
+  // clicked after it opened (runs 38090230126 and 38120147426), local runs before.
+  await launcher.evaluate((flags) => {
+    for (const [key, value] of Object.entries(flags)) localStorage.setItem(key, value);
+  }, { natively_seen_startup_v1: 'true', natively_perms_shown_v1: '1' });
   await launcher.reload();
   await launcher.waitForLoadState('domcontentloaded');
+  await new Promise((r) => setTimeout(r, 2_000)); // past the card's delay, as on CI
+  assert.equal(await launcher.getByText(/Permissions$/).count(), 0, 'the dismissed permissions card stays closed');
   await clickOrExplain(launcher, launcher.getByText(TITLE, { exact: true }).first(), 'the meeting in the history list');
   await clickOrExplain(launcher, launcher.getByRole('button', { name: 'Usage', exact: true }), 'the Usage tab');
   const failed = launcher.locator('[data-generation-status="failed"]').filter({ hasText: 'HISTORY-model' });

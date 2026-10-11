@@ -1,0 +1,11 @@
+[startup-smoke] launcher ready 1085 ms; settings ready 1100 ms; observed 15000 ms; exit code 0; windows [{"url":"?window=model-selector","visible":false},{"url":"?window=settings","visible":true},{"url":"?window=overlay","visible":false},{"url":"?window=launcher","visible":true},{"url":"?window=cropper","visible":false}]
+✔ the app starts, opens the launcher and settings, stays up, and quits cleanly (17340.475417ms)
+ℹ launcher ready 1085 ms, settings ready 1100 ms, observed 15000 ms, exit code 0
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37465.883292

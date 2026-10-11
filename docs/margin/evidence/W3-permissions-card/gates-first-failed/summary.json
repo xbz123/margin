@@ -1,0 +1,214 @@
+{
+  "startedAt": "2026-10-11T07:31:51.017Z",
+  "head": "180a87c0f2a0083f12e8146389df7545cb80a8dd",
+  "uncommittedPaths": 2,
+  "uncommittedPathList": [
+    "M tests/margin/meeting-storage.test.mjs",
+    "?? docs/margin/evidence/CI-38120147426/"
+  ],
+  "reference": "docs/margin/evidence/AG-34",
+  "note": "storage test dismisses the first-launch permissions card before clicking (W3 CI 38120147426)",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 108,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2339,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 7006,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4161,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2994,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3016,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/provenance.log",
+      "passed": false
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2236,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 75,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 135,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 958,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13395,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/tests.log",
+      "tap": "docs/margin/evidence/W3-permissions-card/gates/tests.tap",
+      "perFile": "docs/margin/evidence/W3-permissions-card/gates/tests.files.json",
+      "files": 111,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 964,
+        "pass": 959,
+        "fail": 0,
+        "skipped": 5,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 44884,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 15380,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/storage.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 37668,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/startup.log",
+      "passed": true
+    },
+    {
+      "id": "outbound-renderer",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron:esbuild --test --test-timeout=180000 tests/margin/outbound-renderer.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 20318,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/outbound-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 70,
+      "log": "docs/margin/evidence/W3-permissions-card/gates/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-11T07:34:25.768Z",
+  "allPassed": false
+}

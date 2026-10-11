@@ -1,0 +1,40 @@
+✔ a meeting is saved without any request, survives a restart, and stays deleted (13628.771834ms)
+✖ a meeting opened from the history list shows its usage and rolls back a failed title edit (20274.326292ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34838.134917
+
+✖ failing tests:
+
+test at tests/margin/meeting-storage.test.mjs:211:1
+✖ a meeting opened from the history list shows its usage and rolls back a failed title edit (20274.326292ms)
+  Error: clicking the Usage tab failed: locator.click: Timeout 15000ms exceeded.
+  {
+    "target": {
+      "x": 190.296875,
+      "y": 165,
+      "width": 63.703125,
+      "height": 27.5
+    },
+    "viewport": {
+      "width": 1024,
+      "height": 686
+    },
+    "coveredBy": "<div style=\"position: fixed; inset: 0px; z-index: 9998; display: flex; align-items: center; justify-content: center; background: radial-gradient(80% 70%, rgba(139, 92, 246, 0.06) 0%, rgba(0, 0, 0, 0.84) 100%); backdrop-filter: blur(8px); opacity: 1;\"><div class=\"perm-border\" style=\"padding: 1.5px; border-radius: 23px; box-shadow: rgba(0, 0, 0, 0.95) 0px 48px 120px -20px, rgba(139, 92, 246, 0.06) 0px 0px 80px; opacity: 1; filter: blur(0px); transform: none;\"><div style=\"position: relative; width: 430px; border-radius: 22px; overflow: hidden; background: linear-gradient(150deg, rgba(10, 10, 18, 0.99) 0%, rgb(6, 6, 11) 100%); font-family: -apple-system, BlinkMacSystemFont, &quot;SF Pro Display&quot;, system-ui, sans-serif;\"><div aria-hidden=\"true\" style=\"position: absolute; top: 0px; left: 0px; right: 0px; height: 1px; background: rgba(255, 255, 255, 0.14); pointer-events: none; z-index: 5;\"></div><div aria-hidden=\"true\" style=\"position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 400px; height: 280px; background: radial-gradient(rgba(139, 92, 246, 0.28) 0%, transparent 65%); pointer-events: none; z-index: 1;\"></div><div aria-hidden=\"true\" style=\"position: absolute; inset: 0px; border-radius: 22px; pointer-events: none; z-index: 4; opacity: 0.028; mix-blend-mode: overlay; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E&quot;); background-size: 180px 180px;\"></div><div style=\"padding: 26px 28px 28px; position: relative; z-index: 6;\"><div style=\"display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);\"><span style=\"font-size: 10.5px; font-weight: 660; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72);\">temp · Permissions</span><button aria-label=\"Dismiss\" style=\"background: none; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; opacity: 0.35; padding: 0px; transition: opacity 150ms, background 150ms;\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-x\"><path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path></svg></button></div><div style=\"display: flex; flex-direction: column; gap: 20px;\"><div style=\"opacity: 1; filter: blur(0px); transform: none;\"><h2 style=\"background: linear-gradient(140deg, rgb(255, 255, 255) 25%, rgba(196, 181, 253, 0.9) 100%) text; -webkit-text-fill-color: transparent; font-size: 22px; font-weight: 720;",
+    "coveringChain": [
+      "div class=\"\" position=fixed z=9998 opacity=1 pointer-events=auto",
+      "div class=\"h-full min-h-0 w-full relative bg-[#000000]\" position=relative z=auto opacity=1 pointer-events=auto",
+      "div class=\"\" position=static z=auto opacity=1 pointer-events=auto",
+      "body class=\"\" position=static z=auto opacity=1 pointer-events=auto",
+      "html class=\"\" position=static z=auto opacity=1 pointer-events=auto"
+    ]
+  }
+      at clickOrExplain (file:///Users/runner/work/margin/margin/tests/margin/meeting-storage.test.mjs:105:11)
+      at async TestContext.<anonymous> (file:///Users/runner/work/margin/margin/tests/margin/meeting-storage.test.mjs:232:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
