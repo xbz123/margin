@@ -4,7 +4,7 @@
 
 ## Next actions
 
-- **阶段 4（AG-40 起）**（等用户允许）— 阶段 3 已签收；STT 定为旧 Margin 的五家，旧 Margin 的可复用内容（阶段 4–7）见 PLAN §6"旧 Margin 复用清单（S35）"，待 Astra 审阅。
+- **阶段 4（AG-40 起）**（等用户允许）— 阶段 3 已签收；STT 定为旧 Margin 的五家，旧 Margin 的可复用内容（阶段 4–7）见 PLAN §6"旧 Margin 复用清单（S35）"，已按 Astra 审阅修订（候选盘点，引入前逐行审查）；先做前置项 AG-60a（共享的翻译接口和设置组件）。
 
 ## Waiting
 
@@ -18,6 +18,7 @@
 
 ## Done (rolling)
 
+- S35 复用清单按 Astra 审阅修订（2026-10-11）：候选与已审分开，快照行和近似快照行逐行列出，资产和未扫描扩展名单列，依赖按 `0769715e` 分级并求闭包，新增 AG-60a；重跑结果逐字节可复现，`rule_probes.py` 8/8（PLAN §9"S35 复用清单审阅"）。
 - S35（2026-10-11）：AG-41 的 STT 定为 OpenAI、Soniox、Groq、阿里云百炼、豆包；旧 Margin 复用清单（阶段 4–7，1655 个文件）写入 PLAN §6（`docs/margin/evidence/S35-stage4-reuse/`）。
 - 阶段 3 签收（2026-10-11）：W4 本机核对通过（源码包 587 个文件一致、与 `git archive` 逐字节相同；`asar-smoke` 10/10），依据 W3 出口 CI 38123550800（PLAN §8"阶段 3 签收"，`docs/margin/evidence/W4-local-verify/`）。
 - W3 出口 CI 38123550800 通过（2026-10-11）：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、原生 `0f92a0b1`、包内许可含 stdarch、源码包 `cleanTree`（`docs/margin/evidence/CI-38123550800/`）。

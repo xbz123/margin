@@ -1,24 +1,62 @@
 # Builds the old Margin reuse list for the remaining tickets (PLAN S35) from
-# profile-all.json (analyze_all.py) and head-state.json (each candidate compared
-# with this branch). Writes reuse-map.json and reuse-ranges.md next to this file.
-#   python3 build_reuse_list.py <evidence dir> <repo>
+# profile-all.json (analyze_all.py). Everything about this branch is read from one
+# pinned commit, never from the working tree:
+#   python3 build_reuse_list.py <evidence dir> <repo> <this branch's commit>
+# Writes head-state.json, reuse-map.json, reuse-ranges.md and plan-tables.md.
+#
+# The action says how much work a candidate looks like, not that its source is
+# cleared: every file is still reviewed line by line before import (PLAN S35).
 import json, os, re, subprocess, sys, collections
 
-EV = sys.argv[1]
-REPO = sys.argv[2]
+EV, REPO, NEW = sys.argv[1:4]
+TIP = 'b8ade3f7'
 prof = {s['path']: s for s in json.load(open(os.path.join(EV, 'profile-all.json')))}
-head = json.load(open(os.path.join(EV, 'head-state.json')))
 
+def git(*a):
+    return subprocess.run(['git', '-C', REPO, *a], capture_output=True).stdout.decode('utf-8', 'replace')
+
+def tree(ref):
+    out = {}
+    for row in git('ls-tree', '-r', ref).splitlines():
+        meta, path = row.split('\t', 1)
+        out[path] = meta.split()[2]
+    return out
+
+OLD_TREE, NEW_TREE = tree(TIP), tree(NEW)
+NEW_SHA = git('rev-parse', NEW).strip()
+
+def head_state(path):
+    if path not in NEW_TREE: return 'absent'
+    return 'identical' if NEW_TREE[path] == OLD_TREE.get(path) else 'differs'
+
+# ---- classification -------------------------------------------------------------
+# kind: whole = no known upstream signal at all (no hit, no near-snapshot line, no
+# snapshot line, no upstream content in the file at the fork); rewrite = the lines to
+# dispose of are at most 10% (a workload estimate only); fragment = at least 15
+# unflagged Margin lines. Assets and files whose extension the scan does not cover
+# are never sorted by line counts.
 def kind(s):
-    if s['total'] == 0: return None
-    m, mh, nb, t = s['margin'], s['marginHits'], s['snapshotNotBaseline'], s['total']
-    if m == 0: return None
-    if nb == 0 and mh <= 3: return 'whole'
-    if nb <= 0.1 * t and mh <= max(3, 0.1 * m): return 'rewrite'
-    if m - mh >= 15: return 'fragment'
+    if s['coverage'] == 'asset':
+        return 'asset' if s['marginCommits'] and not s['sameAsSnapshot'] else None
+    if s.get('error') or s['total'] == 0 or s['margin'] == 0: return None
+    m, t, nb, fu = s['margin'], s['total'], s['snapshotNotBaseline'], s['forkUpstream']
+    flagged = s['marginHits'] + s['nearSnapshot']
+    if nb == 0 and flagged == 0 and fu == 0: return 'whole'
+    if nb <= 0.1 * t and flagged <= max(3, 0.1 * m): return 'rewrite'
+    if m - flagged >= 15: return 'fragment'
     return None
 
-# Ticket of each candidate. Order matters: the first matching pattern wins.
+def action(path, k):
+    s = prof[path]
+    if head_state(path) == 'identical': return 'present'
+    if k == 'asset': return 'asset-review'
+    if s['coverage'] != 'text-scanned': return 'unscanned'
+    if k == 'whole': return 'margin-hunks' if s['inBaseline'] else 'import'
+    if k == 'rewrite': return 'margin-hunks-dispose' if s['inBaseline'] else 'import-dispose'
+    return 'fragments'
+
+# Main ticket of each candidate. Order matters: the first matching pattern wins. The
+# main ticket owns the file; the tickets its dependencies need are listed separately.
 RULES = [
     # Retired by S6 or S33, or tied to a removed feature: not imported.
     ('retired', r'telemetry|Telemetry|dynamic-actions|DynamicAction|autoAnswer|AutoAnswer|JudgeTransport|judgeEval|PrefetchBuffer'
@@ -50,9 +88,11 @@ RULES = [
     ('AG-62', r'^README\.md|^PRIVACY\.md|SetupChecklist|setupChecklist|OnboardingFlags|smoke-|verify-margin-package|ad-hoc-sign'
               r'|build-electron\.js|^package(-lock)?\.json|\.github/workflows|docs/local-build|localBuildSetup|scripts/__tests__'
               r'|\.gitattributes|StartupLogDirectoryAccess'),
-    ('AG-60', r'i18n|overlayMessageLocalization|settingsTabs|SettingsTabs|SettingsKit|SettingsOverlay|GeneralSettings|HelpSettings'
+    # AG-60a: the shared translation and settings-kit base that other tickets' UI needs first.
+    ('AG-60a', r'^src/i18n\.tsx|i18n\.zh|i18n\.en|SettingsKit'),
+    ('AG-60', r'i18n|overlayMessageLocalization|settingsTabs|SettingsTabs|SettingsOverlay|GeneralSettings|HelpSettings'
               r'|WrittenExam|CodeOutputSettings|SettingsPopup|Launcher\.tsx|src/App\.tsx|TopSearchPill|ThemeManager|ui/TopPill'
-              r'|ErrorBoundary|EditableTextBlock|SettingsPeriwinkle|InterfaceThemeAllowlist'),
+              r'|ErrorBoundary|EditableTextBlock|SettingsPeriwinkle|InterfaceThemeAllowlist|mainStrings'),
     # Stage 1-3 scope: already rewritten on this branch from the behavior requirements.
     ('done', r'electron/llm/|LLMHelper|modelCapacity|ModelCapacity|CredentialsManager|Credential|Keychain|Codex|AIProvidersSettings'
              r'|AnswerConfiguration|answerConfiguration|ProviderCard|ModelCapabilityFields|AnswerProviderGlyph|usePrimaryAnswerTargetLabel'
@@ -69,59 +109,186 @@ RULES = [
     # Files that touch several tickets: only their per-ticket fragments can be used.
     ('mixed', r'electron/main\.ts|electron/ipcHandlers\.ts|electron/preload\.ts|src/lib/electronAPI\.ts'),
 ]
+REMAINING = ['AG-40', 'AG-41', 'AG-42', 'AG-50', 'AG-51', 'AG-60a', 'AG-60', 'AG-61', 'AG-62', 'stage7']
 
 def ticket(path):
     for name, pattern in RULES:
         if re.search(pattern, path): return name
     return 'unassigned'
 
-def action(path, k):
-    if head.get(path) == 'identical': return 'present'
-    base = prof[path]['inBaseline']
-    if k == 'whole': return 'margin-hunks' if base else 'import'
-    if k == 'rewrite': return 'margin-hunks-rewrite' if base else 'import-rewrite'
-    return 'fragments'
+# ---- dependencies ---------------------------------------------------------------
+NODE_BUILTINS = set('''assert async_hooks buffer child_process cluster console constants crypto dgram dns events fs http http2
+https inspector module net os path perf_hooks process querystring readline repl stream string_decoder timers tls tty url
+util v8 vm worker_threads zlib test'''.split())
+pkg = json.loads(git('show', f'{NEW}:package.json'))
+NEW_PACKAGES = set(pkg.get('dependencies', {})) | set(pkg.get('devDependencies', {}))
+ALIASES = [('@/', 'src/'), ('@hooks/', 'src/hooks/'), ('@config/', 'src/config/')]
+EXTS = ['', '.ts', '.tsx', '.mjs', '.js', '.cjs', '.d.ts', '/index.ts', '/index.tsx', '/index.js']
+SPEC = re.compile(r'''(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)['"]([^'"\n]+)['"]''')
+# Tests load built modules by path, e.g. path.join(root, 'services/x.js') with root = dist-electron/electron.
+LITERAL = re.compile(r'''['"]((?:dist-electron/)?(?:electron|src|scripts|native-module|tests)/[\w./@-]+|[\w-]+(?:/[\w.@-]+)+\.js)['"]''')
+ROOTS = ('electron', 'src', 'scripts', 'native-module', 'tests')
 
-TREE = set(subprocess.run(['git', '-C', REPO, 'ls-tree', '-r', '--name-only', 'b8ade3f7'], capture_output=True, text=True).stdout.split())
-EXTS = ['', '.ts', '.tsx', '.mjs', '.js', '.cjs', '.d.mts', '/index.ts', '/index.tsx', '/index.js']
+def resolve_file(base):
+    cands = [base + e for e in EXTS]
+    if base.endswith('.js'): cands += [base[:-3] + '.ts', base[:-3] + '.tsx']
+    return next((c for c in cands if c in OLD_TREE), None)
 
-def blocking_deps(path):
-    """Relative imports that are absent on this branch and cannot themselves be imported."""
-    src = subprocess.run(['git', '-C', REPO, 'show', f'b8ade3f7:{path}'], capture_output=True, text=True, errors='replace').stdout
-    found = []
-    for spec in re.findall(r"""(?:from\s+|require\(\s*|import\(\s*)['"](\.{1,2}/[^'"]+)['"]""", src):
-        base = os.path.normpath(os.path.join(os.path.dirname(path), spec))
-        target = next((base + e for e in EXTS if base + e in TREE), None)
-        if not target or target in found: continue
-        on_branch = os.path.exists(os.path.join(REPO, target))
-        k = kind(prof[target]) if target in prof else None
-        if not on_branch and k not in ('whole', 'rewrite'): found.append(target)
-    return found
+CODE = re.compile(r'\.(ts|tsx|js|jsx|mjs|cjs)$')
+PACKAGE = re.compile(r'^(@[\w.-]+/)?[\w.-]+$')
 
-def ranges(rs):
-    return ', '.join(f'{a}' if a == b else f'{a}-{b}' for a, b in rs)
+def specs(path, src):
+    out = []
+    if not CODE.search(path): return out
+    for spec in SPEC.findall(src):
+        if spec.startswith('.'):
+            # Tests import the built file: dist-electron/electron/x.js stands for electron/x.ts.
+            base = os.path.normpath(os.path.join(os.path.dirname(path), spec)).removeprefix('dist-electron/')
+            out.append((spec, resolve_file(base)))
+        elif any(spec.startswith(a) for a, _ in ALIASES):
+            a, b = next(x for x in ALIASES if spec.startswith(x[0]))
+            out.append((spec, resolve_file(b + spec[len(a):])))
+        elif not spec.startswith('node:'):
+            name = '/'.join(spec.split('/')[:2]) if spec.startswith('@') else spec.split('/')[0]
+            if name not in NODE_BUILTINS and PACKAGE.match(name): out.append((spec, 'npm:' + name))
+    if '__tests__' in path or path.startswith('tests/'):
+        for lit in LITERAL.findall(src):
+            lit = lit.removeprefix('dist-electron/')
+            target = resolve_file(lit) if lit.split('/')[0] in ROOTS else None
+            if not target and 'dist-electron' in src: target = resolve_file('electron/' + lit)
+            if target and target != path: out.append((lit, target))
+    return out
 
-entries = []
+EXPORT = r'export\s+(?:declare\s+)?(?:default\s+)?(?:abstract\s+)?(?:async\s+)?(?:function\*?|const|let|var|class|interface|type|enum)\s+{}\b'
+
+def missing_exports(src, spec, target):
+    """Named imports of `target` that this branch's version of it does not export."""
+    names = set()
+    for m in re.finditer(r'import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*[\'"]' + re.escape(spec) + r'[\'"]', src):
+        for part in m.group(1).split(','):
+            n = part.strip().removeprefix('type ').split(' as ')[0].strip()
+            if n: names.add(n)
+    if not names: return []
+    new_src = git('show', f'{NEW}:{target}')
+    if re.search(r'export\s*\*\s*from', new_src): return []
+    exported = set()
+    for m in re.finditer(r'export\s*(?:type\s*)?\{([^}]*)\}', new_src):
+        exported |= {p.strip().split(' as ')[-1].strip() for p in m.group(1).split(',')}
+    return sorted(n for n in names if n not in exported and not re.search(EXPORT.format(re.escape(n)), new_src))
+
+# Interface gaps found by reading the code that a name check cannot see.
+MANUAL = {
+    ('electron/llm/promptBudget.ts', 'electron/llm/generateContract.ts'):
+        'GenerateRequest here has protocol/model/contents/dataScopes; promptBudget reads request.target and request.turns',
+}
+
+_deps = {}
+def deps(path):
+    """Direct dependencies of an old-branch file with their status on this branch."""
+    if path in _deps: return _deps[path]
+    src = git('show', f'{TIP}:{path}')
+    out, seen = [], set()
+    for spec, target in specs(path, src):
+        if (target or spec) in seen: continue
+        seen.add(target or spec)
+        if target is None:
+            out.append(dict(spec=spec, status='unresolved')); continue
+        if target.startswith('npm:'):
+            name = target[4:]
+            if name not in NEW_PACKAGES: out.append(dict(spec=spec, target=name, status='npm-missing'))
+            continue
+        d = dict(spec=spec, target=target, ticket=ticket(target))
+        if target in NEW_TREE:
+            if NEW_TREE[target] == OLD_TREE[target]: d['status'] = 'same'
+            else:
+                gap = MANUAL.get((path, target))
+                miss = missing_exports(src, spec, target) if target.endswith(('.ts', '.tsx')) else []
+                d['status'] = 'adapt' if gap or miss else 'exists'
+                if miss: d['missingExports'] = miss
+                if gap: d['note'] = gap
+        else:
+            k = kind(prof[target]) if target in prof else None
+            importable = k in ('whole', 'rewrite') and prof[target]['coverage'] == 'text-scanned'
+            if importable and d['ticket'] in REMAINING: d['status'] = 'planned'
+            # Stage 1-3 rewrote these differently: connect to this branch's version instead.
+            elif d['ticket'] == 'done': d['status'] = 'rewire'
+            elif d['ticket'] == 'retired': d['status'] = 'retired'
+            else: d['status'] = 'write'
+            if target not in prof: d['note'] = 'baseline file this branch removed'
+        out.append(d)
+    _deps[path] = out
+    return out
+
+def closure(path):
+    """Absent dependencies reached through dependencies that are themselves planned imports."""
+    found, stack, seen = {}, [path], {path}
+    while stack:
+        for d in deps(stack.pop()):
+            if d['status'] not in ('planned', 'write', 'rewire', 'retired'): continue
+            found.setdefault(d['target'], d)
+            if d['status'] == 'planned' and d['target'] not in seen:
+                seen.add(d['target']); stack.append(d['target'])
+    return [found[k] for k in sorted(found)]
+
+# ---- entries --------------------------------------------------------------------
+entries, state = [], {}
 for path, s in sorted(prof.items()):
     k = kind(s)
     if not k: continue
     t = ticket(path)
-    entries.append(dict(path=path, ticket=t, kind=k, action=action(path, k), total=s['total'], margin=s['margin'],
-                        marginHits=s['marginHits'], snapshotNotBaseline=s['snapshotNotBaseline'], inBaseline=s['inBaseline'],
-                        test='__tests__' in path or path.startswith('tests/') or path.startswith('scripts/__tests__'),
-                        cleanRanges=s['cleanRanges'], marginHitLines=s['marginHitLines'],
-                        blockingDeps=[] if k == 'fragment' else blocking_deps(path)))
-json.dump(entries, open(os.path.join(EV, 'reuse-map.json'), 'w'), indent=1)
-open(os.path.join(EV, 'reuse-map.json'), 'a').write('\n')
+    state[path] = head_state(path)
+    e = dict(path=path, ticket=t, kind=k, action=action(path, k), coverage=s['coverage'], inBaseline=s['inBaseline'],
+             test='__tests__' in path or path.startswith('tests/') or path.startswith('scripts/__tests__'))
+    if k == 'asset':
+        e.update(blob=s['blob'], bytes=s['bytes'], marginCommits=s['marginCommits'])
+    else:
+        e.update({f: s[f] for f in ('total', 'margin', 'marginHits', 'nearSnapshot', 'snapshotNotBaseline', 'forkUpstream',
+                                     'candidateRanges', 'shortRanges', 'marginHitLines', 'nearSnapshotLines',
+                                     'snapshotNotBaselineRanges', 'marginCommits')})
+        e['candidates'] = s['margin'] - s['marginHits'] - s['nearSnapshot']
+        e['dependencies'] = [d for d in deps(path) if d['status'] != 'same']
+        reach = closure(path)
+        e['closureToWrite'] = sorted(d['target'] for d in reach if d['status'] == 'write')
+        e['crossTickets'] = sorted({d['ticket'] for d in reach if d['ticket'] in REMAINING and d['ticket'] != t})
+    entries.append(e)
 
-ORDER = ['AG-40', 'AG-41', 'AG-42', 'AG-50', 'AG-51', 'AG-60', 'AG-61', 'AG-62', 'stage7', 'mixed', 'done', 'retired', 'none', 'unassigned']
-LABEL = {'import': 'import whole file', 'import-rewrite': 'import after rewriting the hit lines',
-         'margin-hunks': "take Margin's changes to a baseline file", 'margin-hunks-rewrite': "take Margin's changes, rewriting the hit lines",
-         'fragments': 'fragments only', 'present': 'already identical on this branch'}
+json.dump(state, open(os.path.join(EV, 'head-state.json'), 'w'), indent=1, sort_keys=True)
+open(os.path.join(EV, 'head-state.json'), 'a').write('\n')
+rows = [json.dumps(e, ensure_ascii=False, separators=(',', ':')) for e in entries]
+open(os.path.join(EV, 'reuse-map.json'), 'w').write(
+    f'{{"newBranchCommit":"{NEW_SHA}","oldBranchCommit":"{git("rev-parse", TIP).strip()}","entries":[\n'
+    + ',\n'.join(rows) + '\n]}\n')
+
+# ---- reuse-ranges.md --------------------------------------------------------------
+ORDER = REMAINING + ['mixed', 'done', 'retired', 'none', 'unassigned']
+LABEL = {'import': 'whole-file candidate', 'margin-hunks': "candidate: Margin's changes to a baseline file",
+         'import-dispose': 'import after disposing of the flagged lines',
+         'margin-hunks-dispose': "take Margin's changes, disposing of the flagged lines",
+         'fragments': 'fragments only', 'asset-review': 'asset: review its origin by hand',
+         'unscanned': 'extension not covered by the upstream scan: review by hand',
+         'present': 'already identical on this branch'}
+DEP_EN = {'exists': 'on this branch, names exported, fields unchecked', 'adapt': 'on this branch, needs adapting',
+          'planned': 'absent, planned import', 'write': 'absent, write it here', 'unresolved': 'import not resolved',
+          'rewire': "absent, stage 1-3 replaced it: connect to this branch's version",
+          'retired': 'absent, retired: drop the call',
+          'npm-missing': 'npm package not in this branch'}
+
+def ranges(rs):
+    return ', '.join(f'{a}' if a == b else f'{a}-{b}' for a, b in rs)
+
+def dep_text(d):
+    s = f"`{d.get('target', d['spec'])}` ({DEP_EN[d['status']]}"
+    if d.get('ticket') and d['status'] in ('planned', 'write'): s += f", {d['ticket']}"
+    if d.get('missingExports'): s += f", missing {', '.join(d['missingExports'])}"
+    if d.get('note'): s += f"; {d['note']}"
+    return s + ')'
+
 out = ['# Old Margin reuse ranges (PLAN S35)', '',
-       'Generated by `build_reuse_list.py`. Line numbers are in `b8ade3f7`. "Clean lines" are lines written in',
-       "Margin's own commits that hold no restricted-upstream hit; \"hit lines\" are Margin-written lines that do and",
-       'must be rewritten. Every import is still reviewed line by line and recorded in PROVENANCE.', '']
+       f'Generated by `build_reuse_list.py`. Line numbers are in `{TIP}`; "this branch" is `{NEW_SHA[:12]}`.',
+       'All lines below are review candidates, none is cleared. "Candidate lines" were last changed in Margin\'s own',
+       'commits, were scanned and hold no hit or near-snapshot match; "short lines" are 12 characters or fewer and were',
+       'never scanned. The flagged lines (hits, near-snapshot lines, snapshot lines not in the baseline) must each be',
+       'disposed of: upstream-derived content is reimplemented from the requirements, not edited until the scan is quiet.', '']
 by = collections.defaultdict(list)
 for e in entries: by[e['ticket']].append(e)
 for t in ORDER:
@@ -129,29 +296,81 @@ for t in ORDER:
     out += [f'## {t}', '']
     for e in by[t]:
         out.append(f"### `{e['path']}`{' (test)' if e['test'] else ''}")
-        out.append(f"- {LABEL[e['action']]}; substantive lines {e['total']}, Margin-written {e['margin']}, "
-                   f"hits on Margin lines {e['marginHits']}, snapshot lines not in baseline {e['snapshotNotBaseline']}")
-        out.append(f"- clean lines: {ranges(e['cleanRanges']) or 'none'}")
-        if e['marginHitLines']: out.append(f"- hit lines to rewrite: {', '.join(map(str, e['marginHitLines']))}")
-        if e['blockingDeps']: out.append(f"- imports not on this branch and not importable: {', '.join(e['blockingDeps'])}")
+        out.append(f"- {LABEL[e['action']]}; coverage {e['coverage']}")
+        if e['kind'] == 'asset':
+            out.append(f"- blob {e['blob']}, {e['bytes']} bytes; Margin commits: {'; '.join(e['marginCommits'])}")
+            out.append(''); continue
+        out.append(f"- substantive lines {e['total']}, Margin-attributed {e['margin']}, candidates {e['candidates']}, "
+                   f"hits {e['marginHits']}, near-snapshot {e['nearSnapshot']}, snapshot lines not in baseline "
+                   f"{e['snapshotNotBaseline']}, upstream lines in the file at the fork {e['forkUpstream']}")
+        out.append(f"- candidate lines: {ranges(e['candidateRanges']) or 'none'}")
+        if e['shortRanges']: out.append(f"- short lines (not scanned): {ranges(e['shortRanges'])}")
+        if e['marginHitLines']: out.append(f"- hit lines: {', '.join(map(str, e['marginHitLines']))}")
+        if e['nearSnapshotLines']: out.append(f"- near-snapshot lines: {', '.join(map(str, e['nearSnapshotLines']))}")
+        if e['snapshotNotBaselineRanges']: out.append(f"- snapshot lines not in baseline: {ranges(e['snapshotNotBaselineRanges'])}")
+        if e['forkUpstream']: out.append('- the file held upstream content at the fork: read the Margin commit diffs, not only the final lines')
+        if e['dependencies']: out.append(f"- dependencies: {'; '.join(dep_text(d) for d in e['dependencies'])}")
+        if e['closureToWrite']: out.append(f"- to write here, through planned imports: {', '.join(e['closureToWrite'])}")
+        if e['crossTickets']: out.append(f"- needs other tickets: {', '.join(e['crossTickets'])}")
         out.append('')
 open(os.path.join(EV, 'reuse-ranges.md'), 'w').write('\n'.join(out).rstrip('\n') + '\n')
-# Chinese tables for PLAN §6.
-ACT = {'import': '整文件引入', 'import-rewrite': '改写命中行后引入', 'margin-hunks': '取 Margin 改动',
-       'margin-hunks-rewrite': '取 Margin 改动并改写命中行', 'fragments': '只取片段', 'present': '本分支已有'}
+
+# ---- Chinese tables for PLAN §6 ----------------------------------------------------
+ACT = {'import': '整文件候选', 'margin-hunks': '取 Margin 改动（候选）', 'import-dispose': '处置标出行后引入',
+       'margin-hunks-dispose': '取 Margin 改动并处置标出行', 'fragments': '只取片段', 'asset-review': '资产待审',
+       'unscanned': '未扫描，人工审查', 'present': '本分支已有'}
+ACT_ORDER = list(ACT)
+DEP_ZH = {'exists': '待核对字段', 'adapt': '需适配', 'planned': '计划引入', 'write': '须自写', 'unresolved': '未解析',
+          'rewire': '改接本分支实现', 'retired': '已退役，删调用',
+          'npm-missing': '本分支未声明的 npm 包'}
+TICKET_ZH = {'stage7': '阶段 7', 'mixed': '混合文件', 'done': '阶段 1–3 已完成范围', 'retired': '已退役', 'none': '不属于剩余 ticket'}
+
+def dep_cell(e):
+    ds = [d for d in e['dependencies'] if d['status'] != 'exists']
+    exists = sum(1 for d in e['dependencies'] if d['status'] == 'exists')
+    parts = []
+    for d in ds[:5]:
+        name = os.path.basename(d.get('target', d['spec']))
+        extra = f"，{TICKET_ZH.get(d['ticket'], d['ticket'])}" if d['status'] in ('planned', 'write') and d.get('ticket') in REMAINING and d['ticket'] != e['ticket'] else ''
+        parts.append(f"`{name}` {DEP_ZH[d['status']]}{extra}")
+    if len(ds) > 5: parts.append(f'另 {len(ds) - 5} 项')
+    if exists: parts.append(f'{exists} 项待核对字段')
+    return '；'.join(parts) or '—'
+
+def flagged(e):
+    s = f"{e['marginHits']} / {e['nearSnapshot']} / {e['snapshotNotBaseline']}"
+    return s + '，看 diff' if e['forkUpstream'] else s
+
 plan = []
-for t in ['AG-40', 'AG-41', 'AG-42', 'AG-50', 'AG-51', 'AG-60', 'AG-61', 'AG-62', 'stage7', 'mixed']:
+for t in REMAINING + ['mixed']:
     for test in (False, True):
         rows = [e for e in by[t] if e['test'] == test]
         if not rows: continue
-        plan += [f'<!-- {t} {"tests" if test else "code"} -->', '| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |', '| --- | --- | --- | --- | --- | --- |']
-        order = ['import', 'import-rewrite', 'margin-hunks', 'margin-hunks-rewrite', 'fragments', 'present']
-        for e in sorted(rows, key=lambda e: (order.index(e['action']), e['path'])):
-            plan.append(f"| `{e['path']}` | {ACT[e['action']]} | {e['margin']}/{e['total']} | {e['marginHits']} | {e['snapshotNotBaseline']} | {', '.join(f'`{d}`' for d in e['blockingDeps']) or '—'} |")
+        plan += [f'<!-- {t} {"tests" if test else "code"} -->',
+                 '| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |', '| --- | --- | --- | --- | --- | --- |']
+        for e in sorted(rows, key=lambda e: (ACT_ORDER.index(e['action']), e['path'])):
+            if e['kind'] == 'asset':
+                plan.append(f"| `{e['path']}` | {ACT[e['action']]} | — | blob `{e['blob'][:12]}` | — | — |")
+                continue
+            plan.append(f"| `{e['path']}` | {ACT[e['action']]} | {e['candidates']}/{e['total']} | {flagged(e)} | {dep_cell(e)} | "
+                        f"{'、'.join(TICKET_ZH.get(x, x) for x in e['crossTickets']) or '—'} |")
         plan.append('')
-open(os.path.join(EV, 'plan-tables.md'), 'w').write('\n'.join(plan))
+plan += ['<!-- summary -->', '| 归属 | 文件（其中测试） | ' + ' | '.join(ACT[a] for a in ACT_ORDER) + ' | 未命中候选行 |',
+         '| --- | --- | ' + ' | '.join('---' for _ in ACT_ORDER) + ' | --- |']
+for t in ORDER:
+    rows = by[t]
+    if not rows: continue
+    c = collections.Counter(e['action'] for e in rows)
+    plan.append(f"| {TICKET_ZH.get(t, t)} | {len(rows)}（{sum(e['test'] for e in rows)}） | "
+                + ' | '.join(str(c[a]) for a in ACT_ORDER) + f" | {sum(e.get('candidates', 0) for e in rows)} |")
+plan.append('')
+for t in ('done', 'retired', 'none'):
+    names = sorted({os.path.basename(e['path']) for e in by[t] if not e['test']})
+    plan += [f'<!-- {t} files -->', '、'.join(f'`{n}`' for n in names), '']
+open(os.path.join(EV, 'plan-tables.md'), 'w').write('\n'.join(plan).rstrip('\n') + '\n')
+
 c = collections.Counter((e['ticket'], e['action']) for e in entries)
 for t in ORDER:
     row = {a: n for (tt, a), n in c.items() if tt == t}
     if row: print(t, sum(row.values()), row)
-print('unassigned:', [e['path'] for e in by['unassigned']])
+print('total', len(entries), 'unassigned:', [e['path'] for e in by['unassigned']])

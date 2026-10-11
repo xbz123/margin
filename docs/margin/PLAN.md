@@ -59,7 +59,7 @@
 | S32 | **引用其他项目的许可要求放宽**：今后的代码引用或借鉴其他项目时，只需确认被引用的代码使用开源协议，记下项目和协议即可，不再逐项做许可兼容性分析。不放宽的部分：不引入 Natively 上游 6 月之后的代码（来源边界，不是许可分析）；已有的自动检查（来源扫描、许可清单与锁文件一致）在触发时仍须通过 | 用户，2026-10-11，"接下来的代码在引用其他项目的时候不需要过分在意许可证的问题，只需要知道引用的代码是使用开源协议即可" |
 | S33 | 按第一性原理和奥卡姆剃刀精简范围（Claude 建议，用户逐条答复）：<br>1. **删除 AG-43**：不做自动回答和双语 Judge，回答只由用户手动触发（AG-42）。<br>2. **删除 Local Context 预热**：AG-50 只做 Local Context 全文输入，旧 Margin 计划中的预热规则全部不实施。<br>3. **AG-52 缩减**：会议记录只保留本地转写的列表、详情和复制；会前设置、自动摘要、标题生成、启动恢复、会议内聊天删除，包括已有实现、IPC、界面和专属测试，以及只为这些功能存在的数据范围（删除前核对调用方）。<br>4. **Windows 推迟**：阶段 7 的 AG-71–73 暂缓，先只发布 macOS，AG-74 改为只发 macOS；`windows-compile.yml` 改为只手动触发，不再是每票门禁。修改 S30 和 S31 第 2 条。<br>5. **sharp 替换先做实验**：结果见 §4 X6；是否删除 sharp 和 libvips 由用户决定。<br>未答复的建议保持原计划：AG-61 的伪装、AG-60 中英双语、四协议和 Codex、数据范围的细分开关 | 用户，2026-10-11，回复"这两个可以删除""接受建议""这部分同意""这部分进行测试实验，然后说明效果" |
 | S34 | W3 重跑前先精简（Claude 建议，用户同意）：<br>1. **删除 sharp 和 libvips**（X6 结论）：截图改用 Electron 的 nativeImage 编码和拼接；sharp 只留作开发依赖（图标生成和测试），不进安装包；删除 libvips 重编、替换检查、源码产物和许可声明。<br>2. **AG-52 删减提前到 W3 重跑之前**：W3 失败的启动恢复测试随之删除；历史列表保留，挡住点击的覆盖层仍要查清。<br>3. **由 Claude 实现**这两项，每步跑本地 gates。<br>4. **截图按原图分辨率发送**：不再缩到 1536 px；Claude 选择仍编码为 JPEG（质量 80），因为 Retina PNG 可能超过部分服务商的单图大小上限。<br>5. **不支持 WebP 和 GIF**：截图只有 PNG 或 JPG，图片校验收窄到这两种 | 用户，2026-10-11，回复"同意这两点"，选择"Claude 直接实现"，"实际使用的时候按照原图分辨率进行发送"，"应该是不需要解析webp和gif格式的" |
-| S35 | 阶段 4 的 STT 范围与阶段 4–7 的复用依据（Claude 建议，用户同意）：<br>1. **AG-41 的云端 STT 按旧 Margin 定为五家**：OpenAI、Soniox、Groq（分段转写）、阿里云百炼、豆包。基线的 Google、Deepgram、ElevenLabs 退役，删除实现、设置入口、依赖和专属测试；Google 退役后 S16 不再适用。<br>2. **阶段 4–7 复用旧 Margin 代码以 §6"旧 Margin 复用清单（S35）"为依据**：清单覆盖旧 Margin 相对基线改动的全部文件，只说明哪些内容可以考虑引入，每个文件引入前仍按 PROVENANCE 逐行审查并登记，来源边界和 G2 不变 | 用户，2026-10-11，"按照旧的margin的这五家设定来""可以把这份清单写进 PLAN，作为阶段 4 的复用依据""可以给出全部可复用的内容，进行整理放入plan文档" |
+| S35 | 阶段 4 的 STT 范围与阶段 4–7 的复用依据（Claude 建议，用户同意）：<br>1. **AG-41 的云端 STT 按旧 Margin 定为五家**：OpenAI、Soniox、Groq（分段转写）、阿里云百炼、豆包。基线的 Google、Deepgram、ElevenLabs 退役，删除实现、设置入口、依赖和专属测试；Google 退役后 S16 不再适用。<br>2. **阶段 4–7 复用旧 Margin 代码以 §6"旧 Margin 复用清单（S35）"为依据**：清单覆盖旧 Margin 相对基线改动的全部文件，只说明哪些内容可以考虑引入，每个文件引入前仍按 PROVENANCE 逐行审查并登记，来源边界和 G2 不变。<br>3. **按 Astra 审阅修订（2026-10-11）**：清单是候选盘点，"做法"只估计工作量，不说明来源已清楚；命中行、近似快照行和快照行都要逐行处置，上游派生内容按需求重新实现；资产和上游池未覆盖的扩展名单独人工审查；依赖按本分支固定提交分级；新增前置项 AG-60a（共享的翻译接口和设置组件），AG-41、AG-50、AG-61、AG-62 的设置界面等它（§9"S35 复用清单审阅"） | 用户，2026-10-11，"按照旧的margin的这五家设定来""可以把这份清单写进 PLAN，作为阶段 4 的复用依据""可以给出全部可复用的内容，进行整理放入plan文档""按这些建议修订 S35，重新生成清单并推送" |
 
 **S21 细则**：
 
@@ -774,383 +774,435 @@ AG-30–34 的代码和本地门禁已有通过证据，AG-33 提示词已定案
 | AG-50 | Local Context 全文（预热已删除，S33） | AG-33 |
 | AG-51 | 提示词类 Skills；并入 S29 的提示词分层（基础层加面试/笔试场景层，按入口自动选择、可手动切换）和高级设置中按场景的附加指令（只追加、不可整段替换、限长、可恢复默认、只存本机） | AG-33 |
 | AG-52 | 会议记录缩减（S33）：保留本地转写的列表、详情和复制；删除会前设置、自动摘要、标题生成、启动恢复、会议内聊天及其 IPC、界面、专属测试和只为它们存在的数据范围，删除前核对调用方。**S34 提前完成**（§9"AG-52 删减"） | AG-41 |
-| AG-60 | 设置页重组、中英双语界面 | AG-33、AG-52 |
+| AG-60a | 共享基础（S35 第 3 条，Astra 审阅建议）：翻译接口（`i18n.tsx`、中文译文）和设置组件契约（`SettingsKit.tsx`）。只定接口和共用组件，不含设置页重组；AG-41、AG-50、AG-61、AG-62 的设置界面依赖它，音频和 STT 后端不依赖 | AG-33 |
+| AG-60 | 设置页重组、中英双语界面 | AG-33、AG-52、AG-60a |
 | AG-61 | 窗口保护、快捷键、鼠标穿透、伪装（实机部分需 D2 授权）。恢复 AG-17 跳过的 `ActivationPolicyOrdering` 用例，或按定下的激活策略改写后启用 | 阶段 2 |
 | AG-62 | 首次启动引导；README 和 PRIVACY 最终版；Mac 包。分发前必须先放开 `electron/margin/appIdentity.ts` 中"正式身份只能在 GitHub Actions 中运行"的保护（S15），否则正式包在用户机器上启动即退出；放开方式和本机何时改用正式身份由用户决定 | 全部 |
 
-### 旧 Margin 复用清单（S35，阶段 4–7；Claude，2026-10-11）
+### 旧 Margin 复用清单（S35，阶段 4–7；Claude，2026-10-11；同日按 Astra 审阅修订）
 
-只读检查旧 Margin `b8ade3f7` 相对基线新增或修改的全部 1655 个文件（新增 1410、修改 245），列出剩余 ticket 可复用的内容。证据和可复现脚本见 `evidence/S35-stage4-reuse/`；逐文件的可用行号和须改写的行号见其中的 `reuse-ranges.md`，机器可读版为 `reuse-map.json`。
+只读检查旧 Margin `b8ade3f7` 相对基线新增或修改的全部 1655 个文件（新增 1410、修改 245），列出剩余 ticket 可以考虑的候选内容。**本清单是候选盘点，不是已审通过的迁移清单**：表中"做法"只估计工作量，不说明来源已经清楚；任何文件引入前都要逐行审查。证据和可复现脚本见 `evidence/S35-stage4-reuse/`：逐文件的行号见 `reuse-ranges.md`，机器可读版为 `reuse-map.json`，本次运行的全部输入见 `run-manifest.json`，审阅提出的反例由 `rule_probes.py` 复现（8 项全部按新规则处理）。Astra 的审阅意见和处理见 §9"S35 复用清单审阅"。
+
+**固定输入**（`run-manifest.json`）
+- 基线 `a786910e`、导入快照 `fcfbb02a`、旧 Margin `b8ade3f7`、本分支 `0769715e`。"本分支已有"和依赖状态都按 `0769715e` 的文件树判断，不看工作目录。
+- 来源扫描：`provenance-check.mjs --target b8ade3f7`。上游池用了 125 个引用（`refs/remotes/upstream/` 下 124 个，加 `restrictedExtraRefs` 1 个），引用的 SHA、扫描配置和脚本的哈希都记在清单里。命中行号存为 `hit-lines.json`，不重建上游池也能复现分析；重跑扫描的结果与第一版逐字节相同。
 
 **方法**
-- 旧分支的 `fcfbb02a` 是导入的快照，与基线没有共同历史，含上游 6 月之后的内容；其后 132 个提交（没有合并）是 Margin 自己写的。
-- 每行用 `git blame -w -M -C -C fcfbb02a..b8ade3f7` 找到最初写入的提交（`analyze_all.py`），挪动或拆分的代码也能追到原处。快照中且基线同一文件里没有的行按上游内容处理（可能有 6 月前的上游代码，但无法证明）。
-- Margin 写的行若与受限上游字面相同（`provenance-check.mjs --target b8ade3f7`），记为命中，须改写或排除。12 个字符以下的行不计入有效行，与来源扫描一致。
-- 归类（`build_reuse_list.py`）：
-  - **整文件引入**：新文件，没有快照中的非基线行，Margin 行命中不超过 3 处（通用写法）。
-  - **改写命中行后引入**：快照中的非基线行不超过有效行的 10%，命中不超过 3 处或 Margin 行的 10%。
-  - **取 Margin 改动**、**取改动并改写**：同上两类，但文件主体是基线文件，只取 Margin 在其上的改动，合入本分支已改过的同名文件。
-  - **只取片段**：不满足以上条件，但有至少 15 行干净的 Margin 行；只能取 `reuse-ranges.md` 列出的行段。
+- 旧分支的 `fcfbb02a` 是导入的快照，与基线没有共同历史，含上游 6 月之后的内容；其后 132 个提交（没有合并）是 Margin 自己的提交。
+- 每行用 `git blame -w -M -C -C fcfbb02a..b8ade3f7` 追踪**当前行由哪个提交最后修改**，`-M -C` 辅助识别移动和复制。这不能证明一行最初由谁写：Margin 提交里改过的上游行也会归到 Margin。下文的"Margin 行"只表示 blame 归属，都是待审候选。
+- 每行再做以下检查（`analyze_all.py`）：
+  - **命中**：Margin 行与受限上游字面相同。
+  - **近似快照行**：Margin 行抹掉标识符、字符串和数字后，与该文件快照版本中的上游行（快照有、基线同一文件没有）形状相同，且一半以上的标识符和字符串相同。用来抓"只改了变量名的上游行"；改动更大的改写仍然查不出。
+  - **快照行**：blame 归到快照、基线同一文件又没有的行，按上游内容处理（可能有 6 月前的上游代码，但无法证明）。现在逐行列出行号。
+  - **分叉时的上游行数**：文件在快照里有多少基线没有的行（跟随改名）。大于 0 时，Margin 的改动是在上游派生代码里改的，审查要看对应提交的 diff、父版本和完整函数，不能只看最后留下的行；表中标"看 diff"。
+- **扫描覆盖**按文件记录：`text-scanned`（扩展名在上游池内）；`ext-not-covered`（上游池不含 `.json`、`.svg`、`.txt` 等扩展名，这类文件没有命中也不说明比对过）；`excluded`（扫描配置排除的路径）；`asset`（二进制，或 PDF、DOCX、图片、字体等资产）。12 个字符以下的短行从不扫描，单列为"短行"，不计入候选行。
+- **归类**（`build_reuse_list.py`）。阈值只用来估计工作量和安排审查顺序，不决定哪些来源不明的行可以留下：
+  - **整文件候选**：新文件，命中、近似快照行、快照行和分叉时的上游行全为 0，扩展名已扫描。仍要逐行审查。
+  - **处置标出行后引入**：快照行不超过有效行的 10%，命中加近似快照行不超过 3 处或 Margin 行的 10%。
+  - **取 Margin 改动（候选）**、**取 Margin 改动并处置标出行**：同上两类，但文件主体是基线文件，只取 Margin 在其上的改动。
+  - **只取片段**：至少 15 行未标出的 Margin 行。这只说明值得人工看，不说明这些行能组成可独立搬用的函数。
+  - **资产待审**：Margin 提交改过的资产，按生成方式、来源和哈希人工确认，确认前不按行数归类。
+  - **未扫描，人工审查**：扩展名不在上游池内的文本文件。
   - 低于这些条件的文件不列入。
-- **缺少的依赖**：文件的相对导入中，本分支没有、旧 Margin 里又不可引入的文件。有这一项的文件须先自写依赖或改写导入。
+- **依赖**：解析相对导入、`@/` 等路径别名、只为副作用的 `import`、`export … from`、测试按路径加载的构建文件（`dist-electron/electron/*.js` 对应 `electron/*.ts`）和 npm 包。对照本分支 `0769715e` 标出状态：
+
+  | 状态 | 含义 |
+  | --- | --- |
+  | 与本分支相同 | 同一 blob，表中不列 |
+  | 待核对字段 | 本分支有同名文件，导入的名字都已导出，但字段和行为没有核对；不等于接口兼容 |
+  | 需适配 | 本分支有同名文件，但缺少导入的名字，或读代码确认接口不同 |
+  | 计划引入 | 本分支没有，旧版本身是剩余 ticket 的候选；不是本 ticket 的会注明由哪张提供 |
+  | 改接本分支实现 | 本分支没有，阶段 1–3 已用别的写法实现，改为调用本分支的实现 |
+  | 已退役，删调用 | 依赖已按 S6、S33 退役 |
+  | 须自写 | 本分支没有，旧版也不能引入（只取片段、来源受限或不在清单内） |
+  | 本分支未声明的 npm 包、未解析 | `package.json` 没有声明（如 `esbuild` 只是间接安装）；或导入路径没能解析 |
+
+  表中只写前 5 项，其余见 `reuse-ranges.md`。"跨票"列是沿"计划引入"的依赖一路追下去、需要其他剩余 ticket 提供的内容。
+- **ticket 归属**由脚本里按顺序匹配的路径规则给出，只表示**主负责 ticket**；跨票依赖另列，涉及几张票的测试在各 ticket 说明里写明怎么验收。
 
 **引入时的要求**（与 S28、S35 一致）
-- 本清单只说明可以考虑引入的内容，不代替审查。每个文件或片段引入前逐行审查，在 PROVENANCE 登记旧 Margin 提交、路径、行段和所做检查，并通过 G2。
-- 命中行一律改写，不加白名单；"可能以上游为模板"的文件要判断整体结构，必要时整体重写。
+- 本清单只说明可以考虑的候选，不代替审查。每个文件或片段引入前逐行审查，在 PROVENANCE 登记旧 Margin 提交、路径、行段和所做检查，并通过 G2。
+- 命中行、近似快照行和快照行都要逐行处置：确认属于上游派生的，按获准来源和行为需求重新实现，不加白名单，也不能改到扫描不命中为止。"可能以上游为模板"的文件要判断整体结构，必要时整体重写。
+- 短行随所在函数一起审查，不因没扫描就当作干净。
+- "待核对字段"的依赖，引入前要对照本分支实现核对字段和行为。
 - 测试随被测代码一起引入；只检查源码字符串的旧测试按 S27 改为行为测试。
-- 漏报边界同 X1：改写过的上游代码、12 个字符以下的行、二进制资产查不出来。
+- 仍查不出的情况：改动较大的上游改写、短行、资产内容和上游池未覆盖的扩展名。这些已写进每个文件的扫描状态，不能默认可引入。
 
-**总览**（"干净的 Margin 行"为 Margin 写且未命中的有效行，包括只取片段的文件）
+**总览**（"未命中候选行"是 Margin 行中既没命中、也不是近似快照行的有效行，包括只取片段的文件；它是待审数量，不是已审可用的代码量）
 
-| 归属 | 文件（其中测试） | 整文件引入 | 改写后引入 | 取 Margin 改动 | 取改动并改写 | 只取片段 | 本分支已有 | 干净的 Margin 行 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| AG-40 | 44（30） | 0 | 7 | 16 | 7 | 14 | 0 | 3232 |
-| AG-41 | 21（11） | 0 | 9 | 3 | 3 | 6 | 0 | 2409 |
-| AG-42 | 22（11） | 1 | 3 | 5 | 0 | 13 | 0 | 2091 |
-| AG-50 | 9（5） | 5 | 1 | 0 | 0 | 3 | 0 | 384 |
-| AG-51 | 10（8） | 0 | 2 | 1 | 0 | 7 | 0 | 556 |
-| AG-60 | 23（4） | 2 | 2 | 4 | 3 | 12 | 0 | 1653 |
-| AG-61 | 13（6） | 0 | 4 | 3 | 0 | 6 | 0 | 857 |
-| AG-62 | 25（8） | 1 | 10 | 2 | 1 | 11 | 0 | 2045 |
-| 阶段 7（Windows） | 4（2） | 1 | 1 | 0 | 0 | 2 | 0 | 119 |
-| 混合文件 | 5（0） | 0 | 0 | 0 | 0 | 5 | 0 | 809 |
-| 阶段 1–3 已完成范围 | 117（47） | 18 | 29 | 8 | 10 | 38 | 14 | 7521 |
-| 已退役 | 47（27） | 5 | 11 | 3 | 4 | 24 | 0 | 2970 |
-| 不属于剩余 ticket | 28（8） | 10 | 5 | 1 | 1 | 11 | 0 | 3334 |
+| 归属 | 文件（其中测试） | 整文件候选 | 取 Margin 改动（候选） | 处置标出行后引入 | 取 Margin 改动并处置标出行 | 只取片段 | 资产待审 | 未扫描，人工审查 | 本分支已有 | 未命中候选行 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AG-40 | 44（30） | 0 | 12 | 7 | 11 | 14 | 0 | 0 | 0 | 3227 |
+| AG-41 | 21（11） | 0 | 1 | 9 | 5 | 6 | 0 | 0 | 0 | 2407 |
+| AG-42 | 22（11） | 0 | 4 | 4 | 1 | 13 | 0 | 0 | 0 | 2024 |
+| AG-50 | 9（5） | 2 | 0 | 2 | 0 | 3 | 2 | 0 | 0 | 363 |
+| AG-51 | 10（8） | 0 | 0 | 2 | 1 | 7 | 0 | 0 | 0 | 536 |
+| AG-60a | 3（0） | 0 | 0 | 1 | 0 | 2 | 0 | 0 | 0 | 929 |
+| AG-60 | 20（4） | 2 | 3 | 1 | 4 | 10 | 0 | 0 | 0 | 715 |
+| AG-61 | 13（6） | 0 | 2 | 4 | 1 | 6 | 0 | 0 | 0 | 855 |
+| AG-62 | 24（7） | 1 | 0 | 10 | 2 | 9 | 0 | 2 | 0 | 2010 |
+| 阶段 7 | 4（2） | 1 | 0 | 1 | 0 | 2 | 0 | 0 | 0 | 111 |
+| 混合文件 | 5（0） | 0 | 0 | 0 | 0 | 5 | 0 | 0 | 0 | 799 |
+| 阶段 1–3 已完成范围 | 115（44） | 7 | 3 | 37 | 11 | 36 | 5 | 1 | 15 | 6279 |
+| 已退役 | 47（27） | 1 | 1 | 15 | 6 | 24 | 0 | 0 | 0 | 2861 |
+| 不属于剩余 ticket | 27（7） | 3 | 0 | 12 | 1 | 10 | 0 | 1 | 0 | 3280 |
+
+
+剩余 ticket、阶段 7 和混合文件共 175 个候选文件：未命中候选行 13,976 行；须处置的命中 1,514 行、近似快照行 142 行、快照行 15,200 行；69 个文件分叉时含上游内容（看 diff）；另有 2,745 行短行未扫描。上一版是 368 个文件，这版少 4 个：上一版把快照自带、Margin 没改过的二进制资产也算了进来。上一版列为"整文件引入"的文件中，`directAssistAnswerState.ts`（1 处命中）、`promptAssembly.ts`（1 处命中）等改为"处置标出行后引入"。
+
+**建议顺序**
+- **AG-60a（共享基础）先做**：先定下翻译接口（`i18n.tsx`、`i18n.zh.ts`）和设置组件契约（`SettingsKit.tsx`）。AG-41、AG-50、AG-61、AG-62 的设置界面和 AG-60 的其余界面都依赖它（见各表"跨票"列）。音频和 STT 后端（AG-40、AG-41 的非界面部分）不等它，可以先做。
+- 其余仍按 §6 阶段表的依赖。要并行时各用一个工作树，并另外征得用户同意。
 
 **AG-40**
 
-- **可直接用的核心**：`MeetingSttSession.ts`（双路 STT 的创建、重配和有界尾段排空）及其测试；`osEventSubscriptions.ts`（睡眠、唤醒和显示器变化事件；有效行 40 行中 38 行为 Margin 写的、无命中，另 2 行来自快照，须改写）。
-- **只能取片段**：`MeetingAudioPipeline.ts` 是旧 Margin 的音频主管线，Margin 写了 1409 行，但其中 459 行与受限上游相同，另有 384 行来自快照，必须按需求重写。它的测试 `MeetingAudioPipelineRaces.test.mjs`（Margin 写 373 行，5 处命中）可作为重写时的行为规格。
+- **核心候选**：`MeetingSttSession.ts`（双路 STT 的创建、重配和有界尾段排空）：Margin 行 188 行，15 行命中、2 行快照行，处置后引入。它的测试按路径加载 AG-41 的 STT 类，要等 AG-41 的五家实现就绪后联合验收，或在 AG-40 用替身。`osEventSubscriptions.ts`（睡眠、唤醒和显示器变化事件）：38 行候选、无命中，另 2 行快照行（行号见 `reuse-ranges.md`），这两行须处置。
+- **只能取片段**：`MeetingAudioPipeline.ts` 是旧 Margin 的音频主管线，Margin 行 1409 行，其中 459 行命中，另有 384 行快照行，必须按需求重写。它的测试 `MeetingAudioPipelineRaces.test.mjs`（Margin 行 373 行，5 处命中）可作为重写时的行为规格。
 - **停止顺序**：`Mg21StopConsumer` 测试描述旧 Margin 的五步停止；其中停止自动回答和 Judge 的两步已随 S33 删除，引入时去掉。
-- **依赖**：`AudioDevices.ts` 的改动依赖上游的 `audioDeviceSelection.mjs`，需要自写设备过滤。
-- 标为"取 Margin 改动"的测试多是对基线测试的几行修改，本分支对应的被测代码改了才需要合入。
+- **依赖**：`AudioDevices.ts` 的改动依赖上游的 `audioDeviceSelection.mjs`（须自写设备过滤），且文件在分叉时含 17 行上游内容，要看 diff。
+- 标为"取 Margin 改动（候选）"的测试多是对基线测试的几行修改，本分支对应的被测代码改了才需要合入。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/audio/MeetingSttSession.ts` | 改写命中行后引入 | 188/190 | 15 | 2 | — |
-| `electron/osEventSubscriptions.ts` | 改写命中行后引入 | 38/40 | 0 | 2 | — |
-| `native-module/src/microphone.rs` | 取 Margin 改动 | 18/303 | 2 | 0 | — |
-| `electron/audio/AudioDevices.ts` | 取 Margin 改动并改写命中行 | 42/48 | 1 | 1 | `electron/audio/audioDeviceSelection.mjs` |
-| `src/components/ui/RollingTranscript.tsx` | 取 Margin 改动并改写命中行 | 3/42 | 2 | 3 | `src/i18n.tsx` |
-| `electron/IntelligenceManager.ts` | 只取片段 | 26/270 | 0 | 90 | — |
-| `electron/SessionTracker.ts` | 只取片段 | 163/732 | 1 | 236 | — |
-| `electron/audio/AudioSettingsTestSession.ts` | 只取片段 | 209/209 | 58 | 0 | — |
-| `electron/audio/MeetingAudioPipeline.ts` | 只取片段 | 1409/1793 | 459 | 384 | — |
-| `electron/audio/TranscriptDisplayThrottle.ts` | 只取片段 | 30/38 | 8 | 8 | — |
-| `electron/audio/screenCapturePermissions.ts` | 只取片段 | 19/279 | 0 | 260 | — |
-| `electron/ipc/interviewSessionHandlers.ts` | 只取片段 | 101/101 | 47 | 0 | — |
-| `electron/lifecycle/intelligenceEventBridge.ts` | 只取片段 | 168/191 | 39 | 23 | — |
-| `native-module/src/lib.rs` | 只取片段 | 17/538 | 0 | 191 | — |
+| `electron/audio/MeetingSttSession.ts` | 处置标出行后引入 | 173/190 | 15 / 0 / 2 | — | — |
+| `electron/osEventSubscriptions.ts` | 处置标出行后引入 | 38/40 | 0 / 0 / 2 | — | — |
+| `electron/audio/AudioDevices.ts` | 取 Margin 改动并处置标出行 | 41/48 | 1 / 0 / 1，看 diff | `audioDeviceSelection.mjs` 须自写；1 项待核对字段 | — |
+| `native-module/src/microphone.rs` | 取 Margin 改动并处置标出行 | 16/303 | 2 / 0 / 0 | — | — |
+| `src/components/ui/RollingTranscript.tsx` | 取 Margin 改动并处置标出行 | 1/42 | 2 / 0 / 3，看 diff | `i18n.tsx` 须自写，AG-60a | AG-60a |
+| `electron/IntelligenceManager.ts` | 只取片段 | 26/270 | 0 / 0 / 90，看 diff | `SessionTracker.ts` 需适配；`turnIdentity.ts` 改接本分支实现；`DynamicAction.ts` 已退役，删调用；`LiveTranscriptBrain.ts` 须自写；`transcriptQuestionExtractor.ts` 改接本分支实现；另 1 项；3 项待核对字段 | — |
+| `electron/SessionTracker.ts` | 只取片段 | 162/732 | 1 / 0 / 236，看 diff | `turnIdentity.ts` 改接本分支实现；`punctuationProvenance.ts` 改接本分支实现；`promptSystemV2.ts` 改接本分支实现；`interimInjectionGuard.ts` 改接本分支实现；2 项待核对字段 | — |
+| `electron/audio/AudioSettingsTestSession.ts` | 只取片段 | 151/209 | 58 / 0 / 0 | `screenCapturePermissions.ts` 须自写；2 项待核对字段 | — |
+| `electron/audio/MeetingAudioPipeline.ts` | 只取片段 | 950/1793 | 459 / 0 / 384 | `systemAudioHealthClassifier.mjs` 须自写；`audioDeviceSelection.mjs` 须自写；`screenCapturePermissions.ts` 须自写；`speechEdge.ts` 须自写；`MeetingSttSession.ts` 计划引入；5 项待核对字段 | — |
+| `electron/audio/TranscriptDisplayThrottle.ts` | 只取片段 | 22/38 | 8 / 0 / 8 | — | — |
+| `electron/audio/screenCapturePermissions.ts` | 只取片段 | 19/279 | 0 / 0 / 260 | — | — |
+| `electron/ipc/interviewSessionHandlers.ts` | 只取片段 | 54/101 | 47 / 0 / 0 | `SearchOrchestrator.ts` 须自写；1 项待核对字段 | — |
+| `electron/lifecycle/intelligenceEventBridge.ts` | 只取片段 | 129/191 | 39 / 0 / 23 | — | — |
+| `native-module/src/lib.rs` | 只取片段 | 17/538 | 0 / 0 / 191，看 diff | — | — |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs` | 改写命中行后引入 | 373/375 | 5 | 2 | — |
-| `electron/audio/__tests__/MeetingSttSession.test.mjs` | 改写命中行后引入 | 171/173 | 0 | 2 | — |
-| `electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs` | 改写命中行后引入 | 45/48 | 1 | 3 | — |
-| `electron/lifecycle/__tests__/intelligenceEventBridge.test.mjs` | 改写命中行后引入 | 118/118 | 5 | 0 | — |
-| `electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs` | 改写命中行后引入 | 100/106 | 2 | 6 | — |
-| `electron/audio/__tests__/BeforeQuitShutdownRace.test.mjs` | 取 Margin 改动 | 9/74 | 0 | 0 | — |
-| `electron/audio/__tests__/DefaultOutputWatcherEpoch.test.mjs` | 取 Margin 改动 | 2/51 | 0 | 0 | — |
-| `electron/audio/__tests__/ForwardLogHardening.test.mjs` | 取 Margin 改动 | 9/12 | 1 | 0 | — |
-| `electron/audio/__tests__/IpcOnIdempotency.test.mjs` | 取 Margin 改动 | 7/24 | 0 | 0 | — |
-| `electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs` | 取 Margin 改动 | 3/62 | 0 | 0 | — |
-| `electron/audio/__tests__/ReconnectStormCap.test.mjs` | 取 Margin 改动 | 42/50 | 0 | 0 | — |
-| `electron/audio/__tests__/SystemAudioRecoveryRouteChangeMutex.test.mjs` | 取 Margin 改动 | 3/116 | 0 | 0 | — |
-| `electron/audio/__tests__/TokenBatchFlushNoTrailing.test.mjs` | 取 Margin 改动 | 1/72 | 0 | 0 | — |
-| `electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs` | 取 Margin 改动 | 139/141 | 3 | 0 | — |
-| `electron/services/__tests__/MicRecoveryEmitsTerminalIpc.test.mjs` | 取 Margin 改动 | 1/175 | 0 | 0 | — |
-| `electron/services/__tests__/RestartCapturesAfterResumeResetsCounters.test.mjs` | 取 Margin 改动 | 2/172 | 0 | 0 | — |
-| `electron/services/__tests__/SetupSystemAudioPipelineConstructionGuards.test.mjs` | 取 Margin 改动 | 1/227 | 0 | 0 | — |
-| `electron/services/__tests__/SetupSystemAudioPipelinePermissionAlwaysChecked.test.mjs` | 取 Margin 改动 | 1/235 | 0 | 0 | — |
-| `electron/services/__tests__/SttAwaitingAudioInitialState.test.mjs` | 取 Margin 改动 | 4/125 | 0 | 0 | — |
-| `electron/services/__tests__/StuckWatchdogTwelveSeconds.test.mjs` | 取 Margin 改动 | 5/153 | 0 | 0 | — |
-| `electron/audio/__tests__/AudioStatusBroadcastTargeting.test.mjs` | 取 Margin 改动并改写命中行 | 24/73 | 0 | 6 | — |
-| `electron/audio/__tests__/EndMeetingAbortsInFlightInit.test.mjs` | 取 Margin 改动并改写命中行 | 26/32 | 0 | 1 | — |
-| `electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs` | 取 Margin 改动并改写命中行 | 11/118 | 0 | 7 | — |
-| `electron/services/__tests__/AudioInitPromiseClearedInFinally.test.mjs` | 取 Margin 改动并改写命中行 | 26/124 | 0 | 2 | — |
-| `electron/services/__tests__/MainTeardown.test.mjs` | 取 Margin 改动并改写命中行 | 6/24 | 0 | 1 | — |
-| `electron/audio/__tests__/AudioDevicesAsyncBoundary.test.mjs` | 只取片段 | 144/149 | 18 | 5 | — |
-| `electron/audio/__tests__/MeetingLifecycleDbLiveness2026_08_07.test.mjs` | 只取片段 | 24/160 | 2 | 136 | — |
-| `electron/audio/__tests__/MeetingLifecycleSerialization2026_08_07.test.mjs` | 只取片段 | 71/302 | 1 | 231 | — |
-| `electron/services/__tests__/OsEventSubscriptions2026_09_27.test.mjs` | 只取片段 | 53/61 | 2 | 8 | — |
-| `src/components/__tests__/MeetingStartFailureConsumer2026_09_27.test.mjs` | 只取片段 | 52/59 | 0 | 7 | — |
+| `electron/audio/__tests__/BeforeQuitShutdownRace.test.mjs` | 取 Margin 改动（候选） | 9/74 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/IpcOnIdempotency.test.mjs` | 取 Margin 改动（候选） | 7/24 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs` | 取 Margin 改动（候选） | 3/62 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/ReconnectStormCap.test.mjs` | 取 Margin 改动（候选） | 42/50 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/SystemAudioRecoveryRouteChangeMutex.test.mjs` | 取 Margin 改动（候选） | 3/116 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/TokenBatchFlushNoTrailing.test.mjs` | 取 Margin 改动（候选） | 1/72 | 0 / 0 / 0 | — | — |
+| `electron/services/__tests__/MicRecoveryEmitsTerminalIpc.test.mjs` | 取 Margin 改动（候选） | 1/175 | 0 / 0 / 0 | `MeetingAudioPipeline.ts` 须自写 | — |
+| `electron/services/__tests__/RestartCapturesAfterResumeResetsCounters.test.mjs` | 取 Margin 改动（候选） | 2/172 | 0 / 0 / 0 | `MeetingAudioPipeline.ts` 须自写 | — |
+| `electron/services/__tests__/SetupSystemAudioPipelineConstructionGuards.test.mjs` | 取 Margin 改动（候选） | 1/227 | 0 / 0 / 0 | `MeetingAudioPipeline.ts` 须自写 | — |
+| `electron/services/__tests__/SetupSystemAudioPipelinePermissionAlwaysChecked.test.mjs` | 取 Margin 改动（候选） | 1/235 | 0 / 0 / 0 | `MeetingAudioPipeline.ts` 须自写 | — |
+| `electron/services/__tests__/SttAwaitingAudioInitialState.test.mjs` | 取 Margin 改动（候选） | 4/125 | 0 / 0 / 0 | `interviewSessionBridge.ts` 须自写；`electronAPI.ts` 须自写；2 项待核对字段 | — |
+| `electron/services/__tests__/StuckWatchdogTwelveSeconds.test.mjs` | 取 Margin 改动（候选） | 5/153 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs` | 处置标出行后引入 | 368/375 | 5 / 0 / 2 | — | — |
+| `electron/audio/__tests__/MeetingSttSession.test.mjs` | 处置标出行后引入 | 171/173 | 0 / 0 / 2 | `MeetingSttSession.ts` 计划引入；`AliyunStreamingSTT.ts` 计划引入，AG-41；`DoubaoStreamingSTT.ts` 计划引入，AG-41；1 项待核对字段 | AG-41 |
+| `electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs` | 处置标出行后引入 | 44/48 | 1 / 0 / 3 | — | — |
+| `electron/lifecycle/__tests__/intelligenceEventBridge.test.mjs` | 处置标出行后引入 | 113/118 | 5 / 0 / 0 | `intelligenceEventBridge.ts` 须自写 | — |
+| `electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs` | 处置标出行后引入 | 98/106 | 2 / 0 / 6 | `meetingLifecycleQueue.ts` 须自写；1 项待核对字段 | — |
+| `electron/audio/__tests__/AudioStatusBroadcastTargeting.test.mjs` | 取 Margin 改动并处置标出行 | 24/73 | 0 / 0 / 6，看 diff | — | — |
+| `electron/audio/__tests__/DefaultOutputWatcherEpoch.test.mjs` | 取 Margin 改动并处置标出行 | 2/51 | 0 / 0 / 0，看 diff | — | — |
+| `electron/audio/__tests__/EndMeetingAbortsInFlightInit.test.mjs` | 取 Margin 改动并处置标出行 | 26/32 | 0 / 0 / 1，看 diff | `MeetingAudioPipeline.ts` 须自写；1 项待核对字段 | — |
+| `electron/audio/__tests__/ForwardLogHardening.test.mjs` | 取 Margin 改动并处置标出行 | 8/12 | 1 / 0 / 0 | — | — |
+| `electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs` | 取 Margin 改动并处置标出行 | 10/118 | 0 / 1 / 7，看 diff | — | — |
+| `electron/services/__tests__/AudioInitPromiseClearedInFinally.test.mjs` | 取 Margin 改动并处置标出行 | 26/124 | 0 / 0 / 2，看 diff | — | — |
+| `electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs` | 取 Margin 改动并处置标出行 | 136/141 | 3 / 0 / 0 | `AudioSettingsTestSession.ts` 须自写；`interviewSessionBridge.ts` 须自写；`electronAPI.ts` 须自写；`SpeechTranscriptionSettings.tsx` 须自写，AG-41；1 项待核对字段 | AG-41 |
+| `electron/services/__tests__/MainTeardown.test.mjs` | 取 Margin 改动并处置标出行 | 6/24 | 0 / 0 / 1，看 diff | — | — |
+| `electron/audio/__tests__/AudioDevicesAsyncBoundary.test.mjs` | 只取片段 | 126/149 | 18 / 0 / 5 | `audioDeviceSelection.mjs` 须自写 | — |
+| `electron/audio/__tests__/MeetingLifecycleDbLiveness2026_08_07.test.mjs` | 只取片段 | 21/160 | 2 / 1 / 136，看 diff | `meetingLifecycleQueue.ts` 须自写；1 项待核对字段 | — |
+| `electron/audio/__tests__/MeetingLifecycleSerialization2026_08_07.test.mjs` | 只取片段 | 67/302 | 1 / 3 / 231，看 diff | 1 项待核对字段 | — |
+| `electron/services/__tests__/OsEventSubscriptions2026_09_27.test.mjs` | 只取片段 | 51/61 | 2 / 0 / 8 | `osEventSubscriptions.ts` 计划引入；3 项待核对字段 | — |
+| `src/components/__tests__/MeetingStartFailureConsumer2026_09_27.test.mjs` | 只取片段 | 52/59 | 0 / 0 / 7 | — | — |
 
 **AG-41**
 
 - **按 S35 第 1 条只保留五家**：OpenAI、Soniox、Groq（`RestSTT` 分段转写）、阿里云百炼、豆包；删除 Google、Deepgram、ElevenLabs。
-- **可整体替换**：`stt.constants.ts`（五家列表、设置校验、豆包热词）。基线已有同名文件，但 66 行全部由 Margin 重写，命中的 1 处为通用写法，表中因此记为"取 Margin 改动"。
-- **改写后可用**：`sttHandlers.ts`（缺少 `requestSafety.ts` 的 `validateSttBaseUrl`，需补写）、`SpeechProviderSettings.tsx`（依赖 `i18n.tsx`，见 AG-60）、`AliyunStreamingSTT.ts`、`DoubaoStreamingSTT.ts`。阿里云和豆包的缓冲上限、裁剪等行与上游后期 STT 类字面相同，可能以其为模板（PROVENANCE 不允许），引入前须判断整体结构。
-- **只取 Margin 改动**：`OpenAIStreamingSTT.ts` 去掉 `wsSafeTeardown` 和 F-201 相关部分（来自上游）；`RestSTT.ts` 的 9 处命中逐处确认。
+- `stt.constants.ts`（五家列表、设置校验、豆包热词）：基线已有同名文件，66 行全为 Margin 行，1 处命中，分叉时含 1 行上游内容，按"取 Margin 改动并处置标出行"处理。本分支同名文件缺少 `isSttProvider`、`validateSttSettings`、`serializeDoubaoHotwordContext`，`sttHandlers.ts` 和豆包类引用它们时标为"需适配"。
+- `sttHandlers.ts`：缺少 `requestSafety.ts` 的 `validateSttBaseUrl`，须自写。`SpeechProviderSettings.tsx` 依赖 `i18n.tsx`，等 AG-60a。
+- **阿里云和豆包的 STT 类保持来源待审**：命中分别为 14、18 行，快照行分别为 25、20 行；缓冲上限、裁剪等行与上游后期 STT 类字面相同，可能以其为模板（PROVENANCE 不允许）。不能按命中比例当作"改几行即可用"，引入前要整体审查缓冲、重连、终止排空和事件顺序。
+- **两家的缓冲上限不是严格上限**（Astra 发现，已核对）：`enqueue()` 的裁剪条件含 `this.buffer.length > 1`（阿里云第 412 行、豆包第 476 行），队列只剩一个超大块时不裁剪；`write()` 排队前也不限制单块大小。1 MiB 的单块会原样保留，超过声明的 160 KiB。AG-41 重写时要加超大单块测试，并在拒绝、分块、按 PCM 帧边界裁剪三种处理中选定一种。
+- `OpenAIStreamingSTT.ts` 只取 Margin 改动，去掉 `wsSafeTeardown` 和 F-201 相关部分（来自上游），分叉时含 14 行上游内容，要看 diff；`RestSTT.ts` 的 9 处命中逐处处置。
 - **测试**：`MeetingStartAudioGate` 中"面试未配置 STT 凭据时不开始麦克风和音频"的用例正对应 AG-41，其中的 Local Context 预热用例按 S33 删除；`OpenAIRealtimeGAProtocol` 的 Margin 片段可用于恢复 AG-17 跳过的 4 个用例。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/audio/AliyunStreamingSTT.ts` | 改写命中行后引入 | 330/355 | 14 | 25 | — |
-| `electron/audio/DoubaoStreamingSTT.ts` | 改写命中行后引入 | 425/445 | 18 | 20 | — |
-| `electron/ipc/sttHandlers.ts` | 改写命中行后引入 | 44/45 | 0 | 1 | `electron/utils/requestSafety.ts` |
-| `src/components/settings/SpeechProviderSettings.tsx` | 改写命中行后引入 | 70/70 | 6 | 0 | `src/i18n.tsx` |
-| `electron/config/languages.ts` | 取 Margin 改动 | 7/67 | 0 | 0 | — |
-| `src/config/stt.constants.ts` | 取 Margin 改动 | 66/66 | 1 | 0 | — |
-| `electron/audio/OpenAIStreamingSTT.ts` | 取 Margin 改动并改写命中行 | 224/680 | 1 | 15 | `electron/audio/wsSafeTeardown.ts`, `electron/utils/requestSafety.ts` |
-| `electron/audio/RestSTT.ts` | 取 Margin 改动并改写命中行 | 154/397 | 9 | 0 | — |
-| `electron/audio/SonioxStreamingSTT.ts` | 只取片段 | 91/424 | 2 | 76 | — |
-| `src/components/settings/SpeechTranscriptionSettings.tsx` | 只取片段 | 90/386 | 4 | 296 | — |
+| `electron/audio/AliyunStreamingSTT.ts` | 处置标出行后引入 | 316/355 | 14 / 0 / 25 | 1 项待核对字段 | — |
+| `electron/audio/DoubaoStreamingSTT.ts` | 处置标出行后引入 | 407/445 | 18 / 0 / 20 | `AliyunStreamingSTT.ts` 计划引入；`stt.constants.ts` 需适配；1 项待核对字段 | — |
+| `electron/ipc/sttHandlers.ts` | 处置标出行后引入 | 44/45 | 0 / 0 / 1 | `stt.constants.ts` 需适配；`requestSafety.ts` 须自写；2 项待核对字段 | — |
+| `src/components/settings/SpeechProviderSettings.tsx` | 处置标出行后引入 | 64/70 | 6 / 0 / 0 | `stt.constants.ts` 需适配；`i18n.tsx` 须自写，AG-60a | AG-60a |
+| `electron/audio/OpenAIStreamingSTT.ts` | 取 Margin 改动并处置标出行 | 223/680 | 1 / 0 / 15，看 diff | `wsSafeTeardown.ts` 须自写；`requestSafety.ts` 须自写；3 项待核对字段 | — |
+| `electron/audio/RestSTT.ts` | 取 Margin 改动并处置标出行 | 145/397 | 9 / 0 / 0，看 diff | 1 项待核对字段 | — |
+| `electron/config/languages.ts` | 取 Margin 改动并处置标出行 | 7/67 | 0 / 0 / 0，看 diff | — | — |
+| `src/config/stt.constants.ts` | 取 Margin 改动并处置标出行 | 65/66 | 1 / 0 / 0，看 diff | — | — |
+| `electron/audio/SonioxStreamingSTT.ts` | 只取片段 | 89/424 | 2 / 0 / 76，看 diff | 2 项待核对字段 | — |
+| `src/components/settings/SpeechTranscriptionSettings.tsx` | 只取片段 | 86/386 | 4 / 0 / 296 | `i18n.tsx` 须自写，AG-60a；`SpeechProviderSettings.tsx` 计划引入；`SettingsKit.tsx` 须自写，AG-60a；`SettingsToggle.tsx` 须自写；1 项待核对字段 | AG-60a |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/audio/__tests__/DomesticStreamingLifecycle.test.mjs` | 改写命中行后引入 | 284/290 | 16 | 6 | — |
-| `electron/audio/__tests__/MeetingStartAudioGate2026_09_27.test.mjs` | 改写命中行后引入 | 95/102 | 0 | 7 | — |
-| `electron/audio/__tests__/SonioxRestProviderContract.test.mjs` | 改写命中行后引入 | 175/182 | 14 | 7 | — |
-| `electron/services/__tests__/SttHandlers.test.mjs` | 改写命中行后引入 | 108/112 | 5 | 4 | — |
-| `electron/services/__tests__/SttSettingsContract.test.mjs` | 改写命中行后引入 | 48/52 | 1 | 4 | — |
-| `electron/audio/__tests__/RestSttSafetyNetGate.test.mjs` | 取 Margin 改动 | 7/79 | 0 | 0 | — |
-| `electron/services/__tests__/SttApiKeyRedaction.test.mjs` | 取 Margin 改动并改写命中行 | 47/55 | 1 | 2 | — |
-| `electron/audio/__tests__/DoubaoProtocol.test.mjs` | 只取片段 | 40/46 | 0 | 6 | — |
-| `electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs` | 只取片段 | 170/665 | 7 | 79 | — |
-| `electron/services/__tests__/StaleSttConnectionGuards2026_08_18.test.mjs` | 只取片段 | 15/34 | 0 | 19 | — |
-| `src/components/__tests__/SpeechProviderBrandMarkCoverage.test.mjs` | 只取片段 | 18/21 | 0 | 3 | — |
+| `electron/audio/__tests__/RestSttSafetyNetGate.test.mjs` | 取 Margin 改动（候选） | 7/79 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/DomesticStreamingLifecycle.test.mjs` | 处置标出行后引入 | 268/290 | 16 / 0 / 6 | `esbuild` 本分支未声明的 npm 包；`AliyunStreamingSTT.ts` 计划引入；`DoubaoStreamingSTT.ts` 计划引入 | — |
+| `electron/audio/__tests__/MeetingStartAudioGate2026_09_27.test.mjs` | 处置标出行后引入 | 95/102 | 0 / 0 / 7 | — | — |
+| `electron/audio/__tests__/SonioxRestProviderContract.test.mjs` | 处置标出行后引入 | 161/182 | 14 / 0 / 7 | — | — |
+| `electron/services/__tests__/SttHandlers.test.mjs` | 处置标出行后引入 | 103/112 | 5 / 0 / 4 | `esbuild` 本分支未声明的 npm 包；`sttHandlers.ts` 计划引入；1 项待核对字段 | — |
+| `electron/services/__tests__/SttSettingsContract.test.mjs` | 处置标出行后引入 | 47/52 | 1 / 0 / 4 | `esbuild` 本分支未声明的 npm 包；`MeetingAudioPipeline.ts` 须自写，AG-40；`sttHandlers.ts` 计划引入；2 项待核对字段 | AG-40 |
+| `electron/services/__tests__/SttApiKeyRedaction.test.mjs` | 取 Margin 改动并处置标出行 | 46/55 | 1 / 0 / 2 | `providerSettingsHandlers.ts` 改接本分支实现；`sttHandlers.ts` 计划引入；`SpeechProviderSettings.tsx` 计划引入；1 项待核对字段 | AG-60a |
+| `electron/audio/__tests__/DoubaoProtocol.test.mjs` | 只取片段 | 40/46 | 0 / 0 / 6 | `DoubaoStreamingSTT.ts` 计划引入 | — |
+| `electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs` | 只取片段 | 162/665 | 7 / 1 / 79，看 diff | — | — |
+| `electron/services/__tests__/StaleSttConnectionGuards2026_08_18.test.mjs` | 只取片段 | 15/34 | 0 / 0 / 19，看 diff | — | — |
+| `src/components/__tests__/SpeechProviderBrandMarkCoverage.test.mjs` | 只取片段 | 17/21 | 0 / 1 / 3，看 diff | `SpeechTranscriptionSettings.tsx` 须自写；`SpeechProviderSettings.tsx` 计划引入；1 项待核对字段 | AG-60a |
 
 **AG-42**
 
-- **没有可整体搬用的手动回答实现**：`answerHandlers.ts`（Margin 写的 452 行中 202 行命中）、`answerActionHandlers.ts`、`directAssistValidation.ts`、`legacyChatHandlers.ts` 都只能取片段。
-- `DirectAssistService.ts`（旧 Margin 的回答服务，88 行，4 处命中）依赖的 `requestBuilder.ts`（732 行来自快照）和 `types.ts`（198 行来自快照）都是上游内容，不能引入；要用它就得先自写这两部分，并接到本分支阶段 3 的生成入口上。
-- `directAssistAnswerState.ts`（回答终态与身份匹配）可整文件引入。
+- **没有可整体搬用的手动回答实现**：`answerHandlers.ts`（Margin 行 452 行中 202 行命中）、`answerActionHandlers.ts`、`directAssistValidation.ts`、`legacyChatHandlers.ts` 都只能取片段。
+- **不以重建旧版 `requestBuilder.ts` 和 `types.ts` 为目标**。旧 `DirectAssistService.ts` 除这两个文件（几乎全是快照内容）外，还依赖旧的 `errors.ts`（须自写）、`answerGeneration.ts`（阶段 1–3 已另写，改接本分支实现）、`generateContract.ts` 中本分支没有的 `GenerateTurn`，以及旧版的 `AnswerGenerationInput` 和事件约定；只补那两个文件也接不通。做法：先按本分支阶段 3 的生成契约（`GenerateRequest`：`protocol`、`model`、`contents`、`dataScopes` 等）定义一层最小的请求和事件适配，再决定旧服务的哪些片段可用。
+- `directAssistAnswerState.ts`（回答终态与身份匹配）有 1 处命中，上一版误列为整文件引入，现为"处置标出行后引入"。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/lib/directAssistAnswerState.ts` | 整文件引入 | 43/43 | 1 | 0 | — |
-| `electron/direct-assist/DirectAssistService.ts` | 改写命中行后引入 | 88/93 | 4 | 5 | `electron/direct-assist/errors.ts`, `electron/direct-assist/requestBuilder.ts`, `electron/direct-assist/types.ts` |
-| `src/lib/overlayActionDedup.mjs` | 取 Margin 改动 | 3/31 | 0 | 0 | — |
-| `electron/IntelligenceEngine.ts` | 只取片段 | 402/1176 | 6 | 314 | — |
-| `electron/direct-assist/errors.ts` | 只取片段 | 33/99 | 0 | 66 | — |
-| `electron/ipc/answerActionHandlers.ts` | 只取片段 | 92/285 | 2 | 193 | — |
-| `electron/ipc/answerHandlers.ts` | 只取片段 | 452/460 | 202 | 8 | — |
-| `electron/ipc/directAssistValidation.ts` | 只取片段 | 236/273 | 150 | 37 | — |
-| `electron/ipc/legacyChatHandlers.ts` | 只取片段 | 115/155 | 0 | 40 | — |
-| `electron/preload/answerBridge.ts` | 只取片段 | 26/292 | 0 | 266 | — |
-| `src/components/NativelyInterface.tsx` | 只取片段 | 531/7388 | 11 | 4224 | — |
+| `src/lib/overlayActionDedup.mjs` | 取 Margin 改动（候选） | 3/31 | 0 / 0 / 0 | — | — |
+| `electron/direct-assist/DirectAssistService.ts` | 处置标出行后引入 | 84/93 | 4 / 0 / 5，看 diff | `errors.ts` 须自写；`requestBuilder.ts` 须自写；`answerGeneration.ts` 改接本分支实现；`generateContract.ts` 需适配；`types.ts` 须自写 | — |
+| `src/lib/directAssistAnswerState.ts` | 处置标出行后引入 | 42/43 | 1 / 0 / 0 | — | — |
+| `electron/IntelligenceEngine.ts` | 只取片段 | 386/1176 | 6 / 10 / 314，看 diff | `logicalGeneration.ts` 改接本分支实现；`FinalAnswerGenerationPolicy.ts` 改接本分支实现；`PrefetchBuffer.ts` 已退役，删调用；`types.ts` 须自写；`recapFollowUp.ts` 须自写；另 10 项；4 项待核对字段 | — |
+| `electron/direct-assist/errors.ts` | 只取片段 | 33/99 | 0 / 0 / 66，看 diff | `types.ts` 须自写 | — |
+| `electron/ipc/answerActionHandlers.ts` | 只取片段 | 90/285 | 2 / 0 / 193 | `screenshotCaptureOwnership.ts` 改接本分支实现；`ImageOptimizer.ts` 须自写；`TelemetryService.ts` 已退役，删调用；2 项待核对字段 | — |
+| `electron/ipc/answerHandlers.ts` | 只取片段 | 250/460 | 202 / 0 / 8 | `WrittenExamMode.ts` 须自写，AG-60；`index.ts` 须自写；`LocalContextStore.ts` 须自写；`screenshotCaptureOwnership.ts` 改接本分支实现；`answerActionHandlers.ts` 须自写；另 2 项；5 项待核对字段 | AG-60 |
+| `electron/ipc/directAssistValidation.ts` | 只取片段 | 86/273 | 150 / 0 / 37 | `local-build.json` 须自写；`CompleteCodeSkill.ts` 须自写；`screenshotCaptureOwnership.ts` 改接本分支实现；`index.ts` 须自写；`requestSafety.ts` 须自写；1 项待核对字段 | — |
+| `electron/ipc/legacyChatHandlers.ts` | 只取片段 | 115/155 | 0 / 0 / 40 | `index.ts` 须自写；`LocalContextStore.ts` 须自写；`screenshotCaptureOwnership.ts` 改接本分支实现；`directAssistValidation.ts` 须自写；5 项待核对字段 | — |
+| `electron/preload/answerBridge.ts` | 只取片段 | 26/292 | 0 / 0 / 266 | `electronAPI.ts` 须自写 | — |
+| `src/components/NativelyInterface.tsx` | 只取片段 | 501/7388 | 11 / 19 / 4224，看 diff | `CodeBlock.tsx` 须自写；`plainCodeText.ts` 须自写；`AutoAnswerManualStatus.tsx` 已退役，删调用；`windowsStealthInput.ts` 计划引入，阶段 7；`displayMarkup.ts` 须自写；另 24 项；9 项待核对字段 | AG-60、AG-60a、阶段 7 |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/services/__tests__/InterviewDirectAssist.test.mjs` | 改写命中行后引入 | 95/101 | 2 | 6 | — |
-| `electron/services/__tests__/MeetingAnswerBoundary2026_09_27.test.mjs` | 改写命中行后引入 | 64/67 | 1 | 3 | — |
-| `electron/audio/__tests__/LlmStreamAbortController.test.mjs` | 取 Margin 改动 | 21/89 | 1 | 0 | — |
-| `electron/audio/__tests__/ModelChangedTargeting.test.mjs` | 取 Margin 改动 | 4/45 | 0 | 0 | — |
-| `electron/audio/__tests__/NativelyInterfaceEffectDeps.test.mjs` | 取 Margin 改动 | 6/109 | 0 | 0 | — |
-| `src/lib/__tests__/overlayActionDedup.test.mjs` | 取 Margin 改动 | 6/67 | 0 | 0 | — |
-| `electron/llm/__tests__/DirectAssistCore2026_08_29.test.mjs` | 只取片段 | 77/86 | 0 | 9 | — |
-| `electron/services/__tests__/DirectAssistIpcBridge2026_08_29.test.mjs` | 只取片段 | 76/342 | 1 | 266 | — |
-| `electron/services/__tests__/ScreenshotOutranksTextDecline2026_08_19.test.mjs` | 只取片段 | 24/101 | 1 | 77 | — |
-| `src/lib/__tests__/DirectAssistAnswerState2026_09_27.test.mjs` | 只取片段 | 53/61 | 0 | 8 | — |
-| `src/lib/__tests__/directAssistRenderer2026_08_29.test.mjs` | 只取片段 | 26/339 | 0 | 313 | — |
+| `electron/audio/__tests__/ModelChangedTargeting.test.mjs` | 取 Margin 改动（候选） | 4/45 | 0 / 0 / 0 | — | — |
+| `electron/audio/__tests__/NativelyInterfaceEffectDeps.test.mjs` | 取 Margin 改动（候选） | 6/109 | 0 / 0 / 0 | — | — |
+| `src/lib/__tests__/overlayActionDedup.test.mjs` | 取 Margin 改动（候选） | 6/67 | 0 / 0 / 0 | 1 项待核对字段 | — |
+| `electron/services/__tests__/InterviewDirectAssist.test.mjs` | 处置标出行后引入 | 93/101 | 2 / 0 / 6 | 1 项待核对字段 | — |
+| `electron/services/__tests__/MeetingAnswerBoundary2026_09_27.test.mjs` | 处置标出行后引入 | 63/67 | 1 / 0 / 3 | `esbuild` 本分支未声明的 npm 包；`answerHandlers.ts` 须自写；`answerActionHandlers.ts` 须自写；`legacyChatHandlers.ts` 须自写 | — |
+| `electron/audio/__tests__/LlmStreamAbortController.test.mjs` | 取 Margin 改动并处置标出行 | 20/89 | 1 / 0 / 0，看 diff | `legacyChatHandlers.ts` 须自写；`answerBridge.ts` 须自写；`electronAPI.ts` 须自写；1 项待核对字段 | — |
+| `electron/llm/__tests__/DirectAssistCore2026_08_29.test.mjs` | 只取片段 | 75/86 | 0 / 2 / 9，看 diff | `DirectAssistService.ts` 计划引入；`promptAssembly.ts` 计划引入，AG-50 | AG-50 |
+| `electron/services/__tests__/DirectAssistIpcBridge2026_08_29.test.mjs` | 只取片段 | 42/342 | 1 / 33 / 266，看 diff | `answerHandlers.ts` 须自写；`directAssistValidation.ts` 须自写；`answerBridge.ts` 须自写；`configurationBridge.ts` 须自写；`electronAPI.ts` 须自写；另 2 项；3 项待核对字段 | — |
+| `electron/services/__tests__/ScreenshotOutranksTextDecline2026_08_19.test.mjs` | 只取片段 | 22/101 | 1 / 1 / 77，看 diff | `refusalPolicy.ts` 须自写；`DirectAssistService.ts` 计划引入；`legacyChatHandlers.ts` 须自写 | — |
+| `src/lib/__tests__/DirectAssistAnswerState2026_09_27.test.mjs` | 只取片段 | 53/61 | 0 / 0 / 8 | `directAssistAnswerState.ts` 计划引入；`answerActionHandlers.ts` 须自写；`answerBridge.ts` 须自写；`interviewSessionBridge.ts` 须自写；`intelligenceEventBridge.ts` 须自写，AG-40；3 项待核对字段 | AG-40 |
+| `src/lib/__tests__/directAssistRenderer2026_08_29.test.mjs` | 只取片段 | 24/339 | 0 / 2 / 313，看 diff | `directAssistWhatToSayPayload.mjs` 须自写 | — |
 
 **AG-50**
 
-- **可整文件用**：`promptAssembly.ts`（把 Local Context 和本次引用放进请求）和 `promptBudget.ts`（按目标模型容量检查是否放得下），以及 `PromptBudget` 测试和 `tests/fixtures/documents/` 的合成文档。`promptBudget.ts` 依赖的 `modelTargetCapabilities.ts` 属于阶段 3 范围（也是 Margin 写的），按本分支的容量逻辑调整。
+- `promptAssembly.ts`（把 Local Context 和本次引用放进请求）：1 处命中，依赖本分支没有的 `GenerateTurn`（需适配）。
+- `promptBudget.ts`（按目标模型容量检查是否放得下）：来源信号全为 0，是整文件候选，但**工程上不能原样引入**。它依赖的 `modelTargetCapabilities.ts` 本分支没有（阶段 1–3 已用别的写法实现），并读取 `request.target`、`request.turns`；本分支的 `GenerateRequest` 是 `protocol`、`model`、`contents`、`dataScopes` 等字段，没有这两个。要按本分支的容量逻辑和请求结构改写后接入。
+- **合成文档按资产审查**：`tests/fixtures/documents/synthetic.pdf`（blob `171e30539f1d`，907 字节）和 `synthetic.docx`（blob `5978c31d0a08`，887 字节）都由 Margin 提交 `3f2e94d8` 加入。旧 README 说明它们是构造的文档（PDF 1.4 对象和标准 Helvetica 字体；最小的 Open XML ZIP），没有个人数据和外部资源，但没有生成脚本。引入前要确认内容，最好在本分支补一个生成脚本重新生成，在 PROVENANCE 记录生成方式和哈希。`README.md` 本身是整文件候选。
 - `configContextHandlers.ts`、`LocalContextSettings.tsx` 只取片段：预热部分按 S33 删除，`LocalContextStore.ts` 是上游内容。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/llm/promptAssembly.ts` | 整文件引入 | 41/41 | 1 | 0 | — |
-| `electron/llm/promptBudget.ts` | 整文件引入 | 51/51 | 0 | 0 | — |
-| `electron/ipc/configContextHandlers.ts` | 只取片段 | 167/248 | 47 | 81 | — |
-| `src/components/settings/LocalContextSettings.tsx` | 只取片段 | 56/69 | 2 | 13 | — |
+| `electron/llm/promptBudget.ts` | 整文件候选 | 51/51 | 0 / 0 / 0 | `modelTargetCapabilities.ts` 改接本分支实现；`generateContract.ts` 需适配 | — |
+| `electron/llm/promptAssembly.ts` | 处置标出行后引入 | 40/41 | 1 / 0 / 0 | `generateContract.ts` 需适配 | — |
+| `electron/ipc/configContextHandlers.ts` | 只取片段 | 120/248 | 47 / 0 / 81 | `LocalContextStore.ts` 须自写；`generateOnce.ts` 需适配；`mainStrings.ts` 计划引入，AG-60；`modelCapacityAutoFill.ts` 改接本分支实现；`debug-config.ts` 已退役，删调用；另 5 项；2 项待核对字段 | AG-60 |
+| `src/components/settings/LocalContextSettings.tsx` | 只取片段 | 53/69 | 2 / 1 / 13，看 diff | `SettingsKit.tsx` 须自写，AG-60a；`LocalContextPrewarmSetting.tsx` 已退役，删调用；`electronAPI.ts` 须自写；`i18n.tsx` 须自写，AG-60a | AG-60a |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `tests/fixtures/documents/README.md` | 整文件引入 | 5/5 | 0 | 0 | — |
-| `tests/fixtures/documents/synthetic.docx` | 整文件引入 | 2/2 | 0 | 0 | — |
-| `tests/fixtures/documents/synthetic.pdf` | 整文件引入 | 18/18 | 0 | 0 | — |
-| `electron/llm/__tests__/PromptBudget2026_09_27.test.mjs` | 改写命中行后引入 | 78/84 | 0 | 6 | — |
-| `electron/services/__tests__/ManualContextFallback2026_06_16.test.mjs` | 只取片段 | 16/179 | 0 | 163 | — |
+| `tests/fixtures/documents/README.md` | 整文件候选 | 5/5 | 0 / 0 / 0 | — | — |
+| `electron/llm/__tests__/PromptBudget2026_09_27.test.mjs` | 处置标出行后引入 | 78/84 | 0 / 0 / 6 | `promptAssembly.ts` 计划引入；`promptBudget.ts` 计划引入；`promptImage.ts` 改接本分支实现 | — |
+| `electron/services/__tests__/ManualContextFallback2026_06_16.test.mjs` | 只取片段 | 16/179 | 0 / 0 / 163，看 diff | — | — |
+| `tests/fixtures/documents/synthetic.docx` | 资产待审 | — | blob `5978c31d0a08` | — | — |
+| `tests/fixtures/documents/synthetic.pdf` | 资产待审 | — | blob `171e30539f1d` | — | — |
 
 **AG-51**
 
-- `PromptSkillImporter.ts`（139 行全为 Margin 写的，4 处命中）依赖的 `SkillValidator.ts`、`SkillUploader.ts`、`LocalContextStore.ts` 都是上游内容，须先自写校验和存储，再接入导入器。
+- `PromptSkillImporter.ts`（139 行全为 Margin 行，4 处命中）依赖的 `SkillValidator.ts`、`SkillUploader.ts`、`LocalContextStore.ts` 都是上游内容，须自写。应补写职责明确的本地校验和存储，不为了满足导入器的类型把旧依赖一起带回来。
+- **`PromptSkillConsumerChain.test.mjs` 的验收**：它跑"导入器 → `SkillsManager` → `DirectAssistService` → `generateAnswer` → 协议请求"整条链，依赖 AG-42 的回答服务和阶段 1–3 已另写的 `answerGeneration.ts`。主负责仍是 AG-51：AG-51 先改接阶段 3 已完成的回答入口做验收；经手动回答的整条链等 AG-42 完成后补联合用例。
 - `SkillsSettings.tsx` 和相关提示词测试只取片段。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/services/skills/PromptSkillImporter.ts` | 改写命中行后引入 | 139/139 | 4 | 0 | `electron/services/LocalContextStore.ts`, `electron/services/skills/SkillUploader.ts`, `electron/services/skills/SkillValidator.ts` |
-| `src/components/settings/SkillsSettings.tsx` | 只取片段 | 79/214 | 2 | 105 | — |
+| `electron/services/skills/PromptSkillImporter.ts` | 处置标出行后引入 | 135/139 | 4 / 0 / 0 | `LocalContextStore.ts` 须自写；`SkillUploader.ts` 须自写；`SkillValidator.ts` 须自写 | — |
+| `src/components/settings/SkillsSettings.tsx` | 只取片段 | 67/214 | 2 / 10 / 105，看 diff | `SettingsKit.tsx` 须自写，AG-60a；`i18n.tsx` 须自写，AG-60a；`electron.d.ts` 需适配 | AG-60a |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/services/__tests__/PromptSkillImporter.test.mjs` | 改写命中行后引入 | 110/113 | 6 | 3 | — |
-| `electron/llm/__tests__/modePrompts.test.mjs` | 取 Margin 改动 | 1/22 | 0 | 0 | — |
-| `electron/llm/__tests__/CodeHintV3Adoption2026_09_05.test.mjs` | 只取片段 | 35/44 | 0 | 9 | — |
-| `electron/llm/__tests__/ProactiveV3PromptSubstitution.test.mjs` | 只取片段 | 34/52 | 0 | 18 | — |
-| `electron/llm/__tests__/ResponseLanguageUnified2026_09_27.test.mjs` | 只取片段 | 18/24 | 0 | 6 | — |
-| `electron/services/__tests__/Issue303SkillInvocation.test.mjs` | 只取片段 | 38/139 | 0 | 101 | — |
-| `electron/services/__tests__/PromptSkillConsumerChain.test.mjs` | 只取片段 | 58/68 | 4 | 10 | — |
-| `electron/services/__tests__/SkillsIpcWiring.test.mjs` | 只取片段 | 60/584 | 0 | 336 | — |
+| `electron/services/__tests__/PromptSkillImporter.test.mjs` | 处置标出行后引入 | 104/113 | 6 / 0 / 3 | `PromptSkillImporter.ts` 计划引入 | — |
+| `electron/llm/__tests__/modePrompts.test.mjs` | 取 Margin 改动并处置标出行 | 1/22 | 0 / 0 / 0，看 diff | — | — |
+| `electron/llm/__tests__/CodeHintV3Adoption2026_09_05.test.mjs` | 只取片段 | 35/44 | 0 / 0 / 9，看 diff | — | — |
+| `electron/llm/__tests__/ProactiveV3PromptSubstitution.test.mjs` | 只取片段 | 33/52 | 0 / 1 / 18，看 diff | — | — |
+| `electron/llm/__tests__/ResponseLanguageUnified2026_09_27.test.mjs` | 只取片段 | 18/24 | 0 / 0 / 6 | 1 项待核对字段 | — |
+| `electron/services/__tests__/Issue303SkillInvocation.test.mjs` | 只取片段 | 34/139 | 0 / 4 / 101，看 diff | `legacyChatHandlers.ts` 须自写，AG-42；`directAssistValidation.ts` 须自写，AG-42；2 项待核对字段 | AG-42 |
+| `electron/services/__tests__/PromptSkillConsumerChain.test.mjs` | 只取片段 | 54/68 | 4 / 0 / 10 | `PromptSkillImporter.ts` 计划引入；`DirectAssistService.ts` 计划引入，AG-42；`answerGeneration.ts` 改接本分支实现；1 项待核对字段 | AG-42 |
+| `electron/services/__tests__/SkillsIpcWiring.test.mjs` | 只取片段 | 55/584 | 0 / 5 / 336，看 diff | `configurationBridge.ts` 须自写；`electronAPI.ts` 须自写；`answerBridge.ts` 须自写，AG-42；`interviewSessionBridge.ts` 须自写；`meetingRecordsBridge.ts` 须自写；另 5 项；4 项待核对字段 | AG-42、AG-61 |
+
+**AG-60a（共享基础，新增前置项）**
+
+- `i18n.zh.ts`：921 行 Margin 行，90 行命中（X1 校准时已指出），另有 4 行快照行（行号见 `reuse-ranges.md`），都要逐行处置；短行没扫描，随所在条目一起审查。
+- `i18n.tsx` 只取片段：分叉时含 315 行上游内容，另有 19 行快照行、2 行近似快照行。
+- `SettingsKit.tsx` 只取片段（15 处命中）。
+- 这一项只定翻译接口和设置组件契约，不包括设置页重组（仍属 AG-60）。
+
+代码：
+
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
+| --- | --- | --- | --- | --- | --- |
+| `src/i18n.zh.ts` | 处置标出行后引入 | 831/925 | 90 / 0 / 4 | — | — |
+| `src/components/settings/SettingsKit.tsx` | 只取片段 | 56/72 | 15 / 0 / 1 | — | — |
+| `src/i18n.tsx` | 只取片段 | 42/65 | 2 / 2 / 19，看 diff | `i18n.zh.ts` 计划引入 | — |
 
 **AG-60**
 
-- **双语**：`i18n.zh.ts` 有 921 行 Margin 写的译文，其中 90 行与受限上游相同（X1 校准时已指出），须逐行改写；`i18n.tsx` 只取片段；`mainStrings.ts`（主进程托盘、菜单、对话框的界面语言）改写后可用；`overlayMessageLocalization.ts` 可整文件用。
-- **设置页**：`settingsTabs.ts` 可整文件用；`SettingsKit.tsx` 只取片段（15 处命中）。
-- **顺序**：AG-41、AG-61、AG-62 中多个界面文件依赖 `i18n.tsx` 或 `SettingsKit.tsx`（见各表的"缺少的依赖"）。宜先在 AG-60 写好这两个文件，或在引入时改为本分支已有的写法。
+- `mainStrings.ts`（主进程托盘、菜单、对话框的界面语言）：2 处命中、1 行快照行，处置后可用；`overlayMessageLocalization.ts` 和 `settingsTabs.ts` 是整文件候选。
+- 其余界面文件多依赖 AG-60a，见"跨票"列。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/components/settings/settingsTabs.ts` | 整文件引入 | 9/9 | 0 | 0 | — |
-| `src/lib/overlayMessageLocalization.ts` | 整文件引入 | 28/28 | 0 | 0 | — |
-| `electron/i18n/mainStrings.ts` | 改写命中行后引入 | 42/43 | 2 | 1 | — |
-| `src/i18n.zh.ts` | 改写命中行后引入 | 921/925 | 90 | 4 | — |
-| `electron/ThemeManager.ts` | 取 Margin 改动 | 1/61 | 0 | 0 | — |
-| `src/components/EditableTextBlock.tsx` | 取 Margin 改动 | 4/106 | 2 | 0 | `src/i18n.tsx` |
-| `src/components/ErrorBoundary.tsx` | 取 Margin 改动 | 8/92 | 0 | 0 | `src/i18n.tsx` |
-| `src/components/TopSearchPill.tsx` | 取 Margin 改动并改写命中行 | 17/232 | 0 | 1 | `src/i18n.tsx` |
-| `src/components/settings/HelpSettings.tsx` | 取 Margin 改动并改写命中行 | 81/85 | 5 | 1 | `src/i18n.tsx`, `src/assets/zoom-capture-mode.png`, `src/components/settings/SettingsKit.tsx` |
-| `src/components/ui/TopPill.tsx` | 取 Margin 改动并改写命中行 | 4/56 | 2 | 3 | `src/i18n.tsx` |
-| `src/App.tsx` | 只取片段 | 40/317 | 2 | 81 | — |
-| `src/components/Launcher.tsx` | 只取片段 | 58/650 | 1 | 213 | — |
-| `src/components/SettingsOverlay.tsx` | 只取片段 | 92/689 | 1 | 244 | — |
-| `src/components/SettingsPopup.tsx` | 只取片段 | 22/373 | 2 | 208 | — |
-| `src/components/settings/CodeOutputSettings.tsx` | 只取片段 | 21/37 | 2 | 16 | — |
-| `src/components/settings/GeneralSettings.tsx` | 只取片段 | 240/347 | 18 | 107 | — |
-| `src/components/settings/SettingsKit.tsx` | 只取片段 | 71/72 | 15 | 1 | — |
-| `src/components/settings/WrittenExamSettings.tsx` | 只取片段 | 42/59 | 2 | 17 | — |
-| `src/i18n.tsx` | 只取片段 | 46/65 | 2 | 19 | — |
+| `src/components/settings/settingsTabs.ts` | 整文件候选 | 9/9 | 0 / 0 / 0 | — | — |
+| `src/lib/overlayMessageLocalization.ts` | 整文件候选 | 28/28 | 0 / 0 / 0 | — | — |
+| `electron/ThemeManager.ts` | 取 Margin 改动（候选） | 1/61 | 0 / 0 / 0 | — | — |
+| `src/components/ErrorBoundary.tsx` | 取 Margin 改动（候选） | 8/92 | 0 / 0 / 0 | `i18n.tsx` 须自写，AG-60a | AG-60a |
+| `electron/i18n/mainStrings.ts` | 处置标出行后引入 | 40/43 | 2 / 0 / 1 | 1 项待核对字段 | — |
+| `src/components/EditableTextBlock.tsx` | 取 Margin 改动并处置标出行 | 2/106 | 2 / 0 / 0 | `i18n.tsx` 须自写，AG-60a | AG-60a |
+| `src/components/TopSearchPill.tsx` | 取 Margin 改动并处置标出行 | 16/232 | 0 / 1 / 1，看 diff | `i18n.tsx` 须自写，AG-60a；1 项待核对字段 | AG-60a |
+| `src/components/settings/HelpSettings.tsx` | 取 Margin 改动并处置标出行 | 75/85 | 5 / 1 / 1，看 diff | `i18n.tsx` 须自写，AG-60a；`zoom-capture-mode.png` 改接本分支实现；`SettingsKit.tsx` 须自写，AG-60a；2 项待核对字段 | AG-60a |
+| `src/components/ui/TopPill.tsx` | 取 Margin 改动并处置标出行 | 2/56 | 2 / 0 / 3，看 diff | `i18n.tsx` 须自写，AG-60a；1 项待核对字段 | AG-60a |
+| `src/App.tsx` | 只取片段 | 38/317 | 2 / 0 / 81，看 diff | `OverlayAuxWindows.tsx` 须自写；`SetupChecklist.tsx` 计划引入，AG-62；`audioDeviceSelection.mjs` 须自写；`i18n.tsx` 须自写，AG-60a；8 项待核对字段 | AG-60a、AG-62 |
+| `src/components/Launcher.tsx` | 只取片段 | 54/650 | 1 / 3 / 213，看 diff | `usePrimaryAnswerTargetLabel.ts` 改接本分支实现；`i18n.tsx` 须自写，AG-60a；`useToggleInit.ts` 须自写；`MeetingSaveNotice.tsx` 已退役，删调用；`meetingSaveStatus.ts` 已退役，删调用；6 项待核对字段 | AG-60a |
+| `src/components/SettingsOverlay.tsx` | 只取片段 | 90/689 | 1 / 1 / 244，看 diff | `i18n.tsx` 须自写，AG-60a；`AIProvidersSettings.tsx` 需适配；`SpeechTranscriptionSettings.tsx` 须自写，AG-41；`LocalContextSettings.tsx` 须自写，AG-50；`WrittenExamSettings.tsx` 须自写；另 5 项；6 项待核对字段 | AG-41、AG-50、AG-60a、AG-61 |
+| `src/components/SettingsPopup.tsx` | 只取片段 | 20/373 | 2 / 0 / 208，看 diff | `useToggleInit.ts` 须自写；`i18n.tsx` 须自写，AG-60a；3 项待核对字段 | AG-60a |
+| `src/components/settings/CodeOutputSettings.tsx` | 只取片段 | 19/37 | 2 / 0 / 16，看 diff | `SettingsKit.tsx` 须自写，AG-60a；`i18n.tsx` 须自写，AG-60a | AG-60a |
+| `src/components/settings/GeneralSettings.tsx` | 只取片段 | 222/347 | 18 / 0 / 107 | `i18n.tsx` 须自写，AG-60a；`AutoAnswerIcon.tsx` 已退役，删调用；`SettingsToggle.tsx` 须自写；`AccordionSection.tsx` 须自写；1 项待核对字段 | AG-60a |
+| `src/components/settings/WrittenExamSettings.tsx` | 只取片段 | 39/59 | 2 / 1 / 17，看 diff | `CodeOutputSettings.tsx` 须自写；`SettingsKit.tsx` 须自写，AG-60a；`i18n.tsx` 须自写，AG-60a | AG-60a |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/audio/__tests__/InterfaceThemeAllowlist.test.mjs` | 取 Margin 改动 | 1/120 | 0 | 0 | — |
-| `electron/services/__tests__/WrittenExamMode.test.mjs` | 只取片段 | 15/91 | 0 | 76 | — |
-| `src/components/__tests__/SettingsPeriwinklePortalScopeGuard.test.mjs` | 只取片段 | 19/95 | 0 | 76 | — |
-| `src/components/settings/__tests__/SettingsTabs2026_09_27.test.mjs` | 只取片段 | 17/20 | 0 | 3 | — |
+| `electron/audio/__tests__/InterfaceThemeAllowlist.test.mjs` | 取 Margin 改动（候选） | 1/120 | 0 / 0 / 0 | — | — |
+| `electron/services/__tests__/WrittenExamMode.test.mjs` | 只取片段 | 15/91 | 0 / 0 / 76，看 diff | `WrittenExamMode.ts` 须自写；`requestBuilder.ts` 须自写，AG-42；`errors.ts` 须自写，AG-42 | AG-42 |
+| `src/components/__tests__/SettingsPeriwinklePortalScopeGuard.test.mjs` | 只取片段 | 19/95 | 0 / 0 / 76，看 diff | `AnswerConfigurationFields.tsx` 改接本分支实现；`AnswerConfigurationPanel.tsx` 改接本分支实现；`CodeOutputSettings.tsx` 须自写；`CodexAuthorizationSettings.tsx` 改接本分支实现；`GeneralSettings.tsx` 须自写；另 12 项；5 项待核对字段 | AG-41、AG-50、AG-60a、AG-61 |
+| `src/components/settings/__tests__/SettingsTabs2026_09_27.test.mjs` | 只取片段 | 17/20 | 0 / 0 / 3 | `settingsTabs.ts` 计划引入 | — |
 
 **AG-61**
 
-- `WindowPrivacySettings.tsx`、`KeybindsSettings.tsx` 改写后可用（依赖 `SettingsKit.tsx`、`i18n.tsx`）。
-- `WindowPrivacyController.ts`、`windowPrivacyHandlers.ts`、`KeybindManager.ts`、`WindowHelper.ts` 只取片段；窗口保护的行为以 AG-61 的实机要求为准（D2）。
+- `WindowPrivacySettings.tsx`、`KeybindsSettings.tsx` 处置后可用（各 4 处命中），依赖 AG-60a 的 `SettingsKit.tsx`、`i18n.tsx`。
+- `WindowPrivacyController.ts`、`windowPrivacyHandlers.ts`、`KeybindManager.ts`、`WindowHelper.ts` 只取片段，后两者分叉时含大量上游内容（174 行、1652 行），要看 diff；窗口保护的行为以 AG-61 的实机要求为准（D2）。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/components/settings/KeybindsSettings.tsx` | 改写命中行后引入 | 65/66 | 4 | 1 | `src/i18n.tsx`, `src/components/settings/SettingsKit.tsx` |
-| `src/components/settings/WindowPrivacySettings.tsx` | 改写命中行后引入 | 86/93 | 4 | 7 | `src/components/settings/SettingsKit.tsx` |
-| `src/components/WindowControls.tsx` | 取 Margin 改动 | 5/48 | 3 | 0 | `src/i18n.tsx` |
-| `electron/WindowHelper.ts` | 只取片段 | 34/2396 | 0 | 1751 | — |
-| `electron/WindowPrivacyController.ts` | 只取片段 | 113/432 | 14 | 319 | — |
-| `electron/ipc/windowPrivacyHandlers.ts` | 只取片段 | 265/548 | 49 | 283 | — |
-| `electron/services/KeybindManager.ts` | 只取片段 | 15/502 | 0 | 183 | — |
+| `src/components/settings/KeybindsSettings.tsx` | 处置标出行后引入 | 61/66 | 4 / 0 / 1 | `i18n.tsx` 须自写，AG-60a；`SettingsKit.tsx` 须自写，AG-60a；2 项待核对字段 | AG-60a |
+| `src/components/settings/WindowPrivacySettings.tsx` | 处置标出行后引入 | 82/93 | 4 / 0 / 7 | `SettingsKit.tsx` 须自写，AG-60a；1 项待核对字段 | AG-60a |
+| `src/components/WindowControls.tsx` | 取 Margin 改动并处置标出行 | 2/48 | 3 / 0 / 0 | `i18n.tsx` 须自写，AG-60a | AG-60a |
+| `electron/WindowHelper.ts` | 只取片段 | 32/2396 | 0 / 2 / 1751，看 diff | `launcherAspect.ts` 须自写；`launcherResizeAnimation.ts` 须自写；`windowsFocusPolicy.ts` 须自写，阶段 7；`overlayCustomSize.mjs` 须自写；5 项待核对字段 | 阶段 7 |
+| `electron/WindowPrivacyController.ts` | 只取片段 | 99/432 | 14 / 0 / 319 | `toggleStateReducer.ts` 需适配；5 项待核对字段 | — |
+| `electron/ipc/windowPrivacyHandlers.ts` | 只取片段 | 216/548 | 49 / 0 / 283 | `ProviderRouter.ts` 需适配；`micPermissionPolicy.mjs` 须自写；5 项待核对字段 | — |
+| `electron/services/KeybindManager.ts` | 只取片段 | 15/502 | 0 / 0 / 183，看 diff | `keybindRegistrationState.ts` 须自写；`acceleratorValidation.ts` 须自写；`winChord.ts` 须自写；`mainStrings.ts` 计划引入，AG-60；1 项待核对字段 | AG-60 |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/services/__tests__/WindowPrivacyController.test.mjs` | 改写命中行后引入 | 138/143 | 10 | 5 | — |
-| `electron/services/__tests__/WindowPrivacyPreloadBridge2026_09_27.test.mjs` | 改写命中行后引入 | 149/155 | 2 | 6 | — |
-| `electron/services/__tests__/FormatPermissionMessageCrossPlatform.test.mjs` | 取 Margin 改动 | 1/115 | 0 | 0 | — |
-| `electron/services/__tests__/StealthBlockInputFocusGuards.test.mjs` | 取 Margin 改动 | 1/265 | 0 | 0 | — |
-| `electron/services/__tests__/AcceleratorCrashGuard2026_08_28.test.mjs` | 只取片段 | 15/158 | 0 | 143 | — |
-| `electron/services/__tests__/WindowPrivacyHandlers2026_09_27.test.mjs` | 只取片段 | 56/64 | 0 | 8 | — |
+| `electron/services/__tests__/FormatPermissionMessageCrossPlatform.test.mjs` | 取 Margin 改动（候选） | 1/115 | 0 / 0 / 0 | `screenCapturePermissions.ts` 须自写，AG-40；1 项待核对字段 | AG-40 |
+| `electron/services/__tests__/StealthBlockInputFocusGuards.test.mjs` | 取 Margin 改动（候选） | 1/265 | 0 / 0 / 0 | 1 项待核对字段 | — |
+| `electron/services/__tests__/WindowPrivacyController.test.mjs` | 处置标出行后引入 | 128/143 | 10 / 0 / 5 | — | — |
+| `electron/services/__tests__/WindowPrivacyPreloadBridge2026_09_27.test.mjs` | 处置标出行后引入 | 147/155 | 2 / 0 / 6 | `windowPrivacyBridge.ts` 须自写；1 项待核对字段 | — |
+| `electron/services/__tests__/AcceleratorCrashGuard2026_08_28.test.mjs` | 只取片段 | 15/158 | 0 / 0 / 143，看 diff | `acceleratorValidation.ts` 须自写；`WindowPrivacyController.ts` 须自写；4 项待核对字段 | — |
+| `electron/services/__tests__/WindowPrivacyHandlers2026_09_27.test.mjs` | 只取片段 | 56/64 | 0 / 0 / 8 | `windowPrivacyHandlers.ts` 须自写；1 项待核对字段 | — |
 
 **AG-62**
 
-- **首次启动引导**：`SetupChecklist.tsx` 和 `setupChecklistStatus.ts`（回答模型、云端转写、权限等检查项）及其测试可用；检查项按 S33 去掉自动回答和 Gemini Judge。
-- **文档**：`README.md`、`PRIVACY.md` 取 Margin 改动，按本分支实际功能重写内容。
+- **首次启动引导**：`setupChecklistStatus.ts` 是整文件候选，但依赖 `stt.constants.ts`（需适配）和 `modelTargetCapabilities.ts`（改接本分支实现）；`SetupChecklist.tsx` 有 8 处命中，依赖 AG-60a。检查项按 S33 去掉自动回答和 Gemini Judge。
+- **文档**：`README.md`、`PRIVACY.md` 取 Margin 改动，分叉时含上游内容，按本分支实际功能重写。
+- **未扫描**：`package.json`、`.gitattributes` 的扩展名不在上游池内，人工审查；依赖版本以本分支为准。
 - **打包脚本**：`smoke-margin-*.cjs`、`verify-margin-package.cjs` 等是旧 Margin 的本机冒烟；本分支已有 AG-25 的 CI 打包检查（`package-check`、`packaged-launch`），只作参考。`package-lock.json` 不引入，依赖由 npm 生成。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/lib/setupChecklistStatus.ts` | 整文件引入 | 51/51 | 0 | 0 | — |
-| `docs/local-build.md` | 改写命中行后引入 | 28/29 | 0 | 1 | — |
-| `electron/localBuildSetup.ts` | 改写命中行后引入 | 20/22 | 0 | 2 | — |
-| `scripts/smoke-ai-assistant.cjs` | 改写命中行后引入 | 237/243 | 6 | 6 | — |
-| `scripts/smoke-margin-identity.cjs` | 改写命中行后引入 | 969/973 | 14 | 4 | — |
-| `scripts/smoke-margin-native.cjs` | 改写命中行后引入 | 175/179 | 5 | 4 | — |
-| `scripts/smoke-margin-production.cjs` | 改写命中行后引入 | 56/59 | 0 | 3 | — |
-| `scripts/verify-margin-package.cjs` | 改写命中行后引入 | 62/66 | 2 | 4 | — |
-| `src/components/SetupChecklist.tsx` | 改写命中行后引入 | 88/91 | 8 | 3 | `src/i18n.tsx` |
-| `.gitattributes` | 取 Margin 改动 | 2/22 | 0 | 0 | — |
-| `PRIVACY.md` | 取 Margin 改动 | 17/17 | 0 | 0 | — |
-| `README.md` | 取 Margin 改动并改写命中行 | 20/22 | 0 | 2 | — |
-| `.github/workflows/full-ci.yml` | 只取片段 | 19/22 | 1 | 3 | — |
-| `.github/workflows/release.yml` | 只取片段 | 37/43 | 2 | 6 | — |
-| `package.json` | 只取片段 | 23/194 | 0 | 65 | — |
-| `scripts/ad-hoc-sign.js` | 只取片段 | 18/224 | 0 | 112 | — |
-| `scripts/build-electron.js` | 只取片段 | 23/72 | 0 | 18 | — |
+| `src/lib/setupChecklistStatus.ts` | 整文件候选 | 51/51 | 0 / 0 / 0 | `stt.constants.ts` 需适配；`modelTargetCapabilities.ts` 改接本分支实现 | — |
+| `docs/local-build.md` | 处置标出行后引入 | 28/29 | 0 / 0 / 1，看 diff | — | — |
+| `electron/localBuildSetup.ts` | 处置标出行后引入 | 19/22 | 0 / 1 / 2，看 diff | — | — |
+| `scripts/smoke-ai-assistant.cjs` | 处置标出行后引入 | 231/243 | 6 / 0 / 6 | `playwright` 本分支未声明的 npm 包 | — |
+| `scripts/smoke-margin-identity.cjs` | 处置标出行后引入 | 955/973 | 14 / 0 / 4 | `playwright` 本分支未声明的 npm 包 | — |
+| `scripts/smoke-margin-native.cjs` | 处置标出行后引入 | 170/179 | 5 / 0 / 4 | — | — |
+| `scripts/smoke-margin-production.cjs` | 处置标出行后引入 | 56/59 | 0 / 0 / 3 | `playwright` 本分支未声明的 npm 包 | — |
+| `scripts/verify-margin-package.cjs` | 处置标出行后引入 | 60/66 | 2 / 0 / 4 | — | — |
+| `src/components/SetupChecklist.tsx` | 处置标出行后引入 | 80/91 | 8 / 0 / 3 | `setupChecklistStatus.ts` 计划引入；`i18n.tsx` 须自写，AG-60a | AG-60a |
+| `PRIVACY.md` | 取 Margin 改动并处置标出行 | 17/17 | 0 / 0 / 0，看 diff | — | — |
+| `README.md` | 取 Margin 改动并处置标出行 | 20/22 | 0 / 0 / 2，看 diff | — | — |
+| `.github/workflows/full-ci.yml` | 只取片段 | 18/22 | 1 / 0 / 3 | — | — |
+| `.github/workflows/release.yml` | 只取片段 | 35/43 | 2 / 0 / 6 | — | — |
+| `scripts/ad-hoc-sign.js` | 只取片段 | 17/224 | 0 / 1 / 112，看 diff | — | — |
+| `scripts/build-electron.js` | 只取片段 | 22/72 | 0 / 1 / 18，看 diff | `esbuild` 本分支未声明的 npm 包 | — |
+| `.gitattributes` | 未扫描，人工审查 | 2/22 | 0 / 0 / 0 | — | — |
+| `package.json` | 未扫描，人工审查 | 23/194 | 0 / 0 / 65，看 diff | — | — |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/lib/__tests__/setupChecklistStatus.test.mjs` | 改写命中行后引入 | 50/52 | 0 | 2 | — |
-| `src/lib/__tests__/setupChecklistWiring.test.mjs` | 改写命中行后引入 | 29/32 | 1 | 3 | — |
-| `electron/services/__tests__/OnboardingFlags.test.mjs` | 只取片段 | 44/72 | 5 | 28 | — |
-| `electron/services/__tests__/StartupLogDirectoryAccess.test.mjs` | 只取片段 | 18/30 | 1 | 12 | — |
-| `scripts/__tests__/electron-build-entrypoints.test.mjs` | 只取片段 | 19/25 | 1 | 6 | — |
-| `scripts/__tests__/local-build.test.mjs` | 只取片段 | 36/59 | 0 | 23 | — |
-| `scripts/__tests__/mac-arch-packaging.test.mjs` | 只取片段 | 30/116 | 0 | 86 | — |
-| `scripts/__tests__/packaging-config.test.mjs` | 只取片段 | 21/53 | 1 | 32 | — |
+| `src/lib/__tests__/setupChecklistStatus.test.mjs` | 处置标出行后引入 | 50/52 | 0 / 0 / 2 | `setupChecklistStatus.ts` 计划引入 | — |
+| `src/lib/__tests__/setupChecklistWiring.test.mjs` | 处置标出行后引入 | 28/32 | 1 / 0 / 3 | — | — |
+| `electron/services/__tests__/OnboardingFlags.test.mjs` | 只取片段 | 37/72 | 5 / 2 / 28，看 diff | `windowPrivacyHandlers.ts` 须自写，AG-61；2 项待核对字段 | AG-61 |
+| `scripts/__tests__/electron-build-entrypoints.test.mjs` | 只取片段 | 18/25 | 1 / 0 / 6 | 3 项待核对字段 | — |
+| `scripts/__tests__/local-build.test.mjs` | 只取片段 | 32/59 | 0 / 4 / 23，看 diff | `build-native-local.cjs` 须自写；`electron-builder.local.cjs` 须自写；`esbuild` 本分支未声明的 npm 包；`electron-builder.signed.cjs` 须自写；1 项待核对字段 | — |
+| `scripts/__tests__/mac-arch-packaging.test.mjs` | 只取片段 | 21/116 | 0 / 9 / 86，看 diff | `ensure-mac-optional-deps.cjs` 须自写；1 项待核对字段 | — |
+| `scripts/__tests__/packaging-config.test.mjs` | 只取片段 | 20/53 | 1 / 0 / 32，看 diff | 1 项待核对字段 | — |
 
 **阶段 7（Windows，按 S33 推迟）**
 
-- Windows 相关：`windowsStealthInput.ts` 可整文件用，`windowsFocusPolicy.ts` 只取片段，按 S33 推迟到 AG-71–73。
+- `windowsStealthInput.ts` 是整文件候选；`windowsFocusPolicy.ts` 只取片段（分叉时含 77 行上游内容）。按 S33 推迟到 AG-71–73。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/lib/windowsStealthInput.ts` | 整文件引入 | 21/21 | 0 | 0 | — |
-| `electron/utils/windowsFocusPolicy.ts` | 只取片段 | 23/89 | 0 | 66 | — |
+| `src/lib/windowsStealthInput.ts` | 整文件候选 | 21/21 | 0 / 0 / 0 | — | — |
+| `electron/utils/windowsFocusPolicy.ts` | 只取片段 | 21/89 | 0 / 2 / 66，看 diff | — | — |
 
 测试：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `src/lib/__tests__/windowsStealthInput.test.mjs` | 改写命中行后引入 | 32/34 | 2 | 2 | — |
-| `electron/utils/__tests__/windowsFocusPolicy.test.mjs` | 只取片段 | 46/402 | 1 | 356 | — |
+| `src/lib/__tests__/windowsStealthInput.test.mjs` | 处置标出行后引入 | 30/34 | 2 / 0 / 2 | `windowsStealthInput.ts` 计划引入 | — |
+| `electron/utils/__tests__/windowsFocusPolicy.test.mjs` | 只取片段 | 39/402 | 1 / 6 / 356，看 diff | `esbuild` 本分支未声明的 npm 包；`windowsFocusPolicy.ts` 须自写；`windowPrivacyBridge.ts` 须自写，AG-61；`windowPrivacyHandlers.ts` 须自写，AG-61；`keyboard_hook_windows.rs` 须自写；7 项待核对字段 | AG-61 |
 
 **混合文件（多个 ticket 共用）**
 
-- `main.ts`、`ipcHandlers.ts`、`preload.ts`、`electronAPI.ts`、`configurationBridge.ts` 同时涉及多个 ticket，且以上游内容为主。各 ticket 实现时只取与本 ticket 相关的干净片段（行号见 `reuse-ranges.md`）。
+- `main.ts`、`ipcHandlers.ts`、`preload.ts`、`electronAPI.ts`、`configurationBridge.ts` 同时涉及多个 ticket，且以上游内容为主。各 ticket 实现时只取与本 ticket 相关的片段（行号见 `reuse-ranges.md`），按上面的要求处置。
 
 代码：
 
-| 文件 | 做法 | Margin 行 / 有效行 | 命中 | 快照行 | 缺少的依赖 |
+| 文件 | 做法 | 候选行 / 有效行 | 须处置：命中 / 近似 / 快照行 | 依赖 | 跨票 |
 | --- | --- | --- | --- | --- | --- |
-| `electron/ipcHandlers.ts` | 只取片段 | 183/522 | 7 | 212 | — |
-| `electron/main.ts` | 只取片段 | 485/2098 | 7 | 782 | — |
-| `electron/preload.ts` | 只取片段 | 15/60 | 0 | 11 | — |
-| `electron/preload/configurationBridge.ts` | 只取片段 | 37/267 | 0 | 230 | — |
-| `src/lib/electronAPI.ts` | 只取片段 | 103/581 | 0 | 478 | — |
+| `electron/ipcHandlers.ts` | 只取片段 | 169/522 | 7 / 7 / 212，看 diff | `localBuildSetup.ts` 计划引入，AG-62；`localDiagnosticLog.ts` 须自写；`CodexCliService.ts` 改接本分支实现；`mainStrings.ts` 计划引入，AG-60；`LocalContextStore.ts` 须自写；另 14 项；7 项待核对字段 | AG-40、AG-41、AG-42、AG-50、AG-51、AG-60、AG-61、AG-62 |
+| `electron/main.ts` | 只取片段 | 475/2098 | 7 / 3 / 782，看 diff | `nativeArchGate.ts` 须自写；`localBuildSetup.ts` 计划引入，AG-62；`mainDiagnostics.ts` 须自写；`SessionTracker.ts` 需适配；`screenCapturePermissions.ts` 须自写，AG-40；另 27 项；18 项待核对字段 | AG-40、AG-41、AG-60、AG-61、AG-62、阶段 7 |
+| `electron/preload.ts` | 只取片段 | 15/60 | 0 / 0 / 11，看 diff | `answerBridge.ts` 须自写，AG-42；`configurationBridge.ts` 须自写；`electronAPI.ts` 须自写；`windowPrivacyBridge.ts` 须自写，AG-61；`screenshotBridge.ts` 改接本分支实现；另 2 项 | AG-42、AG-61 |
+| `electron/preload/configurationBridge.ts` | 只取片段 | 37/267 | 0 / 0 / 230 | `electronAPI.ts` 须自写；`stt.constants.ts` 需适配；`answerConfiguration.ts` 改接本分支实现；`modelTargetCapabilities.ts` 改接本分支实现 | — |
+| `src/lib/electronAPI.ts` | 只取片段 | 103/581 | 0 / 0 / 478 | `stt.constants.ts` 需适配；`answerConfiguration.ts` 改接本分支实现；`modelTargetCapabilities.ts` 改接本分支实现；`modelCapacityConfirmations.ts` 改接本分支实现；`meetingSaveStatus.ts` 已退役，删调用 | — |
 
 **不再引入的部分**
 
-- **阶段 1–3 已完成范围**（117 个文件）：生成入口、四协议、凭据、Codex、截图、回答设置等已在本分支按需求重写，或已引入（AG-21 的图标，14 个文件与本分支相同）。其中整文件干净的 `screenshotCaptureOwnership.ts`、`screenshotLeaseRegistry.ts`（截图文件的归属和保留上限）等，后续若要补强可按本清单的方法引入。文件：`icon-512.png`、`icon.icns`、`icon.png`、`iconTemplate@2x.png`、`icon.icns`、`icon_1024x1024.png`、`icon_128x128.png`、`icon_16x16.png`、`icon_256x256.png`、`icon_32x32.png`、`icon_512x512.png`、`icon_64x64.png`、`icon.ico`、`margin.icns`、`LLMHelper.ts`、`ScreenshotHelper.ts`、`providerSettingsHandlers.ts`、`screenshotHandlers.ts`、`ScreenshotCaptureCoordinator.ts`、`AssistLLM.ts`、`BrainstormLLM.ts`、`ClarifyLLM.ts`、`CodeHintLLM.ts`、`FollowUpLLM.ts`、`FollowUpQuestionsLLM.ts`、`LiteLLMModelInfoCache.ts`、`actionGeneration.ts`、`answerGeneration.ts`、`generateContract.ts`、`generateOnce.ts`、`imageCapabilityGuard.ts`、`logicalGeneration.ts`、`modelCapabilities.ts`、`promptImage.ts`、`providerThinking.ts`、`visionPolicy.ts`、`screenshotBridge.ts`、`screenshotCaptureOwnership.ts`、`screenshotLeaseRegistry.ts`、`CodexCliAuth.ts`、`CodexCliService.ts`、`CredentialsManager.ts`、`SettingsManager.ts`、`ContextPacket.ts`、`modelCapacityAutoFill.ts`、`index.js`、`app-icon-small.svg`、`app-icon.svg`、`generate.mjs`、`glyph.svg`、`README.md`、`Cropper.tsx`、`ModelSelectorWindow.tsx`、`icon.png`、`iconTemplate@2x.png`、`AIProvidersSettings.tsx`、`AnswerConfigurationFields.tsx`、`AnswerConfigurationPanel.tsx`、`CodexAuthorizationSettings.tsx`、`ModelCapabilityFields.tsx`、`ProviderCard.tsx`、`AnswerProviderGlyph.tsx`、`usePrimaryAnswerTargetLabel.ts`、`answerConfiguration.ts`、`compatibleApiConfig.ts`、`modelCapacityConfirmations.ts`、`modelTargetCapabilities.ts`、`screenshotRetryClaim.ts`、`selectableAnswerModels.ts`、`electron.d.ts`。
-- **已退役**（47 个文件，S6、S33）：遥测、动态动作、自动回答和 Judge、Local Context 预热、会议摘要和增量保存、上下文智能等。文件：`MeetingPersistence.ts`、`redaction.ts`、`PrefetchBuffer.ts`、`AutoAnswerJudge.ts`、`SimpleAutoAnswer.ts`、`intelligenceFlagHandlers.ts`、`meetingRecordsHandlers.ts`、`localContextPrewarm.ts`、`localContextPrewarmChanges.ts`、`meetingContextPrewarm.ts`、`DynamicActionEngine.ts`、`TelemetryService.ts`、`AutoAnswerManualStatus.tsx`、`MeetingDetails.tsx`、`MeetingSaveNotice.tsx`、`DynamicActionBar.tsx`、`DynamicActionCard.tsx`、`LocalContextPrewarmSetting.tsx`、`MeetingRecordsSettings.tsx`、`meetingSaveStatus.ts`。
-- **不属于剩余 ticket**（28 个文件）：旧 Margin 的计划文档（只当需求清单，见本文件开头）、诊断和日志工具、开发用的界面桩、数据库健壮性改动和 `package-lock.json`。文件：`agent.md`、`architecture-simplification.md`、`audit-report.md`、`fresh-release-baseline.md`、`fresh-release-implementation-plan.md`、`functional-refactor-plan.md`、`improvement-status-and-plan.md`、`module-map.md`、`refactor-branch-review.md`、`stt-consolidation.md`、`wayfinder.md`、`DatabaseManager.ts`、`mainDiagnostics.ts`、`NativeOomTrace.ts`、`localDiagnosticLog.ts`、`redactForLog.ts`、`modelSelectorHarness.html`、`package-lock.json`、`settingsOverlayHarness.html`、`devElectronStub.ts`。
+- **阶段 1–3 已完成范围**（115 个文件）：生成入口、四协议、凭据、Codex、截图、回答设置等已在本分支按需求重写，或已引入（AG-21 的图标，15 个文件与本分支相同）。后续若要补强，可按本清单的方法引入，例如 `screenshotCaptureOwnership.ts`、`screenshotLeaseRegistry.ts`（截图文件的归属和保留上限）。测试以外的文件：`AIProvidersSettings.tsx`、`AnswerConfigurationFields.tsx`、`AnswerConfigurationPanel.tsx`、`AnswerProviderGlyph.tsx`、`AssistLLM.ts`、`BrainstormLLM.ts`、`ClarifyLLM.ts`、`CodeHintLLM.ts`、`CodexAuthorizationSettings.tsx`、`CodexCliAuth.ts`、`CodexCliService.ts`、`ContextPacket.ts`、`CredentialsManager.ts`、`Cropper.tsx`、`FollowUpLLM.ts`、`FollowUpQuestionsLLM.ts`、`LLMHelper.ts`、`LiteLLMModelInfoCache.ts`、`ModelCapabilityFields.tsx`、`ModelSelectorWindow.tsx`、`ProviderCard.tsx`、`README.md`、`ScreenshotCaptureCoordinator.ts`、`ScreenshotHelper.ts`、`SettingsManager.ts`、`actionGeneration.ts`、`answerConfiguration.ts`、`answerGeneration.ts`、`app-icon-small.svg`、`app-icon.svg`、`electron.d.ts`、`generate.mjs`、`generateContract.ts`、`generateOnce.ts`、`glyph.svg`、`icon-512.png`、`icon.icns`、`icon.ico`、`icon.png`、`iconTemplate.png`、`iconTemplate@2x.png`、`icon_1024x1024.png`、`icon_128x128.png`、`icon_16x16.png`、`icon_256x256.png`、`icon_32x32.png`、`icon_512x512.png`、`icon_64x64.png`、`imageCapabilityGuard.ts`、`index.js`、`logicalGeneration.ts`、`margin.icns`、`modelCapabilities.ts`、`modelCapacityAutoFill.ts`、`modelCapacityConfirmations.ts`、`modelTargetCapabilities.ts`、`promptImage.ts`、`providerSettingsHandlers.ts`、`providerThinking.ts`、`screenshotBridge.ts`、`screenshotCaptureOwnership.ts`、`screenshotHandlers.ts`、`screenshotLeaseRegistry.ts`、`screenshotRetryClaim.ts`、`selectableAnswerModels.ts`、`usePrimaryAnswerTargetLabel.ts`、`visionPolicy.ts`。
+- **已退役**（47 个文件，S6、S33）：遥测、动态动作、自动回答和 Judge、Local Context 预热、会议摘要和增量保存、上下文智能等。测试以外的文件：`AutoAnswerJudge.ts`、`AutoAnswerManualStatus.tsx`、`DynamicActionBar.tsx`、`DynamicActionCard.tsx`、`DynamicActionEngine.ts`、`LocalContextPrewarmSetting.tsx`、`MeetingDetails.tsx`、`MeetingPersistence.ts`、`MeetingRecordsSettings.tsx`、`MeetingSaveNotice.tsx`、`PrefetchBuffer.ts`、`SimpleAutoAnswer.ts`、`TelemetryService.ts`、`intelligenceFlagHandlers.ts`、`localContextPrewarm.ts`、`localContextPrewarmChanges.ts`、`meetingContextPrewarm.ts`、`meetingRecordsHandlers.ts`、`meetingSaveStatus.ts`、`redaction.ts`。
+- **不属于剩余 ticket**（27 个文件）：旧 Margin 的计划文档（只当需求清单，见本文件开头）、诊断和日志工具、开发用的界面桩、数据库健壮性改动和 `package-lock.json`。测试以外的文件：`DatabaseManager.ts`、`NativeOomTrace.ts`、`agent.md`、`architecture-simplification.md`、`audit-report.md`、`devElectronStub.ts`、`fresh-release-baseline.md`、`fresh-release-implementation-plan.md`、`functional-refactor-plan.md`、`improvement-status-and-plan.md`、`localDiagnosticLog.ts`、`mainDiagnostics.ts`、`modelSelectorHarness.html`、`module-map.md`、`package-lock.json`、`redactForLog.ts`、`refactor-branch-review.md`、`settingsOverlayHarness.html`、`stt-consolidation.md`、`wayfinder.md`。
 
 ### 阶段 7：Windows 与双平台发布（概要，S30）
 
@@ -2053,7 +2105,7 @@ W4 本机核对 W3 出口 CI `38123550800`（`d2bd8146`）的下载产物，证�
 - 截图截取环节是否为原生像素密度，需要真实屏幕确认（§9"S34 删除 sharp"）。
 - Windows 只证明能编译；功能、打包和发布按 S33 推迟到阶段 7（R3-3 也在阶段 7）。
 
-**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；AG-52 删减已完成（§9"AG-52 删减"，本地 gates 16/16）。W3 重跑 38120147426（`180a87c0`）只有 storage 失败：挡住点击的是首次启动的权限卡片，测试未关闭它，本机已复现并修复（§9"W3 出口 CI 38120147426"）。**W3 出口 CI 38123550800（`d2bd8146`）通过**：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、原生 `0f92a0b1`、包内许可含 stdarch、源码包 `cleanTree`（§9"W3 出口 CI 38123550800"）。W4 本机核对通过，**阶段 3 已签收**（2026-10-11，§8"阶段 3 签收"）。下一步：阶段 4（AG-40 起）等用户允许后开始；STT 范围和复用依据见 S35 与 §6"旧 Margin 复用清单（S35）"。S8–S35 的边界和停止条件保持有效。
+**下一步**：阶段 2 出口已签收；AG-33 提示词已按 S29 定案（`90fae433`）。W1 已完成，W2 已关闭（R3-1、R3-2、R3-5 在 `3e779466` 修复，Claude 核对通过；R3-3 移交阶段 7，R3-4 不改）。W3 出口 CI 38090230126（`0610e606`）未通过：storage 门禁中 `meeting-storage.test.mjs:533` 的界面点击被一个覆盖层挡住而超时，正式身份契约因此跳过；其余验收项（原生 `0f92a0b1`、libvips `64bcfea7`、两个身份 13/13 和启动、包内许可含 stdarch、替换检查、源码包）均通过，产物已下载核对（§9"W3 出口 CI 38090230126"）。下一步等用户决定：先诊断并修复这个失败，再重跑出口 CI（须用户批准）。W4 未开始。S33 已精简范围：删除 AG-43 和 Local Context 预热，AG-52 缩减，Windows 推迟、只发 macOS；nativeImage 替代 sharp 的实验（§4 X6）结论为可行。S34：sharp 和 libvips 已删除（§9"S34 删除 sharp"，本地 gates 16/16）；AG-52 删减已完成（§9"AG-52 删减"，本地 gates 16/16）。W3 重跑 38120147426（`180a87c0`）只有 storage 失败：挡住点击的是首次启动的权限卡片，测试未关闭它，本机已复现并修复（§9"W3 出口 CI 38120147426"）。**W3 出口 CI 38123550800（`d2bd8146`）通过**：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、原生 `0f92a0b1`、包内许可含 stdarch、源码包 `cleanTree`（§9"W3 出口 CI 38123550800"）。W4 本机核对通过，**阶段 3 已签收**（2026-10-11，§8"阶段 3 签收"）。下一步：阶段 4（AG-40 起）等用户允许后开始；STT 范围和复用依据见 S35 与 §6"旧 Margin 复用清单（S35）"。复用清单已按 Astra 审阅修订并重新生成（§9"S35 复用清单审阅"）：清单是候选盘点，新增前置项 AG-60a。S8–S35 的边界和停止条件保持有效。
 
 ## 9. 评审记录
 
@@ -2628,3 +2680,28 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - **下载**：native、temp 包和源码包按 BUILD-INFO 的 sha256 和提交逐一核对，全部一致（`temp-temp-arm64.zip` `1b18bfd7…`、`MANIFEST.json` `f0cdedfd…`）。正式身份只有报告（S25），用 `gh run download` 下载后原样复制；gates 产物同样原样复制。
 - **结论**：W3 通过。按用户指示，没有做 W4 本机核对，阶段 3 没有签收。
 - **下一步**：W4 本机核对已完成，阶段 3 已签收（§8"阶段 3 签收"）。
+
+### S35 复用清单审阅（Codex Astra，2026-10-11）及修订（Claude，同日，用户指示"按这些建议修订 S35，重新生成清单并推送"）
+
+审阅固定在本分支 `0769715e`、旧实现 `b8ade3f7`。读取时旧分支头为 `36af1111`，只多一笔改 `.gitignore` 和 wayfinder 的提交，不影响运行时代码。Astra 核对了总览表的加总，认可各 ticket 主要提醒的方向，结论是清单可保留为候选盘点，但作为迁移清单前要修订归类语义、来源排除范围和依赖检查。Astra 附带的合成反例脚本（`audit_probes.py`）只读不跑；对应的检查由本分支的 `rule_probes.py` 重写，直接调用修订后的分析和归类函数。
+
+| 审阅意见 | 处理 |
+| --- | --- |
+| blame 只说明当前行最后由哪个提交修改，"Margin 行"说得过强；只改变量名的上游行会成为干净候选（合成反例） | 方法改为"追踪当前行的最后修改"，所有行都是待审候选；新增近似快照行检查，以及分叉时的上游行数（大于 0 标"看 diff"）；`cleanRanges` 改为 `candidateRanges`。该反例现在被标为近似快照行 |
+| 10% 阈值只能估工作量；"整文件引入"允许 3 处命中，与"命中一律处理"冲突（`directAssistAnswerState.ts`）；快照行只有数量没有行号（`osEventSubscriptions.ts` 等） | 整文件候选要求命中、近似快照行、快照行和分叉时的上游行全为 0；快照行、近似快照行与命中行分开逐行输出；做法改名为"处置标出行后引入"等；上游派生内容按需求重新实现，不改到扫描不命中为止 |
+| "缺少的依赖"不是依赖闭包，同名文件存在不等于接口兼容（`promptBudget.ts`）；片段文件不查；按工作目录判断是否存在 | 依赖对照固定提交 `0769715e` 分级（状态表见 §6），片段文件也查；核对导入的名字本分支是否导出；沿计划引入的依赖做传递闭包；补上路径别名、副作用导入、测试按路径加载的构建文件和 npm 包；`promptBudget.ts` 的字段差异读代码后登记为需适配 |
+| 单一归属掩盖跨票验收（`PromptSkillConsumerChain.test.mjs`） | 保留主负责 ticket，新增"跨票"列；该测试由 AG-51 改接阶段 3 的回答入口验收，经手动回答的整条链等 AG-42 后补联合用例 |
+| AG-42 不必重建旧版两个大文件；旧服务还依赖旧的 `GenerateTurn`、`AnswerGenerationInput` 和事件约定 | 写入 AG-42 说明：先按本分支生成契约定义最小的请求和事件适配层 |
+| AG-51 应自写职责明确的校验和存储 | 写入 AG-51 说明 |
+| AG-60 应拆出共享基础前置项 | 新增 AG-60a（§6 阶段表），归属规则把 `i18n.tsx`、`i18n.zh.ts`、`SettingsKit.tsx` 划给它 |
+| 中文译文除 90 行命中外还有 4 行快照行 | 逐行列出，写入 AG-60a 说明 |
+| 阿里云、豆包 STT 不能按命中比例降级 | 保持来源待审，写入 AG-41 说明 |
+| 二进制资产按行数归为整文件（`synthetic.docx`、`synthetic.pdf`）；未扫描的短行进了可用行号；上游池不含 `.json`、`.svg`、`.txt` 等扩展名 | 新增逐文件扫描覆盖状态，以及"资产待审""未扫描，人工审查"两类；短行单列，不计入候选行 |
+| 可复现性：`head-state.json` 没有生成命令，依赖看工作目录，上游引用集合没有保存 | 新增 `run-manifest.json`（全部 SHA、125 个上游引用、配置和脚本哈希、工具版本）；`head-state.json` 由建表脚本按固定提交生成；保存命中行号 `hit-lines.json`；README 写全重建命令 |
+| 旧阿里云 STT 的 160 KiB 缓冲上限不是严格上限 | 已核对；豆包第 476 行有同样的问题。写入 AG-41：加超大单块测试，选定拒绝、分块或按帧裁剪 |
+
+**结果**
+- 来源扫描重跑，结果与第一版逐字节相同。分析再跑一遍，输出与前一次逐字节相同。`rule_probes.py` 8 项全部通过：改名的上游行、短行、分叉时含上游内容的文件、二进制、未覆盖的扩展名、一处命中、只有快照行，以及无任何信号才算整文件候选。
+- 候选文件 364 个（上一版 368 个，少的 4 个是快照自带、Margin 没改过的二进制资产）。剩余 ticket、阶段 7 和混合文件共 175 个：未命中候选行 13,976 行；须处置的命中 1,514 行、近似快照行 142 行、快照行 15,200 行；69 个文件要看 diff；短行 2,745 行未扫描。
+
+**未做**：没有逐文件人工审查候选内容，所以清单仍只是候选盘点。没有运行项目 gates，因为这次只改了文档和证据脚本。近似检查只比对同一文件快照版本里的上游行，改动较大的改写、从其他文件搬来的上游内容仍查不出。
