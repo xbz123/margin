@@ -2,13 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
 
-**Current answer:** 阶段 4 出口重跑 `38160933671` 的打包、两应用启动（各 7/7）、源码包及来源扫描通过，CrashReporter 不再出现；gates 仅取消回归失败。测试已改用取消前投递记录，仅语法和 diff 检查通过，待 Claude 复验（2026-10-11），尚未签收。
+**Current answer:** 阶段 4 出口 CI `38162294825`（`fb66acce`）通过：gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7、源码包 `cleanTree`；产物已核对（2026-10-11）。等用户签收。
 
-**Current focus:** 完成阶段 4 出口修复复验及 CI 产物核对；以用户签收结束阶段 4，之前不进入 AG-50。
+**Current focus:** 用户签收阶段 4；签收前不进入 AG-50。
 
 ## Waiting
 
-- **阶段 4 取消回归修正** — 以同步取消前收到的 token 取代过渡态 DOM 快照，本次仅本地提交；resume: PLAN §9"阶段 4 出口重跑 38160933671"；next: Claude 沙箱外运行 Electron 回归、复验及推送，后续出口 CI 须用户批准。
+- **阶段 4 等用户签收** — 出口 CI `38162294825`（`fb66acce`）通过，产物已核对（PLAN §9"阶段 4 出口 CI 38162294825"）。签收后进入阶段 5（AG-50 Local Context，交 Codex）。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching

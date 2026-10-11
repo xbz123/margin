@@ -1,0 +1,7 @@
+commit: fb66accee5029e0850c6772c939513882f9492a4
+run: 38162294825/1
+variant: release
+name: Margin
+appId: io.github.xbz123.margin
+checks: passed
+e8f5efe08b787ae49e9d87330405d38fb05e8c4818786499a70d7933e00a9bd6  Margin-release-arm64.zip

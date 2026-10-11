@@ -1,0 +1,194 @@
+{
+  "artifacts": [
+    {
+      "digest": "sha256:08fd87d257c7a39da6008fafd0bc7ec10718f687f446edd63c011dc96adae919",
+      "expires_at": "2026-10-25T18:12:24Z",
+      "name": "margin-app-release-fb66accee5029e0850c6772c939513882f9492a4",
+      "size_in_bytes": 29693
+    },
+    {
+      "digest": "sha256:05b9aa74a5b5b802e17c512d90fdf2ddffd84d5c9d8c3868dc6b8c538aa35b2d",
+      "expires_at": "2026-10-25T18:12:21Z",
+      "name": "margin-app-temp-fb66accee5029e0850c6772c939513882f9492a4",
+      "size_in_bytes": 287963130
+    },
+    {
+      "digest": "sha256:aac1081fd064524fba987fb100feb464e180f9b3a9b61a42693241877e54c1dd",
+      "expires_at": "2026-11-10T18:12:28Z",
+      "name": "margin-gates-fb66accee5029e0850c6772c939513882f9492a4",
+      "size_in_bytes": 62253
+    },
+    {
+      "digest": "sha256:7b36d8255f6644c63e76111dbbeada3d78f548ef000095bd29c0e72360d7b18b",
+      "expires_at": "2026-11-10T18:06:26Z",
+      "name": "margin-native-fb66accee5029e0850c6772c939513882f9492a4",
+      "size_in_bytes": 718278
+    },
+    {
+      "digest": "sha256:b5d729c0e1cdca0c6b8a72d090e2033fa254d75ce9434eafaeebed3e4ff714d6",
+      "expires_at": "2026-11-10T18:12:25Z",
+      "name": "margin-source-fb66accee5029e0850c6772c939513882f9492a4",
+      "size_in_bytes": 210014642
+    }
+  ],
+  "run": {
+    "id": 38162294825,
+    "head_sha": "fb66accee5029e0850c6772c939513882f9492a4",
+    "head_branch": "codex/margin-agpl-migration",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-11T18:04:45Z",
+    "updated_at": "2026-10-11T18:12:38Z",
+    "html_url": "https://github.com/xbz123/margin/actions/runs/38162294825"
+  },
+  "jobs": [
+    {
+      "name": "gates",
+      "conclusion": "success",
+      "runner_name": "GitHub Actions 1000000817",
+      "labels": [
+        "macos-15"
+      ],
+      "started_at": "2026-10-11T18:04:51Z",
+      "completed_at": "2026-10-11T18:12:37Z",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@v7",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Fetch upstream refs and extra restricted commits (read-only)",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Run actions/setup-node@v7",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Toolchain versions",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "Run actions/cache@v6",
+          "conclusion": "success"
+        },
+        {
+          "number": 7,
+          "name": "Run actions/cache@v6",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "Run npm ci",
+          "conclusion": "success"
+        },
+        {
+          "number": 9,
+          "name": "Native setup",
+          "conclusion": "success"
+        },
+        {
+          "number": 10,
+          "name": "Collect the native module",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "Run actions/upload-artifact@v7",
+          "conclusion": "success"
+        },
+        {
+          "number": 12,
+          "name": "Run gates against the newest local ticket evidence",
+          "conclusion": "success"
+        },
+        {
+          "number": 13,
+          "name": "Check release identity contract (CI only; no packaging)",
+          "conclusion": "success"
+        },
+        {
+          "number": 14,
+          "name": "Package the temp app (AG-25; workflow artifacts only)",
+          "conclusion": "success"
+        },
+        {
+          "number": 15,
+          "name": "Package the release app (AG-25; workflow artifacts only)",
+          "conclusion": "success"
+        },
+        {
+          "number": 16,
+          "name": "Launch the packaged temp app in a throwaway home (CI only)",
+          "conclusion": "success"
+        },
+        {
+          "number": 17,
+          "name": "Launch the packaged release app in a throwaway home (CI only)",
+          "conclusion": "success"
+        },
+        {
+          "number": 18,
+          "name": "Corresponding source bundle (S19-C; workflow artifact)",
+          "conclusion": "success"
+        },
+        {
+          "number": 19,
+          "name": "Upload the temp app",
+          "conclusion": "success"
+        },
+        {
+          "number": 20,
+          "name": "Upload the release app reports",
+          "conclusion": "success"
+        },
+        {
+          "number": 21,
+          "name": "Upload the source bundle",
+          "conclusion": "success"
+        },
+        {
+          "number": 22,
+          "name": "Run actions/upload-artifact@v7",
+          "conclusion": "success"
+        },
+        {
+          "number": 41,
+          "name": "Post Run actions/cache@v6",
+          "conclusion": "success"
+        },
+        {
+          "number": 42,
+          "name": "Post Run actions/cache@v6",
+          "conclusion": "success"
+        },
+        {
+          "number": 43,
+          "name": "Post Run actions/setup-node@v7",
+          "conclusion": "success"
+        },
+        {
+          "number": 44,
+          "name": "Post Run actions/checkout@v7",
+          "conclusion": "success"
+        },
+        {
+          "number": 45,
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}
