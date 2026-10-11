@@ -1,0 +1,16 @@
+(node:8062) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[LLMHelper] Switched to Model: codex-cli
+✔ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (6691.275333ms)
+✔ AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads (2952.431833ms)
+✔ AG33 real Global React overlay preserves partial failure, fences closed callbacks and creates a new retry record (5693.884542ms)
+✔ all seven Markdown callers and streaming sanitize block image loads in a real renderer (4632.236792ms)
+✔ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (11955.750917ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32339.901459
