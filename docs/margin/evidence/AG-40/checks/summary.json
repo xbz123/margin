@@ -2,6 +2,7 @@
   "ticket": "AG-40",
   "date": "2026-10-11",
   "base": "3da28cf2",
+  "implementationCommit": "5241e414aa590476a075b6656960bc208c3afff3",
   "branch": "codex/margin-agpl-migration",
   "status": "实现和本地检查通过；完整门禁和复查待 Claude",
   "checks": [
