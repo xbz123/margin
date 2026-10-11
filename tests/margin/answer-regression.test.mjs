@@ -102,7 +102,6 @@ async function installDeliveryRecorder() {
   });
 }
 const delivered = () => overlay.evaluate(() => JSON.parse(JSON.stringify(window.__marginDelivered)));
-const resetDelivered = () => overlay.evaluate(() => { window.__marginDelivered = { tokens: [], done: 0, errors: [] }; });
 
 test.before(async () => {
   mock = await startMockOpenAI();
@@ -191,8 +190,8 @@ test('after cancel, and after a new stream has started, events of the old stream
   await installStreamIdSpy();
   await installDeliveryRecorder();
 
-  // A slow runner may display LATE chunks before cancellation; compare against the
-  // UI at cancellation instead of assuming a particular chunk has not arrived yet.
+  // Cancellation rebuilds the streaming DOM; use delivered tokens, not a UI snapshot,
+  // to identify LATE chunks legitimately received before cancellation.
   mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800 });
   await ask('Please give a long answer.');
   await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000 });
@@ -205,11 +204,13 @@ test('after cancel, and after a new stream has started, events of the old stream
   await sendOverlayStreamEvent('gemini-stream-token', 'LIVE-INJECTED ', oldId);
   await overlay.waitForFunction(() => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000 });
 
-  const lateAtCancel = await overlay.evaluate(async () => {
-    await window.electronAPI.cancelChatStream();
-    return document.body.innerText.match(/LATE-\d+/g) ?? [];
+  const lateAtCancel = await overlay.evaluate(() => {
+    const tokensBeforeCancel = [...window.__marginDelivered.tokens];
+    // Preload clears the active id synchronously; no IPC event can interleave here.
+    window.electronAPI.cancelChatStream();
+    window.__marginDelivered = { tokens: [], done: 0, errors: [] };
+    return tokensBeforeCancel.join('').match(/LATE-\d+/g) ?? [];
   });
-  await resetDelivered();
 
   // 1. In the gap after the cancel: a late token and done of the old stream.
   await sendOverlayStreamEvent('gemini-stream-token', 'GAP-INJECTED', oldId);
@@ -242,6 +243,7 @@ test('after cancel, and after a new stream has started, events of the old stream
   const final = await delivered();
   assert.equal(final.done, 1);
   assert.deepEqual(final.errors, []);
+  assert.doesNotMatch(final.tokens.join(''), /LATE-\d+/, 'LATE markers were delivered after cancel');
   assert.deepEqual(final.tokens.filter((t) => /INJECTED|LATE-/.test(t)), ['NEW-INJECTED '], `stale tokens were delivered: ${JSON.stringify(final.tokens)}`);
   const text = await overlayText();
   for (const stale of ['GAP-INJECTED', 'STALE-INJECTED', 'STALE-ERROR-INJECTED', 'NOID-INJECTED']) {

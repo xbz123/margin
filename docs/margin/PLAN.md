@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-**当前执行点（2026-10-11）**：阶段 4 的 ticket 全部完成，但出口 CI `38159055916` 失败。修复已在本地通过，待 Claude 复验和用户批准重跑（§9"阶段 4 出口 CI 38159055916"；本地验证范围不含 Electron、打包及已知 icons 沙箱例外）。阶段 4 尚未签收，不进入阶段 5。
+**当前执行点（2026-10-11）**：阶段 4 出口重跑 `38160933671` 的打包、启动、源码包和来源扫描通过，gates 仅取消回归测试失败。测试已改用取消前的投递记录作为依据，仅语法及 diff 检查通过，待 Claude 沙箱外复验（§9"阶段 4 出口重跑 38160933671"）。阶段 4 尚未签收，不进入阶段 5。
 
 状态：**阶段 3 已签收（2026-10-11，用户指示"做 W4 本机核对，通过后签收阶段 3"）。** 签收依据为提交 `d2bd8146` 的 W3 出口 CI `38123550800`（gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7）及 W4 本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 3 签收"。阶段 4–6 按 S36 交给 Codex Astra 执行（[HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)），从用户把交接交给 Astra 时开始。以下为阶段 2 的状态说明。**阶段 2 出口已签收（2026-10-10，用户指示"做本机核对，通过后签收阶段2"）。** Claude 实现并自验收（S21）；Astra 独立验收（2026-10-09）提出的 4 项经两轮复验（2026-10-10）全部关闭；包内 libvips 的 Rust 工具链已固定，CI 两次复现记录的 `64bcfea7…`；验收条件按 S26 精简。签收依据为提交 `2c7f1e42` 的完整 CI `38057787157`（三个作业全部通过）及其下载核对和本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 2 出口签收"。AG-20–26、AG-24 后续、S19-C 及 S22 均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
@@ -2905,3 +2905,10 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - tests 共 121 个文件、970 项：969 通过、1 个既有跳过。
 
 打包、源码包和打包后启动检查只能在 CI 上验证。
+
+### 阶段 4 出口重跑 38160933671（2026-10-11）
+
+- **重跑结果**：Claude 复验 `925fa207` 并以 `46abfe1c` 记录及推送后，用户批准运行 `xbz123/margin` 的 `38160933671`。许可清单、temp/release 打包、两个启动检查（各 7/7）、源码包和来源扫描均通过；CrashReporter 不再出现，无需修改启动期生产代码。gates 仅 regression 失败，阶段 4 尚未签收。依据用户提供的重跑结果及只读核对的 `margin-gates/regression.log`、`margin-app-{temp,release}/launch.json`。
+- **剩余失败**：`LATE-1 appeared after cancel`，最终文本为 `Cancel test LATE-1 LIVE-INJECTED LATE-2 LATE-3`。LATE-1 在 LIVE-INJECTED 前已合法投递；取消会清掉流式 DOM 再提交正式消息，取消返回时的 DOM 快照可能处在过渡状态，不能作为投递边界。
+- **本次修正**：核实 `electron/preload.ts` 的 `cancelActiveChat` 为同步函数：同 owner 时同步发出取消错误、清空 `activeChatStreamId`/`chatInFlight`，再发送 stop IPC，无 await。测试在一次同步 `overlay.evaluate` 内先复制 `window.__marginDelivered.tokens`，再调用取消并重置投递记录，中间不让异步 IPC 插入；取消前 token 拼接后的 LATE 标记作为合法多重集合。最终 UI 仍逐次扣减，新增或重复超额标记必失败；另明确断言取消后的 token 拼接结果不含 LATE。GAP、STALE、STALE-ERROR、NOID 禁显、原投递断言、终态次数、新旧 id 和旧 HTTP 中止断言全部保留。delay 不变，无跳过，不改生产代码；移除仅此处使用、现已内联的 resetDelivered。
+- **验证及交付边界**：`NODE_DISABLE_COMPILE_CACHE=1 node --check tests/margin/answer-regression.test.mjs` 与 `git -C <migration-worktree> diff --check` 均 exit 0。本次仅本地提交，不推送、不联网、不触发 CI、不运行 Electron 或其他测试。Electron 行为及完整门禁待 Claude 在沙箱外复验，不能把语法检查视为回归通过。
