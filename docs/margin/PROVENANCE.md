@@ -23,6 +23,39 @@ Notes:
 
 ### AG-51 prompt layers and prompt-only Skills (2026-10-11)
 
+Review repair after `45a4e9ce` / `ccee35dd`: written from Claude's findings and
+the current call graph, without reading or importing further old/upstream code.
+This supersedes the initial library-retention and optional-Skill decisions below.
+Searches across electron/src/tests and the tracked file list confirmed that the
+folder library had no generation consumer: getSkill/buildPromptBlock had no
+callers, listSkills only served its settings page, and the optional activeSkill
+chain was never populated. Issue303SkillInvocation is not present on this branch;
+the S35 candidate was never imported. Its old existence is not a live consumer.
+
+Delete the old folder-library implementation and builtin text from SkillsManager,
+its UI file, IPC/preload/types, and the unused optional-Skill chain. Keep only the
+AG-51 import/store facade and mount PromptSettings directly. There is no startup
+seeding, directory enumeration, migration, or deletion of existing user Skills.
+The request has one shared append site; a protocol assertion requires exactly one
+user_guidance block with a selected Skill and additional instructions.
+
+NativelyInterface's spoken-question stream call passes skipSystemPrompt=true,
+so the option is retained and honored. Explicit empty overrides survive both
+default-mode and HARD_SYSTEM_PROMPT fallback, and omit the language suffix too.
+The mock protocol checks both streaming IPC and non-streaming IPC (chatWithGemini),
+and confirms their data-scope denial still sends nothing. No prompt wording changes.
+
+G6: SkillsIpcWiring's five library-only tests are removed with their feature;
+its general invoke/handler invariant is preserved as IpcInvokeCoverage.test.mjs,
+without a stale-channel allowlist. The exact six-case mapping is in AG-51 README.
+The mounted renderer language test now exercises the surviving card and retains
+draft-state and IPC-count assertions. No new skips. One new exact generic G2 line
+is registered: `const preload = fs.readFileSync(path.join(root, 'electron/preload.ts'), 'utf8');`
+(ordinary Node source read in the relocated general invariant). No scan-evasion
+changes or source-pool/exclusion expansion. Thirteen AG-51 retirement rules cover
+the obsolete channels, methods, directory accessors/builtin directory identifiers,
+optional-Skill parameter and deleted UI/test paths.
+
 Written on this branch from HANDOFF 4.6 and PLAN S29. No dependencies, assets,
 post-June upstream implementation or old implementation fragments are imported.
 Not a clean-room claim. Old Margin was inspected only with `git show b8ade3f7:<path>`.

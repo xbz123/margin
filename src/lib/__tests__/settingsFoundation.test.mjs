@@ -28,8 +28,8 @@ function sourceModule(file) {
 
 test('AG60a translation uses English source text when a Chinese entry is missing', () => {
   const { translate } = sourceModule('src/i18n.tsx');
-  assert.equal(translate('en', 'Open Folder'), 'Open Folder');
-  assert.equal(translate('zh-CN', 'Open Folder'), '打开文件夹');
+  assert.equal(translate('en', 'Save'), 'Save');
+  assert.equal(translate('zh-CN', 'Save'), '保存');
   assert.equal(translate('zh-CN', 'Untranslated text'), 'Untranslated text');
   assert.equal(translate('zh-CN', 'constructor'), 'constructor');
   assert.equal(translate('zh-CN', ''), '');

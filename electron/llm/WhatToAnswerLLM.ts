@@ -1,5 +1,5 @@
 import { LLMHelper } from "../LLMHelper";
-import { scenarioPrompt, appendPromptGuidance } from './scenarioPrompts';
+import { scenarioPrompt } from './scenarioPrompts';
 import { estimateTokens } from "./modelCapabilities";
 import { TemporalContext } from "./TemporalContextBuilder";
 import { IntentResult } from "./IntentClassifier";
@@ -43,8 +43,6 @@ export class WhatToAnswerLLM {
         intentResult?: IntentResult,
         imagePaths?: string[],
         screenContext?: ScreenContext,
-        // Supplemental only; never replace the settled default prompt.
-        activeSkill?: { id: string; name: string; promptBlock: string }
     ): AsyncGenerator<string> {
         const MEASURE = process.env.MEASURE_LATENCY === 'true';
         let tStart = 0, tIntent = 0, tTemporal = 0, tMode = 0, tTrunc = 0, tPrompt = 0, tStream = 0;
@@ -93,11 +91,7 @@ ANSWER SHAPE: ${intentResult.answerShape}
         // suffix (formerly the active General mode, PLAN.md AG-13) is layered on top.
         if (MEASURE) tMode = performance.now();
 
-        const basePrompt = scenarioPrompt('interview', this.llmHelper.getPromptTier() === 'tiny');
-        const finalPromptOverride = activeSkill
-            ? appendPromptGuidance(basePrompt, 'interview', { skills: [{ ...activeSkill, description: '', instructions: activeSkill.promptBlock }],
-                scenes: { interview: { skillId: activeSkill.id, additional: '' }, written: { skillId: null, additional: '' } } })
-            : basePrompt;
+        const finalPromptOverride = scenarioPrompt('interview', this.llmHelper.getPromptTier() === 'tiny');
 
         // Earlier answers are profile_history data: leave them out when the user has
         // denied that scope (PLAN.md AG-17 fourth review).

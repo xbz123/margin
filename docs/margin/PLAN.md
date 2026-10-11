@@ -1320,9 +1320,21 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 | AG-41b | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-41b 复查"） | `759a6484`、`520dc16e`、`9b92f883` | 五家云端 STT（新增阿里云百炼、豆包，整体按需求重写）、凭据设置、未配置时拒绝开始会议、恢复四个 Realtime 用例、160 KiB 严格缓冲上限（超限拒绝）、麦克风恢复断言；gates 119 个文件 955 项测试，954 通过、1 个既有跳过；证据 `evidence/AG-41b/`；未实机验证 |
 | AG-42 | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-42 复查"） | `3ff20cbc`、`3bfcbe47`、`25528531` | 手动回答接现有 generate-what-to-say → IntelligenceManager/Engine → 阶段 3 生成链路；配置预检、mic 尾段 finalize（尽力而为，上限 1500 ms）、取消、回答身份封口、固定错误文案（英文源文 + 中文译文）；gates 121 个文件 970 项测试，969 通过、1 个既有跳过；证据 `evidence/AG-42/`；未实机验证 |
 | AG-50 | 完成；Claude 复查通过，完整 gates 16/16（§9"AG-50 复查"） | `2dc6a835`、`a04cf568`、`595c5872` | Local Context 全文：只接受 UTF-8 `.md`、`.markdown`、`.txt`，最多 8 个文件、单个 32 KiB、合计 64 KiB；存导入时的文本快照；放在共享生成出口的第一条 user turn；容量超限时报错不截断；不设数据开关（S40）；存储不可读时可确认后清空恢复。gates 123 个文件、979 项，978 通过、1 个既有跳过；证据 `evidence/AG-50/`；未实机验证 |
-| AG-51 | 实现和本地检查通过；完整门禁和复查待 Claude | `45a4e9ce` | 提示词分层、自动/手动场景、按场景附加指令、提示词 Skill 导入安装选择、损坏存储确认恢复；证据 `evidence/AG-51/`。986 项单元测试：984 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过；不推送，未实机验证 |
+| AG-51 | 复查修正和本地检查通过；修正版完整门禁及复查待 Claude | 初版 `45a4e9ce` / `ccee35dd`；修正版为本记录所在提交 | 只保留导入式 Skills，删除无消费者的旧库及参数链；恢复有调用方的 skipSystemPrompt。最终本地 981 项：979 通过、1 个已知 iconutil 沙箱失败、1 个既有跳过。初版 Claude 完整 gates 16/16 不代替修正版验收；证据 `evidence/AG-51/checks/`；不推送 |
 
 ### AG-51 记录（2026-10-11）
+
+#### Claude 复查修正
+
+- **起点与验收状态**：Claude 已复查初版两提交，报告沙箱外完整 gates 16/16、986 项中 985 通过和 1 个既有跳过。其未跟踪 `evidence/AG-51/gates/` 不修改、不提交。本次从 `ccee35dd` 另作一笔本地提交；不推送，修正版仍待 Claude 复验。
+- **单一 Skills 机制**：重新搜索本分支全部源码与测试，旧库仅服务自身设置页，没有生成消费者；getSkill/buildPromptBlock 无调用方，activeSkill 参数只有声明/转传，Issue303SkillInvocation 文件未在当前分支出现（S35 旧测试未引入）。删除库的读取/播种/内置文本、界面文件、两个 IPC、preload 方法、类型及参数链；SkillsManager 只保留导入/存储门面，SettingsOverlay 直接使用 PromptSettings。不读取、不删除、不迁移真实用户已有 skills 目录。十三条 AG-51 退役规则保护旧通道、方法、目录访问符号和内置目录名、参数及两个删除文件路径。
+- **只追加的依据**：旧 Skill 指令替换默认回答后缀，改为与附加指令一样只追加，是将 S29 第 3 条“默认之后、不可整段替换”的约束一致用于用户导入的提示词，防止另留替换入口。删除 activeSkill 后，只有 LLMHelper 的共享追加点；联合协议断言要求恰好一个 `<user_guidance>` 块，默认提示词 SHA 仍一致。
+- **skipSystemPrompt**：NativelyInterface 的语音提问路径确实传 true，不能删除选项。恢复流式 IPC 的空提示选择，并修正共享 helper 用 `||` 把空字符串替回默认值的问题；空覆盖不注入默认后缀或语言指令。非流式 chatWithGemini 同样生效，类型保留。mock 断言两个 IPC 路径均无 system 消息，且关闭 transcript 后仍零发送；流式通过既有 error 事件报告，非流式拒绝 Promise。
+- **默认场景与生成策略**：未选择 Question mode 时，文字提问和截图提问按 written 场景，**同时使用 written 生成策略**。相比原默认 interview（默认首 token 10 秒、总计 60 秒），使用配置的 written 总时限（默认 180 秒），不设 interview TTFT；理由是文字、代码和截图题需要完整书面回答，提示词与时限应遵循同一场景。显式 interview 恢复面试策略；手动会话回答入口仍默认 interview。现有预算行为测试新增未指定选项的断言。
+- **G6**：删除 SkillsIpcWiring 中仅对应旧库的 5 项测试；第 6 项通用 preload invoke/handler 完整性检查迁入 IpcInvokeCoverage，不保留缺失通道豁免。逐项映射见 `evidence/AG-51/README.md`。Electron 挂载翻译测试改为唯一保留的卡片，仍检查语言切换不丢草稿、不增加 IPC；翻译基础测试换用 Save 词条。未加跳过、未削弱范围/零发送断言。
+- **最终检查**：Electron/Vite build、两套 tsc、preload/IPC 契约、隔离自测 12/12、retired `--all`（309 条）、G2 `--max-hits 0`、两个 Electron 测试的 `node --check` 和 diff-check 均 exit 0。隔离单元测试 125 文件、981 项：979 通过、1 个已知 iconutil 沙箱例外、1 个既有跳过。`checks/` 只保留最终修正版一轮；完整 Electron gates 和实机验证未跑。新增一处普通 Node 文件读取的 G2 命中逐字登记，未改字规避扫描；详见 PROVENANCE。
+
+#### 初版记录（45a4e9ce；上述修正优先）
 
 - **授权与状态**：从 `dd6ef564` 在迁移工作树串行实施，实现提交 `45a4e9ce`，不派代理，仅本地提交、不推送、不触发 CI。按本次派发及 S38，完整 Electron gates 和 Claude 复查待办；不代签阶段 5 出口。提交前原工作区为空且仍在 `codex/ai-assistant-refactor`；本票临时目录已删除。
 - **分层**：在 `prompts.ts` 原有段落边界拆出基础层与面试/笔试场景层，由 `scenarioPrompts.ts` 组装。基础层保留定案的身份/安全及执行约束变体，不为统一一段文字而改写 S29。面试仍为 Universal WhatToAnswer + DEFAULT_ANSWER_PROMPT_SUFFIX，tiny 保留既有 tiny 前缀；笔试仍为 CHAT_MODE_PROMPT。与起始提交逐字一致，固定 SHA-256 行为断言见 `PromptSkillConsumerChain.test.mjs` 和证据 README，措辞差异为零。

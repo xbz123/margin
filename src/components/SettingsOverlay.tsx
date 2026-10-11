@@ -16,7 +16,7 @@ import { HelpSettings } from './settings/HelpSettings';
 import { AIProvidersSettings } from './settings/AIProvidersSettings';
 import { LocalContextSettings } from './settings/LocalContextSettings';
 import { CredentialLoadBanner } from './settings/CredentialLoadBanner';
-import { SkillsSettings } from './settings/SkillsSettings';
+import { PromptSettings } from './settings/PromptSettings';
 import { NativelyLogoMark } from './NativelyLogoMark';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShortcuts } from '../hooks/useShortcuts';
@@ -1929,7 +1929,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                 </div>
                             )}
                             {activeTab === 'skills' && (
-                                <SkillsSettings />
+                                <PromptSettings />
                             )}
                             {activeTab === 'keybinds' && (
                                 <div className="space-y-5 animated fadeIn select-text pb-4">

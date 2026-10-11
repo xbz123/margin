@@ -477,7 +477,7 @@ export class IntelligenceEngine extends EventEmitter {
         });
     }
 
-    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<void>; speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; activeSkill?: { id: string; name: string; promptBlock: string } }): Promise<string | null> {
+    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<void>; speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext }): Promise<string | null> {
         const task = this.llmHelper.getCurrentGenerationTask();
         if (task) task.deferVisibleText = true;
         const now = Date.now();
@@ -589,7 +589,7 @@ export class IntelligenceEngine extends EventEmitter {
             let pendingDisplay = "";
             // RC-03 fix: hold a reference to the generator so we can call .return()
             // to properly terminate the network request when a new generation starts.
-            const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext, options?.activeSkill);
+            const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext);
             let streamAborted = false;
 
             try { for await (const token of stream) {

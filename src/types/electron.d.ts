@@ -339,17 +339,6 @@ export interface ElectronAPI {
 
   // Platform
   platform: NodeJS.Platform;
-
-  // Skills
-  skillsRefresh: () => Promise<SkillSummary[]>;
-  skillsOpenFolder: () => Promise<{ success: boolean; path: string; error?: string }>;
-}
-
-export interface SkillSummary {
-  id: string;
-  name: string;
-  description: string;
-  source: 'builtin' | 'userData';
 }
 
 declare global {

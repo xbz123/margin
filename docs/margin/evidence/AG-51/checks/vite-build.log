@@ -1,6 +1,6 @@
 vite v5.4.21 building for production...
 transforming...
-✓ 3877 modules transformed.
+✓ 3876 modules transformed.
 rendering chunks...
 [plugin:vite:reporter] [plugin vite:reporter] 
 (!) <repo>/src/lib/sttErrorMapper.ts is dynamically imported by <repo>/src/components/NativelyInterface.tsx but also statically imported by <repo>/src/components/ui/RollingTranscript.tsx, dynamic import will not move module into another chunk.
@@ -75,15 +75,15 @@ dist/assets/InterVariable-DiVDrmQJ.woff2                 352.24 kB
 dist/assets/evin-BgBc3Eq7.png                            466.74 kB
 dist/assets/hero-u82bkLM-.webm                           848.96 kB
 dist/assets/index-Btco-8v_.css                           150.70 kB │ gzip:  27.49 kB
-dist/assets/Cropper-9nosM__k.js                            4.11 kB │ gzip:   1.71 kB
-dist/assets/ui-B9Pc5Hv_.js                                68.00 kB │ gzip:  18.79 kB
-dist/assets/vendor-C6xqPYM1.js                           135.44 kB │ gzip:  44.70 kB
-dist/assets/index.es-DKuBSrMH.js                         150.31 kB │ gzip:  51.30 kB
+dist/assets/Cropper-C0MX2qAE.js                            4.11 kB │ gzip:   1.71 kB
+dist/assets/ui-DxbXIlQq.js                                67.59 kB │ gzip:  18.71 kB
+dist/assets/vendor-CXCM92rV.js                           135.44 kB │ gzip:  44.70 kB
+dist/assets/index.es-DzKoQHFz.js                         150.31 kB │ gzip:  51.29 kB
 dist/assets/html2canvas.esm-CBrSDip1.js                  201.42 kB │ gzip:  47.70 kB
-dist/assets/index-CmvYCBOE.js                          2,169.32 kB │ gzip: 682.64 kB
+dist/assets/index-DFsUS9a6.js                          2,165.04 kB │ gzip: 681.70 kB
 
 (!) Some chunks are larger than 1000 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 4.69s
+✓ built in 5.28s

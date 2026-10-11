@@ -750,10 +750,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
 
-  // Skills — local SKILL.md instructions surfaced in Settings and the overlay.
-  skillsRefresh: () => ipcRenderer.invoke('skills:list'),
-  skillsOpenFolder: () => ipcRenderer.invoke('skills:open-folder'),
-
   onSettingsVisibilityChange: (callback: (isVisible: boolean) => void) => {
     const subscription = (_: any, isVisible: boolean) => callback(isVisible);
     ipcRenderer.on('settings-visibility-changed', subscription);

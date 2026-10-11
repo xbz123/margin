@@ -475,7 +475,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         }
 
         // Typed questions default to written; the existing Question mode can override it.
-        const systemPromptOverride = scenarioPrompt(generationKind, llmHelper.getPromptTier() === 'tiny');
+        const systemPromptOverride = options?.skipSystemPrompt ? '' : scenarioPrompt(generationKind, llmHelper.getPromptTier() === 'tiny');
 
         try {
           // USE streamChat which handles routing. Pass the abort signal as
@@ -2032,21 +2032,4 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('skills:list', () => {
-    try {
-      return SkillsManager.getInstance().listSkills();
-    } catch (e: any) {
-      console.warn('[IPC] skills:list error:', e?.message || e);
-      return [];
-    }
-  });
-
-  safeHandle('skills:open-folder', async () => {
-    try {
-      return await SkillsManager.getInstance().openSkillsFolder();
-    } catch (e: any) {
-      console.warn('[IPC] skills:open-folder error:', e?.message || e);
-      return { success: false, path: '', error: e?.message || 'failed to open skills folder' };
-    }
-  });
 }

@@ -4,10 +4,10 @@
   "baseline": "a786910e33767a00116a519a3009ec14db812123",
   "approvedLineKeys": 128377,
   "restrictedLineKeys": 621107,
-  "addedSubstantiveLines": 41376,
+  "addedSubstantiveLines": 41387,
   "hits": 0,
-  "genericIdiomHits": 199,
-  "allowlistedHits": 1943,
+  "genericIdiomHits": 200,
+  "allowlistedHits": 1940,
   "filesWithHits": 0,
   "binariesToReviewByHand": [
     "assets/icon.png",

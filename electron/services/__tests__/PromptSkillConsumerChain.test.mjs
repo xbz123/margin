@@ -87,14 +87,16 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
       getProviderScopePolicy: () => policy,
       openaiClient: { chat: { completions: { create: async body => {
         sent.push(body);
-        return [{ choices: [{ delta: { content: 'MOCK ANSWER' }, finish_reason: 'stop' }] }];
+        return body.stream ? [{ choices: [{ delta: { content: 'MOCK ANSWER' }, finish_reason: 'stop' }] }]
+          : { choices: [{ message: { content: 'MOCK ANSWER' }, finish_reason: 'stop' }] };
       } } } },
     });
     const intelligence = new IntelligenceManager(helper);
     intelligence.on('error', () => {});
     intelligence.addTranscript({ text: 'Explain a hash table', speaker: 'interviewer', timestamp: Date.now(), final: true }, true);
     const handlers = new Map();
-    const sender = { id: 51, send() {}, isDestroyed: () => false };
+    const deliveries = [];
+    const sender = { id: 51, send: (...args) => deliveries.push(args), isDestroyed: () => false };
     let selection = { canceled: false, filePaths: [source] };
     const electron = { app: { getPath: () => root }, BrowserWindow: { fromWebContents: value => value === sender ? {} : null },
       dialog: { showOpenDialog: async () => selection },
@@ -125,14 +127,26 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     assert.match(system, /SKILL_MARKER/);
     assert.match(system, /ADD_MARKER &lt;\/user_guidance&gt;/);
     assert.match(system, /cannot replace/);
+    assert.equal((system.match(/<user_guidance>/g) ?? []).length, 1);
     await invoke('gemini-chat-stream', 'WRITTEN');
     assert.ok(sent.at(-1).messages.find(message => message.role === 'system').content.startsWith(scenarioPrompt('written')));
     assert.doesNotMatch(JSON.stringify(sent.at(-1)), /SKILL_MARKER|ADD_MARKER/);
     await invoke('gemini-chat-stream', 'MANUAL SCENE SWITCH', undefined, undefined, { generationKind: 'interview' });
     assert.match(JSON.stringify(sent.at(-1)), /SKILL_MARKER|ADD_MARKER/);
+    assert.equal((JSON.stringify(sent.at(-1)).match(/<user_guidance>/g) ?? []).length, 1);
+    for (const channel of ['gemini-chat-stream', 'gemini-chat']) {
+      await invoke(channel, 'EXPLICIT NO SYSTEM', undefined, 'CONTEXT MARKER', { skipSystemPrompt: true });
+      assert.equal(sent.at(-1).messages.some(message => message.role === 'system'), false);
+      assert.match(JSON.stringify(sent.at(-1)), /CONTEXT MARKER/);
+    }
     policy = { transcript: false };
     const before = sent.length;
     assert.equal((await answer()).error, 'Data scope denied. Check Data Scopes in Settings.');
+    const errorCount = deliveries.filter(event => event[0] === 'gemini-stream-error').length;
+    await invoke('gemini-chat-stream', 'DENIED WITHOUT SYSTEM', undefined, undefined, { skipSystemPrompt: true });
+    assert.equal(deliveries.filter(event => event[0] === 'gemini-stream-error').length, errorCount + 1);
+    assert.match(deliveries.at(-1)[1], /Data scope denied/);
+    await assert.rejects(() => invoke('gemini-chat', 'DENIED WITHOUT SYSTEM', undefined, undefined, { skipSystemPrompt: true }), { name: 'ProviderScopeError' });
     assert.equal(sent.length, before);
     assert.equal((await handlers.get('prompt-settings:clear')({ sender: {} })).ok, false);
     selection = { canceled: true, filePaths: [] };

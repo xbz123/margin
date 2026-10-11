@@ -15,16 +15,14 @@ import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/e
 test('AG60a mounted Skills settings switch language without resetting controls or calling extra IPC', async () => {
   const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
     import React from 'react'; import { createRoot } from 'react-dom/client';
-    import { SkillsSettings } from './src/components/settings/SkillsSettings';
+    import { PromptSettings } from './src/components/settings/PromptSettings';
     import { setUiLanguage } from './src/i18n';
     window.changeLanguage = setUiLanguage;
-    window.refreshes = 0; window.folderOpens = 0;
+    window.refreshes = 0;
     window.electronAPI = {
-      getPromptSettings: async () => ({ ok: true, settings: { skills: [], scenes: { interview: { skillId: null, additional: '' }, written: { skillId: null, additional: '' } } } }),
-      skillsRefresh: async () => { window.refreshes++; return []; },
-      skillsOpenFolder: async () => { window.folderOpens++; return { success: true, path: '/synthetic/skills' }; }
+      getPromptSettings: async () => { window.refreshes++; return { ok: true, settings: { skills: [], scenes: { interview: { skillId: null, additional: '' }, written: { skillId: null, additional: '' } } } }; }
     };
-    createRoot(document.getElementById('root')).render(React.createElement(SkillsSettings));
+    createRoot(document.getElementById('root')).render(React.createElement(PromptSettings));
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('ag60a-settings');
   let app;
@@ -38,22 +36,20 @@ test('AG60a mounted Skills settings switch language without resetting controls o
     });
     const page = await opened;
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
-    await page.getByRole('heading', { name: 'Skills', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Prompt Skills and additional instructions', exact: true }).waitFor();
     await page.waitForFunction(() => window.refreshes === 1);
-    await page.getByRole('button', { name: 'Open Folder', exact: true }).click();
-    await page.getByText('/synthetic/skills', { exact: true }).waitFor();
+    await page.getByRole('textbox').fill('UNSAVED DRAFT');
     await page.evaluate(() => window.changeLanguage('zh-CN'));
-    await page.getByRole('heading', { name: '技能', exact: true }).waitFor();
-    await page.getByRole('heading', { name: '技能文件夹', exact: true }).waitFor();
-    assert.equal(await page.getByText('/synthetic/skills', { exact: true }).count(), 1);
+    await page.getByRole('heading', { name: '提示词 Skills 与附加指令', exact: true }).waitFor();
+    assert.equal(await page.getByRole('textbox').inputValue(), 'UNSAVED DRAFT');
     assert.equal(await page.evaluate(() => window.refreshes), 1);
-    await page.getByRole('button', { name: '刷新', exact: true }).click();
+    await page.getByRole('button', { name: '重新加载提示词设置', exact: true }).click();
     await page.waitForFunction(() => window.refreshes === 2);
-    await page.getByRole('button', { name: '打开文件夹', exact: true }).click();
-    assert.equal(await page.evaluate(() => window.folderOpens), 2);
+    await page.waitForFunction(() => document.querySelector('textarea')?.value === '');
+    await page.getByRole('textbox').fill('SECOND DRAFT');
     await page.evaluate(() => window.changeLanguage('en'));
-    await page.getByRole('heading', { name: 'Skills', exact: true }).waitFor();
-    assert.equal(await page.getByText('/synthetic/skills', { exact: true }).count(), 1);
+    await page.getByRole('heading', { name: 'Prompt Skills and additional instructions', exact: true }).waitFor();
+    assert.equal(await page.getByRole('textbox').inputValue(), 'SECOND DRAFT');
     assert.equal(await page.evaluate(() => window.refreshes), 2);
     await page.close();
   } finally {

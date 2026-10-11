@@ -11,23 +11,23 @@
 [isolation] blocked exec: spawnSync /bin/sh
 [isolation] blocked local-exec: execFileSync defaults
 [isolation] blocked keychain: keytar.setPassword
-✔ guard is active and the environment is clean (1.564417ms)
-✔ fetch to a public host is blocked (20.086417ms)
-✔ https.get to a public host is blocked (2.920667ms)
-✔ raw TCP to a public IP is blocked (0.849709ms)
-✔ DNS lookups for public names are blocked (1.103417ms)
-✔ WebSocket (ws package) to a public host is blocked (16.5525ms)
-✔ child processes are blocked unless allowed (6.122792ms)
-✔ node, simple utilities and sandbox-local test doubles may run (483.51925ms)
-✔ keytar is replaced by an in-memory stub (0.638375ms)
+✔ guard is active and the environment is clean (1.695417ms)
+✔ fetch to a public host is blocked (21.750959ms)
+✔ https.get to a public host is blocked (2.711583ms)
+✔ raw TCP to a public IP is blocked (0.781541ms)
+✔ DNS lookups for public names are blocked (1.053791ms)
+✔ WebSocket (ws package) to a public host is blocked (16.022542ms)
+✔ child processes are blocked unless allowed (6.225708ms)
+✔ node, simple utilities and sandbox-local test doubles may run (488.075375ms)
+✔ keytar is replaced by an in-memory stub (1.407709ms)
 [isolation] blocked watched-port: 127.0.0.1:11434
 [isolation] blocked watched-port: localhost:11434
 [isolation] blocked watched-port: 127.0.0.1:11434
-✔ loopback traffic still works (16.835542ms)
-✔ watched loopback ports (the retired Ollama port) are blocked and recorded (2.419291ms)
+✔ loopback traffic still works (29.132833ms)
+✔ watched loopback ports (the retired Ollama port) are blocked and recorded (3.233958ms)
 [isolation] blocked device: native audio module wrapped (index.js)
 [isolation] blocked device: native audio module wrapped (index.darwin-arm64.node)
-✔ native module exports audio and window helpers but no license functions (202.003417ms)
+✔ native module exports audio and window helpers but no license functions (33.28275ms)
 ℹ tests 12
 ℹ suites 0
 ℹ pass 12
@@ -35,10 +35,10 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 682.415292
+ℹ duration_ms 706.571583
 
 --- stderr ---
-[isolation] 18 blocked attempt(s); log: <repo>/.agy-tmp/margin-isolation-node-AEHL1x/isolation.jsonl
+[isolation] 18 blocked attempt(s); log: <repo>/.agy-tmp/margin-isolation-node-8HLx6A/isolation.jsonl
 [isolation]   device native audio module wrapped (index.js)
 [isolation]   device native audio module wrapped (index.darwin-arm64.node)
 [isolation]   socket example.com:443

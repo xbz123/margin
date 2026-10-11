@@ -1,32 +1,43 @@
 {
-  "startedAt": "2026-10-11T19:01:53.437Z",
-  "head": "dd6ef5644dd9c21744a8e973196f24d0edb534d1",
-  "uncommittedPaths": 24,
+  "startedAt": "2026-10-11T19:18:37.800Z",
+  "head": "ccee35dd8e7489febbf28f32130c3a775d71a687",
+  "uncommittedPaths": 35,
   "uncommittedPathList": [
-    "M docs/margin/provenance-config.json",
+    "M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/evidence/AG-51/README.md",
+    " M docs/margin/evidence/AG-51/checks/build-electron.log",
+    " M docs/margin/evidence/AG-51/checks/guard-selftest.log",
+    " M docs/margin/evidence/AG-51/checks/ipc-channels.log",
+    " M docs/margin/evidence/AG-51/checks/preload-contract.log",
+    " M docs/margin/evidence/AG-51/checks/retired.log",
+    " M docs/margin/evidence/AG-51/checks/summary.json",
+    " M docs/margin/evidence/AG-51/checks/test-failures.txt",
+    " M docs/margin/evidence/AG-51/checks/tests.files.json",
+    " M docs/margin/evidence/AG-51/checks/tests.tap",
+    " M docs/margin/evidence/AG-51/checks/vite-build.log",
+    " M docs/margin/provenance-config.json",
     " M docs/margin/retired-rules.json",
+    " M docs/wayfinder.md",
+    " M electron/IntelligenceEngine.ts",
+    " M electron/IntelligenceManager.ts",
     " M electron/LLMHelper.ts",
-    " M electron/direct-assist/errors.ts",
     " M electron/ipcHandlers.ts",
     " M electron/llm/WhatToAnswerLLM.ts",
-    " M electron/llm/prompts.ts",
     " M electron/preload.ts",
     " M electron/services/SkillsManager.ts",
     " M electron/services/__tests__/ImagePathValidation.test.mjs",
-    " M src/components/NativelyInterface.tsx",
-    " M src/components/settings/SkillsSettings.tsx",
+    " M electron/services/__tests__/PromptSkillConsumerChain.test.mjs",
+    " D electron/services/__tests__/SkillsIpcWiring.test.mjs",
+    " M src/components/SettingsOverlay.tsx",
+    " D src/components/settings/SkillsSettings.tsx",
     " M src/i18n.zh.ts",
+    " M src/lib/__tests__/settingsFoundation.test.mjs",
     " M src/types/electron.d.ts",
-    " M tests/margin/answer-regression.test.mjs",
     " M tests/margin/outbound-renderer.test.mjs",
     "?? .agy-tmp/",
-    "?? docs/margin/evidence/AG-51/",
-    "?? electron/llm/scenarioPrompts.ts",
-    "?? electron/services/PromptSettingsStore.ts",
-    "?? electron/services/__tests__/PromptSettingsUi.test.mjs",
-    "?? electron/services/__tests__/PromptSkillConsumerChain.test.mjs",
-    "?? src/components/settings/PromptSettings.tsx",
-    "?? src/types/promptSettings.ts"
+    "?? docs/margin/evidence/AG-51/gates/",
+    "?? electron/services/__tests__/IpcInvokeCoverage.test.mjs"
   ],
   "reference": null,
   "steps": [
@@ -36,7 +47,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 3145,
+      "durationMs": 3027,
       "log": "docs/margin/evidence/AG-51/checks/tsc-renderer.log",
       "passed": true
     },
@@ -46,7 +57,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 1604,
+      "durationMs": 1671,
       "log": "docs/margin/evidence/AG-51/checks/tsc-electron.log",
       "diagnostics": {
         "total": 0
@@ -59,7 +70,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 82,
+      "durationMs": 78,
       "log": "docs/margin/evidence/AG-51/checks/preload-contract.log",
       "gaps": {
         "total": 0
@@ -72,7 +83,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 128,
+      "durationMs": 136,
       "log": "docs/margin/evidence/AG-51/checks/ipc-channels.log",
       "gaps": {
         "total": 0
@@ -85,7 +96,7 @@
       "exitCode": 0,
       "signal": null,
       "timedOut": false,
-      "durationMs": 844,
+      "durationMs": 878,
       "log": "docs/margin/evidence/AG-51/checks/guard-selftest.log",
       "passed": true
     },
@@ -95,7 +106,7 @@
       "exitCode": 1,
       "signal": null,
       "timedOut": false,
-      "durationMs": 16486,
+      "durationMs": 17149,
       "log": "docs/margin/evidence/AG-51/checks/tests.log",
       "tap": "docs/margin/evidence/AG-51/checks/tests.tap",
       "perFile": "docs/margin/evidence/AG-51/checks/tests.files.json",
@@ -103,8 +114,8 @@
       "filesNotFinished": [],
       "filesEndedAfterFooter": [],
       "counts": {
-        "tests": 986,
-        "pass": 984,
+        "tests": 981,
+        "pass": 979,
         "fail": 1,
         "skipped": 1,
         "cancelled": 0,
@@ -115,6 +126,6 @@
       "passed": false
     }
   ],
-  "finishedAt": "2026-10-11T19:02:15.731Z",
+  "finishedAt": "2026-10-11T19:19:00.748Z",
   "allPassed": false
 }

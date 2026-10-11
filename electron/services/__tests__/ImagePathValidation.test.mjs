@@ -120,7 +120,10 @@ test('AG33 actual registered chat handler fixes written/interview task budgets a
   await invoke({ generationKind: 'interview' });
   assert.equal(startedTasks[1].totalDeadline - startedTasks[1].startedAt, 60_000); assert.equal(startedTasks[1].firstTokenDeadline - startedTasks[1].startedAt, 10_000);
   await assert.rejects(() => invoke({ generationKind: 'unknown' }), /Invalid question mode/);
-  assert.equal(startedTasks.length, 2); assert.equal(sends.length, 2);
+  await invoke(undefined);
+  assert.equal(startedTasks[2].totalDeadline - startedTasks[2].startedAt, 180_000);
+  assert.equal(startedTasks[2].firstTokenDeadline, undefined);
+  assert.equal(startedTasks.length, 3); assert.equal(sends.length, 3);
 });
 
 for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-say', 'generate-code-hint', 'generate-brainstorm', 'analyze-image-file']) test(`AG33 real registered ${channel} rejects malformed, traversal, missing, sensitive and symlink-escape images before generation`, async t => {

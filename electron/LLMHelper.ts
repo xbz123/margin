@@ -1013,7 +1013,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       systemPromptOverride === CHAT_MODE_PROMPT ||
       TINY_PROMPTS_SET.has(systemPromptOverride)
     );
-    if (!skipModeInjection && !isUniversalOverride) {
+    if (!skipModeInjection && !isUniversalOverride && systemPromptOverride !== '') {
       const baseForDefault = systemPromptOverride || HARD_SYSTEM_PROMPT;
       systemPromptOverride = `${baseForDefault}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
     }
@@ -1042,13 +1042,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     if (requestStore) for (const scope of this.inferContextScopes(context)) requestStore.scopes.add(scope);
 
     // Determine the system prompt to use
-    // logic: if override provided, use it. otherwise use HARD_SYSTEM_PROMPT (which is the universal base)
-    const baseSystemPrompt = systemPromptOverride || HARD_SYSTEM_PROMPT;
+    // An explicit empty override suppresses system instructions on both chat paths.
+    const baseSystemPrompt = systemPromptOverride ?? HARD_SYSTEM_PROMPT;
     const scene = baseSystemPrompt === scenarioPrompt('written') ? 'written'
       : baseSystemPrompt.startsWith(scenarioPrompt('interview')) || baseSystemPrompt.startsWith(scenarioPrompt('interview', true)) ? 'interview' : undefined;
     const supplemented = scene ? appendPromptGuidance(baseSystemPrompt, scene,
       new PromptSettingsStore(join(app.getPath('userData'), 'prompt-settings.json')).read()) : baseSystemPrompt;
-    const finalSystemPrompt = this.injectLanguageInstruction(supplemented);
+    const finalSystemPrompt = supplemented === '' ? '' : this.injectLanguageInstruction(supplemented);
     const cloudCombinedContext = context;
 
     // Helper to build combined user message

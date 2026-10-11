@@ -16,7 +16,6 @@ export const chinese: Readonly<Record<string, string>> = {
     'Restore scenario defaults': '恢复此场景默认设置',
     'Clear prompt settings': '清空提示词设置',
     'Clear installed prompt Skills, selections and additional instructions? Original files are not changed. This cannot be undone.': '确定清空已安装的提示词 Skills、场景选择及附加指令吗？原始文件不变，此操作不可撤销。',
-    'Local Skill library. Import and install a prompt copy above to select it for a scenario.': '本地 Skill 文件库。在上方导入并安装提示词副本后，可为场景选用。',
     'Prompt settings are unavailable. Please try again.': '提示词设置暂不可用，请重试。',
     'Prompt settings could not be read. Clear them in Settings to recover.': '无法读取提示词设置，请在设置中清空以恢复。',
     'Prompt settings could not be saved. Previous settings were kept.': '提示词设置保存失败，原设置已保留。',
@@ -79,7 +78,5 @@ export const chinese: Readonly<Record<string, string>> = {
     'STT connection test failed. Check credentials and network.': '语音服务连接测试失败，请检查凭据和网络。',
     'Save STT credentials first.': '请先保存语音服务凭据。',
     'Skills': '技能',
-    'Skills Folder': '技能文件夹',
     'Refresh': '刷新',
-    'Open Folder': '打开文件夹',
 };
