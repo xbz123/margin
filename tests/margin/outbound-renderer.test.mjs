@@ -12,6 +12,55 @@ import { createRequire } from 'node:module';
 import { launchApp, windowWithQuery } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
+test('AG60a mounted Skills settings switch language without resetting controls or calling extra IPC', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client';
+    import { SkillsSettings } from './src/components/settings/SkillsSettings';
+    import { setUiLanguage } from './src/i18n';
+    window.changeLanguage = setUiLanguage;
+    window.refreshes = 0; window.folderOpens = 0;
+    window.electronAPI = {
+      skillsRefresh: async () => { window.refreshes++; return []; },
+      skillsOpenFolder: async () => { window.folderOpens++; return { success: true, path: '/synthetic/skills' }; }
+    };
+    createRoot(document.getElementById('root')).render(React.createElement(SkillsSettings));
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
+  const sandbox = makeSandbox('ag60a-settings');
+  let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => {
+      const window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
+      await window.loadURL('data:text/html,<div id="root"></div>');
+    });
+    const page = await opened;
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    await page.getByRole('heading', { name: 'Skills', exact: true }).waitFor();
+    await page.waitForFunction(() => window.refreshes === 1);
+    await page.getByRole('button', { name: 'Open Folder', exact: true }).click();
+    await page.getByText('/synthetic/skills', { exact: true }).waitFor();
+    await page.evaluate(() => window.changeLanguage('zh-CN'));
+    await page.getByRole('heading', { name: '技能', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '技能文件夹', exact: true }).waitFor();
+    assert.equal(await page.getByText('/synthetic/skills', { exact: true }).count(), 1);
+    assert.equal(await page.evaluate(() => window.refreshes), 1);
+    await page.getByRole('button', { name: '刷新', exact: true }).click();
+    await page.waitForFunction(() => window.refreshes === 2);
+    await page.getByRole('button', { name: '打开文件夹', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.folderOpens), 2);
+    await page.evaluate(() => window.changeLanguage('en'));
+    await page.getByRole('heading', { name: 'Skills', exact: true }).waitFor();
+    assert.equal(await page.getByText('/synthetic/skills', { exact: true }).count(), 1);
+    assert.equal(await page.evaluate(() => window.refreshes), 2);
+    await page.close();
+  } finally {
+    if (app) await app.close();
+  }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const shared = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/src/types/codexSource.ts`, 'utf8')), { module: shared, exports: shared.exports });

@@ -21,6 +21,36 @@ Notes:
 
 ## Ledger
 
+### AG-60a translation and shared settings foundation
+
+Written on this branch from PLAN S35/S36 and the AG-60a behavior requirements.
+The three older candidates (`b8ade3f7:src/i18n.tsx`, `src/i18n.zh.ts` and
+`src/components/settings/SettingsKit.tsx`) are **not imported**, in whole or in
+fragments. Their S35 range records and restrictions were read; no old commit or
+line range is approved here. Earlier Margin is only a behavior reference through
+the handoff, not an implementation template or a verified clean-room claim.
+
+`SettingsHeading` and `SettingsCard` extract the markup/styles of this branch's
+existing `SkillsSettings.tsx`, also checked directly against baseline `a786910e`.
+The four Chinese labels are newly written translations of that consumer's English
+labels; the remaining old dictionary is not brought in. Language state uses the
+installed React `useSyncExternalStore` API, per renderer; persistent preference,
+cross-window synchronization and the language selector remain AG-60 work.
+
+Tests use installed React server rendering, TypeScript and the existing guarded
+Electron renderer harness. They exercise lookup/fallback, language changes and
+shared markup, plus the mounted Skills consumer and its synthetic IPC controls.
+No dependency, native code, fixture, skip or existing test is removed or added
+outside this scope.
+
+The first scanner report (`evidence/AG-60a/checks/provenance-first.log`) has six
+exact matches. Each is recorded individually in `provenance-config.json`: two
+generic translation-call expressions; two baseline HTML/style lines with only
+generic translation/title interpolation; a typed callback Set; and an opening
+synthetic `window.electronAPI` assignment. The full baseline Skills file was
+checked before classifying the HTML lines. No later-upstream algorithm, prompt,
+test or asset is imported; source pools and scan exclusions are unchanged.
+
 ### AG-52 meeting record trim (Claude, 2026-10-11, PLAN S33 item 3 and S34)
 
 - Removal only, plus a smaller rewrite of what stays: `MeetingPersistence.stopMeeting`

@@ -1,0 +1,839 @@
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 615901,
+  "addedSubstantiveLines": 40342,
+  "hits": 6,
+  "genericIdiomHits": 155,
+  "allowlistedHits": 2081,
+  "filesWithHits": 4,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ],
+  "genericIdioms": [
+    {
+      "file": "electron/LLMHelper.ts",
+      "line": 327,
+      "text": "let text = '';"
+    },
+    {
+      "file": "electron/LLMHelper.ts",
+      "line": 602,
+      "text": "let text = '';"
+    },
+    {
+      "file": "electron/LLMHelper.ts",
+      "line": 920,
+      "text": "let text = '';"
+    },
+    {
+      "file": "electron/LLMHelper.ts",
+      "line": 931,
+      "text": "let text = '';"
+    },
+    {
+      "file": "electron/LLMHelper.ts",
+      "line": 938,
+      "text": "let text = '';"
+    },
+    {
+      "file": "electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs",
+      "line": 4,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/audio/__tests__/GoogleServiceAccountBoundary.test.mjs",
+      "line": 6,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "electron/audio/__tests__/OutboundSttRevocation.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/audio/__tests__/OutboundSttRevocation.test.mjs",
+      "line": 4,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/llm/__tests__/generateOnce.test.mjs",
+      "line": 3,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "electron/llm/__tests__/generateOnce.test.mjs",
+      "line": 113,
+      "text": "const output = [];"
+    },
+    {
+      "file": "electron/llm/__tests__/generateOnce.test.mjs",
+      "line": 132,
+      "text": "const output = [];"
+    },
+    {
+      "file": "electron/llm/__tests__/generateOnce.test.mjs",
+      "line": 155,
+      "text": "const output = [];"
+    },
+    {
+      "file": "electron/llm/__tests__/generateOnce.test.mjs",
+      "line": 204,
+      "text": "const requests = [];"
+    },
+    {
+      "file": "electron/llm/__tests__/generationInterfaces.test.mjs",
+      "line": 6,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "electron/llm/__tests__/generationInterfaces.test.mjs",
+      "line": 8,
+      "text": "import OpenAI from 'openai';"
+    },
+    {
+      "file": "electron/llm/__tests__/generationInterfaces.test.mjs",
+      "line": 111,
+      "text": "const requests = [];"
+    },
+    {
+      "file": "electron/llm/__tests__/generationInterfaces.test.mjs",
+      "line": 145,
+      "text": "const output = [];"
+    },
+    {
+      "file": "electron/llm/__tests__/multiProtocolGeneration.test.mjs",
+      "line": 3,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "electron/llm/__tests__/multiProtocolGeneration.test.mjs",
+      "line": 8,
+      "text": "import OpenAI from 'openai';"
+    },
+    {
+      "file": "electron/llm/__tests__/multiProtocolGeneration.test.mjs",
+      "line": 9,
+      "text": "import Anthropic from '@anthropic-ai/sdk';"
+    },
+    {
+      "file": "electron/llm/__tests__/multiProtocolGeneration.test.mjs",
+      "line": 241,
+      "text": "const urls = [];"
+    },
+    {
+      "file": "electron/llm/generateOnce.ts",
+      "line": 30,
+      "text": "let text = '';"
+    },
+    {
+      "file": "electron/llm/generateTask.ts",
+      "line": 2,
+      "text": "import { randomUUID } from 'node:crypto';"
+    },
+    {
+      "file": "electron/llm/generateTask.ts",
+      "line": 174,
+      "text": "const seen = new Set();"
+    },
+    {
+      "file": "electron/margin/__tests__/appIdentity.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/appIdentity.test.mjs",
+      "line": 5,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/margin/__tests__/appIdentity.test.mjs",
+      "line": 7,
+      "text": "import { spawnSync } from 'node:child_process';"
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 5,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 90,
+      "text": "const reads = [];"
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 593,
+      "text": "const sends = [];"
+    },
+    {
+      "file": "electron/margin/__tests__/credentialTransactions.test.mjs",
+      "line": 639,
+      "text": "let fetched = false;"
+    },
+    {
+      "file": "electron/margin/__tests__/devOverrides.test.mjs",
+      "line": 5,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/icons.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/icons.test.mjs",
+      "line": 5,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/margin/__tests__/icons.test.mjs",
+      "line": 6,
+      "text": "import { createHash } from 'node:crypto';"
+    },
+    {
+      "file": "electron/margin/__tests__/icons.test.mjs",
+      "line": 8,
+      "text": "import { spawnSync } from 'node:child_process';"
+    },
+    {
+      "file": "electron/margin/__tests__/icons.test.mjs",
+      "line": 137,
+      "text": "const runs = [];"
+    },
+    {
+      "file": "electron/margin/__tests__/licenseInventory.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/licenseInventory.test.mjs",
+      "line": 6,
+      "text": "import crypto from 'node:crypto';"
+    },
+    {
+      "file": "electron/margin/__tests__/loggingPrivacy.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/loggingPrivacy.test.mjs",
+      "line": 5,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/margin/__tests__/loggingPrivacy.test.mjs",
+      "line": 183,
+      "text": "let calls = 0;"
+    },
+    {
+      "file": "electron/margin/__tests__/navigationPolicy.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/navigationPolicy.test.mjs",
+      "line": 5,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/margin/__tests__/navigationPolicy.test.mjs",
+      "line": 16,
+      "text": "const opened = [];"
+    },
+    {
+      "file": "electron/margin/__tests__/navigationPolicy.test.mjs",
+      "line": 18,
+      "text": "const created = [];"
+    },
+    {
+      "file": "electron/margin/__tests__/navigationPolicy.test.mjs",
+      "line": 70,
+      "text": "const handlers = {};"
+    },
+    {
+      "file": "electron/margin/__tests__/navigationPolicy.test.mjs",
+      "line": 75,
+      "text": "let prevented = false;"
+    },
+    {
+      "file": "electron/margin/__tests__/packagingTools.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/margin/__tests__/packagingTools.test.mjs",
+      "line": 6,
+      "text": "import crypto from 'node:crypto';"
+    },
+    {
+      "file": "electron/margin/devOverrides.ts",
+      "line": 40,
+      "text": "const electron = require('electron');"
+    },
+    {
+      "file": "electron/services/CredentialsManager.ts",
+      "line": 9,
+      "text": "import { randomUUID } from 'crypto';"
+    },
+    {
+      "file": "electron/services/SettingsManager.ts",
+      "line": 4,
+      "text": "import { randomUUID } from 'node:crypto';"
+    },
+    {
+      "file": "electron/services/__tests__/CodexAuthSource.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/services/__tests__/ImagePathValidation.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/services/__tests__/ImagePathValidation.test.mjs",
+      "line": 6,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/services/__tests__/MeetingPersistence.test.mjs",
+      "line": 8,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/services/__tests__/OutboundBoundary.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/services/__tests__/OutboundBoundary.test.mjs",
+      "line": 3,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "electron/services/__tests__/OutboundInventory.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 273,
+      "text": "const requests = [];"
+    },
+    {
+      "file": "electron/services/__tests__/ScopeLocalFallback.test.mjs",
+      "line": 406,
+      "text": "const requests = [];"
+    },
+    {
+      "file": "electron/services/__tests__/codexConsent.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "electron/services/__tests__/codexConsent.test.mjs",
+      "line": 5,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "electron/utils/__tests__/validateImagePath.test.mjs",
+      "line": 13,
+      "text": "import { test, describe, after } from 'node:test';"
+    },
+    {
+      "file": "scripts/build-local.cjs",
+      "line": 2,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/build-local.cjs",
+      "line": 7,
+      "text": "const fs = require('node:fs');"
+    },
+    {
+      "file": "scripts/build-local.cjs",
+      "line": 8,
+      "text": "const path = require('node:path');"
+    },
+    {
+      "file": "scripts/build-local.cjs",
+      "line": 9,
+      "text": "const crypto = require('node:crypto');"
+    },
+    {
+      "file": "scripts/build-local.cjs",
+      "line": 10,
+      "text": "const { spawnSync } = require('node:child_process');"
+    },
+    {
+      "file": "scripts/icons/generate.mjs",
+      "line": 7,
+      "text": "import { dirname, join } from 'node:path';"
+    },
+    {
+      "file": "scripts/icons/generate.mjs",
+      "line": 9,
+      "text": "import { createHash } from 'node:crypto';"
+    },
+    {
+      "file": "scripts/margin/app-identity.cjs",
+      "line": 1,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/collect-licenses.mjs",
+      "line": 6,
+      "text": "import crypto from 'node:crypto';"
+    },
+    {
+      "file": "scripts/margin/collect-licenses.mjs",
+      "line": 115,
+      "text": "const found = new Set();"
+    },
+    {
+      "file": "scripts/margin/download-ci-artifact.mjs",
+      "line": 12,
+      "text": "import crypto from 'node:crypto';"
+    },
+    {
+      "file": "scripts/margin/download-ci-artifact.mjs",
+      "line": 21,
+      "text": "const files = [];"
+    },
+    {
+      "file": "scripts/margin/isolation/__tests__/guard.node.test.mjs",
+      "line": 6,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "scripts/margin/isolation/__tests__/guard.node.test.mjs",
+      "line": 9,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "scripts/margin/isolation/__tests__/guard.node.test.mjs",
+      "line": 10,
+      "text": "import https from 'node:https';"
+    },
+    {
+      "file": "scripts/margin/isolation/__tests__/guard.node.test.mjs",
+      "line": 11,
+      "text": "import net from 'node:net';"
+    },
+    {
+      "file": "scripts/margin/isolation/__tests__/native-devices.probe.mjs",
+      "line": 6,
+      "text": "import { Worker } from 'node:worker_threads';"
+    },
+    {
+      "file": "scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "line": 5,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "scripts/margin/isolation/env.mjs",
+      "line": 34,
+      "text": "const env = {};"
+    },
+    {
+      "file": "scripts/margin/isolation/guard.cjs",
+      "line": 14,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/isolation/guard.cjs",
+      "line": 16,
+      "text": "const fs = require('node:fs');"
+    },
+    {
+      "file": "scripts/margin/isolation/guard.cjs",
+      "line": 17,
+      "text": "const net = require('node:net');"
+    },
+    {
+      "file": "scripts/margin/isolation/guard.cjs",
+      "line": 21,
+      "text": "const Module = require('node:module');"
+    },
+    {
+      "file": "scripts/margin/isolation/guard.cjs",
+      "line": 22,
+      "text": "const path = require('node:path');"
+    },
+    {
+      "file": "scripts/margin/isolation/run-electron.mjs",
+      "line": 13,
+      "text": "import { spawn } from 'node:child_process';"
+    },
+    {
+      "file": "scripts/margin/isolation/run-electron.mjs",
+      "line": 18,
+      "text": "const argv = process.argv.slice(2);"
+    },
+    {
+      "file": "scripts/margin/isolation/run-node.mjs",
+      "line": 8,
+      "text": "import { spawnSync } from 'node:child_process';"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/electron-main.cjs",
+      "line": 7,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/electron-main.cjs",
+      "line": 10,
+      "text": "const http = require('node:http');"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/electron-main.cjs",
+      "line": 12,
+      "text": "const results = {};"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/electron-main.cjs",
+      "line": 27,
+      "text": "const out = {};"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/native-load.cjs",
+      "line": 7,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/native-load.cjs",
+      "line": 10,
+      "text": "const path = require('node:path');"
+    },
+    {
+      "file": "scripts/margin/isolation/selftest/native-load.cjs",
+      "line": 14,
+      "text": "const results = {};"
+    },
+    {
+      "file": "scripts/margin/isolation/storage-guard.cjs",
+      "line": 1,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/isolation/storage-guard.cjs",
+      "line": 3,
+      "text": "const fs = require('node:fs');"
+    },
+    {
+      "file": "scripts/margin/isolation/storage-guard.cjs",
+      "line": 4,
+      "text": "const os = require('node:os');"
+    },
+    {
+      "file": "scripts/margin/isolation/storage-guard.cjs",
+      "line": 5,
+      "text": "const path = require('node:path');"
+    },
+    {
+      "file": "scripts/margin/license-bundle.cjs",
+      "line": 2,
+      "text": "const fs = require('node:fs');"
+    },
+    {
+      "file": "scripts/margin/license-bundle.cjs",
+      "line": 3,
+      "text": "const path = require('node:path');"
+    },
+    {
+      "file": "scripts/margin/license-bundle.cjs",
+      "line": 4,
+      "text": "const crypto = require('node:crypto');"
+    },
+    {
+      "file": "scripts/margin/native-link-set.mjs",
+      "line": 58,
+      "text": "const groups = new Map();"
+    },
+    {
+      "file": "scripts/margin/native-link-set.mjs",
+      "line": 81,
+      "text": "const summary = {};"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 1,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 6,
+      "text": "const fs = require('node:fs');"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 7,
+      "text": "const path = require('node:path');"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 8,
+      "text": "const crypto = require('node:crypto');"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 9,
+      "text": "const { spawnSync } = require('node:child_process');"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 28,
+      "text": "const files = [];"
+    },
+    {
+      "file": "scripts/margin/package-check.cjs",
+      "line": 55,
+      "text": "const checks = [];"
+    },
+    {
+      "file": "scripts/margin/package.config.cjs",
+      "line": 1,
+      "text": "'use strict';"
+    },
+    {
+      "file": "scripts/margin/packaged-launch.mjs",
+      "line": 29,
+      "text": "const output = [];"
+    },
+    {
+      "file": "scripts/margin/provenance-check.mjs",
+      "line": 16,
+      "text": "import { execFileSync, spawnSync } from 'node:child_process';"
+    },
+    {
+      "file": "scripts/margin/provenance-check.mjs",
+      "line": 17,
+      "text": "import { createHash } from 'node:crypto';"
+    },
+    {
+      "file": "scripts/margin/provenance-check.mjs",
+      "line": 27,
+      "text": "const args = process.argv.slice(2);"
+    },
+    {
+      "file": "scripts/margin/provenance-check.mjs",
+      "line": 148,
+      "text": "let file = null;"
+    },
+    {
+      "file": "scripts/margin/retired-check.mjs",
+      "line": 24,
+      "text": "const args = process.argv.slice(2);"
+    },
+    {
+      "file": "scripts/margin/retired-check.mjs",
+      "line": 41,
+      "text": "const hits = [];"
+    },
+    {
+      "file": "scripts/margin/run-gates.mjs",
+      "line": 18,
+      "text": "import { spawn, spawnSync } from 'node:child_process';"
+    },
+    {
+      "file": "scripts/margin/run-gates.mjs",
+      "line": 92,
+      "text": "let next = 0;"
+    },
+    {
+      "file": "scripts/margin/run-gates.mjs",
+      "line": 109,
+      "text": "let timedOut = false;"
+    },
+    {
+      "file": "scripts/margin/run-gates.mjs",
+      "line": 130,
+      "text": "const failures = [];"
+    },
+    {
+      "file": "scripts/margin/run-gates.mjs",
+      "line": 133,
+      "text": "const perFile = [];"
+    },
+    {
+      "file": "scripts/margin/run-gates.mjs",
+      "line": 185,
+      "text": "const counts = new Map();"
+    },
+    {
+      "file": "scripts/margin/setup-native.mjs",
+      "line": 19,
+      "text": "import { execFileSync, spawnSync } from 'node:child_process';"
+    },
+    {
+      "file": "scripts/margin/source-bundle.mjs",
+      "line": 19,
+      "text": "import crypto from 'node:crypto';"
+    },
+    {
+      "file": "scripts/margin/source-bundle.mjs",
+      "line": 51,
+      "text": "let next = 0;"
+    },
+    {
+      "file": "scripts/margin/source-bundle.mjs",
+      "line": 77,
+      "text": "const seen = new Set();"
+    },
+    {
+      "file": "src/components/MeetingDetails.tsx",
+      "line": 1,
+      "text": "import React, { useRef, useState } from 'react';"
+    },
+    {
+      "file": "tests/margin/answer-regression.test.mjs",
+      "line": 16,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "tests/margin/launch-app.mjs",
+      "line": 57,
+      "text": "const output = [];"
+    },
+    {
+      "file": "tests/margin/meeting-storage.test.mjs",
+      "line": 19,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "tests/margin/mock-openai.mjs",
+      "line": 13,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "tests/margin/mock-openai.mjs",
+      "line": 16,
+      "text": "const requests = [];"
+    },
+    {
+      "file": "tests/margin/mock-openai.mjs",
+      "line": 23,
+      "text": "let json = null;"
+    },
+    {
+      "file": "tests/margin/outbound-renderer.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "tests/margin/outbound-renderer.test.mjs",
+      "line": 4,
+      "text": "import http from 'node:http';"
+    },
+    {
+      "file": "tests/margin/outbound-renderer.test.mjs",
+      "line": 6,
+      "text": "import { build } from 'esbuild';"
+    },
+    {
+      "file": "tests/margin/outbound-renderer.test.mjs",
+      "line": 8,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "tests/margin/outbound-renderer.test.mjs",
+      "line": 95,
+      "text": "const handlers = {};"
+    },
+    {
+      "file": "tests/margin/record-main-errors.cjs",
+      "line": 14,
+      "text": "'use strict';"
+    },
+    {
+      "file": "tests/margin/record-main-errors.cjs",
+      "line": 16,
+      "text": "const fs = require('node:fs');"
+    },
+    {
+      "file": "tests/margin/startup-smoke.test.mjs",
+      "line": 22,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "src/i18n.tsx",
+      "line": 1,
+      "text": "import { useSyncExternalStore } from 'react';"
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 1,
+      "text": "import test from 'node:test';"
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 4,
+      "text": "import vm from 'node:vm';"
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 7,
+      "text": "import { renderToStaticMarkup } from 'react-dom/server';"
+    }
+  ],
+  "hitsByFile": {
+    "src/components/settings/SkillsSettings.tsx": [
+      {
+        "line": 60,
+        "text": "{t('Refresh')}"
+      },
+      {
+        "line": 69,
+        "text": "<h4 className=\"text-sm font-semibold text-text-primary\">{t('Skills Folder')}</h4>"
+      },
+      {
+        "line": 82,
+        "text": "{t('Open Folder')}"
+      }
+    ],
+    "tests/margin/outbound-renderer.test.mjs": [
+      {
+        "line": 22,
+        "text": "window.electronAPI = {"
+      }
+    ],
+    "src/components/settings/SettingsKit.tsx": [
+      {
+        "line": 6,
+        "text": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">{title}</h3>"
+      }
+    ],
+    "src/i18n.tsx": [
+      {
+        "line": 12,
+        "text": "const listeners = new Set<() => void>();"
+      }
+    ]
+  }
+}

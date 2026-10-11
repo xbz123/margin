@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: AG60a translation uses English source text when a Chinese entry is missing
+ok 1 - AG60a translation uses English source text when a Chinese entry is missing
+  ---
+  duration_ms: 35.672042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 312.282

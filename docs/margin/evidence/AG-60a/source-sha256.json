@@ -1,0 +1,9 @@
+{
+  "src/i18n.tsx": "dec1331a66265d16ab910350bcfbdcb4b646c9fb114354ce72c4a74d7b30d9a3",
+  "src/i18n.zh.ts": "066a590e4285d0cf3c9c827d2bc567b89e1537f472b165f6e5b14b3f6de9180e",
+  "src/components/settings/SettingsKit.tsx": "0410ee5ba17c0b53f486698eedff0bd24e72a05703547fe8cf74a34e44dd1833",
+  "src/components/settings/SkillsSettings.tsx": "8b70ddecb71d67421f5b8658eb59b1f8d31d9cc4e63653d8fc873d5fca3ca377",
+  "src/lib/__tests__/settingsFoundation.test.mjs": "583668bf697d946d1397b31614d362d4b499018e475893074397657e26ad7f17",
+  "tests/margin/outbound-renderer.test.mjs": "51c082f0269af53aaadbd557209de6178d89e8e6aeae8cdd376a49efba7a976e",
+  "docs/margin/provenance-config.json": "5d087f9801e565202666a082ca5c5a9ea5b515697a8157fba033dfba9b2fb7f6"
+}

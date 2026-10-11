@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle, FolderOpen, RefreshCw, Sparkles } from 'lucide-react';
 import type { SkillSummary } from '../../types/electron';
+import { useI18n } from '../../i18n';
+import { SettingsCard, SettingsHeading } from './SettingsKit';
 
 export const SkillsSettings: React.FC = () => {
+    const { t } = useI18n();
     const [skills, setSkills] = useState<SkillSummary[]>([]);
     const [skillsPath, setSkillsPath] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -47,28 +50,23 @@ export const SkillsSettings: React.FC = () => {
     return (
         <div className="space-y-5 animated fadeIn select-text pb-4">
             <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h3 className="text-lg font-bold text-text-primary mb-1">Skills</h3>
-                    <p className="text-xs text-text-secondary">
-                        Local SKILL.md instructions that can be invoked from the overlay dropdown or by typing $skill-name or /skill-name.
-                    </p>
-                </div>
+                <SettingsHeading title={t('Skills')} description="Local SKILL.md instructions that can be invoked from the overlay dropdown or by typing $skill-name or /skill-name." />
                 <button
                     onClick={loadSkills}
                     disabled={loading}
                     className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border-subtle bg-bg-subtle/30 hover:bg-bg-subtle transition-all duration-200 text-xs font-medium text-text-secondary hover:text-text-primary active:scale-95 mt-1 disabled:opacity-60"
                 >
                     <RefreshCw size={13} strokeWidth={2.5} className={loading ? 'animate-spin' : ''} />
-                    Refresh
+                    {t('Refresh')}
                 </button>
             </div>
 
-            <div className="bg-bg-card rounded-xl border border-border-subtle p-4">
+            <SettingsCard>
                 <div className="flex items-center justify-between gap-4">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <FolderOpen size={15} className="text-text-secondary" />
-                            <h4 className="text-sm font-semibold text-text-primary">Skills Folder</h4>
+                            <h4 className="text-sm font-semibold text-text-primary">{t('Skills Folder')}</h4>
                         </div>
                         <p className="text-xs text-text-secondary">
                             Add a folder containing a SKILL.md file here. Scripts and assets are ignored in this v1.
@@ -81,10 +79,10 @@ export const SkillsSettings: React.FC = () => {
                         onClick={openFolder}
                         className="px-4 py-2 rounded-lg bg-bg-input hover:bg-bg-elevated border border-border-subtle text-xs font-medium text-text-primary transition-colors shrink-0"
                     >
-                        Open Folder
+                        {t('Open Folder')}
                     </button>
                 </div>
-            </div>
+            </SettingsCard>
 
             {status && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-400">
