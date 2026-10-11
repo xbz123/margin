@@ -1,0 +1,1 @@
+electron/margin/__tests__/icons.test.mjs :: generation is repeatable in synthetic directories and system iconutil decodes the ICNS

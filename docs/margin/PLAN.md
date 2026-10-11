@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-**当前执行点（2026-10-11）**：阶段 4 的 ticket 全部完成：AG-60a、AG-40、AG-41a、AG-41b、AG-42 均经 Claude 复查，完整 gates 16/16（§9）。阶段 4 出口自验收见 §9"阶段 4 出口自验收"；出口 CI 尚未运行，须用户批准，之后由用户签收。
+**当前执行点（2026-10-11）**：阶段 4 的 ticket 全部完成，但出口 CI `38159055916` 失败。修复已在本地通过，待 Claude 复验和用户批准重跑（§9"阶段 4 出口 CI 38159055916"；本地验证范围不含 Electron、打包及已知 icons 沙箱例外）。阶段 4 尚未签收，不进入阶段 5。
 
 状态：**阶段 3 已签收（2026-10-11，用户指示"做 W4 本机核对，通过后签收阶段 3"）。** 签收依据为提交 `d2bd8146` 的 W3 出口 CI `38123550800`（gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7）及 W4 本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 3 签收"。阶段 4–6 按 S36 交给 Codex Astra 执行（[HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)），从用户把交接交给 Astra 时开始。以下为阶段 2 的状态说明。**阶段 2 出口已签收（2026-10-10，用户指示"做本机核对，通过后签收阶段2"）。** Claude 实现并自验收（S21）；Astra 独立验收（2026-10-09）提出的 4 项经两轮复验（2026-10-10）全部关闭；包内 libvips 的 Rust 工具链已固定，CI 两次复现记录的 `64bcfea7…`；验收条件按 S26 精简。签收依据为提交 `2c7f1e42` 的完整 CI `38057787157`（三个作业全部通过）及其下载核对和本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 2 出口签收"。AG-20–26、AG-24 后续、S19-C 及 S22 均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
@@ -2865,8 +2865,8 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 | --- | --- |
 | 1. 本票都完成 | AG-60a、AG-40、AG-41a、AG-41b、AG-42 都通过 Claude 复查和完整 gates 16/16，已推送两个远端（§9 各票复查）。复查中的发现都已修正，没有未处理的发现。AG-40 复查留下的低优先级项（麦克风恢复次数断言）已在 AG-41b 补上 |
 | 2. 退役规则全量检查 | `retired-check.mjs --all`：292 条规则，0 命中 |
-| 3. 出口 CI | **未运行**，等用户批准。原生模块和工具链在阶段 4 没有变化，按 S26 不用 `no_cache` |
-| 4. 核对和签收 | 等 CI 结果；由用户签收 |
+| 3. 出口 CI | `38159055916` 失败，修复和复验边界见下一节。原生模块和工具链在阶段 4 没有变化，按 S26 不用 `no_cache` |
+| 4. 核对和签收 | 等 Claude 复验、用户批准重跑和 CI 产物核对；由用户签收 |
 
 **范围核对**（对照交接文档 4.1–4.4 和 S33、S35、S39）：
 - STT 正好五家：OpenAI、Soniox、Groq、阿里云百炼、豆包；Google、Deepgram、ElevenLabs、Azure、IBM Watson 已退役。
@@ -2876,3 +2876,20 @@ Claude 按 S21 修复，证据见 `evidence/stage2-reacceptance/`：
 - 设置界面只加了 STT 服务商卡片；设置页重组留给 AG-60。
 
 **未验证**：阶段 4 的全部行为都只用 mock 测过。真实 STT 服务（特别是阿里云和豆包首次接入）、真实麦克风和系统音频、睡眠/唤醒、显示器变化、真实模型的手动回答，都需要按 D2 逐项授权后实机验证。
+
+### 阶段 4 出口 CI 38159055916（2026-10-11）
+
+**状态：修复已在本地通过，待 Claude 复验和用户批准重跑。** 此处指本次获准的离线检查，保留 icons 已知沙箱例外；不是完整 gates 16/16、Electron 回归或阶段出口验收通过。起点 `cc554522`；本次仅本地提交，不推送，不运行 CI。
+
+**CI 事实**：公开仓库 `xbz123/margin`，运行 `38159055916`，提交 `cc554522`，`package_apps=true`。同提交本地完整 gates 16/16，但 CI gates 为 14/16：provenance 和 regression 失败；temp/release 打包均在 afterPack 失败，源码包失败，两个启动检查均为 6/7。证据来自该运行下载报告中的 `margin-gates/{summary.json,provenance.log,regression.log}`、`margin-app-{temp,release}/{electron-builder.log,launch.json}` 和 `failed.log`，本次只读检查。
+
+1. **许可库存过期**：AG-41a `8f05e4cc` 删除六个直接依赖并更新锁文件，却没有刷新许可库存。afterPack 报 `notice inventory is stale for current lockfiles`，源码包报 `no locked tarball: npm:@bufbuild/protobuf@1.10.1`。先复现离线采集的 `canonical license binding identity mismatch: original:eastasianwidth`；确认锁文件已无 eastasianwidth、stream-events、stubs 后，仅删除对应三条补充绑定。按 S34 先例离线运行 `collect-licenses.mjs`，同步 manifest、NOTICE 和 licenses/README.md 的脚本生成块。候选 **694→599（−95）**，唯一正文 **396→347（−49）**，附件 **62→59（−3）**；删除 49 份已无任何引用的正文，Git 历史可恢复；未解决 **0→0**，排除路径及 Electron 延后正文各为 2，不变。未改变依赖或锁文件，未用 `--fetch-missing`。
+   - 许可单测 **53/53**（exit 0）。`checks/offline-license-check.mjs` 经隔离守卫运行：382 个去重 npm 包均有 locked resolved/integrity，版本及 integrity 与清单一致；复制真实许可文件到合成 Resources 后调用实际 `verifyBundle`，861 条引用全部通过，且正文无孤儿、未解决项为 0。它验证源码包 npm 下载前置条件，**不证明 tarball 已下载或归档完整**。`source-bundle.mjs` 本身仅限 GitHub Actions 且会联网，本地不运行、不伪装 CI。构建后再次离线采集及核验通过，数字相同。
+2. **G2 受限池差异**：CI `restrictedLineKeys=621107`，本地 `615901`。按 AG-40 逐条登记 `assert.deepEqual(errors, []);`（StuckWatchdogDisarmOnEndAndAbort.test.mjs:42 的空错误数组断言）及 `timer.callback();`（meetingAudioFixture.mjs:93 的合成时钟回调调用），注明通用写法和本地测试用途；原测试行未改字。仅增加这两条 allowLines，不扩大路径豁免。
+   - `provenance-check.mjs` 从 `refs/remotes/upstream/*` 加固定 `f326de04...` 取可达文本，排除批准来源；缓存键包含 ref 对象 ID，更新 refs 后自动换池。当前远端 fetch refspec **只更新 main**，CI 则抓取所有 heads，因此仅 `git fetch upstream` 不保证一致。Claude 可在授权环境下对迁移 worktree 执行 `git -C <migration-worktree> fetch --no-tags upstream '+refs/heads/*:refs/remotes/upstream/*'` 后重跑扫描；本次没有 fetch、不改配置。若上游又有更新，数量可能高于本次 CI，不应把 621107 当固定目标。
+3. **取消测试竞态**：CI 的 LATE-3 在取消之前已显示，而取消后的投递断言通过；固定禁止 LATE-3/LATE-4 错把正常内容当陈旧事件。改为在同一次 renderer evaluate 中等待 `cancelChatStream` 返回并记录已显示 LATE 标记，最后按出现次数逐个扣除，任何新增 LATE（包括重复旧标记）仍失败。GAP、STALE、STALE-ERROR、NOID 一律禁显，投递记录、终态次数、新旧 ID 以及旧 HTTP 中止断言均保留；不增加 delay，不删除或跳过测试。按本次授权只做 `node --check`（exit 0），Electron 行为待 Claude 沙箱外复验。
+4. **启动 only-own-directory**：temp/release 的 throwaway HOME 分别多出 CrashReporter，其他六项启动检查通过。只读追踪 AG-40 AudioDevices→nativeModuleLoader、IPC 调用、ready 后 OS 订阅和 AG-41b STT 预构造：设备枚举有 JS 异常处理（不能据此排除 native crash）；系统事件监听有同步/异步异常处理，恢复采集有 active-session 门控；新 STT 构造不连接，连接在 start 才发生，prewarm 有异常处理。报告没有给出可定位到上述代码的崩溃栈，不能归因为具体进程。afterPack 在许可核验时先抛错，后续 ad hoc 签名未执行，启动对象不是成功打包的产物。**疑似第 1 条的连带结果，待重跑确认**；没有猜测性生产代码改动。
+
+**本地检查**：日志与逐命令退出码在 `evidence/stage4-exit-ci/checks/commands.json`。Electron 构建、两套 tsc、Vite build、preload-contract、`retired-check --all`（292 条、0 命中）、`provenance-check --max-hits 0`（0 命中）、回归语法检查、许可离线检查及 `git diff --check` 均 exit 0。全部单元测试使用现有隔离逐文件 runner：121 文件、970 项，968 通过、1 既有跳过、1 个已知 `icons.test.mjs` / iconutil 沙箱失败（整体 exit 1）；无隔离拦截、超时或不明退出。新增检查脚本首轮相对根路径错误（exit 1），修正路径后通过；保留失败与最终日志，不将其算作产品缺陷。未新增测试跳过项。
+
+**边界与后续**：不读真实凭据、钥匙串或真实用户数据，不调用真实设备或模型；临时产物限于 `.agy-tmp/` 并在提交前清理。原工作区保持干净及原分支。Claude 复跑 Electron 回归、icons 和完整门禁，并更新受限 refs 复验 G2；之后须用户批准出口 CI，核对打包、源码包、两个启动检查，再由用户签收。阶段 4 尚未通过出口。

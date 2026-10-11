@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
-  "packageLockSHA256": "3efcdbc2be562771d14e2c1188649e01233ea9ec0b6937e00c598f2dbf85a485",
+  "packageLockSHA256": "1549d4264c209cc7a10709a38819b724b912b81f2cc8382b2660d6ce5ffa402e",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
-  "sourceConfigSHA256": "29ed4b198a95926f070ad8180714491a8f2bca3e1e2cb02e766707bed59ded93",
+  "sourceConfigSHA256": "2eeb3a5e3a92b9c6e130704143de3af0d2de1a6607ed0d6d11b703707355145c",
   "electronVersion": "43.1.0",
   "components": [
     {
@@ -40,166 +40,6 @@
           "file": "texts/117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76.txt",
           "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76",
           "sourcePath": "node_modules/@babel/runtime/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@bufbuild/protobuf@1.10.1:node_modules/@bufbuild/protobuf",
-      "kind": "npm",
-      "name": "@bufbuild/protobuf",
-      "version": "1.10.1",
-      "location": "node_modules/@bufbuild/protobuf",
-      "license": "(Apache-2.0 AND BSD-3-Clause)",
-      "integrity": "sha512-wJ8ReQbHxsAfXhrf9ixl0aYbZorRuOWpBNzm8pL8ftmSxQx/wnJD5Eg861NwJU/czy2VXFIebCeZnZrI9rktIQ==",
-      "repo": "bufbuild/protobuf-es",
-      "directory": "packages/protobuf",
-      "texts": [
-        {
-          "file": "texts/6da19f017fad6716cbc9c938972ebee29957c295b8a4d51060dfb03da51d8502.txt",
-          "sha256": "6da19f017fad6716cbc9c938972ebee29957c295b8a4d51060dfb03da51d8502",
-          "url": "https://raw.githubusercontent.com/bufbuild/protobuf-es/e31c1b139cf1e7fea2fb914f650af3c28c42ec68/LICENSE",
-          "gitBlob": "5e63af3d65353a87d2d7c66bcc8a3c10783b2961",
-          "sourcePath": "LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "vcs": "e31c1b139cf1e7fea2fb914f650af3c28c42ec68"
-    },
-    {
-      "id": "npm:@deepgram/captions@1.2.0:node_modules/@deepgram/captions",
-      "kind": "npm",
-      "name": "@deepgram/captions",
-      "version": "1.2.0",
-      "location": "node_modules/@deepgram/captions",
-      "license": "MIT",
-      "integrity": "sha512-8B1C/oTxTxyHlSFubAhNRgCbQ2SQ5wwvtlByn8sDYZvdDtdn/VE2yEPZ4BvUnrKWmsbTQY6/ooLV+9Ka2qmDSQ==",
-      "repo": "deepgram/deepgram-node-captions",
-      "texts": [
-        {
-          "file": "texts/9a3d4c1cc42a8f6ffc584f2b97977bf90de2e7391cbaaac75aec109b966daf60.txt",
-          "sha256": "9a3d4c1cc42a8f6ffc584f2b97977bf90de2e7391cbaaac75aec109b966daf60",
-          "sourcePath": "node_modules/@deepgram/captions/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@deepgram/sdk@3.13.0:node_modules/@deepgram/sdk",
-      "kind": "npm",
-      "name": "@deepgram/sdk",
-      "version": "3.13.0",
-      "location": "node_modules/@deepgram/sdk",
-      "license": "MIT",
-      "integrity": "sha512-VFN4gbyIDl5Bj0ApERq4QJHzO2AK4YOoL5Lfoy//q9531+UIzaKCNie4NkBM2Kn/UndHH7tIR335SH14e2r+Ag==",
-      "repo": "deepgram/deepgram-js-sdk",
-      "texts": [
-        {
-          "file": "texts/bef6ee800fce184baa4483a336572f69ce2ca321d12a6a873166a3a05a3e0674.txt",
-          "sha256": "bef6ee800fce184baa4483a336572f69ce2ca321d12a6a873166a3a05a3e0674",
-          "sourcePath": "node_modules/@deepgram/sdk/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@types/node@18.19.130:node_modules/@deepgram/sdk/node_modules/@types/node",
-      "kind": "npm",
-      "name": "@types/node",
-      "version": "18.19.130",
-      "location": "node_modules/@deepgram/sdk/node_modules/@types/node",
-      "license": "MIT",
-      "integrity": "sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==",
-      "repo": "DefinitelyTyped/DefinitelyTyped",
-      "directory": "types/node",
-      "texts": [
-        {
-          "file": "texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
-          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
-          "sourcePath": "node_modules/@deepgram/sdk/node_modules/@types/node/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:undici-types@5.26.5:node_modules/@deepgram/sdk/node_modules/undici-types",
-      "kind": "npm",
-      "name": "undici-types",
-      "version": "5.26.5",
-      "location": "node_modules/@deepgram/sdk/node_modules/undici-types",
-      "license": "MIT",
-      "integrity": "sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==",
-      "repo": "nodejs/undici",
-      "texts": [
-        {
-          "file": "texts/a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27.txt",
-          "sha256": "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27",
-          "url": "https://raw.githubusercontent.com/nodejs/undici/9197790ae0d015b40b75fd0c5cdb7420704b5272/LICENSE",
-          "gitBlob": "e7323bb52ec35279e2df7d728a6dd5a10b99afd8",
-          "sourcePath": "LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "vcs": "9197790ae0d015b40b75fd0c5cdb7420704b5272"
-    },
-    {
-      "id": "npm:@elevenlabs/client@0.15.2:node_modules/@elevenlabs/client",
-      "kind": "npm",
-      "name": "@elevenlabs/client",
-      "version": "0.15.2",
-      "location": "node_modules/@elevenlabs/client",
-      "license": "MIT",
-      "integrity": "sha512-IKEs0OUHol9ZQ/gKBh5ThN5udRp6bnU70DxyRxprWop3zA8oYUdBa+LE+2tlWho9A4UKubD5UjvjCBJLh2cDVw==",
-      "repo": "elevenlabs/packages",
-      "directory": "packages/client",
-      "texts": [
-        {
-          "file": "texts/0bfed2a2aa8d106bdb144f55416e193450fbc1e1b3257e3852bc64418069de5a.txt",
-          "sha256": "0bfed2a2aa8d106bdb144f55416e193450fbc1e1b3257e3852bc64418069de5a",
-          "sourcePath": "node_modules/@elevenlabs/client/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@elevenlabs/elevenlabs-js@2.47.0:node_modules/@elevenlabs/elevenlabs-js",
-      "kind": "npm",
-      "name": "@elevenlabs/elevenlabs-js",
-      "version": "2.47.0",
-      "location": "node_modules/@elevenlabs/elevenlabs-js",
-      "license": "MIT",
-      "integrity": "sha512-lv9yNzE4ahsWU+Y0qAjjqKpR1jRMn2M3FJqoWuAJff95EKLenI2y4Z25MgllDrnCwulH2FiI2P+qYPNsnpEN4w==",
-      "repo": null,
-      "texts": [
-        {
-          "file": "texts/250a95ea5662f6689c140667cd514a407fbe8b61337090ef9c30269d1133c68c.txt",
-          "sha256": "250a95ea5662f6689c140667cd514a407fbe8b61337090ef9c30269d1133c68c",
-          "sourcePath": "node_modules/@elevenlabs/elevenlabs-js/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@elevenlabs/types@0.6.1:node_modules/@elevenlabs/types",
-      "kind": "npm",
-      "name": "@elevenlabs/types",
-      "version": "0.6.1",
-      "location": "node_modules/@elevenlabs/types",
-      "license": null,
-      "integrity": "sha512-SNFrKWw5w/JHy9QGt3WWBj0kc71diPRuXHc/7/hdr46ghYz8mTPlFZJBmSPGwXQAfS29jxYXojEmBfKKfgoPCQ==",
-      "repo": "elevenlabs/packages",
-      "directory": "packages/types",
-      "texts": [
-        {
-          "file": "texts/0bfed2a2aa8d106bdb144f55416e193450fbc1e1b3257e3852bc64418069de5a.txt",
-          "sha256": "0bfed2a2aa8d106bdb144f55416e193450fbc1e1b3257e3852bc64418069de5a",
-          "sourcePath": "node_modules/@elevenlabs/types/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -244,86 +84,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:@google-cloud/common@6.0.0:node_modules/@google-cloud/common",
-      "kind": "npm",
-      "name": "@google-cloud/common",
-      "version": "6.0.0",
-      "location": "node_modules/@google-cloud/common",
-      "license": "Apache-2.0",
-      "integrity": "sha512-IXh04DlkLMxWgYLIUYuHHKXKOUwPDzDgke1ykkkJPe48cGIS9kkL2U/o0pm4ankHLlvzLF/ma1eO86n/bkumIA==",
-      "repo": "googleapis/nodejs-common",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/@google-cloud/common/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@google-cloud/projectify@4.0.0:node_modules/@google-cloud/projectify",
-      "kind": "npm",
-      "name": "@google-cloud/projectify",
-      "version": "4.0.0",
-      "location": "node_modules/@google-cloud/projectify",
-      "license": "Apache-2.0",
-      "integrity": "sha512-MmaX6HeSvyPbWGwFq7mXdo0uQZLGBYCwziiLIGq5JVX+/bdI3SAq6bP98trV5eTWfLuvsMcIC1YJOF2vfteLFA==",
-      "repo": "googleapis/nodejs-projectify",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/@google-cloud/projectify/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@google-cloud/promisify@4.1.0:node_modules/@google-cloud/promisify",
-      "kind": "npm",
-      "name": "@google-cloud/promisify",
-      "version": "4.1.0",
-      "location": "node_modules/@google-cloud/promisify",
-      "license": "Apache-2.0",
-      "integrity": "sha512-G/FQx5cE/+DqBbOpA5jKsegGwdPniU6PuIEMt+qxWgFxvxuFOzVmp6zYchtYuwAWV5/8Dgs0yAmjvNZv3uXLQg==",
-      "repo": "googleapis/nodejs-promisify",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/@google-cloud/promisify/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@google-cloud/speech@7.3.1:node_modules/@google-cloud/speech",
-      "kind": "npm",
-      "name": "@google-cloud/speech",
-      "version": "7.3.1",
-      "location": "node_modules/@google-cloud/speech",
-      "license": "Apache-2.0",
-      "integrity": "sha512-uIKMVa709tHitt8grCDM9SCrCF4tUHlXxeaPFqgqi0YhNdu+VSekIH7k8+kpWD+ajeA/OVcCn+Ujdx6h3d9YTw==",
-      "repo": "googleapis/google-cloud-node",
-      "directory": "packages/google-cloud-speech",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "url": "https://raw.githubusercontent.com/googleapis/google-cloud-node/45722464b420fb4a472e72b909967c7422502c39/LICENSE",
-          "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
-          "sourcePath": "LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "vcs": "45722464b420fb4a472e72b909967c7422502c39",
-      "sourceTag": "speech-v7.3.1"
-    },
-    {
       "id": "npm:@google/genai@1.52.0:node_modules/@google/genai",
       "kind": "npm",
       "name": "@google/genai",
@@ -337,132 +97,6 @@
           "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
           "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
           "sourcePath": "node_modules/@google/genai/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@grpc/grpc-js@1.14.3:node_modules/@grpc/grpc-js",
-      "kind": "npm",
-      "name": "@grpc/grpc-js",
-      "version": "1.14.3",
-      "location": "node_modules/@grpc/grpc-js",
-      "license": "Apache-2.0",
-      "integrity": "sha512-Iq8QQQ/7X3Sac15oB6p0FmUg/klxQvXLeileoqrTRGJYLV+/9tubbr9ipz0GKHjmXVsgFPo/+W+2cA8eNcR+XA==",
-      "repo": "grpc/grpc-node",
-      "texts": [
-        {
-          "file": "texts/b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1.txt",
-          "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
-          "sourcePath": "node_modules/@grpc/grpc-js/LICENSE",
-          "origin": "installed package"
-        },
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/@grpc/grpc-js/proto/protoc-gen-validate/LICENSE",
-          "origin": "installed package"
-        },
-        {
-          "file": "texts/c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4.txt",
-          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-          "sourcePath": "node_modules/@grpc/grpc-js/proto/xds/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@grpc/proto-loader@0.8.1:node_modules/@grpc/proto-loader",
-      "kind": "npm",
-      "name": "@grpc/proto-loader",
-      "version": "0.8.1",
-      "location": "node_modules/@grpc/proto-loader",
-      "license": "Apache-2.0",
-      "integrity": "sha512-wtF6h+DY6M3YaDBPAmvuuA6jV8Sif9MjtOI5euKFWRgCDl5PeDpPsHR9u2l6St5ceY8AZgoNDww5+HvEsXFsGg==",
-      "repo": "grpc/grpc-node",
-      "texts": [
-        {
-          "file": "texts/b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1.txt",
-          "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
-          "sourcePath": "node_modules/@grpc/proto-loader/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@js-sdsl/ordered-map@4.4.2:node_modules/@js-sdsl/ordered-map",
-      "kind": "npm",
-      "name": "@js-sdsl/ordered-map",
-      "version": "4.4.2",
-      "location": "node_modules/@js-sdsl/ordered-map",
-      "license": "MIT",
-      "integrity": "sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==",
-      "repo": "js-sdsl/js-sdsl",
-      "texts": [
-        {
-          "file": "texts/787684b2059945f845f404340e20c4c8e3f325f4ab7aaeaf8e985f38c8d84658.txt",
-          "sha256": "787684b2059945f845f404340e20c4c8e3f325f4ab7aaeaf8e985f38c8d84658",
-          "sourcePath": "node_modules/@js-sdsl/ordered-map/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@livekit/mutex@1.1.1:node_modules/@livekit/mutex",
-      "kind": "npm",
-      "name": "@livekit/mutex",
-      "version": "1.1.1",
-      "location": "node_modules/@livekit/mutex",
-      "license": "Apache-2.0",
-      "integrity": "sha512-EsshAucklmpuUAfkABPxJNhzj9v2sG7JuzFDL4ML1oJQSV14sqrpTYnsaOudMAw9yOaW53NU3QQTlUQoRs4czw==",
-      "repo": "livekit/ts-mutex",
-      "texts": [
-        {
-          "file": "texts/09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b.txt",
-          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
-          "sourcePath": "node_modules/@livekit/mutex/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@livekit/protocol@1.45.8:node_modules/@livekit/protocol",
-      "kind": "npm",
-      "name": "@livekit/protocol",
-      "version": "1.45.8",
-      "location": "node_modules/@livekit/protocol",
-      "license": "Apache-2.0",
-      "integrity": "sha512-Q+l57E7w/xxOBFVWzdX5rkAZO7ffyF+rlDzNUYq2SU114+5aTyCq+PK4unaEVDNd4952Af7wteKr3sOgasGuaA==",
-      "repo": "livekit/protocol",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/@livekit/protocol/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@pkgjs/parseargs@0.11.0:node_modules/@pkgjs/parseargs",
-      "kind": "npm",
-      "name": "@pkgjs/parseargs",
-      "version": "0.11.0",
-      "location": "node_modules/@pkgjs/parseargs",
-      "license": "MIT",
-      "integrity": "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==",
-      "repo": "pkgjs/parseargs",
-      "texts": [
-        {
-          "file": "texts/c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4.txt",
-          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-          "sourcePath": "node_modules/@pkgjs/parseargs/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -1111,46 +745,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:@types/dom-mediacapture-record@1.0.22:node_modules/@types/dom-mediacapture-record",
-      "kind": "npm",
-      "name": "@types/dom-mediacapture-record",
-      "version": "1.0.22",
-      "location": "node_modules/@types/dom-mediacapture-record",
-      "license": "MIT",
-      "integrity": "sha512-mUMZLK3NvwRLcAAT9qmcK+9p7tpU2FHdDsntR3YI4+GY88XrgG4XiE7u1Q2LAN2/FZOz/tdMDC3GQCR4T8nFuw==",
-      "repo": "DefinitelyTyped/DefinitelyTyped",
-      "directory": "types/dom-mediacapture-record",
-      "texts": [
-        {
-          "file": "texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
-          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
-          "sourcePath": "node_modules/@types/dom-mediacapture-record/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@types/duplexify@3.6.5:node_modules/@types/duplexify",
-      "kind": "npm",
-      "name": "@types/duplexify",
-      "version": "3.6.5",
-      "location": "node_modules/@types/duplexify",
-      "license": "MIT",
-      "integrity": "sha512-fB56ACzlW91UdZ5F3VXplVMDngO8QaX5Y2mjvADtN01TT2TMy4WjF0Lg+tFDvt4uMBeTe4SgaD+qCrA7dL5/tA==",
-      "repo": "DefinitelyTyped/DefinitelyTyped",
-      "directory": "types/duplexify",
-      "texts": [
-        {
-          "file": "texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
-          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
-          "sourcePath": "node_modules/@types/duplexify/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:@types/estree@1.0.9:node_modules/@types/estree",
       "kind": "npm",
       "name": "@types/estree",
@@ -1365,26 +959,6 @@
           "file": "texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
           "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
           "sourcePath": "node_modules/@types/pako/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@types/pumpify@1.4.5:node_modules/@types/pumpify",
-      "kind": "npm",
-      "name": "@types/pumpify",
-      "version": "1.4.5",
-      "location": "node_modules/@types/pumpify",
-      "license": "MIT",
-      "integrity": "sha512-BGVAQyK5yJdfIII230fVYGY47V63hUNAhryuuS3b4lEN2LNwxUXFKsEf8QLDCjmZuimlj23BHppJgcrGvNtqKg==",
-      "repo": "DefinitelyTyped/DefinitelyTyped",
-      "directory": "types/pumpify",
-      "texts": [
-        {
-          "file": "texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
-          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
-          "sourcePath": "node_modules/@types/pumpify/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -1606,44 +1180,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:ansi-regex@5.0.1:node_modules/ansi-regex",
-      "kind": "npm",
-      "name": "ansi-regex",
-      "version": "5.0.1",
-      "location": "node_modules/ansi-regex",
-      "license": "MIT",
-      "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==",
-      "repo": "chalk/ansi-regex",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/ansi-regex/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:ansi-styles@4.3.0:node_modules/ansi-styles",
-      "kind": "npm",
-      "name": "ansi-styles",
-      "version": "4.3.0",
-      "location": "node_modules/ansi-styles",
-      "license": "MIT",
-      "integrity": "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==",
-      "repo": "chalk/ansi-styles",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/ansi-styles/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:aria-hidden@1.2.6:node_modules/aria-hidden",
       "kind": "npm",
       "name": "aria-hidden",
@@ -1657,25 +1193,6 @@
           "file": "texts/30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9.txt",
           "sha256": "30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9",
           "sourcePath": "node_modules/aria-hidden/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:arrify@2.0.1:node_modules/arrify",
-      "kind": "npm",
-      "name": "arrify",
-      "version": "2.0.1",
-      "location": "node_modules/arrify",
-      "license": "MIT",
-      "integrity": "sha512-3duEwti880xqi4eAMN8AyR4a0ByT90zoYdLlevfrvU43vb0YZwZVfxOgxWrLXXXpyugL0hNZc9G6BiB5B3nUug==",
-      "repo": "sindresorhus/arrify",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/arrify/license",
           "origin": "installed package"
         }
       ],
@@ -2119,44 +1636,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:cliui@8.0.1:node_modules/cliui",
-      "kind": "npm",
-      "name": "cliui",
-      "version": "8.0.1",
-      "location": "node_modules/cliui",
-      "license": "ISC",
-      "integrity": "sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==",
-      "repo": "yargs/cliui",
-      "texts": [
-        {
-          "file": "texts/2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149.txt",
-          "sha256": "2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149",
-          "sourcePath": "node_modules/cliui/LICENSE.txt",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:wrap-ansi@7.0.0:node_modules/cliui/node_modules/wrap-ansi",
-      "kind": "npm",
-      "name": "wrap-ansi",
-      "version": "7.0.0",
-      "location": "node_modules/cliui/node_modules/wrap-ansi",
-      "license": "MIT",
-      "integrity": "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==",
-      "repo": "chalk/wrap-ansi",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/cliui/node_modules/wrap-ansi/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:clsx@2.1.1:node_modules/clsx",
       "kind": "npm",
       "name": "clsx",
@@ -2170,44 +1649,6 @@
           "file": "texts/9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97.txt",
           "sha256": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97",
           "sourcePath": "node_modules/clsx/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:color-convert@2.0.1:node_modules/color-convert",
-      "kind": "npm",
-      "name": "color-convert",
-      "version": "2.0.1",
-      "location": "node_modules/color-convert",
-      "license": "MIT",
-      "integrity": "sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==",
-      "repo": "Qix-/color-convert",
-      "texts": [
-        {
-          "file": "texts/693866fc419c6f61c8570438ec00659d156ec2b4d4a4d04091711f5f11a365d4.txt",
-          "sha256": "693866fc419c6f61c8570438ec00659d156ec2b4d4a4d04091711f5f11a365d4",
-          "sourcePath": "node_modules/color-convert/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:color-name@1.1.4:node_modules/color-name",
-      "kind": "npm",
-      "name": "color-name",
-      "version": "1.1.4",
-      "location": "node_modules/color-name",
-      "license": "MIT",
-      "integrity": "sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==",
-      "repo": "colorjs/color-name",
-      "texts": [
-        {
-          "file": "texts/c064f7a3e353bc1bc977f3c897941c75ef763f44f41677e0a15370ca0853d6e2.txt",
-          "sha256": "c064f7a3e353bc1bc977f3c897941c75ef763f44f41677e0a15370ca0853d6e2",
-          "sourcePath": "node_modules/color-name/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -2246,25 +1687,6 @@
           "file": "texts/ca4662cb5d1b738fbe5350c0d5485ba11773b4b7208974082ae6e129a52d631d.txt",
           "sha256": "ca4662cb5d1b738fbe5350c0d5485ba11773b4b7208974082ae6e129a52d631d",
           "sourcePath": "node_modules/comma-separated-tokens/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:command-exists@1.2.9:node_modules/command-exists",
-      "kind": "npm",
-      "name": "command-exists",
-      "version": "1.2.9",
-      "location": "node_modules/command-exists",
-      "license": "MIT",
-      "integrity": "sha512-LTQ/SGc+s0Xc0Fu5WaKnR0YiygZkm9eKFvyS+fRsU7/ZWFF8ykFM6Pc9aCVf1+xasOOZpO3BAVgVrKvsqKHV7w==",
-      "repo": "mathisonian/command-exists",
-      "texts": [
-        {
-          "file": "texts/f1354634fd0ced0354bd5b5fe17f4e613f069850bfedaab00c8fd78f6bc77d5e.txt",
-          "sha256": "f1354634fd0ced0354bd5b5fe17f4e613f069850bfedaab00c8fd78f6bc77d5e",
-          "sourcePath": "node_modules/command-exists/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -2342,44 +1764,6 @@
           "file": "texts/b87653fff2d44426ab5cd4723cee3b1364dc8d35a0acdf098c54689543123bf8.txt",
           "sha256": "b87653fff2d44426ab5cd4723cee3b1364dc8d35a0acdf098c54689543123bf8",
           "sourcePath": "node_modules/core-js/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:cross-fetch@3.2.0:node_modules/cross-fetch",
-      "kind": "npm",
-      "name": "cross-fetch",
-      "version": "3.2.0",
-      "location": "node_modules/cross-fetch",
-      "license": "MIT",
-      "integrity": "sha512-Q+xVJLoGOeIMXZmbUK4HYk+69cQH6LudR0Vu/pRm2YlU/hDV9CiS0gKUMaWY5f2NeUH9C1nV3bsTlCo0FsTV1Q==",
-      "repo": "lquixada/cross-fetch",
-      "texts": [
-        {
-          "file": "texts/821a6be45c3fd08815688b30b6210fc97848cf88c7a6ed8afb22ae75b83571b4.txt",
-          "sha256": "821a6be45c3fd08815688b30b6210fc97848cf88c7a6ed8afb22ae75b83571b4",
-          "sourcePath": "node_modules/cross-fetch/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:cross-spawn@7.0.6:node_modules/cross-spawn",
-      "kind": "npm",
-      "name": "cross-spawn",
-      "version": "7.0.6",
-      "location": "node_modules/cross-spawn",
-      "license": "MIT",
-      "integrity": "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==",
-      "repo": "moxystudio/node-cross-spawn",
-      "texts": [
-        {
-          "file": "texts/aaa78451b6fecd1b9c4594c796c133c0e90cad100372ff8bc6de615e9ef9adf1.txt",
-          "sha256": "aaa78451b6fecd1b9c4594c796c133c0e90cad100372ff8bc6de615e9ef9adf1",
-          "sourcePath": "node_modules/cross-spawn/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -2476,25 +1860,6 @@
           "sha256": "a7cc4332acfa1f9b6530e01aac77fefe74f2efa32579215fddaa473013f9a25c",
           "sourcePath": "node_modules/data-uri-to-buffer/README.md",
           "origin": "original installed README with complete embedded MIT license"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:dayjs@1.11.20:node_modules/dayjs",
-      "kind": "npm",
-      "name": "dayjs",
-      "version": "1.11.20",
-      "location": "node_modules/dayjs",
-      "license": "MIT",
-      "integrity": "sha512-YbwwqR/uYpeoP4pu043q+LTDLFBLApUP6VxRihdfNTqu4ubqMlGDLd6ErXhEgsyvY0K6nCs7nggYumAN+9uEuQ==",
-      "repo": "iamkun/dayjs",
-      "texts": [
-        {
-          "file": "texts/5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc.txt",
-          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc",
-          "sourcePath": "node_modules/dayjs/LICENSE",
-          "origin": "installed package"
         }
       ],
       "basis": "installed non-dev lock candidate"
@@ -2608,25 +1973,6 @@
           "file": "texts/e17120ad3deff741c2ca5cbe511971ca33971a1ba6e49694c6498309bb2680b9.txt",
           "sha256": "e17120ad3deff741c2ca5cbe511971ca33971a1ba6e49694c6498309bb2680b9",
           "sourcePath": "node_modules/deep-extend/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:deepmerge@4.3.1:node_modules/deepmerge",
-      "kind": "npm",
-      "name": "deepmerge",
-      "version": "4.3.1",
-      "location": "node_modules/deepmerge",
-      "license": "MIT",
-      "integrity": "sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==",
-      "repo": "TehShrike/deepmerge",
-      "texts": [
-        {
-          "file": "texts/6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b.txt",
-          "sha256": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
-          "sourcePath": "node_modules/deepmerge/license.txt",
           "origin": "installed package"
         }
       ],
@@ -2829,46 +2175,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:duplexify@4.1.3:node_modules/duplexify",
-      "kind": "npm",
-      "name": "duplexify",
-      "version": "4.1.3",
-      "location": "node_modules/duplexify",
-      "license": "MIT",
-      "integrity": "sha512-M3BmBhwJRZsSx38lZyhE53Csddgzl5R7xGJNk7CVddZD6CcmwMCH8J+7AprIrQKH7TonKxaCjcv27Qmf+sQ+oA==",
-      "repo": "mafintosh/duplexify",
-      "texts": [
-        {
-          "file": "texts/3fe8d55a98dbf260eace67c00cf9bc53edb46234e840098a0b93df3096b97fb6.txt",
-          "sha256": "3fe8d55a98dbf260eace67c00cf9bc53edb46234e840098a0b93df3096b97fb6",
-          "sourcePath": "node_modules/duplexify/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:eastasianwidth@0.3.0:node_modules/eastasianwidth",
-      "kind": "npm",
-      "name": "eastasianwidth",
-      "version": "0.3.0",
-      "location": "node_modules/eastasianwidth",
-      "license": "MIT",
-      "integrity": "sha512-JqasYqGO32J2c91uYKdhu1vNmXGADaLB7OOgjAhjMvpjdvGb0tsYcuwn381MwqCg4YBQDtByQcNlFYuv2kmOug==",
-      "repo": "komagata/eastasianwidth",
-      "texts": [
-        {
-          "file": "texts/94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a.txt",
-          "sha256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a",
-          "url": "https://raw.githubusercontent.com/komagata/eastasianwidth/1d41951a59d63fb2d77cda021050fc070cae424a/MIT-LICENSE.txt",
-          "gitBlob": "e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab",
-          "origin": "original MIT-LICENSE.txt added at same-version commit 1d41951a59d63fb2d77cda021050fc070cae424a retaining Copyright komagata; all four published 0.3.0 package files match that commit and npm gitHead e5ee638e2039093c924b60d8a2ba7c12c52549f8 byte-for-byte; only MIT-LICENSE.txt was added between those commits, not a claim that the npm tarball contained LICENSE or that this notice covers 0.2.0"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
-    },
-    {
       "id": "npm:ecdsa-sig-formatter@1.0.11:node_modules/ecdsa-sig-formatter",
       "kind": "npm",
       "name": "ecdsa-sig-formatter",
@@ -2901,25 +2207,6 @@
           "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
           "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
           "sourcePath": "node_modules/electron-store/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:emoji-regex@8.0.0:node_modules/emoji-regex",
-      "kind": "npm",
-      "name": "emoji-regex",
-      "version": "8.0.0",
-      "location": "node_modules/emoji-regex",
-      "license": "MIT",
-      "integrity": "sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==",
-      "repo": "mathiasbynens/emoji-regex",
-      "texts": [
-        {
-          "file": "texts/483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a.txt",
-          "sha256": "483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a",
-          "sourcePath": "node_modules/emoji-regex/LICENSE-MIT.txt",
           "origin": "installed package"
         }
       ],
@@ -3097,25 +2384,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:escalade@3.2.0:node_modules/escalade",
-      "kind": "npm",
-      "name": "escalade",
-      "version": "3.2.0",
-      "location": "node_modules/escalade",
-      "license": "MIT",
-      "integrity": "sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==",
-      "repo": "lukeed/escalade",
-      "texts": [
-        {
-          "file": "texts/9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97.txt",
-          "sha256": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97",
-          "sourcePath": "node_modules/escalade/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:estree-util-is-identifier-name@3.0.0:node_modules/estree-util-is-identifier-name",
       "kind": "npm",
       "name": "estree-util-is-identifier-name",
@@ -3148,25 +2416,6 @@
           "file": "texts/97d87142793695cd73243de7258694abe85b3b6060fca7f247b0a2afa8219678.txt",
           "sha256": "97d87142793695cd73243de7258694abe85b3b6060fca7f247b0a2afa8219678",
           "sourcePath": "node_modules/event-target-shim/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:events@3.3.0:node_modules/events",
-      "kind": "npm",
-      "name": "events",
-      "version": "3.3.0",
-      "location": "node_modules/events",
-      "license": "MIT",
-      "integrity": "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==",
-      "repo": "Gozala/events",
-      "texts": [
-        {
-          "file": "texts/631987b7616a325a5b97566c232418481ddf7dbb5ecadefb991e791876cc2599.txt",
-          "sha256": "631987b7616a325a5b97566c232418481ddf7dbb5ecadefb991e791876cc2599",
-          "sourcePath": "node_modules/events/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -3633,25 +2882,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:get-caller-file@2.0.5:node_modules/get-caller-file",
-      "kind": "npm",
-      "name": "get-caller-file",
-      "version": "2.0.5",
-      "location": "node_modules/get-caller-file",
-      "license": "ISC",
-      "integrity": "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==",
-      "repo": "stefanpenner/get-caller-file",
-      "texts": [
-        {
-          "file": "texts/902dbb4154679fb2b8d7c33878183f45b268d01eae5e5033dddaa8852d45f213.txt",
-          "sha256": "902dbb4154679fb2b8d7c33878183f45b268d01eae5e5033dddaa8852d45f213",
-          "sourcePath": "node_modules/get-caller-file/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:get-intrinsic@1.3.0:node_modules/get-intrinsic",
       "kind": "npm",
       "name": "get-intrinsic",
@@ -3742,352 +2972,6 @@
           "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
           "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
           "sourcePath": "node_modules/google-auth-library/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:google-gax@5.0.6:node_modules/google-gax",
-      "kind": "npm",
-      "name": "google-gax",
-      "version": "5.0.6",
-      "location": "node_modules/google-gax",
-      "license": "Apache-2.0",
-      "integrity": "sha512-1kGbqVQBZPAAu4+/R1XxPQKP0ydbNYoLAr4l0ZO2bMV0kLyLW4I1gAk++qBLWt7DPORTzmWRMsCZe86gDjShJA==",
-      "repo": "googleapis/google-cloud-node-core",
-      "directory": "packages/gax",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "url": "https://raw.githubusercontent.com/googleapis/google-cloud-node-core/691cddc1333c9469659cf566d42a15100a79fb97/LICENSE",
-          "gitBlob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
-          "sourcePath": "LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "vcs": "691cddc1333c9469659cf566d42a15100a79fb97",
-      "sourceTag": "google-gax-v5.0.6"
-    },
-    {
-      "id": "npm:@isaacs/cliui@8.0.2:node_modules/google-gax/node_modules/@isaacs/cliui",
-      "kind": "npm",
-      "name": "@isaacs/cliui",
-      "version": "8.0.2",
-      "location": "node_modules/google-gax/node_modules/@isaacs/cliui",
-      "license": "ISC",
-      "integrity": "sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==",
-      "repo": "yargs/cliui",
-      "texts": [
-        {
-          "file": "texts/2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149.txt",
-          "sha256": "2dc0465729366c3a7890dfa9e972a1ba7048a26c02116fb8b419a6a1ac110149",
-          "sourcePath": "node_modules/google-gax/node_modules/@isaacs/cliui/LICENSE.txt",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:ansi-regex@6.2.2:node_modules/google-gax/node_modules/ansi-regex",
-      "kind": "npm",
-      "name": "ansi-regex",
-      "version": "6.2.2",
-      "location": "node_modules/google-gax/node_modules/ansi-regex",
-      "license": "MIT",
-      "integrity": "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg==",
-      "repo": "chalk/ansi-regex",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/google-gax/node_modules/ansi-regex/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:ansi-styles@6.2.3:node_modules/google-gax/node_modules/ansi-styles",
-      "kind": "npm",
-      "name": "ansi-styles",
-      "version": "6.2.3",
-      "location": "node_modules/google-gax/node_modules/ansi-styles",
-      "license": "MIT",
-      "integrity": "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==",
-      "repo": "chalk/ansi-styles",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/google-gax/node_modules/ansi-styles/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:balanced-match@1.0.2:node_modules/google-gax/node_modules/balanced-match",
-      "kind": "npm",
-      "name": "balanced-match",
-      "version": "1.0.2",
-      "location": "node_modules/google-gax/node_modules/balanced-match",
-      "license": "MIT",
-      "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==",
-      "repo": "juliangruber/balanced-match",
-      "texts": [
-        {
-          "file": "texts/a1bd5deadb6a06dd74efa852c1b8b23f63b67f2214fbe9c8bd591da51da69268.txt",
-          "sha256": "a1bd5deadb6a06dd74efa852c1b8b23f63b67f2214fbe9c8bd591da51da69268",
-          "sourcePath": "node_modules/google-gax/node_modules/balanced-match/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:brace-expansion@2.1.0:node_modules/google-gax/node_modules/brace-expansion",
-      "kind": "npm",
-      "name": "brace-expansion",
-      "version": "2.1.0",
-      "location": "node_modules/google-gax/node_modules/brace-expansion",
-      "license": "MIT",
-      "integrity": "sha512-TN1kCZAgdgweJhWWpgKYrQaMNHcDULHkWwQIspdtjV4Y5aurRdZpjAqn6yX3FPqTA9ngHCc4hJxMAMgGfve85w==",
-      "repo": "juliangruber/brace-expansion",
-      "texts": [
-        {
-          "file": "texts/68f12f6e2c33688699249c01d8f9623c534da20aa71989c57b061b7bc1676d14.txt",
-          "sha256": "68f12f6e2c33688699249c01d8f9623c534da20aa71989c57b061b7bc1676d14",
-          "sourcePath": "node_modules/google-gax/node_modules/brace-expansion/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:emoji-regex@9.2.2:node_modules/google-gax/node_modules/emoji-regex",
-      "kind": "npm",
-      "name": "emoji-regex",
-      "version": "9.2.2",
-      "location": "node_modules/google-gax/node_modules/emoji-regex",
-      "license": "MIT",
-      "integrity": "sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==",
-      "repo": "mathiasbynens/emoji-regex",
-      "texts": [
-        {
-          "file": "texts/483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a.txt",
-          "sha256": "483acb265f182907d1caf6cff9c16c96f31325ed23792832cc5d8b12d5f88c8a",
-          "sourcePath": "node_modules/google-gax/node_modules/emoji-regex/LICENSE-MIT.txt",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:foreground-child@3.3.1:node_modules/google-gax/node_modules/foreground-child",
-      "kind": "npm",
-      "name": "foreground-child",
-      "version": "3.3.1",
-      "location": "node_modules/google-gax/node_modules/foreground-child",
-      "license": "ISC",
-      "integrity": "sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==",
-      "repo": "tapjs/foreground-child",
-      "texts": [
-        {
-          "file": "texts/93f5d82a8d59442fe3275383453a255fef761647fb28265644010ba799806148.txt",
-          "sha256": "93f5d82a8d59442fe3275383453a255fef761647fb28265644010ba799806148",
-          "sourcePath": "node_modules/google-gax/node_modules/foreground-child/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:glob@10.5.0:node_modules/google-gax/node_modules/glob",
-      "kind": "npm",
-      "name": "glob",
-      "version": "10.5.0",
-      "location": "node_modules/google-gax/node_modules/glob",
-      "license": "ISC",
-      "integrity": "sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==",
-      "repo": "isaacs/node-glob",
-      "texts": [
-        {
-          "file": "texts/cdbc258d13806538e727964c2436a8806e6e2496ccd616224aace6f7bf98dbc1.txt",
-          "sha256": "cdbc258d13806538e727964c2436a8806e6e2496ccd616224aace6f7bf98dbc1",
-          "sourcePath": "node_modules/google-gax/node_modules/glob/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:jackspeak@3.4.3:node_modules/google-gax/node_modules/jackspeak",
-      "kind": "npm",
-      "name": "jackspeak",
-      "version": "3.4.3",
-      "location": "node_modules/google-gax/node_modules/jackspeak",
-      "license": "BlueOak-1.0.0",
-      "integrity": "sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==",
-      "repo": "isaacs/jackspeak",
-      "texts": [
-        {
-          "file": "texts/2c7c5d22ed5a8ee968c64757710979afcd77438c48b4a265b94e615babd8a901.txt",
-          "sha256": "2c7c5d22ed5a8ee968c64757710979afcd77438c48b4a265b94e615babd8a901",
-          "sourcePath": "node_modules/google-gax/node_modules/jackspeak/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:lru-cache@10.4.3:node_modules/google-gax/node_modules/lru-cache",
-      "kind": "npm",
-      "name": "lru-cache",
-      "version": "10.4.3",
-      "location": "node_modules/google-gax/node_modules/lru-cache",
-      "license": "ISC",
-      "integrity": "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==",
-      "repo": "isaacs/node-lru-cache",
-      "texts": [
-        {
-          "file": "texts/451ec07eeb9c4e1b86de9abdaa426462a8be48f887ec7421cf0bbb9c769555ab.txt",
-          "sha256": "451ec07eeb9c4e1b86de9abdaa426462a8be48f887ec7421cf0bbb9c769555ab",
-          "sourcePath": "node_modules/google-gax/node_modules/lru-cache/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:minimatch@9.0.9:node_modules/google-gax/node_modules/minimatch",
-      "kind": "npm",
-      "name": "minimatch",
-      "version": "9.0.9",
-      "location": "node_modules/google-gax/node_modules/minimatch",
-      "license": "ISC",
-      "integrity": "sha512-OBwBN9AL4dqmETlpS2zasx+vTeWclWzkblfZk7KTA5j3jeOONz/tRCnZomUyvNg83wL5Zv9Ss6HMJXAgL8R2Yg==",
-      "repo": "isaacs/minimatch",
-      "texts": [
-        {
-          "file": "texts/d11323827fa4edeaafc437cc5b91b6971b335f0127efeeb42bf5122fe8657e8f.txt",
-          "sha256": "d11323827fa4edeaafc437cc5b91b6971b335f0127efeeb42bf5122fe8657e8f",
-          "sourcePath": "node_modules/google-gax/node_modules/minimatch/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:node-fetch@3.3.2:node_modules/google-gax/node_modules/node-fetch",
-      "kind": "npm",
-      "name": "node-fetch",
-      "version": "3.3.2",
-      "location": "node_modules/google-gax/node_modules/node-fetch",
-      "license": "MIT",
-      "integrity": "sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==",
-      "repo": "node-fetch/node-fetch",
-      "texts": [
-        {
-          "file": "texts/3e2c11dcf3f17ab585baab8faba54772d7872f1c6e026022acd4b4006665efb0.txt",
-          "sha256": "3e2c11dcf3f17ab585baab8faba54772d7872f1c6e026022acd4b4006665efb0",
-          "sourcePath": "node_modules/google-gax/node_modules/node-fetch/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:path-scurry@1.11.1:node_modules/google-gax/node_modules/path-scurry",
-      "kind": "npm",
-      "name": "path-scurry",
-      "version": "1.11.1",
-      "location": "node_modules/google-gax/node_modules/path-scurry",
-      "license": "BlueOak-1.0.0",
-      "integrity": "sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==",
-      "repo": "isaacs/path-scurry",
-      "texts": [
-        {
-          "file": "texts/8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004.txt",
-          "sha256": "8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004",
-          "sourcePath": "node_modules/google-gax/node_modules/path-scurry/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:rimraf@5.0.10:node_modules/google-gax/node_modules/rimraf",
-      "kind": "npm",
-      "name": "rimraf",
-      "version": "5.0.10",
-      "location": "node_modules/google-gax/node_modules/rimraf",
-      "license": "ISC",
-      "integrity": "sha512-l0OE8wL34P4nJH/H2ffoaniAokM2qSmrtXHmlpvYr5AVVX8msAyW0l8NVJFDxlSK4u3Uh/f41cQheDVdnYijwQ==",
-      "repo": "isaacs/rimraf",
-      "texts": [
-        {
-          "file": "texts/d11323827fa4edeaafc437cc5b91b6971b335f0127efeeb42bf5122fe8657e8f.txt",
-          "sha256": "d11323827fa4edeaafc437cc5b91b6971b335f0127efeeb42bf5122fe8657e8f",
-          "sourcePath": "node_modules/google-gax/node_modules/rimraf/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:string-width@5.1.2:node_modules/google-gax/node_modules/string-width",
-      "kind": "npm",
-      "name": "string-width",
-      "version": "5.1.2",
-      "location": "node_modules/google-gax/node_modules/string-width",
-      "license": "MIT",
-      "integrity": "sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA==",
-      "repo": "sindresorhus/string-width",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/google-gax/node_modules/string-width/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:strip-ansi@7.2.0:node_modules/google-gax/node_modules/strip-ansi",
-      "kind": "npm",
-      "name": "strip-ansi",
-      "version": "7.2.0",
-      "location": "node_modules/google-gax/node_modules/strip-ansi",
-      "license": "MIT",
-      "integrity": "sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==",
-      "repo": "chalk/strip-ansi",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/google-gax/node_modules/strip-ansi/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:wrap-ansi@8.1.0:node_modules/google-gax/node_modules/wrap-ansi",
-      "kind": "npm",
-      "name": "wrap-ansi",
-      "version": "8.1.0",
-      "location": "node_modules/google-gax/node_modules/wrap-ansi",
-      "license": "MIT",
-      "integrity": "sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==",
-      "repo": "chalk/wrap-ansi",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/google-gax/node_modules/wrap-ansi/license",
           "origin": "installed package"
         }
       ],
@@ -4672,25 +3556,6 @@
       "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
-      "id": "npm:html-entities@2.6.0:node_modules/html-entities",
-      "kind": "npm",
-      "name": "html-entities",
-      "version": "2.6.0",
-      "location": "node_modules/html-entities",
-      "license": "MIT",
-      "integrity": "sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==",
-      "repo": "mdevils/html-entities",
-      "texts": [
-        {
-          "file": "texts/10b2831912dc4dc91b25429511e6c74f901eebf64b625328f8fd08dd9c3cf8fe.txt",
-          "sha256": "10b2831912dc4dc91b25429511e6c74f901eebf64b625328f8fd08dd9c3cf8fe",
-          "sourcePath": "node_modules/html-entities/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:html-url-attributes@3.0.1:node_modules/html-url-attributes",
       "kind": "npm",
       "name": "html-url-attributes",
@@ -4723,26 +3588,6 @@
           "file": "texts/86200ce4e92d9a22c41c8647a55f7a5fddff304ff89b4d36ecc699ed8c123d2c.txt",
           "sha256": "86200ce4e92d9a22c41c8647a55f7a5fddff304ff89b4d36ecc699ed8c123d2c",
           "sourcePath": "node_modules/html2canvas/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:http-proxy-agent@7.0.2:node_modules/http-proxy-agent",
-      "kind": "npm",
-      "name": "http-proxy-agent",
-      "version": "7.0.2",
-      "location": "node_modules/http-proxy-agent",
-      "license": "MIT",
-      "integrity": "sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==",
-      "repo": "TooTallNate/proxy-agents",
-      "directory": "packages/http-proxy-agent",
-      "texts": [
-        {
-          "file": "texts/71368fd0f5b4129191e9afcd1e1ef2dc89a9090d3e4d80bbab92dafd032b3bef.txt",
-          "sha256": "71368fd0f5b4129191e9afcd1e1ef2dc89a9090d3e4d80bbab92dafd032b3bef",
-          "sourcePath": "node_modules/http-proxy-agent/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -4940,25 +3785,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:is-fullwidth-code-point@3.0.0:node_modules/is-fullwidth-code-point",
-      "kind": "npm",
-      "name": "is-fullwidth-code-point",
-      "version": "3.0.0",
-      "location": "node_modules/is-fullwidth-code-point",
-      "license": "MIT",
-      "integrity": "sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==",
-      "repo": "sindresorhus/is-fullwidth-code-point",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/is-fullwidth-code-point/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:is-hexadecimal@2.0.1:node_modules/is-hexadecimal",
       "kind": "npm",
       "name": "is-hexadecimal",
@@ -5010,25 +3836,6 @@
           "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
           "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
           "sourcePath": "node_modules/is-plain-obj/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:jose@6.2.3:node_modules/jose",
-      "kind": "npm",
-      "name": "jose",
-      "version": "6.2.3",
-      "location": "node_modules/jose",
-      "license": "MIT",
-      "integrity": "sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==",
-      "repo": "panva/jose",
-      "texts": [
-        {
-          "file": "texts/8078b0829d6c3e9ecde2f003e1966e4cad3efc6e7a640efbab0313cc166b1af1.txt",
-          "sha256": "8078b0829d6c3e9ecde2f003e1966e4cad3efc6e7a640efbab0313cc166b1af1",
-          "sourcePath": "node_modules/jose/LICENSE.md",
           "origin": "installed package"
         }
       ],
@@ -5238,63 +4045,6 @@
           "file": "texts/3beea6e227a2549d48b616818e01ce303482cb0d598182add5d629b339bdb7cc.txt",
           "sha256": "3beea6e227a2549d48b616818e01ce303482cb0d598182add5d629b339bdb7cc",
           "sourcePath": "node_modules/liquid-glass-react/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:livekit-client@2.19.0:node_modules/livekit-client",
-      "kind": "npm",
-      "name": "livekit-client",
-      "version": "2.19.0",
-      "location": "node_modules/livekit-client",
-      "license": "Apache-2.0",
-      "integrity": "sha512-aolY1XDAtx0nHKBNm29W9OhzBnSz1CP5kq3phvRhFfi1NbvMXs8tcACjAkZTnIKgihkp+BiJScZZ3tZv0Gz8sA==",
-      "repo": "livekit/client-sdk-js",
-      "texts": [
-        {
-          "file": "texts/09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b.txt",
-          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
-          "sourcePath": "node_modules/livekit-client/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:lodash.camelcase@4.3.0:node_modules/lodash.camelcase",
-      "kind": "npm",
-      "name": "lodash.camelcase",
-      "version": "4.3.0",
-      "location": "node_modules/lodash.camelcase",
-      "license": "MIT",
-      "integrity": "sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==",
-      "repo": "lodash/lodash",
-      "texts": [
-        {
-          "file": "texts/ffd8b33b354585f4ce119f19c53728281e48a97b074491eb6bf6d5c5ff305272.txt",
-          "sha256": "ffd8b33b354585f4ce119f19c53728281e48a97b074491eb6bf6d5c5ff305272",
-          "sourcePath": "node_modules/lodash.camelcase/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:loglevel@1.9.2:node_modules/loglevel",
-      "kind": "npm",
-      "name": "loglevel",
-      "version": "1.9.2",
-      "location": "node_modules/loglevel",
-      "license": "MIT",
-      "integrity": "sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==",
-      "repo": "pimterry/loglevel",
-      "texts": [
-        {
-          "file": "texts/18e8cf5f0dbaf13d9562e93b9bef79aff2acff18fab698c2d589d2159375a1f9.txt",
-          "sha256": "18e8cf5f0dbaf13d9562e93b9bef79aff2acff18fab698c2d589d2159375a1f9",
-          "sourcePath": "node_modules/loglevel/LICENSE-MIT",
           "origin": "installed package"
         }
       ],
@@ -6359,25 +5109,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:minipass@7.1.3:node_modules/minipass",
-      "kind": "npm",
-      "name": "minipass",
-      "version": "7.1.3",
-      "location": "node_modules/minipass",
-      "license": "BlueOak-1.0.0",
-      "integrity": "sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==",
-      "repo": "isaacs/minipass",
-      "texts": [
-        {
-          "file": "texts/8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004.txt",
-          "sha256": "8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004",
-          "sourcePath": "node_modules/minipass/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:mkdirp-classic@0.5.3:node_modules/mkdirp-classic",
       "kind": "npm",
       "name": "mkdirp-classic",
@@ -6511,25 +5242,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:object-hash@3.0.0:node_modules/object-hash",
-      "kind": "npm",
-      "name": "object-hash",
-      "version": "3.0.0",
-      "location": "node_modules/object-hash",
-      "license": "MIT",
-      "integrity": "sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==",
-      "repo": "puleos/object-hash",
-      "texts": [
-        {
-          "file": "texts/ea9e6806c48a8a043ad8f2446527dc860617068265cffbef3efa4aaba39f18d8.txt",
-          "sha256": "ea9e6806c48a8a043ad8f2446527dc860617068265cffbef3efa4aaba39f18d8",
-          "sourcePath": "node_modules/object-hash/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:once@1.4.0:node_modules/once",
       "kind": "npm",
       "name": "once",
@@ -6656,25 +5368,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:package-json-from-dist@1.0.1:node_modules/package-json-from-dist",
-      "kind": "npm",
-      "name": "package-json-from-dist",
-      "version": "1.0.1",
-      "location": "node_modules/package-json-from-dist",
-      "license": "BlueOak-1.0.0",
-      "integrity": "sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==",
-      "repo": "isaacs/package-json-from-dist",
-      "texts": [
-        {
-          "file": "texts/a49c9ba464796f65b59fca3f1e6ca40912df1e859f575383223f7ec6c5baae09.txt",
-          "sha256": "a49c9ba464796f65b59fca3f1e6ca40912df1e859f575383223f7ec6c5baae09",
-          "sourcePath": "node_modules/package-json-from-dist/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:pako@2.1.0:node_modules/pako",
       "kind": "npm",
       "name": "pako",
@@ -6746,25 +5439,6 @@
           "file": "texts/8c535800331e1e4439835555b3f9edc7fe9dee2fab0d8bbbd5a982e8b8343d4d.txt",
           "sha256": "8c535800331e1e4439835555b3f9edc7fe9dee2fab0d8bbbd5a982e8b8343d4d",
           "sourcePath": "node_modules/parse5/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:path-key@3.1.1:node_modules/path-key",
-      "kind": "npm",
-      "name": "path-key",
-      "version": "3.1.1",
-      "location": "node_modules/path-key",
-      "license": "MIT",
-      "integrity": "sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==",
-      "repo": "sindresorhus/path-key",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/path-key/license",
           "origin": "installed package"
         }
       ],
@@ -6999,26 +5673,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:proto3-json-serializer@3.0.4:node_modules/proto3-json-serializer",
-      "kind": "npm",
-      "name": "proto3-json-serializer",
-      "version": "3.0.4",
-      "location": "node_modules/proto3-json-serializer",
-      "license": "Apache-2.0",
-      "integrity": "sha512-E1sbAYg3aEbXrq0n1ojJkRHQJGE1kaE/O6GLA94y8rnJBfgvOPTOd1b9hOceQK1FFZI9qMh1vBERCyO2ifubcw==",
-      "repo": "googleapis/google-cloud-node-core",
-      "directory": "packages/proto3-json-serializer-nodejs",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/proto3-json-serializer/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:protobufjs@7.5.9:node_modules/protobufjs",
       "kind": "npm",
       "name": "protobufjs",
@@ -7076,25 +5730,6 @@
           "file": "texts/3fe8d55a98dbf260eace67c00cf9bc53edb46234e840098a0b93df3096b97fb6.txt",
           "sha256": "3fe8d55a98dbf260eace67c00cf9bc53edb46234e840098a0b93df3096b97fb6",
           "sourcePath": "node_modules/pump/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:pumpify@2.0.1:node_modules/pumpify",
-      "kind": "npm",
-      "name": "pumpify",
-      "version": "2.0.1",
-      "location": "node_modules/pumpify",
-      "license": "MIT",
-      "integrity": "sha512-m7KOje7jZxrmutanlkS1daj1dS6z6BgslzOXmcSEpIlCxM3VJH7lG5QLeck/6hgF6F4crFf01UtQmNsJfweTAw==",
-      "repo": "mafintosh/pumpify",
-      "texts": [
-        {
-          "file": "texts/3fe8d55a98dbf260eace67c00cf9bc53edb46234e840098a0b93df3096b97fb6.txt",
-          "sha256": "3fe8d55a98dbf260eace67c00cf9bc53edb46234e840098a0b93df3096b97fb6",
-          "sourcePath": "node_modules/pumpify/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -7680,25 +6315,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:require-directory@2.1.1:node_modules/require-directory",
-      "kind": "npm",
-      "name": "require-directory",
-      "version": "2.1.1",
-      "location": "node_modules/require-directory",
-      "license": "MIT",
-      "integrity": "sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==",
-      "repo": "troygoode/node-require-directory",
-      "texts": [
-        {
-          "file": "texts/a92e52eb1fa7cd746e3827bf01d3a3589bbc8e1e51348b1da042aad165525ad1.txt",
-          "sha256": "a92e52eb1fa7cd746e3827bf01d3a3589bbc8e1e51348b1da042aad165525ad1",
-          "sourcePath": "node_modules/require-directory/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:require-from-string@2.0.2:node_modules/require-from-string",
       "kind": "npm",
       "name": "require-from-string",
@@ -7737,25 +6353,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:retry-request@8.0.2:node_modules/retry-request",
-      "kind": "npm",
-      "name": "retry-request",
-      "version": "8.0.2",
-      "location": "node_modules/retry-request",
-      "license": "MIT",
-      "integrity": "sha512-JzFPAfklk1kjR1w76f0QOIhoDkNkSqW8wYKT08n9yysTmZfB+RQ2QoXoTAeOi1HD9ZipTyTAZg3c4pM/jeqgSw==",
-      "repo": "stephenplusplus/retry-request",
-      "texts": [
-        {
-          "file": "texts/e0845fe275271e0b752360e09e5774b1b05d5e1c73bbbc3d4bf8b57d8af98217.txt",
-          "sha256": "e0845fe275271e0b752360e09e5774b1b05d5e1c73bbbc3d4bf8b57d8af98217",
-          "sourcePath": "node_modules/retry-request/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:rgbcolor@1.0.1:node_modules/rgbcolor",
       "kind": "npm",
       "name": "rgbcolor",
@@ -7769,25 +6366,6 @@
           "file": "texts/86045408b01f66f9319a2fe7bc7f7e115f272956ac44d2d840fc00127124a78c.txt",
           "sha256": "86045408b01f66f9319a2fe7bc7f7e115f272956ac44d2d840fc00127124a78c",
           "sourcePath": "node_modules/rgbcolor/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:rxjs@7.8.2:node_modules/rxjs",
-      "kind": "npm",
-      "name": "rxjs",
-      "version": "7.8.2",
-      "location": "node_modules/rxjs",
-      "license": "Apache-2.0",
-      "integrity": "sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==",
-      "repo": "reactivex/rxjs",
-      "texts": [
-        {
-          "file": "texts/81c407ac717813b0e3795402960e04003c7bba8ba59b621624707028531c9ade.txt",
-          "sha256": "81c407ac717813b0e3795402960e04003c7bba8ba59b621624707028531c9ade",
-          "sourcePath": "node_modules/rxjs/LICENSE.txt",
           "origin": "installed package"
         }
       ],
@@ -7852,44 +6430,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:sdp@3.2.2:node_modules/sdp",
-      "kind": "npm",
-      "name": "sdp",
-      "version": "3.2.2",
-      "location": "node_modules/sdp",
-      "license": "MIT",
-      "integrity": "sha512-xZocWwfyp4hkbN4hLWxMjmv2Q8aNa9MhmOZ7L9aCZPT+dZsgRr6wZRrSYE3HTdyk/2pZKPSgqI7ns7Een1xMSA==",
-      "repo": "fippo/sdp",
-      "texts": [
-        {
-          "file": "texts/798e82590af6a84bfbde3d6bb0fb9162c519edf16122404fea00acefdc55cbd9.txt",
-          "sha256": "798e82590af6a84bfbde3d6bb0fb9162c519edf16122404fea00acefdc55cbd9",
-          "sourcePath": "node_modules/sdp/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:sdp-transform@2.15.0:node_modules/sdp-transform",
-      "kind": "npm",
-      "name": "sdp-transform",
-      "version": "2.15.0",
-      "location": "node_modules/sdp-transform",
-      "license": "MIT",
-      "integrity": "sha512-KrOH82c/W+GYQ0LHqtr3caRpM3ITglq3ljGUIb8LTki7ByacJZ9z+piSGiwZDsRyhQbYBOBJgr2k6X4BZXi3Kw==",
-      "repo": "clux/sdp-transform",
-      "texts": [
-        {
-          "file": "texts/653b7af11548d1bf4a73d0d9dcca68d709d2b78633088b75332c02d739559afa.txt",
-          "sha256": "653b7af11548d1bf4a73d0d9dcca68d709d2b78633088b75332c02d739559afa",
-          "sourcePath": "node_modules/sdp-transform/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:semver@7.8.0:node_modules/semver",
       "kind": "npm",
       "name": "semver",
@@ -7903,63 +6443,6 @@
           "file": "texts/4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b.txt",
           "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b",
           "sourcePath": "node_modules/semver/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:shebang-command@2.0.0:node_modules/shebang-command",
-      "kind": "npm",
-      "name": "shebang-command",
-      "version": "2.0.0",
-      "location": "node_modules/shebang-command",
-      "license": "MIT",
-      "integrity": "sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==",
-      "repo": "kevva/shebang-command",
-      "texts": [
-        {
-          "file": "texts/69dee148a2cc470554dfa7142e830662062394d0fe67cddd379aba90dc60d6b3.txt",
-          "sha256": "69dee148a2cc470554dfa7142e830662062394d0fe67cddd379aba90dc60d6b3",
-          "sourcePath": "node_modules/shebang-command/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:shebang-regex@3.0.0:node_modules/shebang-regex",
-      "kind": "npm",
-      "name": "shebang-regex",
-      "version": "3.0.0",
-      "location": "node_modules/shebang-regex",
-      "license": "MIT",
-      "integrity": "sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==",
-      "repo": "sindresorhus/shebang-regex",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/shebang-regex/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:signal-exit@4.1.0:node_modules/signal-exit",
-      "kind": "npm",
-      "name": "signal-exit",
-      "version": "4.1.0",
-      "location": "node_modules/signal-exit",
-      "license": "ISC",
-      "integrity": "sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==",
-      "repo": "tapjs/signal-exit",
-      "texts": [
-        {
-          "file": "texts/b173e19b9a78df305577ace0e52ef45a4bcc915ea28b47b256dc3b68dcb1f7e7.txt",
-          "sha256": "b173e19b9a78df305577ace0e52ef45a4bcc915ea28b47b256dc3b68dcb1f7e7",
-          "sourcePath": "node_modules/signal-exit/LICENSE.txt",
           "origin": "installed package"
         }
       ],
@@ -8042,46 +6525,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:stream-events@1.0.5:node_modules/stream-events",
-      "kind": "npm",
-      "name": "stream-events",
-      "version": "1.0.5",
-      "location": "node_modules/stream-events",
-      "license": "MIT",
-      "integrity": "sha512-E1GUzBSgvct8Jsb3v2X15pjzN1tYebtbLaMg+eBOUOAxgbLoSbT2NS91ckc5lJD1KfLjId+jXJRgo0qnV5Nerg==",
-      "repo": "stephenplusplus/stream-events",
-      "texts": [
-        {
-          "file": "texts/2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d.txt",
-          "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
-          "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
-          "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
-          "origin": "officially merged later original MIT LICENSE at commit 3cfd35ab1a68c9fd41c992428e839ad54dcf8017; package version remains 1.0.5 and all four installed package.json/index.js/index.d.ts/readme.md files match that commit byte-for-byte; original Copyright (c) 2018 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
-    },
-    {
-      "id": "npm:stream-shift@1.0.3:node_modules/stream-shift",
-      "kind": "npm",
-      "name": "stream-shift",
-      "version": "1.0.3",
-      "location": "node_modules/stream-shift",
-      "license": "MIT",
-      "integrity": "sha512-76ORR0DO1o1hlKwTbi/DM3EXWGf3ZJYO8cXX5RJwnul2DEg2oyoZyjLNoQM8WsvZiFKCRfC1O0J7iCvie3RZmQ==",
-      "repo": "mafintosh/stream-shift",
-      "texts": [
-        {
-          "file": "texts/6a134e51aa31496c15a741592fc5d782b2dbf8d8b6b8524e15c8520ae0cd6374.txt",
-          "sha256": "6a134e51aa31496c15a741592fc5d782b2dbf8d8b6b8524e15c8520ae0cd6374",
-          "sourcePath": "node_modules/stream-shift/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:string_decoder@1.3.0:node_modules/string_decoder",
       "kind": "npm",
       "name": "string_decoder",
@@ -8095,44 +6538,6 @@
           "file": "texts/11f2aafb37d06b3ee5bdaf06e9811141d0da05263c316f3d627f45c20d43261b.txt",
           "sha256": "11f2aafb37d06b3ee5bdaf06e9811141d0da05263c316f3d627f45c20d43261b",
           "sourcePath": "node_modules/string_decoder/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:string-width@4.2.3:node_modules/string-width",
-      "kind": "npm",
-      "name": "string-width",
-      "version": "4.2.3",
-      "location": "node_modules/string-width",
-      "license": "MIT",
-      "integrity": "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==",
-      "repo": "sindresorhus/string-width",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/string-width/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:string-width@4.2.3:node_modules/string-width-cjs",
-      "kind": "npm",
-      "name": "string-width",
-      "version": "4.2.3",
-      "location": "node_modules/string-width-cjs",
-      "license": "MIT",
-      "integrity": "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==",
-      "repo": "sindresorhus/string-width",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/string-width-cjs/license",
           "origin": "installed package"
         }
       ],
@@ -8158,44 +6563,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:strip-ansi@6.0.1:node_modules/strip-ansi",
-      "kind": "npm",
-      "name": "strip-ansi",
-      "version": "6.0.1",
-      "location": "node_modules/strip-ansi",
-      "license": "MIT",
-      "integrity": "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==",
-      "repo": "chalk/strip-ansi",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/strip-ansi/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:strip-ansi@6.0.1:node_modules/strip-ansi-cjs",
-      "kind": "npm",
-      "name": "strip-ansi",
-      "version": "6.0.1",
-      "location": "node_modules/strip-ansi-cjs",
-      "license": "MIT",
-      "integrity": "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==",
-      "repo": "chalk/strip-ansi",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/strip-ansi-cjs/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:strip-json-comments@2.0.1:node_modules/strip-json-comments",
       "kind": "npm",
       "name": "strip-json-comments",
@@ -8213,27 +6580,6 @@
         }
       ],
       "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:stubs@3.0.0:node_modules/stubs",
-      "kind": "npm",
-      "name": "stubs",
-      "version": "3.0.0",
-      "location": "node_modules/stubs",
-      "license": "MIT",
-      "integrity": "sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==",
-      "repo": "stephenplusplus/stubs",
-      "texts": [
-        {
-          "file": "texts/cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58.txt",
-          "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
-          "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
-          "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
-          "origin": "officially merged later original MIT LICENSE at commit 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5, acknowledged by the owner; package version remains 3.0.0 and all four installed package.json/index.js/readme.md/test.js files match that commit byte-for-byte; original Copyright (c) 2017 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
       "id": "npm:style-to-js@1.1.21:node_modules/style-to-js",
@@ -8426,45 +6772,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:teeny-request@10.1.2:node_modules/teeny-request",
-      "kind": "npm",
-      "name": "teeny-request",
-      "version": "10.1.2",
-      "location": "node_modules/teeny-request",
-      "license": "Apache-2.0",
-      "integrity": "sha512-Xj0ZAQ0CeuQn6UxCDPLbFRlgcSTUEyO3+wiepr2grjIjyL/lMMs1Z4OwXn8kLvn/V1OuaEP0UY7Na6UDNNsYrQ==",
-      "repo": "googleapis/google-cloud-node-core",
-      "directory": "packages/teeny-request",
-      "texts": [
-        {
-          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "node_modules/teeny-request/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:node-fetch@3.3.2:node_modules/teeny-request/node_modules/node-fetch",
-      "kind": "npm",
-      "name": "node-fetch",
-      "version": "3.3.2",
-      "location": "node_modules/teeny-request/node_modules/node-fetch",
-      "license": "MIT",
-      "integrity": "sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==",
-      "repo": "node-fetch/node-fetch",
-      "texts": [
-        {
-          "file": "texts/3e2c11dcf3f17ab585baab8faba54772d7872f1c6e026022acd4b4006665efb0.txt",
-          "sha256": "3e2c11dcf3f17ab585baab8faba54772d7872f1c6e026022acd4b4006665efb0",
-          "sourcePath": "node_modules/teeny-request/node_modules/node-fetch/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:text-segmentation@1.0.3:node_modules/text-segmentation",
       "kind": "npm",
       "name": "text-segmentation",
@@ -8645,25 +6952,6 @@
       ],
       "basis": "installed non-dev lock candidate",
       "vcs": "d07df21f8b79e35ad8411cb9ceb8b5cb8f40f9d4"
-    },
-    {
-      "id": "npm:typed-emitter@2.1.0:node_modules/typed-emitter",
-      "kind": "npm",
-      "name": "typed-emitter",
-      "version": "2.1.0",
-      "location": "node_modules/typed-emitter",
-      "license": "MIT",
-      "integrity": "sha512-g/KzbYKbH5C2vPkaXGu8DJlHrGKHLsM25Zg9WuC9pMGfuvT+X25tZQWo5fK1BjBm8+UrVE9LDCvaY0CQk+fXDA==",
-      "repo": null,
-      "texts": [
-        {
-          "file": "texts/dfab9450d2bf4112af202be012c098a06e91248156961c2d45fd1fd1894ae2ff.txt",
-          "sha256": "dfab9450d2bf4112af202be012c098a06e91248156961c2d45fd1fd1894ae2ff",
-          "sourcePath": "node_modules/typed-emitter/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
     },
     {
       "id": "npm:undici-types@6.21.0:node_modules/undici-types",
@@ -9046,25 +7334,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:webrtc-adapter@9.0.5:node_modules/webrtc-adapter",
-      "kind": "npm",
-      "name": "webrtc-adapter",
-      "version": "9.0.5",
-      "location": "node_modules/webrtc-adapter",
-      "license": "BSD-3-Clause",
-      "integrity": "sha512-U9vjByy/sK2OMXu5mmfuZFKTMIUQe34c0JXRO+oDrxJTsntdYT2iIFwYMOV7HhMTuktcZLGf2W1N/OcSf9ssWg==",
-      "repo": "webrtchacks/adapter",
-      "texts": [
-        {
-          "file": "texts/00a46c6cfc219593b97586398b477e188391556e70487225d3ff9d60ccda6dce.txt",
-          "sha256": "00a46c6cfc219593b97586398b477e188391556e70487225d3ff9d60ccda6dce",
-          "sourcePath": "node_modules/webrtc-adapter/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:whatwg-url@5.0.0:node_modules/whatwg-url",
       "kind": "npm",
       "name": "whatwg-url",
@@ -9078,63 +7347,6 @@
           "file": "texts/6b7a1792144374d84dc5ed3655b8bbe2754d06f4f1f64a9fb8b9de2d6f448b85.txt",
           "sha256": "6b7a1792144374d84dc5ed3655b8bbe2754d06f4f1f64a9fb8b9de2d6f448b85",
           "sourcePath": "node_modules/whatwg-url/LICENSE.txt",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:which@2.0.2:node_modules/which",
-      "kind": "npm",
-      "name": "which",
-      "version": "2.0.2",
-      "location": "node_modules/which",
-      "license": "ISC",
-      "integrity": "sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==",
-      "repo": "isaacs/node-which",
-      "texts": [
-        {
-          "file": "texts/4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b.txt",
-          "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b",
-          "sourcePath": "node_modules/which/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:isexe@2.0.0:node_modules/which/node_modules/isexe",
-      "kind": "npm",
-      "name": "isexe",
-      "version": "2.0.0",
-      "location": "node_modules/which/node_modules/isexe",
-      "license": "ISC",
-      "integrity": "sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==",
-      "repo": "isaacs/isexe",
-      "texts": [
-        {
-          "file": "texts/4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b.txt",
-          "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b",
-          "sourcePath": "node_modules/which/node_modules/isexe/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:wrap-ansi@7.0.0:node_modules/wrap-ansi-cjs",
-      "kind": "npm",
-      "name": "wrap-ansi",
-      "version": "7.0.0",
-      "location": "node_modules/wrap-ansi-cjs",
-      "license": "MIT",
-      "integrity": "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==",
-      "repo": "chalk/wrap-ansi",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/wrap-ansi-cjs/license",
           "origin": "installed package"
         }
       ],
@@ -9192,63 +7404,6 @@
           "file": "texts/82e67379203d5794e7c44549847d8d64ae6904591381682360470898bd306821.txt",
           "sha256": "82e67379203d5794e7c44549847d8d64ae6904591381682360470898bd306821",
           "sourcePath": "node_modules/xtend/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:y18n@5.0.8:node_modules/y18n",
-      "kind": "npm",
-      "name": "y18n",
-      "version": "5.0.8",
-      "location": "node_modules/y18n",
-      "license": "ISC",
-      "integrity": "sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==",
-      "repo": "yargs/y18n",
-      "texts": [
-        {
-          "file": "texts/2034cce3b6fafcddd642c4175e01d3ddfc332a53b9f20fdc46b1466dc89ac469.txt",
-          "sha256": "2034cce3b6fafcddd642c4175e01d3ddfc332a53b9f20fdc46b1466dc89ac469",
-          "sourcePath": "node_modules/y18n/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:yargs@17.7.2:node_modules/yargs",
-      "kind": "npm",
-      "name": "yargs",
-      "version": "17.7.2",
-      "location": "node_modules/yargs",
-      "license": "MIT",
-      "integrity": "sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==",
-      "repo": "yargs/yargs",
-      "texts": [
-        {
-          "file": "texts/2f1a503bfab84b3ba7393627308b3274501e459e3b5185bbb56bbf16cb1602d4.txt",
-          "sha256": "2f1a503bfab84b3ba7393627308b3274501e459e3b5185bbb56bbf16cb1602d4",
-          "sourcePath": "node_modules/yargs/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:yargs-parser@21.1.1:node_modules/yargs-parser",
-      "kind": "npm",
-      "name": "yargs-parser",
-      "version": "21.1.1",
-      "location": "node_modules/yargs-parser",
-      "license": "ISC",
-      "integrity": "sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==",
-      "repo": "yargs/yargs-parser",
-      "texts": [
-        {
-          "file": "texts/365496ca1f56da40b23c9815fc40fa9005847b2f8f8fd1c1a4929ef25ec8cd1d.txt",
-          "sha256": "365496ca1f56da40b23c9815fc40fa9005847b2f8f8fd1c1a4929ef25ec8cd1d",
-          "sourcePath": "node_modules/yargs-parser/LICENSE.txt",
           "origin": "installed package"
         }
       ],
@@ -15943,101 +14098,6 @@
         "url": "https://raw.githubusercontent.com/google/oboe/86165b8249bc22b9ef70b69e20323244b6f08d88/include/oboe/FullDuplexStream.h",
         "gitBlob": "8ec7c23f9587117dc43526e93140d6e5d1acb5ae",
         "origin": "original exact-gitlink complete Android Open Source Project Apache license comment, original spelling/year/whitespace retained through closing */; no implementation bytes and no Google or wrapper copyright substitution"
-      }
-    },
-    {
-      "id": "original:eastasianwidth",
-      "version": "0.3.0",
-      "license": "MIT",
-      "url": "https://raw.githubusercontent.com/komagata/eastasianwidth/1d41951a59d63fb2d77cda021050fc070cae424a/MIT-LICENSE.txt",
-      "gitBlob": "e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab",
-      "sha256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a",
-      "role": "original MIT-LICENSE.txt added at same-version commit 1d41951a59d63fb2d77cda021050fc070cae424a retaining Copyright komagata; all four published 0.3.0 package files match that commit and npm gitHead e5ee638e2039093c924b60d8a2ba7c12c52549f8 byte-for-byte; only MIT-LICENSE.txt was added between those commits, not a claim that the npm tarball contained LICENSE or that this notice covers 0.2.0",
-      "sameVersionEvidence": {
-        "npmTarballURL": "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.3.0.tgz",
-        "npmTarballIntegrity": "sha512-JqasYqGO32J2c91uYKdhu1vNmXGADaLB7OOgjAhjMvpjdvGb0tsYcuwn381MwqCg4YBQDtByQcNlFYuv2kmOug==",
-        "npmTarballSHA256": "8b52fac4f929a5de61bbef98594907848b8587c46b7417abe4e66acf65a38552",
-        "npmGitHead": "e5ee638e2039093c924b60d8a2ba7c12c52549f8",
-        "noticeRef": "1d41951a59d63fb2d77cda021050fc070cae424a",
-        "tarballContainsLicense": false,
-        "files": [
-          {
-            "path": "eastasianwidth.js",
-            "sha256": "82cb2fa400c52c89608c52cafd338fc699c89d03ff050e5602b3ea2b14bdb101",
-            "gitBlob": "659abbdab85bad056d8efac180d23b3442c9f696"
-          },
-          {
-            "path": "package.json",
-            "sha256": "32ffd87591938680573e7ccf18e507d7e0c79e0e25bbc15d77288d097b69690e",
-            "gitBlob": "5d66147329b723e6fd8ec3efdb9d2eabf311fb13"
-          },
-          {
-            "path": "README.md",
-            "sha256": "5a20e0a3c5f1a6b449dd3fee8e3f0c7dc0a6e508c93fa5703d7c8823d35aed54",
-            "gitBlob": "a8b71ee54d171820d7d45ac39234c8e9d04c9ad3"
-          },
-          {
-            "path": "eastasianwidth.d.ts",
-            "sha256": "43ddf471e69d71c288b548de4e994cca01247a428e7ec49808bb0c93fa265187",
-            "gitBlob": "f5456eb608edb2851c7e8cbe976726f73a5a0462"
-          }
-        ]
-      },
-      "bind": {
-        "kind": "npm",
-        "name": "eastasianwidth"
-      },
-      "closesMissing": true,
-      "text": {
-        "file": "texts/94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a.txt",
-        "sha256": "94aa6016fb9d436508366433e9caba061443ca58f4c7eb515caec7badf90ae5a",
-        "url": "https://raw.githubusercontent.com/komagata/eastasianwidth/1d41951a59d63fb2d77cda021050fc070cae424a/MIT-LICENSE.txt",
-        "gitBlob": "e8f4a01dd0f84a8156dcb334eb505d2088b0d1ab",
-        "origin": "original MIT-LICENSE.txt added at same-version commit 1d41951a59d63fb2d77cda021050fc070cae424a retaining Copyright komagata; all four published 0.3.0 package files match that commit and npm gitHead e5ee638e2039093c924b60d8a2ba7c12c52549f8 byte-for-byte; only MIT-LICENSE.txt was added between those commits, not a claim that the npm tarball contained LICENSE or that this notice covers 0.2.0"
-      }
-    },
-    {
-      "id": "original:stream-events",
-      "version": "1.0.5",
-      "license": "MIT",
-      "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
-      "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
-      "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
-      "authorizationURL": "https://github.com/stephenplusplus/stream-events/pull/5",
-      "role": "officially merged later original MIT LICENSE at commit 3cfd35ab1a68c9fd41c992428e839ad54dcf8017; package version remains 1.0.5 and all four installed package.json/index.js/index.d.ts/readme.md files match that commit byte-for-byte; original Copyright (c) 2018 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE",
-      "bind": {
-        "kind": "npm",
-        "name": "stream-events"
-      },
-      "closesMissing": true,
-      "text": {
-        "file": "texts/2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d.txt",
-        "sha256": "2055fb6b0da08d07d70811043d7b8682ebbdba1e206f1ee511646ccb3f8f450d",
-        "url": "https://raw.githubusercontent.com/stephenplusplus/stream-events/3cfd35ab1a68c9fd41c992428e839ad54dcf8017/LICENSE",
-        "gitBlob": "e3dce4d5cbc96656c107aab7dab637fba71e476a",
-        "origin": "officially merged later original MIT LICENSE at commit 3cfd35ab1a68c9fd41c992428e839ad54dcf8017; package version remains 1.0.5 and all four installed package.json/index.js/index.d.ts/readme.md files match that commit byte-for-byte; original Copyright (c) 2018 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
-      }
-    },
-    {
-      "id": "original:stubs",
-      "version": "3.0.0",
-      "license": "MIT",
-      "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
-      "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
-      "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
-      "authorizationURL": "https://github.com/stephenplusplus/stubs/pull/5#issuecomment-517783963",
-      "role": "officially merged later original MIT LICENSE at commit 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5, acknowledged by the owner; package version remains 3.0.0 and all four installed package.json/index.js/readme.md/test.js files match that commit byte-for-byte; original Copyright (c) 2017 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE",
-      "bind": {
-        "kind": "npm",
-        "name": "stubs"
-      },
-      "closesMissing": true,
-      "text": {
-        "file": "texts/cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58.txt",
-        "sha256": "cd01ce0baa2b903bb80911719424904a4a0eb589acb982d45b119dffe28b7f58",
-        "url": "https://raw.githubusercontent.com/stephenplusplus/stubs/580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5/LICENSE",
-        "gitBlob": "6d22973002d024b6b8371ebf5a5b99f09f3bce50",
-        "origin": "officially merged later original MIT LICENSE at commit 580b4d8b3a34c1193d5ec10e0db0d6ea4b4c0ec5, acknowledged by the owner; package version remains 3.0.0 and all four installed package.json/index.js/readme.md/test.js files match that commit byte-for-byte; original Copyright (c) 2017 Stephen Sawchuk retained, not a claim that the original npm tarball contained LICENSE"
       }
     },
     {

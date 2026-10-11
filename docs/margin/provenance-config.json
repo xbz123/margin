@@ -11,6 +11,8 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"assert.deepEqual(errors, []);","reason":"AG-40: Generic empty-error assertion in electron/audio/__tests__/StuckWatchdogDisarmOnEndAndAbort.test.mjs:42 for the locally written watchdog cancellation test; no upstream test logic imported."},
+    {"line":"timer.callback();","reason":"AG-40: Generic invocation of a synthetic timer callback in electron/audio/__tests__/meetingAudioFixture.mjs:93; locally written fake-clock fixture, not an imported timer implementation."},
     {"line":"assert.equal(warnings.length, 0);","reason":"AG-42 review repair: Generic count assertion that user cancellation emits no best-effort STT warning; this synthetic behavior test was written here."},
     {"line":"assert.equal(warnings.length, 1);","reason":"AG-42 review repair: Generic count assertion for one fixed warning after a synthetic renderer finalize rejection; no upstream test logic is imported."},
     {"line":"await new Promise<void>((resolve, reject) => {","reason":"AG-42: Standard typed Promise construction for a locally written bounded STT final-event wait; no upstream wait implementation is imported."},

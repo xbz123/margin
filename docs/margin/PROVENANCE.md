@@ -21,6 +21,17 @@ Notes:
 
 ## Ledger
 
+### Stage 4 exit CI repair (2026-10-11)
+
+Written from the CI 38159055916 failures and this branch's cancellation contract.
+The regression compares LATE marker multiplicity against the UI at cancel return;
+all injected stale-event and HTTP-abort assertions remain. No upstream code was
+imported. The two generic AG-40 test statements are individually recorded in
+provenance-config.json with their paths and reasons; neither statement was edited.
+The offline notice check reuses this branch's verifyBundle and source-bundle npm
+preconditions. Three removed-package bindings and unreferenced notices were removed
+after checking the current lock and regenerated inventory (PLAN section 9).
+
 ### AG-42 manual answer (2026-10-11)
 
 Review repair after `3ff20cbc` / `3bfcbe47`: written from Claude's three findings,

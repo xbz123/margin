@@ -2,12 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
 
-## Next actions
+**Current answer:** 阶段 4 出口 CI `38159055916` 失败；修复已在本地通过，待 Claude 复验和用户批准重跑（2026-10-11）。本地范围不含 Electron、打包和已知 icons 沙箱例外，尚未签收。
 
-- **阶段 4 出口 CI 等用户批准** — 阶段 4 的 ticket 全部完成：AG-60a、AG-40、AG-41a、AG-41b、AG-42 均经 Claude 复查，完整 gates 16/16。自验收见 PLAN §9"阶段 4 出口自验收"。CI 通过、核对产物后由用户签收，然后进入阶段 5（AG-50）。
+**Current focus:** 完成阶段 4 出口修复复验及 CI 产物核对；以用户签收结束阶段 4，之前不进入 AG-50。
 
 ## Waiting
 
+- **阶段 4 出口修复** — 许可清单刷新、两条 AG-40 通用来源登记和取消测试边界修复已本地提交，不推送；resume: PLAN §9"阶段 4 出口 CI 38159055916"及 `docs/margin/evidence/stage4-exit-ci/checks/`；next: Claude 更新受限 refs、沙箱外复验及推送，用户批准重跑后核对 CI 产物。CrashReporter 疑似失败打包的连带结果，待重跑确认。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching

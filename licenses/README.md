@@ -82,7 +82,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-694 candidates; 396 unique stored texts; 2 excluded paths; 0 unresolved candidates; 2 deferred notices.
+599 candidates; 347 unique stored texts; 2 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -90,9 +90,6 @@ Current supplemental notice bindings:
 - npm:format@0.2.2: MIT
 - cargo:oboe@0.6.1: Apache-2.0
 - cargo:oboe-sys@0.6.1: Apache-2.0
-- npm:eastasianwidth@0.3.0: MIT
-- npm:stream-events@1.0.5: MIT
-- npm:stubs@3.0.0: MIT
 - npm:tr46@0.0.3: MIT
 - npm:react-remove-scroll-bar@2.3.8: MIT (published MIT metadata + standard terms; not a complete original notice)
 - cargo:realfft@3.5.0: MIT (published MIT metadata + standard terms; not a complete original notice)
