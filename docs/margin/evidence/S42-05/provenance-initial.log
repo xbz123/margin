@@ -1,0 +1,7 @@
+Initial local gate before generic-idiom review, 2026-10-13: FAIL, 3 hits.
+scripts/margin/gate-evidence.mjs:54: return problems;
+scripts/margin/gate-evidence.mjs:65: return problems;
+electron/margin/__tests__/gateEvidence.test.mjs:50: const cases = {
+Disposition: two exact generic lines registered in provenance-config.json with
+their new local context; no source rewrite, source-pool or exclusion changes.
+The final provenance.log and summary.json are from the subsequent full rerun.

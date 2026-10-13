@@ -11,6 +11,8 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"return problems;","reason":"S42-05: Generic return of the locally assembled gate-evidence diagnostics array at two sites; written against this branch's summary schema, no upstream checker imported."},
+    {"line":"const cases = {","reason":"S42-05: Generic object initializer for a newly written synthetic gate-evidence failure matrix; no upstream test cases or fixture content imported."},
     {"line":"const preload = fs.readFileSync(path.join(root, 'electron/preload.ts'), 'utf8');","reason":"AG-51 review: Standard Node file read in the relocated general IPC invoke-coverage test; preserves the baseline invariant, not an upstream implementation import."},
     {"line":"calls.length = 0;","reason":"AG-51: Generic test-array reset after preload initialization, isolating the new bridge calls from the preexisting logging-status call."},
     {"line":"return settings;","reason":"AG-51: Generic return of the validated or saved local PromptSettings snapshot in read/save; new implementation uses Node primitives, not old SkillUploader logic."},

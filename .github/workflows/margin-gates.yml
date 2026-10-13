@@ -20,7 +20,7 @@ on:
         type: boolean
         default: false
       gate_ref:
-        description: Explicit gate reference directory (for example docs/margin/evidence/AG-26)
+        description: Explicit gate reference directory (docs/margin/evidence/AG-<n>, S42-ready or S42-<n>)
         type: string
         default: ''
       package_apps:
@@ -128,21 +128,17 @@ jobs:
         env:
           GATE_REF: ${{ inputs.gate_ref }}
         run: |
-          ref=$(node -e "
-            const fs = require('fs');
-            const explicit = process.env.GATE_REF;
-            if (explicit) {
-              if (!/^docs\/margin\/evidence\/AG-\d+$/.test(explicit) || !fs.existsSync(explicit + '/summary.json')) throw new Error('Invalid gate_ref');
-              console.log(explicit);
-              process.exit(0);
-            }
-            const dirs = fs.readdirSync('docs/margin/evidence').filter((d) => /^AG-\d+$/.test(d));
-            dirs.sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)));
-            console.log('docs/margin/evidence/' + dirs.at(-1));
-          ")
+          ref=$(node scripts/margin/gate-evidence.mjs select-ref)
           echo "reference: $ref"
           node scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \
             --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, no_cache=${{ inputs.no_cache && 'true' || 'false' }}, compared with $ref"
+
+      # Reads only the evidence written above; no test runs twice and no failure in the
+      # listed S42 checks is excused by the reference (PLAN.md S42-05).
+      - name: Check the S42 required checks ran and passed
+        run: |
+          set -o pipefail
+          node scripts/margin/gate-evidence.mjs required ci-evidence 2>&1 | tee ci-evidence/s42-required.log
 
       - name: Check release identity contract (CI only; no packaging)
         env:

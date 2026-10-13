@@ -21,6 +21,25 @@ Notes:
 
 ## Ledger
 
+### S42-05 ticket CI evidence (2026-10-13)
+
+Written on this branch from PLAN S42-05/S43 and the existing gate runner's output
+shape. Claude supplied a read-only patch; the main agent reviewed and integrated
+it, adding rejection of surrounding whitespace in explicit reference paths.
+No old Margin or later upstream code, prompts, fixtures or assets were imported.
+`gate-evidence.mjs` reuses the existing numeric AG reference-selection behavior
+and adds bounded S42 references and required-check evidence validation.
+`gateEvidence.test.mjs` uses synthetic evidence in the existing test discovery
+directory. The workflow consumes the same completed gate output rather than
+rerunning the tests. No dependencies or skipped tests added. G2 initially matched
+two generic idioms at three sites: `return problems;` and `const cases = {`.
+Their surrounding implementations are newly written evidence checks and synthetic
+tests; the exact lines are registered with reasons, following the existing G2
+rule, without renaming code to evade the scan or broadening excluded paths.
+The existing AG-51 repair was inspected for removed callers, preserved prompt
+assembly and data-scope checks before the first S43 publication; its historical
+logs are not replaced. Current gate and CI outcomes are recorded separately.
+
 ### AG-51 prompt layers and prompt-only Skills (2026-10-11)
 
 Review repair after `45a4e9ce` / `ccee35dd`: written from Claude's findings and

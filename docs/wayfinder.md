@@ -1,14 +1,19 @@
 # Wayfinder
 
-**Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：不引入上游 6 月之后的代码，来源可追溯，分阶段验收，最后在公开仓库 `xbz123/margin` 发布 macOS 与 Windows 双平台 Release（`docs/margin/PLAN.md` §1、S30、AG-62、AG-74）。详细状态以 PLAN 为准，本文件只指路。
+**Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 阶段 4 已签收；AG-50 已通过 Claude 复查及完整门禁。Claude 已复查 AG-51 初版且完整 gates 16/16；发现的重复 Skills 机制及 skipSystemPrompt 问题已修正并完成本地检查（2026-10-11，已知 iconutil 沙箱例外）。修正版仅本地提交，待 Claude 复验，阶段 5 尚未签收。证据见 `docs/margin/evidence/AG-51/`。
+**Current answer:** 截至 2026-10-13，阶段 4 已签收，AG-50 已完成；AG-51 修正版已由主 Agent 复核并通过当前完整本地门禁，阶段 5 产品签收仍独立。S42-05 CI 票本地验收通过，待其提交的公开 CI；D8=A、D9 当前失败请求快照与独立关联重试、黑框不合格均已定案。
 
-**Current focus:** 阶段 5：AG-50 → AG-51 → 阶段 5 出口（CI 须用户批准，用户签收）。
+**Current focus:** 先完成 S42-05→01→02→03→04，再持续推进计划中其他边界清晰且依赖满足的票。Claude Opus 5.5 medium 执行（用户已允许 auto，非绕过权限），主 Agent 独立审阅、取得本地证据、逐票提交并核对公开 CI；图标视觉、架构、真实服务预算与发布后置。
+
+## In progress
+
+- **逐票实现与验收** — running；resume：[S43 与当前票](margin/PLAN.md#tickets-20261013)、[S42-05 本地验收](margin/evidence/S42-05/README.md)；next：提交 S42-05 并核对公开 CI，再推进 S42-01 配置及后续清晰票；不把启动视为完成。
 
 ## Waiting
 
-- **AG-51 修正版待 Claude** — 以 `ccee35dd` 为起点，已删除无消费者的文件夹库/参数链，只保留导入式 Skills；恢复实际调用的 skipSystemPrompt，补齐默认 written 时限记录。恢复点：PLAN §8 AG-51“Claude 复查修正”、`docs/margin/evidence/AG-51/checks/`。下一步 Claude 跑修正版完整门禁并复验，再决定推送；初版 `gates/` 保持未跟踪，阶段 5 出口 CI 仍须用户批准。
+- **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
+- **阶段 5 产品签收** — AG-51 修正版本地复核已完成；真实质量未验证，阶段签收不由逐票 CI 自动代签。resume：PLAN §8 S43 增量执行；初版 AG-51 未跟踪 gates 保持原样。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching

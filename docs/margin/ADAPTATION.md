@@ -1,8 +1,10 @@
 # Margin adaptation checklist
 
-What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. The target behavior comes from the Margin product decisions recorded on the earlier Margin branch (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`). That file is used as a requirements list only; no code is taken from it.
+What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. Current behavior is owned by [PLAN S41/S42](PLAN.md#requirements-20261013), with checked implementation gaps and incremental tickets in [S42](PLAN.md#tickets-20261013). The earlier Margin plan (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`) is a historical behavior reference only, not the current specification or a source of code.
 
 Status values: `todo`, `doing`, `done`, `blocked`. "Not verified" lists anything not yet checked for real. Tickets, acceptance checks and execution order are in [PLAN.md](PLAN.md); if this table and PLAN.md disagree, PLAN.md wins.
+
+The phase 0–2 rows below retain the original baseline comparison, not current execution status. Do not reopen completed tickets from their historical `todo` labels; current acceptance belongs to PLAN. The later-phase targets below reflect S33/S34/S41; baseline columns remain historical.
 
 ## Phase 0 – baseline and records
 
@@ -45,6 +47,8 @@ Removed outright: code, UI entry points, IPC, preload, dependencies, build steps
 | Phase | Items | Baseline has |
 | --- | --- | --- |
 | 3 Answers | Text and screenshot questions, written-exam mode, streaming, cancel; OpenAI Chat, OpenAI Responses, Anthropic Messages and Gemini protocols; fallback model; errors; Codex CLI login as a separate source | Multi-provider LLMHelper, Codex CLI provider, screenshots, streaming |
-| 4 Audio | Mic and system audio; cloud STT; manual and automatic answers; Gemini Flash-Lite bilingual judge; draining the tail of the transcript | Native capture, Deepgram, Soniox, ElevenLabs, OpenAI, Google and REST STT; "what to answer" path |
-| 5 Context and meetings | Full-text Local Context; prompt-only Skills; optional meeting saving, incremental saves, summary and failure recovery | SkillsManager, MeetingPersistence |
+| 4 Audio | Mic and system audio; OpenAI, Soniox, Groq, Aliyun and Doubao STT; retained manual actions with the S41/S43 dual-channel input contract (D8=A, keep connections); no automatic answers or Judge | Native capture, Deepgram, Soniox, ElevenLabs, OpenAI, Google and REST STT; "what to answer" path |
+| 5 Context and meetings | Full-text Local Context without prewarming; append-only prompt Skills and interview/written scenarios; local transcript list/detail/copy only, no automatic summaries, title generation, startup recovery or meeting chat | SkillsManager, MeetingPersistence |
 | 6 Settings and release | Settings pages, English and Simplified Chinese UI, window protection, shortcuts, click-through, onboarding, README and PRIVACY | Content protection, disguise, stealth keyboard, keybinds, click-through |
+
+Release order: macOS first, Windows implementation/acceptance/release later, then assess shared code and branch integration. Portability remains a constraint during Mac work. Separate platform icon designs and real screen-sharing evidence are pending; existing code is not proof of invisibility on a particular OS/application version. A black rectangle replacing the assistant is explicitly unacceptable (S43). Ticket CI in the public repository is authorized after each ticket commit; that is not a release or real-service authorization.

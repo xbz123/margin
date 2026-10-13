@@ -2,6 +2,8 @@
 
 Claude 整理，2026-10-11，依据用户指示"可以把这些整理好，然后目标是交给astra去做执行"（PLAN S36）。本文只是执行入口，具体规则以 PLAN 为准；两处不一致时以 PLAN 为准，并报告差异。
 
+**当前增量入口（2026-10-13，S43）**：原阶段记录保留。用户指定 Claude Opus 5.5 medium 实现、主 Agent 独立审阅验收；现已选 D8=A、定案 D9，先 [S42 tickets](PLAN.md#tickets-20261013)，之后继续其他边界清晰且依赖满足的票。允许 Claude auto（非 bypassPermissions），文档归主 Agent，代码/窄检查归 Claude，串行交接。CI 更新后每票提交在公开仓库运行 CI，本补充取代下文“不触发 CI”在普通逐票测试范围的限制；真实服务、实机、发布和阶段签收不自动授权。不得把历史门禁移作新需求证据，也不覆盖既有 AG-51 未跟踪证据。
+
 ## 1. 范围和起点
 
 - **执行人**：AG-60a 由 Codex Astra 完成（S36）。**按 S37，AG-40 起改由 AGY（`gemini-3.8-flash-medium`）执行**：Claude 每次派发一张 ticket，AGY 实现、测试、跑 gates 并在本地提交，**不推送**；Claude 复查通过后推送两个远端。**按 S38 改为按难度分配**：简单任务交 AGY，其余交 Codex CLI（`gpt-6-astra` medium）；阶段 4 的分配是 AG-40、AG-41b、AG-42 交 Codex，AG-41a（退役三家 STT）交 AGY。下文写"Astra"的地方，指当前被派发的执行人。Claude 在每张 ticket 完成后和每个阶段出口各复查一次。用户负责签收阶段出口。
