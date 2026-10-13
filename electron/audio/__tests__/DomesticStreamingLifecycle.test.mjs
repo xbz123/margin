@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
 
@@ -141,6 +142,62 @@ for (const name of ['Aliyun', 'Doubao']) {
     assert.ok(errors.every(message => !message.includes('synthetic-secret')));
   });
 }
+
+test('S42-01 Aliyun workspace selects general or dedicated Beijing endpoint; invalid values open nothing', t => {
+  const { AliyunStreamingSTT } = load('AliyunStreamingSTT');
+  const opened = workspaceId => {
+    const before = Socket.instances.length;
+    const stt = new AliyunStreamingSTT('synthetic-secret', { workspaceId });
+    t.after(() => stt.stop(false));
+    const errors = [];
+    stt.on('error', error => errors.push(error));
+    stt.start();
+    return Socket.instances.length > before ? Socket.instances.at(-1) : errors;
+  };
+  const general = opened('');
+  assert.equal(general.url, 'wss://dashscope.aliyuncs.com/api-ws/v1/inference');
+  assert.equal(general.options.headers.Authorization, 'Bearer synthetic-secret');
+  general.open();
+  assert.equal(JSON.parse(general.sent[0]).payload.model, 'qwen-audio-3.1-asr-flash-streaming', 'default model is unchanged');
+  assert.equal(opened('ws_01-a').url, 'wss://ws_01-a.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference');
+  for (const workspaceId of ['evil.example', 'a/b', 'x@y', '-lead', 'a'.repeat(64), 'w\r\nX-Injected: 1', 'w#', undefined]) {
+    const errors = opened(workspaceId);
+    assert.ok(Array.isArray(errors) && errors.length === 1, String(workspaceId));
+    assert.equal(errors[0].code, 'configuration');
+  }
+});
+
+test('S42-01 Doubao sends the selected resource header, keeps App ID auth and never enables a second pass', t => {
+  const { DoubaoStreamingSTT } = load('DoubaoStreamingSTT');
+  const opened = options => {
+    const before = Socket.instances.length;
+    const stt = new DoubaoStreamingSTT('synthetic-secret', options);
+    t.after(() => stt.stop(false));
+    const errors = [];
+    stt.on('error', error => errors.push(error));
+    stt.start();
+    return Socket.instances.length > before ? Socket.instances.at(-1) : errors;
+  };
+  const hourly = opened({ appId: '', resourceId: 'volc.seedasr.sauc.duration' });
+  assert.equal(hourly.url, 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async');
+  assert.equal(hourly.options.headers['X-Api-Resource-Id'], 'volc.seedasr.sauc.duration');
+  assert.equal(hourly.options.headers['X-Api-Key'], 'synthetic-secret');
+  assert.equal(hourly.options.headers['X-Api-App-Key'], undefined);
+  hourly.open();
+  const request = JSON.parse(gunzipSync(hourly.sent[0].subarray(12)).toString());
+  assert.equal(request.request.model_name, 'bigmodel');
+  assert.doesNotMatch(JSON.stringify(request), /nonstream/);
+  const concurrent = opened({ appId: 'synthetic-app', resourceId: 'volc.seedasr.sauc.concurrent' });
+  assert.equal(concurrent.options.headers['X-Api-Resource-Id'], 'volc.seedasr.sauc.concurrent');
+  assert.equal(concurrent.options.headers['X-Api-App-Key'], 'synthetic-app');
+  assert.equal(concurrent.options.headers['X-Api-Access-Key'], 'synthetic-secret');
+  assert.equal(concurrent.options.headers['X-Api-Key'], undefined);
+  for (const resourceId of [null, '', 'volc.bigasr.sauc.duration', 'volc.seedasr.sauc.Duration']) {
+    const errors = opened({ resourceId });
+    assert.ok(Array.isArray(errors) && errors.length === 1, String(resourceId));
+    assert.equal(errors[0].code, 'configuration');
+  }
+});
 
 test('PCM downmix is chunk-invariant at 48kHz stereo, including partial frames', () => {
   const { AliyunStreamingSTT } = load('AliyunStreamingSTT');

@@ -3,7 +3,7 @@ import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
 
-import type { DomesticSttProvider, DomesticSttSettings } from './domesticStt';
+import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from './domesticStt';
 export interface ElectronAPI {
   getPromptSettings: () => Promise<import('./promptSettings').PromptSettingsResult>;
   savePromptSettings: (input: { scene: import('./promptSettings').PromptScene; skillId: string | null; additional: string }) => Promise<import('./promptSettings').PromptSettingsResult>;
@@ -14,7 +14,7 @@ export interface ElectronAPI {
   clearLocalContext: () => Promise<import('./localContext').LocalContextResult>;
   addLocalContext: () => Promise<import('./localContext').LocalContextResult>;
   removeLocalContext: (id: string) => Promise<import('./localContext').LocalContextResult>;
-  getDomesticStt: (provider: DomesticSttProvider) => Promise<{ hasKey: boolean; workspaceId: string; appId: string }>;
+  getDomesticStt: (provider: DomesticSttProvider) => Promise<DomesticSttPublicConfig>;
   saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
   testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
   updateContentDimensions: (dimensions: {

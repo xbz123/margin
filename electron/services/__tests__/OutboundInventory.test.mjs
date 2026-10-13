@@ -60,10 +60,10 @@ test('fixed endpoint origins in transport modules match the documented provider 
     }
     visit(ast);
   }
-  assert.deepEqual(dynamicAuthorities, ['electron/audio/AliyunStreamingSTT.ts:`wss://${this.options.workspaceId}.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`']);
+  assert.deepEqual(dynamicAuthorities, ['electron/audio/AliyunStreamingSTT.ts:`wss://${workspace}.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`']);
   assert.deepEqual([...origins].sort(), [
     'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.groq.com', 'https://api.openai.com',
     'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
-    'wss://openspeech.bytedance.com',
+    'wss://openspeech.bytedance.com', 'wss://dashscope.aliyuncs.com',
   ].sort());
 });

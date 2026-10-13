@@ -21,6 +21,30 @@ Notes:
 
 ## Ledger
 
+### S42-01 domestic speech configuration (2026-10-13)
+
+Claude Opus 5.5 medium implemented U9 from this branch's contracts in auto mode;
+no earlier Margin/upstream implementation or assets were imported. Aliyun endpoint
+selection, credential validation and the Doubao resource field follow the confirmed
+requirements. The existing provider factory is shared by connection testing and
+meeting capture. The types, bridge, settings and Chinese text carry the same field.
+Protocol tests extend the current fake-socket fixture; the mounted settings test
+uses the current renderer harness, real bridge/handler methods and synthetic storage.
+
+The main agent found that `null` was treated as an omitted legacy resource in the
+saved-config reader and the Doubao adapter. Two added negative controls failed
+before an undefined-only default fixed both paths. Missing legacy fields still
+select the existing hourly default; explicit invalid values do not choose billing
+resources. The renderer test also restores the CredentialsManager module cache
+after its temporary fixture. No lifecycle/finalize or prompt changes in this ticket.
+The full inventory gate exposed the missing fixed DashScope origin and changed
+workspace expression; OUTBOUND and its exact inventory assertion now track U9,
+without adding any wildcard authority or removing outbound checks.
+
+G2: three exact generic lines are recorded with reasons: awaiting a local promise,
+asserting a refused save and cleaning the test-owned mkdtemp directory. No renaming
+to hide hits, exclusions, dependencies, skipped tests or upstream source imports.
+
 ### S42-05 ticket CI evidence (2026-10-13)
 
 Written on this branch from PLAN S42-05/S43 and the existing gate runner's output

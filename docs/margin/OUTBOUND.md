@@ -34,7 +34,7 @@ preserved. Nothing patches node_modules or SDK prototypes.
 | utils/modelFetcher, fetch-provider-models IPC | Saved effective target; unfiltered model IDs for compatible targets, no official fallback | User-triggered saved key/config only |
 | test-llm-connection IPC | Same saved effective target and protocol through generateOnce | Fixed Hello and saved key |
 | test-stt-connection IPC | Soniox WS, Groq/OpenAI transcription POST | Manual validation; synthetic WAV only |
-| DomesticStreamingSTT / test-domestic-stt | Aliyun: `wss://<validated-workspace>.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`; Doubao: `wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async` | Only explicitly selected credentials and PCM; manual test uses synthetic silence. Aliyun workspace is a validated single DNS label, not an arbitrary authority. No redirects. |
+| DomesticStreamingSTT / test-domestic-stt | Aliyun: empty workspace uses `wss://dashscope.aliyuncs.com/api-ws/v1/inference`, otherwise `wss://<validated-workspace>.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`; Doubao: `wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async` | Only explicitly selected credentials and PCM; manual test uses synthetic silence. A supplied Aliyun workspace is a validated single label, not an arbitrary authority. Doubao uses the selected hourly/concurrent resource, with no automatic resource switch. No redirects or region/model fallback. General-endpoint model availability still needs separately authorized real-service validation. |
 
 LLMHelper's final sends recheck request scopes after limiter/image processing and
 before application retries/fallback. Groq/OpenAI/Anthropic/DeepSeek SDK retries

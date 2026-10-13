@@ -6,12 +6,15 @@ export class AliyunStreamingSTT extends DomesticStreamingSTT {
   private lastFinal = '';
   constructor(private readonly key: string, private readonly options: { workspaceId: string }) { super(); }
   protected connection() {
-    if (!this.key.trim() || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/.test(this.options.workspaceId)) {
+    const workspace = this.options.workspaceId;
+    if (!this.key.trim() || typeof workspace !== 'string' || (workspace !== '' && !/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/.test(workspace))) {
       throw Error('Alibaba Cloud STT credentials are incomplete');
     }
     this.task = randomUUID();
     this.lastFinal = '';
-    return { url: `wss://${this.options.workspaceId}.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`,
+    // Without a workspace the Beijing general endpoint; with one, its dedicated Beijing domain.
+    return { url: workspace ? `wss://${workspace}.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`
+      : 'wss://dashscope.aliyuncs.com/api-ws/v1/inference',
       headers: { Authorization: `Bearer ${this.key}` } };
   }
   protected opened(): void {

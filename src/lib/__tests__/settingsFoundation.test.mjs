@@ -72,6 +72,17 @@ test('AG41b domestic STT cards use the shared translations and accessible creden
         assert.match(button, /disabled:opacity-50/);
       }
       assert.match(html, provider === 'aliyun' ? /业务空间 ID/ : /App ID/);
+      if (provider === 'aliyun') {
+        assert.match(html, /业务空间 ID（可选，北京）/);
+        assert.match(html, /留空使用北京通用接入地址/);
+        assert.doesNotMatch(html, /<select/);
+      } else {
+        assert.match(html, /资源类型/);
+        assert.deepEqual([...html.matchAll(/<option value="([^"]+)"/g)].map(match => match[1]),
+          ['volc.seedasr.sauc.duration', 'volc.seedasr.sauc.concurrent']);
+        assert.match(html, /小时版/);
+        assert.match(html, /并发版/);
+      }
     }
   } finally { setUiLanguage('en'); }
 });

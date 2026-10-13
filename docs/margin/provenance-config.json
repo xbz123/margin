@@ -11,6 +11,9 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"const result = await pending;","reason":"S42-01: Generic await of the synthetic connection-test result, written to compare the current IPC and production provider paths."},
+    {"line":"assert.equal(refused.ok, false);","reason":"S42-01: Generic assertion that the current domestic STT save rejects an invalid resource without replacing credentials."},
+    {"line":"fs.rmSync(userData, { recursive: true, force: true });","reason":"S42-01: Standard cleanup of the test's own mkdtemp directory under the isolation wrapper, not real application data; newly written mounted settings test."},
     {"line":"return problems;","reason":"S42-05: Generic return of the locally assembled gate-evidence diagnostics array at two sites; written against this branch's summary schema, no upstream checker imported."},
     {"line":"const cases = {","reason":"S42-05: Generic object initializer for a newly written synthetic gate-evidence failure matrix; no upstream test cases or fixture content imported."},
     {"line":"const preload = fs.readFileSync(path.join(root, 'electron/preload.ts'), 'utf8');","reason":"AG-51 review: Standard Node file read in the relocated general IPC invoke-coverage test; preserves the baseline invariant, not an upstream implementation import."},

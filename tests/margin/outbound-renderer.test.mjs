@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
-import { once } from 'node:events';
+import { EventEmitter, once } from 'node:events';
 import { build } from 'esbuild';
 import ts from 'typescript';
 import vm from 'node:vm';
@@ -127,6 +127,138 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
     await page.getByRole('button', { name: 'Retry saving source settings', exact: true }).click(); await page.waitForFunction(() => !document.body.innerText.includes('Unable to save Codex configuration'));
     assert.equal(boot().getCodexSourceConfig().enabled, false); assert.equal(reads, 1); assert.equal(sends, 0); await page.close();
   } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
+test('S42-01 mounted domestic STT settings save, reload and test the chosen workspace and resource without returning keys', async () => {
+  const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-s42-stt-')), storage = { fail: false };
+  const safeStorage = { isEncryptionAvailable: () => true, decryptString: bytes => bytes.toString().slice(7),
+    encryptString(text) { if (storage.fail) throw Error('synthetic encryption failure'); return Buffer.from('cipher:' + text); } };
+  const managerId = require.resolve(`${REPO}/dist-electron/electron/services/CredentialsManager.js`), electronId = require.resolve('electron');
+  const previousManagerModule = require.cache[managerId];
+  // A fresh module reads the saved file again, as after a restart.
+  const boot = () => {
+    const previous = require.cache[electronId];
+    require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => userData, isPackaged: true }, safeStorage } };
+    delete require.cache[managerId];
+    try { const manager = require(managerId).CredentialsManager.getInstance(); assert.equal(manager.init().ok, true); return manager; }
+    finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
+  };
+  let manager = boot();
+  const created = [], replies = [], calls = [];
+  class Stream extends EventEmitter {
+    constructor(key, options) { super(); created.push({ provider: new.target.name, key, options: { ...options } }); }
+    start() {} write() {} async finalize() { this.emit('completed'); } stop() {}
+  }
+  class AliyunStreamingSTT extends Stream {}
+  class DoubaoStreamingSTT extends Stream {}
+  const stt = { exports: {} };
+  vm.runInNewContext(compile(fs.readFileSync(`${REPO}/electron/ipc/sttHandlers.ts`, 'utf8')), { module: stt, exports: stt.exports, Buffer,
+    require: id => id === '../services/CredentialsManager' ? { CredentialsManager: { getInstance: () => manager } }
+      : id === '../audio/AliyunStreamingSTT' ? { AliyunStreamingSTT } : id === '../audio/DoubaoStreamingSTT' ? { DoubaoStreamingSTT } : require(id) });
+  const handlers = new Map();
+  stt.exports.registerDomesticSttHandlers((channel, listener) => handlers.set(channel, listener), async () => {});
+  const ipcRenderer = { async invoke(channel, ...args) {
+    calls.push([channel, args]);
+    const reply = JSON.stringify(await handlers.get(channel)({}, ...args));
+    replies.push(reply);
+    return JSON.parse(reply);
+  } };
+  const preload = fs.readFileSync(`${REPO}/electron/preload.ts`, 'utf8'), tree = ts.createSourceFile('preload.ts', preload, ts.ScriptTarget.Latest, true), bridge = {};
+  const visit = node => {
+    if (ts.isPropertyAssignment(node) && ['getDomesticStt', 'saveDomesticStt', 'testDomesticStt'].includes(node.name.getText(tree))) {
+      const module = { exports: {} };
+      vm.runInNewContext(compile(`module.exports = (${node.initializer.getText(tree)});`), { module, exports: module.exports, ipcRenderer });
+      bridge[node.name.getText(tree)] = module.exports;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(tree);
+  assert.deepEqual(Object.keys(bridge).sort(), ['getDomesticStt', 'saveDomesticStt', 'testDomesticStt']);
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
+    import { SpeechProviderSettings } from './src/components/settings/SpeechProviderSettings';
+    window.electronAPI = { getDomesticStt: provider => window.invokeStt('getDomesticStt', [provider]),
+      saveDomesticStt: (provider, input) => window.invokeStt('saveDomesticStt', [provider, input]), testDomesticStt: provider => window.invokeStt('testDomesticStt', [provider]) };
+    const root = createRoot(document.getElementById('root')); let mount = 0;
+    window.show = provider => flushSync(() => root.render(React.createElement(SpeechProviderSettings, { key: mount++, provider })));
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
+  const sandbox = makeSandbox('s42-domestic-stt'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await opened; await page.exposeFunction('invokeStt', (name, args) => bridge[name](...args)); await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const status = text => page.waitForFunction(value => document.querySelector('[role="status"]')?.textContent === value, text);
+    const show = async provider => {
+      const loads = calls.filter(([channel]) => channel === 'get-domestic-stt').length;
+      await page.evaluate(value => window.show(value), provider);
+      while (replies.length < calls.length || calls.filter(([channel]) => channel === 'get-domestic-stt').length === loads) await new Promise(resolve => setTimeout(resolve, 25));
+      await page.waitForTimeout(100);
+    };
+    const button = name => page.getByRole('button', { name, exact: true });
+
+    await show('doubao');
+    const resource = page.getByLabel('Resource type');
+    assert.equal(await resource.inputValue(), 'volc.seedasr.sauc.duration', 'hourly until the user chooses');
+    await resource.selectOption('volc.seedasr.sauc.concurrent');
+    await page.getByLabel('API key / Access Key').fill('synthetic-doubao-key');
+    await button('Save').click(); await status('Saved');
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getDomesticStt('doubao'))),
+      { key: 'synthetic-doubao-key', workspaceId: '', appId: '', resourceId: 'volc.seedasr.sauc.concurrent' });
+    manager = boot();
+    await button('Test connection').click(); await status('Connected');
+    assert.deepEqual(created.at(-1), { provider: 'DoubaoStreamingSTT', key: 'synthetic-doubao-key', options: { appId: '', resourceId: 'volc.seedasr.sauc.concurrent' } });
+    await show('doubao');
+    assert.equal(await resource.inputValue(), 'volc.seedasr.sauc.concurrent', 'the saved choice is shown again');
+
+    storage.fail = true;
+    await resource.selectOption('volc.seedasr.sauc.duration');
+    await page.getByLabel('API key / Access Key').fill('synthetic-replacement-key');
+    await button('Save').click(); await status('Credentials could not be saved. The previous credentials were kept.');
+    storage.fail = false;
+    assert.equal(boot().getDomesticStt('doubao').resourceId, 'volc.seedasr.sauc.concurrent');
+    assert.equal(boot().getDomesticStt('doubao').key, 'synthetic-doubao-key');
+    const invalid = await page.evaluate(() => window.electronAPI.saveDomesticStt('doubao', { key: 'synthetic-invalid-key', workspaceId: '', appId: '', resourceId: 'volc.seedasr.sauc.unknown' }));
+    assert.equal(invalid.ok, false);
+    assert.equal(boot().getDomesticStt('doubao').key, 'synthetic-doubao-key');
+
+    await button('Delete credentials').click(); await status('Saved');
+    manager = boot();
+    assert.equal(manager.getDomesticStt('doubao'), undefined);
+    assert.equal(await button('Test connection').isDisabled(), true);
+    const constructed = created.length;
+    assert.deepEqual(await page.evaluate(() => window.electronAPI.testDomesticStt('doubao')), { success: false, error: 'Save STT credentials first.' });
+    assert.equal(stt.exports.createDomesticStt('doubao'), null);
+    assert.equal(created.length, constructed, 'deleted credentials construct no connection');
+
+    await show('aliyun');
+    const workspace = page.getByLabel('Workspace ID');
+    assert.equal(await workspace.inputValue(), '');
+    await page.getByLabel('API key / Access Key').fill('synthetic-aliyun-key');
+    await button('Save').click(); await status('Saved');
+    manager = boot();
+    await button('Test connection').click(); await status('Connected');
+    assert.deepEqual(created.at(-1), { provider: 'AliyunStreamingSTT', key: 'synthetic-aliyun-key', options: { workspaceId: '' } });
+    await workspace.fill('evil.example');
+    await page.getByLabel('API key / Access Key').fill('synthetic-other-key');
+    await button('Save').click(); await status('Invalid STT configuration; previous credentials kept.');
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getDomesticStt('aliyun'))), { key: 'synthetic-aliyun-key', workspaceId: '', appId: '' });
+    await workspace.fill('ws_01');
+    await page.getByLabel('API key / Access Key').fill('synthetic-aliyun-key');
+    await button('Save').click(); await status('Saved');
+    manager = boot();
+    await button('Test connection').click(); await status('Connected');
+    assert.deepEqual(created.at(-1).options, { workspaceId: 'ws_01' });
+
+    assert.doesNotMatch(replies.join('\n'), /synthetic-[a-z]+-key/, 'no IPC reply returns a key');
+    await page.close();
+  } finally {
+    if (app) await app.close();
+    fs.rmSync(userData, { recursive: true, force: true });
+    if (previousManagerModule) require.cache[managerId] = previousManagerModule; else delete require.cache[managerId];
+  }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 

@@ -1,0 +1,5 @@
+First full run after null-resource repair: OutboundInventory failed because it
+still expected the former workspace expression and omitted the newly authorized
+fixed DashScope origin. The source allowlist assertion and OUTBOUND inventory were
+updated to U9's exact endpoint choices; no broad origin or construction exemption.
+Final summary.json and tests.tap are from the subsequent full rerun.

@@ -2,11 +2,21 @@ import { CredentialsManager } from '../services/CredentialsManager';
 import { AliyunStreamingSTT } from '../audio/AliyunStreamingSTT';
 import { DoubaoStreamingSTT } from '../audio/DoubaoStreamingSTT';
 import type { CredentialSaveResult } from '../../src/types/credentialSave';
+import type { DomesticSttPublicConfig, DomesticSttSettings } from '../../src/types/domesticStt';
 
 type Provider = 'aliyun' | 'doubao';
 function providerId(value: unknown): Provider {
   if (value !== 'aliyun' && value !== 'doubao') throw Error('Invalid STT provider');
   return value;
+}
+
+// The connection test and meeting capture both build the provider from the saved configuration;
+// without a saved key nothing is constructed, so nothing is sent.
+export function createDomesticStt(provider: Provider): AliyunStreamingSTT | DoubaoStreamingSTT | null {
+  const config = CredentialsManager.getInstance().getDomesticStt(provider);
+  if (!config?.key) return null;
+  return provider === 'aliyun' ? new AliyunStreamingSTT(config.key, { workspaceId: config.workspaceId })
+    : new DoubaoStreamingSTT(config.key, { appId: config.appId, resourceId: config.resourceId });
 }
 
 function connectionFailure(failure: unknown): string {
@@ -23,11 +33,12 @@ export function registerDomesticSttHandlers(
   handle: (channel: string, listener: (event: unknown, ...args: any[]) => any) => void,
   apply: () => Promise<void>,
 ) {
-  handle('get-domestic-stt', (_event, value: unknown) => {
+  handle('get-domestic-stt', (_event, value: unknown): DomesticSttPublicConfig => {
     const config = CredentialsManager.getInstance().getDomesticStt(providerId(value));
-    return { hasKey: !!config?.key, workspaceId: config?.workspaceId ?? '', appId: config?.appId ?? '' };
+    return { hasKey: !!config?.key, workspaceId: config?.workspaceId ?? '', appId: config?.appId ?? '',
+      resourceId: config?.resourceId ?? 'volc.seedasr.sauc.duration' };
   });
-  handle('save-domestic-stt', async (_event, value: unknown, input: { key: string; workspaceId: string; appId: string }): Promise<CredentialSaveResult> => {
+  handle('save-domestic-stt', async (_event, value: unknown, input: DomesticSttSettings): Promise<CredentialSaveResult> => {
     let result: CredentialSaveResult;
     try { result = CredentialsManager.getInstance().setDomesticStt(providerId(value), input); }
     catch { return { ok: false, code: 'write_failed', message: 'Invalid STT configuration; previous credentials kept.' }; }
@@ -37,10 +48,8 @@ export function registerDomesticSttHandlers(
   });
   handle('test-domestic-stt', async (_event, value: unknown) => {
     try {
-      const provider = providerId(value);
-      const config = CredentialsManager.getInstance().getDomesticStt(provider);
-      if (!config?.key) return { success: false, error: 'Save STT credentials first.' };
-      const stream = provider === 'aliyun' ? new AliyunStreamingSTT(config.key, config) : new DoubaoStreamingSTT(config.key, config);
+      const stream = createDomesticStt(providerId(value));
+      if (!stream) return { success: false, error: 'Save STT credentials first.' };
       let success = false;
       let error = '';
       stream.on('completed', () => { success = true; });

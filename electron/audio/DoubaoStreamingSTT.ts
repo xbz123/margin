@@ -44,7 +44,7 @@ export class DoubaoStreamingSTT extends DomesticStreamingSTT {
   private readonly finalUtterances = new Set<string>();
   constructor(private readonly key: string, private readonly options: DoubaoSttOptions = {}) { super(); }
   protected connection() {
-    const resource = this.options.resourceId ?? 'volc.seedasr.sauc.duration';
+    const resource = this.options.resourceId === undefined ? 'volc.seedasr.sauc.duration' : this.options.resourceId;
     if (!this.key.trim() || !['volc.seedasr.sauc.duration', 'volc.seedasr.sauc.concurrent'].includes(resource)) {
       throw Error('Doubao STT credentials are incomplete');
     }

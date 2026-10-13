@@ -1,0 +1,7 @@
+Main-agent negative control, 2026-10-13, before the undefined-only default repair.
+Command: node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/audio/__tests__/DomesticStreamingLifecycle.test.mjs electron/services/__tests__/DomesticSttSettings.test.mjs
+Exit 1: 20 tests, 18 passed, 2 failed.
+DomesticStreamingLifecycle: explicit null resource opened the hourly connection.
+DomesticSttSettings: stored null resource did not reject requireSttConfigured.
+The save path already rejected null; the missing checks were the saved-config
+reader and adapter default. Missing legacy fields must still default to hourly.

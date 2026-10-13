@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 const source = fs.readFileSync(new URL('../CredentialsManager.ts', import.meta.url), 'utf8');
 const tree = ts.createSourceFile('credentials.ts', source, ts.ScriptTarget.Latest, true);
 const declaration = tree.statements.find(node => ts.isClassDeclaration(node));
-const names = ['getSttProvider', 'setSttProvider', 'getDomesticStt', 'setDomesticStt', 'requireSttConfigured',
+const names = ['getSttProvider', 'setSttProvider', 'getDomesticStt', 'invalidDomesticStt', 'setDomesticStt', 'requireSttConfigured',
   'getGroqSttApiKey', 'getOpenAiSttApiKey', 'getSonioxApiKey'];
 const methods = declaration.members.filter(node => node.name && names.includes(node.name.getText(tree))).map(node => node.getText(tree));
 const compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -78,6 +78,153 @@ test('STT IPC only exposes presence, applies deletion and closes mock connection
     assert.equal((await call('test-domestic-stt')).success, false);
   }
   assert.equal(applied, 4);
+});
+
+test('S42-01 workspace and resource are checked before saving; refusals keep the previous configuration', () => {
+  const store = new Manager();
+  store.credentials = {};
+  let writes = 0;
+  store.saveCredentials = patch => { writes++; Object.assign(store.credentials, patch); return { ok: true }; };
+  const plain = value => JSON.parse(JSON.stringify(value));
+  const refused = (provider, input) => {
+    const before = plain(store.credentials), count = writes;
+    assert.throws(() => store.setDomesticStt(provider, input), /Invalid/, JSON.stringify(input));
+    assert.deepEqual(plain(store.credentials), before);
+    assert.equal(writes, count, 'nothing is persisted');
+  };
+  store.setSttProvider('aliyun');
+  assert.equal(store.setDomesticStt('aliyun', { key: 'synthetic-secret', workspaceId: '', appId: '' }).ok, true);
+  assert.deepEqual(plain(store.getDomesticStt('aliyun')), { key: 'synthetic-secret', workspaceId: '', appId: '' });
+  assert.doesNotThrow(() => store.requireSttConfigured(), 'an empty workspace is a complete configuration');
+  assert.equal(store.setDomesticStt('aliyun', { key: 'synthetic-secret', workspaceId: ' ws_01-a ', appId: '' }).ok, true);
+  assert.equal(store.getDomesticStt('aliyun').workspaceId, 'ws_01-a');
+  for (const workspaceId of ['evil.example', 'a/b', 'x@y', '-lead', 'a'.repeat(64), 'w#', 'w\r\nX-Injected: 1', null]) {
+    refused('aliyun', { key: 'synthetic-other', workspaceId, appId: '' });
+  }
+  store.credentials.domesticStt.aliyun.workspaceId = 'evil.example';
+  assert.throws(() => store.requireSttConfigured(), /not configured/, 'a stored invalid workspace never starts');
+
+  store.setSttProvider('doubao');
+  assert.equal(store.setDomesticStt('doubao', { key: 'synthetic-secret', workspaceId: '', appId: '' }).ok, true);
+  assert.equal(store.getDomesticStt('doubao').resourceId, 'volc.seedasr.sauc.duration', 'missing choice means hourly');
+  assert.equal(store.setDomesticStt('doubao', { key: 'synthetic-secret', workspaceId: '', appId: 'synthetic-app',
+    resourceId: 'volc.seedasr.sauc.concurrent' }).ok, true);
+  assert.deepEqual(plain(store.getDomesticStt('doubao')),
+    { key: 'synthetic-secret', workspaceId: '', appId: 'synthetic-app', resourceId: 'volc.seedasr.sauc.concurrent' });
+  for (const resourceId of ['', null, 'volc.bigasr.sauc.duration', 'volc.seedasr.sauc.Duration', 'volc.seedasr.sauc.concurrent ']) {
+    refused('doubao', { key: 'synthetic-other', workspaceId: '', appId: '', resourceId });
+  }
+  assert.doesNotThrow(() => store.requireSttConfigured());
+  store.credentials.domesticStt.doubao = { key: 'synthetic-legacy', workspaceId: '', appId: '' };
+  assert.equal(store.getDomesticStt('doubao').resourceId, 'volc.seedasr.sauc.duration', 'older saved configuration');
+  assert.doesNotThrow(() => store.requireSttConfigured());
+  store.credentials.domesticStt.doubao.resourceId = 'volc.other';
+  assert.throws(() => store.requireSttConfigured(), /not configured/);
+  store.credentials.domesticStt.doubao.resourceId = null;
+  assert.throws(() => store.requireSttConfigured(), /not configured/, 'null is an invalid stored choice, not a missing legacy field');
+  assert.equal(store.setDomesticStt('doubao', { key: '', workspaceId: '', appId: '' }).ok, true);
+  assert.equal(store.getDomesticStt('doubao'), undefined);
+  assert.throws(() => store.requireSttConfigured(), /not configured/);
+});
+
+test('S42-01 connection test and meeting capture open the same saved endpoint and resource; deletion sends nothing', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  class Socket extends EventEmitter {
+    static OPEN = 1;
+    static instances = [];
+    readyState = 0;
+    bufferedAmount = 0;
+    constructor(url, options) { super(); this.url = url; this.options = options; Socket.instances.push(this); }
+    send() {}
+    terminate() { this.readyState = 3; }
+    close() { this.terminate(); }
+  }
+  const audio = new Map();
+  const loadAudio = name => {
+    if (audio.has(name)) return audio.get(name);
+    const exports = {};
+    audio.set(name, exports);
+    const source = fs.readFileSync(new URL('../../audio/' + name + '.ts', import.meta.url), 'utf8');
+    new Function('require', 'exports', ts.transpileModule(source, { compilerOptions: {
+      module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText)(
+      id => id === 'ws' ? Socket : id.startsWith('./') ? loadAudio(id.substring(2)) : createRequire(import.meta.url)(id), exports);
+    return exports;
+  };
+  const store = new Manager();
+  store.credentials = {};
+  store.saveCredentials = patch => { Object.assign(store.credentials, patch); return { ok: true }; };
+  const handlerModule = {};
+  new Function('require', 'exports', compile(fs.readFileSync(new URL('../../ipc/sttHandlers.ts', import.meta.url), 'utf8')))(id => {
+    if (id.includes('CredentialsManager')) return { CredentialsManager: { getInstance: () => store } };
+    return loadAudio(id.split('/').at(-1));
+  }, handlerModule);
+  const handlers = new Map();
+  handlerModule.registerDomesticSttHandlers((name, callback) => handlers.set(name, callback), async () => {});
+  const mainSource = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8');
+  const ast = ts.createSourceFile('main.ts', mainSource, ts.ScriptTarget.Latest, true);
+  const appState = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
+  const method = appState.members.find(node => node.name?.getText(ast) === 'createSTTProvider').getText(ast);
+  const Subject = new Function('require', 'console', compile(`return class Subject { sendSttStatus() {} ${method} }`))(
+    id => id === './ipc/sttHandlers' ? handlerModule : { CredentialsManager: { getInstance: () => store } }, { log() {}, warn() {}, error() {} });
+  store.getSttLanguage = () => 'auto';
+  const connectionTest = async provider => {
+    const pending = handlers.get('test-domestic-stt')(null, provider);
+    const socket = Socket.instances.at(-1);
+    socket.emit('unexpected-response', {}, { statusCode: 401, resume() {} });
+    const result = await pending;
+    assert.equal(result.success, false);
+    assert.match(result.error, /authentication/);
+    return socket;
+  };
+  const capture = provider => {
+    store.setSttProvider(provider);
+    const stt = new Subject().createSTTProvider('user');
+    t.after(() => stt.stop(false));
+    stt.start();
+    return Socket.instances.at(-1);
+  };
+  const cases = [
+    ['aliyun', { key: 'synthetic-secret', workspaceId: '', appId: '' }, socket => {
+      assert.equal(socket.url, 'wss://dashscope.aliyuncs.com/api-ws/v1/inference');
+      assert.equal(socket.options.headers.Authorization, 'Bearer synthetic-secret');
+    }],
+    ['aliyun', { key: 'synthetic-secret', workspaceId: 'ws_01', appId: '' }, socket => {
+      assert.equal(socket.url, 'wss://ws_01.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference');
+    }],
+    ['doubao', { key: 'synthetic-secret', workspaceId: '', appId: '' }, socket => {
+      assert.equal(socket.options.headers['X-Api-Resource-Id'], 'volc.seedasr.sauc.duration');
+      assert.equal(socket.options.headers['X-Api-Key'], 'synthetic-secret');
+    }],
+    ['doubao', { key: 'synthetic-secret', workspaceId: '', appId: 'synthetic-app', resourceId: 'volc.seedasr.sauc.concurrent' }, socket => {
+      assert.equal(socket.options.headers['X-Api-Resource-Id'], 'volc.seedasr.sauc.concurrent');
+      assert.equal(socket.options.headers['X-Api-App-Key'], 'synthetic-app');
+      assert.equal(socket.options.headers['X-Api-Access-Key'], 'synthetic-secret');
+    }],
+  ];
+  for (const [provider, input, check] of cases) {
+    assert.equal((await handlers.get('save-domestic-stt')(null, provider, input)).ok, true);
+    const visible = handlers.get('get-domestic-stt')(null, provider);
+    assert.equal(visible.hasKey, true);
+    assert.doesNotMatch(JSON.stringify(visible), /synthetic-secret/);
+    if (provider === 'doubao') assert.equal(visible.resourceId, input.resourceId ?? 'volc.seedasr.sauc.duration');
+    check(await connectionTest(provider));
+    check(capture(provider));
+  }
+  const refused = await handlers.get('save-domestic-stt')(null, 'doubao',
+    { key: 'synthetic-other', workspaceId: '', appId: '', resourceId: 'volc.seedasr.sauc.unknown' });
+  assert.equal(refused.ok, false);
+  assert.equal(handlers.get('get-domestic-stt')(null, 'doubao').resourceId, 'volc.seedasr.sauc.concurrent');
+  const kept = await connectionTest('doubao');
+  assert.equal(kept.options.headers['X-Api-Resource-Id'], 'volc.seedasr.sauc.concurrent', 'refusal kept the previous choice');
+  assert.equal(kept.options.headers['X-Api-Access-Key'], 'synthetic-secret');
+  for (const provider of ['aliyun', 'doubao']) {
+    assert.equal((await handlers.get('save-domestic-stt')(null, provider, { key: '', workspaceId: '', appId: '' })).ok, true);
+    const before = Socket.instances.length;
+    assert.deepEqual(await handlers.get('test-domestic-stt')(null, provider), { success: false, error: 'Save STT credentials first.' });
+    store.setSttProvider(provider);
+    assert.equal(new Subject().createSTTProvider('user'), null);
+    assert.equal(Socket.instances.length, before, 'deleted credentials open no connection');
+  }
 });
 
 test('connection test separates construction, configuration, authentication, timeout and network failures without echoing secrets', async () => {

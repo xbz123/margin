@@ -34,5 +34,7 @@ Machine-specific repository/account/temp prefixes and the Node binary path in
 generated logs are normalized for publication. Outcomes, counts, test content and
 source commit are unchanged. No real service, credential, audio or display was used.
 
-Public CI: pending dispatch on the ticket commit; local completion is not a remote
-CI result. Subsequent run identity and result belong in PLAN/wayfinder.
+Public CI: run [38333829717](https://github.com/xbz123/margin/actions/runs/38333829717)
+succeeded on `a5b7c75ab8d80c55a555ecbb72b35f3cc30a0bfb`, including the required-check
+and release-identity contract steps. See `ci-result.json`. `no_cache=false`,
+`package_apps=false`; packaging, release and real-service checks were not run.

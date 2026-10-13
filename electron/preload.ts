@@ -3,7 +3,7 @@ import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
 import { matchesDirectAssistAnswer } from '../src/lib/directAssistAnswerState';
-import type { DomesticSttProvider, DomesticSttSettings } from '../src/types/domesticStt';
+import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from '../src/types/domesticStt';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
@@ -58,7 +58,7 @@ interface ElectronAPI {
   clearLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
   addLocalContext: () => Promise<import('../src/types/localContext').LocalContextResult>;
   removeLocalContext: (id: string) => Promise<import('../src/types/localContext').LocalContextResult>;
-  getDomesticStt: (provider: DomesticSttProvider) => Promise<{ hasKey: boolean; workspaceId: string; appId: string }>;
+  getDomesticStt: (provider: DomesticSttProvider) => Promise<DomesticSttPublicConfig>;
   saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
   testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
   updateContentDimensions: (dimensions: { width: number; height: number }) => Promise<void>;

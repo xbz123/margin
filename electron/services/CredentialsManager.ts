@@ -14,6 +14,7 @@ import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguratio
 import { validateProviderConfiguration, resolveModelTarget, effectiveProviderConfiguration } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
 import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
+import type { DomesticSttSettings, DoubaoResourceId } from '../../src/types/domesticStt';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
 
@@ -28,7 +29,7 @@ export interface StoredCredentials {
     generationPolicy?: GenerationPolicy;
     // STT Provider settings
     sttProvider?: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao';
-    domesticStt?: Partial<Record<'aliyun' | 'doubao', { key: string; workspaceId: string; appId: string }>>;
+    domesticStt?: Partial<Record<'aliyun' | 'doubao', { key: string; workspaceId: string; appId: string; resourceId?: DoubaoResourceId }>>;
     groqSttApiKey?: string;
     groqSttModel?: string;
     openAiSttApiKey?: string;
@@ -115,26 +116,40 @@ export class CredentialsManager {
     }
 
     public getDomesticStt(provider: 'aliyun' | 'doubao') {
-        return this.credentials.domesticStt?.[provider];
+        const stored = this.credentials.domesticStt?.[provider];
+        // Doubao configurations saved before the resource choice existed used the hourly resource.
+        return stored && provider === 'doubao' ? { ...stored, resourceId: stored.resourceId === undefined ? 'volc.seedasr.sauc.duration' : stored.resourceId } : stored;
     }
 
-    public setDomesticStt(provider: 'aliyun' | 'doubao', input: { key: string; workspaceId: string; appId: string }): CredentialSaveResult {
+    // Aliyun: an empty workspace selects the Beijing general endpoint, otherwise one DNS label of
+    // the dedicated Beijing domain. Doubao: one of the two resources the user can buy.
+    private invalidDomesticStt(provider: 'aliyun' | 'doubao', config: { workspaceId?: unknown; resourceId?: unknown }): boolean {
+        if (provider === 'aliyun') {
+            return typeof config.workspaceId !== 'string' || (config.workspaceId !== '' && !/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/.test(config.workspaceId));
+        }
+        return config.resourceId !== 'volc.seedasr.sauc.duration' && config.resourceId !== 'volc.seedasr.sauc.concurrent';
+    }
+
+    public setDomesticStt(provider: 'aliyun' | 'doubao', input: DomesticSttSettings): CredentialSaveResult {
         if (provider !== 'aliyun' && provider !== 'doubao') throw Error('Invalid STT provider');
         if (!input || [input.key, input.workspaceId, input.appId].some(value => typeof value !== 'string' || value.length > 4096 || /[\r\n]/.test(value))) {
             throw Error('Invalid STT credentials');
         }
         const key = input.key.trim(), workspaceId = input.workspaceId.trim(), appId = input.appId.trim();
-        if (key && provider === 'aliyun' && !/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/.test(workspaceId)) throw Error('Invalid workspace ID');
+        const resourceId = input.resourceId === undefined ? 'volc.seedasr.sauc.duration' : input.resourceId;
+        if (key && this.invalidDomesticStt(provider, { workspaceId, resourceId })) throw Error('Invalid STT configuration');
         if (key && appId && !/^[A-Za-z0-9_-]{1,128}$/.test(appId)) throw Error('Invalid App ID');
+        const config = provider === 'doubao' ? { key, workspaceId, appId, resourceId } : { key, workspaceId, appId };
         return this.saveCredentials({ domesticStt: { ...this.credentials.domesticStt,
-            [provider]: key ? { key, workspaceId, appId } : undefined } });
+            [provider]: key ? config : undefined } });
     }
 
     public requireSttConfigured(): void {
         const provider = this.getSttProvider();
         const key = provider === 'groq' ? this.getGroqSttApiKey() : provider === 'openai' ? this.getOpenAiSttApiKey()
             : provider === 'soniox' ? this.getSonioxApiKey() : provider === 'none' ? undefined : this.getDomesticStt(provider)?.key;
-        if (!key?.trim() || (provider === 'aliyun' && !this.getDomesticStt(provider)?.workspaceId)) {
+        const domestic = provider === 'aliyun' || provider === 'doubao' ? this.getDomesticStt(provider) : undefined;
+        if (!key?.trim() || (domestic && this.invalidDomesticStt(provider as 'aliyun' | 'doubao', domestic))) {
             throw Error('STT is not configured. Select a speech provider and save its credentials before starting a meeting. / 请先选择语音服务商并保存凭据。');
         }
     }

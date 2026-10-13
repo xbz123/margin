@@ -749,9 +749,10 @@ export class AppState {
     let stt: STTProvider;
 
     if (sttProvider === 'aliyun' || sttProvider === 'doubao') {
-      const config = CredentialsManager.getInstance().getDomesticStt(sttProvider);
-      if (!config?.key) return null;
-      stt = sttProvider === 'aliyun' ? new AliyunStreamingSTT(config.key, config) : new DoubaoStreamingSTT(config.key, config);
+      const { createDomesticStt } = require('./ipc/sttHandlers');
+      const domestic: AliyunStreamingSTT | DoubaoStreamingSTT | null = createDomesticStt(sttProvider);
+      if (!domestic) return null;
+      stt = domestic;
     } else if (sttProvider === 'soniox') {
       const apiKey = CredentialsManager.getInstance().getSonioxApiKey();
       if (apiKey?.trim()) {
