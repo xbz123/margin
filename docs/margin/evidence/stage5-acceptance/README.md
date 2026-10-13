@@ -1,8 +1,8 @@
-# Stage 5 exit acceptance: F1 repaired, exit CI pending
+# Stage 5 exit acceptance: technical exit passed
 
 2026-10-13. Reviewed commit: `7915b627a736ba66867cc47e527974a594d59a1a`.
 The user requested acceptance after the S42 delivery. This is the technical
-exit review, not user product sign-off. No application source was changed.
+exit review, not user product sign-off. The initial review changed no application source.
 
 **Latest:** the user subsequently authorized fixing F1. The main agent added
 one cancellation statement (plus its ordering comment) to the existing input
@@ -14,6 +14,16 @@ Current evidence: targeted tests **92/92**, the original failing actual-UI probe
 0 fail / 1 existing AG-61 skip**, mounted answer regression **21/21**, and all
 16 required files plus renderer evidence pass (`f1-gates/`). No provenance
 exception, dependency, framework or Local Context/Skill behavior was changed.
+
+The repair was committed and pushed to both repositories as
+`aaf9b0711515fa92032e1698dd42fa8e81fac648`.
+[Exit CI 38447881500](https://github.com/xbz123/margin/actions/runs/38447881500)
+completed successfully on that exact commit with `package_apps=true`,
+`no_cache=false` and `gate_ref=docs/margin/evidence/S42-04`. All job steps passed.
+Artifact download and local S26 verification passed: all five artifact digests,
+499 source-manifest entries and the exact git archive match; guarded asar smoke
+passed 10/10. See the [exit receipt](../CI-38447881500/README.md).
+The technical exit is complete; user product sign-off remains separate.
 
 Claude Opus 5.5 medium performed the required read-only review of AG-50/AG-51
 and their S42 integration. The main agent checked the governing contracts,
@@ -116,7 +126,8 @@ PromptSkillConsumerChain 5/5.
 
 F1 is **closed locally and by Claude review**; F2/F3 remain outside this round.
 The supported screenshot-withdrawal promise now passes its previously failing
-normal-UI reproduction. Exit CI and artifact verification remain pending.
+normal-UI reproduction. Exit CI and artifact verification passed; the stage-5
+technical exit is complete (see the linked exit receipt).
 No real service, key, user data or device was used. No phase-6 ticket was started.
 Do not require concurrent Local Context/Skill
 editing or hot-update behavior to close this round; product sign-off remains

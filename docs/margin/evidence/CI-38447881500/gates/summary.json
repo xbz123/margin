@@ -1,0 +1,211 @@
+{
+  "startedAt": "2026-10-13T18:37:44.939Z",
+  "head": "aaf9b0711515fa92032e1698dd42fa8e81fac648",
+  "uncommittedPaths": 0,
+  "uncommittedPathList": [],
+  "reference": "docs/margin/evidence/S42-04",
+  "note": "GitHub Actions run 38447881500 (attempt 1) on macos-15, no_cache=false, compared with docs/margin/evidence/S42-04",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 57,
+      "log": "ci-evidence/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2442,
+      "log": "ci-evidence/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 9827,
+      "log": "ci-evidence/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 6108,
+      "log": "ci-evidence/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2962,
+      "log": "ci-evidence/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 48107,
+      "log": "ci-evidence/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3739,
+      "log": "ci-evidence/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 94,
+      "log": "ci-evidence/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 107,
+      "log": "ci-evidence/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 815,
+      "log": "ci-evidence/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 39129,
+      "log": "ci-evidence/tests.log",
+      "tap": "ci-evidence/tests.tap",
+      "perFile": "ci-evidence/tests.files.json",
+      "files": 127,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 1108,
+        "pass": 1107,
+        "fail": 0,
+        "skipped": 1,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 78099,
+      "log": "ci-evidence/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 28148,
+      "log": "ci-evidence/storage.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 39888,
+      "log": "ci-evidence/startup.log",
+      "passed": true
+    },
+    {
+      "id": "outbound-renderer",
+      "command": "../../../hostedtoolcache/node/26.0.0/arm64/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron:esbuild --test --test-timeout=180000 tests/margin/outbound-renderer.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 49067,
+      "log": "ci-evidence/outbound-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 84,
+      "log": "ci-evidence/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-13T18:42:53.628Z",
+  "allPassed": true
+}

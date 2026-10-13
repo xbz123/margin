@@ -1,0 +1,29 @@
+✔ a typed question streams the mock answer into the overlay (13942.659875ms)
+✔ S42-04 actual hidden DOM cannot acknowledge quick EOF until the answer becomes visible (4637.626791ms)
+✔ S42-04 actual Retry preserves the partial row and original wire input while creating a separately linked answer (1803.629ms)
+✔ F1 actual Retry then Answer then Remove all cannot resend the withdrawn screenshot (7275.122959ms)
+✔ S42-04 removing the attached screenshot through the actual UI revokes its failed request (1331.486458ms)
+✔ after cancel, and after a new stream has started, events of the old stream are not shown (7949.847958ms)
+✔ while an answer streams, a typed question is held back and a new stream request supersedes it (3704.448416ms)
+✔ a screenshot question sends the fixture image to the model (676.1465ms)
+✔ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (201.523916ms)
+✔ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (253.226ms)
+✔ a provider error is shown and the next question still works (1702.297417ms)
+✔ after a chat request fails before streaming, the next answer is shown once and kept (4586.313666ms)
+✔ R3-1 real preload refuses a changed origin without key reentry and keeps runtime, stored selections and key availability (27.060041ms)
+✔ a complete compatible target saved through preload drives a real typed UI question (516.816292ms)
+✔ AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry (544.192125ms)
+✔ AG33 one webContents delivers chat events only to the owning UI subscription (69.493875ms)
+✔ AG33 real Written typed and captured-image questions survive interview TTFT, preserve cancellation and retry as separate records (24488.920583ms)
+✔ AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire (1203.225792ms)
+✔ AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder (467.326791ms)
+✔ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (62.651875ms)
+✔ AG33 real Natively late action invoke cannot change the newer manual answer or erase prior UI records (844.459583ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77776.989458

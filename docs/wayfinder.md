@@ -2,14 +2,14 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-13，阶段 5 出口发现的截图撤回问题 F1 已最小修复并通过本地完整门禁与 Claude 只读复查；见[验收记录](margin/evidence/stage5-acceptance/README.md)。会中修改 Local Context/Skill 的 F2/F3 不在本轮验收范围。出口 CI 和产物核对待完成，不进入阶段 6。
+**Current answer:** 截至 2026-10-13，阶段 5 技术出口验收通过：F1 已修复并推送两库（`aaf9b071`），本地门禁、Claude 复查、出口 CI、产物哈希/源码核对和隔离 asar 冒烟均通过；见[出口回执](margin/evidence/CI-38447881500/README.md)。待用户产品签收，不进入阶段 6；F2/F3 会中配置修改不在本轮范围。
 
-**Current focus:** 提交已通过复查的 F1 修复，运行已批准的阶段 5 出口 CI，并按既有 S26 核对产物；保持 Local Context/Skill 使用前配置范围，不新增会中编辑或热更新，不安装或发布应用。
+**Current focus:** 将阶段 5 技术验收交用户签收；签收前不启动 AG-60/61/62，不安装或发布，不新增会中编辑或热更新。
 
 ## Waiting
 
 - **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
-- **阶段 5 产品签收** — F1 已关闭；resume：[验收记录](margin/evidence/stage5-acceptance/README.md)、[阶段出口规则](margin/HANDOFF-stage4-6.md#3-执行顺序)。待出口 CI、产物核对后由用户签收。初版 AG-51 未跟踪 gates 保持原样。
+- **阶段 5 产品签收** — 技术出口已通过、F1 已关闭；resume：[出口回执](margin/evidence/CI-38447881500/README.md)、[阶段出口规则](margin/HANDOFF-stage4-6.md#3-执行顺序)。由用户签收后再进入阶段 6；初版 AG-51 未跟踪 gates 保持原样。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching

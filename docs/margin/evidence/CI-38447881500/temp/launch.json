@@ -1,0 +1,79 @@
+{
+  "app": "temp.app",
+  "expected": {
+    "name": "temp",
+    "appId": "io.github.xbz123.temp"
+  },
+  "home": "<throwaway>",
+  "checks": [
+    {
+      "id": "launcher-window",
+      "passed": true,
+      "detail": "window=launcher loaded"
+    },
+    {
+      "id": "preload-api",
+      "passed": true,
+      "detail": "window.electronAPI"
+    },
+    {
+      "id": "packaged",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "id": "app-name",
+      "passed": true,
+      "detail": "temp"
+    },
+    {
+      "id": "user-data",
+      "passed": true,
+      "detail": {
+        "userData": "<home>/Library/Application Support/temp"
+      }
+    },
+    {
+      "id": "logs",
+      "passed": true,
+      "detail": {
+        "logs": "<home>/Library/Application Support/temp"
+      }
+    },
+    {
+      "id": "only-own-directory",
+      "passed": true,
+      "detail": [
+        "temp"
+      ]
+    }
+  ],
+  "output": [
+    "console.log [{\"type\":\"string\",\"length\":61}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":55}]",
+    "console.log [{\"type\":\"string\",\"length\":30}]",
+    "console.log [{\"type\":\"string\",\"length\":54}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":57}]",
+    "2026-10-13 18:46:23.355 temp[13601:45745] NSWindow does not support nonactivating panel styleMask 0x80",
+    "console.log [{\"type\":\"string\",\"length\":54}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":63}]",
+    "app-quitting []",
+    "console.log [{\"type\":\"string\",\"length\":63}]",
+    "Debugger ending on ws://127.0.0.1:49365/27f68b4f-493a-4f10-896e-6885a0cac841",
+    "For help, see: https://nodejs.org/learn/getting-started/debugging",
+    "app-quitting []",
+    "console.log [{\"type\":\"string\",\"length\":34}]",
+    "console.log [{\"type\":\"string\",\"length\":43}]",
+    "console.log [{\"type\":\"string\",\"length\":35}]",
+    "console.log [{\"type\":\"string\",\"length\":39}]",
+    "console.log [{\"type\":\"string\",\"length\":36}]",
+    "console.log [{\"type\":\"string\",\"length\":50}]",
+    "console.log [{\"type\":\"string\",\"length\":47}]",
+    "console.log [{\"type\":\"string\",\"length\":40}]",
+    ""
+  ],
+  "passed": true
+}

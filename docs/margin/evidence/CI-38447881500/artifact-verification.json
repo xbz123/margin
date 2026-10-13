@@ -1,0 +1,149 @@
+{
+  "run": 38447881500,
+  "commit": "aaf9b0711515fa92032e1698dd42fa8e81fac648",
+  "passed": true,
+  "artifactDigestsVerified": [
+    {
+      "id": 11840266658,
+      "name": "margin-gates-aaf9b0711515fa92032e1698dd42fa8e81fac648",
+      "digest": "sha256:5a9b5d21d371034c33acf8c3c8e4b8835ba447fa99f5e06c812bfe2565386d5d",
+      "size_in_bytes": 71527
+    },
+    {
+      "id": 11840221730,
+      "name": "margin-source-aaf9b0711515fa92032e1698dd42fa8e81fac648",
+      "digest": "sha256:62dfd29021500bc095b109a89ae66b513f76a91778d771c7198c7638a51718c2",
+      "size_in_bytes": 210953891
+    },
+    {
+      "id": 11840091974,
+      "name": "margin-app-temp-aaf9b0711515fa92032e1698dd42fa8e81fac648",
+      "digest": "sha256:3a1c20ff470f550a2302a6fc4ad79f13005c81e93192a413dfe4486ce0242ee8",
+      "size_in_bytes": 288386334
+    },
+    {
+      "id": 11839877062,
+      "name": "margin-app-release-aaf9b0711515fa92032e1698dd42fa8e81fac648",
+      "digest": "sha256:8efbd3cdd47da4b957824bb7a2426400e253565cfdcfbe96d308fae2637d7726",
+      "size_in_bytes": 29669
+    },
+    {
+      "id": 11839187024,
+      "name": "margin-native-aaf9b0711515fa92032e1698dd42fa8e81fac648",
+      "digest": "sha256:455df39fcbb5caa3fcbf7469df40b85bdecd18952579970a2b3648337bce945e",
+      "size_in_bytes": 718280
+    }
+  ],
+  "builds": {
+    "native": {
+      "fields": {
+        "commit": "aaf9b0711515fa92032e1698dd42fa8e81fac648",
+        "run": "38447881500 (attempt 1)",
+        "no_cache": "false",
+        "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+        "xcode": "Xcode 16.4 Build version 16F6",
+        "cidre compiled in this run": "0"
+      },
+      "files": [
+        {
+          "sha256": "0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782",
+          "file": "index.darwin-arm64.node"
+        },
+        {
+          "sha256": "e2dcb6497256f27fe6b2d0e175d2f0938fe46d1151b00932e42623962194a93e",
+          "file": "natively-audio-aarch64-apple-darwin.map"
+        },
+        {
+          "sha256": "589f4c63cf9c242b284e4570956a95c1fd29b2c4ead6a5dcabe369c3df8b817a",
+          "file": "link-set.json"
+        }
+      ]
+    },
+    "temp": {
+      "fields": {
+        "commit": "aaf9b0711515fa92032e1698dd42fa8e81fac648",
+        "run": "38447881500/1",
+        "variant": "temp",
+        "name": "temp",
+        "appId": "io.github.xbz123.temp",
+        "checks": "passed"
+      },
+      "files": [
+        {
+          "sha256": "7842f2c8eae26f662b65c0c6838aa6149f1fcd53d827d800043cc153c73bf3eb",
+          "file": "temp-temp-arm64.zip"
+        }
+      ]
+    },
+    "source": {
+      "fields": {
+        "commit": "aaf9b0711515fa92032e1698dd42fa8e81fac648",
+        "run": "38447881500/1"
+      },
+      "files": [
+        {
+          "sha256": "6387cd802692da8d138eccb28ded687f6e742f2eecadff36c47a90e40f47bb41",
+          "file": "MANIFEST.json"
+        }
+      ]
+    }
+  },
+  "releaseZip": {
+    "uploaded": false,
+    "locallyVerified": false,
+    "reason": "S25 reports-only artifact"
+  },
+  "source": {
+    "files": 499,
+    "kinds": {
+      "app": 1,
+      "cargo": 114,
+      "electron-ffmpeg": 1,
+      "electron-ffmpeg-patch": 1,
+      "npm": 382
+    },
+    "cleanTree": true,
+    "allHashesMatch": true,
+    "gitArchiveMatches": true,
+    "appSHA256": "06a57862e2215f768b5581d4de9188c4884d3b12492ba24ed0e57950bf194230"
+  },
+  "gates": {
+    "passed": 16,
+    "tests": {
+      "tests": 1108,
+      "pass": 1107,
+      "fail": 0,
+      "skipped": 1,
+      "cancelled": 0,
+      "todo": 0
+    }
+  },
+  "packaging": {
+    "temp": {
+      "packageChecks": 12,
+      "launchChecks": 7,
+      "forbidden": {
+        "matches": [],
+        "count": 0,
+        "scanned": 23257
+      },
+      "licenses": {
+        "checkedNotices": 861,
+        "candidateInventoryOnly": true
+      }
+    },
+    "release": {
+      "packageChecks": 12,
+      "launchChecks": 7,
+      "forbidden": {
+        "matches": [],
+        "count": 0,
+        "scanned": 23257
+      },
+      "licenses": {
+        "checkedNotices": 861,
+        "candidateInventoryOnly": true
+      }
+    }
+  }
+}
