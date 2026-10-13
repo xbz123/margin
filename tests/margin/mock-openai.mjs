@@ -36,7 +36,7 @@ export async function startMockOpenAI() {
       res.end(JSON.stringify({ error: { message: `mock: no route ${req.method} ${req.url}` } }));
       return;
     }
-    const { delayMs, errorStatus, respond, hold, afterChunk } = script;
+    const { delayMs, errorStatus, respond, hold, afterChunk, disconnectAfterChunks } = script;
     if (hold) {
       openStreams.add(res);
       res.on('close', () => openStreams.delete(res));
@@ -70,6 +70,7 @@ export async function startMockOpenAI() {
       entry.chunksSent++;
       if (typeof afterChunk === 'function') await afterChunk(entry);
       await new Promise((r) => setTimeout(r, delayMs));
+      if (disconnectAfterChunks && entry.chunksSent >= disconnectAfterChunks) { res.destroy(); return; }
     }
     if (res.destroyed) return;
     send({ id, object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model,
@@ -84,7 +85,7 @@ export async function startMockOpenAI() {
     baseURL: `http://127.0.0.1:${port}/v1`,
     requests,
     chatRequests: () => requests.filter((r) => /^\/(openai\/)?v1\/chat\/completions/.test(r.url)),
-    setScript(next) { script = { errorStatus: 0, respond: undefined, hold: false, ...script, afterChunk: undefined, ...next }; },
+    setScript(next) { script = { errorStatus: 0, respond: undefined, hold: false, ...script, afterChunk: undefined, disconnectAfterChunks: undefined, ...next }; },
     async close() {
       for (const s of openStreams) s.destroy();
       await new Promise((r) => server.close(r));

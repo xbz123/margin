@@ -17,6 +17,7 @@ export const S42_REQUIRED_FILES = [
   'electron/audio/__tests__/MeetingSttSession.test.mjs',
   'electron/audio/__tests__/OutboundSttRevocation.test.mjs',
   'electron/llm/__tests__/generationInterfaces.test.mjs',
+  'electron/llm/__tests__/generateTask.test.mjs',
   'electron/margin/__tests__/gateEvidence.test.mjs',
   'electron/services/__tests__/DomesticSttSettings.test.mjs',
   'electron/services/__tests__/ImagePathValidation.test.mjs',

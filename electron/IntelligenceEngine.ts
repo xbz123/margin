@@ -6,7 +6,8 @@ import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
 import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import type { GenerationTask } from './llm/generateTask';
-import { prepareManualAnswer } from './llm/answerGeneration';
+import { prepareManualAnswer, isPendingAnswerSentinel } from './llm/answerGeneration';
+import type { PreparedInput } from './llm/preparedInput';
 import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem, type TranscriptView } from './SessionTracker';
 import {
@@ -95,7 +96,8 @@ export class IntelligenceEngine extends EventEmitter {
         if (task) {
             if (task !== this.activeGenerationTask || task.signal.aborted) return false;
             if (event === 'error') task.errorMessage = args[0]?.message;
-            if (String(event).endsWith('_token')) task.displayedText += String(args[0] ?? '');
+            if (String(event).endsWith('_token')) { task.displayedText += String(args[0] ?? ''); task.markVisible(String(args[0] ?? '')); }
+            else if (['suggested_answer', 'refined_answer', 'recap', 'clarify', 'follow_up_questions_update', 'manual_answer_result'].includes(String(event))) task.markVisible(String(args[0] ?? ''));
             return super.emit(event, ...args, this.llmHelper.getTaskMetadata(task), task.rendererOwner);
         }
         return super.emit(event, ...args);
@@ -137,6 +139,42 @@ export class IntelligenceEngine extends EventEmitter {
                 }
             }
             super.emit('generation_terminal', { ...this.llmHelper.getTaskMetadata(task), error: terminalError ?? task.errorMessage }, task.rendererOwner);
+        });
+    }
+
+    /** Consume the original prepared request with the existing display events, not prompt preparation. */
+    runPreparedRetry(input: PreparedInput): Promise<string | null> {
+        return this.runGenerationRequest(async () => {
+            const task = this.llmHelper.getCurrentGenerationTask()!;
+            task.deferVisibleText = true;
+            const events: Record<string, [string, string]> = {
+                clarify: ['clarify_token', 'clarify'], recap: ['recap_token', 'recap'],
+                'follow-up-questions': ['follow_up_questions_token', 'follow_up_questions_update'],
+                'follow-up': ['refined_answer_token', 'refined_answer'],
+            };
+            const [tokenEvent, resultEvent] = events[task.entryPoint] ?? ['suggested_answer_token', 'suggested_answer'];
+            let answer = '', held = '';
+            try {
+                for await (const token of this.llmHelper.replayPrepared(input)) {
+                    answer += token; held += token;
+                    if (task.entryPoint !== 'what-to-say' || !isPendingAnswerSentinel(answer)) {
+                        this.emit(tokenEvent, held, 'retry', 1); held = '';
+                    }
+                }
+                if (task.entryPoint === 'what-to-say' && IntelligenceEngine.isNonAnswerSentinel(answer)) {
+                    task.terminalStatus = 'empty'; return null;
+                }
+                if (held) this.emit(tokenEvent, held, 'retry', 1);
+                if (answer.trim()) {
+                    this.session.addAssistantMessage(answer, this.generationMetadata());
+                    this.recordUsage({ type: 'assist', timestamp: Date.now(), question: task.questionId, answer });
+                    this.emit(resultEvent, answer, 'retry', 1);
+                }
+                return answer;
+            } catch (error) {
+                if (held && !task.signal.aborted && (task.entryPoint !== 'what-to-say' || !isPendingAnswerSentinel(answer))) this.emit(tokenEvent, held, 'retry', 1);
+                throw error;
+            }
         });
     }
 
@@ -606,9 +644,7 @@ export class IntelligenceEngine extends EventEmitter {
                 fullAnswer += token;
                 if (!isSpeculative) {
                     pendingDisplay += token;
-                    const normalized = fullAnswer.trim().toLowerCase().replace(/[.!?]+$/g, '');
-                    const possibleSentinel = ['nothing actionable right now', 'nothing to capture right now']
-                        .some(sentinel => sentinel.startsWith(normalized));
+                    const possibleSentinel = isPendingAnswerSentinel(fullAnswer);
                     if (!possibleSentinel) {
                         task?.markVisible(pendingDisplay);
                         this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);

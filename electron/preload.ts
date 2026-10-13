@@ -68,7 +68,7 @@ interface ElectronAPI {
   deleteScreenshot: (path: string) => Promise<{ success: boolean; error?: string }>;
   onScreenshotTaken: (callback: (data: { path: string; preview: string }) => void) => () => void;
   onScreenshotAttached: (callback: (data: { path: string; preview: string }) => void) => () => void;
-  onCaptureAndProcess: (callback: (data: { path: string; preview: string }) => void) => () => void;
+  onCaptureAndProcess: (callback: (data: { path: string; preview: string; speechActionId?: string }) => void) => () => void;
   onSolutionsReady: (callback: (solutions: string) => void) => () => void;
   onResetView: (callback: () => void) => () => void;
   onSolutionStart: (callback: () => void) => () => void;
@@ -220,6 +220,7 @@ interface ElectronAPI {
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
+    speechActionId?: string,
   ) => Promise<{
     answer: string | null;
     question?: string;
@@ -345,9 +346,12 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number },
   ) => Promise<void>;
-  onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void;
+  onGeminiStreamToken: (callback: (token: string, metadata?: GenerationMetadata) => void, owner?: string) => () => void;
+  enableGenerationPresentation: () => Promise<void>;
+  reportFirstVisible: (requestId: string) => void;
+  retryGeneration: (requestId: string) => Promise<GenerationMetadata & { answer: string | null; error?: string }>;
   onGeminiStreamDone: (callback: (metadata?: GenerationMetadata) => void, owner?: string) => () => void;
   onGeminiStreamError: (callback: (error: string, metadata?: GenerationMetadata) => void, owner?: string) => () => void;
   onIntelligenceGenerationStarted: (callback: (metadata: GenerationMetadata) => void) => () => void;
@@ -619,8 +623,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('screenshot-attached', subscription);
     };
   },
-  onCaptureAndProcess: (callback: (data: { path: string; preview: string }) => void) => {
-    const subscription = (_: any, data: { path: string; preview: string }) => callback(data);
+  onCaptureAndProcess: (callback: (data: { path: string; preview: string; speechActionId?: string }) => void) => {
+    const subscription = (_: any, data: { path: string; preview: string; speechActionId?: string }) => callback(data);
     ipcRenderer.on('capture-and-process', subscription);
     return () => {
       ipcRenderer.removeListener('capture-and-process', subscription);
@@ -994,7 +998,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
-  ) => speechIntelligence('what-to-say', 'generate-what-to-say', question, imagePaths),
+    speechActionId?: string,
+  ) => {
+    if (speechActionId) { claimIntelligence(); return ipcRenderer.invoke('generate-what-to-say', question, imagePaths, { speechActionId, stage1EndAt: Date.now() }); }
+    return speechIntelligence('what-to-say', 'generate-what-to-say', question, imagePaths);
+  },
   generateClarify: () => speechIntelligence('clarify', 'generate-clarify'),
   generateCodeHint: (imagePaths?: string[], problemStatement?: string) =>
     speechIntelligence('code-hint', 'generate-code-hint', imagePaths, problemStatement),
@@ -1202,25 +1210,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
     cancelActiveIntelligence();
     return ipcRenderer.invoke('cancel-intelligence-generation');
   },
+  enableGenerationPresentation: () => ipcRenderer.invoke('generation:presentation-ready'),
+  reportFirstVisible: (requestId: string) => ipcRenderer.send('generation:first-visible', requestId),
+  retryGeneration: (requestId: string) => {
+    const clickedAt = Date.now(); claimIntelligence();
+    return ipcRenderer.invoke('generation:retry', requestId, clickedAt);
+  },
   streamGeminiChat: (
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number },
   ) => {
+    const clickedAt = options?.clickedAt ?? Date.now();
     const clientStreamId = ++chatStreamSeq;
     if (chatInFlight) cancelActiveChat(activeChatOwner);
     activeChatStreamId = clientStreamId;
     activeChatOwner = options?.owner ?? 'natively';
     activeChatMetadata = undefined;
     chatInFlight = true; activeIntelligenceRequestId = null;
-    return ipcRenderer.invoke('gemini-chat-stream', message, imagePaths, context, { ...options, clientStreamId })
+    return ipcRenderer.invoke('gemini-chat-stream', message, imagePaths, context, { ...options, clientStreamId, clickedAt })
       .finally(() => { if (activeChatStreamId === clientStreamId) chatInFlight = false; });
   },
 
-  onGeminiStreamToken: (callback: (token: string) => void, owner = 'natively') => {
+  onGeminiStreamToken: (callback: (token: string, metadata?: GenerationMetadata) => void, owner = 'natively') => {
     const subscription = (_: any, token: string, id?: number, metadata?: GenerationMetadata) => {
-      if (isActiveChatStream(id) && activeChatOwner === owner) { activeChatMetadata = metadata; callback(token); }
+      if (isActiveChatStream(id) && activeChatOwner === owner) { activeChatMetadata = metadata; callback(token, metadata); }
     };
     ipcRenderer.on('gemini-stream-token', subscription);
     return () => {

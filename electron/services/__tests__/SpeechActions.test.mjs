@@ -35,7 +35,7 @@ function chain() {
   } finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
   const sent = [], policy = { current: {} };
   const helper = Object.assign(Object.create(modules.LLMHelper.prototype), {
-    selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' },
+    selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o', imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', 'https://api.openai.com/v1', 'gpt-4o']) },
     currentModelId: 'gpt-4o', aiResponseLanguage: 'auto', personaPrompt: '', customNotes: '',
     getProviderScopePolicy: () => policy.current,
     openaiClient: { chat: { completions: { create: async body => {
@@ -56,9 +56,9 @@ function chain() {
   });
   meeting.begin('meeting-1');
   const user = meeting.ensure('user'), interviewer = meeting.ensure('interviewer');
-  const handlers = new Map();
+  const handlers = new Map(), listeners = new Map();
   const electron = { app: { getPath: () => root }, BrowserWindow: { fromWebContents: () => null, getAllWindows: () => [] }, dialog: {},
-    ipcMain: { removeHandler() {}, handle: (name, callback) => handlers.set(name, callback), removeAllListeners() {}, on() {} } };
+    ipcMain: { removeHandler() {}, handle: (name, callback) => handlers.set(name, callback), removeAllListeners() {}, on: (name, callback) => listeners.set(name, callback) } };
   const module = { exports: {} };
   vm.runInNewContext(compiled, { module, exports: module.exports, console: { log() {}, warn() {}, error() {} },
     process: { env: {}, platform: process.platform }, AbortController,
@@ -73,10 +73,11 @@ function chain() {
       return {};
     },
   });
-  module.exports.initializeIpcHandlers({ processingHelper: { getLLMHelper: () => helper }, getIntelligenceManager: () => intelligence,
+  const state = { processingHelper: { getLLMHelper: () => helper }, getIntelligenceManager: () => intelligence,
     getMainWindow: () => null,
     getScreenshotQueue: () => [], collectSpeech: options => meeting.collect(options), markDictation: at => meeting.markDictation(at),
-    endMeeting: async () => {} });
+    endMeeting: async () => {}, deleteScreenshot: async () => ({ success: true }) };
+  module.exports.initializeIpcHandlers(state);
   const sender = new Sender(7);
   const invoke = (channel, ...args) => handlers.get(channel)({ sender }, ...args);
   const begin = async (kind, extra = {}, owner = sender) => {
@@ -84,8 +85,267 @@ function chain() {
     return { speechActionId, stage1EndAt: Date.now() };
   };
   const releaseSeals = () => { for (const resolve of seals.splice(0)) resolve('no-pending'); };
-  return { sent, intelligence, user, interviewer, handlers, sender, invoke, begin, releaseSeals, helper, policy };
+  return { sent, intelligence, user, interviewer, handlers, listeners, sender, invoke, begin, releaseSeals, helper, policy, state };
 }
+
+async function failTyped(c, images) {
+  c.helper.openaiClient.chat.completions.create = async body => {
+    c.sent.push(body);
+    return (async function* () { yield { choices: [{ delta: { content: 'FIRST PARTIAL' } }] }; throw new Error('synthetic request failure'); })();
+  };
+  await c.invoke('gemini-chat-stream', 'ORIGINAL question', images, 'ORIGINAL context');
+  const event = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error');
+  assert.ok(event?.[3]?.retryable, `a prepared failed request is retryable: ${event?.[1]}`);
+  return event[3];
+}
+
+test('S42-04 real retry sends the exact original input with a new model/client/task, not live context or partial output', async () => {
+  const c = chain();
+  const file = path.join(root, 'retry-image.png'); fs.writeFileSync(file, 'synthetic image fixture');
+  let decodes = 0;
+  c.helper.processImage = async () => { decodes++; return { mimeType: 'image/jpeg', data: 'T1JJR0lOQUw=' }; };
+  const failure = await failTyped(c, [file]);
+  const original = structuredClone(c.sent[0]);
+  fs.unlinkSync(file); // Automatic queue eviction does not revoke an already-owned image.
+  c.intelligence.addAssistantMessage('LATER assistant context');
+  c.interviewer.emit('transcript', { segmentId: 'new', text: 'LATER conversation unrelated to the original', isFinal: true });
+  let newClientCalls = 0;
+  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o-mini', imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', 'https://api.openai.com/v1', 'gpt-4o-mini']) };
+  c.helper.openaiClient = { chat: { completions: { create: async body => {
+    newClientCalls++; c.sent.push(body);
+    return [{ choices: [{ delta: { content: 'RETRY ANSWER' }, finish_reason: 'stop' }] }];
+  } } } };
+  const result = await c.invoke('generation:retry', failure.requestId, Date.now());
+  assert.equal(result.answer, 'RETRY ANSWER', result.error); assert.equal(result.retryable, false);
+  assert.equal(newClientCalls, 1); assert.equal(decodes, 1);
+  assert.equal(c.sent[1].model, 'gpt-4o-mini');
+  assert.deepEqual(c.sent[1].messages, original.messages);
+  assert.doesNotMatch(JSON.stringify(c.sent[1]), /FIRST PARTIAL|LATER/);
+  assert.notEqual(result.requestId, failure.requestId);
+  assert.equal(result.questionId, failure.questionId); assert.equal(result.retryOf, failure.requestId);
+  await assert.rejects(() => c.invoke('generation:retry', result.requestId, Date.now()), /no longer available/);
+});
+
+test('S42-04 a replaced failure, new question, wrong owner, and destroyed owner cannot replay old input', async () => {
+  const c = chain(); const failure = await failTyped(c);
+  await assert.rejects(() => c.handlers.get('generation:retry')({ sender: new Sender(8) }, failure.requestId, Date.now()), /no longer available/);
+  const again = await c.invoke('generation:retry', failure.requestId, Date.now());
+  assert.equal(again.retryable, true); assert.notEqual(again.requestId, failure.requestId);
+  assert.equal(again.questionId, failure.questionId);
+  await assert.rejects(() => c.invoke('generation:retry', failure.requestId, Date.now()), /no longer available/);
+  await c.begin('clarify');
+  await assert.rejects(() => c.invoke('generation:retry', again.requestId, Date.now()), /no longer available/);
+  await c.invoke('cancel-intelligence-generation');
+  const current = await failTyped(c);
+  c.sender.emit('destroyed');
+  await assert.rejects(() => c.invoke('generation:retry', current.requestId, Date.now()), /no longer available/);
+});
+
+for (const newInput of ['invalid image', 'dictation']) test(`S42-04 starting ${newInput} releases the prior failure before later preparation`, async () => {
+  const c = chain(); const failure = await failTyped(c);
+  if (newInput === 'invalid image') await assert.rejects(() => c.invoke('gemini-chat-stream', 'new question', ['/missing-image.png']), /Invalid image path/);
+  else await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  await assert.rejects(() => c.invoke('generation:retry', failure.requestId, Date.now()), /no longer available/);
+});
+
+for (const revoke of ['image', 'context', 'skill']) test(`S42-04 explicit ${revoke} withdrawal prevents replay`, async () => {
+  const c = chain();
+  const imageFile = path.join(root, 'withdraw-image.png'); fs.writeFileSync(imageFile, 'synthetic fixture');
+  const contextFile = path.join(root, 'local-context.json');
+  const promptFile = path.join(root, 'prompt-settings.json');
+  const entries = [{ id: 'original', name: 'source.txt', content: 'LOCAL ORIGINAL' }];
+  const prompt = { skills: [], scenes: { interview: { skillId: null, additional: '' }, written: { skillId: null, additional: 'ORIGINAL SKILL TEXT' } } };
+  fs.writeFileSync(contextFile, JSON.stringify(entries)); fs.writeFileSync(promptFile, JSON.stringify(prompt));
+  c.helper.processImage = async () => ({ mimeType: 'image/jpeg', data: 'T1JJR0lOQUw=' });
+  try {
+    const failure = await failTyped(c, [imageFile]);
+    assert.ok(c.sent[0], c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')?.[1]);
+    assert.match(JSON.stringify(c.sent[0]), /LOCAL ORIGINAL/);
+    assert.match(JSON.stringify(c.sent[0]), /ORIGINAL SKILL TEXT/);
+    let deletion, finishDeletion;
+    if (revoke === 'image') {
+      c.state.deleteScreenshot = () => new Promise(resolve => { finishDeletion = resolve; });
+      deletion = c.invoke('delete-screenshot', imageFile);
+    }
+    if (revoke === 'context') fs.writeFileSync(contextFile, '[]');
+    if (revoke === 'skill') { prompt.scenes.written.additional = 'NEW SKILL'; fs.writeFileSync(promptFile, JSON.stringify(prompt)); }
+    const count = c.sent.length;
+    await assert.rejects(() => c.invoke('generation:retry', failure.requestId, Date.now()), /no longer available/);
+    assert.equal(c.sent.length, count);
+    if (deletion) { finishDeletion({ success: true }); await deletion; }
+  } finally { for (const file of [imageFile, contextFile, promptFile]) fs.rmSync(file, { force: true }); }
+});
+
+for (const phase of ['decode', 'speech wait']) test(`S42-04 attachment removal during ${phase} prevents the first send`, async () => {
+  const c = chain();
+  const imageFile = path.join(root, 'preparing-image.png'); fs.writeFileSync(imageFile, 'synthetic fixture');
+  let finishPreparation;
+  c.helper.processImage = () => new Promise(resolve => { finishPreparation = resolve; });
+  try {
+    let request;
+    if (phase === 'speech wait') {
+      c.interviewer.emit('transcript', { segmentId: 'pending-image', text: 'Explain this diagram', isFinal: false });
+      const ref = await c.begin('what-to-say');
+      request = c.invoke('generate-what-to-say', undefined, [imageFile], ref);
+    } else request = c.invoke('gemini-chat-stream', 'Analyze original attachment', [imageFile]);
+    await tick();
+    assert.equal(typeof finishPreparation, phase === 'decode' ? 'function' : 'undefined');
+    await c.invoke('delete-screenshot', imageFile);
+    c.releaseSeals();
+    finishPreparation?.({ mimeType: 'image/jpeg', data: 'V0lUSERSQVdO' });
+    await request;
+    assert.equal(c.sent.length, 0, 'an explicitly withdrawn attachment never reaches the provider');
+  } finally { fs.rmSync(imageFile, { force: true }); }
+});
+
+test('S42-04 new Local Context is not injected into a retry; withdrawal during its queue prevents sending', async () => {
+  const c = chain(), contextFile = path.join(root, 'local-context.json');
+  fs.writeFileSync(contextFile, JSON.stringify([{ id: 'old', name: 'old.txt', content: 'OLD LOCAL' }]));
+  try {
+    const failure = await failTyped(c);
+    fs.writeFileSync(contextFile, JSON.stringify([{ id: 'old', name: 'old.txt', content: 'OLD LOCAL' }, { id: 'new', name: 'new.txt', content: 'NEW LOCAL' }]));
+    c.helper.rateLimiters = { openai: { acquire: async () => fs.writeFileSync(contextFile, '[]') } };
+    const result = await c.invoke('generation:retry', failure.requestId, Date.now());
+    assert.equal(result.answer, null); assert.equal(c.sent.length, 1);
+    assert.equal(result.retryable, false, 'withdrawn original content is not retained');
+  } finally { fs.rmSync(contextFile, { force: true }); }
+});
+
+test('S42-04 oversized input fails before the first send and cannot fabricate a retry snapshot', async () => {
+  const c = chain();
+  await c.invoke('gemini-chat-stream', 'x'.repeat(34 * 1024 * 1024));
+  assert.equal(c.sent.length, 0);
+  const failure = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error');
+  assert.match(failure[1], /64 MiB/); assert.equal(failure[3].retryable, false);
+});
+
+test('S42-04 the real handler waits after quick EOF for a valid first-visible receipt, not a wrong owner or old ID', async () => {
+  const c = chain(); await c.invoke('generation:presentation-ready');
+  let done = false;
+  const request = c.invoke('gemini-chat-stream', 'short question', undefined, undefined, { generationKind: 'interview' }).then(() => { done = true; });
+  await tick();
+  const token = c.sender.sent.find(([name]) => name === 'gemini-stream-token');
+  assert.ok(token); assert.equal(done, false); assert.equal(c.sender.sent.some(([name]) => name === 'gemini-stream-done'), false);
+  const metadata = token[3], acknowledge = c.listeners.get('generation:first-visible');
+  acknowledge({ sender: new Sender(8) }, metadata.requestId);
+  acknowledge({ sender: c.sender }, 'old-request');
+  await tick(); assert.equal(done, false);
+  acknowledge({ sender: c.sender }, metadata.requestId);
+  await request;
+  const complete = c.sender.sent.find(([name]) => name === 'gemini-stream-done')[2];
+  assert.ok(complete.timing.firstVisibleMs >= 0); assert.ok(complete.timing.modelToVisibleMs >= 0);
+});
+
+test('S42-04 a non-Natively consumer in the same window keeps its existing completion lifecycle', async () => {
+  const c = chain(); await c.invoke('generation:presentation-ready');
+  await c.invoke('gemini-chat-stream', 'other UI question', undefined, undefined, { owner: 'global' });
+  assert.equal(c.sender.sent.filter(([name]) => name === 'gemini-stream-done').length, 1);
+  await assert.rejects(() => c.invoke('gemini-chat-stream', 'forged owner', undefined, undefined, { owner: 'made-up' }), /Invalid question owner/);
+  assert.equal(c.sent.length, 1);
+});
+
+for (const at of ['queue', 'automatic retry']) test(`S42-04 manual retry rechecks original scopes at ${at}`, async () => {
+  const c = chain(); const failure = await failTyped(c);
+  if (at === 'queue') c.helper.rateLimiters = { openai: { acquire: async () => { c.policy.current.transcript = false; } } };
+  else c.helper.openaiClient.chat.completions.create = async body => {
+    c.sent.push(body); c.policy.current.transcript = false;
+    throw Object.assign(new Error('synthetic overload'), { status: 503 });
+  };
+  const result = await c.invoke('generation:retry', failure.requestId, Date.now());
+  assert.equal(result.answer, null);
+  assert.equal(c.sent.length, at === 'queue' ? 1 : 2, 'no sends after the permission was withdrawn');
+});
+
+test('S42-04 a smaller retry model rechecks full capacity even with no Local Context, without losing the original', async () => {
+  const c = chain();
+  c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw new Error('synthetic failure'); };
+  await c.invoke('gemini-chat-stream', 'large original '.repeat(900));
+  const failure = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')[3];
+  assert.equal(c.sent.length, 1); assert.equal(failure.retryable, true);
+  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'tiny-8b' };
+  const smaller = await c.invoke('generation:retry', failure.requestId, Date.now());
+  assert.match(smaller.error, /capacity/); assert.equal(c.sent.length, 1); assert.equal(smaller.retryable, true);
+  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' };
+  c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'LARGER MODEL ANSWER' }, finish_reason: 'stop' }] }]; };
+  assert.equal((await c.invoke('generation:retry', smaller.requestId, Date.now())).answer, 'LARGER MODEL ANSWER');
+  assert.deepEqual(c.sent[1].messages, c.sent[0].messages);
+});
+
+// The production global shortcut callback from main.ts, bound to the test app state.
+function shortcutCallback(state) {
+  const mainSource = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8');
+  const tree = ts.createSourceFile('main.ts', mainSource, ts.ScriptTarget.Latest, true);
+  let callback;
+  const visit = node => {
+    if (ts.isCallExpression(node) && node.expression.getText(tree) === 'keybindManager.onShortcutTriggered') callback = node.arguments[0].getText(tree);
+    ts.forEachChild(node, visit);
+  };
+  visit(tree); assert.ok(callback);
+  const callbackCode = ts.transpileModule(`(function () { return ${callback}; }).call(state)`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  return vm.runInNewContext(callbackCode, { state, process: { platform: 'linux' }, console: { log() {}, error() {} } });
+}
+
+test('S42-04 the production global capture callback starts the speech cut and budget before screenshot work', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 100_000 });
+  const c = chain(), tasks = [];
+  const beginTask = c.helper.beginGenerationTask.bind(c.helper);
+  c.helper.beginGenerationTask = (...args) => { const task = beginTask(...args); tasks.push(task); return task; };
+  c.interviewer.emit('transcript', { segmentId: 'original', text: 'Explain hash table collisions before capture', isFinal: true });
+  let releaseCapture;
+  Object.assign(c.state, {
+    getMainWindow: () => ({ webContents: c.sender }), showMainWindow() {},
+    takeScreenshot: () => new Promise(resolve => { releaseCapture = resolve; }),
+    getImagePreview: async () => 'synthetic preview',
+  });
+  const capture = shortcutCallback(c.state)('general:capture-and-process');
+  assert.equal(tasks[0].startedAt, 100_000);
+  t.mock.timers.tick(4000); await Promise.resolve();
+  c.interviewer.emit('transcript', { segmentId: 'late', text: 'POST CAPTURE unrelated live speech', isFinal: true });
+  releaseCapture('/synthetic.png'); await capture;
+  const payload = c.sender.sent.find(([name]) => name === 'capture-and-process')[1];
+  assert.equal(tasks[0].firstTokenDeadline, 110_000, 'capture did not buy a new ten seconds');
+  const result = await c.invoke('generate-what-to-say', undefined, undefined, { speechActionId: payload.speechActionId, stage1EndAt: Date.now() });
+  assert.equal(result.requestId, tasks[0].requestId); assert.equal(tasks.length, 1);
+  assert.doesNotMatch(JSON.stringify(c.sent), /POST CAPTURE/);
+});
+
+test('S42-04 a superseded capture cannot cancel the newer action or dispatch its stale reference', async () => {
+  const c = chain(), tasks = [], shots = [];
+  const beginTask = c.helper.beginGenerationTask.bind(c.helper);
+  c.helper.beginGenerationTask = (...args) => { const task = beginTask(...args); tasks.push(task); return task; };
+  c.interviewer.emit('transcript', { segmentId: 'original', text: 'Explain hash table collisions before capture', isFinal: true });
+  Object.assign(c.state, {
+    getMainWindow: () => ({ webContents: c.sender }), showMainWindow() {},
+    takeScreenshot: () => new Promise((resolve, reject) => shots.push({ resolve, reject })),
+    getImagePreview: async () => 'synthetic preview',
+  });
+  const run = shortcutCallback(c.state);
+  const dispatched = () => c.sender.sent.filter(([name]) => name === 'capture-and-process').map(([, payload]) => payload);
+
+  // A late failure of the first capture leaves the second action current and takeable.
+  const first = run('general:capture-and-process');
+  const second = run('general:capture-and-process');
+  assert.equal(tasks[0].signal.aborted, true, 'the newer capture superseded the first action');
+  shots[0].reject(new Error('synthetic screenshot failure'));
+  await first;
+  assert.equal(tasks[1].signal.aborted, false, 'the stale failure did not cancel the newer action');
+  shots[1].resolve('/synthetic-second.png'); await second;
+  // A late success of a superseded capture never dispatches its reference.
+  const third = run('general:capture-and-process');
+  const fourth = run('general:capture-and-process');
+  shots[2].resolve('/synthetic-third.png'); await third;
+  assert.equal(tasks[3].signal.aborted, false);
+  shots[3].resolve('/synthetic-fourth.png'); await fourth;
+  assert.deepEqual(dispatched().map(payload => payload.path), ['/synthetic-second.png', '/synthetic-fourth.png']);
+  c.releaseSeals();
+  const result = await c.invoke('generate-what-to-say', undefined, undefined, { speechActionId: dispatched()[1].speechActionId, stage1EndAt: Date.now() });
+  assert.equal(result.requestId, tasks[3].requestId);
+  // A capture superseded by a typed question also dispatches nothing.
+  const fifth = run('general:capture-and-process');
+  await c.invoke('gemini-chat-stream', 'TYPED question supersedes capture');
+  shots[4].resolve('/synthetic-fifth.png'); await fifth;
+  assert.equal(dispatched().length, 2);
+});
 
 // Speech before the click, its later revision, and live speech that starts after the click.
 async function speakAroundClick(c, kind, extra) {
@@ -136,6 +396,25 @@ async function historyAction(c, kind) {
 }
 
 for (const kind of [...Object.keys(shortcuts), 'answer']) {
+  test(`S42-04 ${kind}: retry consumes the same prepared request without a second speech collection`, async () => {
+    const c = chain(), tasks = [];
+    const begin = c.helper.beginGenerationTask.bind(c.helper);
+    c.helper.beginGenerationTask = (...args) => { const task = begin(...args); tasks.push(task); return task; };
+    let collections = 0;
+    const collect = c.state.collectSpeech;
+    c.state.collectSpeech = options => { collections++; return collect(options); };
+    c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw new Error('synthetic initial failure'); };
+    await (await historyAction(c, kind))();
+    const failure = c.helper.getTaskMetadata(tasks[0]);
+    assert.equal(failure.retryable, true);
+    const before = collections;
+    c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'Retried body' }, finish_reason: 'stop' }] }]; };
+    const result = await c.invoke('generation:retry', failure.requestId, Date.now());
+    assert.equal(result.answer, 'Retried body'); assert.equal(collections, before);
+    assert.deepEqual(c.sent[1].messages, c.sent[0].messages);
+    assert.equal(result.questionId, failure.questionId);
+  });
+
   test(`S42-03 ${kind}: frozen assistant history respects its own policy`, async () => {
     for (const denied of [true, false]) {
       const c = chain();

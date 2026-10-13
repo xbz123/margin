@@ -89,6 +89,7 @@ import GlassEffectLayer from './ui/GlassEffectLayer';
 import RollingTranscript from './ui/RollingTranscript';
 import TopPill from './ui/TopPill';
 import { GROUNDED_ANSWER_RULES, INTERVIEW_ANSWER_SHAPE } from '../types/answerGuidance';
+import { hasVisibleAnswer } from '../lib/visibleGeneration';
 
 // PERF: hoisted plugin arrays. ReactMarkdown receives `remarkPlugins` and
 // `rehypePlugins` as new array literals if defined inline at the call site —
@@ -298,7 +299,7 @@ const MessageRow = React.memo(
     const bubbleMaxClass =
       msg.role === 'user' ? 'max-w-[72%] px-[13.6px] py-[10.2px]' : 'max-w-[85%] px-4 py-3';
     return (
-      <div className="w-full" {...(isCodeMsg ? { 'data-code-msg': 'true' } : {})}>
+      <div className="w-full" data-question-id={msg.generation?.questionId} data-answer-request-id={msg.role === 'system' && msg.text.trim() ? msg.generation?.requestId : undefined} {...(isCodeMsg ? { 'data-code-msg': 'true' } : {})}>
         <div
           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}
         >
@@ -537,7 +538,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   // Captures data from onCaptureAndProcess before the React state flush so
   // handleWhatToSay() can access it even in React 18 concurrent mode (where
   // a plain setTimeout(0) may fire before setAttachedContext flushes).
-  const pendingCaptureRef = useRef<{ path: string; preview: string } | null>(null);
+  const pendingCaptureRef = useRef<{ path: string; preview: string; speechActionId?: string } | null>(null);
 
   // Latent Context State (Screenshots attached but not sent)
   const [attachedContext, setAttachedContext] = useState<Array<{ path: string; preview: string }>>(
@@ -1296,6 +1297,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       manualSubmitInFlightRef.current = false;
       console.log('[NativelyInterface] Resetting session state...');
       setMessages([]);
+      setRetryGeneration(undefined);
       answerPanelPinnedRef.current = false;
       setAnswerPanelPinned(false);
       setInputValue('');
@@ -1387,6 +1389,27 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     raf: null,
   });
   const generationMetadataRef = useRef<import('../types/generationMetadata').GenerationMetadata | undefined>(undefined);
+  const [retryGeneration, setRetryGeneration] = useState<import('../types/generationMetadata').GenerationMetadata>();
+  const visibleReportedRef = useRef<string | undefined>(undefined);
+  const visibleFrameRef = useRef<number | undefined>(undefined);
+  useEffect(() => { void window.electronAPI.enableGenerationPresentation?.(); }, []);
+  useEffect(() => () => { if (visibleFrameRef.current !== undefined) cancelAnimationFrame(visibleFrameRef.current); }, []);
+  const reportVisible = useCallback(function report(node: HTMLElement | null, requestId = generationMetadataRef.current?.requestId) {
+    if (requestId && requestId === generationMetadataRef.current?.requestId && visibleReportedRef.current !== requestId && hasVisibleAnswer(node)) {
+      visibleReportedRef.current = requestId;
+      window.electronAPI.reportFirstVisible?.(requestId);
+    } else if (node?.isConnected && requestId === generationMetadataRef.current?.requestId && visibleReportedRef.current !== requestId
+      && !['failed', 'empty', 'cancelled', 'refused'].includes(generationMetadataRef.current?.status ?? '')) {
+      if (visibleFrameRef.current !== undefined) cancelAnimationFrame(visibleFrameRef.current);
+      visibleFrameRef.current = requestAnimationFrame(() => { visibleFrameRef.current = undefined; report(node, requestId); });
+    }
+  }, []);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      for (const node of document.querySelectorAll<HTMLElement>('[data-answer-request-id]')) reportVisible(node, node.dataset.answerRequestId);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [messages, reportVisible]);
   const submittedChatRef = useRef<{ text: string; paths: string[] } | undefined>(undefined);
   const generationEpochRef = useRef(0);
   useEffect(() => () => { generationEpochRef.current++; window.electronAPI.cancelChatStream('natively'); }, []);
@@ -1410,8 +1433,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       // DOMPurify strips any script/event-handler injection.
       const rawHtml = marked.parse(streamingTextRef.current, { async: false }) as string;
       node.innerHTML = DOMPurify.sanitize(rawHtml, { FORBID_TAGS: ['img', 'image'] });
+      reportVisible(node);
     });
-  }, []);
+  }, [reportVisible]);
 
   // queueToken: imperative DOM write per token + RAF markdown render.
   // Only the FIRST token of a stream calls setMessages (to mount the bubble).
@@ -1598,6 +1622,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       return false;
     }
     overlayActionInFlightRef.current.add(actionKey);
+    setRetryGeneration(undefined);
     lastOverlayActionRef.current = { key: actionKey, atMs: nowMs };
     return true;
   }, []);
@@ -1838,6 +1863,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     cleanups.push(
       window.electronAPI.onIntelligenceGenerationStarted((metadata) => {
+        setRetryGeneration(undefined);
         generationMetadataRef.current = metadata;
         const id = streamingMsgIdRef.current;
         setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, generation: metadata } : msg));
@@ -1845,6 +1871,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       window.electronAPI.onIntelligenceGenerationTerminal((metadata) => {
         if (generationMetadataRef.current?.requestId !== metadata.requestId) return;
         generationMetadataRef.current = metadata;
+        setRetryGeneration(metadata.retryable ? metadata : undefined);
         const id = streamingMsgIdRef.current;
         flushToken(); setIsProcessing(false);
         setMessages(prev => prev.map(msg => msg.generation?.requestId === metadata.requestId || msg.id === id ? { ...msg, isStreaming: false, generation: metadata } : msg));
@@ -2054,6 +2081,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       const result = await window.electronAPI.generateWhatToSay(
         undefined,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
+        pending?.speechActionId,
       );
       if (generationEpochRef.current !== epoch) return;
       setScreenContextStatus(result.screenContextStatus || 'not_available');
@@ -2314,7 +2342,8 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     // Stream Token — rAF-coalesced via queueToken (same path as intelligence streams)
     cleanups.push(
-      window.electronAPI.onGeminiStreamToken((token) => {
+      window.electronAPI.onGeminiStreamToken((token, metadata) => {
+        if (metadata) generationMetadataRef.current = metadata;
         queueToken('chat', token);
       }),
     );
@@ -2322,6 +2351,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Stream Done
     cleanups.push(
       window.electronAPI.onGeminiStreamDone((generation) => {
+        setRetryGeneration(undefined);
         manualSubmitInFlightRef.current = false;
         const pendingText = streamingTextRef.current;
         const pendingMsgId = streamingMsgIdRef.current;
@@ -2365,6 +2395,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Stream Error
     cleanups.push(
       window.electronAPI.onGeminiStreamError((error, generation) => {
+        setRetryGeneration(generation?.retryable ? generation : undefined);
         manualSubmitInFlightRef.current = false;
         lastManualSubmitRef.current = null;
         const pendingId = streamingMsgIdRef.current;
@@ -2404,7 +2435,31 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     return () => cleanups.forEach((fn) => fn());
   }, [currentModel, queueToken, flushToken]); // Ensure tracking captures correct model
 
+  const handleRetryGeneration = async () => {
+    if (!retryGeneration || isProcessing) return;
+    const failed = retryGeneration;
+    setRetryGeneration(undefined);
+    flushToken();
+    const epoch = ++generationEpochRef.current;
+    const intent = failed.entryPoint === 'clarify' ? 'clarify' : failed.entryPoint === 'recap' ? 'recap'
+      : failed.entryPoint === 'follow-up-questions' ? 'follow_up_questions' : failed.entryPoint === 'follow-up' ? 'retry' : 'what_to_answer';
+    prepareIntelligenceStreamPlaceholder(intent);
+    setIsProcessing(true); setIsExpanded(true);
+    try {
+      const result = await window.electronAPI.retryGeneration(failed.requestId);
+      if (generationEpochRef.current !== epoch) return;
+      setRetryGeneration(result.retryable ? result : undefined);
+      if (result.error) {
+        flushToken();
+        setMessages(prev => [...prev, { id: genMessageId(), role: 'system', text: `❌ Error: ${result.error}`, generation: result }]);
+      }
+    } catch (error) {
+      if (generationEpochRef.current === epoch) setMessages(prev => [...prev, { id: genMessageId(), role: 'system', text: `❌ Error: ${error}` }]);
+    } finally { if (generationEpochRef.current === epoch) setIsProcessing(false); }
+  };
+
   const handleAnswerNow = async () => {
+    setRetryGeneration(undefined);
     if (isManualRecording) {
       if (!tryBeginOverlayAction('answer_now')) return;
       const epoch = ++generationEpochRef.current;
@@ -2587,6 +2642,7 @@ Provide only the answer, nothing else.`;
       return;
     }
     manualSubmitInFlightRef.current = true;
+    setRetryGeneration(undefined);
     window.electronAPI.cancelIntelligenceGeneration().catch(err => console.error('[NativelyInterface] Cancel generation failed:', err));
     const epoch = ++generationEpochRef.current;
     lastManualSubmitRef.current = { text: userText, atMs: nowMs };
@@ -2666,7 +2722,7 @@ Provide only the answer, nothing else.`;
         userText || 'Analyze this screenshot',
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         conversationContext, // Pass context so "answer this" works
-        { generationKind: questionMode === 'auto' ? undefined : questionMode },
+        { generationKind: questionMode === 'auto' ? undefined : questionMode, clickedAt: nowMs },
       );
     } catch (err) {
       if (generationEpochRef.current !== epoch) return;
@@ -3233,6 +3289,7 @@ Provide only the answer, nothing else.`;
     toggleVisibility: () => window.electronAPI.toggleWindow(),
     processScreenshots: handleWhatToSay,
     resetCancel: async () => {
+      setRetryGeneration(undefined);
       if (isProcessing) {
         window.electronAPI.cancelChatStream('natively');
         generationEpochRef.current++;
@@ -3280,6 +3337,7 @@ Provide only the answer, nothing else.`;
     toggleVisibility: () => window.electronAPI.toggleWindow(),
     processScreenshots: handleWhatToSay,
     resetCancel: async () => {
+      setRetryGeneration(undefined);
       if (isProcessing) {
         window.electronAPI.cancelChatStream('natively');
         generationEpochRef.current++;
@@ -4267,6 +4325,11 @@ Provide only the answer, nothing else.`;
                       renderMessageText={renderMessageText}
                     />
                   ))}
+                  {retryGeneration && !isProcessing && (
+                    <button type="button" onClick={handleRetryGeneration} className="px-3 py-1.5 rounded-full border text-xs">
+                      Retry
+                    </button>
+                  )}
 
                   {/* Active Recording State with Live Transcription */}
                   {isManualRecording && (
@@ -4417,7 +4480,10 @@ Provide only the answer, nothing else.`;
                         attached
                       </span>
                       <button
-                        onClick={() => setAttachedContext([])}
+                        onClick={() => {
+                          for (const image of attachedContext) void window.electronAPI.deleteScreenshot(image.path);
+                          setRetryGeneration(undefined); setAttachedContext([]);
+                        }}
                         className="p-1 rounded-full transition-colors overlay-icon-surface overlay-icon-surface-hover overlay-text-interactive"
                         title="Remove all"
                         style={appearance.iconStyle}
@@ -4434,9 +4500,11 @@ Provide only the answer, nothing else.`;
                             className={`h-10 w-auto rounded border ${isLightTheme ? 'border-black/15' : 'border-white/20'}`}
                           />
                           <button
-                            onClick={() =>
-                              setAttachedContext((prev) => prev.filter((_, i) => i !== idx))
-                            }
+                            onClick={() => {
+                              void window.electronAPI.deleteScreenshot(ctx.path);
+                              setRetryGeneration(undefined);
+                              setAttachedContext((prev) => prev.filter((_, i) => i !== idx));
+                            }}
                             className="absolute -top-1 -right-1 w-4 h-4 bg-red-500/80 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity"
                             title="Remove"
                           >

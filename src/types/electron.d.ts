@@ -32,7 +32,7 @@ export interface ElectronAPI {
     callback: (data: { path: string; preview: string }) => void
   ) => () => void
   onCaptureAndProcess: (
-    callback: (data: { path: string; preview: string }) => void
+    callback: (data: { path: string; preview: string; speechActionId?: string }) => void
   ) => () => void
   onSolutionsReady: (callback: (solutions: string) => void) => () => void
   onResetView: (callback: () => void) => () => void
@@ -156,7 +156,7 @@ export interface ElectronAPI {
 
   // Intelligence Mode IPC
   generateAssist: () => Promise<{ insight: string | null }>
-  generateWhatToSay: (question?: string, imagePaths?: string[]) => Promise<{
+  generateWhatToSay: (question?: string, imagePaths?: string[], speechActionId?: string) => Promise<{
     answer: string | null;
     question?: string;
     error?: string;
@@ -221,8 +221,11 @@ export interface ElectronAPI {
   onSessionReset: (callback: () => void) => () => void;
 
   // Streaming listeners
-  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string }) => Promise<void>
-  onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void
+  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string, clickedAt?: number }) => Promise<void>
+  onGeminiStreamToken: (callback: (token: string, metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void
+  enableGenerationPresentation: () => Promise<void>;
+  reportFirstVisible: (requestId: string) => void;
+  retryGeneration: (requestId: string) => Promise<import('./generationMetadata').GenerationMetadata & { answer: string | null; error?: string }>;
   onGeminiStreamDone: (callback: (metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void
   onGeminiStreamError: (callback: (error: string, metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void;
   onIntelligenceGenerationStarted: (callback: (metadata: import('./generationMetadata').GenerationMetadata) => void) => () => void;

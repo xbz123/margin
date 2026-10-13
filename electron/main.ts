@@ -307,6 +307,9 @@ import { setVerboseLoggingFlag } from "./verboseLog"
 import { decideToggle } from './services/toggleStateReducer'
 
 export class AppState {
+  public prepareCaptureAction?: (owner: Electron.WebContents) => { speechActionId: string };
+  public cancelCaptureAction?: (owner: Electron.WebContents, speechActionId: string) => void;
+  public isCaptureActionPending?: (owner: Electron.WebContents, speechActionId: string) => boolean;
   private static instance: AppState | null = null
 
   private windowHelper: WindowHelper
@@ -499,8 +502,16 @@ export class AppState {
           }
         } else if (actionId === 'general:capture-and-process') {
           // Single-trigger: capture current screen then immediately request AI analysis
-          const screenshotPath = await this.takeScreenshot(false);
-          const preview = await this.getImagePreview(screenshotPath);
+          const owner = this.getMainWindow()?.webContents;
+          if (!owner || !this.prepareCaptureAction) return;
+          const action = this.prepareCaptureAction(owner);
+          let screenshotPath: string, preview: string;
+          try {
+            screenshotPath = await this.takeScreenshot(false);
+            preview = await this.getImagePreview(screenshotPath);
+          } catch (error) { this.cancelCaptureAction?.(owner, action.speechActionId); throw error; }
+          // A newer action, cancel or reset during the screenshot supersedes this one.
+          if (!this.isCaptureActionPending?.(owner, action.speechActionId)) return;
           // Ensure the window is visible so the user can see the response without stealing focus
           this.showMainWindow(true);
           // win.focus() can cause macOS to re-activate the app. Re-hide the dock
@@ -509,11 +520,14 @@ export class AppState {
             app.dock.hide();
           }
           const mainWindow = this.getMainWindow();
-          if (mainWindow) {
+          if (mainWindow?.webContents === owner && !owner.isDestroyed()) {
             mainWindow.webContents.send("capture-and-process", {
               path: screenshotPath,
-              preview
+              preview,
+              speechActionId: action.speechActionId
             });
+          } else {
+            this.cancelCaptureAction?.(owner, action.speechActionId);
           }
 
         // --- STEALTH SHORTCUTS: no focus, no show, pure IPC dispatch ---

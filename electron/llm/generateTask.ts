@@ -32,6 +32,17 @@ function deadlineTimer(deadline: number, expire: () => void): () => void {
 
 export class GenerationTask<T = unknown> {
     readonly requestId = randomUUID();
+    questionId = this.requestId;
+    retryOf?: string;
+    entryPoint = 'internal';
+    requireVisibleReceipt = false;
+    onClose?: () => void;
+    speechEndedAt?: number;
+    firstSendAt?: number;
+    firstVisibleAt?: number;
+    private offeredVisible = false;
+    private resolveVisible?: () => void;
+    private readonly visible = new Promise<void>(resolve => { this.resolveVisible = resolve; });
     rendererOwner?: { id: number; isDestroyed(): boolean; send(channel: string, ...args: any[]): void };
     readonly controller = new AbortController();
     readonly signal = this.controller.signal;
@@ -52,7 +63,7 @@ export class GenerationTask<T = unknown> {
     private detach?: () => void;
 
     constructor(readonly primary: T, readonly backup: T | undefined, policy: GenerationPolicy = DEFAULT_GENERATION_POLICY,
-        kind: GenerationKind = 'interview', signal?: AbortSignal, startedAt = Date.now()) {
+        readonly kind: GenerationKind = 'interview', signal?: AbortSignal, startedAt = Date.now()) {
         validateGenerationPolicy(policy);
         this.sendLimit = kind === 'compatibility' ? 1 : 2;
         this.actualTarget = primary;
@@ -84,6 +95,7 @@ export class GenerationTask<T = unknown> {
         this.check();
         if (this.sends >= this.sendLimit) throw new Error('Generation send budget exhausted');
         this.sends++;
+        this.firstSendAt ??= Date.now();
         if (target !== undefined) this.actualTarget = target;
     }
 
@@ -92,11 +104,29 @@ export class GenerationTask<T = unknown> {
     }
 
     markVisible(text: string): void {
-        if (text.trim()) { this.firstTimer?.(); this.firstTimer = undefined; }
+        if (!text.trim()) return;
+        this.offeredVisible = true;
+        if (!this.requireVisibleReceipt) this.acknowledgeVisible();
+    }
+
+    acknowledgeVisible(): void {
+        if (!this.offeredVisible || this.firstVisibleAt !== undefined || this.signal.aborted || this.finished) return;
+        this.check();
+        this.firstVisibleAt = Date.now();
+        this.firstTimer?.(); this.firstTimer = undefined;
+        this.resolveVisible?.();
+    }
+
+    async waitForVisible(): Promise<void> {
+        if (this.requireVisibleReceipt && this.offeredVisible && this.firstVisibleAt === undefined && this.terminalStatus === 'completed') {
+            await awaitGeneration(this, this.visible);
+        }
     }
 
     close(): void {
+        if (this.finished) return;
         this.finished = true;
+        this.onClose?.();
         this.firstTimer?.(); this.totalTimer?.(); this.detach?.();
         this.controller.abort();
     }
@@ -124,7 +154,7 @@ export function withGenerationTask<T>(task: GenerationTask<any>, source: AsyncGe
             for (;;) {
                 task.check();
                 const step = await awaitGeneration(task, generationTasks.run(task, () => source.next()));
-                if (step.done) return;
+                if (step.done) { if (own) await task.waitForVisible(); return; }
                 if (!task.deferVisibleText && typeof step.value === 'string') task.markVisible(step.value);
                 yield step.value as T;
             }

@@ -52,7 +52,11 @@ The fixture was updated without relaxing any image/security assertion, then
 and initial failed independent probes do not establish final acceptance.
 Generated evidence normalizes machine-specific repository/account/temp/Node paths.
 
-Public CI is pending this ticket's commit and push. Local acceptance is not
-product sign-off or release approval. Real STT/LLM services, hardware capture,
+Commit `7c9f5b850214d0d264488ad65a7fd84f8de4d262` is on both project repositories.
+Public CI [38382098418](https://github.com/xbz123/margin/actions/runs/38382098418)
+completed successfully on that exact commit: full gates, required checks and
+release identity check passed. Packaging was disabled. The API receipt is
+`ci-result.json`; this is not product sign-off or release approval.
+Real STT/LLM services, hardware capture,
 shared-screen protection, answer quality and latency have not been tested.
 Actual UI-first-text observation and manual retry snapshots remain S42-04.

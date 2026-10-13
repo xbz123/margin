@@ -11,6 +11,12 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    {"line":"return () => cancelAnimationFrame(frame);","reason":"S42-04: Standard React effect cleanup of its requestAnimationFrame handle for the locally written visible-answer check, 2026-10-13."},
+    {"line":"if (result.error) {","reason":"S42-04: Generic error-result branch in the new manual Retry consumer; no external request implementation imported, 2026-10-13."},
+    {"line":"if (answer.trim()) {","reason":"S42-04: Generic nonblank-string guard before recording the independently written prepared retry result, 2026-10-13."},
+    {"line":"onClose?: () => void;","reason":"S42-04: Standard TypeScript optional callback field on the existing GenerationTask, 2026-10-13."},
+    {"line":"questionId?: string;","reason":"S42-04: Standard TypeScript optional string identity field for related attempts, 2026-10-13."},
+    {"line":"userContent: string;","reason":"S42-04: Standard TypeScript string field describing owned prepared request text, 2026-10-13."},
     {"line":"updatedAt: number;","reason":"S42-03: Standard TypeScript numeric timestamp field in the newly written revision ledger; not an imported timing implementation."},
     {"line":"this.ledger.clear();","reason":"S42-03: Standard Map.clear call when starting a new meeting; ledger implementation written from this branch's session contract."},
     {"line":"let timer: ReturnType<typeof setTimeout> | undefined;","reason":"S42-03: Standard typed optional timer handle in the new receipt and collection waits; no external timer implementation imported."},

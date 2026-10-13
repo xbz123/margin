@@ -21,6 +21,8 @@ function handlers(root, queue = []) {
   const helper = { beginGenerationTask: (kind, signal, _primary, startedAt) => { task = new GenerationTask({ target: { model: 'synthetic' } }, undefined, undefined, kind, signal, startedAt); startedTasks.push(task); return task; }, getCurrentGenerationTask: () => task,
     runGeneration: factory => factory(), getTaskMetadata: () => ({ requestId: 'request', provider: 'synthetic', model: 'synthetic', status: 'completed', attempts: sends.length }),
     withDeclaredScopes: run => run(() => {}),
+    clearPreparedInput() {}, attachPresentation(task, sender) { task.rendererOwner = sender; },
+    dependPreparedImages() {},
     chatWithGemini: async (...args) => { sends.push(args); return 'answer'; },
     analyzeImageFiles: async (...args) => { sends.push(args); return 'answer'; },
     runGenerationStream: factory => factory(), streamChat: async function* (...args) { sends.push(args); yield 'answer'; },

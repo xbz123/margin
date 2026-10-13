@@ -186,6 +186,63 @@ test('a typed question streams the mock answer into the overlay', async () => {
   assert.ok(JSON.stringify(req.body.messages).includes('What is two plus two?'));
 });
 
+test('S42-04 actual hidden DOM cannot acknowledge quick EOF until the answer becomes visible', async () => {
+  mock.setScript({ chunks: ['S42 actual visible body.'], delayMs: 1 });
+  await app.evaluate(({ ipcMain }) => {
+    globalThis.__s42Visible = [];
+    ipcMain.on('generation:first-visible', (_event, requestId) => globalThis.__s42Visible.push(requestId));
+  });
+  await overlay.evaluate(() => {
+    const style = document.createElement('style'); style.id = 's42-hidden-answer';
+    style.textContent = 'body { visibility: hidden !important; }'; document.head.append(style);
+    window.__s42Done = [];
+    window.electronAPI.onGeminiStreamDone(metadata => window.__s42Done.push(metadata));
+    void window.electronAPI.streamGeminiChat('S42 original hidden DOM question', undefined, undefined, { generationKind: 'interview' });
+  });
+  try {
+    await overlay.waitForFunction(() => document.body.textContent.includes('S42 actual visible body.'), null, { timeout: 10_000 });
+    assert.deepEqual(await app.evaluate(() => globalThis.__s42Visible), []);
+    assert.deepEqual(await overlay.evaluate(() => window.__s42Done), []);
+    await overlay.evaluate(() => document.getElementById('s42-hidden-answer').remove());
+    await overlay.waitForFunction(() => window.__s42Done.length === 1, null, { timeout: 10_000 });
+    const metadata = await overlay.evaluate(() => window.__s42Done[0]);
+    assert.equal((await app.evaluate(() => globalThis.__s42Visible)).filter(id => id === metadata.requestId).length, 1);
+    assert.ok(metadata.timing.firstVisibleMs >= metadata.timing.modelToVisibleMs);
+  } finally { await overlay.evaluate(() => document.getElementById('s42-hidden-answer')?.remove()); }
+});
+
+test('S42-04 actual Retry preserves the partial row and original wire input while creating a separately linked answer', async () => {
+  mock.setScript({ chunks: ['S42 retained partial.'], delayMs: 50, disconnectAfterChunks: 1 });
+  await ask('S42 original retry question');
+  await overlay.getByRole('button', { name: 'Retry', exact: true }).waitFor({ state: 'visible' });
+  const original = structuredClone(mock.chatRequests().at(-1).body);
+  const originalQuestionId = await overlay.locator('[data-question-id]').last().getAttribute('data-question-id');
+  mock.setScript({ chunks: ['S42 independent retry body.'], delayMs: 1 });
+  await overlay.getByRole('button', { name: 'Retry', exact: true }).click();
+  await overlay.waitForFunction(() => document.body.innerText.includes('S42 independent retry body.'));
+  assert.deepEqual(mock.chatRequests().at(-1).body.messages, original.messages);
+  const text = await overlayText(); assert.match(text, /S42 retained partial\./);
+  const rows = await overlay.locator(`[data-question-id="${originalQuestionId}"]`).allTextContents();
+  assert.ok(rows.some(row => row.includes('S42 retained partial.') && !row.includes('S42 independent retry body.')));
+  assert.ok(rows.some(row => row.includes('S42 independent retry body.') && !row.includes('S42 retained partial.')));
+});
+
+test('S42-04 removing the attached screenshot through the actual UI revokes its failed request', async () => {
+  await overlay.evaluate(() => { window.electronAPI.onGeminiStreamError((_error, metadata) => { window.__s42ImageFailure = metadata; }); });
+  await pressScreenshotShortcut();
+  await overlay.getByAltText('Screenshot 1', { exact: true }).waitFor();
+  mock.setScript({ errorStatus: 400 });
+  try {
+    await ask('S42 screenshot to withdraw');
+    await overlay.getByRole('button', { name: 'Retry', exact: true }).waitFor({ state: 'visible' });
+    const before = mock.chatRequests().length;
+    await overlay.getByRole('button', { name: 'Remove all' }).click();
+    await overlay.getByRole('button', { name: 'Retry', exact: true }).waitFor({ state: 'hidden' });
+    const error = await overlay.evaluate(() => window.electronAPI.retryGeneration(window.__s42ImageFailure.requestId).then(() => '', e => String(e)));
+    assert.match(error, /no longer available/); assert.equal(mock.chatRequests().length, before);
+  } finally { mock.setScript({ errorStatus: 0 }); }
+});
+
 test('after cancel, and after a new stream has started, events of the old stream are not shown', async () => {
   await installStreamIdSpy();
   await installDeliveryRecorder();

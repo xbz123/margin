@@ -160,6 +160,10 @@ export class IntelligenceManager extends EventEmitter {
         return this.engine.runClarify(view);
     }
 
+    runPreparedRetry(input: import('./llm/preparedInput').PreparedInput): Promise<string | null> {
+        return this.engine.runPreparedRetry(input);
+    }
+
     async runFollowUpQuestions(view?: TranscriptView): Promise<string | null> {
         return this.engine.runFollowUpQuestions(view);
     }

@@ -155,6 +155,17 @@ export class SpeechActions {
     if (!owner) for (const ownerId of [...this.dictations.keys()]) this.endDictation(ownerId);
   }
 
+  /** Ends one unconsumed action of this sender; a superseded caller cannot touch a newer action. */
+  cancelAction(owner: SpeechActionOwner, id: string): void {
+    if (this.isPending(owner, id)) this.release(id);
+  }
+
+  /** Whether this sender's action is still current and waiting to be taken. */
+  isPending(owner: SpeechActionOwner, id: string): boolean {
+    const entry = this.entries.get(id);
+    return !!entry && entry.owner === owner && !entry.consumed;
+  }
+
   get size(): number { return this.entries.size; }
 
   get dictationCount(): number { return this.dictations.size; }

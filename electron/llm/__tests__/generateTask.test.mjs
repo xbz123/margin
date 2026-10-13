@@ -8,6 +8,47 @@ const policy = { interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writ
 const unavailable = { status: 404, error: { code: 'model_not_found' } };
 const cacheError = { status: 404, error: { details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'CACHED_CONTENT_EXPIRED' }] } };
 
+test('S42-04 visible receipt excludes placeholders, includes earlier preparation, and leaves the total clock running', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 100_000 });
+  const task = new GenerationTask('A', undefined, policy, 'interview', undefined, 96_000);
+  task.requireVisibleReceipt = true;
+  task.acknowledgeVisible();
+  assert.equal(task.firstVisibleAt, undefined, 'a guessed ID cannot acknowledge text that was never offered');
+  task.markVisible('  '); task.acknowledgeVisible(); assert.equal(task.firstVisibleAt, undefined);
+  task.markVisible('body'); task.terminalStatus = 'completed';
+  let settled = false;
+  const done = task.waitForVisible().then(() => { settled = true; });
+  t.mock.timers.tick(5_999); await Promise.resolve(); assert.equal(settled, false);
+  task.acknowledgeVisible(); await done;
+  assert.equal(task.firstVisibleAt - task.startedAt, 9_999);
+  t.mock.timers.tick(1); task.check();
+  t.mock.timers.tick(50_000); assert.throws(() => task.check(), { deadline: 'total' }); task.close();
+});
+
+test('S42-04 quick EOF with no DOM receipt expires at the original first-text deadline', async t => {
+  t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 100_000 });
+  const task = new GenerationTask('A', undefined, policy, 'interview', undefined, 94_000);
+  task.requireVisibleReceipt = true; task.markVisible('body'); task.terminalStatus = 'completed';
+  const result = assert.rejects(task.waitForVisible(), { name: 'GenerationTimeoutError', deadline: 'first-token' });
+  t.mock.timers.tick(4_000); await result;
+  task.acknowledgeVisible(); assert.equal(task.firstVisibleAt, undefined); task.close();
+});
+
+test('S42-04 a receipt arriving after the deadline cannot clear a timer whose callback has not run', t => {
+  const task = new GenerationTask('A', undefined, policy, 'interview');
+  task.requireVisibleReceipt = true; task.markVisible('body');
+  t.mock.method(Date, 'now', () => task.firstTokenDeadline + 1);
+  assert.throws(() => task.acknowledgeVisible(), { name: 'GenerationTimeoutError', deadline: 'first-token' });
+  assert.equal(task.firstVisibleAt, undefined); assert.equal(task.signal.aborted, true); task.close();
+});
+
+test('S42-04 empty or failed output never waits for an impossible DOM receipt', async () => {
+  for (const status of ['empty', 'failed', 'cancelled']) {
+    const task = new GenerationTask('A'); task.requireVisibleReceipt = true; task.terminalStatus = status;
+    await task.waitForVisible(); task.close();
+  }
+});
+
 test('AG33 a written task uses 180 seconds and has no interview first-token deadline', () => {
   const task = new GenerationTask('A', undefined, policy, 'written');
   assert.equal(task.totalDeadline - task.startedAt, 180_000); assert.equal(task.firstTokenDeadline, undefined); task.close();

@@ -1,0 +1,45 @@
+
+src/components/NativelyInterface.tsx: 2 hit(s)
+  1411: return () => cancelAnimationFrame(frame);
+  2452: if (result.error) {
+
+electron/IntelligenceEngine.ts: 1 hit(s)
+  168: if (answer.trim()) {
+
+electron/llm/generateTask.ts: 1 hit(s)
+  39: onClose?: () => void;
+
+src/types/generationMetadata.ts: 1 hit(s)
+  3: questionId?: string;
+
+electron/llm/preparedInput.ts: 1 hit(s)
+  8: userContent: string;
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 621107,
+  "addedSubstantiveLines": 44598,
+  "hits": 6,
+  "genericIdiomHits": 217,
+  "allowlistedHits": 1986,
+  "filesWithHits": 5,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ]
+}

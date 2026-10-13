@@ -51,6 +51,19 @@ test('AG42 actual preload delivers ordered batches, seals terminal and rejects o
   assert.equal(received.length, 0);
 });
 
+test('S42-04 preload reuses the main capture action and original text submit time, and retries only by ID', async t => {
+  const { api, calls, advance } = speechBridge(t, () => Promise.resolve());
+  await advance(4000);
+  await api.generateWhatToSay(undefined, ['/synthetic.png'], 'main-owned-capture');
+  assert.equal(calls.some(call => call.channel === 'speech-action:begin'), false, 'capture must not start a second clock or speech cut');
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[0].args[2])), { speechActionId: 'main-owned-capture', stage1EndAt: 4000 });
+  await api.streamGeminiChat('typed', undefined, undefined, { clickedAt: 3500 });
+  assert.equal(calls.find(call => call.channel === 'gemini-chat-stream').args[3].clickedAt, 3500);
+  await api.retryGeneration('failed-request');
+  const retry = calls.find(call => call.channel === 'generation:retry');
+  assert.deepEqual(Array.from(retry.args), ['failed-request', 4000]);
+});
+
 function speechBridge(t, reply) {
   t.mock.timers.reset();
   t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 0 });

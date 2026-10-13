@@ -21,6 +21,30 @@ Notes:
 
 ## Ledger
 
+### S42-04 prepared retry and visible-answer timing (2026-10-13)
+
+Written for this branch from PLAN U6/U7 and D9, initially by Astra during
+Claude's quota limit, then continued by Claude Opus 5.5 medium in auto mode.
+No later upstream or old imported branch implementation, prompt or test was used.
+The existing generation task and transport own the bounded in-memory input;
+retry creates a new task and target while preserving original prepared content.
+The existing renderer and event consumers acknowledge visible answer text.
+Tests reuse the existing synthetic IPC, fake clock and isolated Electron harnesses.
+No framework, dependency, file lease or persistent snapshot storage was added.
+
+Independent review found attachment revocation during asynchronous preparation
+could miss the not-yet-captured input. Its zero-send counterexample and correction
+are part of this ticket's acceptance, alongside the superseded screenshot-action
+regression. An initial mounted run exposed a test-owned HTTP 400 script left
+active for later cases; cleanup restores that fixture without weakening assertions.
+Acceptance evidence is recorded separately; these changes do not establish real
+service compatibility, device behavior or observed production latency.
+
+The initial G2 scan found six exact generic statements: three ordinary guards or
+callback cleanup expressions and three TypeScript fields. Each was inspected in
+its newly written surrounding implementation and recorded with an exact-line
+reason in `provenance-config.json`; source pools and exclusions were not expanded.
+
 ### S42-03 manual speech snapshots (2026-10-13)
 
 Written on this branch from PLAN U2–U6/U10 and D8=A by Claude Opus 5.5 medium,
@@ -42,7 +66,8 @@ live session, not to an already-frozen question.
 Initial local unit results did not establish acceptance: independent probes
 exposed timing, cancellation, buffering, cutoff and history-scope defects.
 Corrections and their evidence are tracked in PLAN S43 and `evidence/S42-03`.
-Final local gates pass 16/16; public CI remains pending. No source-pool expansion or
+Final local gates pass 16/16; public CI 38382098418 passes on `7c9f5b85`.
+No source-pool expansion or
 scanner exclusion is authorized by this entry. The initial source scan reported
 29 matches comprising 26 exact generic statements: timestamp/interface fields,
 Map/timer/UUID operations, local boolean guards, snapshot construction and

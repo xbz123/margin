@@ -1,5 +1,10 @@
 export interface GenerationMetadata {
   requestId: string;
+  questionId?: string;
+  retryOf?: string;
+  retryable?: boolean;
+  entryPoint?: string;
+  timing?: { speechMs: number; preparationMs?: number; modelToVisibleMs?: number; firstVisibleMs?: number };
   provider: string;
   model: string;
   status?: 'completed' | 'refused' | 'incomplete' | 'empty' | 'cancelled' | 'failed';

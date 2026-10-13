@@ -1,0 +1,1 @@
+electron/llm/__tests__/multiProtocolGeneration.test.mjs :: structured generation never discovers an unselected OpenAI target, then uses explicitly selected Responses

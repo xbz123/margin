@@ -35,6 +35,7 @@ import { DEFAULT_CODEX_SOURCE_CONFIG, assertCodexConsent, codexImageTarget, isCo
 import { GenerationTask, generateTask, generationTasks, withGenerationTask, awaitGeneration, type GenerationKind } from './llm/generateTask';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../src/types/generationPolicy';
 import { assertModelImageSupport } from '../src/types/modelImageSupport';
+import { PreparedInputs, copyPreparedInput, type PreparedInput, type PresentationOwner } from './llm/preparedInput';
 
 type SnapshotContext = { language: string; customNotes: string; personaPrompt: string; fastMode: boolean };
 type GenerationTargetSnapshot = SnapshotContext & ({ kind: 'api'; target: ModelTarget; client: any; custom: boolean }
@@ -75,6 +76,46 @@ const MAX_OUTPUT_TOKENS = 65536
 const IMAGE_ANALYSIS_PROMPT = `Analyze concisely. Be direct. No markdown formatting. Return plain text only.`
 
 export class LLMHelper {
+  private preparedInputs?: PreparedInputs;
+  private inputs(): PreparedInputs { return this.preparedInputs ??= new PreparedInputs(); }
+
+  public attachPresentation(task: GenerationTask<any>, owner: PresentationOwner, entryPoint: string, receipt = false): void {
+    task.rendererOwner = owner;
+    task.entryPoint = entryPoint;
+    task.requireVisibleReceipt = receipt;
+    this.inputs().begin(owner, task);
+  }
+
+  public acknowledgeVisible(owner: PresentationOwner, requestId: unknown): void { this.inputs().visible(owner, requestId); }
+  public clearPreparedInput(ownerId?: number): void { this.inputs().clear(ownerId); }
+  public dependPreparedImages(task: GenerationTask<any>, paths: string[]): void { this.inputs().depend(task, paths); }
+  public revokePreparedImages(path: string): void { this.inputs().revoke(input => input.imagePaths.includes(path)); }
+  public revokePreparedContext(): void {
+    const entries = new LocalContextStore(join(app.getPath('userData'), 'local-context.json')).list();
+    const prompts = JSON.stringify(new PromptSettingsStore(join(app.getPath('userData'), 'prompt-settings.json')).read());
+    this.inputs().revoke(input => input.localContext.some(prior => !entries.some(entry => entry.id === prior.id && entry.content === prior.content && entry.name === prior.name))
+      || input.promptDependency !== undefined && input.promptDependency !== prompts);
+  }
+
+  public beginPreparedRetry(owner: PresentationOwner, requestId: unknown, startedAt: number, receipt = false) {
+    this.revokePreparedContext();
+    const { input, prior } = this.inputs().take(owner, requestId);
+    const task = this.beginGenerationTask(prior.kind, undefined, undefined, startedAt);
+    task.rendererOwner = owner; task.entryPoint = prior.entryPoint;
+    task.questionId = prior.questionId; task.retryOf = prior.requestId;
+    task.requireVisibleReceipt = receipt;
+    this.inputs().begin(owner, task, input);
+    return { task, input };
+  }
+
+  public replayPrepared(input: PreparedInput): AsyncGenerator<string> {
+    const replay = copyPreparedInput(input);
+    const source = this.selectedGeneration(replay.userContent, undefined, replay.systemInstruction, replay.stream, replay.purpose, undefined, undefined, replay.outputLimit, replay);
+    return (async function* () {
+      const { reduceDashesInChunk } = await import('./llm/postProcessor');
+      for await (const token of source) yield reduceDashesInChunk(token);
+    })();
+  }
   private generationPolicy: GenerationPolicy = { ...DEFAULT_GENERATION_POLICY };
   private activeGenerationTasks = new Set<GenerationTask>();
   private generationClosed = false;
@@ -90,7 +131,11 @@ export class LLMHelper {
   public getCurrentGenerationTask(): GenerationTask<GenerationTargetSnapshot> | undefined { return generationTasks.getStore(); }
 
   public getTaskMetadata(task: GenerationTask<GenerationTargetSnapshot>) {
-    return { requestId: task.requestId, provider: task.actualTarget.target.provider,
+    return { requestId: task.requestId, questionId: task.questionId, retryOf: task.retryOf, retryable: this.inputs().retryable(task), entryPoint: task.entryPoint,
+      timing: { speechMs: Math.max(0, (task.speechEndedAt ?? task.startedAt) - task.startedAt),
+        preparationMs: task.firstSendAt === undefined ? undefined : Math.max(0, task.firstSendAt - (task.speechEndedAt ?? task.startedAt)),
+        modelToVisibleMs: task.firstVisibleAt === undefined || task.firstSendAt === undefined ? undefined : Math.max(0, task.firstVisibleAt - task.firstSendAt),
+        firstVisibleMs: task.firstVisibleAt === undefined ? undefined : Math.max(0, task.firstVisibleAt - task.startedAt) }, provider: task.actualTarget.target.provider,
       model: task.actualTarget.target.model, status: task.terminalStatus, attempts: task.sends, partial: task.hasText && task.terminalStatus !== 'completed',
       ...(task.signal.reason?.name === 'GenerationTimeoutError' ? { timeout: task.signal.reason.deadline as 'first-token' | 'total' } : {}),
       usedImageInput: task.imageCount > 0, imageCount: task.imageCount };
@@ -99,7 +144,8 @@ export class LLMHelper {
   public runGeneration<T>(factory: () => Promise<T>, kind: GenerationKind = 'interview', signal?: AbortSignal, supplied?: GenerationTask<any>): Promise<T> {
     const inherited = generationTasks.getStore();
     const task = supplied ?? inherited ?? this.beginGenerationTask(kind, signal);
-    return (async () => { task.check(); return await awaitGeneration(task, Promise.resolve().then(() => generationTasks.run(task, factory))); })()
+    return (async () => { task.check(); const result = await awaitGeneration(task, Promise.resolve().then(() => generationTasks.run(task, factory)));
+      if (task !== inherited) await task.waitForVisible(); return result; })()
       .catch(error => { if (!task.signal.aborted && !['refused', 'incomplete', 'empty'].includes(task.terminalStatus ?? '')) task.terminalStatus = 'failed'; throw error; })
       .finally(() => { if (task !== inherited) task.close(); });
   }
@@ -140,19 +186,32 @@ export class LLMHelper {
   }
 
   private selectedGeneration(userContent: string, imagePaths: string[] | undefined, systemInstruction: string | undefined,
-    stream: boolean, purpose: GenerateRequest['purpose'], supplied?: GenerationTask<GenerationTargetSnapshot>, preparedContents?: any[], outputLimit?: number): AsyncGenerator<string> {
+    stream: boolean, purpose: GenerateRequest['purpose'], supplied?: GenerationTask<GenerationTargetSnapshot>, preparedContents?: any[], outputLimit?: number, replay?: PreparedInput): AsyncGenerator<string> {
     const inherited = supplied ?? generationTasks.getStore();
     const task = inherited ?? this.beginGenerationTask(purpose === 'summary' ? 'background' : purpose === 'structured' ? 'written' : 'interview');
     const self = this;
+    if (!replay) this.inputs().depend(task, imagePaths ?? []);
     const source = (async function* () {
-      const contents: any[] = preparedContents ?? [{ text: userContent }];
-      for (const path of imagePaths ?? []) {
+      if (!task.primary.target.model.trim()) throw new Error('Selected model client is not configured.');
+      if (task.primary.kind === 'api' && !task.primary.client) throw new Error(`${task.primary.target.provider} client not initialized`);
+      const contents: any[] = replay?.contents ?? preparedContents ?? [{ text: userContent }];
+      for (const path of replay ? [] : imagePaths ?? []) {
         task.check();
         const image = await awaitGeneration(task, self.processImage(path));
         contents.push({ inlineData: image });
       }
-      const dataScopes = self.scopesForPayload(userContent, /"inlineData"/.test(JSON.stringify(contents)) ? ['inline-image'] : imagePaths);
-      const localContext = purpose === 'compatibility' ? [] : new LocalContextStore(join(app.getPath('userData'), 'local-context.json')).list();
+      const dataScopes = replay?.dataScopes ?? self.scopesForPayload(userContent, /"inlineData"/.test(JSON.stringify(contents)) ? ['inline-image'] : imagePaths);
+      const localContext = replay?.localContext ?? (purpose === 'compatibility' ? [] : new LocalContextStore(join(app.getPath('userData'), 'local-context.json')).list());
+      const ownedInput = replay ?? (task.rendererOwner ? copyPreparedInput({ userContent, systemInstruction, contents, dataScopes, localContext,
+          promptDependency: systemInstruction ? JSON.stringify(new PromptSettingsStore(join(app.getPath('userData'), 'prompt-settings.json')).read()) : undefined,
+          imagePaths: imagePaths ?? [], stream, purpose, outputLimit }) : undefined);
+      if (ownedInput) self.inputs().capture(task, ownedInput);
+      const checkInput = () => {
+        if (ownedInput) {
+          self.revokePreparedContext();
+          task.check();
+        }
+      };
       let cacheReference: string | undefined;
       const codexSession = (self.codexAuthSource ??= new CodexAuthSource()).session(() => { task.check(); assertCodexConsent(self.getCodexCliConfig()); assertProviderDataScopes('codex', dataScopes, self.getProviderScopePolicy()); });
       const options = { get cacheReference() { return cacheReference; }, invalidateCache: () => {
@@ -160,15 +219,18 @@ export class LLMHelper {
       }, recoverAuthentication: (snapshot: GenerationTargetSnapshot, error: unknown) => snapshot.kind === 'codex' ? codexSession.recover(error) : Promise.resolve(false) };
       try { for await (const event of generateTask(task, (snapshot: GenerationTargetSnapshot, signal, recovery) => (async function* () {
         const { target } = snapshot;
+        checkInput();
         const request = attachLocalContext({ protocol: target.protocol, model: target.model, purpose, contents,
           systemInstruction, stream, signal, dataScopes,
-          maxOutputTokens: outputLimit ?? (target.provider === 'claude' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
+          maxOutputTokens: outputLimit ?? Math.min(getModelCapabilities(target.model).tier === 'local-small' ? getModelCapabilities(target.model).outputBudgetTokens : Infinity,
+            target.provider === 'claude' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
         }, localContext);
         const imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0) + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
         if (snapshot.kind === 'codex') {
           const assertImages = () => { if (imageCount && snapshot.imageSupportConfirmedFor !== codexImageTarget(target.model)) throw new Error('Image support is unconfirmed for this Codex model and backend. Confirm it in Settings; attachments were kept.'); };
           assertImages();
           yield* codexSession.generate(snapshot.codex, { model: target.model, contents: request.contents, systemInstruction, signal }, () => {
+            checkInput();
             task.check(); assertCodexConsent(self.getCodexCliConfig()); assertProviderDataScopes('codex', dataScopes, self.getProviderScopePolicy()); assertImages();
             task.claimSend(snapshot); task.imageCount = imageCount;
           }); return;
@@ -177,13 +239,13 @@ export class LLMHelper {
         const apiTarget = snapshot.target;
         if (imageCount) assertModelImageSupport(apiTarget);
         if (!client) throw new Error(`${target.provider} client not initialized`);
-        self.assertOutboundScopes(apiTarget.provider, userContent, imagePaths);
+        assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy());
         const limiter = self.rateLimiters?.[apiTarget.provider];
         if (limiter) await awaitGeneration(task, limiter.acquire(signal));
         cacheReference = undefined;
         if (apiTarget.provider === 'gemini' && !custom && systemInstruction && !recovery) {
           cacheReference = (await awaitGeneration(task, self.geminiPromptCache.getOrCreate(client, target.model, systemInstruction,
-            () => self.assertOutboundScopes(apiTarget.provider, userContent, imagePaths), signal))) ?? undefined;
+            () => { checkInput(); assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy()); }, signal))) ?? undefined;
         }
         yield* generateOnce({ ...request, cacheReference,
           ...(['gemini', 'groq'].includes(target.provider) ? { temperature: purpose === 'summary' ? 0.3 : 0.4 } : {}),
@@ -193,6 +255,7 @@ export class LLMHelper {
             ...(target.provider === 'claude' && !custom && systemInstruction ? { systemBlocks: self.buildClaudeSystemBlocks(systemInstruction, target.model) } : {}),
           },
         }, { client, beforeSend: () => {
+          checkInput();
           assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy());
           if (imageCount) assertModelImageSupport(apiTarget);
           task.claimSend(snapshot);

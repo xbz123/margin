@@ -42,11 +42,15 @@ export function initializeIpcHandlers(appState: AppState): void {
   const validateImages = (value: unknown): string[] | undefined => {
     if (value === undefined) return undefined;
     if (!Array.isArray(value) || value.length > 5 || value.some(item => typeof item !== 'string' || !item.trim())) throw new InvalidImagePathError();
-    return value.map(imagePath => {
+    const paths = value.map(imagePath => {
       const result = validateImagePath(imagePath, app.getPath('userData'));
       if (!result.isValid) throw new InvalidImagePathError();
       return result.resolvedPath!;
     });
+    const helper = appState.processingHelper.getLLMHelper();
+    const task = helper.getCurrentGenerationTask();
+    if (task) helper.dependPreparedImages(task, paths);
+    return paths;
   };
   const persistCredentials = async (
     save: () => CredentialSaveResult,
@@ -79,10 +83,21 @@ export function initializeIpcHandlers(appState: AppState): void {
     markDictation: at => appState.markDictation(at),
     captureBase: cutoffAt => appState.getIntelligenceManager().captureBase(cutoffAt),
   });
+  const visibleOwners = new Set<number>();
+  const beginSpeech = (owner: any, payload: any) => {
+    const helper = appState.processingHelper.getLLMHelper();
+    const receipt = speechActions.begin(owner, payload);
+    helper.clearPreparedInput(owner.id);
+    return receipt;
+  };
+  appState.prepareCaptureAction = owner => beginSpeech(owner, { clientActionId: crypto.randomUUID(), kind: 'what-to-say', clickedAt: Date.now() });
+  appState.cancelCaptureAction = (owner, id) => speechActions.cancelAction(owner, id);
+  appState.isCaptureActionPending = (owner, id) => speechActions.isPending(owner, id);
   // The view an action reads once its speech is frozen. Previous assistant suggestions are
   // profile_history: left out when denied, otherwise declared so every later send rechecks them.
   const frozenView = (action: SpeechAction, declare: (scope: ProviderDataScope) => void, exclude?: Set<string>): Promise<TranscriptView> =>
     action.frozen.then(frozen => {
+      action.task.speechEndedAt = frozen.frozenAt;
       const includeHistory = appState.processingHelper.getLLMHelper().deniedDataScopes(['profile_history']).length === 0;
       const view = appState.getIntelligenceManager().frozenView(frozen, action.base, exclude, includeHistory);
       if (includeHistory && (view.getLastAssistantMessage() !== null || view.getContext(Number.MAX_SAFE_INTEGER).some(item => item.role === 'assistant'))) declare('profile_history');
@@ -110,8 +125,14 @@ export function initializeIpcHandlers(appState: AppState): void {
           speechActions.cancel(event.sender);
           task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
         }
-        const result = await helper.runGeneration(run, 'interview', undefined, task);
+        helper.attachPresentation(task, event.sender, speech?.[0] ?? channel, visibleOwners.has(event.sender.id));
+        const result = await helper.runGeneration(async () => {
+          const value = await run();
+          task!.terminalStatus ??= (value as any)?.error ? 'failed' : 'empty';
+          return value;
+        }, 'interview', undefined, task);
         task.terminalStatus ??= (result as any)?.error ? 'failed' : 'empty';
+        if (visibleOwners.has(event.sender.id) && !event.sender.isDestroyed()) event.sender.send('intelligence-generation-terminal', helper.getTaskMetadata(task));
         return { ...(result as any), ...helper.getTaskMetadata(task) };
       } catch (error) {
         if (channel !== 'generate-what-to-say') throw error;
@@ -121,7 +142,10 @@ export function initializeIpcHandlers(appState: AppState): void {
     });
   };
 
-  registerLocalContextHandlers(safeHandle, () => appState.processingHelper.getLLMHelper().cancelGenerationTasks('Local Context changed'));
+  registerLocalContextHandlers(safeHandle, () => {
+    const helper = appState.processingHelper.getLLMHelper();
+    helper.revokePreparedContext(); helper.cancelGenerationTasks('Local Context changed');
+  });
 
   const safeOn = (
     channel: string,
@@ -130,6 +154,29 @@ export function initializeIpcHandlers(appState: AppState): void {
     ipcMain.removeAllListeners(channel);
     ipcMain.on(channel, listener);
   };
+
+  safeHandle('generation:presentation-ready', event => {
+    if (!visibleOwners.has(event.sender.id)) {
+      visibleOwners.add(event.sender.id);
+      event.sender.once('destroyed', () => visibleOwners.delete(event.sender.id));
+    }
+  });
+  safeOn('generation:first-visible', (event, requestId: unknown) => {
+    try { appState.processingHelper.getLLMHelper().acknowledgeVisible(event.sender, requestId); } catch { /* An expired receipt cannot revive a task. */ }
+  });
+  safeHandle('generation:retry', async (event, requestId: unknown, clickedAt: unknown) => {
+    const helper = appState.processingHelper.getLLMHelper();
+    if (typeof clickedAt !== 'number' || !Number.isFinite(clickedAt) || clickedAt <= 0) throw new Error('Invalid retry time.');
+    const { task, input } = helper.beginPreparedRetry(event.sender, requestId, Math.min(clickedAt, Date.now()), visibleOwners.has(event.sender.id));
+    try {
+      const answer = await helper.runGeneration(() => appState.getIntelligenceManager().runPreparedRetry(input), task.kind, undefined, task);
+      if (!event.sender.isDestroyed()) event.sender.send('intelligence-generation-terminal', helper.getTaskMetadata(task));
+      return { answer, ...helper.getTaskMetadata(task) };
+    } catch (error: any) {
+      if (!event.sender.isDestroyed()) event.sender.send('intelligence-generation-terminal', { ...helper.getTaskMetadata(task), error: error?.message });
+      return { answer: null, error: error?.message ?? 'Generation failed', ...helper.getTaskMetadata(task) };
+    } finally { task.close(); }
+  });
 
   safeHandle('get-recognition-languages', async () => {
     return RECOGNITION_LANGUAGES;
@@ -225,6 +272,8 @@ export function initializeIpcHandlers(appState: AppState): void {
       console.warn('[IPC] delete-screenshot: path outside userData rejected:', filePath);
       return { success: false, error: 'Path not allowed' };
     }
+    const checked = validateImagePath(resolved, userDataDir);
+    appState.processingHelper.getLLMHelper().revokePreparedImages(checked.resolvedPath ?? resolved);
     return appState.deleteScreenshot(resolved);
   });
 
@@ -330,8 +379,12 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // Begin returns at once: providers keep running and the action channel freezes the speech.
-  safeHandle('speech-action:begin', (event, payload: unknown) => speechActions.begin(event.sender, payload));
-  safeHandle('dictation:begin', (event, payload: unknown) => speechActions.beginDictation(event.sender, payload));
+  safeHandle('speech-action:begin', (event, payload: unknown) => beginSpeech(event.sender, payload));
+  safeHandle('dictation:begin', (event, payload: unknown) => {
+    const receipt = speechActions.beginDictation(event.sender, payload);
+    appState.processingHelper.getLLMHelper().clearPreparedInput(event.sender.id);
+    return receipt;
+  });
   // Stop freezes its question in main; the chat request then consumes the same action.
   safeHandle('speech-action:freeze', async (event, ref: unknown) => {
     const action = speechActions.take(event.sender, ref, 'answer', false);
@@ -426,7 +479,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
@@ -435,9 +488,11 @@ export function initializeIpcHandlers(appState: AppState): void {
       const clientStreamId = options?.clientStreamId;
       try {
         console.log('[IPC] gemini-chat-stream started using LLMHelper.streamChat');
+        appState.processingHelper.getLLMHelper().clearPreparedInput(event.sender.id);
         imagePaths = validateImages(imagePaths);
         const llmHelper = appState.processingHelper.getLLMHelper();
         myController = new AbortController();
+        if (options?.owner !== undefined && !['natively', 'global', 'meeting'].includes(options.owner)) throw new Error('Invalid question owner.');
         if (options?.generationKind !== undefined && !['interview', 'written'].includes(options.generationKind)) throw new Error('Invalid question mode');
         // Stop sends the question main froze for its action and reuses that action's interview task.
         const speechAction = options?.speechActionId === undefined ? undefined
@@ -450,8 +505,13 @@ export function initializeIpcHandlers(appState: AppState): void {
           const controller = myController;
           controller.signal.addEventListener('abort', () => task.controller.abort(controller.signal.reason), { once: true });
           if (speechAction.question === undefined || message !== speechAction.question) throw new SpeechActionError();
-        } else chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal);
-        chatTask.rendererOwner = event.sender;
+        } else {
+          const clickedAt = options?.clickedAt;
+          if (clickedAt !== undefined && (typeof clickedAt !== 'number' || !Number.isFinite(clickedAt) || clickedAt <= 0)) throw new Error('Invalid question time.');
+          chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal, undefined, Math.min(clickedAt ?? Date.now(), Date.now()));
+        }
+        llmHelper.attachPresentation(chatTask, event.sender, speechAction ? 'answer' : 'text', visibleOwners.has(event.sender.id) && (!options?.owner || options.owner === 'natively'));
+        llmHelper.dependPreparedImages(chatTask, imagePaths ?? []);
         chatTask.deferVisibleText = true;
 
         const senderId = event.sender.id;
@@ -486,7 +546,9 @@ export function initializeIpcHandlers(appState: AppState): void {
               return null;
             }
             event.sender.send('gemini-stream-token', identityHit, clientStreamId, { ...llmHelper.getTaskMetadata(chatTask), provider: 'application', model: APP_IDENTITY.name });
+            chatTask.markVisible(identityHit);
             chatTask.terminalStatus = 'completed';
+            await chatTask.waitForVisible();
             event.sender.send('gemini-stream-done', clientStreamId, { ...llmHelper.getTaskMetadata(chatTask), provider: 'application', model: APP_IDENTITY.name });
             intelligenceManager.addAssistantMessage(identityHit);
             intelligenceManager.logUsage('chat', message, identityHit);
@@ -615,6 +677,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeOn('gemini-chat-stream-stop', (event) => {
     const senderId = event.sender.id;
     const stream = _chatStreamsBySender.get(senderId);
+    if (stream) appState.processingHelper.getLLMHelper().clearPreparedInput(senderId);
     if (stream) {
       try { stream.controller.abort(); } catch { /* noop */ }
       _chatStreamsBySender.delete(senderId);
@@ -1624,6 +1687,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('end-meeting', async () => {
+    appState.processingHelper.getLLMHelper().clearPreparedInput();
     try {
       speechActions.cancel();
       await appState.endMeeting();
@@ -1765,7 +1829,10 @@ export function initializeIpcHandlers(appState: AppState): void {
         if (!BrowserWindow.fromWebContents(event.sender)) throw new PromptSettingsError('The settings window is unavailable.');
         await action(event, input);
         const settings = SkillsManager.getInstance().promptSettings().read();
-        if (changes) appState.processingHelper.getLLMHelper().cancelGenerationTasks('Prompt settings changed');
+        if (changes) {
+          const helper = appState.processingHelper.getLLMHelper();
+          helper.revokePreparedContext(); helper.cancelGenerationTasks('Prompt settings changed');
+        }
         return { ok: true, settings };
       } catch (error) {
         // Main and standalone service bundles have separate class identities.
@@ -2006,11 +2073,13 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // Reset intelligence state
   safeHandle('cancel-intelligence-generation', (event) => {
+    appState.processingHelper.getLLMHelper().clearPreparedInput(event.sender.id);
     speechActions.cancel(event.sender);
     appState.getIntelligenceManager().resetEngine();
   });
 
   safeHandle('reset-intelligence', async () => {
+    appState.processingHelper.getLLMHelper().clearPreparedInput();
     try {
       speechActions.cancel();
       const intelligenceManager = appState.getIntelligenceManager();

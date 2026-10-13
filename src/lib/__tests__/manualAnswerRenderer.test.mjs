@@ -29,7 +29,7 @@ function handler(name, bindings) {
   }
   visit(tree); assert.ok(expression, name);
   const code = ts.transpileModule('const run = ' + expression + '; run;', { compilerOptions: { target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React } }).outputText;
-  return vm.runInNewContext(code, bindings);
+  return vm.runInNewContext(code, { setRetryGeneration() {}, ...bindings });
 }
 
 test('S42-03 Stop sends the question main froze, never renderer speech, and a failed or cancelled freeze sends nothing', async () => {
