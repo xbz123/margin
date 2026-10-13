@@ -2,13 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-13，S42-05 已完成：`a5b7c75a` 本地完整门禁和公开 CI 38333829717 均通过；AG-51 修正版也已复核，阶段 5 产品签收仍独立。S42-01 正在实现；D8=A、D9 当前失败请求快照与独立关联重试、黑框不合格均已定案。
+**Current answer:** 截至 2026-10-13，S42-05 与 S42-01 已完成，公开 CI 均通过；S42-02 回答规则已通过独立审阅和完整本地门禁，待提交的公开 CI。S42-03 正做只读接口核对。阶段 5 产品签收仍独立；D8/D9 和黑框不合格均已定案。
 
 **Current focus:** 先完成 S42-05→01→02→03→04，再持续推进计划中其他边界清晰且依赖满足的票。Claude Opus 5.5 medium 执行（用户已允许 auto，非绕过权限），主 Agent 独立审阅、取得本地证据、逐票提交并核对公开 CI；图标视觉、架构、真实服务预算与发布后置。
 
 ## In progress
 
-- **逐票实现与验收** — running；resume：[S43 与当前票](margin/PLAN.md#tickets-20261013)；next：接收 Claude auto 的 S42-01 配置实现，主 Agent 审阅并取得当前本地门禁，再提交和跑该票 CI。前置 S42-05 已通过，不把下一票启动视为完成。
+- **逐票实现与验收** — running；resume：[S43 与当前票](margin/PLAN.md#tickets-20261013)、[S42-02 本地验收](margin/evidence/S42-02/README.md)；next：提交回答规则票并运行公开 CI，主 Agent 同时核对 S42-03 的 IPC 两段时序和冻结消费者接口；前票 CI 未通过不提交后票。
 
 ## Waiting
 

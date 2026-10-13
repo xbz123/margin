@@ -78,7 +78,8 @@ test('generateSuggestion sends custom notes and the transcript as user content, 
 
 test('intent answer shapes require grounding for examples and behavioral stories', () => {
   assert.match(intentClassifierSource, /behavioral: 'Use a specific story only when grounded candidate\/profile context exists/);
-  assert.match(intentClassifierSource, /Without grounding, use the required no-context admission opener/);
+  assert.match(intentClassifierSource, /Without grounding, do not invent one: give an answer the candidate can adapt/);
+  assert.doesNotMatch(intentClassifierSource, /no-context admission opener/);
   assert.match(intentClassifierSource, /example_request: 'Provide one concrete example from grounded context when available/);
   assert.match(intentClassifierSource, /avoid invented names, companies, dates, metrics, or first-person claims/);
   assert.doesNotMatch(intentClassifierSource, /Lead with a specific example or story\. Use the STAR pattern implicitly\. Focus on actions and outcomes\./);

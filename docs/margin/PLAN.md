@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-**当前执行点（2026-10-13，S43）**：用户已选 D8=A、定案 D9，并授权 CI 更新后每票提交在公开仓库运行 CI。S42-05 的 `a5b7c75a` 已推送，本地完整门禁及 AG-51 修正版复核通过，公开 CI 38333829717 已通过；Claude Opus 5.5 medium / auto 正在准备 S42-01，额度耗尽才切 Astra。随后依次 02→03→04，再继续其他就绪票。阶段 4 历史签收不变、阶段 5 尚未产品签收。图标视觉、发布架构、真实服务预算后置；不发布、不调用真实服务，未验收的票不标完成。
+**当前执行点（2026-10-13，S43）**：S42-05（a5b7c75a）和 S42-01（a790e320）已通过本地与公开 CI；S42-02 回答规则本地验收完成，待本票公开 CI。S42-03 正在只读核对共享接口和两段时序，D8=A、D9 已定，不重开产品选择。后续继续其他就绪票；Claude Opus 5.5 medium / auto 执行，额度耗尽才切 Astra。阶段 5 产品签收独立，图标视觉、发布架构、真实服务预算后置；不发布、不调用真实服务。
 
 状态：**阶段 4 已签收（2026-10-11，出口 CI `38162294825`，§9"阶段 4 签收"）。阶段 3 已签收（2026-10-11，用户指示"做 W4 本机核对，通过后签收阶段 3"）。** 签收依据为提交 `d2bd8146` 的 W3 出口 CI `38123550800`（gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7）及 W4 本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 3 签收"。阶段 4–6 按 S36 交给 Codex Astra 执行（[HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)），从用户把交接交给 Astra 时开始。以下为阶段 2 的状态说明。**阶段 2 出口已签收（2026-10-10，用户指示"做本机核对，通过后签收阶段2"）。** Claude 实现并自验收（S21）；Astra 独立验收（2026-10-09）提出的 4 项经两轮复验（2026-10-10）全部关闭；包内 libvips 的 Rust 工具链已固定，CI 两次复现记录的 `64bcfea7…`；验收条件按 S26 精简。签收依据为提交 `2c7f1e42` 的完整 CI `38057787157`（三个作业全部通过）及其下载核对和本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 2 出口签收"。AG-20–26、AG-24 后续、S19-C 及 S22 均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
@@ -951,7 +951,7 @@ node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/
 | U11/U12 保护/发布 | 已有保护、穿透、伪装代码；新发布顺序已记入计划 | 不等于指定共享软件实机成功，图标/平台回归与发布另按 S42-06、AG-61/62/72–74 |
 | U13 CI | 现有隔离门禁覆盖 service/audio/LLM/UI 测试目录 | 需把本轮增量检查对应到 CI 证据并允许引用增量证据目录，S42-05；不能把配置修改记成远端运行通过 |
 
-**S42-01 / AG-41、AG-60：国内 STT 配置一致 — 本地实现、独立复核和完整门禁通过；待本票公开 CI。**
+**S42-01 / AG-41、AG-60：国内 STT 配置一致 — 完成；`a790e320` 本地验收和公开 CI 38335634377 均通过。**
 
 - Outcome：满足 U9，阿里云空 workspace 的配置贯穿可用性检查与建连，豆包用户所选资源贯穿保存、连接测试和生产。
 - Scope / 唯一写入者：Claude；`src/types/domesticStt.ts`、`electron/services/CredentialsManager.ts`、`electron/ipc/sttHandlers.ts`、`electron/preload.ts`、`src/types/electron.d.ts`、`src/components/settings/SpeechProviderSettings.tsx`、相关中文翻译、国内适配器配置与实际工厂消费者、现有配置/协议/UI 测试。只改 U9 链路；不改音频收尾或引入新依赖。
@@ -960,7 +960,7 @@ node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/
 - Validation：用假凭据和 socket 证明空/合法/非法 workspace，两个资源头、旧配置默认、保存失败不覆盖、删除后零发送、renderer 不拿回 key；复用 `DomesticSttSettings.test.mjs`、`DomesticStreamingLifecycle.test.mjs`、`settingsFoundation.test.mjs`，必要时在现有 renderer 工具中补真实控件交互。实现者跑窄检查，主 Agent 独立审阅接线后统一完整门禁。
 - Stop：需变更鉴权范围、固定目标地址/地域、自动资源切换或真实服务才能推进时暂停该部分；D2 实测不阻塞 mock 契约实现，也不被它替代。
 
-**S42-02 / AG-51：场景回答要求 — ready，S42-01 后执行。**
+**S42-02 / AG-51：场景回答要求 — 本地实现、独立复核和完整门禁通过；待本票公开 CI。**
 
 - Outcome：U8 在实际生成请求的场景提示词中一致生效，不仅在设置说明出现。
 - Scope / 唯一写入者：Claude；`electron/llm/prompts.ts`、`tinyPrompts.ts`、`scenarioPrompts.ts` 的实际消费者及 `PromptSkillConsumerChain.test.mjs` 等现有装配/真实性回归。口述 Stop 在 `src/components/NativelyInterface.tsx` 自带上下文提示并使用 `skipSystemPrompt:true`，其提示词文字也必须覆盖 U8，不能只改系统 scene；本票不改该 IPC/空系统提示语义、收尾或预算。保留 Skills 追加、身份/安全/数据边界、用户主动 Clarify；不改模型路由或恢复已删除功能。
@@ -1497,7 +1497,9 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ### S43 增量执行（2026-10-13）
 
-- **S42-01**：国内配置从设置/保存/读取贯通连接测试和生产。主 Agent 修复显式 null 被当缺字段回退小时版的问题（2 条反例先失败后通过），同步精确出站清单，并恢复挂载测试的模块缓存。最终完整 gates **16/16**，988 测试（987 通过、0 失败、1 既有跳过），renderer 7/7，必需检查通过。证据：[S42-01](evidence/S42-01/README.md)。当前待提交的公开 CI；真实模型通用域名/长会话及资源权益仍未实测，不宣称 D2 完成。
+- **S42-02**：共享纯文本规则贯通笔试、full/tiny 面试和口述 Stop；移除仍在使用的强制缺资料开场及不真实经历暗示，保留主动 Clarify、身份/数据安全和 Skills 只追加。主 Agent 限定“不默认追问”为面试场景并补红绿断言，不改变笔试的澄清策略。最终 gates **16/16**，989 测试（988 通过、0 失败、1 既有跳过），必需检查通过，G2 无新增例外。证据：[S42-02](evidence/S42-02/README.md)。待提交和公开 CI；真实质量/延迟未验证，Stop 计时留 S42-03/04。
+
+- **S42-01**：国内配置从设置/保存/读取贯通连接测试和生产。主 Agent 修复显式 null 被当缺字段回退小时版的问题（2 条反例先失败后通过），同步精确出站清单，并恢复挂载测试的模块缓存。最终完整 gates **16/16**，988 测试（987 通过、0 失败、1 既有跳过），renderer 7/7，必需检查通过。证据：[S42-01](evidence/S42-01/README.md)。`a790e320` 已推送两个仓库；公开 [CI 38335634377](https://github.com/xbz123/margin/actions/runs/38335634377) 已通过，`gate_ref=S42-01`、不打包、不禁用缓存。真实模型通用域名/长会话及资源权益仍未实测，不宣称 D2 完成。
 
 - **S42-05**：Claude 提供只读补丁，主 Agent 集成并修复参考路径末尾换行校验；新增检查读取已有 CI 输出，不重跑测试。隔离自检 3/3、YAML 解析通过；最终本地完整 gates **16/16**，984 测试（983 通过、0 失败、1 既有跳过），实际输出的必需检查验证通过。G2 初轮三处通用语法命中已按两条精确规则审阅登记，复跑为零未审命中。证据：[S42-05](evidence/S42-05/README.md)。`a5b7c75a` 已推送两个仓库；公开 [CI 38333829717](https://github.com/xbz123/margin/actions/runs/38333829717) 使用该完整 SHA，`gate_ref=S42-05`、`no_cache=false`、`package_apps=false`；完整门禁、必需测试检查与正式身份契约均通过，运行结果见同目录 ci-result.json。
 - **AG-51 修正版复核**：主 Agent 按当前分工核对 `ccee35dd..935f90a3` 的删除调用链、单次 guidance 追加、空系统提示和 IPC 数据范围拒绝；上述当前完整门禁覆盖修正版，未发现阻断项。初版未跟踪 gates 未动，阶段 5 产品签收仍独立，不声称真实回答质量已验收。

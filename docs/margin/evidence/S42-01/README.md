@@ -31,9 +31,13 @@ Review and evidence:
 - G2 has zero unreviewed hits; three ordinary test idioms are individually recorded
   with reasons. No dependency, test skip or excluded-source expansion.
 
+Public CI [38335634377](https://github.com/xbz123/margin/actions/runs/38335634377)
+passed on `a790e320859f0ef02b4cf67c8fbcdfe1beefb79b`, including required-check and
+release-identity contract verification. See `ci-result.json`. No packaging or release.
+
 Generated evidence normalizes repository/account/temp prefixes and the Node binary
 path for publication. Results and counts are unchanged. The existing workflow is
-not changed by this ticket; it will run against this ticket's commit after push.
+not changed by this ticket; it ran against the ticket commit after push.
 
 Not verified: real 3.1 model availability on the general endpoint, long-session
 service behavior or paid-resource entitlement. Mock header/address correctness

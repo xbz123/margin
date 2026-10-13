@@ -21,6 +21,25 @@ Notes:
 
 ## Ledger
 
+### S42-02 answer guidance (2026-10-13)
+
+Written from PLAN U8 on this branch by Claude Opus 5.5 medium, then independently
+reviewed by the main agent. `src/types/answerGuidance.ts` contains shared text for
+the written/interview prompts and the existing spoken Stop consumer, which sends
+its own context with an explicitly empty system prompt. No old branch or later
+upstream prompts, code or fixtures were imported; no dependencies or endpoints added.
+The used full/tiny core and behavioral answer-shape text no longer mandate a
+missing-context opener or an ungrounded past story. Unused old prompt variants
+were not rewritten. Active Clarify retains its question-oriented instructions.
+
+The main agent scoped the default non-clarification rule explicitly to live
+interview answers, rather than changing written-practice behavior without a
+decision. A scene-level assertion failed before that scope correction and then
+passed. Current fingerprints record the authorized wording, not unchanged AG-51
+bytes. Mock request and actual Stop-handler checks preserve one guidance block,
+empty-system semantics, cancellation and data-scope rejection. No STT lifecycle,
+generation-budget or retry implementation changes belong to this ticket.
+
 ### S42-01 domestic speech configuration (2026-10-13)
 
 Claude Opus 5.5 medium implemented U9 from this branch's contracts in auto mode;

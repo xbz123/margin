@@ -88,6 +88,7 @@ import { getModifierSymbol, isMac } from '../utils/platformUtils';
 import GlassEffectLayer from './ui/GlassEffectLayer';
 import RollingTranscript from './ui/RollingTranscript';
 import TopPill from './ui/TopPill';
+import { GROUNDED_ANSWER_RULES, INTERVIEW_ANSWER_SHAPE } from '../types/answerGuidance';
 
 // PERF: hoisted plugin arrays. ReactMarkdown receives `remarkPlugins` and
 // `rehypePlugins` as new array literals if defined inline at the call site —
@@ -2508,16 +2509,18 @@ User said: "${question}"
 
 Instructions:
 1. Analyze the screenshot in the context of what the user said.
-2. Provide a direct, helpful answer.
-3. Be concise.`;
+2. Provide a direct, helpful answer the user can use right away.
+3. ${INTERVIEW_ANSWER_SHAPE}
+${GROUNDED_ANSWER_RULES}`;
           } else {
             prompt = `You are a real-time interview assistant. The user just repeated or paraphrased a question from their interviewer.
 Instructions:
 1. Extract the core question being asked
-2. Provide a clear, concise, and professional answer that the user can say out loud
-3. Keep the answer conversational but informative (2-4 sentences ideal)
+2. Provide a clear and professional answer that the user can say out loud
+3. ${INTERVIEW_ANSWER_SHAPE}
 4. Do NOT include phrases like "The question is..." - just give the answer directly
 5. Format for speaking out loud, not for reading
+${GROUNDED_ANSWER_RULES}
 
 Provide only the answer, nothing else.`;
           }

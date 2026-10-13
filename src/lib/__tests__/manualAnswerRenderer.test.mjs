@@ -17,6 +17,7 @@ function translationModule(file) {
   return module.exports;
 }
 const i18n = translationModule('i18n.tsx');
+const guidance = translationModule('types/answerGuidance.ts');
 
 const source = fs.readFileSync(new URL('../../components/NativelyInterface.tsx', import.meta.url), 'utf8');
 const tree = ts.createSourceFile('NativelyInterface.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -32,14 +33,14 @@ function handler(name, bindings) {
 }
 
 test('AG42 recording sends retained speech on finalize rejection and drops a cancelled wait', async () => {
-  for (const cancel of [false, true]) {
+  for (const [cancel, attachedContext] of [[false, []], [true, []], [false, [{ path: '/synthetic/screen.png', preview: '' }]]]) {
     const sent = [], warnings = [], messages = [];
     const ref = current => ({ current });
     const epoch = ref(0);
     const bindings = {
       isManualRecording: true, tryBeginOverlayAction: () => true, generationEpochRef: epoch,
       isRecordingRef: ref(true), voiceInputRef: ref('Retained speech'), manualTranscriptRef: ref('tail'),
-      attachedContext: [], submittedChatRef: ref(), messagesEndRef: ref(),
+      attachedContext, submittedChatRef: ref(), messagesEndRef: ref(), ...guidance,
       streamingMsgIdRef: ref(), streamingIntentRef: ref(), streamingTextRef: ref(''),
       streamingNodeRef: ref(null), streamingRafRef: ref(null), requestStartTimeRef: ref(null),
       setIsManualRecording() {}, setManualTranscript() {}, setVoiceInput() {}, setIsProcessing() {},
@@ -53,7 +54,20 @@ test('AG42 recording sends retained speech on finalize rejection and drops a can
     };
     await handler('handleAnswerNow', bindings)();
     assert.equal(sent.length, cancel ? 0 : 1);
-    if (!cancel) assert.equal(sent[0][0], 'Retained speech tail');
+    if (!cancel) {
+      assert.equal(sent[0][0], 'Retained speech tail');
+      // S42-02: the spoken entry sends its own instructions with an explicitly empty system prompt.
+      const [, images, prompt, options] = sent[0];
+      assert.equal(images?.length ?? 0, attachedContext.length);
+      assert.deepEqual(Object.keys(options), ['skipSystemPrompt']);
+      assert.equal(options.skipSystemPrompt, true);
+      assert.match(prompt, /open with one or two sentences the user can say aloud right away, then expand/);
+      assert.equal(prompt.split('one to three candidates').length - 1, 1);
+      assert.match(prompt, /Unless the user explicitly asks for a clarifying question, do not stop to ask/);
+      assert.match(prompt, /Never invent personal experience, employers, projects, dates, team sizes or metrics/);
+      assert.match(prompt, /Do not describe screenshot or image content that cannot be read/);
+      assert.doesNotMatch(prompt, /2-4 sentences ideal|Be concise\.$/m);
+    }
     assert.doesNotMatch(JSON.stringify({ sent, warnings, messages }), /PRIVATE_STT_ERROR/);
     assert.equal(warnings.length, 1);
   }

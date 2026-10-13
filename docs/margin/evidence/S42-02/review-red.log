@@ -1,0 +1,7 @@
+Main-agent scope check, 2026-10-13.
+Command: node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/services/__tests__/PromptSkillConsumerChain.test.mjs
+Exit 1: the scene assertion requiring an explicit live-interview scope failed.
+The shared no-clarification instruction had also applied unconditionally to the
+written scene. The wording now qualifies that default as a live interview rule.
+After updating the authorized fingerprints, the three affected files passed 12/12.
+This checks assembled instructions, not the behavior of a real model.
