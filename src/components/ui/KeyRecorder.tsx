@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Check } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface KeyRecorderProps {
     currentKeys: string[];
@@ -8,6 +9,7 @@ interface KeyRecorderProps {
 }
 
 export const KeyRecorder: React.FC<KeyRecorderProps> = ({ currentKeys, onSave, className }) => {
+    const { t } = useI18n();
     const [isRecording, setIsRecording] = useState(false);
     const [recordedKeys, setRecordedKeys] = useState<string[]>([]);
     const inputRef = useRef<HTMLDivElement>(null);
@@ -71,7 +73,7 @@ export const KeyRecorder: React.FC<KeyRecorderProps> = ({ currentKeys, onSave, c
                     onBlur={() => setIsRecording(false)}
                     className="flex items-center gap-1 bg-bg-input border border-accent-primary text-accent-primary px-2 py-1 rounded-md text-xs font-sans shadow-sm outline-none min-w-[60px] justify-center"
                 >
-                    {recordedKeys.length > 0 ? recordedKeys.join(' + ') : 'Press keys...'}
+                    {recordedKeys.length > 0 ? recordedKeys.join(' + ') : t('Press keys...')}
                 </div>
             ) : (
                 <div className="flex items-center gap-1">

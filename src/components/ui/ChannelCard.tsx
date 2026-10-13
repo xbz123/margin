@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { SttErrorCategory } from '../../lib/sttErrorMapper';
+import { useI18n } from '../../i18n';
 
 interface ChannelCardProps {
     /** Channel name displayed in header */
@@ -33,6 +34,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
     name, status, provider, error, errorCategory,
     iconConnected, iconReconnecting, iconFailed,
 }) => {
+    const { t } = useI18n();
     const [copied, setCopied] = useState(false);
 
     const cleanedError = error?.replace(/\s*\(\d+ consecutive errors\):?/gi, '');
@@ -53,10 +55,10 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
         : status === 'reconnecting' || status === 'awaiting-audio' ? iconReconnecting
         : iconConnected;
 
-    const statusLabel = status === 'connected' ? 'Operational'
+    const statusLabel = t(status === 'connected' ? 'Operational'
         : status === 'awaiting-audio' ? 'Listening for audio…'
         : status === 'reconnecting' ? 'Reconnecting...'
-        : 'Error';
+        : 'Error');
     const label = providerLabel(provider);
 
     return (
@@ -103,7 +105,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
                         </p>
                         {label && (
                             <p className="text-[9px] overlay-text-muted opacity-60 mt-0.5">
-                                via {label}
+                                {t('via {provider}', { provider: label })}
                             </p>
                         )}
                     </div>
@@ -113,10 +115,10 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
                 {status === 'failed' && errorCategory && (
                     <div className="space-y-1">
                         <p className="text-[12px] font-medium overlay-text-primary leading-snug">
-                            {errorCategory.title}
+                            {t(errorCategory.title)}
                         </p>
                         <p className="text-[10.5px] leading-relaxed overlay-text-secondary">
-                            {errorCategory.body}
+                            {t(errorCategory.body)}
                         </p>
                     </div>
                 )}
@@ -126,13 +128,14 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
                     <div className="pt-1.5 border-t border-white/5">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-[9px] font-medium tracking-wide overlay-text-muted opacity-60">
-                                Details
+                                {t('Details')}
                             </span>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleCopy();
                                 }}
+                                aria-label={t('Copy error details')}
                                 className="p-1 rounded transition-all opacity-60 hover:opacity-100"
                             >
                                 <svg className="w-3 h-3 overlay-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

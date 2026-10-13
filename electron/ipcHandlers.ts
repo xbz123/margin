@@ -13,6 +13,8 @@ import { DatabaseManager } from './db/DatabaseManager'; // Import Database Manag
 import { AppState } from './main';
 import { DEFAULT_CODEX_SOURCE_CONFIG } from '../src/types/codexSource';
 import { SettingsManager } from './services/SettingsManager';
+import { mainText } from './services/mainStrings';
+import { isUiLanguage, type UiLanguageResult } from '../src/types/uiLanguage';
 import { SkillsManager } from './services/SkillsManager';
 import { PromptSettingsError } from './services/PromptSettingsStore';
 import { scenarioPrompt } from './llm/scenarioPrompts';
@@ -145,7 +147,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   registerLocalContextHandlers(safeHandle, () => {
     const helper = appState.processingHelper.getLLMHelper();
     helper.revokePreparedContext(); helper.cancelGenerationTasks('Local Context changed');
-  });
+  }, english => mainText(english));
 
   const safeOn = (
     channel: string,
@@ -814,6 +816,32 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('get-meeting-retention', async () => {
     return SettingsManager.getInstance().get('meetingRetention') ?? 'forever';
+  });
+
+  safeHandle('ui-language:get', () => SettingsManager.getInstance().getUiLanguage());
+
+  // Saved before any window or menu changes, so a failed write leaves every surface unchanged.
+  safeHandle('ui-language:set', (_, language: unknown): UiLanguageResult => {
+    if (!isUiLanguage(language)) return { ok: false, message: 'Unsupported interface language.' };
+    try {
+      SettingsManager.getInstance().saveUiLanguage(language);
+    } catch {
+      return { ok: false, message: 'The interface language could not be saved.' };
+    }
+    try {
+      appState.refreshLocalizedMenus();
+    } catch (error) {
+      console.warn('[ui-language:set] Menus could not be rebuilt:', error);
+    }
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (win.isDestroyed()) return;
+      try {
+        win.webContents.send('ui-language:changed', language);
+      } catch {
+        // Renderer may be tearing down between isDestroyed() and send.
+      }
+    });
+    return { ok: true, language };
   });
 
   safeHandle('set-meeting-retention', async (_, retention: 'forever' | '7d' | '30d' | 'never') => {
@@ -1853,7 +1881,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   }));
   safeHandle('prompt-settings:import', promptOperation(async event => {
     const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
-      properties: ['openFile'], filters: [{ name: 'Prompt Skill', extensions: ['md'] }],
+      properties: ['openFile'], filters: [{ name: mainText('Prompt Skill'), extensions: ['md'] }],
     }) as unknown as Electron.OpenDialogReturnValue;
     if (!selected.canceled && selected.filePaths.length === 1) SkillsManager.getInstance().importPromptSkill(selected.filePaths[0]);
   }));

@@ -4,6 +4,7 @@ import { X, Copy, Check, Globe, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { genMessageId } from '../utils/messageId';
 import nativelyIcon from './icon.png';
+import { useI18n } from '../i18n';
 
 // ============================================
 // Types
@@ -65,6 +66,7 @@ const UserMessage: React.FC<{ content: string }> = ({ content }) => (
 );
 
 const AssistantMessage: React.FC<{ content: string; isStreaming?: boolean }> = ({ content, isStreaming }) => {
+    const { t } = useI18n();
     const [copied, setCopied] = useState(false);
 
     const handleCopy = async () => {
@@ -100,7 +102,7 @@ const AssistantMessage: React.FC<{ content: string; isStreaming?: boolean }> = (
                     className="flex items-center gap-2 mt-3 text-[13px] text-text-tertiary hover:text-text-secondary transition-colors"
                 >
                     {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                    {copied ? 'Copied' : 'Copy message'}
+                    {t(copied ? 'Copied' : 'Copy message')}
                 </button>
             )}
         </motion.div>
@@ -118,6 +120,7 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
     onClose,
     initialQuery = ''
 }) => {
+    const { t } = useI18n();
     const [messages, setMessages] = useState<Message[]>([]);
     const [chatState, setChatState] = useState<ChatState>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -326,11 +329,12 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
                     >
                         <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle shrink-0">
                             <div className="flex items-center gap-2 text-text-tertiary">
-                                <img src={nativelyIcon} className="w-3.5 h-3.5 force-black-icon opacity-50" alt="logo" />
-                                <span className="text-[13px] font-medium">Search all meetings</span>
+                                <img src={nativelyIcon} className="w-3.5 h-3.5 force-black-icon opacity-50" alt={t('Logo')} />
+                                <span className="text-[13px] font-medium">{t('Search all meetings')}</span>
                             </div>
                             <button
                                 onClick={onClose}
+                                aria-label={t('Close')}
                                 className="p-2 transition-colors group"
                             >
                                 <X size={16} className="text-text-tertiary group-hover:text-red-500 group-hover:drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] transition-all duration-300" />
@@ -342,7 +346,7 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
                             {messages.map((msg) => (
                                 msg.role === 'user'
                                     ? <UserMessage key={msg.id} content={msg.content} />
-                                    : <div key={msg.id}><AssistantMessage content={msg.content} isStreaming={msg.isStreaming} />{msg.generation && <div className="text-xs text-text-tertiary" data-generation-status={msg.generation.status}>{msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status}</div>}</div>
+                                    : <div key={msg.id}><AssistantMessage content={msg.content} isStreaming={msg.isStreaming} />{msg.generation && <div className="text-xs text-text-tertiary" data-generation-status={msg.generation.status}>{msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? `${t('Incomplete')} · ` : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status}</div>}</div>
                             ))}
 
                             {chatState === 'waiting_for_llm' && <TypingIndicator />}
@@ -353,7 +357,7 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-[#FF6B6B] text-[13px] py-2"
                                 >
-                                    {errorMessage}
+                                    {t(errorMessage)}
                                 </motion.div>
                             )}
 
@@ -369,7 +373,7 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     onKeyDown={handleInputKeyDown}
-                                    placeholder="Ask me anything..."
+                                    placeholder={t('Ask me anything...')}
                                     className="w-full pl-5 pr-12 py-3 bg-bg-elevated shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-border-muted rounded-full text-sm text-text-primary placeholder-text-tertiary/70 focus:outline-none transition-all"
                                 />
                                 <button

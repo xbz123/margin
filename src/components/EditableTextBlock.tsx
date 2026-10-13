@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useI18n } from '../i18n';
 
 interface EditableTextBlockProps {
     initialValue: string;
@@ -21,6 +22,7 @@ const EditableTextBlock: React.FC<EditableTextBlockProps> = ({
     onEnter,
     autoFocus = false
 }) => {
+    const { t } = useI18n();
     const [isEditing, setIsEditing] = useState(autoFocus); // Start editing if autoFocus is true
     const [localValue, setLocalValue] = useState(initialValue);
     const contentRef = useRef<HTMLElement>(null);
@@ -145,7 +147,7 @@ const EditableTextBlock: React.FC<EditableTextBlockProps> = ({
                 ${!localValue && placeholder ? 'empty:before:content-[attr(data-placeholder)] empty:before:text-white/20' : ''}
                 ${className}
             `}
-            data-placeholder={placeholder}
+            data-placeholder={t(placeholder)}
             spellCheck={false} // Clean look
         >
             {initialValue}

@@ -12,6 +12,7 @@ import { useShortcuts } from '../hooks/useShortcuts';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { isMac } from '../utils/platformUtils';
 import WindowControls from './WindowControls';
+import { useI18n, type UiLanguage } from '../i18n';
 
 interface Meeting {
     id: string;
@@ -45,32 +46,34 @@ interface LauncherProps {
     onPageChange?: (isMain: boolean) => void;
 }
 
-// Helper to format date groups
-const getGroupLabel = (dateStr: string) => {
-    if (dateStr === "Today") return "Today"; // Backward compatibility
+const localeFor = (language: UiLanguage) => language === 'zh-CN' ? 'zh-CN' : 'en-US';
+const dayKey = (date: Date) => [date.getFullYear(), date.getMonth() + 1, date.getDate()].map(part => String(part).padStart(2, '0')).join('-');
 
-    const date = new Date(dateStr);
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+// Groups meetings by local calendar day ("Today" is a legacy stored value); keys sort newest first.
+const getGroupKey = (dateStr: string) => {
+    const date = dateStr === "Today" ? new Date() : new Date(dateStr);
+    return Number.isNaN(date.getTime()) ? dateStr : dayKey(date);
+};
 
-    const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-    if (checkDate.getTime() === today.getTime()) return "Today";
-    if (checkDate.getTime() === yesterday.getTime()) return "Yesterday";
-
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const formatGroupLabel = (key: string, language: UiLanguage, t: (english: string) => string) => {
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    if (key === dayKey(today)) return t('Today');
+    if (key === dayKey(yesterday)) return t('Yesterday');
+    const [year, month, day] = key.split('-').map(Number);
+    if (!year || !month || !day) return key;
+    return new Date(year, month - 1, day).toLocaleDateString(localeFor(language), { weekday: 'short', month: 'short', day: 'numeric' });
 };
 
 // Helper to format time (e.g. 3:14pm)
-const formatTime = (dateStr: string) => {
-    if (dateStr === "Today") return "Just now"; // Legacy
+const formatTime = (dateStr: string, language: UiLanguage, t: (english: string) => string) => {
+    if (dateStr === "Today") return t('Just now'); // Legacy
     const date = new Date(dateStr);
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase();
+    return date.toLocaleTimeString(localeFor(language), { hour: 'numeric', minute: '2-digit', hour12: language !== 'zh-CN' }).toLowerCase();
 };
 
 const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onPageChange }) => {
+    const { t, language } = useI18n();
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [isDetectable, setIsDetectable] = useState(false);
     const [isMeetingActive, setIsMeetingActive] = useState(false);
@@ -194,7 +197,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
     }, [isShortcutPressed]);
 
     if (!window.electronAPI) {
-        return <div className="text-white p-10">Error: Electron API not initialized. Check preload script.</div>;
+        return <div className="text-white p-10">{t('Error: Electron API not initialized. Check preload script.')}</div>;
     }
 
     const toggleDetectable = () => {
@@ -205,23 +208,14 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
 
     // Group meetings
     const groupedMeetings = meetings.reduce((acc, meeting) => {
-        const label = getGroupLabel(meeting.date);
+        const label = getGroupKey(meeting.date);
         if (!acc[label]) acc[label] = [];
         acc[label].push(meeting);
         return acc;
     }, {} as Record<string, Meeting[]>);
 
-    // Group order (Today, Yesterday, then others sorted new to old is implicit via API return order ideally, 
-    // but JS object key order isn't guaranteed. We can use a Map or just known keys.)
-    // Simple sort for keys:
-    const sortedGroups = Object.keys(groupedMeetings).sort((a, b) => {
-        if (a === 'Today') return -1;
-        if (b === 'Today') return 1;
-        if (a === 'Yesterday') return -1;
-        if (b === 'Yesterday') return 1;
-        // Approximation for others: parse date
-        return new Date(b).getTime() - new Date(a).getTime();
-    });
+    // Day keys (YYYY-MM-DD) sort newest first.
+    const sortedGroups = Object.keys(groupedMeetings).sort((a, b) => b.localeCompare(a));
 
 
     const [forwardMeeting, setForwardMeeting] = useState<Meeting | null>(null);
@@ -317,6 +311,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                     <button
                         onClick={selectedMeeting ? handleBack : undefined}
                         disabled={!selectedMeeting}
+                        aria-label={t('Back')}
                         className={`
                             transition-all duration-300 p-1 flex items-center justify-center mt-1 ml-2
                             ${selectedMeeting
@@ -331,6 +326,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                     <button
                         onClick={handleForward}
                         disabled={!forwardMeeting}
+                        aria-label={t('Forward')}
                         className={`
                             transition-all duration-300 p-1 flex items-center justify-center mt-1
                             ${forwardMeeting
@@ -370,7 +366,8 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                         onClick={() => {
                             onOpenSettings();
                         }}
-                        title="Settings"
+                        title={t('Settings')}
+                        aria-label={t('Settings')}
                         className={`p-2 text-text-secondary hover:text-text-primary transition-all duration-300 ${isLight ? 'hover:drop-shadow-[0_0_6px_rgba(0,0,0,0.25)]' : 'hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}
                     >
                         <Settings size={18} />
@@ -418,14 +415,15 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                     {/* 1.5. Hero Header (Title + Controls + CTA) */}
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <h1 className="text-3xl font-celeb-light font-medium text-text-primary tracking-wide drop-shadow-sm">My {APP_NAME}</h1>
+                                            <h1 className="text-3xl font-celeb-light font-medium text-text-primary tracking-wide drop-shadow-sm">{t('My {name}', { name: APP_NAME })}</h1>
 
                                             {/* Refresh Button */}
                                             <button
                                                 onClick={handleRefresh}
                                                 disabled={isRefreshing}
                                                 className={`p-2 text-text-secondary hover:text-text-primary rounded-full transition-colors ${isRefreshing ? 'animate-spin text-blue-400' : ''} ${isLight ? 'hover:bg-black/8' : 'hover:bg-white/10'}`}
-                                                title="Refresh State"
+                                                title={t('Refresh State')}
+                                                aria-label={t('Refresh State')}
                                             >
                                                 <RefreshCw size={18} />
                                             </button>
@@ -456,7 +454,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                     </svg>
                                                 )}
                                                 <span className="text-xs font-medium flex-1 transition-colors text-text-secondary">
-                                                    {isDetectable ? "Detectable" : "Undetectable"}
+                                                    {t(isDetectable ? 'Protection off' : 'Protection on')}
                                                  </span>
                                                  <div
                                                      className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${!isDetectable ? 'bg-accent-primary' : 'bg-bg-toggle-switch'}`}
@@ -476,7 +474,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                              : 'bg-emerald-400/10 hover:bg-emerald-400/20 border-emerald-500/20 text-emerald-400'
                                                      }`}
                                                  >
-                                                     <span>What's New in 2.7</span>
+                                                     <span>{t("What's New in 2.7")}</span>
                                                      <ArrowUpRight size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                                                  </button>
                                              )}
@@ -542,7 +540,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-60" />
                                                                 <span className="relative inline-flex rounded-full h-[9px] w-[9px] bg-white" />
                                                             </span>
-                                                            <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] text-[20px] leading-none">Meeting ongoing</span>
+                                                            <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] text-[20px] leading-none">{t('Meeting ongoing')}</span>
                                                         </motion.div>
                                                     ) : (
                                                         <motion.div
@@ -553,8 +551,8 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                             transition={{ duration: 0.22, ease: 'easeOut' }}
                                                             className="flex items-center gap-3"
                                                         >
-                                                            <img src={icon} alt="Logo" className="w-[18px] h-[18px] object-contain brightness-0 invert drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)] opacity-90" />
-                                                            <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] text-[20px] leading-none">Start {APP_NAME}</span>
+                                                            <img src={icon} alt={t('Logo')} className="w-[18px] h-[18px] object-contain brightness-0 invert drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)] opacity-90" />
+                                                            <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] text-[20px] leading-none">{t('Start {name}', { name: APP_NAME })}</span>
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>
@@ -572,7 +570,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                         {/* Iterating Date Groups */}
                                         {sortedGroups.map((label) => (
                                             <section key={label}>
-                                                <h3 className="text-[13px] font-medium text-text-secondary mb-3 pl-1">{label}</h3>
+                                                <h3 className="text-[13px] font-medium text-text-secondary mb-3 pl-1">{formatGroupLabel(label, language, t)}</h3>
                                                 <div className="space-y-1">
                                                     {groupedMeetings[label].map((m) => (
                                                         <motion.div
@@ -593,7 +591,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
 
                                                                 {/* Time Text (Should fade out on hover) */}
                                                                 <span className="text-[13px] text-text-secondary font-medium min-w-[60px] text-right transition-all duration-200 ease-out group-hover:opacity-0 group-hover:translate-x-2 delayed-hover-exit">
-                                                                    {formatTime(m.date)}
+                                                                    {formatTime(m.date, language, t)}
                                                                 </span>
                                                             </div>
 
@@ -601,6 +599,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                             <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 translate-x-4 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-x-0">
                                                                 <button
                                                                     className="p-1.5 text-text-secondary hover:text-text-primary transition-colors"
+                                                                    aria-label={t('Meeting actions')}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setActiveMenuId(activeMenuId === m.id ? null : m.id);
@@ -649,7 +648,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                                                 }}
                                                                             >
                                                                                 <Download size={13} />
-                                                                                Export
+                                                                                {t('Export')}
                                                                             </button>
                                                                             <button
                                                                                 className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors text-left"
@@ -665,7 +664,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                                                 }}
                                                                             >
                                                                                 <Trash2 size={13} />
-                                                                                Delete
+                                                                                {t('Delete')}
                                                                             </button>
                                                                         </div>
                                                                     </motion.div>
@@ -678,7 +677,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                         ))}
 
                                         {meetings.length === 0 && (
-                                            <div className="p-4 text-text-tertiary text-sm">No recent meetings.</div>
+                                            <div className="p-4 text-text-tertiary text-sm">{t('No recent meetings.')}</div>
                                         )}
 
                                     </div>

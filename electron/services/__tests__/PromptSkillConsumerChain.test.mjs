@@ -149,6 +149,7 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
         if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
         if (id === './ipc/speechActions') return require('../../../dist-electron/electron/ipc/speechActions.js');
         if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'temp' } };
+        if (id === './services/mainStrings') return { mainText: english => english };
         if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);
         return {};
       },

@@ -3,6 +3,7 @@ import { imageSupportTarget, knownModelImageSupport } from '../../types/modelIma
 import React, { useState, useEffect, useRef } from 'react';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, ChevronDown, Check, RefreshCw } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 interface FetchedModel {
     id: string;
@@ -47,6 +48,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
     keyPlaceholder,
     keyUrl,
 }) => {
+    const { t } = useI18n();
     const savedConfig = configuration ?? LLM_PRESETS[providerId];
     const [draft, setDraft] = useState<ProviderConfiguration>(savedConfig);
     const unsaved = JSON.stringify(draft) !== JSON.stringify(savedConfig) || !!apiKey.trim();
@@ -106,8 +108,8 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
         <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle">
             <div className="mb-2 flex items-center justify-between">
                 <label className="flex items-center text-xs font-medium text-text-primary uppercase tracking-wide">
-                    {providerName} API Key
-                    {hasStoredKey && <span className="ml-2 text-green-500 normal-case">✓ Saved</span>}
+                    {t('{provider} API Key', { provider: providerName })}
+                    {hasStoredKey && <span className="ml-2 text-green-500 normal-case">✓ {t('Saved')}</span>}
                 </label>
                 <button
                     data-external-url={keyUrl}
@@ -116,9 +118,9 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                         window.electronAPI?.openExternal(keyUrl);
                     }}
                     className="text-xs text-text-tertiary hover:text-text-primary flex items-center gap-1 transition-colors"
-                    title={`Get ${providerName} API Key`}
+                    title={t('Get {provider} API Key', { provider: providerName })}
                 >
-                    <span className="text-[10px] uppercase tracking-wide">Get Key</span>
+                    <span className="text-[10px] uppercase tracking-wide">{t('Get Key')}</span>
                     <ExternalLink size={12} />
                 </button>
             </div>
@@ -138,13 +140,13 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                         : 'bg-bg-input hover:bg-bg-secondary border border-border-subtle text-text-primary disabled:opacity-50'
                         }`}
                 >
-                    {savingStatus ? 'Saving...' : savedStatus ? 'Saved!' : 'Save'}
+                    {t(savingStatus ? 'Saving...' : savedStatus ? 'Saved!' : 'Save')}
                 </button>
                 {hasStoredKey && (
                     <button
                         onClick={onRemoveKey}
                         className="px-2.5 py-2.5 rounded-lg text-xs font-medium text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-all"
-                        title="Remove API Key"
+                        title={t('Remove API Key')} aria-label={t('Remove API Key')}
                     >
                         <Trash2 size={16} strokeWidth={1.5} />
                     </button>
@@ -152,36 +154,36 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>
 
             <div className="space-y-2 mb-3">
-                <label className="block text-xs text-text-secondary">API base URL (empty uses the vendor preset)
-                    <input aria-label={`${providerName} API base URL`} value={draft.baseUrl ?? ''}
+                <label className="block text-xs text-text-secondary">{t('API base URL (empty uses the vendor preset)')}
+                    <input aria-label={t('{provider} API base URL', { provider: providerName })} value={draft.baseUrl ?? ''}
                         onChange={e => setDraft(prev => ({ ...prev, baseUrl: e.target.value, imageSupportConfirmedFor: undefined }))}
                         placeholder={providerId === 'gemini' ? 'https://generativelanguage.googleapis.com' : providerId === 'claude' ? 'https://api.anthropic.com' : 'https://service.example/v1'}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
-                <p className="text-xs text-text-secondary">Re-enter your API key when changing the provider address.</p>
-                {providerId === 'openai' && <label className="block text-xs text-text-secondary">Protocol
-                    <select aria-label="OpenAI protocol" value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], imageSupportConfirmedFor: undefined }))}
+                <p className="text-xs text-text-secondary">{t('Re-enter your API key when changing the provider address.')}</p>
+                {providerId === 'openai' && <label className="block text-xs text-text-secondary">{t('Protocol')}
+                    <select aria-label={t('OpenAI protocol')} value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], imageSupportConfirmedFor: undefined }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
                         <option value="chat-completions">Chat Completions</option><option value="responses">Responses</option>
                     </select>
                 </label>}
-                <label className="block text-xs text-text-secondary">Model ID
-                    <input aria-label={`${providerName} model ID`} value={draft.model}
+                <label className="block text-xs text-text-secondary">{t('Model ID')}
+                    <input aria-label={t('{provider} model ID', { provider: providerName })} value={draft.model}
                         onChange={e => setDraft(prev => ({ ...prev, model: e.target.value, imageSupportConfirmedFor: undefined }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
-                <p className="text-[10px] text-text-secondary">Use Save to activate the complete configuration. Test and model discovery use only the saved target. Custom addresses may receive your data and API key.</p>
+                <p className="text-[10px] text-text-secondary">{t('Use Save to activate the complete configuration. Test and model discovery use only the saved target. Custom addresses may receive your data and API key.')}</p>
                 {(() => {
                     let known: boolean | undefined;
                     try { known = knownModelImageSupport(draft); } catch { return null; }
-                    if (known !== undefined) return <p className="text-[10px] text-text-secondary">Image input: {known ? 'supported' : 'not supported'} by the vendor capability table.</p>;
-                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={`${providerName} model supports images`}
+                    if (known !== undefined) return <p className="text-[10px] text-text-secondary">{t(known ? 'Image input: supported by the vendor capability table.' : 'Image input: not supported by the vendor capability table.')}</p>;
+                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('{provider} model supports images', { provider: providerName })}
                         checked={draft.imageSupportConfirmedFor === imageSupportTarget(draft)}
-                        onChange={e => setDraft(prev => ({ ...prev, imageSupportConfirmedFor: e.target.checked ? imageSupportTarget(prev) : undefined }))} /> This model supports images
-                        <span className="block text-[10px] mt-1">Check the provider model documentation yourself before confirming. Applies only to this model, protocol and endpoint; not other or backup models.</span>
+                        onChange={e => setDraft(prev => ({ ...prev, imageSupportConfirmedFor: e.target.checked ? imageSupportTarget(prev) : undefined }))} /> {t('This model supports images')}
+                        <span className="block text-[10px] mt-1">{t('Check the provider model documentation yourself before confirming. Applies only to this model, protocol and endpoint; not other or backup models.')}</span>
                     </label>;
                 })()}
-                {providerId === 'gemini' && <p className="text-[10px] text-text-secondary">Gemini uses v1alpha for generation and model discovery. Do not include the API version in the base URL.</p>}
+                {providerId === 'gemini' && <p className="text-[10px] text-text-secondary">{t('Gemini uses v1alpha for generation and model discovery. Do not include the API version in the base URL.')}</p>}
             </div>
 
             {/* Action Row: Test Connection + Conditional Dropdown + Fetch Models */}
@@ -193,12 +195,12 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                         testStatus === 'error' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                             'bg-bg-input hover:bg-bg-elevated text-text-primary'
                         }`}
-                    title={testError || "Test Connection"}
+                    title={testError ? t(testError) : t('Test Connection')}
                 >
-                    {testStatus === 'testing' ? <><Loader2 size={12} className="animate-spin" /> Testing...</> :
-                        testStatus === 'success' ? <><CheckCircle size={12} /> Connected</> :
-                            testStatus === 'error' ? <><AlertCircle size={12} /> Error</> :
-                                <>{/* No Icon */} Test Connection</>}
+                    {testStatus === 'testing' ? <><Loader2 size={12} className="animate-spin" /> {t('Testing...')}</> :
+                        testStatus === 'success' ? <><CheckCircle size={12} /> {t('Connected')}</> :
+                            testStatus === 'error' ? <><AlertCircle size={12} /> {t('Error')}</> :
+                                <>{/* No Icon */} {t('Test Connection')}</>}
                 </button>
 
                 {/* Inline Model Dropdown */}
@@ -209,7 +211,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                             className={`w-full bg-bg-input border border-border-subtle rounded-md px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary flex items-center justify-between transition-colors ${fetchedModels.length > 0 ? 'hover:bg-bg-elevated' : 'opacity-80 cursor-default'}`}
                             type="button"
                         >
-                            <span className="truncate pr-2">{selectedOption ? selectedOption.label : (preferredModel || 'Select model')}</span>
+                            <span className="truncate pr-2">{selectedOption ? selectedOption.label : (preferredModel || t('Select model'))}</span>
                             <ChevronDown size={14} className={`text-text-secondary transition-transform ${isDropdownOpen ? 'rotate-180' : ''} ${fetchedModels.length === 0 ? 'opacity-50' : ''}`} />
                         </button>
 
@@ -245,9 +247,9 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                             }`}
                     >
                         {isFetching ? (
-                            <><Loader2 size={12} className="animate-spin" /> Fetching...</>
+                            <><Loader2 size={12} className="animate-spin" /> {t('Fetching...')}</>
                         ) : (
-                            <><RefreshCw size={12} /> Fetch Models</>
+                            <><RefreshCw size={12} /> {t('Fetch Models')}</>
                         )}
                     </button>
                 ) : (
@@ -257,8 +259,8 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>
 
             {/* Error from test or fetch */}
-            {testError && <p className="text-[10px] text-red-400 mt-1.5 mb-2">{testError}</p>}
-            {fetchError && <p className="text-[10px] text-red-400 mt-1.5 mb-2">Model fetch error: {fetchError}</p>}
+            {testError && <p className="text-[10px] text-red-400 mt-1.5 mb-2">{t(testError)}</p>}
+            {fetchError && <p className="text-[10px] text-red-400 mt-1.5 mb-2">{t('Model fetch error:')} {t(fetchError)}</p>}
 
 
         </div>

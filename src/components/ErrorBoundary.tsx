@@ -6,6 +6,7 @@
 
 import React, { Component, ReactNode } from 'react';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
+import { useI18n } from '../i18n';
 
 interface Props {
     children: ReactNode;
@@ -65,9 +66,16 @@ export class ErrorBoundary extends Component<Props, State> {
             return this.props.children;
         }
 
-        const context = this.props.context ?? 'Application';
+        return <ErrorFallback context={this.props.context ?? 'Application'} errorMessage={this.state.errorMessage}
+            onRecover={this.handleReload} onReload={this.handleHardReload} />;
+    }
+}
 
-        return (
+function ErrorFallback({ context, errorMessage, onRecover, onReload }: {
+    context: string; errorMessage: string; onRecover: () => void; onReload: () => void;
+}) {
+    const { t } = useI18n();
+    return (
             <div
                 style={{
                     display: 'flex',
@@ -86,12 +94,12 @@ export class ErrorBoundary extends Component<Props, State> {
             >
                 <AlertTriangle size={36} color="#ff4444" style={{ marginBottom: '4px' }} />
                 <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#fff' }}>
-                    {context} crashed
+                    {t('{context} crashed', { context: t(context) })}
                 </h2>
                 <p style={{ margin: 0, fontSize: '12px', color: '#888', maxWidth: '320px', lineHeight: 1.5 }}>
-                    An unexpected error occurred. Your data is safe — click below to recover.
+                    {t('An unexpected error occurred. Your data is safe — click below to recover.')}
                 </p>
-                {this.state.errorMessage && (
+                {errorMessage && (
                     <code style={{
                         fontSize: '11px',
                         color: '#ff6666',
@@ -104,12 +112,12 @@ export class ErrorBoundary extends Component<Props, State> {
                         whiteSpace: 'nowrap',
                         display: 'block'
                     }}>
-                        {this.state.errorMessage}
+                        {errorMessage}
                     </code>
                 )}
                 <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                     <button
-                        onClick={this.handleReload}
+                        onClick={onRecover}
                         style={{
                             display: 'flex', alignItems: 'center', gap: '6px',
                             padding: '8px 14px', borderRadius: '8px', border: 'none',
@@ -118,10 +126,10 @@ export class ErrorBoundary extends Component<Props, State> {
                         }}
                     >
                         <RefreshCw size={13} />
-                        Try to recover
+                        {t('Try to recover')}
                     </button>
                     <button
-                        onClick={this.handleHardReload}
+                        onClick={onReload}
                         style={{
                             display: 'flex', alignItems: 'center', gap: '6px',
                             padding: '8px 14px', borderRadius: '8px', border: 'none',
@@ -130,12 +138,11 @@ export class ErrorBoundary extends Component<Props, State> {
                         }}
                     >
                         <RefreshCw size={13} />
-                        Reload UI
+                        {t('Reload UI')}
                     </button>
                 </div>
             </div>
         );
-    }
 }
 
 export default ErrorBoundary;

@@ -58,6 +58,145 @@ test('AG60a mounted Skills settings switch language without resetting controls o
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 
+test('AG60 real launcher, overlay and menu share a saved interface language without losing drafts', async () => {
+  const sandbox = makeSandbox('ag60-ui-language');
+  const lang = page => page.evaluate(() => document.documentElement.lang);
+  const menuLabels = app => app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.items.map(item => item.label) ?? []);
+  let app, userDataPath;
+  try {
+    ({ app, userDataPath } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    const launcher = await windowWithQuery(app, 'window=launcher', 30_000);
+    const overlay = await windowWithQuery(app, 'window=overlay', 30_000);
+    // Skip the existing first-run screens so the launcher home and Settings are reachable.
+    await launcher.evaluate(() => { localStorage.setItem('natively_seen_startup_v1', 'true'); localStorage.setItem('natively_perms_shown_v1', '1'); });
+    await launcher.reload();
+    await launcher.getByRole('button', { name: 'Settings', exact: true }).first().click();
+    await launcher.getByRole('heading', { name: 'Interface Language', exact: true }).waitFor();
+    assert.equal(await lang(launcher), 'en');
+    assert.ok((await menuLabels(app)).includes('View'));
+
+    // A change saved from another window reaches the launcher without remounting its draft.
+    await launcher.getByRole('button', { name: 'Context & Skills', exact: true }).click();
+    const draft = launcher.locator('textarea').first();
+    await draft.waitFor();
+    await draft.fill('UNSAVED AG60 DRAFT');
+    await draft.evaluate(element => { element.ag60Marker = true; });
+    assert.deepEqual(await overlay.evaluate(() => window.electronAPI.setUiLanguage('zh-CN')), { ok: true, language: 'zh-CN' });
+    await launcher.getByRole('button', { name: '上下文与技能', exact: true }).waitFor();
+    assert.equal(await draft.inputValue(), 'UNSAVED AG60 DRAFT');
+    assert.equal(await draft.evaluate(element => element.ag60Marker), true);
+    assert.equal(await lang(launcher), 'zh-CN');
+    await overlay.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    await overlay.waitForFunction(() => document.body.textContent.includes('该怎么回答？'));
+    assert.ok((await menuLabels(app)).includes('视图'));
+
+    // The settings control saves through main; invalid values from a renderer change nothing.
+    await launcher.getByRole('button', { name: '通用', exact: true }).click();
+    await launcher.getByRole('radio', { name: 'English', exact: true }).click();
+    await launcher.getByRole('heading', { name: 'Interface Language', exact: true }).waitFor();
+    await overlay.waitForFunction(() => document.documentElement.lang === 'en');
+    assert.ok((await menuLabels(app)).includes('View'));
+    assert.deepEqual(await overlay.evaluate(() => window.electronAPI.setUiLanguage('fr')), { ok: false, message: 'Unsupported interface language.' });
+    await launcher.getByRole('radio', { name: '简体中文', exact: true }).click();
+    await launcher.getByRole('heading', { name: '界面语言', exact: true }).waitFor();
+    assert.equal(await launcher.getByRole('radio', { name: '简体中文', exact: true }).getAttribute('aria-checked'), 'true');
+    await overlay.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    assert.equal(JSON.parse(fs.readFileSync(path.join(userDataPath, 'settings.json'), 'utf8')).uiLanguage, 'zh-CN');
+
+    // A failed write reports an error and leaves every window and the saved file unchanged.
+    const saved = fs.readFileSync(path.join(userDataPath, 'settings.json'), 'utf8');
+    fs.chmodSync(userDataPath, 0o500);
+    try {
+      await launcher.getByRole('radio', { name: 'English', exact: true }).click();
+      await launcher.getByRole('alert').filter({ hasText: '无法保存界面语言' }).waitFor();
+    } finally { fs.chmodSync(userDataPath, 0o700); }
+    assert.equal(await lang(launcher), 'zh-CN');
+    assert.equal(await lang(overlay), 'zh-CN');
+    assert.equal(await launcher.getByRole('radio', { name: '简体中文', exact: true }).getAttribute('aria-checked'), 'true');
+    assert.equal(fs.readFileSync(path.join(userDataPath, 'settings.json'), 'utf8'), saved);
+    assert.deepEqual(fs.readdirSync(userDataPath).filter(name => name.includes('.language.')), []);
+    await app.close(); app = undefined;
+
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    const restarted = await windowWithQuery(app, 'window=launcher', 30_000);
+    await restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    await restarted.getByRole('button', { name: '设置', exact: true }).first().waitFor();
+    assert.ok((await menuLabels(app)).includes('视图'));
+  } finally {
+    if (userDataPath) fs.chmodSync(userDataPath, 0o700);
+    if (app) await app.close();
+  }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
+test('AG60 mounted help, meeting history and a visible error fallback switch language while preserving content', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
+    import MeetingDetails from './src/components/MeetingDetails';
+    import { HelpSettings } from './src/components/settings/HelpSettings';
+    import ErrorBoundary from './src/components/ErrorBoundary';
+    import { startUiLanguageSync } from './src/i18n';
+    let broadcast; window.requests = 0;
+    window.electronAPI = { getUiLanguage: async () => 'en', onUiLanguageChanged: callback => { broadcast = callback; return () => {}; },
+      getKeybinds: async () => [], onKeybindsUpdate: () => () => {},
+      updateMeetingTitle: async () => { window.requests++; return true; } };
+    startUiLanguageSync(); window.changeLanguage = language => broadcast(language);
+    const meeting = { id: 'synthetic-ag60', title: 'Untranslated meeting title', date: '2026-10-13T10:00:00Z', duration: '2 min', summary: '',
+      transcript: [{ speaker: 'user', text: 'Untranslated user speech', timestamp: 1 }, { speaker: 'interviewer', text: 'Untranslated remote speech', timestamp: 2 }],
+      usage: [{ type: 'assist', timestamp: 3, question: 'Untranslated user question', answer: 'Untranslated generated answer',
+        generation: { requestId: 'synthetic-history', provider: 'openai', model: 'opaque-model-id', status: 'completed', partial: false, attempts: 1 } }] };
+    const root = createRoot(document.getElementById('root'));
+    const Crash = () => { throw Error('Untranslated diagnostic'); };
+    window.show = surface => flushSync(() => root.render(surface === 'help' ? React.createElement(HelpSettings)
+      : surface === 'error' ? React.createElement(ErrorBoundary, { context: 'Launcher' }, React.createElement(Crash))
+      : React.createElement(MeetingDetails, { meeting, onBack() {}, onOpenSettings() {} })));
+    window.show('history');
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"Margin"' } });
+  const sandbox = makeSandbox('ag60-retained-surfaces'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => {
+      const window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
+      await window.loadURL('data:text/html,<div id="root"></div>');
+    });
+    const page = await opened;
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    await page.getByRole('button', { name: 'Transcript', exact: true }).waitFor();
+    await page.evaluate(() => window.changeLanguage('zh-CN'));
+    await page.getByRole('button', { name: '转写', exact: true }).waitFor();
+    for (const text of ['Untranslated meeting title', 'Untranslated user speech', 'Untranslated remote speech']) assert.ok((await page.locator('body').innerText()).includes(text));
+    await page.getByRole('button', { name: '使用记录', exact: true }).click();
+    for (const text of ['Untranslated user question', 'Untranslated generated answer', 'opaque-model-id']) assert.ok((await page.locator('body').innerText()).includes(text));
+    await page.evaluate(() => window.changeLanguage('en'));
+    await page.getByRole('button', { name: 'Usage', exact: true }).waitFor();
+    assert.ok((await page.locator('body').innerText()).includes('Untranslated generated answer'));
+    assert.equal(await page.evaluate(() => window.requests), 0);
+
+    await page.evaluate(() => { window.changeLanguage('zh-CN'); window.show('help'); });
+    await page.getByRole('heading', { name: '帮助与设置指南', exact: true }).waitFor();
+    for (const title of ['1. 应用权限设置', '2. 语音转写服务商设置（麦克风）', '3. AI 服务商与提示词引擎', '4. Margin 界面操作', '5. 会议记录', '6. 全局搜索与快捷键', '7. 其他', '8. 隐身与窗口控制']) {
+      await page.getByRole('button', { name: title, exact: true }).click();
+    }
+    const help = await page.locator('body').innerText();
+    for (const text of ['支持五家语音识别服务商', '连接测试会向所选语音服务商发送合成静音', '新请求使用该模型', '其转写及会中的问答保存在本机', '真实屏幕共享中的不可见性尚未验证', '系统设计面试', '通过 LPU 进行 Whisper 转写', '为什么购物车会话', '我们需要有序集合']) assert.ok(help.includes(text), text);
+    for (const text of ['When an active session concludes', 'Fast Response applies', 'The process completely disguises', '7+ providers']) assert.ok(!help.includes(text), text);
+
+    await page.evaluate(() => { window.changeLanguage('en'); window.show('error'); });
+    await page.getByRole('button', { name: 'Try to recover', exact: true }).waitFor();
+    await page.evaluate(() => window.changeLanguage('zh-CN'));
+    await page.getByRole('button', { name: '尝试恢复', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '启动器 已崩溃', exact: true }).waitFor();
+    assert.equal(await page.locator('code').innerText(), 'Untranslated diagnostic');
+    await page.evaluate(() => window.changeLanguage('en'));
+    await page.getByRole('button', { name: 'Reload UI', exact: true }).waitFor();
+    assert.equal(await page.locator('code').innerText(), 'Untranslated diagnostic');
+    await page.close();
+  } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const shared = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/src/types/codexSource.ts`, 'utf8')), { module: shared, exports: shared.exports });

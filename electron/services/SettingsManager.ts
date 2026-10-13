@@ -3,6 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
 import { CODEX_RISK_VERSION, DEFAULT_CODEX_SOURCE_CONFIG, validateCodexSourceConfig, type CodexSourceConfig, type CodexSourceUpdate } from '../../src/types/codexSource';
+import type { UiLanguage } from '../../src/types/uiLanguage';
+
+// Kept local so test harnesses that compile this file alone need no extra module.
+const isUiLanguage = (value: unknown): value is UiLanguage => value === 'en' || value === 'zh-CN';
 
 export interface AppSettings {
     // Only boot-critical or non-encrypted settings should live here.
@@ -35,6 +39,7 @@ export interface AppSettings {
     // When true (default) and the active mode is a technical / coding interview, prefer
     // direct vision LLM over structured-extract-then-answer for lowest latency.
     technicalInterviewVisionFirst?: boolean;
+    uiLanguage?: UiLanguage;
 }
 
 export class SettingsManager {
@@ -103,6 +108,21 @@ export class SettingsManager {
 
     public getTechnicalInterviewVisionFirst(): boolean {
         return this.settings.technicalInterviewVisionFirst !== false;
+    }
+
+    public getUiLanguage(): UiLanguage {
+        return isUiLanguage(this.settings.uiLanguage) ? this.settings.uiLanguage : 'en';
+    }
+
+    // Unlike set(), a failed write throws and leaves the previous language in memory and on disk.
+    public saveUiLanguage(language: UiLanguage): UiLanguage {
+        if (!isUiLanguage(language)) throw new Error('Unsupported interface language.');
+        const candidate = { ...this.settings, uiLanguage: language };
+        const temp = this.settingsPath + `.language.${randomUUID()}.tmp`;
+        try { fs.writeFileSync(temp, JSON.stringify(candidate, null, 2), { flag: 'wx', mode: 0o600 }); fs.renameSync(temp, this.settingsPath); }
+        catch (error: any) { if (error?.code !== 'EEXIST') { try { fs.unlinkSync(temp); } catch {} } throw new Error('The interface language could not be saved.'); }
+        this.settings = candidate;
+        return language;
     }
 
     private loadSettings(): void {

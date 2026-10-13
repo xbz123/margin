@@ -3,6 +3,7 @@ import { app, BrowserWindow, Menu, screen } from 'electron';
 import path from 'node:path';
 import { AppState } from './main';
 import { KeybindManager } from './services/KeybindManager';
+import { mainText } from './services/mainStrings';
 
 const isEnvDev = process.env.NODE_ENV === 'development';
 const isPackaged = app.isPackaged;
@@ -851,7 +852,7 @@ export class WindowHelper {
   private showContextMenu(win: BrowserWindow, point: { x: number; y: number }): void {
     const template: Electron.MenuItemConstructorOptions[] = [
       {
-        label: 'Developer Console',
+        label: mainText('Developer Console'),
         click: () => {
           win.webContents.toggleDevTools();
         },

@@ -8,6 +8,7 @@ import ReactMarkdown from './SafeMarkdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useI18n } from '../i18n';
 
 const formatTime = (ms: number) => {
     const date = new Date(ms);
@@ -60,6 +61,7 @@ interface MeetingDetailsProps {
 }
 
 const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting }) => {
+    const { t, language } = useI18n();
     const isLight = useResolvedTheme() === 'light';
     // We need local state for the meeting object to reflect optimistic updates
     const [meeting, setMeeting] = useState<Meeting>(initialMeeting);
@@ -78,7 +80,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
         let textToCopy = '';
 
         if (activeTab === 'transcript' && meeting.transcript) {
-            textToCopy = meeting.transcript.map(t => `[${formatTime(t.timestamp)}] ${t.speaker === 'user' ? 'Me' : 'Them'}: ${t.text}`).join('\n');
+            textToCopy = meeting.transcript.map(entry => `[${formatTime(entry.timestamp)}] ${t(entry.speaker === 'user' ? 'Me' : 'Them')}: ${entry.text}`).join('\n');
         } else if (activeTab === 'usage' && meeting.usage) {
             textToCopy = meeting.usage.map(u => `Q: ${u.question || ''}\nA: ${u.answer || ''}`).join('\n\n');
         }
@@ -170,7 +172,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                         <div className="w-full pr-4">
                             {/* Date formatting could be improved to use meeting.date if it's an ISO string */}
                             <div className="text-xs text-text-tertiary font-medium mb-1">
-                                {new Date(meeting.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                                {new Date(meeting.date).toLocaleDateString(language === 'zh-CN' ? 'zh-CN' : 'en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                             </div>
 
                             {/* Editable Title */}
@@ -182,7 +184,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                 multiline={false}
                             />
                             {saveError && (
-                                <div role="alert" className="mt-1 text-xs text-red-500">{saveError.message}</div>
+                                <div role="alert" className="mt-1 text-xs text-red-500">{t(saveError.message)}</div>
                             )}
                         </div>
 
@@ -211,7 +213,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                             transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                         />
                                     )}
-                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                    {t(tab === 'transcript' ? 'Transcript' : 'Usage')}
                                 </button>
                             ))}
                         </div>
@@ -222,7 +224,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                             className="flex items-center gap-2 text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
                         >
                             {isCopied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                            {isCopied ? 'Copied' : activeTab === 'transcript' ? 'Copy full transcript' : 'Copy usage'}
+                            {t(isCopied ? 'Copied' : activeTab === 'transcript' ? 'Copy full transcript' : 'Copy usage')}
                         </button>
                     </div>
 
@@ -239,14 +241,14 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                         }) || [];
 
                                         if (filteredTranscript.length === 0) {
-                                            return <p className="text-text-tertiary">No transcript available.</p>;
+                                            return <p className="text-text-tertiary">{t('No transcript available.')}</p>;
                                         }
 
                                         return filteredTranscript.map((entry, i) => (
                                             <div key={i} className="group">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="text-xs font-semibold text-text-secondary">
-                                                        {entry.speaker === 'user' ? 'Me' : 'Them'}
+                                                        {t(entry.speaker === 'user' ? 'Me' : 'Them')}
                                                     </span>
                                                     <span className="text-xs text-text-tertiary font-mono">{entry.timestamp ? formatTime(entry.timestamp) : '0:00'}</span>
                                                 </div>
@@ -274,7 +276,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                         {/* AI Answer */}
                                         {interaction.generation && (
                                             <div className="text-xs text-text-tertiary" data-generation-status={interaction.generation.status}>
-                                                {interaction.generation.provider} · {interaction.generation.model} · {interaction.generation.partial ? 'Incomplete · ' : ''}{interaction.generation.timeout ? `timeout:${interaction.generation.timeout}` : interaction.generation.status}
+                                                {interaction.generation.provider} · {interaction.generation.model} · {interaction.generation.partial ? `${t('Incomplete')} · ` : ''}{interaction.generation.timeout ? `timeout:${interaction.generation.timeout}` : interaction.generation.status}
                                             </div>
                                         )}
                                         {interaction.answer && (
@@ -348,7 +350,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                         )}
                                     </div>
                                 ))}
-                                {!meeting.usage?.length && <p className="text-text-tertiary">No usage history.</p>}
+                                {!meeting.usage?.length && <p className="text-text-tertiary">{t('No usage history.')}</p>}
                             </motion.section>
                         )}
                     </div>

@@ -2,6 +2,7 @@ import './logging';
 import React from "react"
 import ReactDOM from "react-dom/client"
 import App from "./App"
+import { startUiLanguageSync } from "./i18n"
 import "./index.css"
 
 const THEME_CACHE_KEY = 'natively_resolved_theme';
@@ -30,6 +31,9 @@ if (window.electronAPI?.getThemeMode) {
     localStorage.setItem(THEME_CACHE_KEY, resolved);
   });
 }
+
+// Interface language: saved by main, shared by every window.
+startUiLanguageSync();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

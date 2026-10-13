@@ -4,7 +4,7 @@ import { LocalContextStore, LocalContextError } from '../services/LocalContextSt
 import type { LocalContextResult } from '../../src/types/localContext';
 
 export function registerLocalContextHandlers(handle: (channel: string, callback: (event: any, ...args: any[]) => Promise<LocalContextResult>) => void,
-    changed: () => void) {
+    changed: () => void, text: (english: string) => string = english => english) {
     const store = () => new LocalContextStore(path.join(app.getPath('userData'), 'local-context.json'));
     const operation = (action: (event: any, value: unknown) => unknown) => async (event: any, value?: unknown): Promise<LocalContextResult> => {
         try {
@@ -19,7 +19,7 @@ export function registerLocalContextHandlers(handle: (channel: string, callback:
     handle('local-context:clear', operation(() => { store().clear(); changed(); }));
     handle('local-context:add', operation(async event => {
         const selected = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender)!, {
-            properties: ['openFile', 'multiSelections'], filters: [{ name: 'Markdown / Text', extensions: ['md', 'markdown', 'txt'] }],
+            properties: ['openFile', 'multiSelections'], filters: [{ name: text('Markdown / Text'), extensions: ['md', 'markdown', 'txt'] }],
         }) as unknown as Electron.OpenDialogReturnValue;
         if (!selected.canceled) { store().addFiles(selected.filePaths); changed(); }
     }));

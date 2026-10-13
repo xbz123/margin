@@ -10,6 +10,7 @@ import {
 import { SiOpenai, SiGoogle, SiAnthropic } from 'react-icons/si';
 import { useShortcuts } from '../../hooks/useShortcuts';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme';
+import { useI18n } from '../../i18n';
 import { isMac, getModifierSymbol } from '../../utils/platformUtils';
 import nativelyIcon from '../icon.png';
 
@@ -34,7 +35,15 @@ const colorMap: Record<string, string> = {
     emerald: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25',
 };
 
+// Fills {key} slots of a translated sentence with inline elements such as key chips and emphasis.
+const withParts = (template: string, parts: Record<string, React.ReactNode>) =>
+    template.split(/(\{\w+\})/).map((piece, i) => {
+        const key = piece.match(/^\{(\w+)\}$/)?.[1];
+        return key && Object.hasOwn(parts, key) ? <React.Fragment key={i}>{parts[key]}</React.Fragment> : piece;
+    });
+
 const MockAppInterface = () => {
+    const { t } = useI18n();
     const [activeBtn, setActiveBtn] = useState(0);
     const isLight = useResolvedTheme() === 'light';
 
@@ -61,7 +70,7 @@ const MockAppInterface = () => {
                         {/* Center Segment */}
                         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-item-surface text-text-primary text-[12px] font-medium border border-border-muted">
                             <ChevronUp className="w-3.5 h-3.5 opacity-70" />
-                            <span className="tracking-wide opacity-80">Hide</span>
+                            <span className="tracking-wide opacity-80">{t('Hide')}</span>
                         </div>
                         {/* Stop Button */}
                         <div className="w-8 h-8 rounded-full flex items-center justify-center bg-bg-item-active text-text-primary border border-border-muted">
@@ -80,7 +89,7 @@ const MockAppInterface = () => {
                             style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}
                         >
                             <span className="text-text-secondary inline-flex items-center text-[13px] italic leading-7 opacity-60">
-                                ...and I'd also consider a distributed cache layer for horizontal scaling
+                                {t("...and I'd also consider a distributed cache layer for horizontal scaling")}
                                 <span className="inline-flex items-center ml-2">
                                     <span className="w-1 h-1 bg-green-500/60 rounded-full animate-pulse" />
                                 </span>
@@ -93,15 +102,15 @@ const MockAppInterface = () => {
                         <div className="flex justify-start">
                             <div className="max-w-[85%] px-4 py-3 text-[14px] leading-relaxed font-normal text-text-primary">
                                 <div className="flex items-center gap-1.5 mb-1 text-[10px] font-medium uppercase tracking-wider text-text-secondary opacity-70">
-                                    Interviewer
+                                    {t('Interviewer')}
                                 </div>
-                                <span className="text-text-secondary italic">So how would you optimize the current algorithm?</span>
+                                <span className="text-text-secondary italic">{t('So how would you optimize the current algorithm?')}</span>
                             </div>
                         </div>
                         <div className="flex justify-end">
                             <div className="max-w-[72.25%] px-[13.6px] py-[10.2px] text-[14px] leading-relaxed whitespace-pre-wrap bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded-[20px] rounded-tr-[4px] shadow-sm font-medium">
-                                <span className="font-semibold text-emerald-500 block mb-1 text-[12px]">🎯 Answer</span>
-                                A good approach would be to use a hash map to cache intermediate results and reduce time complexity to O(N).
+                                <span className="font-semibold text-emerald-500 block mb-1 text-[12px]">🎯 {t('Answer')}</span>
+                                {t('A good approach would be to use a hash map to cache intermediate results and reduce time complexity to O(N).')}
                             </div>
                         </div>
                     </div>
@@ -113,7 +122,7 @@ const MockAppInterface = () => {
                             const isActive = activeBtn === idx;
                             return (
                                 <button key={idx} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all duration-300 whitespace-nowrap shrink-0 ${isActive ? colorMap[btn.color] : 'bg-bg-item-surface text-text-primary border-border-subtle'}`}>
-                                    <Icon className="w-3 h-3 opacity-70" /> {btn.label}
+                                    <Icon className="w-3 h-3 opacity-70" /> {t(btn.label)}
                                 </button>
                             );
                         })}
@@ -124,7 +133,7 @@ const MockAppInterface = () => {
                         <div className="relative">
                             <div className="w-full border border-border-subtle rounded-xl pl-3 pr-10 py-2.5 text-[13px] leading-relaxed bg-bg-input shadow-inner flex items-center h-[46px]">
                                 <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none text-[13px] text-text-secondary opacity-60">
-                                    <span className="hidden sm:inline">Ask anything on screen or conversation, or</span>
+                                    <span className="hidden sm:inline">{t('Ask anything on screen or conversation, or')}</span>
                                     <div className="flex items-center gap-1 opacity-80 sm:ml-0.5">
                                         <kbd className="px-1.5 py-0.5 rounded border text-[10px] font-sans min-w-[20px] text-center bg-bg-item-surface border-border-subtle text-text-primary shadow-sm">{getModifierSymbol('cmd')}</kbd>
                                         <span className="text-[10px]">+</span>
@@ -132,7 +141,7 @@ const MockAppInterface = () => {
                                         <span className="text-[10px]">+</span>
                                         <kbd className="px-1.5 py-0.5 rounded border text-[10px] font-sans min-w-[20px] text-center bg-bg-item-surface border-border-subtle text-text-primary shadow-sm">H</kbd>
                                     </div>
-                                    <span className="hidden sm:inline">for selective screenshot</span>
+                                    <span className="hidden sm:inline">{t('for selective screenshot')}</span>
                                 </div>
                             </div>
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-20 text-text-primary">
@@ -167,6 +176,7 @@ const MockAppInterface = () => {
 };
 
 const MockMeetingInterfaceAnim = () => {
+    const { t } = useI18n();
     const [tab, setTab] = useState('transcript');
 
     useEffect(() => {
@@ -181,21 +191,21 @@ const MockMeetingInterfaceAnim = () => {
 
             {/* Header */}
             <div className="px-6 pt-5 pb-0 shrink-0">
-                <div className="text-xs text-text-tertiary font-medium mb-0.5">Today · 47 min</div>
-                <h1 className="text-xl font-bold text-text-primary tracking-tight">System Design Interview</h1>
+                <div className="text-xs text-text-tertiary font-medium mb-0.5">{t('Today · {minutes} min', { minutes: 47 })}</div>
+                <h1 className="text-xl font-bold text-text-primary tracking-tight">{t('System Design Interview')}</h1>
             </div>
 
             {/* Tabs row */}
             <div className="flex items-center justify-between px-6 pt-4 pb-3 shrink-0">
                 <div className="p-1 rounded-xl inline-flex items-center gap-0.5 bg-bg-input border border-border-subtle">
-                    {['transcript', 'usage'].map((t) => (
-                        <button key={t} className={`relative px-3 py-1 text-[12px] font-medium rounded-lg z-10 transition-colors ${tab === t ? 'text-text-primary bg-bg-elevated shadow-sm border border-border-subtle' : 'text-text-tertiary'}`}>
-                            {t.charAt(0).toUpperCase() + t.slice(1)}
+                    {['transcript', 'usage'].map((name) => (
+                        <button key={name} className={`relative px-3 py-1 text-[12px] font-medium rounded-lg z-10 transition-colors ${tab === name ? 'text-text-primary bg-bg-elevated shadow-sm border border-border-subtle' : 'text-text-tertiary'}`}>
+                            {t(name === 'transcript' ? 'Transcript' : 'Usage')}
                         </button>
                     ))}
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-medium text-text-secondary opacity-70">
-                    <Copy size={12} /> Copy full {tab}
+                    <Copy size={12} /> {t(tab === 'transcript' ? 'Copy full transcript' : 'Copy usage')}
                 </div>
             </div>
 
@@ -211,10 +221,10 @@ const MockMeetingInterfaceAnim = () => {
                             ].map((entry, i) => (
                                 <div key={i}>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xs font-semibold text-text-secondary">{entry.speaker}</span>
+                                        <span className="text-xs font-semibold text-text-secondary">{t(entry.speaker)}</span>
                                         <span className="text-xs text-text-tertiary font-mono">{entry.time}</span>
                                     </div>
-                                    <p className="text-text-secondary text-sm leading-relaxed">{entry.text}</p>
+                                    <p className="text-text-secondary text-sm leading-relaxed">{t(entry.text)}</p>
                                 </div>
                             ))}
                         </motion.div>
@@ -223,7 +233,7 @@ const MockMeetingInterfaceAnim = () => {
                         <motion.div key="usage" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-4">
                             <div className="flex justify-end pt-2">
                                 <div className="bg-accent-primary text-white px-4 py-2 rounded-2xl rounded-tr-sm max-w-[75%] text-xs leading-relaxed shadow-sm">
-                                    Could you elaborate on the Redis rate limiting?
+                                    {t('Could you elaborate on the Redis rate limiting?')}
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
@@ -231,8 +241,8 @@ const MockMeetingInterfaceAnim = () => {
                                     <img src={nativelyIcon} alt="AI" className="w-3 h-3 opacity-50 object-contain force-black-icon" />
                                 </div>
                                 <div>
-                                    <div className="text-[10px] text-text-tertiary mb-1 font-medium">10:35 AM</div>
-                                    <p className="text-xs text-text-secondary leading-relaxed">You mentioned Redis Sorted Sets for the sliding rate window — efficient because it auto-expires stale records while keeping operations strictly O(log N).</p>
+                                    <div className="text-[10px] text-text-tertiary mb-1 font-medium">{t('10:35 AM')}</div>
+                                    <p className="text-xs text-text-secondary leading-relaxed">{t('You mentioned Redis Sorted Sets for the sliding rate window — efficient because it auto-expires stale records while keeping operations strictly O(log N).')}</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -243,7 +253,7 @@ const MockMeetingInterfaceAnim = () => {
             {/* Floating ask bar */}
             <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-center">
                 <div className="w-full max-w-[440px] flex items-center relative">
-                    <div className="w-full pl-4 pr-11 py-2.5 bg-bg-item-surface shadow-sm border border-border-subtle rounded-full text-xs text-text-tertiary/70">Ask about this meeting...</div>
+                    <div className="w-full pl-4 pr-11 py-2.5 bg-bg-item-surface shadow-sm border border-border-subtle rounded-full text-xs text-text-tertiary/70">{t('Ask about this meeting...')}</div>
                     <div className="absolute right-2 p-1.5 rounded-full bg-bg-item-active text-text-primary border border-border-subtle shadow-sm">
                         <ArrowUp size={13} className="rotate-45" />
                     </div>
@@ -254,6 +264,7 @@ const MockMeetingInterfaceAnim = () => {
 };
 
 const MockSearchPillAnim = () => {
+    const { t } = useI18n();
     const isLight = useResolvedTheme() === 'light';
     return (
         <div className="flex justify-center flex-col items-center py-10 rounded-[26px] border border-border-subtle relative overflow-hidden h-[340px] bg-bg-card">
@@ -269,7 +280,7 @@ const MockSearchPillAnim = () => {
                         <Search size={14} className="text-text-tertiary" />
                     </div>
                     <div className="w-full bg-transparent pl-9 pr-4 py-2.5 text-[13px] text-text-primary outline-none flex items-center h-[38px]">
-                        <span className="opacity-90">System</span><motion.span animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-[1.5px] h-3.5 bg-blue-500 ml-[2px] inline-block" />
+                        <span className="opacity-90">{t('System')}</span><motion.span animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="w-[1.5px] h-3.5 bg-blue-500 ml-[2px] inline-block" />
                     </div>
                 </div>
 
@@ -279,7 +290,7 @@ const MockSearchPillAnim = () => {
                         {/* Explore Section */}
                         <div className="px-3 py-1">
                             <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1">
-                                Explore
+                                {t('Explore')}
                             </div>
 
                             <div className="w-full flex items-center gap-3 px-2 py-1.5 rounded-lg text-left bg-bg-item-active transition-colors">
@@ -287,7 +298,7 @@ const MockSearchPillAnim = () => {
                                     <Sparkles size={12} className="text-white" />
                                 </div>
                                 <span className="text-[13px] text-text-primary truncate">
-                                    System
+                                    {t('System')}
                                 </span>
                             </div>
 
@@ -296,7 +307,7 @@ const MockSearchPillAnim = () => {
                                     <Search size={12} className="text-text-secondary" />
                                 </div>
                                 <span className="text-[13px] text-text-secondary">
-                                    Search for <span className="text-text-primary">"System"</span>
+                                    {t('Search for')} <span className="text-text-primary">"{t('System')}"</span>
                                 </span>
                             </div>
                         </div>
@@ -304,7 +315,7 @@ const MockSearchPillAnim = () => {
                         {/* Sessions Section */}
                         <div className="px-3 py-1 mt-1">
                             <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1">
-                                Sessions
+                                {t('Sessions')}
                             </div>
 
                             <div className="w-full flex items-center gap-3 px-2 py-1.5 rounded-lg text-left hover:bg-bg-item-hover transition-colors">
@@ -313,10 +324,10 @@ const MockSearchPillAnim = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="text-[13px] text-text-primary truncate">
-                                        System Design Interview
+                                        {t('System Design Interview')}
                                     </div>
                                     <div className="text-[11px] text-text-tertiary">
-                                        Jan 12
+                                        {t('Jan 12')}
                                     </div>
                                 </div>
                             </div>
@@ -327,10 +338,10 @@ const MockSearchPillAnim = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="text-[13px] text-text-primary truncate">
-                                        System Architecture Sync
+                                        {t('System Architecture Sync')}
                                     </div>
                                     <div className="text-[11px] text-text-tertiary">
-                                        Jan 08
+                                        {t('Jan 08')}
                                     </div>
                                 </div>
                             </div>
@@ -343,9 +354,10 @@ const MockSearchPillAnim = () => {
 };
 
 const MockPermissionsAnim = () => {
+    const { t } = useI18n();
     const [toggled, setToggled] = useState(false);
     useEffect(() => {
-        const i = setInterval(() => setToggled(t => !t), 2500);
+        const i = setInterval(() => setToggled(on => !on), 2500);
         return () => clearInterval(i);
     }, []);
 
@@ -356,7 +368,7 @@ const MockPermissionsAnim = () => {
                     <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center">
                         <Monitor className="w-4 h-4" />
                     </div>
-                    <div className="font-semibold text-sm text-text-primary">Screen Recording</div>
+                    <div className="font-semibold text-sm text-text-primary">{t('Screen Recording')}</div>
                 </div>
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -379,14 +391,15 @@ const MockPermissionsAnim = () => {
             </div>
             <div className="text-xs text-text-secondary text-center max-w-[280px]">
                 {isMac
-                    ? `${APP_NAME} requires Accessibility and Screen Recording permissions to analyze screen context.`
-                    : `${APP_NAME} will ask for microphone access the first time you start a meeting.`}
+                    ? t('{name} requires Accessibility and Screen Recording permissions to analyze screen context.', { name: APP_NAME })
+                    : t('{name} will ask for microphone access the first time you start a meeting.', { name: APP_NAME })}
             </div>
         </div>
     );
 };
 
 const MockPillControlsAnim = () => {
+    const { t } = useI18n();
     const [windowShowing, setWindowShowing] = useState(true);
 
     useEffect(() => {
@@ -396,12 +409,12 @@ const MockPillControlsAnim = () => {
 
     return (
         <div className="mt-4 space-y-2.5">
-            <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider px-1 mb-3">Pill Controls</div>
+            <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider px-1 mb-3">{t('Pill Controls')}</div>
 
             {/* Logo → Launcher */}
             <div className="flex items-center gap-3 p-3 bg-bg-elevated border border-border-subtle rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-bg-item-active flex items-center justify-center border border-border-muted shrink-0 shadow-sm">
-                    <img src={nativelyIcon} alt="Logo" className="w-[18px] h-[18px] object-contain force-black-icon opacity-90" />
+                    <img src={nativelyIcon} alt={t('Logo')} className="w-[18px] h-[18px] object-contain force-black-icon opacity-90" />
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
                 <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -414,9 +427,9 @@ const MockPillControlsAnim = () => {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
                             <span className="relative inline-flex rounded-full h-[7px] w-[7px] bg-emerald-400" />
                         </span>
-                        <span className="text-[11px] font-medium text-emerald-500">Meeting ongoing</span>
+                        <span className="text-[11px] font-medium text-emerald-500">{t('Meeting ongoing')}</span>
                     </motion.div>
-                    <span className="text-[11px] text-text-secondary leading-snug">— clicking this brings you right back</span>
+                    <span className="text-[11px] text-text-secondary leading-snug">{t('— clicking this brings you right back')}</span>
                 </div>
             </div>
 
@@ -426,7 +439,7 @@ const MockPillControlsAnim = () => {
                     <motion.div animate={{ rotate: windowShowing ? 0 : 180 }} transition={{ duration: 0.35, ease: 'easeInOut' }}>
                         <ChevronUp className="w-3 h-3 text-text-secondary" />
                     </motion.div>
-                    <span className="text-[11px] text-text-secondary font-medium">{windowShowing ? 'Hide' : 'Show'}</span>
+                    <span className="text-[11px] text-text-secondary font-medium">{t(windowShowing ? 'Hide' : 'Show')}</span>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-text-tertiary shrink-0" />
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -446,7 +459,7 @@ const MockPillControlsAnim = () => {
                             <EyeOff className="w-3.5 h-3.5 text-text-tertiary" />
                         </motion.div>
                     </div>
-                    <span className="text-[11px] text-text-secondary leading-snug">Toggles entire window — keeps you <strong className="text-text-primary">purely stealth</strong></span>
+                    <span className="text-[11px] text-text-secondary leading-snug">{t('Toggles entire window — keeps you')} <strong className="text-text-primary">{t('purely stealth')}</strong></span>
                 </div>
             </div>
 
@@ -462,9 +475,9 @@ const MockPillControlsAnim = () => {
                         transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                         className="text-[11px] text-red-400 font-medium shrink-0"
                     >
-                        Session ends instantly
+                        {t('Session ends instantly')}
                     </motion.span>
-                    <span className="text-[11px] text-text-tertiary">— returns to launcher</span>
+                    <span className="text-[11px] text-text-tertiary">{t('— returns to launcher')}</span>
                 </div>
             </div>
 
@@ -473,6 +486,7 @@ const MockPillControlsAnim = () => {
 };
 
 const MockFastModeAnim = () => {
+    const { t } = useI18n();
     return (
         <div className="flex justify-center items-center py-8 bg-bg-card rounded-xl border border-border-subtle relative overflow-hidden h-[240px]">
             <div className="flex flex-col items-center gap-4 z-10">
@@ -484,8 +498,8 @@ const MockFastModeAnim = () => {
                     <Zap className="w-8 h-8 text-white" />
                 </motion.div>
                 <div className="text-center">
-                    <div className="font-bold text-lg text-text-primary">Fast Mode Enabled</div>
-                    <div className="text-xs text-text-secondary mt-1">Routing via Groq LPU (Response &lt; 0.5s)</div>
+                    <div className="font-bold text-lg text-text-primary">{t('Fast Mode Enabled')}</div>
+                    <div className="text-xs text-text-secondary mt-1">{t('Uses the selected Groq model or configured Codex CLI Fast Model.')}</div>
                 </div>
             </div>
 
@@ -529,6 +543,7 @@ const getIconStyle = (color?: string, isSelectedItem: boolean = false) => {
 };
 
 const MockProviderSelectionAnim = () => {
+    const { t } = useI18n();
     const isLight = useResolvedTheme() === 'light';
     const [isOpen, setIsOpen] = useState(false);
     useEffect(() => {
@@ -538,14 +553,14 @@ const MockProviderSelectionAnim = () => {
 
     const options = [
         { id: 'groq', label: 'Groq Whisper', badge: '', recommended: true, desc: 'Fast LPU whisper transcription', color: 'orange', icon: <Mic size={14} /> },
-        { id: 'soniox', label: 'Soniox', badge: '', recommended: false, desc: 'Medical-grade transcription', color: 'cyan', icon: <Mic size={14} /> },
+        { id: 'soniox', label: 'Soniox', badge: '', recommended: false, desc: 'Streaming speech recognition', color: 'cyan', icon: <Mic size={14} /> },
     ];
     const selected = options[0];
 
     return (
         <div className="flex justify-center flex-col items-center py-6 bg-bg-card rounded-xl border border-border-subtle relative overflow-hidden h-[300px]">
             <div className="w-[340px] flex flex-col gap-2 relative z-10 font-sans">
-                <label className="text-xs font-medium text-text-secondary">Speech Provider</label>
+                <label className="text-xs font-medium text-text-secondary">{t('Speech Provider')}</label>
                 <div className="relative">
                     <button className={`w-full group bg-bg-input border border-border-subtle shadow-sm rounded-xl p-2.5 pr-3.5 flex items-center justify-between transition-all duration-200 outline-none ${isOpen ? 'ring-2 ring-accent-primary/20 border-accent-primary/50' : 'hover:shadow-md'}`}>
                         <div className="flex items-center gap-3 overflow-hidden">
@@ -556,9 +571,9 @@ const MockProviderSelectionAnim = () => {
                                 <div className="flex items-center gap-2">
                                     <span className="text-[13px] font-semibold text-text-primary truncate leading-tight">{selected.label}</span>
                                     {selected.badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle('green')}`}>{selected.badge}</span>}
-                                    {selected.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.color)}`}>Recommended</span>}
+                                    {selected.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.color)}`}>{t('Recommended')}</span>}
                                 </div>
-                                <span className="text-[11px] text-text-tertiary truncate block leading-tight mt-0.5">{selected.desc}</span>
+                                <span className="text-[11px] text-text-tertiary truncate block leading-tight mt-0.5">{t(selected.desc)}</span>
                             </div>
                         </div>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-text-tertiary transition-transform duration-300 group-hover:bg-bg-input ${isOpen ? 'rotate-180 bg-bg-input text-text-primary' : ''}`}>
@@ -593,11 +608,11 @@ const MockProviderSelectionAnim = () => {
                                                             <div className="flex items-center gap-2">
                                                                 <span className={"text-[13px] font-medium transition-colors text-text-primary"}>{option.label}</span>
                                                                 {option.badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle('green')}`}>{option.badge}</span>}
-                                                                {option.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.color)}`}>Recommended</span>}
+                                                                {option.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.color)}`}>{t('Recommended')}</span>}
                                                             </div>
                                                             {isSelected && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><Check size={14} className="text-accent-primary" strokeWidth={3} /></motion.div>}
                                                         </div>
-                                                        <span className={"text-[11px] block truncate transition-colors text-text-secondary"}>{option.desc}</span>
+                                                        <span className={"text-[11px] block truncate transition-colors text-text-secondary"}>{t(option.desc)}</span>
                                                     </div>
                                                 </div>
                                             );
@@ -626,6 +641,7 @@ const MockProviderSelectionAnim = () => {
 };
 
 const MockApiKeyFlowAnim = () => {
+    const { t } = useI18n();
     const [stage, setStage] = useState(0); // 0: enter key, 1: saving, 2: test, 3: connected, 4: trash
     useEffect(() => {
         const i = setInterval(() => setStage(s => (s + 1) % 5), 2000);
@@ -635,16 +651,16 @@ const MockApiKeyFlowAnim = () => {
     return (
         <div className="flex justify-center flex-col items-center gap-2 py-8 bg-bg-card rounded-xl border border-border-subtle relative overflow-hidden h-[240px]">
             <div className="w-[380px] space-y-2 relative z-10">
-                <label className="text-xs font-medium text-text-secondary block">Groq API Key</label>
+                <label className="text-xs font-medium text-text-secondary block">{t('Groq API Key')}</label>
                 <div className="flex gap-2">
                     <div className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary flex items-center shadow-inner">
                         <span className={stage > 0 ? "opacity-100" : "opacity-40"}>
-                            {stage > 0 ? "gsk_a8B2c..." : "Enter API key"}
+                            {stage > 0 ? "gsk_a8B2c..." : t("Enter API key")}
                         </span>
                         {stage === 0 && <motion.div animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-0.5 h-4 bg-accent-primary ml-0.5" />}
                     </div>
                     <div className="px-5 py-2 rounded-lg text-xs font-medium bg-bg-elevated border border-border-subtle flex items-center justify-center transition-colors shadow-sm">
-                        {stage === 1 ? <Check size={14} className="text-green-500" /> : 'Save'}
+                        {stage === 1 ? <Check size={14} className="text-green-500" /> : t('Save')}
                     </div>
                 </div>
                 <div className="flex items-center justify-between mt-2">
@@ -652,7 +668,7 @@ const MockApiKeyFlowAnim = () => {
                         <div className="text-xs bg-bg-input px-3 py-1.5 rounded-md flex items-center gap-2 border border-border-subtle shadow-sm">
                             {stage === 2 ? <RefreshCw size={12} className="text-blue-500 animate-spin" /> : stage > 2 ? <Check size={12} className="text-green-500" /> : <Play size={12} className="text-text-tertiary" />}
                             <span className={stage > 2 ? "text-green-500" : "text-text-primary"}>
-                                {stage === 2 ? 'Testing...' : stage > 2 ? 'Connected' : 'Test API Key'}
+                                {t(stage === 2 ? 'Testing...' : stage > 2 ? 'Connected' : 'Test API Key')}
                             </span>
                         </div>
                     </div>
@@ -689,6 +705,7 @@ interface AccordionSectionProps {
 }
 
 const AccordionSection: React.FC<AccordionSectionProps> = ({ title, icon, children, defaultOpen = false }) => {
+    const { t } = useI18n();
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
@@ -701,7 +718,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({ title, icon, childr
                     <div className="p-1.5 rounded-lg bg-bg-elevated border border-border-subtle text-text-secondary">
                         {icon}
                     </div>
-                    <span className={`font-semibold text-sm text-text-primary`}>{title}</span>
+                    <span className={`font-semibold text-sm text-text-primary`}>{t(title, { name: APP_NAME })}</span>
                 </div>
                 {isOpen ? <ChevronDown className="w-5 h-5 text-text-tertiary" /> : <ChevronRight className="w-5 h-5 text-text-tertiary" />}
             </button>
@@ -724,26 +741,27 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({ title, icon, childr
 };
 
 const SetupGuide = () => {
+    const { t } = useI18n();
     const cmd = getModifierSymbol('cmd');
     const shift = getModifierSymbol('shift');
     const steps = [
         {
             title: 'Grant Permissions',
             desc: isMac
-                ? `Enable Screen Recording and Accessibility for ${APP_NAME} in macOS Privacy & Security.`
-                : 'Approve the microphone prompt the first time you start a meeting (Settings → Privacy → Microphone).',
+                ? t('Enable Screen Recording and Accessibility for {name} in macOS Privacy & Security.', { name: APP_NAME })
+                : t('Approve the microphone prompt the first time you start a meeting (Settings → Privacy → Microphone).'),
         },
         {
             title: 'Set Up Audio',
-            desc: 'Open Settings → Audio and paste a key for a cloud transcription provider such as Groq, Soniox or OpenAI.',
+            desc: t('Open Settings → Speech & Audio and paste a key for a cloud transcription provider such as Groq, Soniox or OpenAI.'),
         },
         {
             title: 'Connect an AI Model',
-            desc: 'Open Settings → AI Providers and choose a built-in model, or add a Groq or OpenRouter key.',
+            desc: t('Open Settings → AI Providers, add a key for a cloud provider such as Gemini, Groq, OpenAI, Claude or DeepSeek, and choose the active model.'),
         },
         {
             title: 'Personalize (Optional)',
-            desc: 'Add your own Skills in Settings → Skills.',
+            desc: t('Add your own Skills in Settings → Context & Skills.'),
         },
         {
             title: "You're all set.",
@@ -752,7 +770,7 @@ const SetupGuide = () => {
     ];
 
     const hotkeys = [
-        { label: 'Toggle', kbd: `${cmd}H` },
+        { label: 'Toggle', kbd: `${cmd}B` },
         { label: 'Screenshot', kbd: `${cmd}${shift}H` },
         { label: 'Chat', kbd: `${cmd}K` },
     ];
@@ -760,8 +778,8 @@ const SetupGuide = () => {
     return (
         <div className="mb-10">
             <div className="mb-7">
-                <h3 className="text-[20px] font-bold text-text-primary tracking-tight leading-tight">Quick Start</h3>
-                <p className="text-[13px] text-text-tertiary mt-0.5">Get {APP_NAME} running in four steps.</p>
+                <h3 className="text-[20px] font-bold text-text-primary tracking-tight leading-tight">{t('Quick Start')}</h3>
+                <p className="text-[13px] text-text-tertiary mt-0.5">{t('Get {name} running in four steps.', { name: APP_NAME })}</p>
             </div>
 
             <div>
@@ -781,7 +799,7 @@ const SetupGuide = () => {
 
                             {/* Content */}
                             <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-6'}`} style={{ paddingTop: 3 }}>
-                                <p className="text-[14px] font-semibold text-text-primary leading-snug">{step.title}</p>
+                                <p className="text-[14px] font-semibold text-text-primary leading-snug">{t(step.title)}</p>
                                 {step.desc && (
                                     <p className="text-[13px] text-text-secondary leading-relaxed mt-0.5">{step.desc}</p>
                                 )}
@@ -790,7 +808,7 @@ const SetupGuide = () => {
                                         {hotkeys.map((h, hi) => (
                                             <React.Fragment key={h.kbd}>
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-[12px] text-text-secondary">{h.label}</span>
+                                                    <span className="text-[12px] text-text-secondary">{t(h.label)}</span>
                                                     <kbd className="font-mono text-[11px] font-semibold text-text-primary bg-bg-item-surface border border-border-subtle rounded-md px-1.5 py-0.5 leading-none">{h.kbd}</kbd>
                                                 </div>
                                                 {hi < hotkeys.length - 1 && <span className="text-border-subtle text-[12px] select-none">·</span>}
@@ -807,6 +825,7 @@ const SetupGuide = () => {
     );
 };
 export const HelpSettings: React.FC = () => {
+    const { t } = useI18n();
     const { shortcuts } = useShortcuts();
     const isLight = useResolvedTheme() === 'light';
 
@@ -818,10 +837,10 @@ export const HelpSettings: React.FC = () => {
             <div className="mb-6 shrink-0">
                 <h2 className={`text-2xl font-bold text-text-primary flex items-center gap-3`}>
                     <HelpCircle className="w-6 h-6 text-accent-primary" />
-                    Help & Setup Guide
+                    {t('Help & Setup Guide')}
                 </h2>
                 <p className={`text-sm text-text-secondary mt-3 max-w-2xl`}>
-                    Learn how to deeply configure {APP_NAME}. Everything from providing the right API scopes to executing conversational interviews seamlessly is covered below.
+                    {t('Learn how to deeply configure {name}. Everything from providing the right API scopes to executing conversational interviews seamlessly is covered below.', { name: APP_NAME })}
                 </p>
             </div>
 
@@ -832,26 +851,26 @@ export const HelpSettings: React.FC = () => {
 
                 <div className="h-10" />
                 <div className="mb-4 flex items-center gap-2 border-b border-border-subtle pb-3">
-                    <h3 className="text-[20px] font-bold text-text-primary tracking-tight leading-tight">Help Guide</h3>
+                    <h3 className="text-[20px] font-bold text-text-primary tracking-tight leading-tight">{t('Help Guide')}</h3>
                 </div>
 
                 <AccordionSection title="1. App Permissions Setup" icon={<Monitor className="w-4 h-4" />}>
                     <div className="space-y-4">
                         <p>
                             {isMac
-                                ? `${APP_NAME} needs OS permissions to read your screen context and global keystrokes. Answers, transcription and summaries come from the cloud providers you configure. Here is how your system should look:`
-                                : 'Windows will prompt you for microphone access the first time you start a meeting — no other OS permissions are required. Answers, transcription and summaries come from the cloud providers you configure.'}
+                                ? t('{name} needs OS permissions for screen context, microphone capture and global shortcuts. Transcription and answers use the providers you configure.', { name: APP_NAME })
+                                : t('Windows prompts for microphone access when you start a meeting. Transcription and answers use the providers you configure.')}
                         </p>
                         {isMac && <MockPermissionsAnim />}
                         <div className="space-y-3 mt-4">
-                            <h4 className="font-bold text-base text-text-primary border-b border-border-subtle pb-2">Hardware & Engine Configurations</h4>
+                            <h4 className="font-bold text-base text-text-primary border-b border-border-subtle pb-2">{t('Hardware & Engine Configurations')}</h4>
 
                             <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2`}>
                                 <h5 className={`font-semibold text-[13px] text-text-primary flex items-center gap-2`}>
-                                    <Mic size={14} className="text-blue-500" /> Microphone & Speaker Loopback Selection
+                                    <Mic size={14} className="text-blue-500" /> {t('Microphone & Speaker Loopback Selection')}
                                 </h5>
                                 <p className="text-[11px] opacity-90 leading-relaxed text-text-secondary">
-                                    {APP_NAME} can capture both what you say and what you hear globally. At the top of the Audio Settings, use the Dropdowns to explicitly select your hardware Input (e.g. your physical microphone) and Output capture (what the speakers play). By default, {APP_NAME} utilizes the <strong>System Default</strong>, so audio routing will automatically follow your OS preferences.
+                                    {withParts(t('{name} can capture both what you say and what you hear. At the top of Settings → Speech & Audio, use the dropdowns to select your hardware Input (e.g. your physical microphone) and Output capture (what the speakers play). By default, {name} uses the {systemDefault}, so audio routing follows your OS preferences.'), { name: APP_NAME, systemDefault: <strong>{t('System Default')}</strong> })}
                                 </p>
                             </div>
 
@@ -862,15 +881,15 @@ export const HelpSettings: React.FC = () => {
                                             <Monitor size={14} className="text-accent-primary" /> ScreenCaptureKit (SCK)
                                         </h5>
                                         <p className="text-[11px] opacity-90 leading-relaxed text-text-secondary">
-                                            The recommended backend for macOS 13.0+. Uses Apple's modern, highly optimized internal framework for 0-latency loopback speaker capture securely.
+                                            {t("Uses Apple's ScreenCaptureKit framework for system audio capture on supported macOS versions. Screen Recording permission is required.")}
                                         </p>
                                     </div>
                                     <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2`}>
                                         <h5 className={`font-semibold text-[13px] text-text-primary flex items-center gap-2`}>
-                                            <Volume2 size={14} className="text-orange-500" /> CoreAudio (Legacy)
+                                            <Volume2 size={14} className="text-orange-500" /> {t('CoreAudio (Legacy)')}
                                         </h5>
                                         <p className="text-[11px] opacity-90 leading-relaxed text-text-secondary">
-                                            Fallback engine for older hardware. Relies on internal device aggregation to trap output audio. Only use this if SCK repeatedly drops speaker packets.
+                                            {t('An alternative system audio capture backend. Choose the backend that works with your macOS version and audio devices.')}
                                         </p>
                                     </div>
                                 </div>
@@ -878,10 +897,14 @@ export const HelpSettings: React.FC = () => {
 
                             <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2`}>
                                 <h5 className={`font-semibold text-[13px] text-text-primary flex items-center gap-2`}>
-                                    <Globe size={14} className="text-green-500" /> Language & Regional Accents
+                                    <Globe size={14} className="text-green-500" /> {t('Language & Regional Accents')}
                                 </h5>
                                 <p className="text-[11px] opacity-90 leading-relaxed text-text-secondary">
-                                    Below the provider list, you must specify the <strong>Language</strong> you will be speaking (e.g., English). Most importantly, ensure you select your specific regional <span className={kbdClass}>Accent / Region</span> mapping (e.g., <em>en-US</em> vs <em>en-GB</em> vs <em>en-IN</em>) as STT backends use this map to vastly increase transcription accuracy logic based on regional inflections.
+                                    {withParts(t('Below the provider list, you must specify the {language} you will be speaking (e.g., English). Where offered, also select your regional {accent} (e.g., {examples}); speech providers use it to improve recognition of regional accents.'), {
+                                        language: <strong>{t('Language')}</strong>,
+                                        accent: <span className={kbdClass}>{t('Accent / Region')}</span>,
+                                        examples: <><em>en-US</em> / <em>en-GB</em> / <em>en-IN</em></>,
+                                    })}
                                 </p>
                             </div>
                         </div>
@@ -890,28 +913,28 @@ export const HelpSettings: React.FC = () => {
                             <div className="flex flex-col gap-3 mt-6">
                                 <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle`}>
                                     <h4 className={`font-semibold text-sm mb-2 text-text-primary flex items-center gap-2`}>
-                                        <Monitor className="w-4 h-4 text-accent-primary" /> Screen Recording
+                                        <Monitor className="w-4 h-4 text-accent-primary" /> {t('Screen Recording')}
                                     </h4>
-                                    <p className="text-xs opacity-90 mb-2">Provides {APP_NAME} the ability to read your screen temporarily when you capture context.</p>
-                                    <p className="text-[11px] text-text-tertiary">System Settings &gt; Privacy & Security &gt; Screen Recording</p>
+                                    <p className="text-xs opacity-90 mb-2">{t('Provides {name} the ability to read your screen temporarily when you capture context.', { name: APP_NAME })}</p>
+                                    <p className="text-[11px] text-text-tertiary">{t('System Settings > Privacy & Security > Screen Recording')}</p>
                                 </div>
 
                                 <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle`}>
                                     <h4 className={`font-semibold text-sm mb-2 text-text-primary flex items-center gap-2`}>
-                                        <Command className="w-4 h-4 text-purple-500" /> Accessibility
+                                        <Command className="w-4 h-4 text-purple-500" /> {t('Accessibility')}
                                     </h4>
-                                    <p className="text-xs opacity-90 mb-2">Required for {APP_NAME} to detect the global keyboard shortcuts below, regardless of what window is focused.</p>
-                                    <p className="text-[11px] text-text-tertiary">System Settings &gt; Privacy & Security &gt; Accessibility</p>
+                                    <p className="text-xs opacity-90 mb-2">{t('Required for {name} to detect the global keyboard shortcuts below, regardless of what window is focused.', { name: APP_NAME })}</p>
+                                    <p className="text-[11px] text-text-tertiary">{t('System Settings > Privacy & Security > Accessibility')}</p>
                                 </div>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-3 mt-6">
                                 <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle`}>
                                     <h4 className={`font-semibold text-sm mb-2 text-text-primary flex items-center gap-2`}>
-                                        <Mic className="w-4 h-4 text-blue-500" /> Microphone
+                                        <Mic className="w-4 h-4 text-blue-500" /> {t('Microphone')}
                                     </h4>
-                                    <p className="text-xs opacity-90 mb-2">Required to capture what you say during meetings. Windows prompts the first time you start a meeting.</p>
-                                    <p className="text-[11px] text-text-tertiary">Settings &gt; Privacy &gt; Microphone</p>
+                                    <p className="text-xs opacity-90 mb-2">{t('Required to capture what you say during meetings. Windows prompts the first time you start a meeting.')}</p>
+                                    <p className="text-[11px] text-text-tertiary">{t('Settings > Privacy > Microphone')}</p>
                                 </div>
                             </div>
                         )}
@@ -920,47 +943,47 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="2. Audio STT Providers Setup (Microphone)" icon={<Mic className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p>{APP_NAME} supports over 8 different Audio engines to transcribe what you hear and say. From the Audio tab in settings, use the overarching dropdown to switch the active engine.</p>
+                        <p>{t('{name} supports five speech recognition providers to transcribe what you hear and say: Groq, OpenAI, Soniox, Alibaba Cloud and Doubao. Choose the active provider from the dropdown in Settings → Speech & Audio.', { name: APP_NAME })}</p>
 
                         <MockProviderSelectionAnim />
 
                         <div className="space-y-4 pt-2">
-                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">API Keys & Testing</h4>
-                            <p className="text-xs text-text-secondary">We strongly recommend testing connections before jumping into a live meeting. The system shows successful pings or explicit errors if credits/permissions fail.</p>
+                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">{t('API Keys & Testing')}</h4>
+                            <p className="text-xs text-text-secondary">{t('Save credentials, then test the connection before a meeting. Connection tests send synthetic silence to the selected speech provider and may incur charges.')}</p>
 
                             <MockApiKeyFlowAnim />
                         </div>
 
                         <div className="space-y-3 pt-4">
-                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">Specific Provider Setup</h4>
+                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">{t('Specific Provider Setup')}</h4>
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>1. Groq</span>
-                                    <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Link')}</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Provides ultra-fast Whisper responses via LPUs. Starts with <span className={kbdClass}>gsk_</span>. No special permissions required.
+                                    {withParts(t('Provides ultra-fast Whisper responses via LPUs. Starts with {prefix}. No special permissions required.'), { prefix: <span className={kbdClass}>gsk_</span> })}
                                 </p>
                             </div>
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                 <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                     <span>2. OpenAI</span>
-                                    <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                    <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Link')}</button>
                                 </h5>
                                 <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                    Uses standard OpenAI keys (<span className={kbdClass}>sk-</span>). Remember: this Audio key is isolated from your AI Generation key under "AI Providers".
+                                    {withParts(t('Uses standard OpenAI keys ({prefix}). Remember: this speech key is separate from your answer-generation key under "AI Providers".'), { prefix: <span className={kbdClass}>sk-</span> })}
                                 </p>
                             </div>
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2">
                                  <h5 className="font-semibold text-sm text-text-primary flex justify-between items-center">
                                      <span>3. Soniox</span>
-                                     <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Link</button>
+                                     <button data-external-url="https://console.soniox.com/" onClick={() => { (window as any).electronAPI?.openExternal('https://console.soniox.com/') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Link')}</button>
                                  </h5>
                                  <p className="text-xs opacity-90 leading-relaxed text-text-secondary">
-                                     Provides high-end medical/law tier transcriptions using their standard dashboard API Key.
+                                     {t('Use an API key from the Soniox dashboard for speech recognition.')}
                                  </p>
                             </div>
                         </div>
@@ -970,10 +993,10 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="3. AI Providers & Prompt Engine" icon={<Key className="w-4 h-4" />}>
                     <div className="space-y-4">
-                        <p className="text-sm">{APP_NAME} uses Large Language Models (LLMs) to reason about your screen and audio context. Your question, and the screen and audio context you allow under AI Providers, is sent to the cloud provider you configure below.</p>
+                        <p className="text-sm">{t('{name} uses Large Language Models (LLMs) to reason about your screen and audio context. Your question, and the screen and audio context you allow under AI Providers, is sent to the cloud provider you configure below.', { name: APP_NAME })}</p>
 
                         <div className="space-y-3 pt-2">
-                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">1. Standard Cloud Providers</h4>
+                            <h4 className="font-bold text-lg text-text-primary border-b border-border-subtle pb-2">{t('1. Standard Cloud Providers')}</h4>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle hover:border-border-muted transition-colors">
@@ -981,9 +1004,9 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <Zap className="w-3.5 h-3.5 text-orange-500" /> Groq
                                         </span>
-                                        <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://console.groq.com/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.groq.com/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Get Key')}</button>
                                     </h5>
-                                    <p className="text-[11px] opacity-80 mb-2">Ultra-fast inference using LPU hardware. Default model: <strong>llama-3.3-70b-versatile</strong>.</p>
+                                    <p className="text-[11px] opacity-80 mb-2">{withParts(t('Ultra-fast inference using LPU hardware. Default model: {model}.'), { model: <strong>llama-3.3-70b-versatile</strong> })}</p>
                                     <span className={kbdClass}>gsk_...</span>
                                 </div>
                                 <div className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle hover:border-border-muted transition-colors">
@@ -991,9 +1014,9 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <SiOpenai className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`} /> OpenAI
                                         </span>
-                                        <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://platform.openai.com/api-keys" onClick={() => { (window as any).electronAPI?.openExternal('https://platform.openai.com/api-keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Get Key')}</button>
                                     </h5>
-                                    <p className="text-[11px] opacity-80 mb-2">Industry standard pipeline. Default models: <strong>gpt-5.4-mini</strong> & <strong>gpt-5.4</strong>.</p>
+                                    <p className="text-[11px] opacity-80 mb-2">{withParts(t('Industry standard pipeline. Default model: {model}.'), { model: <strong>gpt-5.4</strong> })}</p>
                                     <span className={kbdClass}>sk-proj-...</span>
                                 </div>
                                 <div className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle hover:border-border-muted transition-colors">
@@ -1001,9 +1024,9 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <SiAnthropic className={`w-3.5 h-3.5 ${isLight ? 'text-black' : 'text-white'}`} /> Anthropic
                                         </span>
-                                        <button data-external-url="https://console.anthropic.com/settings/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.anthropic.com/settings/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://console.anthropic.com/settings/keys" onClick={() => { (window as any).electronAPI?.openExternal('https://console.anthropic.com/settings/keys') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Get Key')}</button>
                                     </h5>
-                                    <p className="text-[11px] opacity-80 mb-2">Superior coding baseline parameters. Default: <strong>claude-4.6-sonnet</strong>.</p>
+                                    <p className="text-[11px] opacity-80 mb-2">{withParts(t('Superior coding baseline parameters. Default model: {model}.'), { model: <strong>claude-sonnet-4-6</strong> })}</p>
                                     <span className={kbdClass}>sk-ant-...</span>
                                 </div>
                                 <div className="p-3 rounded-xl border bg-bg-item-surface border-border-subtle hover:border-border-muted transition-colors">
@@ -1011,17 +1034,17 @@ export const HelpSettings: React.FC = () => {
                                         <span className="flex items-center gap-2">
                                             <SiGoogle className="w-3.5 h-3.5 text-blue-500" /> Google Gemini
                                         </span>
-                                        <button data-external-url="https://aistudio.google.com/app/apikey" onClick={() => { (window as any).electronAPI?.openExternal('https://aistudio.google.com/app/apikey') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> Get Key</button>
+                                        <button data-external-url="https://aistudio.google.com/app/apikey" onClick={() => { (window as any).electronAPI?.openExternal('https://aistudio.google.com/app/apikey') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Get Key')}</button>
                                     </h5>
-                                    <p className="text-[11px] opacity-80 mb-2">Immense contextual window. Default model: <strong>gemini-3.1-pro</strong>.</p>
+                                    <p className="text-[11px] opacity-80 mb-2">{withParts(t('Immense contextual window. Default model: {model}.'), { model: <strong>gemini-3.1-flash-lite-preview</strong> })}</p>
                                     <span className={kbdClass}>AIzaSy...</span>
                                 </div>
                             </div>
 
                             <div className="p-4 mt-2 rounded-xl border border-border-subtle bg-bg-item-surface">
-                                <h5 className="font-semibold text-[13px] text-text-primary mb-1">Configuring the Active Model Engine</h5>
+                                <h5 className="font-semibold text-[13px] text-text-primary mb-1">{t('Configuring the Active Model Engine')}</h5>
                                 <p className="text-[11px] text-text-secondary leading-relaxed">
-                                    Inside the Launcher UI (above the start button), you can hot-swap your <strong>Active Model</strong>. This dictation is extremely important—it determines the active core reasoning engine. If set to <strong>claude-3-5-sonnet</strong>, the intelligence agent uses Anthropic infrastructure exclusively for screen analysis.
+                                    {withParts(t('Choose your {activeModel} under Settings → AI Providers or from the model selector in the meeting overlay. New requests use that model; a backup model is used only if you select one explicitly. Screenshots you allow go directly to the selected model.'), { activeModel: <strong>{t('Active Model')}</strong> })}
                                 </p>
                             </div>
                         </div>
@@ -1029,9 +1052,9 @@ export const HelpSettings: React.FC = () => {
                     </div>
                 </AccordionSection>
 
-                <AccordionSection title={`4. ${APP_NAME} Interface Operations`} icon={<Monitor className="w-4 h-4" />}>
+                <AccordionSection title="4. {name} Interface Operations" icon={<Monitor className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p className="text-[13px]">When initialized, {APP_NAME} hides itself visually while remaining active as a persistent translucent overlay. This is your command center.</p>
+                        <p className="text-[13px]">{t('During a meeting, the {name} overlay provides transcript, manual answer controls and text input.', { name: APP_NAME })}</p>
 
                         <div className="relative w-full flex flex-col p-2 sm:p-5 bg-bg-main rounded-[26px] border border-border-subtle shadow-inner">
                             <MockAppInterface />
@@ -1041,7 +1064,7 @@ export const HelpSettings: React.FC = () => {
                         {/* Quick Actions & Hotkeys */}
                         <div className="mt-4 mb-3 flex items-center gap-3">
                             <div className="flex-1 h-px bg-border-subtle" />
-                            <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest">Quick Actions & Hotkeys</span>
+                            <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest">{t('Quick Actions & Hotkeys')}</span>
                             <div className="flex-1 h-px bg-border-subtle" />
                         </div>
 
@@ -1054,7 +1077,7 @@ export const HelpSettings: React.FC = () => {
                                 { Icon: MessageSquare, color: 'indigo', title: 'Clarify', badge: null, bc: '', kbd: ['⌘', '2'], desc: 'Generates sharp probing questions from latent audio when a topic is unclear.' },
                                 { Icon: RefreshCw, color: 'amber', title: 'Recap', badge: 'Interview OFF', bc: 'bg-red-500/10 text-red-400 border-red-500/30', kbd: ['⌘', '3'], desc: 'Condenses the last 5 minutes into bullet points when you lose the thread.' },
                                 { Icon: Sparkles, color: 'sky', title: 'Code Hint', badge: null, bc: '', kbd: ['⌘', '6'], desc: 'Reads your screen and nudges you toward the correct code implementation.' },
-                                { Icon: Monitor, color: 'rose', title: 'Screenshot & Ask', badge: null, bc: '', kbd: ['⌘', '⇧', 'H'], desc: 'Forces a full-screen capture and immediately processes it through the LLM.' },
+                                { Icon: Monitor, color: 'rose', title: 'Screenshot & Ask', badge: null, bc: '', kbd: ['⌘', '⇧', '↵'], desc: 'Forces a full-screen capture and immediately processes it through the LLM.' },
                                 { Icon: EyeOff, color: 'slate', title: 'Stealth Execute', badge: null, bc: '', kbd: ['⌘', '↵'], desc: 'Processes context in the background without ever revealing the interface.' },
                             ] as Array<{ Icon: React.ElementType; color: 'blue' | 'violet' | 'teal' | 'emerald' | 'indigo' | 'amber' | 'sky' | 'rose' | 'slate'; title: string; badge: string | null; bc: string; kbd: string[]; desc: string }>).map(({ Icon, color, title, badge, bc, kbd, desc }) => {
                                 const resolvedKbd = kbd.map(k =>
@@ -1063,7 +1086,7 @@ export const HelpSettings: React.FC = () => {
                                   : k === '⌥' ? getModifierSymbol('option')
                                   : k
                                 );
-                                const t = {
+                                const tone = {
                                     blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', glow: 'group-hover:shadow-[0_0_0_1px_rgba(59,130,246,0.2),0_4px_12px_rgba(59,130,246,0.07)]' },
                                     violet: { bg: 'bg-violet-500/10', text: 'text-violet-400', border: 'border-violet-500/20', glow: 'group-hover:shadow-[0_0_0_1px_rgba(139,92,246,0.2),0_4px_12px_rgba(139,92,246,0.07)]' },
                                     teal: { bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/20', glow: 'group-hover:shadow-[0_0_0_1px_rgba(20,184,166,0.2),0_4px_12px_rgba(20,184,166,0.07)]' },
@@ -1076,22 +1099,22 @@ export const HelpSettings: React.FC = () => {
                                 }[color];
 
                                 return (
-                                    <div key={title} className={`group flex flex-col gap-1.5 p-3 rounded-xl border border-border-subtle bg-bg-item-surface hover:bg-bg-elevated transition-all duration-200 cursor-default ${t.glow}`}>
+                                    <div key={title} className={`group flex flex-col gap-1.5 p-3 rounded-xl border border-border-subtle bg-bg-item-surface hover:bg-bg-elevated transition-all duration-200 cursor-default ${tone.glow}`}>
 
                                         {/* Line 1 — Icon + Name */}
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-5 h-5 rounded-md ${t.bg} border ${t.border} flex items-center justify-center shrink-0`}>
-                                                <Icon className={`w-3 h-3 ${t.text}`} strokeWidth={2.5} />
+                                            <div className={`w-5 h-5 rounded-md ${tone.bg} border ${tone.border} flex items-center justify-center shrink-0`}>
+                                                <Icon className={`w-3 h-3 ${tone.text}`} strokeWidth={2.5} />
                                             </div>
-                                            <span className="text-[12px] font-bold text-text-primary tracking-tight leading-none truncate">{title}</span>
+                                            <span className="text-[12px] font-bold text-text-primary tracking-tight leading-none truncate">{t(title)}</span>
                                         </div>
 
                                         {/* Line 2 — Interview mode badge */}
                                         <div className="flex items-center">
                                             {badge ? (
-                                                <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-[2px] border rounded leading-none ${bc}`}>{badge}</span>
+                                                <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-[2px] border rounded leading-none ${bc}`}>{t(badge)}</span>
                                             ) : (
-                                                <span className="text-[9px] font-bold text-text-tertiary/50 uppercase tracking-wider leading-none">Always active</span>
+                                                <span className="text-[9px] font-bold text-text-tertiary/50 uppercase tracking-wider leading-none">{t('Always active')}</span>
                                             )}
                                         </div>
 
@@ -1106,7 +1129,7 @@ export const HelpSettings: React.FC = () => {
                                         <div className="h-px bg-gradient-to-r from-transparent via-border-subtle to-transparent" />
 
                                         {/* Description */}
-                                        <p className="text-[11px] text-text-secondary leading-[1.5]">{desc}</p>
+                                        <p className="text-[11px] text-text-secondary leading-[1.5]">{t(desc)}</p>
                                     </div>
                                 );
                             })}
@@ -1118,26 +1141,26 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="5. Meeting Intelligence" icon={<Calendar className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p className="text-[13px]">When an active session concludes, its transcript and the questions and answers of the session are saved on this computer. Nothing is sent to a model to title or summarize it.</p>
+                        <p className="text-[13px]">{t('When an active session concludes, its transcript and the questions and answers of the session are saved on this computer. Nothing is sent to a model to title or summarize it.')}</p>
 
                         <MockMeetingInterfaceAnim />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
                                 <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                    <Volume2 className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" /> Raw Transcripts
+                                    <Volume2 className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" /> {t('Raw Transcripts')}
                                 </h4>
                                 <p className="text-[12px] text-text-secondary leading-relaxed">
-                                    Dive into the exact dialogue timeline. Speaker separation attempts to classify "Me" vs "Them" using volume thresholds, capturing everything physically said alongside timestamps.
+                                    {t('Dive into the exact dialogue timeline with timestamps. "Me" is what your microphone captured and "Them" is the system audio.')}
                                 </p>
                             </div>
 
                             <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
                                 <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                    <Cpu className="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform" /> Usage & Storage
+                                    <Cpu className="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform" /> {t('Usage & Storage')}
                                 </h4>
                                 <p className="text-[12px] text-text-secondary leading-relaxed">
-                                    View exactly how many tokens the AI consumed globally across the meeting, tracking visual and textual inputs separately.
+                                    {t('Review the questions and answers of the session, with the provider and model behind each answer.')}
                                 </p>
                             </div>
                         </div>
@@ -1146,33 +1169,33 @@ export const HelpSettings: React.FC = () => {
 
                 <AccordionSection title="6. Global Search & Shortcuts" icon={<Search className="w-4 h-4" />}>
                     <div className="space-y-6">
-                        <p className="text-[13px]">Hit <span className={kbdClass}>{isMac ? 'Cmd+K' : 'Ctrl+K'}</span> anywhere on your computer to invoke the {APP_NAME} Global Palette. This acts as your Spotlight overlay for interacting directly with the system backbone.</p>
+                        <p className="text-[13px]">{withParts(t('In the launcher, press {shortcut} to open the {name} search palette for your saved meetings and quick questions.'), { shortcut: <span className={kbdClass}>{isMac ? 'Cmd+K' : 'Ctrl+K'}</span>, name: APP_NAME })}</p>
 
                         <MockSearchPillAnim />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 mb-4">
                             <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
                                 <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                    <Briefcase className="w-4 h-4 text-sky-500 group-hover:scale-110 transition-transform" /> Instant Meeting Traversal
+                                    <Briefcase className="w-4 h-4 text-sky-500 group-hover:scale-110 transition-transform" /> {t('Instant Meeting Traversal')}
                                 </h4>
                                 <p className="text-[12px] text-text-secondary leading-relaxed">
-                                    Typing any text instantly fuzzy matches across all your previous meeting titles, summaries, and internal files. Hitting enter jumps you straight into the intelligence viewer for that topic.
+                                    {t('Search your saved meetings by title. Press Enter to open a matching meeting.')}
                                 </p>
                             </div>
 
                             <div className="p-4 bg-bg-item-surface border border-border-subtle rounded-xl shadow-sm hover:border-border-muted transition-colors group">
                                 <h4 className="text-[14px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                                    <Sparkles className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" /> Conversational Fallback
+                                    <Sparkles className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" /> {t('Conversational Fallback')}
                                 </h4>
                                 <p className="text-[12px] text-text-secondary leading-relaxed">
-                                    If your query doesn't match an existing document, the palette offers a direct jump to spark off a standard LLM chat conversation passing through your exact typed intent.
+                                    {t("If your query doesn't match a saved meeting, the palette offers to start a chat with exactly what you typed.")}
                                 </p>
                             </div>
                         </div>
 
                         <div className="border-t border-border-subtle pt-6">
-                            <h4 className="font-bold text-sm text-text-primary border-b border-border-subtle pb-1">Global System Shortcuts</h4>
-                            <p className="text-[11px] text-text-secondary mt-1 mb-3">These hotkeys work anywhere on your operating system, regardless of whether {APP_NAME} is focused or completely hidden. Change them via <strong>Settings &gt; Hotkeys</strong>.</p>
+                            <h4 className="font-bold text-sm text-text-primary border-b border-border-subtle pb-1">{t('Global System Shortcuts')}</h4>
+                            <p className="text-[11px] text-text-secondary mt-1 mb-3">{withParts(t('These hotkeys work anywhere on your operating system, regardless of whether {name} is focused or completely hidden. Change them in {path}.'), { name: APP_NAME, path: <strong>{t('Settings → Keybinds')}</strong> })}</p>
 
                             <div className="grid gap-3">
                                 <div className="flex items-center justify-between p-4 rounded-xl border bg-bg-item-surface border-border-subtle group">
@@ -1181,8 +1204,8 @@ export const HelpSettings: React.FC = () => {
                                             <Eye className="w-4 h-4 text-text-primary" />
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-sm text-text-primary">Show / Hide Interface</div>
-                                            <div className="text-xs text-text-secondary mt-1">Quickly toggle the window visibility. Used as an immediate panic hide.</div>
+                                            <div className="font-semibold text-sm text-text-primary">{t('Show / Hide Interface')}</div>
+                                            <div className="text-xs text-text-secondary mt-1">{t('Quickly toggle the window visibility. Used as an immediate panic hide.')}</div>
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -1196,8 +1219,8 @@ export const HelpSettings: React.FC = () => {
                                             <Image className="w-4 h-4 text-text-primary" />
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-sm text-text-primary">Capture Contextual Screenshot</div>
-                                            <div className="text-xs text-text-secondary mt-1">Takes a silent screenshot in the background, feeding the visual data to the LLM context flow.</div>
+                                            <div className="font-semibold text-sm text-text-primary">{t('Capture Contextual Screenshot')}</div>
+                                            <div className="text-xs text-text-secondary mt-1">{t('Takes a silent screenshot in the background, feeding the visual data to the LLM context flow.')}</div>
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -1211,8 +1234,8 @@ export const HelpSettings: React.FC = () => {
                                             <MessageSquare className="w-4 h-4 text-text-primary" />
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-sm text-text-primary">Process Captured Context (Execute)</div>
-                                            <div className="text-xs text-text-secondary mt-1">Triggers {APP_NAME} to analyze the captured screenshots and text from the rolling buffer.</div>
+                                            <div className="font-semibold text-sm text-text-primary">{t('Process Captured Context (Execute)')}</div>
+                                            <div className="text-xs text-text-secondary mt-1">{t('Triggers {name} to analyze the captured screenshots and text from the rolling buffer.', { name: APP_NAME })}</div>
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -1226,8 +1249,8 @@ export const HelpSettings: React.FC = () => {
                                             <Zap className="w-4 h-4 text-text-primary" />
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-sm text-text-primary">Capture + Execute Instantly</div>
-                                            <div className="text-xs text-text-secondary mt-1">Captures a screenshot AND processes it in one fluid action.</div>
+                                            <div className="font-semibold text-sm text-text-primary">{t('Capture + Execute Instantly')}</div>
+                                            <div className="text-xs text-text-secondary mt-1">{t('Captures a screenshot AND processes it in one fluid action.')}</div>
                                         </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -1248,15 +1271,15 @@ export const HelpSettings: React.FC = () => {
                         {/* Fast Mode */}
                         <div className="space-y-4">
                             <h4 className="font-bold text-sm text-text-primary flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-orange-500" /> Fast Mode (Hardware LPU)
+                                <Zap className="w-4 h-4 text-orange-500" /> {t('Fast Mode (Hardware LPU)')}
                             </h4>
                             <MockFastModeAnim />
                             <div className="p-4 rounded-xl border bg-orange-500/10 border-orange-500/20">
                                 <h4 className="font-semibold text-sm mb-2 text-orange-500 flex items-center gap-2">
-                                    <Zap className="w-4 h-4" /> How Fast Mode Works
+                                    <Zap className="w-4 h-4" /> {t('How Fast Mode Works')}
                                 </h4>
                                 <p className="text-xs text-orange-400/80 m-0">
-                                    Fast Mode activates highly efficient models (like Llama 3 8B) layered over Groq hardware LPUs instead of GPUs. This brings latency down from 2-3 seconds to less than 500ms. To enable Fast Mode, navigate to Settings &gt; General Settings popup overlay, and click the Lightning Icon.
+                                    {withParts(t('Fast Response applies to selected Groq and Codex CLI models: Groq keeps your selected model, and Codex CLI uses its configured Fast Model. Turn it on with {popup} in the quick settings popup or {mode} under Settings → AI Providers.'), { popup: <strong>{t('Fast Response')}</strong>, mode: <strong>{t('Fast Response Mode')}</strong> })}
                                 </p>
                             </div>
                         </div>
@@ -1267,33 +1290,39 @@ export const HelpSettings: React.FC = () => {
                     <div className="space-y-4">
                         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl mb-4">
                             <h4 className="text-[13px] font-semibold text-indigo-400 flex items-center gap-2 mb-1">
-                                <Ghost size={14} /> Process Disguise & Undetectability
+                                <Ghost size={14} /> {t('Process Disguise & Undetectability')}
                             </h4>
                             <p className="text-[11px] text-text-secondary leading-relaxed mb-0">
-                                {APP_NAME} is heavily geared towards power users seeking minimalistic operation. The process completely disguises itself and remains undetectable/invisible to standard screen-recording applications and desktop sharing utilities.
+                                {t('{name} offers window visibility, protection and disguise controls. Protection depends on the operating system and sharing application; invisibility during real screen sharing has not been verified.', { name: APP_NAME })}
                             </p>
                         </div>
 
                         <div className="grid gap-3">
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle group">
                                 <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                    <EyeOff className="w-4 h-4 text-text-secondary" /> Dynamic UI Opacity
+                                    <EyeOff className="w-4 h-4 text-text-secondary" /> {t('Dynamic UI Opacity')}
                                 </h4>
                                 <p className="text-xs text-text-secondary">
-                                    Decrease your visual footprint to near-zero. Navigate to the General Settings overlay and dynamically drag the <strong>Opacity Slider</strong> down to make the interface completely translucent against your underlying native applications.
+                                    {withParts(t('Decrease your visual footprint to near-zero. In Settings → General, drag {slider} down to make the interface translucent over your other applications.'), { slider: <strong>{t('Interface Opacity')}</strong> })}
                                 </p>
                             </div>
 
                             <div className="p-4 rounded-xl border bg-bg-item-surface border-border-subtle group">
                                 <h4 className="font-semibold text-sm mb-2 text-text-primary flex items-center gap-2">
-                                    <Monitor className="w-4 h-4 text-text-secondary" /> Mouse Pass-Through Mode
+                                    <Monitor className="w-4 h-4 text-text-secondary" /> {t('Mouse Pass-Through Mode')}
                                 </h4>
                                 <p className="text-[11px] text-text-secondary mb-2">
-                                    Do you want the AI prompt completely fused into your screen without obstructing your clicks? Activate <strong>Mouse Pass-through</strong> inside the UI toggle menu.
+                                    {withParts(t('Do you want the overlay to stay on screen without blocking your clicks? Turn on {toggle} in Settings → Privacy & Data.'), { toggle: <strong>{t('Mouse Passthrough')}</strong> })}
                                 </p>
                                 <div className="p-2 border border-orange-500/20 bg-orange-500/5 rounded-lg">
                                     <p className="text-[10px] text-orange-400 m-0">
-                                        <strong>⚠️ Warning:</strong> This renders the {APP_NAME} overlay completely unclickable. You MUST memorize the Global Hotkeys (e.g. <strong>{isMac ? 'Cmd' : 'Ctrl'}+Shift+Arrows</strong> to move, <strong>{isMac ? 'Cmd' : 'Ctrl'}+B</strong> to hide, <strong>{isMac ? 'Cmd' : 'Ctrl'}+1-7</strong> for actions) to control the application once this is active.
+                                        {withParts(t('{warning} This renders the {name} overlay completely unclickable. You MUST memorize the Global Hotkeys (e.g. {move} to move, {hide} to hide, {actions} for actions) to control the application once this is active.'), {
+                                            warning: <strong>⚠️ {t('Warning:')}</strong>,
+                                            name: APP_NAME,
+                                            move: <strong>{isMac ? 'Cmd' : 'Ctrl'}+Shift+{t('Arrows')}</strong>,
+                                            hide: <strong>{isMac ? 'Cmd' : 'Ctrl'}+B</strong>,
+                                            actions: <strong>{isMac ? 'Cmd' : 'Ctrl'}+1-7</strong>,
+                                        })}
                                     </p>
                                 </div>
                             </div>

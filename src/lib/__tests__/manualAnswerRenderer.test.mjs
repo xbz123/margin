@@ -32,6 +32,37 @@ function handler(name, bindings) {
   return vm.runInNewContext(code, { setRetryGeneration() {}, ...bindings });
 }
 
+test('AG60 finalized answer labels switch language without regenerating or translating their content', () => {
+  let previousDeps, previousCallback;
+  const useCallback = (callback, deps) => {
+    if (!previousDeps || deps.some((value, index) => !Object.is(value, previousDeps[index]))) {
+      previousDeps = deps; previousCallback = callback;
+    }
+    return previousCallback;
+  };
+  const bindings = {
+    React, useCallback, isLightTheme: false, mdComponents: {}, appearance: {}, subtleSurfaceClass: '',
+    ReactMarkdown: ({ children }) => React.createElement('span', null, children),
+    Code: () => null, MessageSquare: () => null,
+    HighlightedCode: ({ code }) => React.createElement('code', null, code),
+    REMARK_PLUGINS: [], REHYPE_PLUGINS: [], codeTheme: {}, codeBlockClass: '', codeHeaderClass: '', codeHeaderTextClass: '', codeLineNumberColor: '',
+  };
+  const cases = [
+    [{ role: 'system', isCode: true, text: '```js\nconst value = "Untranslated code";\n```' }, 'Code Solution', '代码方案', 'Untranslated code'],
+    [{ role: 'system', intent: 'shorten', text: 'Untranslated shortened answer' }, 'Shortened', '精简版', 'Untranslated shortened answer'],
+    [{ role: 'system', intent: 'what_to_answer', text: 'Untranslated generated answer' }, 'Say this', '可以这样说', 'Untranslated generated answer'],
+  ];
+  for (const language of ['en', 'zh-CN', 'en']) {
+    const render = handler('renderMessageText', { ...bindings, t: english => i18n.translate(language, english) });
+    for (const [message, english, chinese, content] of cases) {
+      const html = renderToStaticMarkup(render(message));
+      assert.ok(html.includes(language === 'en' ? english : chinese), html);
+      assert.ok(html.includes(content), html);
+      if (language === 'zh-CN') assert.ok(!html.includes(english), html);
+    }
+  }
+});
+
 test('S42-03 Stop sends the question main froze, never renderer speech, and a failed or cancelled freeze sends nothing', async () => {
   for (const [outcome, attachedContext] of [['ok', []], ['cancel', []], ['fail', []], ['ok', [{ path: '/synthetic/screen.png', preview: '' }]]]) {
     const sent = [], warnings = [], messages = [];
@@ -46,6 +77,7 @@ test('S42-03 Stop sends the question main froze, never renderer speech, and a fa
       setIsManualRecording() {}, setManualTranscript() {}, setVoiceInput() {}, setIsProcessing() {},
       setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
       genMessageId: () => String(messages.length), setTimeout() {}, pinAnswerPanel() {}, endOverlayAction() {},
+      t: english => i18n.translate('en', english),
       console: { warn: (...args) => warnings.push(args) },
       window: { electronAPI: {
         finishDictation: async () => {

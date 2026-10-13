@@ -11,6 +11,7 @@ import { APP_NAME } from '../../appIdentity';
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, Monitor, Mic, CheckCircle, AlertCircle, ExternalLink, ArrowRight } from 'lucide-react';
+import { useI18n } from '../../i18n';
 
 const STORAGE_KEY  = 'natively_perms_shown_v1';
 const STARTUP_DELAY_MS = 1_400;
@@ -54,6 +55,7 @@ interface Props {
 }
 
 export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
+  const { t } = useI18n();
   const [visible,    setVisible]    = useState(false);
   const [platform,   setPlatform]   = useState<string>('darwin');
   const [micStatus,  setMicStatus]  = useState<PermStatus>('loading');
@@ -76,11 +78,11 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
 
   useEffect(() => {
     if (!isOpen) { setVisible(false); return; }
-    const t = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       await refreshStatus();
       setVisible(true);
     }, STARTUP_DELAY_MS);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [isOpen, refreshStatus]);
 
   // Re-check permissions when window regains focus (user returned from System Preferences)
@@ -193,9 +195,9 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px', paddingBottom: '16px', borderBottom: `1px solid ${T.rule}` }}>
                 <span style={{ fontSize: '10.5px', fontWeight: 660, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.t2 }}>
-                  {APP_NAME} · Permissions
+                  {APP_NAME} · {t('Permissions')}
                 </span>
-                <button onClick={handleDismiss} aria-label="Dismiss"
+                <button onClick={handleDismiss} aria-label={t('Dismiss')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', opacity: 0.35, padding: 0, transition: 'opacity 150ms, background 150ms' }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '0.35'; e.currentTarget.style.background = 'transparent'; }}>
@@ -207,12 +209,12 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
                 {/* Headline */}
                 <motion.div variants={ITEM}>
                   <h2 style={{ ...GT, fontSize: '22px', fontWeight: 720, letterSpacing: '-0.03em', lineHeight: 1.2, margin: '0 0 8px' }}>
-                    Before we start
+                    {t('Before we start')}
                   </h2>
                   <p style={{ fontSize: '13px', lineHeight: 1.64, color: T.t3, margin: 0, maxWidth: '340px' }}>
                     {platform === 'darwin'
-                      ? `${APP_NAME} needs access to your screen and microphone to capture meetings and transcribe speech.`
-                      : 'Click "Allow" if Windows asks for microphone or screen access when you start a meeting.'}
+                      ? t('{name} needs access to your screen and microphone to capture meetings and transcribe speech.', { name: APP_NAME })
+                      : t('Click "Allow" if Windows asks for microphone or screen access when you start a meeting.')}
                   </p>
                 </motion.div>
 
@@ -265,15 +267,15 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
                     onMouseLeave={e => { if (!allGranted) e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
                   >
                     <span style={{ fontSize: '14px', fontWeight: 640, color: allGranted ? '#fff' : T.t2, letterSpacing: '-0.01em' }}>
-                      {allGranted ? 'All set — continue' : 'Continue'}
+                      {t(allGranted ? 'All set — continue' : 'Continue')}
                     </span>
                     <ArrowRight size={15} strokeWidth={2.2} color={allGranted ? '#fff' : T.t3} />
                   </button>
                   {!allGranted && (
                     <p style={{ fontSize: '11px', color: T.t4, textAlign: 'center', marginTop: '10px', fontFamily: T.font }}>
                       {platform === 'darwin'
-                        ? 'You can grant permissions later in System Preferences.'
-                        : `Windows will prompt you the first time ${APP_NAME} needs the microphone.`}
+                        ? t('You can grant permissions later in System Preferences.')
+                        : t('Windows will prompt you the first time {name} needs the microphone.', { name: APP_NAME })}
                     </p>
                   )}
                 </motion.div>
@@ -302,13 +304,14 @@ function PermRow({
   actionUrl?:   string;   // the URL onAction opens, declared for the preload (openExternal)
   reduced:      boolean;
 }) {
+  const { t } = useI18n();
   const isGranted  = status === 'granted';
   const isDenied   = status === 'denied' || status === 'restricted';
   const isPending  = status === 'loading' || status === 'not-determined';
 
   const statusColor = isGranted ? T.green : isDenied ? T.red : T.amber;
-  const statusLabel = platform !== 'darwin' ? 'System handles this'
-    : isGranted ? 'Granted' : isDenied ? 'Denied — re-enable in Settings' : 'Not yet granted';
+  const statusLabel = t(platform !== 'darwin' ? 'System handles this'
+    : isGranted ? 'Granted' : isDenied ? 'Denied — re-enable in Settings' : 'Not yet granted');
 
   return (
     <div style={{
@@ -330,9 +333,9 @@ function PermRow({
 
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '13px', fontWeight: 580, color: T.t1, letterSpacing: '-0.01em', fontFamily: T.font }}>{label}</div>
+        <div style={{ fontSize: '13px', fontWeight: 580, color: T.t1, letterSpacing: '-0.01em', fontFamily: T.font }}>{t(label)}</div>
         <div style={{ fontSize: '11.5px', color: T.t3, marginTop: '2px', fontFamily: T.font }}>
-          {isPending || platform !== 'darwin' ? description : statusLabel}
+          {isPending || platform !== 'darwin' ? t(description) : statusLabel}
         </div>
       </div>
 
@@ -362,7 +365,7 @@ function PermRow({
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(139,92,246,0.18)'}
           >
             {ActionIcon && <ActionIcon size={11} strokeWidth={2} />}
-            {actionLabel}
+            {t(actionLabel)}
           </button>
         )}
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { categorizeSttError, type SttErrorCategory } from '../../lib/sttErrorMapper';
+import { useI18n } from '../../i18n';
 
 import ChannelCard from './ChannelCard';
 
@@ -28,6 +29,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
     interviewerChannel, microphoneChannel,
     onCopyDiagnostics
 }) => {
+    const { t } = useI18n();
     const containerRef = useRef<HTMLDivElement>(null);
     const [copied, setCopied] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -137,7 +139,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                                         <line x1="23" y1="9" x2="17" y2="15"/>
                                         <line x1="17" y1="9" x2="23" y2="15"/>
                                     </svg>
-                                    System: {intErrorCategory.title}
+                                    {t('System')}: {t(intErrorCategory.title)}
                                 </span>
                             )}
 
@@ -154,13 +156,13 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                                         <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                                         <line x1="12" y1="19" x2="12" y2="22"/>
                                     </svg>
-                                    Mic: {micErrorCategory.title}
+                                    {t('Mic')}: {t(micErrorCategory.title)}
                                 </span>
                             )}
 
                             {/* Expand/collapse chevron */}
                             <button
-                                aria-label={expanded ? 'Collapse error details' : 'Expand error details'}
+                                aria-label={t(expanded ? 'Collapse error details' : 'Expand error details')}
                                 onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -214,13 +216,13 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                                         }`} />
                                     </div>
                                     <span className="text-[11px] font-semibold tracking-[0.08em] uppercase overlay-text-muted">
-                                        Audio Diagnostics
+                                        {t('Audio Diagnostics')}
                                     </span>
                                 </div>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                                     anyFailed ? 'bg-red-500/20 text-red-400/80' : anyReconnecting ? 'bg-amber-500/20 text-amber-400/80' : 'bg-sky-500/20 text-sky-400/80'
                                 }`}>
-                                    {anyFailed ? 'Issues Detected' : anyReconnecting ? 'Reconnecting' : 'Healthy'}
+                                    {t(anyFailed ? 'Issues Detected' : anyReconnecting ? 'Reconnecting' : 'Healthy')}
                                 </span>
                             </div>
 
@@ -228,7 +230,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                             <div className="grid grid-cols-2 gap-2.5">
                                 {/* System Audio */}
                                 <ChannelCard
-                                    name="System Audio"
+                                    name={t('System Audio')}
                                     status={intStatus}
                                     provider={intProvider}
                                     error={intError}
@@ -256,7 +258,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
 
                                 {/* Microphone */}
                                 <ChannelCard
-                                    name="Microphone"
+                                    name={t('Microphone')}
                                     status={micStatus}
                                     provider={micProvider}
                                     error={micError}
@@ -288,7 +290,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                                 <div className="flex items-center justify-center pt-2 border-t border-white/5">
                                     <button
                                         onClick={handleCopy}
-                                        aria-label="Copy STT error details"
+                                        aria-label={t('Copy STT error details')}
                                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-semibold tracking-wide transition-all duration-200 interaction-press ${
                                             copied
                                                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
@@ -300,7 +302,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                                                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                     <polyline points="20 6 9 17 4 12" />
                                                 </svg>
-                                                <span>Copied</span>
+                                                <span>{t('Copied')}</span>
                                             </>
                                         ) : (
                                             <>
@@ -308,7 +310,7 @@ const RollingTranscript: React.FC<RollingTranscriptProps> = ({
                                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                                                 </svg>
-                                                <span>Copy Report</span>
+                                                <span>{t('Copy Report')}</span>
                                             </>
                                         )}
                                     </button>

@@ -1,6 +1,7 @@
 import { app, globalShortcut, Menu, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import { mainText } from './mainStrings';
 
 export interface KeybindConfig {
     id: string;
@@ -356,7 +357,7 @@ export class KeybindManager {
         if (process.platform !== 'darwin') {
             const template: any[] = [
                 {
-                    label: 'View',
+                    label: mainText('View'),
                     submenu: [
                         { role: 'reload' },
                         { role: 'forceReload' },
@@ -397,10 +398,10 @@ export class KeybindManager {
                 role: 'editMenu'
             },
             {
-                label: 'View',
+                label: mainText('View'),
                 submenu: [
                     {
-                        label: 'Toggle Visibility',
+                        label: mainText('Toggle Visibility'),
                         accelerator: toggleAccelerator || undefined,
                         click: () => {
                             // Require AppState dynamically to avoid circular dependencies
@@ -410,22 +411,22 @@ export class KeybindManager {
                     },
                     { type: 'separator' },
                     {
-                        label: 'Move Window Up',
+                        label: mainText('Move Window Up'),
                         accelerator: this.getKeybind('window:move-up') || undefined,
                         click: () => this.windowHelper?.moveWindowUp()
                     },
                     {
-                        label: 'Move Window Down',
+                        label: mainText('Move Window Down'),
                         accelerator: this.getKeybind('window:move-down') || undefined,
                         click: () => this.windowHelper?.moveWindowDown()
                     },
                     {
-                        label: 'Move Window Left',
+                        label: mainText('Move Window Left'),
                         accelerator: this.getKeybind('window:move-left') || undefined,
                         click: () => this.windowHelper?.moveWindowLeft()
                     },
                     {
-                        label: 'Move Window Right',
+                        label: mainText('Move Window Right'),
                         accelerator: this.getKeybind('window:move-right') || undefined,
                         click: () => this.windowHelper?.moveWindowRight()
                     },
@@ -448,7 +449,7 @@ export class KeybindManager {
                 role: 'help',
                 submenu: [
                     {
-                        label: 'Learn More',
+                        label: mainText('Learn More'),
                         click: async () => {
                             const { shell } = require('electron');
                             await shell.openExternal('https://electronjs.org');

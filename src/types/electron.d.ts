@@ -2,6 +2,7 @@ import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } fr
 import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
+import type { UiLanguage, UiLanguageResult } from './uiLanguage';
 
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from './domesticStt';
 export interface ElectronAPI {
@@ -198,6 +199,9 @@ export interface ElectronAPI {
   setWindowMode: (mode: 'launcher' | 'overlay', inactive?: boolean) => Promise<void>
   setMeetingInterfaceTheme: (theme: string) => void
   onMeetingInterfaceThemeChanged: (callback: (theme: string) => void) => () => void
+  getUiLanguage: () => Promise<UiLanguage>
+  setUiLanguage: (language: UiLanguage) => Promise<UiLanguageResult>
+  onUiLanguageChanged: (callback: (language: UiLanguage) => void) => () => void
 
   // Intelligence Mode Events
   onIntelligenceAssistUpdate: (callback: (data: { insight: string }) => void) => () => void

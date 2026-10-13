@@ -85,6 +85,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
         } };
       }
       if (id === 'react-dom/client') return { createRoot: () => ({ render() {} }) };
+      if (id === './i18n') return { startUiLanguageSync() {} };
       if (id.endsWith('redactForLog')) {
         if (redactorFault === 'load') throw Error(CANARY);
         if (redactorFault === 'call') return { redactForLog() { throw Error(CANARY); } };

@@ -9,6 +9,7 @@ import interLightFont from '../font/Inter-4.1/web/Inter-Light.woff2?url';
 
 import heroVideo from '../assets/hero.webm';
 import NativelyInterfaceCard from './NativelyInterfaceCard';
+import { useI18n } from '../i18n';
 
 interface StartupSequenceProps {
     onComplete: () => void;
@@ -91,6 +92,7 @@ const PressLogos: React.FC = () => (
 
 // ─── Main Subsystem ───────────────────────────────────────────────────────
 const StartupSequence: React.FC<StartupSequenceProps> = ({ onComplete }) => {
+    const { t } = useI18n();
     return (
         <div
             className="fixed inset-0 z-[100] flex overflow-hidden lg:grid lg:grid-cols-[1fr_1fr]"
@@ -148,7 +150,7 @@ const StartupSequence: React.FC<StartupSequenceProps> = ({ onComplete }) => {
                             fontWeight: 500
                         }}
                     >
-                        Welcome to {APP_NAME}
+                        {t('Welcome to {name}', { name: APP_NAME })}
                     </motion.h1>
 
                     <motion.p
@@ -156,7 +158,7 @@ const StartupSequence: React.FC<StartupSequenceProps> = ({ onComplete }) => {
                         className="text-[25px] text-center mb-12 text-[#a7a7ad]"
                         style={{ fontFamily: FONTS.celebLight, fontWeight: 300 }}
                     >
-                        The ultimate AI meeting assistant
+                        {t('The ultimate AI meeting assistant')}
                     </motion.p>
 
                     {/* High-Fidelity "Continue" Button */}
@@ -177,7 +179,7 @@ const StartupSequence: React.FC<StartupSequenceProps> = ({ onComplete }) => {
                             }} />
 
                             <span className="relative z-10 flex items-center">
-                                Continue <span className="ml-[10px] text-[22px] opacity-90">›</span>
+                                {t('Continue')} <span className="ml-[10px] text-[22px] opacity-90">›</span>
                             </span>
                         </motion.button>
                     </motion.div>
@@ -255,8 +257,8 @@ const StartupSequence: React.FC<StartupSequenceProps> = ({ onComplete }) => {
                         className="text-[36px] font-medium leading-[1.25] tracking-tight"
                         style={{ color: COLORS.charcoalInk }}
                     >
-                        Real-time meeting assistant,<br />
-                        always ready to help
+                        {t('Real-time meeting assistant,')}<br />
+                        {t('always ready to help')}
                     </h2>
                 </motion.div>
 

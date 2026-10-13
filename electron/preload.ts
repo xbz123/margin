@@ -7,6 +7,7 @@ import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings 
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
+import type { UiLanguage, UiLanguageResult } from '../src/types/uiLanguage';
 
 let verboseLog = false;
 installConsoleLogging(console, (level, line) => {
@@ -485,6 +486,11 @@ interface ElectronAPI {
   // this, the overlay reads stale theme on next meeting start (half-paint hang).
   setMeetingInterfaceTheme: (theme: string) => void;
   onMeetingInterfaceThemeChanged: (callback: (theme: string) => void) => () => void;
+
+  // Application interface language, saved by main and broadcast to every window.
+  getUiLanguage: () => Promise<UiLanguage>;
+  setUiLanguage: (language: UiLanguage) => Promise<UiLanguageResult>;
+  onUiLanguageChanged: (callback: (language: UiLanguage) => void) => () => void;
 
   // Cancel the in-flight gemini-chat-stream. Renderer wires this to "drop
   // the current answer" user actions (Escape, navigation, chat-overlay unmount).
@@ -1518,6 +1524,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('interface-theme:changed', handler);
     return () => {
       ipcRenderer.removeListener('interface-theme:changed', handler);
+    };
+  },
+
+  getUiLanguage: () => ipcRenderer.invoke('ui-language:get'),
+  setUiLanguage: (language: UiLanguage) => ipcRenderer.invoke('ui-language:set', language),
+  onUiLanguageChanged: (callback: (language: UiLanguage) => void) => {
+    const handler = (_evt: unknown, language: UiLanguage) => callback(language);
+    ipcRenderer.on('ui-language:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('ui-language:changed', handler);
     };
   },
 

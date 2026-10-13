@@ -240,39 +240,41 @@ const getSttSummary = (
   userProvider: string,
   interviewerProvider: string,
   notConfigured: boolean,
+  t: (english: string, values?: Record<string, string>) => string,
 ): { label: string; tone: 'ok' | 'warn' | 'error'; detail: string } => {
+  const detail = t('{mic} mic · {system} system', { mic: formatProviderLabel(userProvider), system: formatProviderLabel(interviewerProvider) });
   if (notConfigured) {
     return {
-      label: 'STT not configured',
+      label: t('STT not configured'),
       tone: 'error',
-      detail: 'Open Audio settings to select a provider',
+      detail: t('Open Audio settings to select a provider'),
     };
   }
   if (userStatus === 'failed' || interviewerStatus === 'failed') {
     return {
-      label: 'STT needs attention',
+      label: t('STT needs attention'),
       tone: 'error',
-      detail: `${formatProviderLabel(userProvider)} mic · ${formatProviderLabel(interviewerProvider)} system`,
+      detail,
     };
   }
   if (userStatus === 'reconnecting' || interviewerStatus === 'reconnecting') {
     return {
-      label: 'STT reconnecting',
+      label: t('STT reconnecting'),
       tone: 'warn',
-      detail: `${formatProviderLabel(userProvider)} mic · ${formatProviderLabel(interviewerProvider)} system`,
+      detail,
     };
   }
   if (userStatus === 'awaiting-audio' || interviewerStatus === 'awaiting-audio') {
     return {
-      label: 'Listening for audio…',
+      label: t('Listening for audio…'),
       tone: 'warn',
-      detail: `${formatProviderLabel(userProvider)} mic · ${formatProviderLabel(interviewerProvider)} system`,
+      detail,
     };
   }
   return {
-    label: 'STT healthy',
+    label: t('STT healthy'),
     tone: 'ok',
-    detail: `${formatProviderLabel(userProvider)} mic · ${formatProviderLabel(interviewerProvider)} system`,
+    detail,
   };
 };
 
@@ -326,7 +328,7 @@ const MessageRow = React.memo(
           >
             {msg.role === 'interviewer' && (
               <div className="flex items-center gap-1.5 mb-1 text-[10px] font-medium uppercase tracking-wider overlay-text-muted">
-                Interviewer
+                {t('Interviewer')}
                 {msg.isStreaming && (
                   <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
                 )}
@@ -337,14 +339,15 @@ const MessageRow = React.memo(
                 className={`flex items-center gap-1 text-[10px] opacity-70 mb-1 border-b pb-1 ${isLightTheme ? 'border-black/10' : 'border-white/10'}`}
               >
                 <Image className="w-2.5 h-2.5" />
-                <span>Screenshot attached</span>
+                <span>{t('Screenshot attached')}</span>
               </div>
             )}
             {msg.role === 'system' && !msg.isStreaming && (
               <button
                 onClick={() => onCopy(msg.text)}
                 className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity overlay-icon-surface overlay-icon-surface-hover overlay-text-interactive"
-                title="Copy to clipboard"
+                title={t('Copy to clipboard')}
+                aria-label={t('Copy to clipboard')}
                 style={appearance.iconStyle}
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -352,7 +355,7 @@ const MessageRow = React.memo(
             )}
             {renderMessageText(msg)}
             {msg.generation && <div className="text-[10px] opacity-60 mt-1" data-generation-status={msg.generation.status}>
-              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? 'Incomplete · ' : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status === 'cancelled' ? t('Cancelled') : msg.generation.status}
+              {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? `${t('Incomplete')} · ` : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status === 'cancelled' ? t('Cancelled') : msg.generation.status}
             </div>}
           </div>
         </div>
@@ -374,6 +377,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 }) => {
   const isLightTheme = useResolvedTheme() === 'light';
   const { t } = useI18n();
+  // Long-lived IPC listeners read the current language without resubscribing.
+  const tRef = React.useRef(t);
+  tRef.current = t;
   const isGlassTheme = interfaceTheme === 'liquid-glass';
   const isModernTheme = interfaceTheme === 'modern';
   const shellRef = React.useRef<HTMLDivElement>(null);
@@ -1986,7 +1992,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           {
             id: genMessageId(),
             role: 'system',
-            text: `🎯 **Answer:**\n\n${data.answer}`,
+            text: `🎯 **${tRef.current('Answer:')}**\n\n${data.answer}`,
           },
         ]);
       }),
@@ -2065,7 +2071,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'user',
-          text: 'What should I say about this?',
+          text: t('What should I say about this?'),
           hasScreenshot: true,
           screenshotPreview: currentAttachments[0].preview,
         },
@@ -2257,7 +2263,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'user',
-          text: 'Give me a code hint for this',
+          text: t('Give me a code hint for this'),
           hasScreenshot: true,
           screenshotPreview: currentAttachments[0].preview,
         },
@@ -2305,7 +2311,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'user',
-          text: 'Brainstorm with this context',
+          text: t('Brainstorm with this context'),
           hasScreenshot: true,
           screenshotPreview: currentAttachments[0].preview,
         },
@@ -2479,7 +2485,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           if (generationEpochRef.current === epoch) {
             setMessages((prev) => [
               ...prev,
-              { id: genMessageId(), role: 'system', text: '❌ Speech could not be collected. Try again.' },
+              { id: genMessageId(), role: 'system', text: `❌ ${t('Speech could not be collected. Try again.')}` },
             ]);
           }
           return;
@@ -2504,7 +2510,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
               {
                 id: genMessageId(),
                 role: 'system',
-                text: '⏳ STT is reconnecting, try again in a moment.',
+                text: `⏳ ${t('STT is reconnecting, try again in a moment.')}`,
               },
             ]);
           } else {
@@ -2513,7 +2519,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
               {
                 id: genMessageId(),
                 role: 'system',
-                text: '⚠️ No speech detected. Try speaking closer to your microphone.',
+                text: `⚠️ ${t('No speech detected. Try speaking closer to your microphone.')}`,
               },
             ]);
           }
@@ -2862,7 +2868,7 @@ Provide only the answer, nothing else.`;
               className={`flex items-center gap-2 mb-2 font-semibold text-xs uppercase tracking-wide ${isLightTheme ? 'text-violet-600' : 'text-purple-300'}`}
             >
               <Code className="w-3.5 h-3.5" />
-              <span>Code Solution</span>
+              <span>{t('Code Solution')}</span>
             </div>
             <div
               className={`space-y-2 text-[13px] leading-relaxed ${isLightTheme ? 'text-slate-800' : 'text-slate-200'}`}
@@ -2918,7 +2924,7 @@ Provide only the answer, nothing else.`;
               className={`flex items-center gap-2 mb-2 font-semibold text-xs uppercase tracking-wide ${isLightTheme ? 'text-cyan-700' : 'text-cyan-300'}`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
-              <span>Shortened</span>
+              <span>{t('Shortened')}</span>
             </div>
             <div
               className={`text-[13px] leading-relaxed markdown-content ${isLightTheme ? 'text-slate-800' : 'text-slate-200'}`}
@@ -2945,7 +2951,7 @@ Provide only the answer, nothing else.`;
               className={`flex items-center gap-2 mb-2 font-semibold text-xs uppercase tracking-wide ${isLightTheme ? 'text-indigo-700' : 'text-indigo-300'}`}
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Recap</span>
+              <span>{t('Recap')}</span>
             </div>
             <div
               className={`text-[13px] leading-relaxed markdown-content ${isLightTheme ? 'text-slate-800' : 'text-slate-200'}`}
@@ -2972,7 +2978,7 @@ Provide only the answer, nothing else.`;
               className={`flex items-center gap-2 mb-2 font-semibold text-xs uppercase tracking-wide ${isLightTheme ? 'text-amber-700' : 'text-[#FFD60A]'}`}
             >
               <HelpCircle className="w-3.5 h-3.5" />
-              <span>Follow-Up Questions</span>
+              <span>{t('Follow-Up Questions')}</span>
             </div>
             <div
               className={`text-[13px] leading-relaxed markdown-content ${isLightTheme ? 'text-slate-800' : 'text-slate-200'}`}
@@ -2999,7 +3005,7 @@ Provide only the answer, nothing else.`;
             style={appearance.subtleStyle}
           >
             <div className="flex items-center gap-2 mb-2 text-emerald-400 font-semibold text-xs uppercase tracking-wide">
-              <span>Say this</span>
+              <span>{t('Say this')}</span>
             </div>
             <div className="text-[14px] leading-relaxed overlay-text-primary">
               {parts.map((part, i) => {
@@ -3074,7 +3080,7 @@ Provide only the answer, nothing else.`;
         </div>
       );
     },
-    [isLightTheme, mdComponents, appearance],
+    [isLightTheme, mdComponents, appearance, t],
   );
 
   // We use a ref to hold the latest handlers to avoid re-binding the event listener on every render
@@ -3898,6 +3904,7 @@ Provide only the answer, nothing else.`;
     sttUserProvider,
     sttInterviewerProvider,
     sttNotConfigured,
+    t,
   );
   const showAnswerPanel =
     messages.length > 0 || isManualRecording || isProcessing || answerPanelPinned;
@@ -4034,8 +4041,8 @@ Provide only the answer, nothing else.`;
                     provider_timeout: 'Vision timed out',
                   };
                   const failureLabel = latestVisionFailureReason
-                    ? failureLabelMap[latestVisionFailureReason] || 'Vision failed'
-                    : 'Vision failed';
+                    ? t(failureLabelMap[latestVisionFailureReason] || 'Vision failed')
+                    : t('Vision failed');
                   const failureTitleMap: Record<string, string> = {
                     no_vision_provider:
                       'No vision-capable provider is configured. Add an OpenAI, Claude, Gemini, or Groq key.',
@@ -4047,24 +4054,24 @@ Provide only the answer, nothing else.`;
                       'Vision provider exceeded its per-call timeout; the chain moved on to the next provider.',
                   };
                   const failureTitle = latestVisionFailureReason
-                    ? failureTitleMap[latestVisionFailureReason] ||
-                      'The vision provider failed for this turn.'
-                    : 'Screen vision did not return a result for this turn.';
+                    ? t(failureTitleMap[latestVisionFailureReason] ||
+                      'The vision provider failed for this turn.')
+                    : t('Screen vision did not return a result for this turn.');
                   const providerLabel = latestVisionProviderUsed
-                    ? `Vision: ${latestVisionProviderUsed}`
-                    : 'Vision input used';
+                    ? t('Vision: {provider}', { provider: latestVisionProviderUsed })
+                    : t('Vision input used');
                   const providerTitle =
                     latestVisionProviderUsed && latestVisionModelUsed
-                      ? `Latest answer used ${latestVisionProviderUsed} (${latestVisionModelUsed}) vision on the screenshot`
+                      ? t('Latest answer used {provider} ({model}) vision on the screenshot', { provider: latestVisionProviderUsed, model: latestVisionModelUsed })
                       : latestVisionProviderUsed
-                        ? `Latest answer used ${latestVisionProviderUsed} vision on the screenshot`
-                        : 'The latest answer received direct image input from the attached screen';
+                        ? t('Latest answer used {provider} vision on the screenshot', { provider: latestVisionProviderUsed })
+                        : t('The latest answer received direct image input from the attached screen');
                   return (
                     <div
                       className={`${statusPillBaseClass} ${visionFailed ? getStatusToneClass('warn') : visionSucceeded ? getStatusToneClass('ok') : 'overlay-text-primary'}`}
                       title={
                         attachedContext.length > 0
-                          ? 'Attached screenshots will be sent to the vision provider when you send this turn'
+                          ? t('Attached screenshots will be sent to the vision provider when you send this turn')
                           : visionFailed
                             ? failureTitle
                             : providerTitle
@@ -4073,7 +4080,7 @@ Provide only the answer, nothing else.`;
                       <Monitor className="h-3 w-3 opacity-70" />
                       <span>
                         {attachedContext.length > 0
-                          ? `${attachedContext.length} screen attached`
+                          ? t('{count} screen attached', { count: String(attachedContext.length) })
                           : visionFailed
                             ? failureLabel
                             : providerLabel}
@@ -4105,13 +4112,13 @@ Provide only the answer, nothing else.`;
                         </svg>
                       </div>
                       <span>
-                        {systemAudioWarning.kind === 'screen-recording-permission'
+                        {t(systemAudioWarning.kind === 'screen-recording-permission'
                           ? 'Screen Recording Permission Denied'
-                          : 'Audio Capture Issue'}
+                          : 'Audio Capture Issue')}
                       </span>
                     </div>
                     <p className="text-[11px] text-yellow-600/70 dark:text-yellow-400/60 leading-snug pl-[26px]">
-                      {systemAudioWarning.message}
+                      {t(systemAudioWarning.message)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -4153,18 +4160,18 @@ Provide only the answer, nothing else.`;
                             }}
                             className="px-3 py-1.5 rounded-lg bg-yellow-500/15 hover:bg-yellow-500/25 text-yellow-700 dark:text-yellow-500 text-[11px] font-semibold transition-all active:scale-95 border border-yellow-500/20 shadow-sm"
                             title={
-                              deepLinkUrl
+                              t(deepLinkUrl
                                 ? wantsMicrophonePane
                                   ? 'Open macOS Microphone privacy settings'
                                   : 'Open macOS Screen Recording privacy settings'
-                                : `Open ${APP_NAME} Settings`
+                                : 'Open {name} Settings', { name: APP_NAME })
                             }
                           >
-                            {deepLinkUrl
+                            {t(deepLinkUrl
                               ? wantsMicrophonePane
                                 ? 'Open Mic Settings'
                                 : 'Open Screen Settings'
-                              : 'Open Settings'}
+                              : 'Open Settings')}
                           </button>
                           {/*
                             UX2: in-app TCC repair button. macOS only.
@@ -4201,9 +4208,9 @@ Provide only the answer, nothing else.`;
                               }}
                               disabled={tccRepairing}
                               className="px-3 py-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-500 text-[11px] font-medium transition-all active:scale-95 border border-yellow-500/15 disabled:opacity-60 disabled:cursor-not-allowed"
-                              title={`Reset macOS permission entries for ${APP_NAME} (you will need to grant them again after relaunch)`}
+                              title={t('Reset macOS permission entries for {name} (you will need to grant them again after relaunch)', { name: APP_NAME })}
                             >
-                              {tccRepairing ? 'Resetting…' : 'Repair Permissions'}
+                              {t(tccRepairing ? 'Resetting…' : 'Repair Permissions')}
                             </button>
                           )}
                         </>
@@ -4212,7 +4219,8 @@ Provide only the answer, nothing else.`;
                     <button
                       onClick={() => setSystemAudioWarning(null)}
                       className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-yellow-600/50 hover:text-yellow-700 dark:text-yellow-500/50 dark:hover:text-yellow-400 transition-colors absolute top-1 right-1 opacity-0 group-hover/warning:opacity-100"
-                      title="Dismiss"
+                      title={t('Dismiss')}
+                      aria-label={t('Dismiss')}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -4240,10 +4248,10 @@ Provide only the answer, nothing else.`;
                           />
                         </svg>
                       </div>
-                      <span>Transcription Not Configured</span>
+                      <span>{t('Transcription Not Configured')}</span>
                     </div>
                     <p className="text-[11px] text-orange-600/70 dark:text-orange-400/60 leading-snug pl-[26px]">
-                      No STT provider selected. Open Settings → Audio to pick one.
+                      {t('No STT provider selected. Open Settings → Speech & Audio to pick one.')}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -4253,12 +4261,13 @@ Provide only the answer, nothing else.`;
                       }}
                       className="px-3 py-1.5 rounded-lg bg-orange-500/15 hover:bg-orange-500/25 text-orange-700 dark:text-orange-500 text-[11px] font-semibold transition-all active:scale-95 border border-orange-500/20 shadow-sm"
                     >
-                      Open Settings
+                      {t('Open Settings')}
                     </button>
                     <button
                       onClick={() => setSttNotConfigured(false)}
                       className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-orange-600/50 hover:text-orange-700 dark:text-orange-500/50 dark:hover:text-orange-400 transition-colors absolute top-1 right-1 opacity-0 group-hover/stt-warning:opacity-100"
-                      title="Dismiss"
+                      title={t('Dismiss')}
+                      aria-label={t('Dismiss')}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -4327,7 +4336,7 @@ Provide only the answer, nothing else.`;
                   ))}
                   {retryGeneration && !isProcessing && (
                     <button type="button" onClick={handleRetryGeneration} className="px-3 py-1.5 rounded-full border text-xs">
-                      Retry
+                      {t('Retry')}
                     </button>
                   )}
 
@@ -4357,7 +4366,7 @@ Provide only the answer, nothing else.`;
                           className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"
                           style={{ animationDelay: '300ms' }}
                         />
-                        <span className="text-[10px] text-emerald-400/70 ml-1">Listening...</span>
+                        <span className="text-[10px] text-emerald-400/70 ml-1">{t('Listening...')}</span>
                       </div>
                     </div>
                   )}
@@ -4413,14 +4422,14 @@ Provide only the answer, nothing else.`;
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all active:scale-95 duration-200 interaction-base interaction-press whitespace-nowrap shrink-0 ${quickActionClass}`}
                   style={appearance.chipStyle}
                 >
-                  <Pencil className="w-3 h-3 opacity-70" /> What to answer?
+                  <Pencil className="w-3 h-3 opacity-70" /> {t('What to answer?')}
                 </button>
                 <button
                   onClick={handleClarify}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all active:scale-95 duration-200 interaction-base interaction-press whitespace-nowrap shrink-0 ${quickActionClass}`}
                   style={appearance.chipStyle}
                 >
-                  <MessageSquare className="w-3 h-3 opacity-70" /> Clarify
+                  <MessageSquare className="w-3 h-3 opacity-70" /> {t('Clarify')}
                 </button>
                 <button
                   onClick={actionButtonMode === 'brainstorm' ? handleBrainstorm : handleRecap}
@@ -4429,11 +4438,11 @@ Provide only the answer, nothing else.`;
                 >
                   {actionButtonMode === 'brainstorm' ? (
                     <>
-                      <Lightbulb className="w-3 h-3 opacity-70" /> Brainstorm
+                      <Lightbulb className="w-3 h-3 opacity-70" /> {t('Brainstorm')}
                     </>
                   ) : (
                     <>
-                      <RefreshCw className="w-3 h-3 opacity-70" /> Recap
+                      <RefreshCw className="w-3 h-3 opacity-70" /> {t('Recap')}
                     </>
                   )}
                 </button>
@@ -4442,7 +4451,7 @@ Provide only the answer, nothing else.`;
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all active:scale-95 duration-200 interaction-base interaction-press whitespace-nowrap shrink-0 ${quickActionClass}`}
                   style={appearance.chipStyle}
                 >
-                  <HelpCircle className="w-3 h-3 opacity-70" /> Follow Up Question
+                  <HelpCircle className="w-3 h-3 opacity-70" /> {t('Follow Up Question')}
                 </button>
                 <button
                   onClick={handleAnswerNow}
@@ -4456,11 +4465,11 @@ Provide only the answer, nothing else.`;
                   {isManualRecording ? (
                     <>
                       <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                      Stop
+                      {t('Stop')}
                     </>
                   ) : (
                     <>
-                      <Zap className="w-3 h-3 opacity-70" /> Answer
+                      <Zap className="w-3 h-3 opacity-70" /> {t('Answer')}
                     </>
                   )}
                 </button>
@@ -4476,8 +4485,7 @@ Provide only the answer, nothing else.`;
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[11px] font-medium overlay-text-primary">
-                        {attachedContext.length} screenshot{attachedContext.length > 1 ? 's' : ''}{' '}
-                        attached
+                        {t(attachedContext.length > 1 ? '{count} screenshots attached' : '{count} screenshot attached', { count: String(attachedContext.length) })}
                       </span>
                       <button
                         onClick={() => {
@@ -4485,7 +4493,8 @@ Provide only the answer, nothing else.`;
                           setRetryGeneration(undefined); setAttachedContext([]);
                         }}
                         className="p-1 rounded-full transition-colors overlay-icon-surface overlay-icon-surface-hover overlay-text-interactive"
-                        title="Remove all"
+                        title={t('Remove all')}
+                        aria-label={t('Remove all')}
                         style={appearance.iconStyle}
                       >
                         <X className="w-3.5 h-3.5" />
@@ -4496,7 +4505,7 @@ Provide only the answer, nothing else.`;
                         <div key={ctx.path} className="relative group/thumb flex-shrink-0">
                           <img
                             src={ctx.preview}
-                            alt={`Screenshot ${idx + 1}`}
+                            alt={t('Screenshot {number}', { number: String(idx + 1) })}
                             className={`h-10 w-auto rounded border ${isLightTheme ? 'border-black/15' : 'border-white/20'}`}
                           />
                           <button
@@ -4506,7 +4515,8 @@ Provide only the answer, nothing else.`;
                               setAttachedContext((prev) => prev.filter((_, i) => i !== idx));
                             }}
                             className="absolute -top-1 -right-1 w-4 h-4 bg-red-500/80 hover:bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity"
-                            title="Remove"
+                            title={t('Remove')}
+                            aria-label={t('Remove')}
                           >
                             <X className="w-2.5 h-2.5 text-white" />
                           </button>
@@ -4514,7 +4524,7 @@ Provide only the answer, nothing else.`;
                       ))}
                     </div>
                     <span className="text-[10px] overlay-text-muted">
-                      Ask a question or click Answer
+                      {t('Ask a question or click Answer')}
                     </span>
                   </div>
                 )}
@@ -4530,23 +4540,23 @@ Provide only the answer, nothing else.`;
                     data-stealth-ignore="true"
                   >
                     <span className="overlay-text-primary flex-1">
-                      Stealth typing hotkey{' '}
+                      {t('Stealth typing hotkey')}{' '}
                       <kbd className="px-1 py-0.5 rounded bg-white/10 font-mono text-[10px]">
                         {stealthHotkeyConflict}
                       </kbd>{' '}
-                      is already in use. Click the input to activate, or rebind in Settings.
+                      {t('is already in use. Click the input to activate, or rebind in Settings.')}
                     </span>
                     <button
                       onClick={() => window.electronAPI.openSettingsTab('keybinds')}
                       className="px-2 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/30 transition-colors text-[11px] font-medium overlay-text-primary whitespace-nowrap"
                       data-stealth-ignore="true"
                     >
-                      Rebind
+                      {t('Rebind')}
                     </button>
                     <button
                       onClick={() => setStealthHotkeyConflict(null)}
                       className="px-1.5 py-1 rounded-md hover:bg-white/10 transition-colors text-[11px] overlay-text-muted"
-                      aria-label="Dismiss"
+                      aria-label={t('Dismiss')}
                       data-stealth-ignore="true"
                     >
                       ×
@@ -4566,20 +4576,19 @@ Provide only the answer, nothing else.`;
                     data-stealth-ignore="true"
                   >
                     <span className="overlay-text-primary flex-1">
-                      Stealth typing needs Accessibility access. Grant it in System Settings, then
-                      restart {APP_NAME}.
+                      {t('Stealth typing needs Accessibility access. Grant it in System Settings, then restart {name}.', { name: APP_NAME })}
                     </span>
                     <button
                       onClick={() => window.electronAPI.stealthTapOpenSettings()}
                       className="px-2 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 transition-colors text-[11px] font-medium overlay-text-primary whitespace-nowrap"
                       data-stealth-ignore="true"
                     >
-                      Open Settings
+                      {t('Open Settings')}
                     </button>
                     <button
                       onClick={() => setStealthPermissionMissing(false)}
                       className="px-1.5 py-1 rounded-md hover:bg-white/10 transition-colors text-[11px] overlay-text-muted"
-                      aria-label="Dismiss"
+                      aria-label={t('Dismiss')}
                       data-stealth-ignore="true"
                     >
                       ×
@@ -4597,7 +4606,7 @@ Provide only the answer, nothing else.`;
                                     Selector windows. */}
                 <label className="flex items-center gap-2 text-xs overlay-text-muted mb-2" data-stealth-ignore="true">
                   {t('Question mode')}
-                  <select aria-label="Question mode" value={questionMode} onChange={event => setQuestionMode(event.target.value as 'auto' | 'interview' | 'written')} className="bg-transparent border rounded px-2 py-1">
+                  <select aria-label={t('Question mode')} value={questionMode} onChange={event => setQuestionMode(event.target.value as 'auto' | 'interview' | 'written')} className="bg-transparent border rounded px-2 py-1">
                     <option value="auto">{t('Automatic (by entry)')}</option>
                     <option value="interview">{t('Interview')}</option>
                     <option value="written">{t('Written')}</option>
@@ -4628,7 +4637,7 @@ Provide only the answer, nothing else.`;
                   {/* Custom Rich Placeholder */}
                   {!inputValue && (
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none text-[13px] overlay-text-muted">
-                      <span>Ask anything on screen or conversation, or</span>
+                      <span>{t('Ask anything on screen or conversation, or')}</span>
                       <div className="flex items-center gap-1 opacity-80">
                         {(
                           shortcuts.selectiveScreenshot || [getModifierSymbol('cmd'), 'Shift', 'H']
@@ -4644,7 +4653,7 @@ Provide only the answer, nothing else.`;
                           </React.Fragment>
                         ))}
                       </div>
-                      <span>for selective screenshot</span>
+                      <span>{t('for selective screenshot')}</span>
                     </div>
                   )}
 

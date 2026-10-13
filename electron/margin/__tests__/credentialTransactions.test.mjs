@@ -617,7 +617,7 @@ test('all credential preload callbacks preserve failure, warning and cancellatio
 function ui(file, name, result, extra = {}) {
   const changes = new Map();
   const context = {
-    confirm: () => true, setTimeout: () => 1,
+    confirm: () => true, setTimeout: () => 1, t: (text, values = {}) => text.replace(/\{(\w+)\}/g, (match, key) => key in values ? String(values[key]) : match), t: (text, values = {}) => text.replace(/\{(\w+)\}/g, (match, key) => key in values ? String(values[key]) : match),
     providerConfigurations: targets, hasStoredKey: {}, unsaved: false,
     window: { electronAPI: new Proxy({}, { get: () => async () => result }) },
     availableLanguages: { 'english-us': { group: 'English' } }, sttOpenaiBaseUrl: 'https://synthetic.invalid',

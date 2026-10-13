@@ -303,6 +303,7 @@ interface ScreenshotCaptureSession {
 import { CredentialsManager } from "./services/CredentialsManager"
 import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { SettingsManager } from "./services/SettingsManager"
+import { mainText } from "./services/mainStrings"
 import { setVerboseLoggingFlag } from "./verboseLog"
 import { decideToggle } from './services/toggleStateReducer'
 
@@ -2127,13 +2128,13 @@ export class AppState {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: `Show ${APP_IDENTITY.name}`,
+        label: mainText('Show {name}', { name: APP_IDENTITY.name }),
         click: () => {
           this.centerAndShowWindow()
         }
       },
       {
-        label: `Toggle Window (${displayToggle})`,
+        label: mainText('Toggle Window ({shortcut})', { shortcut: displayToggle }),
         click: () => {
           this.toggleMainWindow()
         }
@@ -2142,7 +2143,7 @@ export class AppState {
         type: 'separator'
       },
       {
-        label: `Take Screenshot (${displayScreenshot})`,
+        label: mainText('Take Screenshot ({shortcut})', { shortcut: displayScreenshot }),
         accelerator: screenshotAccel,
         click: async () => {
           try {
@@ -2164,7 +2165,7 @@ export class AppState {
         type: 'separator'
       },
       {
-        label: 'Quit',
+        label: mainText('Quit'),
         accelerator: 'Command+Q',
         click: () => {
           app.quit()
@@ -2180,6 +2181,11 @@ export class AppState {
       this.tray.destroy();
       this.tray = null;
     }
+  }
+
+  public refreshLocalizedMenus(): void {
+    this.updateTrayMenu();
+    KeybindManager.getInstance().updateMenu();
   }
 
   public setHasDebugged(value: boolean): void {

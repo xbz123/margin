@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, ChevronDown, Check, RefreshCw, ExternalLink, Loader2 } from 'lucide-react';
 import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, STANDARD_CLOUD_MODELS, prettifyModelId } from '../../utils/modelUtils';
 import { ProviderCard } from './ProviderCard';
+import { useI18n } from '../../i18n';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { DEFAULT_GENERATION_POLICY, type GenerationPolicy } from '../../types/generationPolicy';
 import { imageSupportTarget, knownModelImageSupport } from '../../types/modelImageSupport';
@@ -26,6 +27,7 @@ interface ModelSelectProps {
 }
 
 const ModelSelect: React.FC<ModelSelectProps> = ({ value, options, onChange, placeholder = "Select model", className = "" }) => {
+    const { t } = useI18n();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -50,7 +52,7 @@ const ModelSelect: React.FC<ModelSelectProps> = ({ value, options, onChange, pla
                 className={`w-40 bg-bg-input border border-border-subtle rounded-lg px-3 ${paddingClass} ${className} text-xs text-text-primary focus:outline-none focus:border-accent-primary flex items-center justify-between hover:bg-bg-elevated transition-colors`}
                 type="button"
             >
-                <span className="truncate pr-2">{selectedOption ? selectedOption.name : placeholder}</span>
+                <span className="truncate pr-2">{selectedOption ? selectedOption.name : t(placeholder)}</span>
                 <ChevronDown size={14} className={`text-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -72,7 +74,7 @@ const ModelSelect: React.FC<ModelSelectProps> = ({ value, options, onChange, pla
                             </button>
                         ))}
                         {options.length === 0 && (
-                            <div className="px-3 py-2 text-xs text-gray-500 italic">No models available</div>
+                            <div className="px-3 py-2 text-xs text-gray-500 italic">{t('No models available')}</div>
                         )}
                     </div>
                 </div>
@@ -116,6 +118,7 @@ const CodexCliModelField: React.FC<{
 );
 
 export const AIProvidersSettings: React.FC = () => {
+    const { t } = useI18n();
     const [generationPolicy, setGenerationPolicy] = useState<GenerationPolicy>({ ...DEFAULT_GENERATION_POLICY });
     const [generationPolicySaving, setGenerationPolicySaving] = useState(false);
     const [generationPolicyNotice, setGenerationPolicyNotice] = useState('');
@@ -319,7 +322,7 @@ export const AIProvidersSettings: React.FC = () => {
     };
 
     const handleRemoveKey = async (provider: string, setter: (val: string) => void) => {
-        if (!confirm(`Are you sure you want to remove the ${provider} API key?`)) return;
+        if (!confirm(t('Are you sure you want to remove the {provider} API key?', { provider }))) return;
         setCredentialNotice('');
         try {
             let result;
@@ -388,8 +391,8 @@ export const AIProvidersSettings: React.FC = () => {
 
     const cloudModelOptions: ModelOption[] = [];
     if (codexSourceAvailable(codexCliConfig)) {
-        cloudModelOptions.push({ id: 'codex-cli', name: 'Codex login source (configured model)' });
-        for (const model of new Set([codexCliConfig.model, codexCliConfig.fastModel])) cloudModelOptions.push({ id: codexCliSelectorId(model), name: `${model} (Codex login source, unverified availability)` });
+        cloudModelOptions.push({ id: 'codex-cli', name: t('Codex login source (configured model)') });
+        for (const model of new Set([codexCliConfig.model, codexCliConfig.fastModel])) cloudModelOptions.push({ id: codexCliSelectorId(model), name: t('{model} (Codex login source, unverified availability)', { model }) });
     }
     for (const [provider, config] of Object.entries(STANDARD_CLOUD_MODELS)) {
         if (!hasStoredKey[provider]) continue;
@@ -402,11 +405,11 @@ export const AIProvidersSettings: React.FC = () => {
     return (
         <div className="space-y-5 animated fadeIn pb-10">
             <section className="space-y-3 rounded-xl border border-border-subtle p-5">
-                <h3 className="text-sm font-bold text-text-primary">Generation limits</h3>
-                <p className="text-xs text-text-secondary">At most two sends per request. Switching manually cancels the current request and keeps its partial output. A backup can receive the same request data and incur additional costs, subject to current privacy settings. First-token timeout ends the request without extra backup time; hidden reasoning may consume that budget before any visible text.</p>
-                <label className="block text-xs text-text-secondary">Backup model
+                <h3 className="text-sm font-bold text-text-primary">{t('Generation limits')}</h3>
+                <p className="text-xs text-text-secondary">{t('At most two sends per request. Switching manually cancels the current request and keeps its partial output. A backup can receive the same request data and incur additional costs, subject to current privacy settings. First-token timeout ends the request without extra backup time; hidden reasoning may consume that budget before any visible text.')}</p>
+                <label className="block text-xs text-text-secondary">{t('Backup model')}
                     <select className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" value={generationPolicy.backupModel ?? ''} onChange={event => setGenerationPolicy({ ...generationPolicy, backupModel: event.target.value || undefined, backupImageSupportConfirmedFor: undefined })}>
-                        <option value="">None — retry the same model only for a transient failure</option>
+                        <option value="">{t('None — retry the same model only for a transient failure')}</option>
                         {cloudModelOptions.filter(option => option.id !== defaultModel).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
                     </select>
                 </label>
@@ -414,28 +417,28 @@ export const AIProvidersSettings: React.FC = () => {
                     ['interviewFirstTokenSeconds', 'Interview first visible text (seconds)'],
                     ['interviewTotalSeconds', 'Interview total (seconds)'],
                     ['writtenTotalSeconds', 'Written answer total (seconds)'],
-                ] as const).map(([key, label]) => <label key={key} className="block text-xs text-text-secondary">{label}
+                ] as const).map(([key, label]) => <label key={key} className="block text-xs text-text-secondary">{t(label)}
                     <input className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" type="number" min="0" step="any" value={Number.isFinite(generationPolicy[key]) ? generationPolicy[key] : ''} onChange={event => setGenerationPolicy({ ...generationPolicy, [key]: event.target.value ? Number(event.target.value) : NaN })} />
                 </label>)}
-                <p className="text-xs text-text-secondary">Background summaries and transcript compression: 180 seconds, with no first-token deadline.</p>
+                <p className="text-xs text-text-secondary">{t('Background summaries and transcript compression: 180 seconds, with no first-token deadline.')}</p>
                 {(() => {
                     if (generationPolicy.backupModel?.startsWith('codex-cli')) {
                         const model = generationPolicy.backupModel.startsWith('codex-cli:') ? generationPolicy.backupModel.slice(10) : codexCliConfig.model;
                         const binding = codexImageTarget(model);
-                        return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label="Backup model supports images"
+                        return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
                             checked={generationPolicy.backupImageSupportConfirmedFor === binding}
-                            onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> Backup Codex model supports images
-                            <span className="block text-[10px]">Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.</span></label>;
+                            onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> {t('Backup Codex model supports images')}
+                            <span className="block text-[10px]">{t('Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.')}</span></label>;
                     }
                     const match = /^llm-target:(gemini|groq|openai|claude|deepseek):(gemini|chat-completions|responses|messages):(.+)$/.exec(generationPolicy.backupModel ?? '');
                     if (!match) return null;
                     const config = { ...providerConfigurations[match[1] as LlmProvider], model: decodeURIComponent(match[3]) };
                     let binding: string;
                     try { if (knownModelImageSupport(config) !== undefined) return null; binding = imageSupportTarget(config); } catch { return null; }
-                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label="Backup model supports images"
+                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
                         checked={generationPolicy.backupImageSupportConfirmedFor === binding}
-                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> Backup model supports images
-                        <span className="block text-[10px]">Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.</span>
+                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> {t('Backup model supports images')}
+                        <span className="block text-[10px]">{t("Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.")}</span>
                     </label>;
                 })()}
                 <button type="button" disabled={generationPolicySaving} className="text-xs text-accent-primary disabled:opacity-50" onClick={async () => {
@@ -445,21 +448,21 @@ export const AIProvidersSettings: React.FC = () => {
                         setGenerationPolicyNotice(result.ok ? result.warning ?? 'Saved' : result.message);
                     } catch (error) { setGenerationPolicyNotice(error instanceof Error ? error.message : 'Could not save'); }
                     finally { setGenerationPolicySaving(false); }
-                }}>{generationPolicySaving ? 'Saving…' : 'Save generation limits'}</button>
-                {generationPolicyNotice && <p role="status" className="text-xs text-text-secondary">{generationPolicyNotice}</p>}
+                }}>{t(generationPolicySaving ? 'Saving…' : 'Save generation limits')}</button>
+                {generationPolicyNotice && <p role="status" className="text-xs text-text-secondary">{t(generationPolicyNotice)}</p>}
             </section>
-            {credentialNotice && <p role="alert" className="text-xs text-amber-500">{credentialNotice}</p>}
+            {credentialNotice && <p role="alert" className="text-xs text-amber-500">{t(credentialNotice)}</p>}
             {/* Default Model for Chat */}
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Default Model for Chat</h3>
-                    <p className="text-xs text-text-secondary mb-2">Primary model for new requests. Only an explicitly selected backup may replace it.</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">{t('Default Model for Chat')}</h3>
+                    <p className="text-xs text-text-secondary mb-2">{t('Primary model for new requests. Only an explicitly selected backup may replace it.')}</p>
                 </div>
 
                 <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle flex items-center justify-between">
                     <div>
-                        <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Active Model</label>
-                        <p className="text-[10px] text-text-secondary">Applies to new chats instantly.</p>
+                        <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">{t('Active Model')}</label>
+                        <p className="text-[10px] text-text-secondary">{t('Applies to new chats instantly.')}</p>
                     </div>
                     <ModelSelect
                         value={defaultModel}
@@ -489,22 +492,22 @@ export const AIProvidersSettings: React.FC = () => {
                 {/* Fast Response Mode */}
                 <div
                     className={`bg-bg-item-surface rounded-xl p-5 border border-border-subtle flex items-center justify-between gap-4 ${!canUseFastMode ? 'opacity-50 grayscale' : ''}`}
-                    title={!canUseFastMode ? "Requires Groq or Codex CLI to be configured" : ""}
+                    title={!canUseFastMode ? t("Requires Groq or Codex CLI to be configured") : ""}
                 >
                     <div className="flex-1">
                         <div className="flex items-center gap-2">
-                            <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Fast Response Mode</label>
-                            <span className="bg-orange-500/10 text-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded border border-orange-500/20">NEW</span>
+                            <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">{t('Fast Response Mode')}</label>
+                            <span className="bg-orange-500/10 text-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded border border-orange-500/20">{t('NEW')}</span>
                         </div>
-                        <p className="text-[10px] text-text-secondary mt-0.5">Applies to selected Groq and Codex CLI models. Groq keeps your selected model; Codex CLI uses its configured Fast Model. Other model selections are not overridden.</p>
+                        <p className="text-[10px] text-text-secondary mt-0.5">{t('Applies to selected Groq and Codex CLI models. Groq keeps your selected model; Codex CLI uses its configured Fast Model. Other model selections are not overridden.')}</p>
                         {!canUseFastMode && (
-                            <p className="text-[10px] text-orange-500 mt-0.5 font-medium">Requires Groq or Codex CLI to be configured.</p>
+                            <p className="text-[10px] text-orange-500 mt-0.5 font-medium">{t('Requires Groq or Codex CLI to be configured.')}</p>
                         )}
                     </div>
                     <div
                         onClick={async () => {
                             if (!canUseFastMode) {
-                                alert("Please configure Groq or Codex CLI first to enable Fast Response Mode.");
+                                alert(t("Please configure Groq or Codex CLI first to enable Fast Response Mode."));
                                 return;
                             }
                             const newState = !fastResponseMode;
@@ -523,8 +526,8 @@ export const AIProvidersSettings: React.FC = () => {
             {/* Cloud Providers */}
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Cloud Providers</h3>
-                    <p className="text-xs text-text-secondary mb-2">Add API keys to unlock cloud AI models.</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">{t('Cloud Providers')}</h3>
+                    <p className="text-xs text-text-secondary mb-2">{t('Add API keys to unlock cloud AI models.')}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -640,15 +643,15 @@ export const AIProvidersSettings: React.FC = () => {
             {/* Existing CLI login file only; generation never invokes the CLI. */}
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Codex login source (file only)</h3>
-                    <p className="text-xs text-text-secondary">Reads an existing CLI login file without executing the CLI, refreshing or writing tokens. Keyring and ephemeral storage are unsupported; do not downgrade storage. Requests use a fixed third-party-unpromised ChatGPT backend, not the public API. No real-service verification has been performed.</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">{t('Codex login source (file only)')}</h3>
+                    <p className="text-xs text-text-secondary">{t('Reads an existing CLI login file without executing the CLI, refreshing or writing tokens. Keyring and ephemeral storage are unsupported; do not downgrade storage. Requests use a fixed third-party-unpromised ChatGPT backend, not the public API. No real-service verification has been performed.')}</p>
                 </div>
 
                 <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle space-y-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">Enable Codex login source</label>
-                            <p className="text-[10px] text-text-secondary">Selecting a model does not check or read the login file.</p>
+                            <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">{t('Enable Codex login source')}</label>
+                            <p className="text-[10px] text-text-secondary">{t('Selecting a model does not check or read the login file.')}</p>
                         </div>
                         <button
                             type="button"
@@ -656,7 +659,7 @@ export const AIProvidersSettings: React.FC = () => {
                                 const next = { ...codexCliConfig, enabled: !codexCliConfig.enabled, ...(!codexCliConfig.enabled ? { acceptRisk: codexRiskAccepted } : {}) };
                                 await saveCodexCliConfig(next);
                             }}
-                            aria-label="Enable Codex login source"
+                            aria-label={t('Enable Codex login source')}
                             disabled={!codexCliConfig.enabled && !codexRiskAccepted}
                             className={`w-11 h-6 rounded-full relative transition-colors ${codexCliConfig.enabled ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
                         >
@@ -664,18 +667,18 @@ export const AIProvidersSettings: React.FC = () => {
                         </button>
                     </div>
 
-                    <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label="Accept Codex login-source risks" checked={codexRiskAccepted}
-                        onChange={async event => { setCodexRiskAccepted(event.target.checked); if (!event.target.checked && codexCliConfig.enabled) await saveCodexCliConfig({ enabled: false }); }} /> I explicitly accept risk version {CODEX_RISK_VERSION}. {codexCliConfig.riskConfirmedVersion === CODEX_RISK_VERSION ? 'Current version is saved; disabling withdraws consent.' : ''}</label>
+                    <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Accept Codex login-source risks')} checked={codexRiskAccepted}
+                        onChange={async event => { setCodexRiskAccepted(event.target.checked); if (!event.target.checked && codexCliConfig.enabled) await saveCodexCliConfig({ enabled: false }); }} /> {t('I explicitly accept risk version {version}.', { version: CODEX_RISK_VERSION })} {codexCliConfig.riskConfirmedVersion === CODEX_RISK_VERSION ? t('Current version is saved; disabling withdraws consent.') : ''}</label>
                     <ul className="list-disc pl-5 space-y-1 text-[10px] text-text-secondary">
-                        <li>OpenAI has not explicitly authorized this third-party use. The interface may change or fail; the account may be rate-limited, restricted or suspended. Your consent is not provider authorization.</li>
-                        <li>Requests consume plan quota and remain subject to your plan terms. Prompts, transcripts, screenshots and reference context go to the cloud under current data scopes; an invisible window does not prevent uploads.</li>
-                        <li>Credentials never enter ordinary settings or logs. Margin does not refresh or write them. Expired login requires external sign-in; a supported API-key source is the alternative.</li>
+                        <li>{t('OpenAI has not explicitly authorized this third-party use. The interface may change or fail; the account may be rate-limited, restricted or suspended. Your consent is not provider authorization.')}</li>
+                        <li>{t('Requests consume plan quota and remain subject to your plan terms. Prompts, transcripts, screenshots and reference context go to the cloud under current data scopes; an invisible window does not prevent uploads.')}</li>
+                        <li>{t('Credentials never enter ordinary settings or logs. Margin does not refresh or write them. Expired login requires external sign-in; a supported API-key source is the alternative.')}</li>
                     </ul>
-                    <p className="text-[10px] text-text-secondary">Uses the shared Generation limits above. No server output-token cap is claimed. Model availability, service tier and reasoning settings are unverified; the backend may reject them. Rejected settings are never silently removed or rerouted.</p>
+                    <p className="text-[10px] text-text-secondary">{t('Uses the shared Generation limits above. No server output-token cap is claimed. Model availability, service tier and reasoning settings are unverified; the backend may reject them. Rejected settings are never silently removed or rerouted.')}</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <CodexCliModelField
-                            label="Normal Model"
+                            label={t('Normal Model')}
                             value={codexCliConfig.model}
                             placeholder="gpt-5.5"
                             onChange={(model) => setCodexCliConfig(prev => ({ ...prev, model }))}
@@ -683,7 +686,7 @@ export const AIProvidersSettings: React.FC = () => {
                             onSave={() => saveCodexCliConfig()}
                         />
                         <CodexCliModelField
-                            label="Fast Model"
+                            label={t('Fast Model')}
                             value={codexCliConfig.fastModel}
                             placeholder="gpt-5.3-codex-spark"
                             onChange={(fastModel) => setCodexCliConfig(prev => ({ ...prev, fastModel }))}
@@ -694,35 +697,35 @@ export const AIProvidersSettings: React.FC = () => {
                     {(['model', 'fastModel'] as const).map((key, index) => {
                         const confirmationKey = index ? 'fastImageSupportConfirmedFor' : 'imageSupportConfirmedFor';
                         const binding = codexImageTarget(codexCliConfig[key]);
-                        return <label key={key} className="block text-xs text-text-secondary"><input type="checkbox" aria-label={`${index ? 'Fast' : 'Normal'} Codex model supports images`}
+                        return <label key={key} className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t(index ? 'Fast Codex model supports images' : 'Normal Codex model supports images')}
                             checked={codexCliConfig[confirmationKey] === binding}
-                            onChange={event => saveCodexCliConfig({ ...codexCliConfig, [confirmationKey]: event.target.checked ? binding : undefined })} /> {index ? 'Fast' : 'Normal'} Codex model supports images
-                            <span className="block text-[10px]">Verify this exact backend/model yourself. API image support does not confirm Codex backend support.</span></label>;
+                            onChange={event => saveCodexCliConfig({ ...codexCliConfig, [confirmationKey]: event.target.checked ? binding : undefined })} /> {t(index ? 'Fast Codex model supports images' : 'Normal Codex model supports images')}
+                            <span className="block text-[10px]">{t('Verify this exact backend/model yourself. API image support does not confirm Codex backend support.')}</span></label>;
                     })}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <label className="space-y-1">
-                            <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">Service Tier</span>
+                            <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">{t('Service Tier')}</span>
                             <ModelSelect
                                 value={codexCliConfig.serviceTier ?? 'default'}
-                                options={CODEX_SERVICE_TIERS.map(t => ({ id: t, name: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                                options={CODEX_SERVICE_TIERS.map(tier => ({ id: tier, name: tier.charAt(0).toUpperCase() + tier.slice(1) }))}
                                 onChange={(serviceTier) => saveCodexCliConfig({ ...codexCliConfig, serviceTier: serviceTier as typeof CODEX_SERVICE_TIERS[number] })}
                                 placeholder="default"
                             />
-                            <p className="text-[9px] text-text-tertiary">Unverified backend parameter; it may be rejected without silent removal.</p>
+                            <p className="text-[9px] text-text-tertiary">{t('Unverified backend parameter; it may be rejected without silent removal.')}</p>
                         </label>
                         <label className="space-y-1">
-                            <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">Reasoning Effort</span>
+                            <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">{t('Reasoning Effort')}</span>
                             <ModelSelect
                                 value={codexCliConfig.modelReasoningEffort ?? ''}
                                 options={[
-                                    { id: '', name: 'Default / Unspecified' },
+                                    { id: '', name: t('Default / Unspecified') },
                                     ...CODEX_MODEL_REASONING_EFFORTS.map(e => ({ id: e, name: e.charAt(0).toUpperCase() + e.slice(1) })),
                                 ]}
                                 onChange={(effort) => saveCodexCliConfig({ ...codexCliConfig, modelReasoningEffort: effort as CodexSourceConfig['modelReasoningEffort'] || undefined })}
                                 placeholder="Default / Unspecified"
                             />
-                            <p className="text-[9px] text-text-tertiary">How much reasoning effort the model uses. Model-dependent.</p>
+                            <p className="text-[9px] text-text-tertiary">{t('How much reasoning effort the model uses. Model-dependent.')}</p>
                         </label>
                     </div>
 
@@ -731,13 +734,13 @@ export const AIProvidersSettings: React.FC = () => {
                             {codexCliStatus === 'success' && (
                                 <div className="flex items-center gap-2 text-xs text-green-400">
                                     <CheckCircle size={14} />
-                                    <span>Local file checks passed; service, models and entitlement unverified.</span>
+                                    <span>{t('Local file checks passed; service, models and entitlement unverified.')}</span>
                                 </div>
                             )}
                             {codexCliStatus === 'error' && (
                                 <div className="flex items-center gap-2 text-xs text-red-400">
                                     <AlertCircle size={14} />
-                                    <span>{codexCliError}</span>
+                                    <span>{t(codexCliError)}</span>
                                 </div>
                             )}
                         </div>
@@ -748,24 +751,24 @@ export const AIProvidersSettings: React.FC = () => {
                             className="flex items-center gap-2 px-3 py-1.5 bg-bg-input hover:bg-bg-elevated border border-border-subtle rounded-lg text-xs font-medium text-text-primary transition-colors disabled:opacity-60"
                         >
                             {codexCliStatus === 'testing' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                            Check saved local login file
+                            {t('Check saved local login file')}
                         </button>
                     </div>
-                    {codexCliStatus === 'error' && <button type="button" className="text-xs text-accent-primary" onClick={() => saveCodexCliConfig()}>Retry saving source settings</button>}
+                    {codexCliStatus === 'error' && <button type="button" className="text-xs text-accent-primary" onClick={() => saveCodexCliConfig()}>{t('Retry saving source settings')}</button>}
                 </div>
             </div>
 
             <div className="space-y-2">
-                <h3 className="text-sm font-bold text-text-primary">Screen input</h3>
-                <p className="text-xs text-text-secondary">Original screenshots go directly to the selected model, with only your explicit backup eligible for retry. Enable Screenshots below to share them; no separate generative screen analysis is run.</p>
+                <h3 className="text-sm font-bold text-text-primary">{t('Screen input')}</h3>
+                <p className="text-xs text-text-secondary">{t('Original screenshots go directly to the selected model, with only your explicit backup eligible for retry. Enable Screenshots below to share them; no separate generative screen analysis is run.')}</p>
             </div>
 
             {/* Cloud Provider Data Scopes — fail-closed cloud share controls */}
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">Cloud provider data scopes</h3>
-                    <p className="text-xs text-text-secondary mb-2">Control what data cloud AI providers can access. Disabled types are left out of requests.</p>
-                    <p className="text-[10px] text-text-secondary mb-2">Profile history covers your persona and notes, saved meetings, and the separate list of earlier answers. Answers within the current conversation are part of its transcript.</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">{t('Cloud provider data scopes')}</h3>
+                    <p className="text-xs text-text-secondary mb-2">{t('Control what data cloud AI providers can access. Disabled types are left out of requests.')}</p>
+                    <p className="text-[10px] text-text-secondary mb-2">{t('Profile history covers your persona and notes, saved meetings, and the separate list of earlier answers. Answers within the current conversation are part of its transcript.')}</p>
                 </div>
                 <div className="bg-bg-item-surface rounded-xl p-4 border border-border-subtle flex flex-col gap-2">
                     {([
@@ -776,7 +779,7 @@ export const AIProvidersSettings: React.FC = () => {
                         const allowed = providerDataScopes[key] !== false;
                         return (
                             <div key={key} className="flex items-center justify-between">
-                                <span className="text-xs text-text-secondary">{label}</span>
+                                <span className="text-xs text-text-secondary">{t(label)}</span>
                                 <div
                                     onClick={() => {
                                         const next = { ...providerDataScopes, [key]: !allowed };
@@ -786,7 +789,7 @@ export const AIProvidersSettings: React.FC = () => {
                                     className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${allowed ? 'bg-emerald-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
                                     role="switch"
                                     aria-checked={allowed}
-                                    aria-label={`Allow ${label} to cloud providers`}
+                                    aria-label={t('Allow {scope} to cloud providers', { scope: t(label) })}
                                 >
                                     <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${allowed ? 'translate-x-4' : 'translate-x-0'}`} />
                                 </div>
@@ -795,7 +798,7 @@ export const AIProvidersSettings: React.FC = () => {
                     })}
                     <div className="flex items-start gap-2 mt-1 pt-3 border-t border-border-subtle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-tertiary shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                        <p className="text-[11px] text-text-tertiary leading-relaxed">When a data type is disabled, it is left out of every request to a cloud provider. There is no local model to fall back to.</p>
+                        <p className="text-[11px] text-text-tertiary leading-relaxed">{t('When a data type is disabled, it is left out of every request to a cloud provider. There is no local model to fall back to.')}</p>
                     </div>
                 </div>
             </div>

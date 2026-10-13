@@ -1,0 +1,1352 @@
+{
+  "baseline": "88b79c523ad21a5c8bd7c565d2917ae4f28d2d35",
+  "scope": "AG-60 exact line review: existing-source translation wrappers and individually reviewed generic idioms; not an upstream import or clean-room claim",
+  "occurrences": 168,
+  "newlyRegisteredExactLines": 148,
+  "rows": [
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 3083,
+      "text": "[isLightTheme, mdComponents, appearance, t],",
+      "priorLine": null,
+      "priorText": "[isLightTheme, mdComponents, appearance],",
+      "reason": "Standard React dependency array: adds the translator to an existing memoized render callback; stale-heading failure and repair covered behaviorally, no callback imported."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 111,
+      "text": "<h4 className=\"text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2 px-1\">{t('Privacy & Data')}</h4>",
+      "priorLine": 109,
+      "priorText": "<h4 className=\"text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2 px-1\">Privacy & Data</h4>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:109; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 116,
+      "text": "<h5 className=\"text-sm font-medium text-text-primary\">{t('Stealth & Control')}</h5>",
+      "priorLine": 114,
+      "priorText": "<h5 className=\"text-sm font-medium text-text-primary\">Stealth & Control</h5>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:114; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 125,
+      "text": "<h5 className=\"text-sm font-medium text-text-primary\">{t('No Recording')}</h5>",
+      "priorLine": 123,
+      "priorText": "<h5 className=\"text-sm font-medium text-text-primary\">No Recording</h5>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:123; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 136,
+      "text": "<h4 className=\"text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2 px-1\">{t('Community')}</h4>",
+      "priorLine": 134,
+      "priorText": "<h4 className=\"text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2 px-1\">Community</h4>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:134; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 145,
+      "text": "<h5 className=\"text-sm font-bold text-text-primary\">{t('Telegram Community')}</h5>",
+      "priorLine": 143,
+      "priorText": "<h5 className=\"text-sm font-bold text-text-primary\">Telegram Community</h5>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:143; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 154,
+      "text": "{t('Join Chat')}",
+      "priorLine": 152,
+      "priorText": "Join Chat",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:152; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 223,
+      "text": "<h5 className=\"text-sm font-bold text-text-primary\">{t('Star on GitHub')}</h5>",
+      "priorLine": 221,
+      "priorText": "<h5 className=\"text-sm font-bold text-text-primary\">Star on GitHub</h5>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:221; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 237,
+      "text": "<h5 className=\"text-sm font-bold text-text-primary\">{t('Report an Issue')}</h5>",
+      "priorLine": 235,
+      "priorText": "<h5 className=\"text-sm font-bold text-text-primary\">Report an Issue</h5>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:235; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 238,
+      "text": "<p className=\"text-xs text-text-secondary mt-0.5\">{t('Found a bug? Let us know so we can fix it.')}</p>",
+      "priorLine": 236,
+      "priorText": "<p className=\"text-xs text-text-secondary mt-0.5\">Found a bug? Let us know so we can fix it.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:236; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 250,
+      "text": "<h5 className=\"text-sm font-bold text-text-primary\">{t('Get in Touch')}</h5>",
+      "priorLine": 248,
+      "priorText": "<h5 className=\"text-sm font-bold text-text-primary\">Get in Touch</h5>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:248; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 251,
+      "text": "<p className=\"text-xs text-text-secondary mt-0.5\">{t('Open for professional collaborations and job offers.')}</p>",
+      "priorLine": 249,
+      "priorText": "<p className=\"text-xs text-text-secondary mt-0.5\">Open for professional collaborations and job offers.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:249; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 260,
+      "text": "{t('Contact Me')}",
+      "priorLine": 258,
+      "priorText": "Contact Me",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:258; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/AboutSection.tsx",
+      "line": 270,
+      "text": "<h4 className=\"text-xs font-bold text-text-tertiary uppercase tracking-wider mb-3\">{t('Core Technology')}</h4>",
+      "priorLine": 268,
+      "priorText": "<h4 className=\"text-xs font-bold text-text-tertiary uppercase tracking-wider mb-3\">Core Technology</h4>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/AboutSection.tsx:268; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/GlobalChatOverlay.tsx",
+      "line": 337,
+      "text": "aria-label={t('Close')}",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard accessible Close label translated with the existing i18n helper."
+    },
+    {
+      "file": "src/components/Launcher.tsx",
+      "line": 543,
+      "text": "<span className=\"drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] text-[20px] leading-none\">{t('Meeting ongoing')}</span>",
+      "priorLine": 545,
+      "priorText": "<span className=\"drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] text-[20px] leading-none\">Meeting ongoing</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/Launcher.tsx:545; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/Launcher.tsx",
+      "line": 651,
+      "text": "{t('Export')}",
+      "priorLine": 652,
+      "priorText": "Export",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/Launcher.tsx:652; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/Launcher.tsx",
+      "line": 667,
+      "text": "{t('Delete')}",
+      "priorLine": 668,
+      "priorText": "Delete",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/Launcher.tsx:668; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/Launcher.tsx",
+      "line": 680,
+      "text": "<div className=\"p-4 text-text-tertiary text-sm\">{t('No recent meetings.')}</div>",
+      "priorLine": 681,
+      "priorText": "<div className=\"p-4 text-text-tertiary text-sm\">No recent meetings.</div>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/Launcher.tsx:681; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/MeetingDetails.tsx",
+      "line": 244,
+      "text": "return <p className=\"text-text-tertiary\">{t('No transcript available.')}</p>;",
+      "priorLine": 242,
+      "priorText": "return <p className=\"text-text-tertiary\">No transcript available.</p>;",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/MeetingDetails.tsx:242; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/MeetingDetails.tsx",
+      "line": 353,
+      "text": "{!meeting.usage?.length && <p className=\"text-text-tertiary\">{t('No usage history.')}</p>}",
+      "priorLine": 351,
+      "priorText": "{!meeting.usage?.length && <p className=\"text-text-tertiary\">No usage history.</p>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/MeetingDetails.tsx:351; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 331,
+      "text": "{t('Interviewer')}",
+      "priorLine": 329,
+      "priorText": "Interviewer",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:329; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 342,
+      "text": "<span>{t('Screenshot attached')}</span>",
+      "priorLine": 340,
+      "priorText": "<span>Screenshot attached</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:340; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 349,
+      "text": "title={t('Copy to clipboard')}",
+      "priorLine": 347,
+      "priorText": "title=\"Copy to clipboard\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:347; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4223,
+      "text": "aria-label={t('Dismiss')}",
+      "priorLine": 4549,
+      "priorText": "aria-label=\"Dismiss\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4549; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4251,
+      "text": "<span>{t('Transcription Not Configured')}</span>",
+      "priorLine": 4243,
+      "priorText": "<span>Transcription Not Configured</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4243; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4264,
+      "text": "{t('Open Settings')}",
+      "priorLine": 4256,
+      "priorText": "Open Settings",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4256; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4270,
+      "text": "aria-label={t('Dismiss')}",
+      "priorLine": 4549,
+      "priorText": "aria-label=\"Dismiss\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4549; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4369,
+      "text": "<span className=\"text-[10px] text-emerald-400/70 ml-1\">{t('Listening...')}</span>",
+      "priorLine": 4360,
+      "priorText": "<span className=\"text-[10px] text-emerald-400/70 ml-1\">Listening...</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4360; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4425,
+      "text": "<Pencil className=\"w-3 h-3 opacity-70\" /> {t('What to answer?')}",
+      "priorLine": 4416,
+      "priorText": "<Pencil className=\"w-3 h-3 opacity-70\" /> What to answer?",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4416; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4432,
+      "text": "<MessageSquare className=\"w-3 h-3 opacity-70\" /> {t('Clarify')}",
+      "priorLine": 4423,
+      "priorText": "<MessageSquare className=\"w-3 h-3 opacity-70\" /> Clarify",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4423; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4441,
+      "text": "<Lightbulb className=\"w-3 h-3 opacity-70\" /> {t('Brainstorm')}",
+      "priorLine": 4432,
+      "priorText": "<Lightbulb className=\"w-3 h-3 opacity-70\" /> Brainstorm",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4432; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4445,
+      "text": "<RefreshCw className=\"w-3 h-3 opacity-70\" /> {t('Recap')}",
+      "priorLine": 4436,
+      "priorText": "<RefreshCw className=\"w-3 h-3 opacity-70\" /> Recap",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4436; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4454,
+      "text": "<HelpCircle className=\"w-3 h-3 opacity-70\" /> {t('Follow Up Question')}",
+      "priorLine": 4445,
+      "priorText": "<HelpCircle className=\"w-3 h-3 opacity-70\" /> Follow Up Question",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4445; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4472,
+      "text": "<Zap className=\"w-3 h-3 opacity-70\" /> {t('Answer')}",
+      "priorLine": 4463,
+      "priorText": "<Zap className=\"w-3 h-3 opacity-70\" /> Answer",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4463; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4496,
+      "text": "title={t('Remove all')}",
+      "priorLine": 4488,
+      "priorText": "title=\"Remove all\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4488; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4527,
+      "text": "{t('Ask a question or click Answer')}",
+      "priorLine": 4517,
+      "priorText": "Ask a question or click Answer",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4517; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4543,
+      "text": "{t('Stealth typing hotkey')}{' '}",
+      "priorLine": 4533,
+      "priorText": "Stealth typing hotkey{' '}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4533; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4547,
+      "text": "{t('is already in use. Click the input to activate, or rebind in Settings.')}",
+      "priorLine": 4537,
+      "priorText": "is already in use. Click the input to activate, or rebind in Settings.",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4537; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4554,
+      "text": "{t('Rebind')}",
+      "priorLine": 4544,
+      "priorText": "Rebind",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4544; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4559,
+      "text": "aria-label={t('Dismiss')}",
+      "priorLine": 4549,
+      "priorText": "aria-label=\"Dismiss\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4549; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4586,
+      "text": "{t('Open Settings')}",
+      "priorLine": 4256,
+      "priorText": "Open Settings",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4256; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4591,
+      "text": "aria-label={t('Dismiss')}",
+      "priorLine": 4549,
+      "priorText": "aria-label=\"Dismiss\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4549; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4640,
+      "text": "<span>{t('Ask anything on screen or conversation, or')}</span>",
+      "priorLine": 4631,
+      "priorText": "<span>Ask anything on screen or conversation, or</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4631; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/NativelyInterface.tsx",
+      "line": 4656,
+      "text": "<span>{t('for selective screenshot')}</span>",
+      "priorLine": 4647,
+      "priorText": "<span>for selective screenshot</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/NativelyInterface.tsx:4647; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 73,
+      "text": "<span className=\"opacity-80 tracking-wide\">{t('Hide')}</span>",
+      "priorLine": 70,
+      "priorText": "<span className=\"opacity-80 tracking-wide\">Hide</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:70; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 87,
+      "text": "<span className={`${resolvedTheme === 'light' ? 'text-blue-700' : 'text-blue-400'} mr-2 font-semibold`}>{t('Interviewer')}</span>",
+      "priorLine": 84,
+      "priorText": "<span className={`${resolvedTheme === 'light' ? 'text-blue-700' : 'text-blue-400'} mr-2 font-semibold`}>Interviewer</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:84; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 88,
+      "text": "<span className=\"opacity-95\">{t('So how would you optimize the current algorithm?')}</span>",
+      "priorLine": 85,
+      "priorText": "<span className=\"opacity-95\">So how would you optimize the current algorithm?</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:85; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 96,
+      "text": "<span className=\"font-semibold text-emerald-500 block mb-1\">{t('Suggestion')}</span>",
+      "priorLine": 93,
+      "priorText": "<span className=\"font-semibold text-emerald-500 block mb-1\">Suggestion</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:93; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 97,
+      "text": "{t('A good approach would be to use a hash map to cache the intermediate results, which brings the time complexity down from O(n²) to O(n).')}",
+      "priorLine": 94,
+      "priorText": "A good approach would be to use a hash map to cache the intermediate results, which brings the time complexity down from O(n²) to O(n).",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:94; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 105,
+      "text": "<Pencil className=\"w-3 h-3 opacity-70\" /> {t('What to answer?')}",
+      "priorLine": 102,
+      "priorText": "<Pencil className=\"w-3 h-3 opacity-70\" /> What to answer?",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:102; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 108,
+      "text": "<MessageSquare className=\"w-3 h-3 opacity-70\" /> {t('Clarify')}",
+      "priorLine": 105,
+      "priorText": "<MessageSquare className=\"w-3 h-3 opacity-70\" /> Clarify",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:105; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 111,
+      "text": "<RefreshCw className=\"w-3 h-3 opacity-70\" /> {t('Recap')}",
+      "priorLine": 108,
+      "priorText": "<RefreshCw className=\"w-3 h-3 opacity-70\" /> Recap",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:108; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 114,
+      "text": "<HelpCircle className=\"w-3 h-3 opacity-70\" /> {t('Follow Up Question')}",
+      "priorLine": 111,
+      "priorText": "<HelpCircle className=\"w-3 h-3 opacity-70\" /> Follow Up Question",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:111; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 117,
+      "text": "<Zap className=\"w-3 h-3 opacity-70\" /> {t('Answer')}",
+      "priorLine": 114,
+      "priorText": "<Zap className=\"w-3 h-3 opacity-70\" /> Answer",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:114; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 125,
+      "text": "<span className=\"text-[13px] overlay-text-muted\">{t('Ask anything on screen or conversation')}</span>",
+      "priorLine": 122,
+      "priorText": "<span className=\"text-[13px] overlay-text-muted\">Ask anything on screen or conversation</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:122; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 210,
+      "text": "<div className=\"px-3 py-2 text-sm text-gray-500 italic\">{t('No devices found')}</div>",
+      "priorLine": 206,
+      "priorText": "<div className=\"px-3 py-2 text-sm text-gray-500 italic\">No devices found</div>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:206; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 296,
+      "text": "{selected.badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.badge === 'Saved' ? 'green' : selected.color)}`}>{t(selected.badge)}</span>}",
+      "priorLine": 291,
+      "priorText": "{selected.badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.badge === 'Saved' ? 'green' : selected.color)}`}>{selected.badge}</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:291; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 297,
+      "text": "{selected.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.color)}`}>{t('Recommended')}</span>}",
+      "priorLine": 292,
+      "priorText": "{selected.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.color)}`}>Recommended</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:292; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 303,
+      "text": ") : <span className=\"text-text-secondary px-2 text-sm\">{t('Select Provider')}</span>}",
+      "priorLine": 298,
+      "priorText": ") : <span className=\"text-text-secondary px-2 text-sm\">Select Provider</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:298; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 334,
+      "text": "{option.badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.badge === 'Saved' ? 'green' : option.color)}`}>{t(option.badge)}</span>}",
+      "priorLine": 329,
+      "priorText": "{option.badge && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.badge === 'Saved' ? 'green' : option.color)}`}>{option.badge}</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:329; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 335,
+      "text": "{option.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.color)}`}>{t('Recommended')}</span>}",
+      "priorLine": 330,
+      "priorText": "{option.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.color)}`}>Recommended</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:330; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1317,
+      "text": "onClick={() => setActiveTab(tab)}",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard React state setter used by the new settings tab list."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1397,
+      "text": "<h3 className=\"text-lg font-bold text-text-primary\">{t('Mouse Passthrough')}</h3>",
+      "priorLine": 1394,
+      "priorText": "<h3 className=\"text-lg font-bold text-text-primary\">Mouse Passthrough</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1394; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1400,
+      "text": "{t('Overlay stays visible but lets all mouse clicks pass through to the app beneath.')}",
+      "priorLine": 1397,
+      "priorText": "Overlay stays visible but lets all mouse clicks pass through to the app beneath.",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1397; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1497,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Do not save meetings')}</h3>",
+      "priorLine": 1460,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Do not save meetings</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1460; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1498,
+      "text": "<p className=\"text-xs text-text-secondary mt-0.5 leading-normal\">{t('When enabled, live assistance works but transcripts, summaries, and history are discarded when the meeting ends')}</p>",
+      "priorLine": 1461,
+      "priorText": "<p className=\"text-xs text-text-secondary mt-0.5 leading-normal\">When enabled, live assistance works but transcripts, summaries, and history are discarded when the meeting ends</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1461; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1510,
+      "text": "aria-label={t('Do not save meetings')}",
+      "priorLine": 1473,
+      "priorText": "aria-label=\"Do not save meetings\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1473; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1529,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Verbose debug logging')}</h3>",
+      "priorLine": 1492,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Verbose debug logging</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1492; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1530,
+      "text": "<p className=\"text-xs text-text-secondary mt-0.5\">{t('Print detailed audio, STT, and pipeline diagnostics')}</p>",
+      "priorLine": 1493,
+      "priorText": "<p className=\"text-xs text-text-secondary mt-0.5\">Print detailed audio, STT, and pipeline diagnostics</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1493; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1599,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Interviewer Transcript')}</h3>",
+      "priorLine": 1560,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Interviewer Transcript</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1560; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1600,
+      "text": "<p className=\"text-xs text-text-secondary mt-0.5\">{t('Show real-time transcription of the interviewer')}</p>",
+      "priorLine": 1561,
+      "priorText": "<p className=\"text-xs text-text-secondary mt-0.5\">Show real-time transcription of the interviewer</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1561; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1629,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Auto Scroll')}</h3>",
+      "priorLine": 1590,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Auto Scroll</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1590; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1630,
+      "text": "<p className=\"text-xs text-text-secondary mt-0.5\">{t('Automatically scroll to the latest message as new responses arrive')}</p>",
+      "priorLine": 1591,
+      "priorText": "<p className=\"text-xs text-text-secondary mt-0.5\">Automatically scroll to the latest message as new responses arrive</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1591; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1660,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Theme')}</h3>",
+      "priorLine": 1621,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Theme</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1621; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1698,
+      "text": "<span className=\"font-medium\">{t(option.label)}</span>",
+      "priorLine": 1659,
+      "priorText": "<span className=\"font-medium\">{option.label}</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1659; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1719,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Meeting Interface Style')}</h3>",
+      "priorLine": 1680,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Meeting Interface Style</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1680; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1761,
+      "text": "<span className=\"font-medium\">{t(option.label)}</span>",
+      "priorLine": 1659,
+      "priorText": "<span className=\"font-medium\">{option.label}</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1659; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1782,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('AI Response Language')}</h3>",
+      "priorLine": 1743,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">AI Response Language</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1743; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1798,
+      "text": "{aiResponseLanguage === 'auto' ? t('Auto') : aiResponseLanguage}",
+      "priorLine": 1759,
+      "priorText": "{aiResponseLanguage === 'auto' ? 'Auto' : aiResponseLanguage}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1759; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1816,
+      "text": "<span className=\"font-medium\">{t('Auto')}</span>",
+      "priorLine": 1777,
+      "priorText": "<span className=\"font-medium\">Auto</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1777; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1834,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('Version')}</h3>",
+      "priorLine": 1795,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">Version</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1795; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1857,
+      "text": "{t('Interface Opacity')}",
+      "priorLine": 1816,
+      "priorText": "Interface Opacity",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1816; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1896,
+      "text": "<span className=\"text-[10px] text-text-tertiary\">{t('More Stealth')}</span>",
+      "priorLine": 1855,
+      "priorText": "<span className=\"text-[10px] text-text-tertiary\">More Stealth</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1855; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1897,
+      "text": "<span className=\"text-[10px] text-text-tertiary\">{t('Fully Visible')}</span>",
+      "priorLine": 1856,
+      "priorText": "<span className=\"text-[10px] text-text-tertiary\">Fully Visible</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1856; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1901,
+      "text": "{t('Controls the visibility of the in-meeting overlay.')}{' '}",
+      "priorLine": 1860,
+      "priorText": "Controls the visibility of the in-meeting overlay.{' '}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1860; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1902,
+      "text": "<span className=\"text-text-secondary\">{t('Hold the slider to preview.')}</span>",
+      "priorLine": 1861,
+      "priorText": "<span className=\"text-text-secondary\">Hold the slider to preview.</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1861; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1917,
+      "text": "<h3 className=\"text-lg font-bold text-text-primary\">{t('Process Disguise')}</h3>",
+      "priorLine": 1874,
+      "priorText": "<h3 className=\"text-lg font-bold text-text-primary\">Process Disguise</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1874; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1922,
+      "text": "{t('Select a disguise to be automatically applied when Undetectable mode is on.')}",
+      "priorLine": 1879,
+      "priorText": "Select a disguise to be automatically applied when Undetectable mode is on.",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1879; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1930,
+      "text": "⚠️ {t('Disable Undetectable mode first to change disguise.')}",
+      "priorLine": 1887,
+      "priorText": "⚠️ Disable Undetectable mode first to change disguise.",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1887; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1959,
+      "text": "<span className=\"text-xs font-medium\">{t(option.label)}</span>",
+      "priorLine": 1916,
+      "priorText": "<span className=\"text-xs font-medium\">{option.label}</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1916; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1982,
+      "text": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">{t('Keyboard shortcuts')}</h3>",
+      "priorLine": 1938,
+      "priorText": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">Keyboard shortcuts</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1938; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1990,
+      "text": "{t('Restore Default')}",
+      "priorLine": 1946,
+      "priorText": "Restore Default",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1946; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 1997,
+      "text": "<h4 className=\"text-sm font-bold text-text-primary mb-3\">{t('General')}</h4>",
+      "priorLine": 1953,
+      "priorText": "<h4 className=\"text-sm font-bold text-text-primary mb-3\">General</h4>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1953; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2002,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Toggle Visibility')}</span>",
+      "priorLine": 1958,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Toggle Visibility</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1958; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2012,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Toggle Mouse Passthrough')}</span>",
+      "priorLine": 1968,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Toggle Mouse Passthrough</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1968; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2022,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Process Screenshots')}</span>",
+      "priorLine": 1978,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Process Screenshots</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1978; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2032,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Capture Screen & Ask AI')}</span>",
+      "priorLine": 1988,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Capture Screen & Ask AI</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1988; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2042,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Reset / Cancel')}</span>",
+      "priorLine": 1998,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Reset / Cancel</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:1998; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2052,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Take Screenshot')}</span>",
+      "priorLine": 2008,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Take Screenshot</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2008; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2062,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t('Selective Screenshot')}</span>",
+      "priorLine": 2018,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">Selective Screenshot</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2018; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2075,
+      "text": "<h4 className=\"text-sm font-bold text-text-primary\">{t('Chat')}</h4>",
+      "priorLine": 2031,
+      "priorText": "<h4 className=\"text-sm font-bold text-text-primary\">Chat</h4>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2031; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2095,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t(item.label)}</span>",
+      "priorLine": 2051,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{item.label}</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2051; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2108,
+      "text": "<h4 className=\"text-sm font-bold text-text-primary mb-3\">{t('Window')}</h4>",
+      "priorLine": 2064,
+      "priorText": "<h4 className=\"text-sm font-bold text-text-primary mb-3\">Window</h4>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2064; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2119,
+      "text": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{t(item.label)}</span>",
+      "priorLine": 2051,
+      "priorText": "<span className=\"text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors\">{item.label}</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2051; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2137,
+      "text": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">{t('Speech Provider')}</h3>",
+      "priorLine": 2093,
+      "priorText": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">Speech Provider</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2093; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2138,
+      "text": "<p className=\"text-xs text-text-secondary mb-5\">{t('Choose the engine that transcribes audio to text.')}</p>",
+      "priorLine": 2094,
+      "priorText": "<p className=\"text-xs text-text-secondary mb-5\">Choose the engine that transcribes audio to text.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2094; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2142,
+      "text": "<label className=\"text-xs font-medium text-text-secondary block\">{t('Speech Provider')}</label>",
+      "priorLine": 2098,
+      "priorText": "<label className=\"text-xs font-medium text-text-secondary block\">Speech Provider</label>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2098; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2161,
+      "text": "<label className=\"text-xs font-medium text-text-secondary mb-2.5 block\">{t('Whisper Model')}</label>",
+      "priorLine": 2117,
+      "priorText": "<label className=\"text-xs font-medium text-text-secondary mb-2.5 block\">Whisper Model</label>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2117; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2193,
+      "text": "{t('This key is separate from your main AI Provider key.')}",
+      "priorLine": 2149,
+      "priorText": "This key is separate from your main AI Provider key.",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2149; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2211,
+      "text": "? (hasStoredSttGroqKey ? '••••••••••••' : t('Enter Groq API key'))",
+      "priorLine": 2167,
+      "priorText": "? (hasStoredSttGroqKey ? '••••••••••••' : 'Enter Groq API key')",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2167; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2213,
+      "text": "? (hasStoredSttOpenaiKey ? '••••••••••••' : t('Enter OpenAI STT API key'))",
+      "priorLine": 2169,
+      "priorText": "? (hasStoredSttOpenaiKey ? '••••••••••••' : 'Enter OpenAI STT API key')",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2169; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2250,
+      "text": "title={t('Remove API Key')}",
+      "priorLine": 2206,
+      "priorText": "title=\"Remove API Key\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2206; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2263,
+      "text": "<label className=\"text-xs font-medium text-text-secondary block\">{t('Custom Base URL')} <span className=\"text-text-tertiary\">{t('(optional)')}</span></label>",
+      "priorLine": 2218,
+      "priorText": "<label className=\"text-xs font-medium text-text-secondary block\">Custom Base URL <span className=\"text-text-tertiary\">(optional)</span></label>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2218; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2279,
+      "text": "<p className=\"text-[10px] text-text-tertiary\">{t('Point at any OpenAI-compatible server (e.g. Speaches). Custom servers use REST only — Realtime WebSocket is skipped. Leave blank for default.')}</p>",
+      "priorLine": 2234,
+      "priorText": "<p className=\"text-[10px] text-text-tertiary\">Point at any OpenAI-compatible server (e.g. Speaches). Custom servers use REST only — Realtime WebSocket is skipped. Leave blank for default.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2234; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2290,
+      "text": "<><RefreshCw size={12} className=\"animate-spin\" /> {t('Testing...')}</>",
+      "priorLine": 2245,
+      "priorText": "<><RefreshCw size={12} className=\"animate-spin\" /> Testing...</>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2245; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2292,
+      "text": "<><Check size={12} className=\"text-green-500\" /> {t('Connected')}</>",
+      "priorLine": 2247,
+      "priorText": "<><Check size={12} className=\"text-green-500\" /> Connected</>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2247; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2294,
+      "text": "<>{t('Test Connection')}</>",
+      "priorLine": 2249,
+      "priorText": "<>Test Connection</>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2249; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2359,
+      "text": ": t('Auto mode — language will be detected from the first few seconds of audio.')",
+      "priorLine": 2313,
+      "priorText": ": 'Auto mode — language will be detected from the first few seconds of audio.'",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2313; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2360,
+      "text": ": t('Select the primary language being spoken in the meeting.')",
+      "priorLine": 2314,
+      "priorText": ": 'Select the primary language being spoken in the meeting.'",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2314; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2371,
+      "text": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">{t('Audio Configuration')}</h3>",
+      "priorLine": 2325,
+      "priorText": "<h3 className=\"text-lg font-bold text-text-primary mb-1\">Audio Configuration</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2325; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2372,
+      "text": "<p className=\"text-xs text-text-secondary mb-5\">{t('Manage input and output devices.')}</p>",
+      "priorLine": 2326,
+      "priorText": "<p className=\"text-xs text-text-secondary mb-5\">Manage input and output devices.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2326; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2424,
+      "text": "<span>{t('Input Level')}</span>",
+      "priorLine": 2377,
+      "priorText": "<span>Input Level</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2377; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2450,
+      "text": "<span>{t('System Audio Level')}</span>",
+      "priorLine": 2403,
+      "priorText": "<span>System Audio Level</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2403; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2506,
+      "text": "<Speaker size={12} /> {t('Test Sound')}",
+      "priorLine": 2459,
+      "priorText": "<Speaker size={12} /> Test Sound",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2459; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2527,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary\">{t('SCK Backend')}</h3>",
+      "priorLine": 2480,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary\">SCK Backend</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2480; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2528,
+      "text": "<span className=\"px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-400 uppercase tracking-wide\">{t('Alternative')}</span>",
+      "priorLine": 2481,
+      "priorText": "<span className=\"px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-400 uppercase tracking-wide\">Alternative</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2481; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/SettingsOverlay.tsx",
+      "line": 2531,
+      "text": "{t('Use the ScreenCaptureKit backend. An optimized alternative to CoreAudio if you experience any capture issues.')}",
+      "priorLine": 2484,
+      "priorText": "Use the ScreenCaptureKit backend. An optimized alternative to CoreAudio if you experience any capture issues.",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/SettingsOverlay.tsx:2484; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/WindowControls.tsx",
+      "line": 73,
+      "text": "title={t('Close')}",
+      "priorLine": 69,
+      "priorText": "title=\"Close\"",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/WindowControls.tsx:69; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/WindowControls.tsx",
+      "line": 74,
+      "text": "aria-label={t('Close')}",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard accessible Close label translated with the existing i18n helper."
+    },
+    {
+      "file": "src/components/onboarding/PermissionsToaster.tsx",
+      "line": 81,
+      "text": "const timer = setTimeout(async () => {",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Existing permission-card timer renamed from t to timer to avoid shadowing the translator; lifecycle unchanged."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 77,
+      "text": "<div className=\"px-3 py-2 text-xs text-gray-500 italic\">{t('No models available')}</div>",
+      "priorLine": 75,
+      "priorText": "<div className=\"px-3 py-2 text-xs text-gray-500 italic\">No models available</div>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:75; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 464,
+      "text": "<label className=\"block text-xs font-medium text-text-primary uppercase tracking-wide mb-0\">{t('Active Model')}</label>",
+      "priorLine": 461,
+      "priorText": "<label className=\"block text-xs font-medium text-text-primary uppercase tracking-wide mb-0\">Active Model</label>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:461; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 465,
+      "text": "<p className=\"text-[10px] text-text-secondary\">{t('Applies to new chats instantly.')}</p>",
+      "priorLine": 462,
+      "priorText": "<p className=\"text-[10px] text-text-secondary\">Applies to new chats instantly.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:462; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 499,
+      "text": "<label className=\"block text-xs font-medium text-text-primary uppercase tracking-wide mb-0\">{t('Fast Response Mode')}</label>",
+      "priorLine": 496,
+      "priorText": "<label className=\"block text-xs font-medium text-text-primary uppercase tracking-wide mb-0\">Fast Response Mode</label>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:496; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 529,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary mb-1\">{t('Cloud Providers')}</h3>",
+      "priorLine": 526,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary mb-1\">Cloud Providers</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:526; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 530,
+      "text": "<p className=\"text-xs text-text-secondary mb-2\">{t('Add API keys to unlock cloud AI models.')}</p>",
+      "priorLine": 527,
+      "priorText": "<p className=\"text-xs text-text-secondary mb-2\">Add API keys to unlock cloud AI models.</p>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:527; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 708,
+      "text": "<span className=\"text-[10px] font-medium text-text-secondary uppercase tracking-wide\">{t('Service Tier')}</span>",
+      "priorLine": 705,
+      "priorText": "<span className=\"text-[10px] font-medium text-text-secondary uppercase tracking-wide\">Service Tier</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:705; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 718,
+      "text": "<span className=\"text-[10px] font-medium text-text-secondary uppercase tracking-wide\">{t('Reasoning Effort')}</span>",
+      "priorLine": 715,
+      "priorText": "<span className=\"text-[10px] font-medium text-text-secondary uppercase tracking-wide\">Reasoning Effort</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:715; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/AIProvidersSettings.tsx",
+      "line": 769,
+      "text": "<h3 className=\"text-sm font-bold text-text-primary mb-1\">{t('Cloud provider data scopes')}</h3>",
+      "priorLine": 766,
+      "priorText": "<h3 className=\"text-sm font-bold text-text-primary mb-1\">Cloud provider data scopes</h3>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/AIProvidersSettings.tsx:766; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/HelpSettings.tsx",
+      "line": 105,
+      "text": "{t('Interviewer')}",
+      "priorLine": 96,
+      "priorText": "Interviewer",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/HelpSettings.tsx:96; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/HelpSettings.tsx",
+      "line": 574,
+      "text": "{selected.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.color)}`}>{t('Recommended')}</span>}",
+      "priorLine": 559,
+      "priorText": "{selected.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ml-2 ${getBadgeStyle(selected.color)}`}>Recommended</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/HelpSettings.tsx:559; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/HelpSettings.tsx",
+      "line": 611,
+      "text": "{option.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.color)}`}>{t('Recommended')}</span>}",
+      "priorLine": 596,
+      "priorText": "{option.recommended && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide ${getBadgeStyle(option.color)}`}>Recommended</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/HelpSettings.tsx:596; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 112,
+      "text": "{hasStoredKey && <span className=\"ml-2 text-green-500 normal-case\">✓ {t('Saved')}</span>}",
+      "priorLine": 110,
+      "priorText": "{hasStoredKey && <span className=\"ml-2 text-green-500 normal-case\">✓ Saved</span>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:110; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 123,
+      "text": "<span className=\"text-[10px] uppercase tracking-wide\">{t('Get Key')}</span>",
+      "priorLine": 121,
+      "priorText": "<span className=\"text-[10px] uppercase tracking-wide\">Get Key</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:121; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 200,
+      "text": "{testStatus === 'testing' ? <><Loader2 size={12} className=\"animate-spin\" /> {t('Testing...')}</> :",
+      "priorLine": 198,
+      "priorText": "{testStatus === 'testing' ? <><Loader2 size={12} className=\"animate-spin\" /> Testing...</> :",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:198; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 201,
+      "text": "testStatus === 'success' ? <><CheckCircle size={12} /> {t('Connected')}</> :",
+      "priorLine": 199,
+      "priorText": "testStatus === 'success' ? <><CheckCircle size={12} /> Connected</> :",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:199; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 202,
+      "text": "testStatus === 'error' ? <><AlertCircle size={12} /> {t('Error')}</> :",
+      "priorLine": 200,
+      "priorText": "testStatus === 'error' ? <><AlertCircle size={12} /> Error</> :",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:200; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 203,
+      "text": "<>{/* No Icon */} {t('Test Connection')}</>}",
+      "priorLine": 201,
+      "priorText": "<>{/* No Icon */} Test Connection</>}",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:201; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 214,
+      "text": "<span className=\"truncate pr-2\">{selectedOption ? selectedOption.label : (preferredModel || t('Select model'))}</span>",
+      "priorLine": 212,
+      "priorText": "<span className=\"truncate pr-2\">{selectedOption ? selectedOption.label : (preferredModel || 'Select model')}</span>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:212; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 250,
+      "text": "<><Loader2 size={12} className=\"animate-spin\" /> {t('Fetching...')}</>",
+      "priorLine": 248,
+      "priorText": "<><Loader2 size={12} className=\"animate-spin\" /> Fetching...</>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:248; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/components/settings/ProviderCard.tsx",
+      "line": 252,
+      "text": "<><RefreshCw size={12} /> {t('Fetch Models')}</>",
+      "priorLine": 250,
+      "priorText": "<><RefreshCw size={12} /> Fetch Models</>",
+      "reason": "Only the standard t() presentation wrapper changes existing 88b79c52:src/components/settings/ProviderCard.tsx:250; original label/JSX verified in the accepted migration source."
+    },
+    {
+      "file": "src/i18n.zh.ts",
+      "line": 147,
+      "text": "'Close': '关闭',",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Ordinary English/Simplified Chinese interface-word translation; newly written dictionary, no external dictionary imported."
+    },
+    {
+      "file": "src/i18n.zh.ts",
+      "line": 163,
+      "text": "'Settings': '设置',",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Ordinary English/Simplified Chinese interface-word translation; newly written dictionary, no external dictionary imported."
+    },
+    {
+      "file": "src/i18n.zh.ts",
+      "line": 183,
+      "text": "'Answer': '回答',",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Ordinary English/Simplified Chinese interface-word translation; newly written dictionary, no external dictionary imported."
+    },
+    {
+      "file": "src/i18n.zh.ts",
+      "line": 233,
+      "text": "'Stop': '停止',",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Ordinary English/Simplified Chinese interface-word translation; newly written dictionary, no external dictionary imported."
+    },
+    {
+      "file": "src/i18n.zh.ts",
+      "line": 298,
+      "text": "'General': '通用',",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Ordinary English/Simplified Chinese interface-word translation; newly written dictionary, no external dictionary imported."
+    },
+    {
+      "file": "src/i18n.zh.ts",
+      "line": 399,
+      "text": "'Language': '语言',",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Ordinary English/Simplified Chinese interface-word translation; newly written dictionary, no external dictionary imported."
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 203,
+      "text": "await settle();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard call to the local test microtask-settling helper."
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 216,
+      "text": "await settle();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard call to the local test microtask-settling helper."
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 225,
+      "text": "await settle();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard call to the local test microtask-settling helper."
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 235,
+      "text": "await settle();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard call to the local test microtask-settling helper."
+    },
+    {
+      "file": "src/lib/__tests__/settingsFoundation.test.mjs",
+      "line": 254,
+      "text": "await settle();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard call to the local test microtask-settling helper."
+    },
+    {
+      "file": "electron/services/__tests__/UiLanguageSettings.test.mjs",
+      "line": 58,
+      "text": "const file = path.join(dir, 'settings.json');",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard path join for a synthetic settings test file."
+    },
+    {
+      "file": "electron/services/__tests__/UiLanguageSettings.test.mjs",
+      "line": 60,
+      "text": "const before = fs.readFileSync(file, 'utf8');",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard read of a synthetic pre-save snapshot in the new atomic-save test."
+    },
+    {
+      "file": "electron/services/__tests__/UiLanguageSettings.test.mjs",
+      "line": 65,
+      "text": "assert.equal(fs.readFileSync(file, 'utf8'), before);",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard byte-preservation assertion on failed synthetic settings save."
+    },
+    {
+      "file": "electron/services/__tests__/UiLanguageSettings.test.mjs",
+      "line": 120,
+      "text": "const win = fakeWindow();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard creation of the locally defined synthetic window test fixture."
+    },
+    {
+      "file": "electron/services/__tests__/UiLanguageSettings.test.mjs",
+      "line": 130,
+      "text": "const win = fakeWindow();",
+      "priorLine": null,
+      "priorText": null,
+      "reason": "Standard creation of the locally defined synthetic window test fixture."
+    }
+  ]
+}

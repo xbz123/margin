@@ -21,6 +21,33 @@ Notes:
 
 ## Ledger
 
+### AG-60 interface language and settings organization (2026-10-13)
+
+- Written on this branch against AG-60 and the accepted migration source at
+  `88b79c523ad21a5c8bd7c565d2917ae4f28d2d35`. No old Margin or later upstream
+  source, translation dictionary, tests or assets were imported. This is not a
+  clean-room claim.
+- New modules: `src/types/uiLanguage.ts` (language/result contract),
+  `electron/services/mainStrings.ts` (existing dictionary lookup for menus/dialogs),
+  `src/components/settings/settingsTabs.ts` (groups/legacy aliases), and
+  `electron/services/__tests__/UiLanguageSettings.test.mjs` (synthetic settings/IPC tests).
+  Persistence, IPC/preload, renderer startup and existing i18n are extended in place.
+- Existing retained UI components use explicit translation calls; response/STT
+  language settings, prompts, user/model text and provider identifiers are unchanged.
+  Help/About prose is corrected only where it describes retired features or makes
+  unsupported sharing claims. Existing settings and action behavior are retained.
+- Exact-line review is retained in
+  `evidence/AG-60/provenance-line-review.json`: 168 occurrences, 148 distinct newly
+  registered lines. The majority are standard `t()` wrappers on existing accepted
+  labels/JSX, with the prior file, line and original text recorded. Remaining entries
+  are individually identified accessibility labels, ordinary bilingual words,
+  React setters, a timer-variable rename and standard synthetic-test operations.
+  No restricted pool, approved-source pool, path exclusion or scanner rule changed;
+  matched code was not rewritten merely to evade the scan.
+- Tests extend existing settings, IPC and isolated Electron harnesses. Existing
+  fixture changes supply the new presentation dependencies without weakening
+  assertions. No framework, dependency, asset or native module was added.
+
 ### Stage 5 F1 screenshot retry withdrawal repair (2026-10-13)
 
 The main agent wrote this minimal repair from the confirmed normal-use F1

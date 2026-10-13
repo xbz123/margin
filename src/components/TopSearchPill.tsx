@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Search, Sparkles, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
+import { useI18n } from '../i18n';
 
 // ============================================
 // Types
@@ -50,7 +51,7 @@ function fuzzyMatch(text: string, query: string): boolean {
     return false;
 }
 
-function searchMeetings(meetings: Meeting[], query: string): SearchResult[] {
+function searchMeetings(meetings: Meeting[], query: string, locale: string): SearchResult[] {
     if (!query.trim()) return [];
 
     const results: SearchResult[] = [];
@@ -69,7 +70,7 @@ function searchMeetings(meetings: Meeting[], query: string): SearchResult[] {
                 id: meeting.id,
                 type: 'meeting',
                 title: meeting.title,
-                subtitle: new Date(meeting.date).toLocaleDateString('en-US', {
+                subtitle: new Date(meeting.date).toLocaleDateString(locale, {
                     month: 'short',
                     day: 'numeric'
                 }),
@@ -94,6 +95,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
     onOpenMeeting,
     onExpansionChange
 }) => {
+    const { t, language } = useI18n();
     const isLight = useResolvedTheme() === 'light';
     const [state, setState] = useState<PillState>('idle');
     const [query, setQuery] = useState('');
@@ -110,8 +112,8 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
     // Compute results
     const sessionResults = useMemo(() => {
         if (state !== 'results' || !query.trim()) return [];
-        return searchMeetings(meetings, query);
-    }, [meetings, query, state]);
+        return searchMeetings(meetings, query, language === 'zh-CN' ? 'zh-CN' : 'en-US');
+    }, [meetings, query, state, language]);
 
     // Total selectable items: 2 (Explore section) + sessions
     const totalItems = 2 + sessionResults.length;
@@ -300,7 +302,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
                                         focus:outline-none
                                         ${state === 'idle' ? 'cursor-default' : 'cursor-text'}
                                     `}
-                                        placeholder="Search or ask anything..."
+                                        placeholder={t('Search or ask anything...')}
                                     />
                                 </div>
 
@@ -324,7 +326,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
                                                     {/* Explore Section */}
                                                     <div className="px-3 py-1">
                                                         <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1">
-                                                            Explore
+                                                            {t('Explore')}
                                                         </div>
 
                                                         {/* AI Query Option */}
@@ -371,7 +373,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
                                                                 <Search size={12} className="text-text-secondary" />
                                                             </div>
                                                             <span className="text-[13px] text-text-secondary">
-                                                                Search for <span className="text-text-primary">"{query}"</span>
+                                                                {t('Search for')} <span className="text-text-primary">"{query}"</span>
                                                             </span>
                                                         </motion.button>
                                                     </div>
@@ -380,7 +382,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
                                                     {sessionResults.length > 0 && (
                                                         <div className="px-3 py-1 mt-1">
                                                             <div className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1">
-                                                                Sessions
+                                                                {t('Sessions')}
                                                             </div>
 
                                                             <AnimatePresence initial={false} mode="popLayout">
