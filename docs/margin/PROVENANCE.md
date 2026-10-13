@@ -21,6 +21,35 @@ Notes:
 
 ## Ledger
 
+### S42-03 manual speech snapshots (2026-10-13)
+
+Written on this branch from PLAN U2–U6/U10 and D8=A by Claude Opus 5.5 medium,
+with independent review and corrections by the main agent; Astra added the final
+29 behavior regressions after Claude's session quota was exhausted. No earlier Margin or
+later upstream implementation, prompt, test or fixture was imported. Protocol
+field and lifecycle references are linked in PLAN's S42-03 interface record;
+they are not evidence of real account, device or service compatibility.
+
+The existing session ledger, provider adapters and generation lifecycle carry
+bounded per-action speech snapshots, provider epochs and fragment identities.
+`restBatches.ts` owns copied REST input and records its application ingress time,
+not a claimed hardware capture timestamp. `speechActions.ts` binds the action,
+dictation mark, task and base context to the invoking window. Synthetic tests use
+the existing fake sockets, clocks, preload/IPC and renderer harnesses; no new
+framework or dependency was introduced. Late results remain available to the
+live session, not to an already-frozen question.
+
+Initial local unit results did not establish acceptance: independent probes
+exposed timing, cancellation, buffering, cutoff and history-scope defects.
+Corrections and their evidence are tracked in PLAN S43 and `evidence/S42-03`.
+Final local gates pass 16/16; public CI remains pending. No source-pool expansion or
+scanner exclusion is authorized by this entry. The initial source scan reported
+29 matches comprising 26 exact generic statements: timestamp/interface fields,
+Map/timer/UUID operations, local boolean guards, snapshot construction and
+synthetic assertions. Their surrounding new implementations were inspected;
+each exact line has a reason in `provenance-config.json`. No broader block,
+path, source pool or binary asset is approved by those registrations.
+
 ### S42-02 answer guidance (2026-10-13)
 
 Written from PLAN U8 on this branch by Claude Opus 5.5 medium, then independently

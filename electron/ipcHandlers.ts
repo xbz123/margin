@@ -26,7 +26,17 @@ import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
 import { registerLocalContextHandlers } from './ipc/localContextHandlers';
+import { SpeechActions, SpeechActionError, type SpeechAction, type SpeechActionKind } from './ipc/speechActions';
+import { formatTranscriptItems, type TranscriptView } from './SessionTracker';
+import type { ProviderDataScope } from './llm/ProviderRouter';
 import { manualAnswerError, MANUAL_ANSWER_UNCONFIGURED, MANUAL_ANSWER_CANCELLED, InvalidImagePathError } from './direct-assist/errors';
+
+// Interview actions that read speech: the action kind and the argument index of its action reference.
+const SPEECH_ACTION_CHANNELS: Record<string, [SpeechActionKind, number]> = {
+  'generate-what-to-say': ['what-to-say', 2], 'generate-clarify': ['clarify', 0], 'generate-follow-up': ['follow-up', 2],
+  'generate-recap': ['recap', 0], 'generate-follow-up-questions': ['follow-up-questions', 0],
+  'generate-code-hint': ['code-hint', 2], 'generate-brainstorm': ['brainstorm', 2],
+};
 
 export function initializeIpcHandlers(appState: AppState): void {
   const validateImages = (value: unknown): string[] | undefined => {
@@ -63,6 +73,21 @@ export function initializeIpcHandlers(appState: AppState): void {
       appState.discardSttProviders();
     }
   };
+  const speechActions = new SpeechActions({
+    beginTask: startedAt => appState.processingHelper.getLLMHelper().beginGenerationTask('interview', undefined, undefined, startedAt),
+    collect: options => appState.collectSpeech(options),
+    markDictation: at => appState.markDictation(at),
+    captureBase: cutoffAt => appState.getIntelligenceManager().captureBase(cutoffAt),
+  });
+  // The view an action reads once its speech is frozen. Previous assistant suggestions are
+  // profile_history: left out when denied, otherwise declared so every later send rechecks them.
+  const frozenView = (action: SpeechAction, declare: (scope: ProviderDataScope) => void, exclude?: Set<string>): Promise<TranscriptView> =>
+    action.frozen.then(frozen => {
+      const includeHistory = appState.processingHelper.getLLMHelper().deniedDataScopes(['profile_history']).length === 0;
+      const view = appState.getIntelligenceManager().frozenView(frozen, action.base, exclude, includeHistory);
+      if (includeHistory && (view.getLastAssistantMessage() !== null || view.getContext(Number.MAX_SAFE_INTEGER).some(item => item.role === 'assistant'))) declare('profile_history');
+      return view;
+    });
   const safeHandle = (
     channel: string,
     listener: (event: any, ...args: any[]) => Promise<any> | any,
@@ -71,16 +96,27 @@ export function initializeIpcHandlers(appState: AppState): void {
     ipcMain.handle(channel, async (event, ...args) => {
       if (!['generate-assist', 'generate-what-to-say', 'generate-clarify', 'generate-follow-up', 'generate-recap', 'generate-follow-up-questions', 'submit-manual-question', 'generate-code-hint', 'generate-brainstorm'].includes(channel)) return listener(event, ...args);
       const helper = appState.processingHelper.getLLMHelper();
+      const speech = SPEECH_ACTION_CHANNELS[channel];
       let task: GenerationTask<any> | undefined;
+      let run = () => listener(event, ...args);
       try {
-        task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
-        const result = await helper.runGeneration(() => listener(event, ...args), 'interview', undefined, task);
+        if (speech) {
+          // The action began at the click; its task and speech cut are reused exactly once.
+          const action = speechActions.take(event.sender, args[speech[1]], speech[0]);
+          task = action.task;
+          const fixed = Array.from({ length: speech[1] }, (_, index) => args[index]);
+          run = () => helper.withDeclaredScopes(declare => listener(event, ...fixed, () => frozenView(action, declare)));
+        } else {
+          speechActions.cancel(event.sender);
+          task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
+        }
+        const result = await helper.runGeneration(run, 'interview', undefined, task);
         task.terminalStatus ??= (result as any)?.error ? 'failed' : 'empty';
         return { ...(result as any), ...helper.getTaskMetadata(task) };
       } catch (error) {
         if (channel !== 'generate-what-to-say') throw error;
         return { answer: null, ...(task ? helper.getTaskMetadata(task) : { status: 'failed' }),
-          error: !task ? MANUAL_ANSWER_UNCONFIGURED : task.terminalStatus === 'cancelled' ? MANUAL_ANSWER_CANCELLED : manualAnswerError(error) };
+          error: !task && !(error instanceof SpeechActionError) ? MANUAL_ANSWER_UNCONFIGURED : task?.terminalStatus === 'cancelled' ? MANUAL_ANSWER_CANCELLED : manualAnswerError(error) };
       } finally { task?.close(); }
     });
   };
@@ -293,8 +329,15 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('finalize-mic-stt', async () => {
-    await appState.finalizeMicSTT();
+  // Begin returns at once: providers keep running and the action channel freezes the speech.
+  safeHandle('speech-action:begin', (event, payload: unknown) => speechActions.begin(event.sender, payload));
+  safeHandle('dictation:begin', (event, payload: unknown) => speechActions.beginDictation(event.sender, payload));
+  // Stop freezes its question in main; the chat request then consumes the same action.
+  safeHandle('speech-action:freeze', async (event, ref: unknown) => {
+    const action = speechActions.take(event.sender, ref, 'answer', false);
+    const frozen = await action.frozen;
+    action.question ??= frozen.dictation ?? '';
+    return { speechActionId: action.id, question: action.question };
   });
 
   // IPC handler for analyzing image from file path
@@ -383,7 +426,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written' },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
@@ -396,8 +439,18 @@ export function initializeIpcHandlers(appState: AppState): void {
         const llmHelper = appState.processingHelper.getLLMHelper();
         myController = new AbortController();
         if (options?.generationKind !== undefined && !['interview', 'written'].includes(options.generationKind)) throw new Error('Invalid question mode');
-        const generationKind = options?.generationKind ?? 'written';
-        chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal);
+        // Stop sends the question main froze for its action and reuses that action's interview task.
+        const speechAction = options?.speechActionId === undefined ? undefined
+          : speechActions.take(event.sender, { speechActionId: options.speechActionId }, 'answer');
+        if (!speechAction) speechActions.cancel(event.sender);
+        const generationKind = speechAction ? 'interview' : options?.generationKind ?? 'written';
+        if (speechAction) {
+          const task = speechAction.task;
+          chatTask = task;
+          const controller = myController;
+          controller.signal.addEventListener('abort', () => task.controller.abort(controller.signal.reason), { once: true });
+          if (speechAction.question === undefined || message !== speechAction.question) throw new SpeechActionError();
+        } else chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal);
         chatTask.rendererOwner = event.sender;
         chatTask.deferVisibleText = true;
 
@@ -445,7 +498,14 @@ export function initializeIpcHandlers(appState: AppState): void {
         // 100s window would echo back the user's just-typed message as both context and
         // question, confusing small models (the "20-char context" log line was just an echo).
         let autoContextSnapshot: string | undefined;
-        if (!context) {
+        const declaredScopes: ProviderDataScope[] = [];
+        if (speechAction) {
+          // Both channels as frozen for the action, without the dictated question itself.
+          const frozen = await speechAction.frozen;
+          const view = await frozenView(speechAction, scope => declaredScopes.push(scope), new Set(frozen.dictationKeys));
+          const transcript = formatTranscriptItems(view.getContext(100));
+          if (transcript.trim()) context = context ? `${context}\n\nRecent conversation:\n${transcript}` : transcript;
+        } else if (!context) {
           try {
             const snap = intelligenceManager.getFormattedContext(100);
             if (snap && snap.trim().length > 0) autoContextSnapshot = snap;
@@ -490,7 +550,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             systemPromptOverride,
             options?.ignoreKnowledgeMode,
             true, // scenarioPrompt already includes the settled default layers
-            [], // extraDataScopes
+            declaredScopes, // extraDataScopes
             myController!.signal,
           ), generationKind, myController.signal, chatTask);
 
@@ -1565,6 +1625,7 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('end-meeting', async () => {
     try {
+      speechActions.cancel();
       await appState.endMeeting();
       return { success: true };
     } catch (error: any) {
@@ -1739,6 +1800,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       _,
       question?: string,
       imagePaths?: string[],
+      freeze?: () => Promise<TranscriptView>,
     ) => {
       const helper = appState.processingHelper.getLLMHelper();
       let task: GenerationTask<any> | undefined;
@@ -1763,7 +1825,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           validatedImagePaths,
           {
             manual: true,
-            beforeGenerate: signal => appState.finalizeMicSTT(signal),
+            beforeGenerate: async () => freeze?.(),
             errorDelivery: 'caller',
             screenContext,
           },
@@ -1796,10 +1858,10 @@ export function initializeIpcHandlers(appState: AppState): void {
     },
   );
 
-  safeHandle('generate-clarify', async () => {
+  safeHandle('generate-clarify', async (_, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
-      const clarification = await intelligenceManager.runClarify();
+      const clarification = await intelligenceManager.runClarify(await freeze());
       // If null returned without throwing, the engine already set mode to idle.
       // We must still ensure the frontend un-sticks — emit an error so onIntelligenceError fires.
       if (clarification === null) {
@@ -1816,7 +1878,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('generate-code-hint', async (_, imagePaths?: string[], problemStatement?: string) => {
+  safeHandle('generate-code-hint', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
@@ -1832,6 +1894,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       const hint = await intelligenceManager.runCodeHint(
         resolvedImagePaths.length > 0 ? resolvedImagePaths : undefined,
         problemStatement,
+        await freeze(),
       );
       return { hint };
     } catch (error: any) {
@@ -1839,7 +1902,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('generate-brainstorm', async (_, imagePaths?: string[], problemStatement?: string) => {
+  safeHandle('generate-brainstorm', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
@@ -1854,6 +1917,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       const script = await intelligenceManager.runBrainstorm(
         resolvedImagePaths.length > 0 ? resolvedImagePaths : undefined,
         problemStatement,
+        await freeze(),
       );
       return { script };
     } catch (error: any) {
@@ -1883,10 +1947,10 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 3: Follow-Up (Refinement)
-  safeHandle('generate-follow-up', async (_, intent: string, userRequest?: string) => {
+  safeHandle('generate-follow-up', async (_, intent: string, userRequest: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
-      const refined = await intelligenceManager.runFollowUp(intent, userRequest);
+      const refined = await intelligenceManager.runFollowUp(intent, userRequest, await freeze());
       return { refined, intent };
     } catch (error: any) {
       throw error;
@@ -1894,10 +1958,10 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 4: Recap (Summary)
-  safeHandle('generate-recap', async () => {
+  safeHandle('generate-recap', async (_, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
-      const summary = await intelligenceManager.runRecap();
+      const summary = await intelligenceManager.runRecap(await freeze());
       return { summary };
     } catch (error: any) {
       throw error;
@@ -1905,10 +1969,10 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 6: Follow-Up Questions
-  safeHandle('generate-follow-up-questions', async () => {
+  safeHandle('generate-follow-up-questions', async (_, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
-      const questions = await intelligenceManager.runFollowUpQuestions();
+      const questions = await intelligenceManager.runFollowUpQuestions(await freeze());
       return { questions };
     } catch (error: any) {
       throw error;
@@ -1941,12 +2005,14 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // Reset intelligence state
-  safeHandle('cancel-intelligence-generation', () => {
+  safeHandle('cancel-intelligence-generation', (event) => {
+    speechActions.cancel(event.sender);
     appState.getIntelligenceManager().resetEngine();
   });
 
   safeHandle('reset-intelligence', async () => {
     try {
+      speechActions.cancel();
       const intelligenceManager = appState.getIntelligenceManager();
       intelligenceManager.reset();
       return { success: true };

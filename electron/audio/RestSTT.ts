@@ -13,6 +13,8 @@ import { EventEmitter } from 'events';
 import { outboundAxios as axios } from '../services/outbound';
 import FormData from 'form-data';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
+import type { SttSeal } from './MeetingSttSession';
+import { RestBatches, type RestBatch } from './restBatches';
 
 export type RestSttProvider = 'groq' | 'openai';
 
@@ -87,6 +89,8 @@ export class RestSTT extends EventEmitter {
     private isActive = false;
     private isUploading = false;
     private flushPending = false;  // Bug #2 fix: queue flush when upload in progress
+    private readonly batches = new RestBatches('rest');
+    private uploadEpoch = 0;
 
     // Audio config (must match SystemAudioCapture output)
     private sampleRate = 16000;
@@ -155,6 +159,9 @@ export class RestSTT extends EventEmitter {
 
         console.log(`[RestSTT] Starting (${this.provider})...`);
         this.isActive = true;
+        this.uploadEpoch++;
+        this.isUploading = false;
+        this.flushPending = false;
         this.chunks = [];
         this.totalBufferedBytes = 0;
 
@@ -174,6 +181,7 @@ export class RestSTT extends EventEmitter {
 
         console.log(`[RestSTT] Stopping (${this.provider})...`);
         this.isActive = false;
+        this.uploadEpoch++;
 
         if (this.safetyNetTimer) {
             clearInterval(this.safetyNetTimer);
@@ -183,14 +191,16 @@ export class RestSTT extends EventEmitter {
         this.chunks = [];
         this.totalBufferedBytes = 0;
         this.flushPending = false;
+        this.batches.clear();
     }
 
     /**
      * Write raw PCM audio data to the internal buffer
      */
     public write(audioData: Buffer): void {
-        if (!this.isActive) return;
-        this.chunks.push(audioData);
+        if (!this.isActive || !audioData.length) return;
+        try { this.chunks.push(this.batches.capture(audioData)); }
+        catch (error) { this.emit('error', error); return; }
         this.totalBufferedBytes += audioData.length;
     }
 
@@ -212,6 +222,17 @@ export class RestSTT extends EventEmitter {
         this.flushAndUpload();
     }
 
+    /** Seals audio received so far into its own upload batch; recording continues. */
+    public seal(cutoffAt: number): SttSeal | undefined {
+        if (!this.isActive) return undefined;
+        let seal: SttSeal;
+        try { seal = this.batches.seal(this.chunks, cutoffAt); }
+        catch (error) { this.emit('error', error); throw error; }
+        this.totalBufferedBytes = this.chunks.reduce((bytes, chunk) => bytes + chunk.length, 0);
+        void this.flushAndUpload();
+        return seal;
+    }
+
     /**
      * Concatenate buffered chunks, add WAV header, and upload to REST API
      */
@@ -226,7 +247,7 @@ export class RestSTT extends EventEmitter {
         if (!this.isActive) return;
 
         // Skip if no data
-        if (this.chunks.length === 0 || this.totalBufferedBytes < MIN_BUFFER_BYTES) return;
+        if (!this.batches.waiting && (this.chunks.length === 0 || this.totalBufferedBytes < MIN_BUFFER_BYTES)) return;
 
         // Bug #2 fix: if currently uploading, queue a flush for when it completes
         if (this.isUploading) {
@@ -246,20 +267,31 @@ export class RestSTT extends EventEmitter {
             }, SAFETY_NET_INTERVAL_MS);
         }
 
-        // Grab current buffer and reset
-        const currentChunks = this.chunks;
-        this.chunks = [];
-        const currentBytes = this.totalBufferedBytes;
-        this.totalBufferedBytes = 0;
+        // Sealed batches go first; otherwise grab current buffer and reset
+        let batch: RestBatch | undefined = this.batches.next();
+        if (batch && batch.bytes < MIN_BUFFER_BYTES) {
+            // Too short to send alone: not empty, so its result stays unknown and the audio waits.
+            this.chunks = [...batch.chunks, ...this.chunks];
+            this.totalBufferedBytes += batch.bytes;
+            this.batches.finish(batch, 'unknown', false);
+            return this.flushAndUpload();
+        }
+        if (!batch) {
+            batch = this.batches.create(this.chunks, this.totalBufferedBytes);
+            this.chunks = [];
+            this.totalBufferedBytes = 0;
+        }
 
         // Concatenate all chunks
-        const rawPcm = Buffer.concat(currentChunks);
+        const rawPcm = Buffer.concat(batch.chunks);
 
         // Check for silence (skip upload if audio is too quiet)
         if (this.isSilent(rawPcm)) {
             if (Math.random() < 0.1) {
                 console.log(`[RestSTT] Skipping silent buffer (${rawPcm.length} bytes)`);
             }
+            this.batches.finish(batch, 'no-pending');
+            if (this.batches.waiting) return this.flushAndUpload();
             return;
         }
 
@@ -275,9 +307,13 @@ export class RestSTT extends EventEmitter {
         const wavBuffer = this.addWavHeader(pcm16k, TARGET_RATE);
 
         this.isUploading = true;
+        const epoch = this.uploadEpoch;
+        this.batches.start(batch);
+        let outcome: 'complete' | 'failed' = 'complete';
 
         try {
             const transcript = await this.uploadAudio(wavBuffer);
+            if (!this.isActive || this.uploadEpoch !== epoch) return;
 
             if (transcript && transcript.trim().length > 0) {
                 console.log(`[RestSTT] Transcript received`, { length: transcript.trim().length });
@@ -285,16 +321,22 @@ export class RestSTT extends EventEmitter {
                     text: transcript.trim(),
                     isFinal: true,
                     confidence: 1.0,
+                    segmentId: batch.scope,
+                    scope: batch.scope,
                 });
             }
         } catch (err) {
+            outcome = 'failed';
+            if (!this.isActive || this.uploadEpoch !== epoch) return;
             console.error(`[RestSTT] Upload error:`, err);
             this.emit('error', err instanceof Error ? err : new Error(String(err)));
         } finally {
+            if (!this.isActive || this.uploadEpoch !== epoch) { this.batches.finish(batch, 'unknown'); return; }
             this.isUploading = false;
+            this.batches.finish(batch, outcome);
 
             // Bug #2 fix: if a flush was requested while we were uploading, process it now
-            if (this.flushPending) {
+            if (this.flushPending || this.batches.waiting) {
                 this.flushPending = false;
                 this.flushAndUpload();
             }

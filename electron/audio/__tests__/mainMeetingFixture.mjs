@@ -19,7 +19,7 @@ const source = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8'
 const tree = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
 const app = tree.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
 const names = ['startMeeting', 'endMeeting', 'handleSttTranscript', 'suspendAudio', 'restartCapturesAfterResume',
-  'reconfigureAudio', 'reconfigureSttProvider', 'discardSttProviders', 'shutdownAudio', 'setQuitting', 'finalizeMicSTT', 'setupIntelligenceEvents'];
+  'reconfigureAudio', 'reconfigureSttProvider', 'discardSttProviders', 'shutdownAudio', 'setQuitting', 'collectSpeech', 'markDictation', 'setupIntelligenceEvents'];
 const methods = names.map(name => {
   const method = app.members.find(node => ts.isMethodDeclaration(node) && node.name.getText(tree) === name);
   if (!method) throw new Error('Missing production method ' + name);

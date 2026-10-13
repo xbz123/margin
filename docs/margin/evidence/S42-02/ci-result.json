@@ -1,0 +1,13 @@
+{
+  "headSha": "e7d9aaa9bcfe095cb74cbae06c33f514252f9998",
+  "url": "https://github.com/xbz123/margin/actions/runs/38338980915",
+  "status": "completed",
+  "conclusion": "success",
+  "startedAt": "2026-10-13T02:52:34Z",
+  "updatedAt": "2026-10-13T02:59:42Z",
+  "checks": [
+    { "name": "Run gates against the newest local ticket evidence", "status": "completed", "conclusion": "success" },
+    { "name": "Check the S42 required checks ran and passed", "status": "completed", "conclusion": "success" },
+    { "name": "Check release identity contract (CI only; no packaging)", "status": "completed", "conclusion": "success" }
+  ]
+}

@@ -8,7 +8,7 @@ import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import type { GenerationTask } from './llm/generateTask';
 import { prepareManualAnswer } from './llm/answerGeneration';
 import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
-import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
+import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem, type TranscriptView } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
     FollowUpQuestionsLLM, WhatToAnswerLLM,
@@ -400,9 +400,9 @@ export class IntelligenceEngine extends EventEmitter {
      * interim interviewer speech, and recent assistant responses. The responses are
      * left out when the profile_history scope is denied (PLAN.md AG-17 fourth review).
      */
-    private buildPreparedTranscriptContext(lastSeconds: number = 180): string {
+    private buildPreparedTranscriptContext(lastSeconds: number = 180, view: TranscriptView = this.session): string {
         const historyAllowed = this.llmHelper.deniedDataScopes(['profile_history']).length === 0;
-        return assemblePreparedTranscriptContext(this.session, lastSeconds, historyAllowed);
+        return assemblePreparedTranscriptContext(view, lastSeconds, historyAllowed);
     }
 
     /**
@@ -468,8 +468,8 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(async () => {
             const task = this.llmHelper.getCurrentGenerationTask();
             try {
-                if (args[3]?.manual) await prepareManualAnswer(this.llmHelper, args[3].beforeGenerate);
-                return await this.runWhatShouldISayInner(...args);
+                const view = args[3]?.manual ? await prepareManualAnswer(this.llmHelper, args[3].beforeGenerate) : undefined;
+                return await this.runWhatShouldISayInner(args[0], args[1], args[2], view ? { ...args[3], view } : args[3]);
             } catch (error) {
                 if (args[3]?.manual && task) task.errorMessage = manualAnswerError(error);
                 throw error;
@@ -477,9 +477,11 @@ export class IntelligenceEngine extends EventEmitter {
         });
     }
 
-    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<void>; speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext }): Promise<string | null> {
+    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<TranscriptView | void>; speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; view?: TranscriptView }): Promise<string | null> {
         const task = this.llmHelper.getCurrentGenerationTask();
         if (task) task.deferVisibleText = true;
+        // A manual action reads the transcript frozen for it; live history writes are unchanged.
+        const view = options?.view ?? this.session;
         const now = Date.now();
         const isSpeculative = options?.speculative === true;
         const skipCooldown = options?.manual === true || options?.skipCooldown === true;
@@ -515,7 +517,7 @@ export class IntelligenceEngine extends EventEmitter {
                     this.setMode('idle');
                     return "Please configure your API Keys in Settings to use this feature.";
                 }
-                const context = this.session.getFormattedContext(180);
+                const context = view.getFormattedContext(180);
                 const answer = await this.answerLLM.generate(question || '', context);
                 if (isSpeculative) {
                     this.speculativeText = null;
@@ -533,10 +535,10 @@ export class IntelligenceEngine extends EventEmitter {
                 return answer || "Could you repeat that? I want to make sure I address your question properly.";
             }
 
-            const contextItems = this.session.getContext(180);
+            const contextItems = view.getContext(180);
 
             // Inject latest interim transcript if available
-            const lastInterim = this.session.getLastInterimInterviewer();
+            const lastInterim = view.getLastInterimInterviewer();
             if (lastInterim && lastInterim.text.trim().length > 0) {
                 const lastItem = contextItems[contextItems.length - 1];
                 const isDuplicate = lastItem &&
@@ -563,15 +565,15 @@ export class IntelligenceEngine extends EventEmitter {
 
             const temporalContext = buildTemporalContext(
                 contextItems,
-                this.session.getAssistantResponseHistory(),
+                view.getAssistantResponseHistory(),
                 180
             );
 
-            const lastInterviewerTurn = this.session.getLastInterviewerTurn();
+            const lastInterviewerTurn = view.getLastInterviewerTurn();
             const intentResult = await classifyIntent(
                 lastInterviewerTurn,
                 preparedTranscript,
-                this.session.getAssistantResponseHistory().length
+                view.getAssistantResponseHistory().length
             );
 
             const screenContext = options?.screenContext;
@@ -692,9 +694,9 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(() => this.runFollowUpInner(...args));
     }
 
-    async runFollowUpInner(intent: string, userRequest?: string): Promise<string | null> {
+    async runFollowUpInner(intent: string, userRequest?: string, view: TranscriptView = this.session): Promise<string | null> {
         console.log(`[IntelligenceEngine] runFollowUp called with intent: ${intent}`);
-        const lastMsg = this.session.getLastAssistantMessage();
+        const lastMsg = view.getLastAssistantMessage();
         if (!lastMsg) {
             console.warn('[IntelligenceEngine] No lastAssistantMessage found for follow-up');
             return null;
@@ -709,7 +711,7 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            const context = this.buildPreparedTranscriptContext(120) || this.session.getFormattedContextWithInterim(60);
+            const context = this.buildPreparedTranscriptContext(120, view) || view.getFormattedContextWithInterim(60);
             const refinementRequest = userRequest || intent;
 
             const generationId = ++this.currentGenerationId;
@@ -774,7 +776,7 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(() => this.runRecapInner(...args));
     }
 
-    async runRecapInner(): Promise<string | null> {
+    async runRecapInner(view: TranscriptView = this.session): Promise<string | null> {
         console.log('[IntelligenceEngine] runRecap called');
         this.setMode('recap');
 
@@ -785,7 +787,7 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            const context = this.session.getFormattedContext(120);
+            const context = view.getFormattedContext(120);
             if (!context) {
                 console.warn('[IntelligenceEngine] No context available for recap');
                 this.setMode('idle');
@@ -844,7 +846,7 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(() => this.runClarifyInner(...args));
     }
 
-    async runClarifyInner(): Promise<string | null> {
+    async runClarifyInner(view: TranscriptView = this.session): Promise<string | null> {
         console.log('[IntelligenceEngine] runClarify called');
         this.setMode('clarify');
 
@@ -855,7 +857,7 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            const rawContext = this.buildPreparedTranscriptContext(180);
+            const rawContext = this.buildPreparedTranscriptContext(180, view);
             // If no transcript yet, use a generic prompt — the LLM will ask a scoping question
             const context = rawContext || '[No transcript available yet. The candidate just joined the interview. Generate an opening clarifying question to understand the scope and constraints of the upcoming problem.]';
 
@@ -912,7 +914,7 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(() => this.runFollowUpQuestionsInner(...args));
     }
 
-    async runFollowUpQuestionsInner(): Promise<string | null> {
+    async runFollowUpQuestionsInner(view: TranscriptView = this.session): Promise<string | null> {
         console.log('[IntelligenceEngine] runFollowUpQuestions called');
         this.setMode('follow_up_questions');
 
@@ -923,7 +925,7 @@ export class IntelligenceEngine extends EventEmitter {
                 return null;
             }
 
-            const context = this.buildPreparedTranscriptContext(120);
+            const context = this.buildPreparedTranscriptContext(120, view);
             if (!context) {
                 console.warn('[IntelligenceEngine] No context available for follow-up questions');
                 this.setMode('idle');
@@ -1027,7 +1029,7 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(() => this.runCodeHintInner(...args));
     }
 
-    async runCodeHintInner(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
+    async runCodeHintInner(imagePaths?: string[], problemStatement?: string, view: TranscriptView = this.session): Promise<string | null> {
         if (this.assistCancellationToken) {
             this.assistCancellationToken.abort();
             this.assistCancellationToken = null;
@@ -1042,7 +1044,7 @@ export class IntelligenceEngine extends EventEmitter {
             }
 
             // Resolve question context from available sources (priority order)
-            const sessionQuestion = this.session.getDetectedCodingQuestion();
+            const sessionQuestion = view.getDetectedCodingQuestion();
             const questionContext = problemStatement ?? sessionQuestion.question ?? null;
             const questionSource = problemStatement
                 ? 'screenshot'
@@ -1050,7 +1052,7 @@ export class IntelligenceEngine extends EventEmitter {
 
             // Pull transcript as fallback context when no question is pinned
             const transcriptContext = questionContext === null
-                ? this.session.getFormattedContext(180)
+                ? view.getFormattedContext(180)
                 : null;
 
             console.log(`[IntelligenceEngine] Code hint — question source: ${questionContext ? (questionSource ?? 'passed') : 'none'}, transcript lines: ${transcriptContext ? transcriptContext.split('\n').length : 0}, images: ${imagePaths?.length ?? 0}`);
@@ -1113,7 +1115,7 @@ export class IntelligenceEngine extends EventEmitter {
         return this.runGenerationRequest(() => this.runBrainstormInner(...args));
     }
 
-    async runBrainstormInner(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
+    async runBrainstormInner(imagePaths?: string[], problemStatement?: string, view: TranscriptView = this.session): Promise<string | null> {
         if (this.assistCancellationToken) {
             this.assistCancellationToken.abort();
             this.assistCancellationToken = null;
@@ -1127,10 +1129,10 @@ export class IntelligenceEngine extends EventEmitter {
                 return "Please configure your API Keys in Settings to use this feature.";
             }
 
-            let context = this.session.getFormattedContext(180);
+            let context = view.getFormattedContext(180);
             // Prepend the problem statement so the LLM knows exactly what to brainstorm
             const resolvedProblem = problemStatement?.trim() ||
-                this.session.getDetectedCodingQuestion().question?.trim();
+                view.getDetectedCodingQuestion().question?.trim();
 
             if (!context.trim() && !resolvedProblem && (!imagePaths || imagePaths.length === 0)) {
                 this.setMode('idle');

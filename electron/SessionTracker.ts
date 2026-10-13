@@ -5,6 +5,7 @@
 import { RecapLLM } from './llm';
 import { isVerboseLogging } from './verboseLog';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
+import type { FrozenSpeech } from './audio/MeetingSttSession';
 
 export interface TranscriptSegment {
     marker?: string;
@@ -14,6 +15,8 @@ export interface TranscriptSegment {
     final: boolean;
     confidence?: number;
     generation?: GenerationMetadata;
+    /** Stable STT segment identity; a later revision with the same ID updates the stored text. */
+    segmentId?: string;
 }
 
 export interface SuggestionTrigger {
@@ -27,6 +30,10 @@ export interface ContextItem {
     role: 'interviewer' | 'user' | 'assistant';
     text: string;
     timestamp: number;
+    segmentId?: string;
+    /** When the current text of an STT segment was stored, and the one text it replaced. */
+    textSince?: number;
+    previous?: { text: string; since: number };
 }
 
 export interface AssistantResponse {
@@ -34,6 +41,36 @@ export interface AssistantResponse {
     timestamp: number;
     questionContext: string;
     generation?: GenerationMetadata;
+}
+
+/** The transcript reads used by answer generation; SessionTracker is the live view. */
+export interface TranscriptView {
+    getContext(lastSeconds?: number): ContextItem[];
+    getContextWithInterim(lastSeconds?: number): ContextItem[];
+    getFormattedContext(lastSeconds?: number): string;
+    getFormattedContextWithInterim(lastSeconds?: number): string;
+    getLastInterimInterviewer(): TranscriptSegment | null;
+    getLastInterviewerTurn(): string | null;
+    getAssistantResponseHistory(): AssistantResponse[];
+    getLastAssistantMessage(): string | null;
+    getDetectedCodingQuestion(): { question: string | null; source: 'screenshot' | 'transcript' | null };
+}
+
+/** Conversation, assistant replies and coding question as they stood when an action began. */
+export interface ConversationBase {
+    readonly cutoffAt: number;
+    readonly items: readonly ContextItem[];
+    readonly responses: readonly AssistantResponse[];
+    readonly coding: { readonly question: string | null; readonly source: 'screenshot' | 'transcript' | null };
+}
+
+export function formatTranscriptItems(items: readonly ContextItem[]): string {
+    return items.map(item => {
+        const label = item.role === 'interviewer' ? 'INTERVIEWER' :
+            item.role === 'user' ? 'ME' :
+                'ASSISTANT (PREVIOUS SUGGESTION)';
+        return `[${label}]: ${item.text}`;
+    }).join('\n');
 }
 
 export class SessionTracker {
@@ -197,6 +234,21 @@ export class SessionTracker {
 
         if (!text) return null;
 
+        // A corrected final of the same STT segment replaces the stored text instead of adding a turn.
+        if (segment.segmentId) {
+            const existing = this.contextItems.findLast(item => item.segmentId === segment.segmentId);
+            const stored = this.fullTranscript.findLast(item => item.segmentId === segment.segmentId);
+            if (existing || stored) {
+                if (existing && existing.text !== text) {
+                    existing.previous = { text: existing.text, since: existing.textSince ?? existing.timestamp };
+                    existing.textSince = Date.now();
+                    existing.text = text;
+                }
+                if (stored) stored.text = text;
+                return null;
+            }
+        }
+
         // Deduplicate: check if this exact item already exists
         const lastItem = this.contextItems[this.contextItems.length - 1];
         if (lastItem &&
@@ -209,7 +261,8 @@ export class SessionTracker {
         this.contextItems.push({
             role,
             text,
-            timestamp: segment.timestamp
+            timestamp: segment.timestamp,
+            ...(segment.segmentId ? { segmentId: segment.segmentId, textSince: Date.now() } : {}),
         });
 
         this.evictOldEntries();
@@ -391,13 +444,66 @@ export class SessionTracker {
         return this.formatContextItems(this.getContextWithInterim(lastSeconds));
     }
 
+    /**
+     * Copies the state an action reads when it begins. Later live writes, including revisions of
+     * old segments and coding-question detection, never change the copy.
+     */
+    captureBase(cutoffAt: number): ConversationBase {
+        // Only what was current at the cutoff: a segment stored or revised later keeps its earlier
+        // text when that is known, otherwise it is left to the collector or omitted, never guessed.
+        const atCutoff = (item: ContextItem): ContextItem | undefined => {
+            if (item.timestamp > cutoffAt) return undefined;
+            const text = (item.textSince ?? item.timestamp) <= cutoffAt ? item.text
+                : item.previous && item.previous.since <= cutoffAt ? item.previous.text : undefined;
+            return text === undefined ? undefined
+                : Object.freeze({ role: item.role, text, timestamp: item.timestamp, ...(item.segmentId ? { segmentId: item.segmentId } : {}) });
+        };
+        const coding = this.codingQuestionSetAt !== null && this.codingQuestionSetAt > cutoffAt
+            ? { question: null, source: null } : this.getDetectedCodingQuestion();
+        return Object.freeze({
+            cutoffAt,
+            items: Object.freeze(this.contextItems.map(atCutoff).filter((item): item is ContextItem => !!item)),
+            responses: Object.freeze(this.assistantResponseHistory.filter(response => response.timestamp <= cutoffAt).map(response => Object.freeze({ ...response }))),
+            coding: Object.freeze(coding),
+        });
+    }
+
+    /**
+     * Read-only context of an action: its base copy, with the frozen revision of every collected
+     * segment replacing or adding its turn. Nothing written after the base copy is visible.
+     * Without `includeHistory` the view holds no previous assistant suggestions (profile_history).
+     */
+    frozenView(frozen: FrozenSpeech, base: ConversationBase = this.captureBase(frozen.cutoffAt), exclude: ReadonlySet<string> = new Set(),
+        includeHistory = true): TranscriptView {
+        const cutoff = frozen.cutoffAt;
+        const segments = [...frozen.channels.user.segments, ...frozen.channels.interviewer.segments].filter(segment => segment.text.trim() && !exclude.has(segment.key));
+        const keys = new Set([...segments.map(segment => segment.key), ...exclude]);
+        const items: ContextItem[] = base.items
+            .filter(item => item.timestamp <= cutoff && !(item.segmentId && keys.has(item.segmentId)) && (includeHistory || item.role !== 'assistant'))
+            .map(item => ({ ...item }));
+        for (const segment of segments) {
+            items.push({ role: segment.channel === 'user' ? 'user' : 'interviewer', text: segment.text.trim(), timestamp: segment.firstSeenAt, segmentId: segment.key });
+        }
+        items.sort((a, b) => a.timestamp - b.timestamp);
+        const responses = includeHistory ? base.responses.filter(response => response.timestamp <= cutoff).map(response => ({ ...response })) : [];
+        const codingQuestion = { ...base.coding };
+        const recent = (lastSeconds = 120) => items.filter(item => item.timestamp >= cutoff - lastSeconds * 1000).map(item => ({ ...item }));
+        const view: TranscriptView = {
+            getContext: recent,
+            getContextWithInterim: recent,
+            getFormattedContext: lastSeconds => this.formatContextItems(recent(lastSeconds)),
+            getFormattedContextWithInterim: lastSeconds => this.formatContextItems(recent(lastSeconds)),
+            getLastInterimInterviewer: () => null,
+            getLastInterviewerTurn: () => items.findLast(item => item.role === 'interviewer')?.text ?? null,
+            getAssistantResponseHistory: () => responses.map(response => ({ ...response })),
+            getLastAssistantMessage: () => responses.at(-1)?.text ?? null,
+            getDetectedCodingQuestion: () => ({ ...codingQuestion }),
+        };
+        return Object.freeze(view);
+    }
+
     private formatContextItems(items: ContextItem[]): string {
-        return items.map(item => {
-            const label = item.role === 'interviewer' ? 'INTERVIEWER' :
-                item.role === 'user' ? 'ME' :
-                    'ASSISTANT (PREVIOUS SUGGESTION)';
-            return `[${label}]: ${item.text}`;
-        }).join('\n');
+        return formatTranscriptItems(items);
     }
 
     /**

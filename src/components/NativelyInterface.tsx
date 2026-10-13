@@ -2409,26 +2409,29 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       if (!tryBeginOverlayAction('answer_now')) return;
       const epoch = ++generationEpochRef.current;
       try {
-        await window.electronAPI.finalizeMicSTT().catch(() => {
-          console.warn('[ManualAnswer] Microphone finalization failed; using available transcript.');
-        });
-        if (generationEpochRef.current !== epoch) return;
-        // Stop recording - send accumulated voice input to Gemini
+        // Stop recording: main freezes the dictated speech and owns the question.
         isRecordingRef.current = false;
         setIsManualRecording(false);
-        setManualTranscript('');
-
-        const currentAttachments = attachedContext;
-        submittedChatRef.current = { text: '', paths: currentAttachments.map(item => item.path) };
-
-        const question = (
-          voiceInputRef.current +
-          (manualTranscriptRef.current ? ' ' + manualTranscriptRef.current : '')
-        ).trim();
         setVoiceInput('');
         voiceInputRef.current = '';
         setManualTranscript('');
         manualTranscriptRef.current = '';
+        const currentAttachments = attachedContext;
+        let frozen: { speechActionId: string; question: string };
+        try {
+          frozen = await window.electronAPI.finishDictation();
+        } catch {
+          if (generationEpochRef.current === epoch) {
+            setMessages((prev) => [
+              ...prev,
+              { id: genMessageId(), role: 'system', text: '❌ Speech could not be collected. Try again.' },
+            ]);
+          }
+          return;
+        }
+        if (generationEpochRef.current !== epoch) return;
+        const question = frozen.question;
+        submittedChatRef.current = { text: '', paths: currentAttachments.map(item => item.path) };
 
         if (!question && currentAttachments.length === 0) {
           if (sttUserStatus === 'failed' && sttUserError) {
@@ -2530,7 +2533,7 @@ Provide only the answer, nothing else.`;
             question,
             currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
             prompt,
-            { skipSystemPrompt: true },
+            { skipSystemPrompt: true, speechActionId: frozen.speechActionId },
           );
         } catch (err) {
           setIsProcessing(false);
@@ -2561,6 +2564,8 @@ Provide only the answer, nothing else.`;
       setManualTranscript('');
       isRecordingRef.current = true; // Update ref immediately
       setIsManualRecording(true);
+      // Answer only starts dictation; a failure surfaces when Stop asks for the question.
+      window.electronAPI.beginDictation().catch(() => {});
     }
   };
 

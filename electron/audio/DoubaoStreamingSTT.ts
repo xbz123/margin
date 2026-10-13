@@ -87,7 +87,11 @@ export class DoubaoStreamingSTT extends DomesticStreamingSTT {
       const signature = identity + ':' + utterance.text;
       const final = utterance.definite === true;
       if (final && this.finalUtterances.has(signature)) continue;
-      this.emit('transcript', { text: utterance.text, isFinal: final, segmentId: this.request + ':' + identity });
+      // start_time/end_time are milliseconds of this request's audio.
+      const media = { basis: 'doubao-request-audio', ...(Number.isFinite(utterance.start_time) ? { startMs: utterance.start_time } : {}),
+        ...(Number.isFinite(utterance.end_time) ? { endMs: utterance.end_time } : {}) };
+      this.emit('transcript', { text: utterance.text, isFinal: final, segmentId: identity, epoch: this.request, media,
+        identityReliable: Number.isFinite(utterance.start_time) });
       if (final) { this.finalUtterances.add(signature); this.emit('endpoint', { type: 'utterance_end' }); }
     }
     if (response.final) this.completed();

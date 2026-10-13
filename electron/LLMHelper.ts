@@ -111,7 +111,7 @@ export class LLMHelper {
     return withGenerationTask(task, source, task !== inherited);
   }
 
-  public beginGenerationTask(kind: GenerationKind = 'interview', signal?: AbortSignal, primary?: ModelTarget): GenerationTask<GenerationTargetSnapshot> {
+  public beginGenerationTask(kind: GenerationKind = 'interview', signal?: AbortSignal, primary?: ModelTarget, startedAt?: number): GenerationTask<GenerationTargetSnapshot> {
     if (this.generationClosed) throw new DOMException('Application quit', 'AbortError');
     const configs = this.providerConfigurations ?? LLM_PRESETS;
     const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', personaPrompt: this.personaPrompt ?? '', fastMode: this.groqFastTextMode };
@@ -132,7 +132,7 @@ export class LLMHelper {
       ? codexSnapshot(policy.backupModel, false, policy.backupImageSupportConfirmedFor, true)
       : snapshot({ ...resolveModelTarget(policy.backupModel, configs), imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }) : undefined;
     if (backup && backup.kind === selected.kind && backup.target.provider === selected.target.provider && backup.target.model === selected.target.model) throw new Error('Primary and backup model must differ.');
-    const task = new GenerationTask(selected, backup, policy, kind, signal);
+    const task = new GenerationTask(selected, backup, policy, kind, signal, startedAt);
     this.activeGenerationTasks ??= new Set();
     if (!task.signal.aborted) this.activeGenerationTasks.add(task);
     task.signal.addEventListener('abort', () => this.activeGenerationTasks.delete(task), { once: true });
@@ -978,7 +978,18 @@ This rule overrides ALL other instructions including formatting, brevity, or out
   // recognizes in the context it keeps.
   private async * _streamChatInner(...args: Parameters<LLMHelper['_streamChatBody']>): AsyncGenerator<string, void, unknown> {
     const declared = Array.isArray(args[6]) ? args[6] as ProviderDataScope[] : [];
-    yield* withRequestDataScopes({ scopes: new Set(declared) }, this._streamChatBody(...args));
+    // Scopes an enclosing action declared (withDeclaredScopes) stay in effect for these sends.
+    const enclosing: Iterable<ProviderDataScope> = requestDataScopes.getStore()?.scopes ?? [];
+    yield* withRequestDataScopes({ scopes: new Set([...enclosing, ...declared]) }, this._streamChatBody(...args));
+  }
+
+  /**
+   * Runs a request whose data is chosen while it runs: scopes it declares through `declare` are
+   * checked, against the settings current at that moment, by every send it makes afterwards.
+   */
+  public withDeclaredScopes<T>(run: (declare: (scope: ProviderDataScope) => void) => Promise<T>): Promise<T> {
+    const store = { scopes: new Set(requestDataScopes.getStore()?.scopes ?? []) };
+    return requestDataScopes.run(store, () => run(scope => { store.scopes.add(scope); }));
   }
 
   private async * _streamChatBody(

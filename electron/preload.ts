@@ -251,11 +251,13 @@ interface ElectronAPI {
     final?: boolean;
   }) => Promise<{ success: boolean; error?: string }>;
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>;
+  /** Answer: marks where dictated speech starts. Stop freezes it in main and returns the question. */
+  beginDictation: () => Promise<void>;
+  finishDictation: () => Promise<{ speechActionId: string; question: string }>;
 
   // Meeting Lifecycle
   startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string }>;
   endMeeting: () => Promise<{ success: boolean; error?: string }>;
-  finalizeMicSTT: () => Promise<void>;
   getRecentMeetings: () => Promise<
     Array<{ id: string; title: string; date: string; duration: string; summary: string }>
   >;
@@ -343,7 +345,7 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written' },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string },
   ) => Promise<void>;
   onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void;
   onGeminiStreamDone: (callback: (metadata?: GenerationMetadata) => void, owner?: string) => () => void;
@@ -545,10 +547,36 @@ const cancelActiveChat = (owner = 'natively') => {
   activeChatStreamId = null; chatInFlight = false;
   ipcRenderer.send('gemini-chat-stream-stop');
 };
-const invokeIntelligence = (channel: string, ...args: any[]) => {
+const claimIntelligence = () => {
   if (chatInFlight && activeChatOwner === 'natively') cancelActiveChat();
   activeIntelligenceRequestId = null;
+};
+const invokeIntelligence = (channel: string, ...args: any[]) => {
+  claimIntelligence();
   return ipcRenderer.invoke(channel, ...args);
+};
+// Speech actions cut the transcript at the trigger. Begin returns without waiting for STT; the
+// action channel follows on its receipt or 750 ms after the trigger, whichever comes first.
+const SPEECH_RECEIPT_WINDOW_MS = 750;
+// Named here, owned by main: IPC order delivers the mark before Stop's begin, so Stop never waits for it.
+let dictation: string | undefined;
+const runSpeechAction = async <T>(kind: string, invoke: (ref: { speechActionId: string; stage1EndAt: number }) => Promise<T>,
+  dictationId?: string): Promise<T> => {
+  const clickedAt = Date.now();
+  const speechActionId = globalThis.crypto.randomUUID();
+  const receipt = ipcRenderer.invoke('speech-action:begin', { clientActionId: speechActionId, kind, clickedAt, ...(dictationId ? { dictationId } : {}) })
+    .then(() => Date.now(), () => Date.now());
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const boundary = new Promise<number>(resolve => {
+    timer = setTimeout(() => resolve(clickedAt + SPEECH_RECEIPT_WINDOW_MS), Math.max(0, clickedAt + SPEECH_RECEIPT_WINDOW_MS - Date.now()));
+  });
+  const stage1EndAt = await Promise.race([receipt, boundary]);
+  clearTimeout(timer);
+  return invoke({ speechActionId, stage1EndAt });
+};
+const speechIntelligence = (kind: string, channel: string, ...args: any[]) => {
+  claimIntelligence();
+  return runSpeechAction(kind, ref => ipcRenderer.invoke(channel, ...args, ref));
 };
 const cancelActiveIntelligence = () => {
   if (activeIntelligenceRequestId && activeIntelligenceMetadata && !activeIntelligenceMetadata.status) ipcRenderer.emit('intelligence-generation-terminal', {}, { ...activeIntelligenceMetadata, status: 'cancelled' });
@@ -966,16 +994,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
-  ) => invokeIntelligence('generate-what-to-say', question, imagePaths),
-  generateClarify: () => invokeIntelligence('generate-clarify'),
+  ) => speechIntelligence('what-to-say', 'generate-what-to-say', question, imagePaths),
+  generateClarify: () => speechIntelligence('clarify', 'generate-clarify'),
   generateCodeHint: (imagePaths?: string[], problemStatement?: string) =>
-    invokeIntelligence('generate-code-hint', imagePaths, problemStatement),
+    speechIntelligence('code-hint', 'generate-code-hint', imagePaths, problemStatement),
   generateBrainstorm: (imagePaths?: string[], problemStatement?: string) =>
-    invokeIntelligence('generate-brainstorm', imagePaths, problemStatement),
+    speechIntelligence('brainstorm', 'generate-brainstorm', imagePaths, problemStatement),
   generateFollowUp: (intent: string, userRequest?: string) =>
-    invokeIntelligence('generate-follow-up', intent, userRequest),
-  generateFollowUpQuestions: () => invokeIntelligence('generate-follow-up-questions'),
-  generateRecap: () => invokeIntelligence('generate-recap'),
+    speechIntelligence('follow-up', 'generate-follow-up', intent, userRequest),
+  generateFollowUpQuestions: () => speechIntelligence('follow-up-questions', 'generate-follow-up-questions'),
+  generateRecap: () => speechIntelligence('recap', 'generate-recap'),
   submitManualQuestion: (question: string) =>
     invokeIntelligence('submit-manual-question', question),
   getIntelligenceContext: () => ipcRenderer.invoke('get-intelligence-context'),
@@ -986,6 +1014,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     final?: boolean;
   }) => ipcRenderer.invoke('test-inject-transcript', segment),
   resetIntelligence: () => ipcRenderer.invoke('reset-intelligence'),
+  beginDictation: () => {
+    const dictationId = globalThis.crypto.randomUUID();
+    dictation = dictationId;
+    return ipcRenderer.invoke('dictation:begin', { dictationId, clickedAt: Date.now() }).then((): void => undefined);
+  },
+  finishDictation: () => {
+    const dictationId = dictation;
+    dictation = undefined;
+    if (!dictationId) return Promise.reject(new Error('Dictation was not started'));
+    return runSpeechAction('answer', ref => ipcRenderer.invoke('speech-action:freeze', ref), dictationId);
+  },
 
   // Action Button Mode (Dynamic Recap / Brainstorm toggle)
   getActionButtonMode: () => ipcRenderer.invoke('get-action-button-mode'),
@@ -1002,7 +1041,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Meeting Lifecycle
   startMeeting: (metadata?: any) => ipcRenderer.invoke('start-meeting', metadata),
   endMeeting: () => ipcRenderer.invoke('end-meeting'),
-  finalizeMicSTT: () => ipcRenderer.invoke('finalize-mic-stt'),
   getRecentMeetings: () => ipcRenderer.invoke('get-recent-meetings'),
   getMeetingDetails: (id: string) => ipcRenderer.invoke('get-meeting-details', id),
   updateMeetingTitle: (id: string, title: string) =>
@@ -1168,7 +1206,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written' },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string },
   ) => {
     const clientStreamId = ++chatStreamSeq;
     if (chatInFlight) cancelActiveChat(activeChatOwner);

@@ -253,7 +253,7 @@ import { SystemAudioCapture } from "./audio/SystemAudioCapture"
 import { MicrophoneCapture } from "./audio/MicrophoneCapture"
 import { AudioDevices } from "./audio/AudioDevices"
 import { MeetingAudioPipeline } from './audio/MeetingAudioPipeline';
-import { MeetingSttSession, type SessionTranscript } from './audio/MeetingSttSession';
+import { MeetingSttSession, type CollectOptions, type DictationMark, type SessionTranscript, type SpeechCollector } from './audio/MeetingSttSession';
 import { MeetingLifecycleQueue } from './audio/meetingLifecycleQueue';
 import { TranscriptDisplayThrottle } from './audio/TranscriptDisplayThrottle';
 import { registerOsEventSubscriptions } from './osEventSubscriptions';
@@ -731,7 +731,7 @@ export class AppState {
   private handleSttTranscript(event: SessionTranscript): void {
     if (event.sessionId !== this.activeAudioSession || (!this.isMeetingActive && !(this._isDraining && event.final))) return;
     const payload = { speaker: event.channel, text: event.text, timestamp: event.timestamp, final: event.final, confidence: event.confidence };
-    this.intelligenceManager.handleTranscript(payload);
+    this.intelligenceManager.handleTranscript({ ...payload, segmentId: event.segmentId });
     this.transcriptDisplay.send(payload);
   }
 
@@ -1528,8 +1528,13 @@ export class AppState {
     return this.audioTestRelease;
   }
 
-  public async finalizeMicSTT(signal?: AbortSignal): Promise<void> {
-    if (this.isMeetingActive) await this.meetingStt.finalizeUser(signal);
+  /** Starts collecting both channels for one manual action; providers' tasks keep running. */
+  public collectSpeech(options: CollectOptions): SpeechCollector {
+    return this.meetingStt.collect(options);
+  }
+
+  public markDictation(at: number): DictationMark {
+    return this.meetingStt.markDictation(at);
   }
 
 

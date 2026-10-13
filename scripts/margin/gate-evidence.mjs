@@ -14,9 +14,19 @@ export const GATE_REF = /^docs\/margin\/evidence\/(AG-\d+|S42-(ready|\d+))$/;
 
 export const S42_REQUIRED_FILES = [
   'electron/audio/__tests__/DomesticStreamingLifecycle.test.mjs',
+  'electron/audio/__tests__/MeetingSttSession.test.mjs',
+  'electron/audio/__tests__/OutboundSttRevocation.test.mjs',
+  'electron/llm/__tests__/generationInterfaces.test.mjs',
   'electron/margin/__tests__/gateEvidence.test.mjs',
   'electron/services/__tests__/DomesticSttSettings.test.mjs',
+  'electron/services/__tests__/ImagePathValidation.test.mjs',
+  'electron/services/__tests__/IntelligenceEnginePreparedContext.test.mjs',
+  'electron/services/__tests__/ManualAnswerBridge.test.mjs',
+  'electron/services/__tests__/Mg21StopConsumer2026_09_27.test.mjs',
+  'electron/services/__tests__/OpenAIRealtimeGAProtocol.test.mjs',
   'electron/services/__tests__/PromptSkillConsumerChain.test.mjs',
+  'electron/services/__tests__/SpeechActions.test.mjs',
+  'src/lib/__tests__/manualAnswerRenderer.test.mjs',
   'src/lib/__tests__/settingsFoundation.test.mjs',
 ];
 

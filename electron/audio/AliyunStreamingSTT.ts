@@ -37,12 +37,20 @@ export class AliyunStreamingSTT extends DomesticStreamingSTT {
     if (header?.event === 'task-started') { this.healthy(); this.acceptAudio(); return; }
     if (header?.event !== 'result-generated' && header?.event !== 'task-finished') return;
     const sentence = message.payload?.output?.sentence;
-    if (typeof sentence?.text === 'string' && sentence.text) {
+    // sentence_id identifies a sentence within the task; 0 is a heartbeat, never speech.
+    const identity = sentence?.sentence_id ?? sentence?.id;
+    if (sentence && identity !== 0 && sentence.heartbeat !== true && typeof sentence.text === 'string') {
       const final = sentence.sentence_end === true || header.event === 'task-finished';
-      const identity = String(sentence.id ?? sentence.begin_time ?? 'sentence');
-      const signature = identity + ':' + sentence.text;
-      if (!final || signature !== this.lastFinal) {
-        this.emit('transcript', { text: sentence.text, isFinal: final, segmentId: this.task + ':' + identity });
+      const segmentId = String(identity ?? sentence.begin_time ?? 'sentence');
+      const signature = segmentId + ':' + sentence.text;
+      // begin_time/end_time are milliseconds of this task's audio.
+      const media = { basis: 'aliyun-task-audio', ...(Number.isFinite(sentence.begin_time) ? { startMs: sentence.begin_time } : {}),
+        ...(Number.isFinite(sentence.end_time) ? { endMs: sentence.end_time } : {}) };
+      if (!sentence.text) {
+        if (sentence.sentence_begin === true && identity !== undefined) this.emit('transcript', { text: '', started: true, segmentId, epoch: this.task, media });
+      } else if (!final || signature !== this.lastFinal) {
+        this.emit('transcript', { text: sentence.text, isFinal: final, segmentId, epoch: this.task, media,
+          identityReliable: identity !== undefined || Number.isFinite(sentence.begin_time) });
         if (final) { this.lastFinal = signature; this.emit('endpoint', { type: 'utterance_end' }); }
       }
     }

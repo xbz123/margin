@@ -734,3 +734,87 @@ describe('security — log scrubbing', () => {
         assert.match(errors[0].message, /REDACTED/);
     });
 });
+
+describe('S42-03 turn identity', () => {
+    const active = t => {
+        const stt = new OpenAIStreamingSTT('sk-test-key');
+        t.after(() => { stt.isActive = false; });
+        stt.isActive = true;
+        stt.mode = 'ws';
+        const rows = [];
+        stt.on('transcript', row => rows.push(row));
+        const send = (type, fields) => stt._handleWsMessage({ type, ...fields });
+        return { stt, rows, send };
+    };
+    const DELTA = 'conversation.item.input_audio_transcription.delta';
+    const COMPLETED = 'conversation.item.input_audio_transcription.completed';
+
+    test('only a completed event finalizes a keyed turn; a late completion revises its own item, never the new turn', t => {
+        const { rows, send } = active(t);
+        send('input_audio_buffer.speech_started', { item_id: 'item_a', audio_start_ms: 100 });
+        send(DELTA, { item_id: 'item_a', delta: 'first turn' });
+        send('input_audio_buffer.speech_stopped', { item_id: 'item_a', audio_end_ms: 900 });
+        send('input_audio_buffer.speech_started', { item_id: 'item_b', audio_start_ms: 1500 });
+        send(DELTA, { item_id: 'item_b', delta: 'second' });
+        send(COMPLETED, { item_id: 'item_a', transcript: 'first turn corrected' });
+        assert.deepEqual(rows.map(row => [row.itemId, row.text, row.isFinal ?? null, row.started ?? false]), [
+            ['item_a', '', null, true],
+            ['item_a', 'first turn', false, false],
+            ['item_b', '', null, true],
+            ['item_b', 'second', false, false],
+            ['item_a', 'first turn corrected', true, false],
+        ], 'VAD speech_stopped does not fabricate a final');
+        assert.deepEqual(rows[4].media, { basis: 'openai-input-audio-buffer', startMs: 100, endMs: 900 });
+        assert.deepEqual(rows[3].media, { basis: 'openai-input-audio-buffer', startMs: 1500 });
+        assert.ok(rows.every(row => row.identityReliable === true));
+        assert.notEqual(rows[0].segmentId, rows[2].segmentId);
+    });
+
+    test('new IDs without a start, out-of-order completions, same-item corrections and equal texts keep separate identities', t => {
+        const { rows, send } = active(t);
+        send('input_audio_buffer.speech_started', { item_id: 'a' });
+        send(DELTA, { item_id: 'b', delta: 'no start event' });
+        send(COMPLETED, { item_id: 'b', transcript: 'yes' });
+        send(COMPLETED, { item_id: 'a', transcript: 'yes' });
+        send(COMPLETED, { item_id: 'a', transcript: 'yes indeed' });
+        const finals = rows.filter(row => row.isFinal);
+        assert.deepEqual(finals.map(row => [row.itemId, row.text]), [['b', 'yes'], ['a', 'yes'], ['a', 'yes indeed']],
+            'identical text in two items is not deduplicated; a correction replaces rather than appends');
+        assert.notEqual(rows.find(row => row.itemId === 'b').segmentId, rows.find(row => row.itemId === 'a').segmentId);
+        // Unkeyed speech after a keyed turn starts its own legacy turn, marked unreliable.
+        send(DELTA, { delta: 'legacy words' });
+        assert.equal(rows.at(-1).itemId, undefined);
+        assert.equal(rows.at(-1).identityReliable, false);
+        assert.ok(!rows.filter(row => row.itemId === 'a').some(row => /legacy/.test(row.text)));
+    });
+
+    test('a reconnect starts a new epoch; an open keyed turn is not fabricated final and its ID cannot collide', t => {
+        // Stub socket: the reconnect below must not reach a real endpoint.
+        class Socket extends EventEmitter {
+            static OPEN = 1;
+            readyState = 1;
+            send() {}
+            close() { this.readyState = 3; }
+        }
+        const exports = {};
+        const require = createRequire(compiledPath);
+        new Function('require', 'exports', ts.transpileModule(source, { compilerOptions: {
+            module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true,
+        } }).outputText)(id => id === 'ws' ? Socket : require(id), exports);
+        const stt = new exports.OpenAIStreamingSTT('synthetic-key');
+        t.after(() => stt.stop(false));
+        stt.isActive = true;
+        stt.mode = 'ws';
+        const rows = [];
+        stt.on('transcript', row => rows.push(row));
+        stt._handleWsMessage({ type: 'input_audio_buffer.speech_started', item_id: 'same' });
+        stt._handleWsMessage({ type: DELTA, item_id: 'same', delta: 'before reconnect' });
+        const epoch = rows[0].epoch;
+        stt.shouldReconnect = true;
+        stt._connectWs();
+        assert.equal(rows.some(row => row.isFinal), false, 'socket replacement is not ASR completion');
+        stt._handleWsMessage({ type: 'input_audio_buffer.speech_started', item_id: 'same' });
+        assert.notEqual(rows.at(-1).epoch, epoch);
+        assert.notEqual(rows.at(-1).segmentId, rows[0].segmentId);
+    });
+});

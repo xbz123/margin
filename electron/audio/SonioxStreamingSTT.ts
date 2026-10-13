@@ -20,6 +20,7 @@ import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 import { streamingStttWsOptions } from './dnsHelpers';
+import type { SttSeal } from './MeetingSttSession';
 
 const SONIOX_WEBSOCKET_URL = 'wss://stt-rt.soniox.com/transcribe-websocket';
 const RECONNECT_BASE_DELAY_MS = 1000;
@@ -55,6 +56,17 @@ export class SonioxStreamingSTT extends EventEmitter {
 
     private buffer: Buffer[] = [];
     private isConnecting = false;
+
+    // One utterance per connection epoch runs until <end> or <fin>; its final tokens accumulate
+    // so a new utterance never merges into an old one.
+    private epoch = 0;
+    private utterance = 0;
+    // Any token (final or not) belongs to the open utterance, so its ID is never reused after a marker.
+    private heard = false;
+    private finalText = '';
+    private media: { startMs?: number; endMs?: number } = {};
+    // finalize requests in send order; each <fin> answers the oldest one on the same connection.
+    private fins: Array<{ settle?: (outcome: 'complete' | 'unknown') => void }> = [];
 
     constructor(apiKey: string) {
         super();
@@ -164,6 +176,7 @@ export class SonioxStreamingSTT extends EventEmitter {
         this.isActive = false;
         this.shouldReconnect = false;
         this.clearTimers();
+        this.endEpoch();
 
         if (this.ws) {
             try {
@@ -206,16 +219,56 @@ export class SonioxStreamingSTT extends EventEmitter {
     }
 
     public finalize(): void {
-        if (!this.isActive || !this.ws || !this.configSent) return;
+        if (!this.isActive || !this.ws || !this.configSent || this.fins.length >= 8) return;
 
         if (this.ws.readyState === WebSocket.OPEN) {
             try {
                 this.ws.send(JSON.stringify({ type: 'finalize' }));
+                this.fins.push({});
                 console.log('[SonioxStreaming] Sent manual finalize message');
             } catch (err) {
                 console.error('[SonioxStreaming] Failed to send finalize:', err);
             }
         }
+    }
+
+    /**
+     * Non-terminating flush for a manual action: finalize covers the audio sent before it and the
+     * connection continues. The receipt covers earlier audio, but cannot attribute arbitrary
+     * result text to the click; the session accepts only already known utterance identities.
+     */
+    public seal(_cutoffAt: number): SttSeal | undefined {
+        if (!this.isActive || !this.ws || !this.configSent || this.ws.readyState !== WebSocket.OPEN || this.buffer.length || this.fins.length) return undefined;
+        let settle!: (outcome: 'complete' | 'unknown') => void;
+        const done = new Promise<'complete' | 'unknown'>(resolve => { settle = resolve; });
+        try {
+            this.ws.send(JSON.stringify({ type: 'finalize' }));
+        } catch {
+            return undefined;
+        }
+        this.fins.push({ settle });
+        return { scopes: [], pending: true, done };
+    }
+
+    private emitUtterance(text: string, isFinal: boolean): void {
+        this.emit('transcript', {
+            text, isFinal, confidence: 1.0, segmentId: `u${this.utterance}`, epoch: String(this.epoch),
+            media: { basis: 'soniox-stream-audio', ...this.media },
+        });
+    }
+
+    private closeUtterance(): void {
+        if (this.finalText) this.emitUtterance(this.finalText, true);
+        if (this.heard) this.utterance++;
+        this.heard = false;
+        this.finalText = '';
+        this.media = {};
+    }
+
+    // A connection ends its utterance and its pending finalize requests, which stay unproven.
+    private endEpoch(): void {
+        this.closeUtterance();
+        for (const fin of this.fins.splice(0)) fin.settle?.('unknown');
     }
 
     // =========================================================================
@@ -229,12 +282,17 @@ export class SonioxStreamingSTT extends EventEmitter {
         console.log(`[SonioxStreaming] Connecting (rate=${this.sampleRate}, ch=${this.numChannels})...`);
 
         this.configSent = false;
+        this.endEpoch();
+        const epoch = ++this.epoch;
+        this.utterance = 0;
         // streamingStttWsOptions: forces IPv4-only DNS lookup (sidesteps Node's
         // macOS dual-stack ENOTFOUND on IPv4-only CNAME chains) and caps the
         // TLS+upgrade handshake at 15s. See dnsHelpers.ts.
-        this.ws = new WebSocket(SONIOX_WEBSOCKET_URL, streamingStttWsOptions() as any);
+        const socket = new WebSocket(SONIOX_WEBSOCKET_URL, streamingStttWsOptions() as any);
+        this.ws = socket;
 
         this.ws.on('open', () => {
+            if (this.ws !== socket || this.epoch !== epoch) return;
             // Guard: stop() may have been called while the WS handshake was in flight.
             // shouldReconnect is set to false by stop() before ws is nulled, so it's a
             // reliable signal that we should abort here without crashing.
@@ -288,6 +346,7 @@ export class SonioxStreamingSTT extends EventEmitter {
         });
 
         this.ws.on('message', (data: WebSocket.Data) => {
+            if (this.ws !== socket || this.epoch !== epoch) return;
             try {
                 const msg = JSON.parse(data.toString());
 
@@ -300,52 +359,39 @@ export class SonioxStreamingSTT extends EventEmitter {
 
                 // Parse tokens from response
                 const tokens = msg.tokens;
-                if (!tokens || !Array.isArray(tokens) || tokens.length === 0) return;
-
-                let currentFinalText = '';
                 let nonFinalText = '';
+                let changed = false;
 
-                for (const token of tokens) {
+                for (const token of Array.isArray(tokens) ? tokens : []) {
                     if (!token.text) continue;
 
-                    if (token.text === '<fin>') {
-                        console.log('[SonioxStreaming] Received <fin> manual finalization marker');
+                    if (token.text === '<fin>' || token.text === '<end>') {
+                        // Both markers end the utterance; <fin> also answers the oldest finalize.
+                        this.closeUtterance();
+                        nonFinalText = '';
+                        changed = false;
+                        if (token.text === '<fin>') this.fins.shift()?.settle?.('complete');
                         continue;
                     }
 
-                    if (token.text === '<end>') {
-                        console.log('[SonioxStreaming] Received <end> endpoint detection marker');
-                        continue;
-                    }
-
+                    this.heard = true;
+                    if (Number.isFinite(token.start_ms)) this.media.startMs ??= token.start_ms;
+                    if (Number.isFinite(token.end_ms)) this.media.endMs = token.end_ms;
                     if (token.is_final) {
-                        currentFinalText += token.text;
+                        this.finalText += token.text;
+                        changed = true;
                     } else {
                         nonFinalText += token.text;
                     }
                 }
 
-                // 1. Emit final tokens immediately
-                if (currentFinalText) {
-                    this.emit('transcript', {
-                        text: currentFinalText,
-                        isFinal: true,
-                        confidence: 1.0,
-                    });
-                }
-
-                // 2. Emit non-final tokens as interim (live preview)
-                if (nonFinalText) {
-                    this.emit('transcript', {
-                        text: nonFinalText,
-                        isFinal: false,
-                        confidence: 1.0,
-                    });
-                }
+                // The open utterance as heard so far (live preview); its final arrives with its marker.
+                if (changed || nonFinalText) this.emitUtterance(this.finalText + nonFinalText, false);
 
                 // Session finished
                 if (msg.finished) {
                     console.log('[SonioxStreaming] Session finished');
+                    this.endEpoch();
                     // We don't stop entirely, just clear WS so it can lazily reconnect on next audio
                     if (this.ws) {
                         this.ws.close();
@@ -359,11 +405,14 @@ export class SonioxStreamingSTT extends EventEmitter {
         });
 
         this.ws.on('error', (err: Error) => {
+            if (this.ws !== socket || this.epoch !== epoch) return;
             console.error('[SonioxStreaming] WebSocket error:', err.message);
             this.emit('error', err);
         });
 
         this.ws.on('close', (code: number, reason: Buffer) => {
+            if (this.ws !== socket || this.epoch !== epoch) return;
+            if (this.ws === socket) this.endEpoch();
             // Null out the ws reference immediately to prevent stale reuse
             this.ws = null;
             this.isConnecting = false;

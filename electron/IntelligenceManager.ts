@@ -9,7 +9,8 @@
 
 import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
-import { SessionTracker } from './SessionTracker';
+import { SessionTracker, type ConversationBase, type TranscriptView } from './SessionTracker';
+import type { FrozenSpeech } from './audio/MeetingSttSession';
 import { IntelligenceEngine } from './IntelligenceEngine';
 import { MeetingPersistence } from './MeetingPersistence';
 import { ScreenContext } from './services/screen/ScreenContextService';
@@ -143,32 +144,32 @@ export class IntelligenceManager extends EventEmitter {
         return this.engine.runAssistMode();
     }
 
-    async runWhatShouldISay(question?: string, confidence?: number, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<void>; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext }): Promise<string | null> {
+    async runWhatShouldISay(question?: string, confidence?: number, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<TranscriptView | void>; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext }): Promise<string | null> {
         return this.engine.runWhatShouldISay(question, confidence, imagePaths, options);
     }
 
-    async runFollowUp(intent: string, userRequest?: string): Promise<string | null> {
-        return this.engine.runFollowUp(intent, userRequest);
+    async runFollowUp(intent: string, userRequest?: string, view?: TranscriptView): Promise<string | null> {
+        return this.engine.runFollowUp(intent, userRequest, view);
     }
 
-    async runRecap(): Promise<string | null> {
-        return this.engine.runRecap();
+    async runRecap(view?: TranscriptView): Promise<string | null> {
+        return this.engine.runRecap(view);
     }
 
-    async runClarify(): Promise<string | null> {
-        return this.engine.runClarify();
+    async runClarify(view?: TranscriptView): Promise<string | null> {
+        return this.engine.runClarify(view);
     }
 
-    async runFollowUpQuestions(): Promise<string | null> {
-        return this.engine.runFollowUpQuestions();
+    async runFollowUpQuestions(view?: TranscriptView): Promise<string | null> {
+        return this.engine.runFollowUpQuestions(view);
     }
 
     async runManualAnswer(question: string): Promise<string | null> {
         return this.engine.runManualAnswer(question);
     }
 
-    async runCodeHint(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
-        return this.engine.runCodeHint(imagePaths, problemStatement);
+    async runCodeHint(imagePaths?: string[], problemStatement?: string, view?: TranscriptView): Promise<string | null> {
+        return this.engine.runCodeHint(imagePaths, problemStatement, view);
     }
 
     setCodingQuestion(question: string, source: 'screenshot' | 'transcript'): void {
@@ -179,12 +180,22 @@ export class IntelligenceManager extends EventEmitter {
         return this.session.getDetectedCodingQuestion();
     }
 
+    /** State an action reads, copied when it begins. */
+    captureBase(cutoffAt: number): ConversationBase {
+        return this.session.captureBase(cutoffAt);
+    }
+
+    /** The transcript an action reads: its base copy plus its frozen speech. */
+    frozenView(frozen: FrozenSpeech, base?: ConversationBase, exclude?: ReadonlySet<string>, includeHistory?: boolean): TranscriptView {
+        return this.session.frozenView(frozen, base, exclude, includeHistory);
+    }
+
     clearCodingQuestion(): void {
         this.session.clearCodingQuestion();
     }
 
-    async runBrainstorm(imagePaths?: string[], problemStatement?: string): Promise<string | null> {
-        return this.engine.runBrainstorm(imagePaths, problemStatement);
+    async runBrainstorm(imagePaths?: string[], problemStatement?: string, view?: TranscriptView): Promise<string | null> {
+        return this.engine.runBrainstorm(imagePaths, problemStatement, view);
     }
 
     // ============================================

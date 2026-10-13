@@ -32,14 +32,14 @@ function handler(name, bindings) {
   return vm.runInNewContext(code, bindings);
 }
 
-test('AG42 recording sends retained speech on finalize rejection and drops a cancelled wait', async () => {
-  for (const [cancel, attachedContext] of [[false, []], [true, []], [false, [{ path: '/synthetic/screen.png', preview: '' }]]]) {
+test('S42-03 Stop sends the question main froze, never renderer speech, and a failed or cancelled freeze sends nothing', async () => {
+  for (const [outcome, attachedContext] of [['ok', []], ['cancel', []], ['fail', []], ['ok', [{ path: '/synthetic/screen.png', preview: '' }]]]) {
     const sent = [], warnings = [], messages = [];
     const ref = current => ({ current });
-    const epoch = ref(0);
+    const epoch = ref(0), voiceInputRef = ref('Renderer speech'), manualTranscriptRef = ref('tail');
     const bindings = {
       isManualRecording: true, tryBeginOverlayAction: () => true, generationEpochRef: epoch,
-      isRecordingRef: ref(true), voiceInputRef: ref('Retained speech'), manualTranscriptRef: ref('tail'),
+      isRecordingRef: ref(true), voiceInputRef, manualTranscriptRef,
       attachedContext, submittedChatRef: ref(), messagesEndRef: ref(), ...guidance,
       streamingMsgIdRef: ref(), streamingIntentRef: ref(), streamingTextRef: ref(''),
       streamingNodeRef: ref(null), streamingRafRef: ref(null), requestStartTimeRef: ref(null),
@@ -48,29 +48,48 @@ test('AG42 recording sends retained speech on finalize rejection and drops a can
       genMessageId: () => String(messages.length), setTimeout() {}, pinAnswerPanel() {}, endOverlayAction() {},
       console: { warn: (...args) => warnings.push(args) },
       window: { electronAPI: {
-        finalizeMicSTT: async () => { if (cancel) epoch.current++; throw Error('PRIVATE_STT_ERROR'); },
+        finishDictation: async () => {
+          // Speech arriving while main freezes must not reach the question.
+          voiceInputRef.current = 'LATE RENDERER SPEECH';
+          if (outcome === 'cancel') epoch.current++;
+          if (outcome === 'fail') throw Error('PRIVATE_STT_ERROR');
+          return { speechActionId: 'action-1', question: 'Main frozen question' };
+        },
         streamGeminiChat: async (...args) => sent.push(args),
       } },
     };
     await handler('handleAnswerNow', bindings)();
-    assert.equal(sent.length, cancel ? 0 : 1);
-    if (!cancel) {
-      assert.equal(sent[0][0], 'Retained speech tail');
+    assert.equal(voiceInputRef.current, 'LATE RENDERER SPEECH', 'the handler does not touch renderer speech after the await');
+    assert.equal(sent.length, outcome === 'ok' ? 1 : 0);
+    if (outcome === 'ok') {
+      assert.equal(sent[0][0], 'Main frozen question');
       // S42-02: the spoken entry sends its own instructions with an explicitly empty system prompt.
       const [, images, prompt, options] = sent[0];
       assert.equal(images?.length ?? 0, attachedContext.length);
-      assert.deepEqual(Object.keys(options), ['skipSystemPrompt']);
+      assert.deepEqual(Object.keys(options), ['skipSystemPrompt', 'speechActionId']);
       assert.equal(options.skipSystemPrompt, true);
+      assert.equal(options.speechActionId, 'action-1');
       assert.match(prompt, /open with one or two sentences the user can say aloud right away, then expand/);
       assert.equal(prompt.split('one to three candidates').length - 1, 1);
       assert.match(prompt, /Unless the user explicitly asks for a clarifying question, do not stop to ask/);
       assert.match(prompt, /Never invent personal experience, employers, projects, dates, team sizes or metrics/);
       assert.match(prompt, /Do not describe screenshot or image content that cannot be read/);
       assert.doesNotMatch(prompt, /2-4 sentences ideal|Be concise\.$/m);
+      assert.doesNotMatch(JSON.stringify(sent), /Renderer speech|LATE RENDERER/);
     }
+    if (outcome === 'fail') assert.match(messages.at(-1).text, /Speech could not be collected/);
     assert.doesNotMatch(JSON.stringify({ sent, warnings, messages }), /PRIVATE_STT_ERROR/);
-    assert.equal(warnings.length, 1);
   }
+});
+
+test('S42-03 Answer only starts dictation and never sends', async () => {
+  const calls = [], ref = current => ({ current });
+  await handler('handleAnswerNow', {
+    isManualRecording: false, isRecordingRef: ref(false), voiceInputRef: ref('old'),
+    setVoiceInput() {}, setManualTranscript() {}, setIsManualRecording() {},
+    window: { electronAPI: { beginDictation: async () => { calls.push('begin'); }, streamGeminiChat: async () => calls.push('send') } },
+  })();
+  assert.deepEqual(calls, ['begin']);
 });
 
 test('AG42 real answer row and feedback callback use shared translations and show one scope error', async () => {

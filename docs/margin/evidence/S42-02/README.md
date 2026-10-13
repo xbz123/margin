@@ -28,5 +28,10 @@ Generated logs normalize machine-specific repository/account/temp/Node paths.
 Not verified: real model answer quality, hallucination rate or latency. Mock requests
 prove rule assembly and preserved security/data-scope handling, not model compliance.
 Stop still uses its old timing path; the shared lifecycle and interview budget are
-owned by S42-03/04, not silently changed in this prompt ticket. Public CI is pending
-dispatch on this ticket's commit.
+owned by S42-03/04, not silently changed in this prompt ticket.
+
+Commit `e7d9aaa9bcfe095cb74cbae06c33f514252f9998` was pushed to both repositories.
+Public CI [38338980915](https://github.com/xbz123/margin/actions/runs/38338980915)
+completed successfully on that exact commit, with the full gate run, S42 required
+checks and release identity check passing. Packaging remained disabled; this is
+not a release or product sign-off. The API receipt is `ci-result.json`.

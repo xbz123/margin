@@ -19,6 +19,8 @@ import FormData from 'form-data';
 import { RECOGNITION_LANGUAGES } from '../config/languages';
 import { streamingStttWsOptions } from './dnsHelpers';
 import { OpenAITranscriptTurnCoalescer } from './openaiTranscriptTurnCoalescer';
+import type { SttSeal } from './MeetingSttSession';
+import { RestBatches, type RestBatch } from './restBatches';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -36,6 +38,9 @@ function deriveRestEndpoint(baseUrl: string): string {
 /** WebSocket model priority order */
 const WS_MODELS = ['gpt-4o-transcribe', 'gpt-4o-mini-transcribe'] as const;
 type WsModel = typeof WS_MODELS[number];
+// One server VAD turn; media offsets are relative to the connection's input audio buffer.
+type SpeechTurn = { id: string; epoch: string; itemId?: string; coalescer: OpenAITranscriptTurnCoalescer; closed: boolean;
+    media: { basis: string; startMs?: number; endMs?: number } };
 
 /** Max consecutive WebSocket failures before advancing to next model / REST */
 const MAX_WS_FAILURES_PER_MODEL = 3;
@@ -111,6 +116,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
     // Used to avoid losing speech at the start of a WS session or during fallback
     private ringBuffer: Buffer[] = [];
     private ringBufferBytes = 0;
+    private ringIngress = new WeakMap<Buffer, number>();
+    private restEpoch = 0;
     private ringEvictedThisSession = false;
     private ringEvictedBytes = 0;
 
@@ -125,18 +132,25 @@ export class OpenAIStreamingSTT extends EventEmitter {
     private restSafetyTimer: NodeJS.Timeout | null = null;
     private restIsUploading        = false;
     private restFlushPending       = false;
+    private readonly restBatches   = new RestBatches('openai-rest');
 
     // Custom OpenAI-compatible endpoint (e.g. self-hosted Speaches). When set, the
     // WebSocket Realtime path is skipped — third-party servers don't implement it.
     private restEndpoint: string = REST_ENDPOINT;
     private isCustomEndpoint = false;
 
-    // Coalesce word-level GA completed events into one final turn per utterance.
-    private turnCoalescer = new OpenAITranscriptTurnCoalescer();
+    // Coalesce word-level GA completed events into one final turn per utterance. Each server VAD
+    // turn has its own coalescer; item_id routes late deltas and completions back to their turn,
+    // because completions are not guaranteed to arrive in order.
+    private turn: SpeechTurn | null = null;
+    private readonly itemTurns = new Map<string, SpeechTurn>();
+    private turnSeq = 0;
+    private wsEpoch = 0;
 
     // Suppress duplicate final emits (finalize flush + speech_stopped, etc.).
     private lastFinalEmitText = '';
     private lastFinalEmitAt = 0;
+    private lastFinalEmitId = '';
     private static readonly FINAL_DEDUPE_MS = 2500;
 
     // ─── Constructor ──────────────────────────────────────────────────────────
@@ -202,6 +216,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
 
     public start(): void {
         if (this.isActive) return;
+        this.restEpoch++;
         console.log('[OpenAIStreaming] Starting...');
         this.isActive       = true;
         this.shouldReconnect = true;
@@ -216,7 +231,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // after restart isn't surprise-deferred by an orphaned axios promise.
         this.restIsUploading  = false;
         this.restFlushPending = false;
-        this.turnCoalescer.reset();
+        this.turn = null;
+        this.itemTurns.clear();
 
         // Custom endpoints (e.g. Speaches) don't implement OpenAI's Realtime WebSocket
         // protocol. Go straight to REST mode for them.
@@ -276,6 +292,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
 
         this.restChunks     = [];
         this.restTotalBytes = 0;
+        this.restBatches.clear();
         // Reset REST flush state too — without this, a `restFlushPending=true`
         // left over from an in-flight upload at stop time would cause the
         // finally re-entry in _restFlushAndUpload() to schedule another
@@ -294,7 +311,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
     }
 
     public write(chunk: Buffer): void {
-        if (!this.isActive) return;
+        if (!this.isActive || !chunk.length) return;
 
         if (this.mode === 'ws') {
             // Always push to ring-buffer while not yet connected (pre-buffer)
@@ -309,7 +326,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
             this._sendWsAudioChunk(chunk);
         } else {
             // REST mode — accumulate for batch upload
-            this.restChunks.push(chunk);
+            try { this.restChunks.push(this.restBatches.capture(chunk)); }
+            catch (error) { this.emit('error', error); return; }
             this.restTotalBytes += chunk.length;
         }
     }
@@ -326,6 +344,20 @@ export class OpenAIStreamingSTT extends EventEmitter {
             this._restFlushAndUpload();
         }
         // WebSocket path: server VAD handles this; nothing to do.
+    }
+
+    /**
+     * REST mode seals audio received so far into its own upload batch. The WS path has no
+     * scoped flush (server VAD commits cannot be tied to a cut), so it stays unknown.
+     */
+    public seal(cutoffAt: number): SttSeal | undefined {
+        if (!this.isActive || this.mode !== 'rest') return undefined;
+        let seal: SttSeal;
+        try { seal = this.restBatches.seal(this.restChunks, cutoffAt); }
+        catch (error) { this.emit('error', error); throw error; }
+        this.restTotalBytes = this.restChunks.reduce((bytes, chunk) => bytes + chunk.length, 0);
+        void this._restFlushAndUpload();
+        return seal;
     }
 
     public finalize(): void {
@@ -375,6 +407,11 @@ export class OpenAIStreamingSTT extends EventEmitter {
         if (this.isConnecting || !this.shouldReconnect) return;
         this.isConnecting  = true;
         this.isSessionReady = false;
+        // Item IDs and audio offsets belong to one connection.
+        this._flushTurnCoalescer();
+        this.itemTurns.clear();
+        this.turn = null;
+        this.wsEpoch++;
 
         // Defensive: ensure no stale timers from a previous connect attempt
         // remain armed against the next socket. _closeWs() should have cleared
@@ -562,17 +599,25 @@ export class OpenAIStreamingSTT extends EventEmitter {
                 break;
 
             case 'conversation.item.input_audio_transcription.delta': {
-                const partial = this.turnCoalescer.onDelta(msg.delta ?? '');
-                if (partial) {
-                    this._emitTranscript(partial, false);
+                const turn = this._turnFor(msg.item_id);
+                const partial = turn.coalescer.onDelta(msg.delta ?? '');
+                if (partial && !turn.closed) {
+                    this._emitTranscript(partial, false, turn);
                 }
                 break;
             }
 
             case 'conversation.item.input_audio_transcription.completed': {
-                const preview = this.turnCoalescer.onCompleted(msg.transcript ?? '');
+                const turn = this._turnFor(msg.item_id);
+                if (turn.itemId) {
+                    turn.closed = true;
+                    this._emitTranscript(typeof msg.transcript === 'string' ? msg.transcript : '', true, turn);
+                    break;
+                }
+                const preview = turn.coalescer.onCompleted(msg.transcript ?? '');
                 if (preview) {
-                    this._emitTranscript(preview, false);
+                    // A completion after its turn ended revises that turn's final.
+                    this._emitTranscript(preview, turn.closed, turn);
                 }
                 break;
             }
@@ -620,19 +665,18 @@ export class OpenAIStreamingSTT extends EventEmitter {
             // VAD events emitted by the server (informational — we don't need to act on them)
             case 'input_audio_buffer.speech_started': {
                 console.log('[OpenAIStreaming] Server VAD: speech started');
-                const orphan = this.turnCoalescer.onSpeechStarted();
-                if (orphan) {
-                    this._emitTranscript(orphan, true);
-                }
+                if (this.turn) this._closeTurn(this.turn);
+                const turn = typeof msg.item_id === 'string' && msg.item_id ? this._turnFor(msg.item_id) : this._newTurn();
+                this.turn = turn;
+                if (Number.isFinite(msg.audio_start_ms)) turn.media.startMs = msg.audio_start_ms;
+                this.emit('transcript', { text: '', started: true, ...this._identity(turn) });
                 break;
             }
             case 'input_audio_buffer.speech_stopped': {
                 console.log('[OpenAIStreaming] Server VAD: speech stopped');
-                const finalText = this.turnCoalescer.onSpeechStopped();
-                if (finalText) {
-                    console.log(`[OpenAIStreaming] Final transcript received`, { length: finalText.length });
-                    this._emitTranscript(finalText, true);
-                }
+                const turn = msg.item_id ? this._turnFor(msg.item_id) : this.turn;
+                if (turn && Number.isFinite(msg.audio_end_ms)) turn.media.endMs = msg.audio_end_ms;
+                if (turn) this._closeTurn(turn);
                 break;
             }
             case 'input_audio_buffer.committed':
@@ -658,33 +702,70 @@ export class OpenAIStreamingSTT extends EventEmitter {
         }
     }
 
-    private _emitTranscript(text: string, isFinal: boolean): void {
+    private _emitTranscript(text: string, isFinal: boolean, turn?: SpeechTurn): void {
         const trimmed = text.trim();
         if (!trimmed) return;
         if (isFinal) {
             const now = Date.now();
+            const identity = turn ? turn.epoch + ':' + turn.id : '';
             if (
                 trimmed === this.lastFinalEmitText &&
+                identity === this.lastFinalEmitId &&
                 now - this.lastFinalEmitAt < OpenAIStreamingSTT.FINAL_DEDUPE_MS
             ) {
                 return;
             }
             this.lastFinalEmitText = trimmed;
             this.lastFinalEmitAt = now;
+            this.lastFinalEmitId = identity;
         }
         this.emit('transcript', {
             text:       trimmed,
             isFinal,
             confidence: 1.0,
+            ...(turn ? this._identity(turn) : {}),
         });
     }
 
-    private _flushTurnCoalescer(): void {
-        const finalText = this.turnCoalescer.flush();
+    // Keyed turns carry the provider's item_id outward; legacy unkeyed turns are marked unreliable.
+    private _identity(turn: SpeechTurn) {
+        return { ...(turn.itemId ? { itemId: turn.itemId } : {}), segmentId: turn.id, epoch: turn.epoch,
+            identityReliable: !!turn.itemId, media: { ...turn.media } };
+    }
+
+    private _newTurn(itemId?: string, current = true): SpeechTurn {
+        const turn: SpeechTurn = { id: `t${++this.turnSeq}`, epoch: String(this.wsEpoch), itemId, coalescer: new OpenAITranscriptTurnCoalescer(),
+            closed: false, media: { basis: 'openai-input-audio-buffer' } };
+        if (current) this.turn = turn;
+        if (itemId) this._rememberItem(itemId, turn);
+        return turn;
+    }
+
+    private _turnFor(itemId?: string): SpeechTurn {
+        const known = typeof itemId === 'string' ? this.itemTurns.get(itemId) : undefined;
+        if (known) return known;
+        if (typeof itemId === 'string' && itemId) return this._newTurn(itemId, false);
+        return this.turn && !this.turn.closed && !this.turn.itemId ? this.turn : this._newTurn();
+    }
+
+    private _rememberItem(itemId: string, turn: SpeechTurn): void {
+        this.itemTurns.set(itemId, turn);
+        if (this.itemTurns.size > 64) this.itemTurns.delete(this.itemTurns.keys().next().value!);
+    }
+
+    private _closeTurn(turn: SpeechTurn): void {
+        // A VAD stop or socket close does not make an identified item's ASR result final.
+        if (turn.closed || turn.itemId) return;
+        turn.closed = true;
+        const finalText = turn.coalescer.getPartialText();
         if (finalText) {
-            console.log(`[OpenAIStreaming] Flushed coalesced transcript`, { length: finalText.length });
-            this._emitTranscript(finalText, true);
+            console.log(`[OpenAIStreaming] Final transcript received`, { length: finalText.length });
+            this._emitTranscript(finalText, true, turn);
         }
+    }
+
+    private _flushTurnCoalescer(): void {
+        if (this.turn) this._closeTurn(this.turn);
     }
 
     private _sendWsAudioChunk(pcmChunk: Buffer): void {
@@ -851,7 +932,9 @@ export class OpenAIStreamingSTT extends EventEmitter {
     // ─── Ring Buffer (pre-buffer during connecting / transitions) ────────────
 
     private _ringBufferPush(chunk: Buffer): void {
-        this.ringBuffer.push(chunk);
+        const owned = Buffer.from(chunk);
+        this.ringIngress.set(owned, Date.now());
+        this.ringBuffer.push(owned);
         this.ringBufferBytes += chunk.length;
 
         // Evict oldest chunks when over limit
@@ -911,7 +994,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
             const chunks = this.ringBuffer.splice(0);
             this.ringBufferBytes = 0;
             for (const chunk of chunks) {
-                this.restChunks.push(chunk);
+                try { this.restChunks.push(this.restBatches.capture(chunk, this.ringIngress.get(chunk) ?? NaN)); }
+                catch (error) { this.emit('error', error); continue; }
                 this.restTotalBytes += chunk.length;
             }
         }
@@ -945,7 +1029,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // it on the OpenAI provider too.
         if (!this.isActive) return;
 
-        if (this.restChunks.length === 0 || this.restTotalBytes < REST_MIN_UPLOAD_BYTES) return;
+        if (!this.restBatches.waiting && (this.restChunks.length === 0 || this.restTotalBytes < REST_MIN_UPLOAD_BYTES)) return;
         if (this.restIsUploading) {
             this.restFlushPending = true;
             return;
@@ -954,16 +1038,28 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // Reset safety-net timer to prevent double-flush
         this._startRestTimer();
 
-        const chunks = this.restChunks.splice(0);
-        this.restTotalBytes = 0;
+        // Sealed batches go first; a too-short one is not empty, so it stays unknown and waits.
+        let batch: RestBatch | undefined = this.restBatches.next();
+        if (batch && batch.bytes < REST_MIN_UPLOAD_BYTES) {
+            this.restChunks = [...batch.chunks, ...this.restChunks];
+            this.restTotalBytes += batch.bytes;
+            this.restBatches.finish(batch, 'unknown', false);
+            return this._restFlushAndUpload();
+        }
+        if (!batch) {
+            batch = this.restBatches.create(this.restChunks.splice(0), this.restTotalBytes);
+            this.restTotalBytes = 0;
+        }
 
-        const rawPcm = Buffer.concat(chunks);
+        const rawPcm = Buffer.concat(batch.chunks);
 
         // Skip silent buffers
         if (this._isSilent(rawPcm)) {
             if (Math.random() < 0.1) {
                 console.log(`[OpenAIStreaming][REST] Skipping silent buffer (${rawPcm.length} bytes)`);
             }
+            this.restBatches.finish(batch, 'no-pending');
+            if (this.restBatches.waiting) return this._restFlushAndUpload();
             return;
         }
 
@@ -971,23 +1067,33 @@ export class OpenAIStreamingSTT extends EventEmitter {
         const pcm16k = this._resamplePcm16(rawPcm, REST_SAMPLE_RATE);
         const wavBuffer = this._addWavHeader(pcm16k, REST_SAMPLE_RATE);
         this.restIsUploading = true;
+        const epoch = this.restEpoch;
+        this.restBatches.start(batch);
+        let outcome: 'complete' | 'failed' = 'complete';
 
         try {
             const transcript = await this._restUpload(wavBuffer);
+            if (!this.isActive || this.restEpoch !== epoch) return;
             if (transcript && transcript.trim().length > 0) {
                 console.log(`[OpenAIStreaming][REST] Transcript received`, { length: transcript.trim().length });
                 this.emit('transcript', {
                     text:       transcript.trim(),
                     isFinal:    true,
                     confidence: 1.0,
+                    segmentId:  batch.scope,
+                    scope:      batch.scope,
                 });
             }
         } catch (err) {
+            outcome = 'failed';
+            if (!this.isActive || this.restEpoch !== epoch) return;
             console.error('[OpenAIStreaming][REST] Upload error:', err);
             this.emit('error', err instanceof Error ? err : new Error(String(err)));
         } finally {
+            if (!this.isActive || this.restEpoch !== epoch) { this.restBatches.finish(batch, 'unknown'); return; }
             this.restIsUploading = false;
-            if (this.restFlushPending) {
+            this.restBatches.finish(batch, outcome);
+            if (this.restFlushPending || this.restBatches.waiting) {
                 this.restFlushPending = false;
                 this._restFlushAndUpload();
             }

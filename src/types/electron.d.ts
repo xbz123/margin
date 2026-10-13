@@ -177,6 +177,8 @@ export interface ElectronAPI {
   generateFollowUpQuestions: () => Promise<{ questions: string | null }>
   generateRecap: () => Promise<{ summary: string | null }>
   submitManualQuestion: (question: string) => Promise<{ answer: string | null; question: string }>
+  beginDictation: () => Promise<void>
+  finishDictation: () => Promise<{ speechActionId: string; question: string }>
   getIntelligenceContext: () => Promise<{ context: string; lastAssistantMessage: string | null; activeMode: string }>
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>
 
@@ -189,7 +191,6 @@ export interface ElectronAPI {
   // Meeting Lifecycle
   startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string }>
   endMeeting: () => Promise<{ success: boolean; error?: string }>
-  finalizeMicSTT: () => Promise<void>
   getRecentMeetings: () => Promise<Array<{ id: string; title: string; date: string; duration: string; summary: string }>>
   getMeetingDetails: (id: string) => Promise<any>
   updateMeetingTitle: (id: string, title: string) => Promise<boolean>
@@ -220,7 +221,7 @@ export interface ElectronAPI {
   onSessionReset: (callback: () => void) => () => void;
 
   // Streaming listeners
-  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written' }) => Promise<void>
+  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string }) => Promise<void>
   onGeminiStreamToken: (callback: (token: string) => void, owner?: string) => () => void
   onGeminiStreamDone: (callback: (metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void
   onGeminiStreamError: (callback: (error: string, metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void;

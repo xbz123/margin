@@ -1,6 +1,6 @@
 # Margin AGPL 重建：实验、验收与 Ticket 计划
 
-**当前执行点（2026-10-13，S43）**：S42-05（a5b7c75a）和 S42-01（a790e320）已通过本地与公开 CI；S42-02 回答规则本地验收完成，待本票公开 CI。S42-03 正在只读核对共享接口和两段时序，D8=A、D9 已定，不重开产品选择。后续继续其他就绪票；Claude Opus 5.5 medium / auto 执行，额度耗尽才切 Astra。阶段 5 产品签收独立，图标视觉、发布架构、真实服务预算后置；不发布、不调用真实服务。
+**当前执行点（2026-10-13，S43）**：S42-05（a5b7c75a）、S42-01（a790e320）和 S42-02（e7d9aaa9）已通过本地与逐票公开 CI。S42-03 已完成独立审阅和最终本地门禁 16/16，待提交及公开 CI；Claude 会话额度耗尽后，单个 Astra 已完成剩余回归覆盖。D8=A、D9 已定，不重开产品选择；本票公开 CI 通过后继续 S42-04 和其他就绪票。阶段 5 产品签收独立，图标视觉、发布架构、真实服务预算后置；不发布、不调用真实服务。
 
 状态：**阶段 4 已签收（2026-10-11，出口 CI `38162294825`，§9"阶段 4 签收"）。阶段 3 已签收（2026-10-11，用户指示"做 W4 本机核对，通过后签收阶段 3"）。** 签收依据为提交 `d2bd8146` 的 W3 出口 CI `38123550800`（gates 16/16、正式身份契约 6/6、两个身份包检查 12/12 和启动 7/7）及 W4 本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 3 签收"。阶段 4–6 按 S36 交给 Codex Astra 执行（[HANDOFF-stage4-6.md](HANDOFF-stage4-6.md)），从用户把交接交给 Astra 时开始。以下为阶段 2 的状态说明。**阶段 2 出口已签收（2026-10-10，用户指示"做本机核对，通过后签收阶段2"）。** Claude 实现并自验收（S21）；Astra 独立验收（2026-10-09）提出的 4 项经两轮复验（2026-10-10）全部关闭；包内 libvips 的 Rust 工具链已固定，CI 两次复现记录的 `64bcfea7…`；验收条件按 S26 精简。签收依据为提交 `2c7f1e42` 的完整 CI `38057787157`（三个作业全部通过）及其下载核对和本机核对（源码包、`asar-smoke`），见第 8 节末"阶段 2 出口签收"。AG-20–26、AG-24 后续、S19-C 及 S22 均已完成。出口逐条对照见第 8 节"阶段 2 出口自验收"，其中第 6 条的本机启动冒烟按 S9 改为在守卫下运行包内代码，未启动打包后的二进制。已确认决策见第 2 节；当前验收及复查记录见第 8、9 节。最初的草案状态已由后续用户决策和执行记录替代。
 
@@ -960,7 +960,7 @@ node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/
 - Validation：用假凭据和 socket 证明空/合法/非法 workspace，两个资源头、旧配置默认、保存失败不覆盖、删除后零发送、renderer 不拿回 key；复用 `DomesticSttSettings.test.mjs`、`DomesticStreamingLifecycle.test.mjs`、`settingsFoundation.test.mjs`，必要时在现有 renderer 工具中补真实控件交互。实现者跑窄检查，主 Agent 独立审阅接线后统一完整门禁。
 - Stop：需变更鉴权范围、固定目标地址/地域、自动资源切换或真实服务才能推进时暂停该部分；D2 实测不阻塞 mock 契约实现，也不被它替代。
 
-**S42-02 / AG-51：场景回答要求 — 本地实现、独立复核和完整门禁通过；待本票公开 CI。**
+**S42-02 / AG-51：场景回答要求 — 完成；`e7d9aaa9` 本地验收和公开 CI 38338980915 均通过。**
 
 - Outcome：U8 在实际生成请求的场景提示词中一致生效，不仅在设置说明出现。
 - Scope / 唯一写入者：Claude；`electron/llm/prompts.ts`、`tinyPrompts.ts`、`scenarioPrompts.ts` 的实际消费者及 `PromptSkillConsumerChain.test.mjs` 等现有装配/真实性回归。口述 Stop 在 `src/components/NativelyInterface.tsx` 自带上下文提示并使用 `skipSystemPrompt:true`，其提示词文字也必须覆盖 U8，不能只改系统 scene；本票不改该 IPC/空系统提示语义、收尾或预算。保留 Skills 追加、身份/安全/数据边界、用户主动 Clarify；不改模型路由或恢复已删除功能。
@@ -968,12 +968,14 @@ node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/
 - Validation：实际场景装配覆盖笔试、面试、缺经历/未知数据库候选、只追加 guidance；确认无编造个人事实许可、无强制缺资料提示、Clarify 仍可主动澄清。mock 请求内正确规则不证明真实质量；相关静态检查只作为补充。
 - Stop：需改变保留入口或安全/个人事实约束则暂停；真实模型质量测量等 D2，不在本票调用。
 
-**S42-03 / AG-40、41、42：双路片段冻结 — ready，按 D8=A，S42-02 后执行。**
+**S42-03 / AG-40、41、42：双路片段冻结 — 独立审阅和本地验收通过，待本票提交与公开 CI。**
 
 - Outcome：实现 U2–U5/U10 的双路、阶段一 750 ms 后尾段 3/1 秒、同片段修订及冻结，会议结束仍独立。
 - Scope：适配器→`MeetingSttSession`→`main.ts`/IPC→手动动作与 renderer；一个执行人串行贯通，统一状态先于消费者。两路同阶段并行不是两名 Agent 并行写入。
 - Steps / Interfaces：按 D8=A 固化前述共享接口，保留任务代次/音频时基和空开始事件，再接各动作及现有 AbortSignal。无可靠元数据时按 U3 保守使用已知内容、保留 unknown；不得把“无元数据”一概升级为新的产品批准门槛。
+- 本票接口落定：`MeetingSttSession` 扩展既有片段台账，动作开始即锁定关联范围；由 `SessionTracker` 提供冻结的只读上下文，实际引擎和 Stop 请求消费它，实时修订仍写正常历史。preload 共用 `runSpeechAction`，通过 `speech-action:begin` 取得受理回执（最多 750 ms），随后既有生成 IPC 携带动作 ID 和回执/超时的时间；这不是等待服务商确认。主进程按 sender、动作种类和一次性消费绑定任务，保留原始动作时间和同一 GenerationTask；实际尾段截止不晚于动作时间 + 750 ms + 3/1 秒，并受生成预算约束。快速回执按实际到达 renderer 的时间结束阶段一，不用主进程发出回执的时间替代；晚到的生成 IPC 不重新起算。renderer 时间只能缩短、不能延长主进程上界；丢失/过期/错窗 ID 拒绝，不悄悄新建任务或换输入。Answer 建立口述标记，Stop 冻结本次麦克风输入及双路上下文；文字发送不等待 STT。REST 缓冲在边界封成独立批次，已有上传不与后续音频合并；任务型服务不 finish。连接/任务相对音频时间与本机 ingress 时间分开记录，没有可靠映射时不冒充捕捉时间。取消、会议结束、窗口销毁、新动作替换均清理等待与未消费快照，旧回执不能复活动作。
 - Validation：已开始但无字、真实安静、无关 final、同片段修订、新片段、阶段一完成、提前结束/超时、取消、迟到事件、任务接续与有界缓冲；全部复用现有会话/协议/消费者测试。等待结束即冻结，不能在组装间隙再更新。
+- 协议依据（2026-10-13 文档核对，不是真实服务实测）：[阿里云事件](https://help.aliyun.com/zh/model-studio/qwen-audio-asr-streaming-server-events) 包含空文字开始、sentence_id、毫秒时间和独立任务结束；[Soniox 手动定稿](https://soniox.com/docs/stt/rt/manual-finalization) 可在持续连接上调用 finalize 并得到 fin，但控制消息的音频范围不等于点击时刻，不能据此收入后续新片段；[Soniox 字段](https://soniox.com/docs/api-reference/stt/websocket-api) 提供 token 时间与已处理音频水位；[OpenAI 转写](https://developers.openai.com/api/docs/guides/realtime-transcription) 要求按 item_id 关联结果，跨片段完成顺序不保证；[豆包接口](https://docs.volcengine.com/docs/DoubaoVoice/bidirectional-streaming-automatic-speech-recognition-websocket?lang=zh) 提供分句及修订。文档不证明本机采集时刻映射或实际账号可用性，不顺带变更模型、鉴权或二遍识别配置。
 - Stop：保守已知输入策略仍无法满足边界、只能削弱保证时返回用户；无元数据本身不新增批准门槛，D8 已定不再询问。
 
 **S42-04 / AG-32、33、42：首字预算与手动重试 — ready，实施依赖 S42-03 的动作生命周期。**
@@ -1002,7 +1004,7 @@ node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/
 
 **交接/验收所有权**：主 Agent 维护本 Spec、tickets、来源记录及 wayfinder；Claude 仅按上述独占范围实现并提供 diff/窄检查，禁止修改主 Agent 正在编辑的文档或无关 `AG-51/gates` 证据。主 Agent 在最终代码上独立审阅输入校验、所有消费者、异常/删除路径与测试充分性，并取得一次完整本地门禁，记录到 `docs/margin/evidence/S42-ready`。合格后才可标记相应本地增量完成；不代签原阶段、D2 或远端 CI。没有实际派发、结果或验证时不填“完成”。
 
-**本轮执行结果（2026-10-13）**：已按指定 `claude-opus-5-5` / medium 派发，流式结果确认模型，执行已终止。`CredentialsManager.ts` 与 `AliyunStreamingSTT.ts` 的 apply_patch 命令返回权限拒绝；原因未确定，不能据此断言整个 electron 目录不可写。仅类型文件曾写入，主 Agent 核对后撤回这部分未接线增量，未覆盖原有用户改动。没有构建、typecheck、测试、CI 配置修改、提交或推送；不存在 S42-ready 验收产物。四份文档的相对文件链接检查和 `git diff --check` 通过。恢复时先解决该执行通道的精确写权限，再按上述三张票执行；不以改模型、绕过权限或自查摘要代替指定执行和独立验收。
+**首次派发历史（2026-10-13，权限阻塞已由后续 auto 授权解决；当前结果见 §8 S43）**：当时已按指定 `claude-opus-5-5` / medium 派发，流式结果确认模型，执行已终止。`CredentialsManager.ts` 与 `AliyunStreamingSTT.ts` 的 apply_patch 命令返回权限拒绝；当时原因未确定，不能据此断言整个 electron 目录不可写。仅类型文件曾写入，主 Agent 核对后撤回这部分未接线增量，未覆盖原有用户改动。当次没有构建、typecheck、测试、CI 配置修改、提交或推送，不存在 S42-ready 验收产物；四份文档的相对文件链接检查和 `git diff --check` 通过。后续用户明确允许 auto，逐票实施结果分别存入 S42-05/01/02 等目录，不以历史失败或历史门禁代替当前证据。
 
 ### 旧 Margin 复用清单（S35，阶段 4–7；Claude，2026-10-11；同日按 Astra 审阅修订）
 
@@ -1497,7 +1499,13 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ### S43 增量执行（2026-10-13）
 
-- **S42-02**：共享纯文本规则贯通笔试、full/tiny 面试和口述 Stop；移除仍在使用的强制缺资料开场及不真实经历暗示，保留主动 Clarify、身份/数据安全和 Skills 只追加。主 Agent 限定“不默认追问”为面试场景并补红绿断言，不改变笔试的澄清策略。最终 gates **16/16**，989 测试（988 通过、0 失败、1 既有跳过），必需检查通过，G2 无新增例外。证据：[S42-02](evidence/S42-02/README.md)。待提交和公开 CI；真实质量/延迟未验证，Stop 计时留 S42-03/04。
+- **S42-03 当前验收**：主 Agent 复跑独立反例 **9/9**，并核对真实 IPC→Manager→模拟请求链的全部快捷动作/Stop 权限允许、拒绝、排队撤回和自动重试撤回。最终完整 gates **16/16**：127 文件、1075 测试（1074 通过、0 失败、1 既有 AG-61 跳过），15 个必需文件及隔离 renderer 检查均通过，G2 零未审命中。首轮完整门禁仅图片校验夹具缺新接口而失败；主 Agent 补模拟接口，保留全部安全断言，12/12 后完整重跑通过。证据及首次失败记录：[S42-03](evidence/S42-03/README.md)。待提交与公开 CI；真实服务、设备、质量及延迟未验证，UI 首字观测和手动重试留 S42-04。
+
+- **执行路由恢复**：Claude 在继续修复三项独立验收缺口时返回五小时会话额度耗尽，进程已退出，非权限或测试错误。已依用户预先指定的额度耗尽备用安排，交由一个 Astra 执行者保留现有改动并续接；不重复启动 Claude，不开启并行代码写入。该交接不是本票验收。
+
+- **S42-03 修复历史**：初版 Claude 报告隔离单元集 1023 项通过（含 1 既有跳过），但主 Agent 的 7 个独立反例全部失败：未知状态错误缩到 1 秒、一路结束后仍吸收修订、迟到回执收入实际截止后的文字、已取消仍 flush、未定稿台账越过上限、REST 队列把新音频合入旧批次、消费动作后失去取消归属。主 Agent 修正收集器、REST 批次及取消归属，Claude 修复协议标识、基础上下文和口述生命周期。随后即使单元集增至 1046 项且无失败，独立验收仍发现迟到 begin 收入点击后编码问题、Clarify 泄露被禁用的助手历史、长口述可能丢失开头，故当时未签收。Claude 继续修复，额度耗尽后由 Astra 补 29 项行为回归；最终验收见上条，历史局部通过不替代最终证据。
+
+- **S42-02**：共享纯文本规则贯通笔试、full/tiny 面试和口述 Stop；移除仍在使用的强制缺资料开场及不真实经历暗示，保留主动 Clarify、身份/数据安全和 Skills 只追加。主 Agent 限定“不默认追问”为面试场景并补红绿断言，不改变笔试的澄清策略。最终 gates **16/16**，989 测试（988 通过、0 失败、1 既有跳过），必需检查通过，G2 无新增例外。提交 `e7d9aaa9` 已推送两库，公开 CI [38338980915](https://github.com/xbz123/margin/actions/runs/38338980915) 对同一 SHA 通过（gates、必需检查及无打包身份检查）。证据：[S42-02](evidence/S42-02/README.md)。真实质量/延迟未验证，Stop 计时留 S42-03/04。
 
 - **S42-01**：国内配置从设置/保存/读取贯通连接测试和生产。主 Agent 修复显式 null 被当缺字段回退小时版的问题（2 条反例先失败后通过），同步精确出站清单，并恢复挂载测试的模块缓存。最终完整 gates **16/16**，988 测试（987 通过、0 失败、1 既有跳过），renderer 7/7，必需检查通过。证据：[S42-01](evidence/S42-01/README.md)。`a790e320` 已推送两个仓库；公开 [CI 38335634377](https://github.com/xbz123/margin/actions/runs/38335634377) 已通过，`gate_ref=S42-01`、不打包、不禁用缓存。真实模型通用域名/长会话及资源权益仍未实测，不宣称 D2 完成。
 

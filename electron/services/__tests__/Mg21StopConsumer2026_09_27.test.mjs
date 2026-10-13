@@ -5,16 +5,22 @@ import { deferred } from '../../audio/__tests__/meetingAudioFixture.mjs';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
-test('AG42 production manual finalize forwards the microphone tail before returning without stopping capture', async () => {
+test('S42-03 production manual action collects both channels without finishing provider tasks or stopping capture', async () => {
   const f = mainFixture(); await f.start();
-  const pending = f.state.finalizeMicSTT();
-  assert.equal(f.order.filter(item => item === 'finalize:user').length, 1);
-  assert.equal(f.order.includes('finalize:interviewer'), false);
-  f.providers.find(item => item.channel === 'user').emit('transcript', { text: 'manual tail', isFinal: true });
-  await pending;
+  const user = f.providers.find(item => item.channel === 'user');
+  user.emit('transcript', { segmentId: 'tail', text: 'manual', isFinal: false });
+  const mark = f.state.markDictation(0);
+  const controller = new AbortController();
+  const collector = f.state.collectSpeech({ cutoffAt: Date.now(), deadline: Date.now() + 10, signal: controller.signal, dictation: mark });
+  user.emit('transcript', { segmentId: 'tail', text: 'manual tail', isFinal: true });
+  const frozen = await collector.frozen;
+  assert.equal(f.order.some(item => item.startsWith('finalize:')), false, 'a manual action never finishes a provider task');
+  assert.equal(frozen.channels.user.segments.at(-1).text, 'manual tail');
+  assert.equal(frozen.dictation, 'manual tail');
   assert.equal(f.transcripts.at(-1).text, 'manual tail');
   assert.equal(f.audio.microphones[0].destroyed, false);
   await f.state.endMeeting();
+  assert.equal(f.order.filter(item => item.startsWith('finalize:')).length, 2, 'the meeting drain still finishes both tasks');
 });
 
 test('a denied start can be cleaned up without saving an unrelated session', async () => {

@@ -123,21 +123,34 @@ test('AG42 production meeting end aborts streaming and main never forwards late 
   assert.doesNotMatch(JSON.stringify(sent), /LATE/);
 });
 
-test('AG42 review: a rejected mic finalize is best effort, but user cancellation sends nothing', async () => {
+test('S42-03 the answer reads only its frozen view: later live context is excluded and cancellation while freezing sends nothing', async () => {
   const f = helper(); const meeting = mainFixture(); await meeting.start();
   const session = new SessionTracker();
-  session.handleTranscript({ speaker: 'interviewer', text: 'Existing context before mic failure', timestamp: Date.now(), final: true });
+  const cutoffAt = Date.now() - 1000;
+  session.handleTranscript({ speaker: 'interviewer', text: 'Existing context before the click', timestamp: cutoffAt - 10, final: true });
   const engine = new IntelligenceEngine(f.self, session);
-  const mic = meeting.providers.find(provider => provider.channel === 'user');
-  mic.finalize = async () => { throw Error('PRIVATE_PROVIDER_PAYLOAD'); };
+  const user = meeting.providers.find(provider => provider.channel === 'user');
+  let finishes = 0; user.finalize = () => { finishes++; };
+  user.emit('transcript', { segmentId: 'open', text: 'my frozen microphone words', isFinal: false });
+  const collector = meeting.state.collectSpeech({ cutoffAt: Date.now(), deadline: Date.now() + 20, signal: new AbortController().signal });
   assert.equal(await engine.runWhatShouldISay(undefined, 0.8, undefined, {
-    manual: true, beforeGenerate: signal => meeting.state.finalizeMicSTT(signal),
+    manual: true, beforeGenerate: async () => {
+      const frozen = await collector.frozen;
+      // Live history keeps growing after the freeze; the request must not see it.
+      session.handleTranscript({ speaker: 'interviewer', text: 'Later live context', timestamp: Date.now() + 5, final: true });
+      user.emit('transcript', { segmentId: 'open', text: 'my frozen microphone words revised later', isFinal: true });
+      return session.frozenView(frozen);
+    },
   }), 'answer');
+  assert.equal(finishes, 0, 'the action did not finish the microphone task');
   assert.equal(f.requests.length, 1);
-  assert.match(JSON.stringify(f.requests[0].contents), /existing context before mic failure/);
-  const entered = deferred(); mic.finalize = () => { entered.resolve(); };
+  const request = JSON.stringify(f.requests[0].contents);
+  assert.match(request, /existing context before the click/i);
+  assert.match(request, /my frozen microphone words/);
+  assert.doesNotMatch(request, /later live context|revised later/i);
+  const entered = deferred();
   const pending = engine.runWhatShouldISay(undefined, 0.8, undefined, {
-    manual: true, beforeGenerate: signal => meeting.state.finalizeMicSTT(signal),
+    manual: true, beforeGenerate: () => { entered.resolve(); return new Promise(() => {}); },
   });
   const cancelled = assert.rejects(pending, { name: 'AbortError' });
   await entered.promise; engine.reset(); await cancelled;

@@ -305,3 +305,83 @@ test('MeetingSttSession drains a domestic provider final before disposing its li
   Socket.instances.at(-1).terminate();
   assert.deepEqual((await interrupted).failedChannels, ['user']);
 });
+
+const doubaoFrame = (body, flags = 0x90) => {
+  const payload = Buffer.from(JSON.stringify(body));
+  const frame = Buffer.alloc(8 + payload.length);
+  frame.set([0x11, flags, 0x10, 0]);
+  frame.writeUInt32BE(payload.length, 4);
+  payload.copy(frame, 8);
+  return frame;
+};
+
+test('S42-03 Aliyun prefers sentence_id over id, ignores heartbeats, treats an empty sentence_begin as a start, and tags task epoch and media times', t => {
+  Socket.instances = [];
+  const { AliyunStreamingSTT } = load('AliyunStreamingSTT');
+  const stt = new AliyunStreamingSTT('synthetic', { workspaceId: 'workspace' });
+  t.after(() => stt.stop(false));
+  const rows = [];
+  stt.on('transcript', row => rows.push(row));
+  stt.start();
+  const ws = Socket.instances.at(-1);
+  ws.open();
+  const task = JSON.parse(ws.sent[0]).header.task_id;
+  const result = sentence => ws.emit('message', Buffer.from(JSON.stringify({ header: { event: 'result-generated', task_id: task }, payload: { output: { sentence } } })));
+  ws.emit('message', Buffer.from(JSON.stringify({ header: { event: 'task-started', task_id: task } })));
+  result({ sentence_id: 3, id: 99, text: '', sentence_begin: true, begin_time: 120 });
+  result({ sentence_id: 0, text: '', heartbeat: true });
+  result({ sentence_id: 0, text: 'heartbeat payload' });
+  result({ sentence_id: 3, id: 99, text: 'hello', begin_time: 120, end_time: 900, sentence_end: false });
+  result({ id: 7, text: 'fallback id', sentence_end: true });
+  assert.deepEqual(JSON.parse(JSON.stringify(rows)), [
+    { text: '', started: true, segmentId: '3', epoch: task, media: { basis: 'aliyun-task-audio', startMs: 120 } },
+    { text: 'hello', isFinal: false, segmentId: '3', epoch: task, media: { basis: 'aliyun-task-audio', startMs: 120, endMs: 900 }, identityReliable: true },
+    { text: 'fallback id', isFinal: true, segmentId: '7', epoch: task, media: { basis: 'aliyun-task-audio' }, identityReliable: true },
+  ]);
+});
+
+test('S42-03 Doubao tags each request as an epoch, so a reconnect cannot collide with an earlier utterance', t => {
+  Socket.instances = [];
+  const { DoubaoStreamingSTT } = load('DoubaoStreamingSTT');
+  const stt = new DoubaoStreamingSTT('synthetic');
+  t.after(() => stt.stop(false));
+  const rows = [];
+  stt.on('transcript', row => rows.push(row));
+  for (let connection = 0; connection < 2; connection++) {
+    stt.start();
+    const ws = Socket.instances.at(-1);
+    ws.open();
+    ws.emit('message', doubaoFrame({ result: { utterances: [{ text: 'same start', start_time: 0, end_time: 500, definite: false }] } }));
+    assert.equal(rows.at(-1).epoch, ws.options.headers['X-Api-Request-Id']);
+    stt.stop(false);
+  }
+  assert.deepEqual(JSON.parse(JSON.stringify(rows.map(row => [row.segmentId, row.media]))), [
+    ['0', { basis: 'doubao-request-audio', startMs: 0, endMs: 500 }], ['0', { basis: 'doubao-request-audio', startMs: 0, endMs: 500 }]]);
+  assert.notEqual(rows[0].epoch, rows[1].epoch);
+});
+
+for (const name of ['Aliyun', 'Doubao']) test(`S42-03 ${name}: a manual action never finishes the task; the meeting drain still does`, async t => {
+  Socket.instances = [];
+  const { MeetingSttSession } = load('MeetingSttSession');
+  const { [name + 'StreamingSTT']: Provider } = load(name + 'StreamingSTT');
+  const provider = new Provider('synthetic', { workspaceId: 'workspace' });
+  t.after(() => provider.stop(false));
+  const session = new MeetingSttSession({ create: () => provider, onTranscript() {} });
+  session.begin('meeting');
+  session.ensure('user');
+  provider.start();
+  const ws = Socket.instances.at(-1);
+  ws.open();
+  if (name === 'Aliyun') ws.emit('message', Buffer.from(JSON.stringify({ header: { event: 'task-started' } })));
+  provider.write(Buffer.alloc(320));
+  const finishes = () => ws.sent.filter(data => name === 'Aliyun' ? /finish-task/.test(String(data)) : Buffer.isBuffer(data) && data.readInt32BE(4) < 0).length;
+  const frozen = await session.collect({ cutoffAt: Date.now(), deadline: Date.now() + 5, signal: new AbortController().signal }).frozen;
+  assert.equal(frozen.channels.user.reason, 'deadline', 'no scoped flush: the channel waits, it is never proven complete');
+  assert.equal(finishes(), 0);
+  assert.equal(ws.readyState, 1, 'the provider task keeps running');
+  const drain = session.drain(1000, 0);
+  assert.equal(finishes(), 1);
+  if (name === 'Aliyun') ws.emit('message', Buffer.from(JSON.stringify({ header: { event: 'task-finished' } })));
+  else ws.emit('message', doubaoFrame({ result: { text: 'tail' } }, 0x92));
+  assert.equal((await drain).timedOut, false);
+});

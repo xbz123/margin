@@ -1,0 +1,7 @@
+electron/services/__tests__/ImagePathValidation.test.mjs :: AG33 real registered generate-brainstorm rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+electron/services/__tests__/ImagePathValidation.test.mjs :: AG33 real registered generate-code-hint rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+electron/services/__tests__/ImagePathValidation.test.mjs :: AG33 real registered generate-what-to-say rejects malformed, traversal, missing, sensitive and symlink-escape images before generation
+electron/services/__tests__/ImagePathValidation.test.mjs :: AG42 registered manual IPC returns fixed failures even before a task can start
+electron/services/__tests__/ImagePathValidation.test.mjs :: R3-2 generate-brainstorm validates selected queue once before generation and uses canonical symlinks
+electron/services/__tests__/ImagePathValidation.test.mjs :: R3-2 generate-code-hint validates selected queue once before generation and uses canonical symlinks
+electron/services/__tests__/ImagePathValidation.test.mjs :: R3-2 what-to-say canonicalizes explicit images and never selects the screenshot queue

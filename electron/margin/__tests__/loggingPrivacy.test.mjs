@@ -70,6 +70,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
       if (id === 'electron') return electron;
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
+      if (id === './ipc/speechActions') return { SpeechActions: class {} };
       if (id === 'fs' || id === 'node:fs') return fakeFs;
       if (id === 'path' || id === 'node:path') return path;
       if (id === 'react') return { createElement() {}, StrictMode: 'synthetic' };
