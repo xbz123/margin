@@ -1,7 +1,9 @@
 import { app, globalShortcut, Menu, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import { randomUUID } from 'node:crypto';
 import { mainText } from './mainStrings';
+import type { KeybindResult } from '../../src/types/windowPreferences';
 
 export interface KeybindConfig {
     id: string;
@@ -64,6 +66,9 @@ export class KeybindManager {
     private onUpdateCallbacks: (() => void)[] = [];
     private onShortcutTriggeredCallbacks: ((actionId: string) => void)[] = [];
     private activeMode: 'launcher' | 'overlay' = 'launcher';
+    private failedActions = new Map<string, string>();
+    private registrationApplyFailed = false;
+    private updateApplyFailed = false;
     private healthCheckTimer: NodeJS.Timeout | null = null;
     // How often to poll that OS-registered shortcuts are still alive (ms).
     // 10 s is aggressive enough to recover within one poll cycle after a
@@ -102,9 +107,19 @@ export class KeybindManager {
         // Electron accelerators are case-insensitive and order-independent for modifiers.
         // We split, lowercase, and sort to ensure consistent string matching.
         // E.g., 'Shift+CommandOrControl+Up' === 'CommandOrControl+Shift+Up'
-        const parts = acc.split('+').map(p => p.trim().toLowerCase());
+        const parts = acc.split('+').map(p => this.normalizeAcceleratorPart(p.trim()));
         parts.sort();
         return parts.join('+');
+    }
+
+    private normalizeAcceleratorPart(part: string): string {
+        const lower = part.toLowerCase();
+        if (['cmd', 'command', 'meta'].includes(lower)) return 'command';
+        if (['ctrl', 'control'].includes(lower)) return 'control';
+        if (['cmdorctrl', 'commandorcontrol'].includes(lower)) return process.platform === 'darwin' ? 'command' : 'control';
+        if (['alt', 'option'].includes(lower)) return 'alt';
+        if (lower === 'super' && process.platform === 'darwin') return 'command';
+        return lower;
     }
 
     private constructor() {
@@ -154,7 +169,7 @@ export class KeybindManager {
                 // Validate and merge
                 let hadConflicts = false;
                 for (const fileKb of data) {
-                    if (this.keybinds.has(fileKb.id)) {
+                    if (this.keybinds.has(fileKb.id) && this.isAccelerator(fileKb.accelerator)) {
                         const current = this.keybinds.get(fileKb.id)!;
 
                         // Deduplicate: If another keybind is already using this accelerator, skip or clear it
@@ -191,18 +206,40 @@ export class KeybindManager {
         }
     }
 
-    private save() {
+    private save(candidate = this.keybinds) {
+        const tmpPath = this.filePath + `.${randomUUID()}.tmp`;
         try {
-            const data = Array.from(this.keybinds.values()).map(kb => ({
+            const data = Array.from(candidate.values()).map(kb => ({
                 id: kb.id,
                 accelerator: kb.accelerator
             }));
-            const tmpPath = this.filePath + '.tmp';
-            fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2));
+            fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), { flag: 'wx', mode: 0o600 });
             fs.renameSync(tmpPath, this.filePath);
-        } catch (error) {
-            console.error('[KeybindManager] Failed to save keybinds:', error);
+        } catch (error: any) {
+            if (error?.code !== 'EEXIST') { try { fs.unlinkSync(tmpPath); } catch {} }
+            throw new Error('Keyboard shortcuts could not be saved.');
         }
+    }
+
+    private isAccelerator(value: unknown): value is string {
+        if (typeof value !== 'string' || value.length > 128) return false;
+        if (value === '') return true;
+        const parts = value.split('+');
+        const modifiers = /^(command|cmd|control|ctrl|commandorcontrol|cmdorctrl|alt|option|altgr|shift|super|meta)$/i;
+        const key = parts.pop()!;
+        if (parts.some(part => !modifiers.test(part)) || new Set(parts.map(part => this.normalizeAcceleratorPart(part))).size !== parts.length) return false;
+        return /^[a-z0-9]$/i.test(key) || /^F(?:[1-9]|1\d|2[0-4])$/i.test(key) || (key.length === 1 && ',./;[]\\\'`=-!@#$%^&*()_{}:"<>?|~'.includes(key)) || /^(space|tab|capslock|numlock|scrolllock|backspace|delete|insert|return|enter|up|down|left|right|home|end|pageup|pagedown|escape|esc|volumeup|volumedown|volumemute|medianexttrack|mediaprevioustrack|mediastop|mediaplaypause|printscreen|plus|num[0-9]|numdec|nummult|numadd|numsub|numdiv)$/i.test(key);
+    }
+
+    public getStatus(code?: KeybindResult['code']): KeybindResult {
+        const failedActions = Array.from(this.failedActions, ([id, accelerator]) => ({ id, accelerator }));
+        code ??= failedActions.length || this.registrationApplyFailed || this.updateApplyFailed ? 'apply_failed' : undefined;
+        return { success: !code, keybinds: this.getAllKeybinds(), failedActions, ...(code ? { code, error: code === 'save_failed' ? 'Keyboard shortcuts could not be saved.' : code === 'invalid_value' ? 'Invalid keyboard shortcut.' : 'Some keyboard shortcuts could not be registered. Choose another shortcut or retry.' } : {}) };
+    }
+
+    private broadcastStatus(): void {
+        const result = this.getStatus();
+        BrowserWindow.getAllWindows().forEach(win => { if (!win.isDestroyed()) { try { win.webContents.send('keybinds:result', result); } catch {} } });
     }
 
     public getKeybind(id: string): string | undefined {
@@ -213,10 +250,11 @@ export class KeybindManager {
         return Array.from(this.keybinds.values());
     }
 
-    public setKeybind(id: string, accelerator: string) {
-        if (!this.keybinds.has(id)) return;
+    public setKeybind(id: string, accelerator: string): KeybindResult {
+        if (typeof id !== 'string' || !this.keybinds.has(id) || !this.isAccelerator(accelerator)) return this.getStatus('invalid_value');
+        const candidate = new Map(Array.from(this.keybinds, ([id, kb]) => [id, { ...kb }]));
 
-        const currentKb = this.keybinds.get(id)!;
+        const currentKb = candidate.get(id)!;
         const oldAccelerator = currentKb.accelerator || '';
 
         // Fallback: If assigning a new accelerator, swap any existing action using it
@@ -224,37 +262,47 @@ export class KeybindManager {
             const normalizedNew = this.normalizeAccelerator(accelerator);
             let swappedId: string | null = null;
 
-            this.keybinds.forEach((kb, existingId) => {
+            candidate.forEach((kb, existingId) => {
                 if (existingId !== id && this.normalizeAccelerator(kb.accelerator) === normalizedNew) {
                     swappedId = existingId;
                 }
             });
 
             if (swappedId) {
-                const conflictKb = this.keybinds.get(swappedId)!;
+                const conflictKb = candidate.get(swappedId)!;
                 conflictKb.accelerator = oldAccelerator; // Give the conflicting one our old shortcut
-                this.keybinds.set(swappedId, conflictKb);
+                candidate.set(swappedId, conflictKb);
             }
         }
 
         currentKb.accelerator = accelerator;
-        this.keybinds.set(id, currentKb);
+        candidate.set(id, currentKb);
 
-        this.save();
+        try { this.save(candidate); } catch { return this.getStatus('save_failed'); }
+        this.keybinds = candidate;
         this.registerGlobalShortcuts(); // Re-register if it was a global one
         this.broadcastUpdate();
+        return this.getStatus();
     }
 
-    public resetKeybinds() {
-        this.keybinds.clear();
-        DEFAULT_KEYBINDS.forEach(kb => this.keybinds.set(kb.id, { ...kb }));
-        this.save();
+    public resetKeybinds(): KeybindResult {
+        const candidate = new Map(DEFAULT_KEYBINDS.map(kb => [kb.id, { ...kb }]));
+        try { this.save(candidate); } catch { return this.getStatus('save_failed'); }
+        this.keybinds = candidate;
         this.registerGlobalShortcuts();
         this.broadcastUpdate();
+        return this.getStatus();
     }
 
     public registerGlobalShortcuts() {
-        globalShortcut.unregisterAll();
+        this.failedActions.clear();
+        this.registrationApplyFailed = false;
+        try { globalShortcut.unregisterAll(); }
+        catch {
+            this.registrationApplyFailed = true;
+            this.keybinds.forEach(kb => { if (kb.isGlobal && kb.accelerator && this.shouldRegister(kb.id)) this.failedActions.set(kb.id, kb.accelerator); });
+            this.broadcastStatus(); return;
+        }
 
         this.keybinds.forEach(kb => {
             if (kb.isGlobal && kb.accelerator && kb.accelerator.trim() !== '') {
@@ -268,25 +316,28 @@ export class KeybindManager {
                     if (globalShortcut.isRegistered(acc)) {
                         console.log(`[KeybindManager] Registered global shortcut: ${acc} -> ${kb.id}`);
                     } else {
+                        this.failedActions.set(kb.id, acc);
                         console.warn(`[KeybindManager] Failed to register global shortcut (likely in use by OS): ${acc}`);
                         // Notify renderer so the UI can surface a warning to the user (issue #136)
                         BrowserWindow.getAllWindows().forEach(win => {
                             if (!win.isDestroyed()) {
-                                win.webContents.send('keybinds:registration-failed', { id: kb.id, accelerator: acc });
+                                try { win.webContents.send('keybinds:registration-failed', { id: kb.id, accelerator: acc }); } catch {}
                             }
                         });
                     }
                 } catch (e) {
+                    this.failedActions.set(kb.id, acc);
                     console.error(`[KeybindManager] Exception while registering global shortcut ${acc}:`, e);
                 }
             }
         });
 
-        this.updateMenu();
+        try { this.updateMenu(); } catch { this.registrationApplyFailed = true; this.keybinds.forEach(kb => { if (kb.accelerator && this.shouldRegister(kb.id)) this.failedActions.set(kb.id, kb.accelerator); }); }
 
         // (Re-)start the health-check loop so it always reflects the current
         // registered set after any full re-registration.
         this.startHealthCheck();
+        this.broadcastStatus();
     }
 
     /**
@@ -297,7 +348,7 @@ export class KeybindManager {
      * safe to call from the periodic health-check timer or right after a window
      * interaction-policy change (e.g. passthrough toggle).
      */
-    public revalidateShortcuts(): void {
+    public revalidateShortcuts(): KeybindResult {
         let lost = 0;
         let recovered = 0;
 
@@ -306,20 +357,22 @@ export class KeybindManager {
             if (!this.shouldRegister(kb.id)) return;
 
             const acc = kb.accelerator.trim();
-            if (globalShortcut.isRegistered(acc)) return; // still alive — nothing to do
-
-            lost++;
             try {
+                if (globalShortcut.isRegistered(acc)) { this.failedActions.delete(kb.id); return; }
+                lost++;
                 globalShortcut.register(acc, () => {
                     this.onShortcutTriggeredCallbacks.forEach(cb => cb(kb.id));
                 });
                 if (globalShortcut.isRegistered(acc)) {
+                    this.failedActions.delete(kb.id);
                     recovered++;
                     console.warn(`[KeybindManager] Recovered lost shortcut: ${acc} -> ${kb.id}`);
                 } else {
+                    this.failedActions.set(kb.id, acc);
                     console.error(`[KeybindManager] Could not recover shortcut ${acc} -> ${kb.id} (OS conflict?)`);
                 }
             } catch (e) {
+                this.failedActions.set(kb.id, acc);
                 console.error(`[KeybindManager] Exception re-registering shortcut ${acc}:`, e);
             }
         });
@@ -327,6 +380,8 @@ export class KeybindManager {
         if (lost > 0) {
             console.warn(`[KeybindManager] Health check: ${lost} shortcut(s) were dropped by OS, ${recovered} recovered.`);
         }
+        this.broadcastStatus();
+        return this.getStatus();
     }
 
     /**
@@ -466,32 +521,37 @@ export class KeybindManager {
 
     private broadcastUpdate() {
         // Notify main process listeners
-        this.onUpdateCallbacks.forEach(cb => cb());
+        this.updateApplyFailed = false;
+        this.onUpdateCallbacks.forEach(cb => {
+            try { cb(); } catch {
+                this.updateApplyFailed = true;
+                this.keybinds.forEach(kb => { if (kb.accelerator && this.shouldRegister(kb.id)) this.failedActions.set(kb.id, kb.accelerator); });
+            }
+        });
 
         const windows = BrowserWindow.getAllWindows();
         const allKeybinds = this.getAllKeybinds();
         windows.forEach(win => {
             if (!win.isDestroyed()) {
-                win.webContents.send('keybinds:update', allKeybinds);
+                try { win.webContents.send('keybinds:update', allKeybinds); } catch {}
             }
         });
+        this.broadcastStatus();
     }
 
     public setupIpcHandlers() {
         ipcMain.handle('keybinds:get-all', () => {
             return this.getAllKeybinds();
         });
+        ipcMain.handle('keybinds:get-status', () => this.getStatus());
 
         ipcMain.handle('keybinds:set', (_, id: string, accelerator: string) => {
-            console.log(`[KeybindManager] Set ${id} -> ${accelerator}`);
-            this.setKeybind(id, accelerator);
-            return true;
+            return this.setKeybind(id, accelerator);
         });
 
         ipcMain.handle('keybinds:reset', () => {
             console.log('[KeybindManager] Reset defaults');
-            this.resetKeybinds();
-            return this.getAllKeybinds();
+            return this.resetKeybinds();
         });
     }
 }

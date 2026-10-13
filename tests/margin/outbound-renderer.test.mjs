@@ -12,6 +12,100 @@ import { createRequire } from 'node:module';
 import { launchApp, windowWithQuery } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
+test('AG61 mounted production consumers reconcile save/apply failures and ignore stale IPC replies', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client';
+    import SettingsOverlay from './src/components/SettingsOverlay';
+    import SettingsPopup from './src/components/SettingsPopup';
+    import Launcher from './src/components/Launcher';
+    import NativelyInterface from './src/components/NativelyInterface';
+    import { setUiLanguage } from './src/i18n';
+    const listeners = new Map(); const subscribe = (name, fn) => { const set = listeners.get(name) || new Set(); set.add(fn); listeners.set(name, set); return () => set.delete(fn); };
+    const snapshot = { protection: { success: true, kind: 'protection', value: false, revision: 0 }, passthrough: { success: true, kind: 'passthrough', value: false, revision: 0 }, disguise: { success: true, kind: 'disguise', value: 'none', revision: 0 } };
+    window.pendingRequests = []; window.language = setUiLanguage;
+    window.emitPreference = result => { snapshot[result.kind] = result; for (const listener of listeners.get('onWindowPreferenceResult') || []) listener(result); };
+    window.emitKeys = result => { for (const listener of listeners.get('onKeybindResult') || []) listener(result); };
+    const pending = (kind, value) => new Promise((resolve, reject) => window.pendingRequests.push({ kind, value, resolve, reject }));
+    const api = {
+      getWindowPreferences: async () => Object.values(snapshot), onWindowPreferenceResult: fn => subscribe('onWindowPreferenceResult', fn),
+      setUndetectable: value => pending('protection', value), setOverlayMousePassthrough: value => pending('passthrough', value), setDisguise: value => pending('disguise', value),
+      getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }), onKeybindResult: fn => subscribe('onKeybindResult', fn),
+      getRecentMeetings: async () => [], getStoredCredentials: async () => ({}), getCredentialLoadStatus: async () => ({ ok: true }), getThemeMode: async () => ({ mode: 'system' }),
+      getInputDevices: async () => [], getOutputDevices: async () => [], getRecognitionLanguages: async () => ({}), getAiResponseLanguages: async () => [],
+      getOpenAtLogin: async () => false, getMeetingActive: async () => false, getMeetingRetention: async () => 'forever', getActionButtonMode: async () => 'recap',
+      getDefaultModel: async () => ({ model: 'synthetic' }), resetKeybinds: () => pending('keybinds', null)
+    };
+    window.electronAPI = new Proxy(api, { get(target, name) { if (name in target) return target[name]; if (String(name).startsWith('on')) return fn => subscribe(name, fn); return async () => undefined; } });
+    const root = createRoot(document.getElementById('root'));
+    window.mountConsumer = (name, tab = 'general') => {
+      const component = name === 'settings' ? React.createElement(SettingsOverlay, { isOpen: true, onClose() {}, initialTab: tab }) : name === 'popup' ? React.createElement(SettingsPopup) : name === 'launcher' ? React.createElement(Launcher, { onStartMeeting() {}, onOpenSettings() {} }) : React.createElement(NativelyInterface);
+      root.render(React.createElement(React.Fragment, { key: name + tab }, component));
+    };
+    window.mountConsumer('settings', 'privacy');
+  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  const sandbox = makeSandbox('ag61-consumers'); let app;
+  const saveError = 'The window preference could not be saved.';
+  const applyError = 'The window preference could not be fully applied. Retry the setting.';
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await opened; const pageErrors = []; page.on('pageerror', error => { pageErrors.push(error.message); console.error('[AG61 renderer]', error.message); });
+    await page.evaluate(() => {
+      const storage = new Map();
+      Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
+    });
+    const assets = path.join(REPO, 'dist/assets');
+    for (const css of fs.readdirSync(assets).filter(name => name.endsWith('.css'))) await page.addStyleTag({ path: path.join(assets, css) });
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const protection = () => page.getByRole('switch', { name: 'Window protection', exact: true });
+    const checked = async (locator, value) => { await page.waitForFunction(({ label, value }) => document.querySelector('[role="switch"][aria-label="' + label + '"]')?.getAttribute('aria-checked') === String(value), { label: await locator.getAttribute('aria-label'), value }); };
+    await protection().waitFor(); await checked(protection(), false);
+    await protection().press('Space');
+    await page.waitForFunction(() => window.pendingRequests.length === 1);
+    await page.evaluate(error => window.pendingRequests.shift().resolve({ success: false, kind: 'protection', value: false, revision: 0, code: 'save_failed', error }), saveError);
+    await checked(protection(), false); await page.getByRole('alert').filter({ hasText: saveError }).waitFor();
+    await protection().click();
+    await page.waitForFunction(() => window.pendingRequests.length === 1);
+    await page.evaluate(error => { const result = { success: false, kind: 'protection', value: true, revision: 1, code: 'apply_failed', error }; window.emitPreference(result); window.pendingRequests.shift().resolve(result); }, applyError);
+    await checked(protection(), true); await page.getByRole('alert').filter({ hasText: applyError }).waitFor();
+    // Independent disguise remains selectable while protection is enabled.
+    await page.evaluate(() => window.mountConsumer('settings', 'privacy'));
+    await page.getByRole('button', { name: 'Terminal', exact: true }).click();
+    await page.waitForFunction(() => window.pendingRequests.length === 1);
+    assert.equal(await page.evaluate(() => window.pendingRequests[0].value), 'terminal');
+    await page.evaluate(() => { const result = { success: true, kind: 'disguise', value: 'terminal', revision: 1 }; window.emitPreference(result); window.pendingRequests.shift().resolve(result); });
+    // A second actual consumer receives the saved preference and later broadcast.
+    await page.evaluate(() => window.mountConsumer('popup'));
+    await protection().waitFor(); await checked(protection(), true);
+    await page.getByRole('alert').filter({ hasText: applyError }).waitFor();
+    await page.evaluate(() => window.emitPreference({ success: true, kind: 'protection', value: false, revision: 2 }));
+    await checked(protection(), false);
+    await page.evaluate(() => window.mountConsumer('launcher'));
+    await protection().waitFor(); await checked(protection(), false);
+    await protection().click(); await page.waitForFunction(() => window.pendingRequests.length === 1);
+    await page.evaluate(() => { window.emitPreference({ success: true, kind: 'protection', value: true, revision: 4 }); window.pendingRequests.shift().resolve({ success: true, kind: 'protection', value: false, revision: 3 }); });
+    await checked(protection(), true);
+    // Consecutive transport failures restore the last authoritative, not optimistic, preference.
+    await protection().click(); await protection().click();
+    await page.waitForFunction(() => window.pendingRequests.length === 2);
+    await page.evaluate(() => { window.pendingRequests.shift().resolve({ success: true, kind: 'protection', value: false, revision: 5 }); window.pendingRequests.shift().reject(Error('transport')); });
+    await checked(protection(), true); await page.getByRole('alert').filter({ hasText: applyError }).waitFor();
+    await page.evaluate(() => window.mountConsumer('overlay'));
+    const passthrough = page.getByRole('switch', { name: 'Mouse passthrough', exact: true });
+    await passthrough.waitFor(); await checked(passthrough, false);
+    await passthrough.click(); await page.waitForFunction(() => window.pendingRequests.length === 1);
+    await page.evaluate(error => { const result = { success: false, kind: 'passthrough', value: false, revision: 1, code: 'apply_failed', error }; window.emitPreference(result); window.pendingRequests.shift().resolve(result); }, applyError);
+    await checked(passthrough, false); await page.getByRole('alert').filter({ hasText: applyError }).waitFor();
+    await page.evaluate(() => window.emitKeys({ success: false, code: 'apply_failed', keybinds: [], failedActions: [{ id: 'general:take-screenshot', accelerator: 'Control+H' }, { id: 'window:move-up', accelerator: 'Control+Up' }], error: 'Some keyboard shortcuts could not be registered. Choose another shortcut or retry.' }));
+    await page.getByRole('alert').filter({ hasText: 'general:take-screenshot' }).waitFor(); await page.getByRole('alert').filter({ hasText: 'window:move-up' }).waitFor();
+    assert.deepEqual(pageErrors, []);
+    await page.close();
+  } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('AG60a mounted Skills settings switch language without resetting controls or calling extra IPC', async () => {
   const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
     import React from 'react'; import { createRoot } from 'react-dom/client';

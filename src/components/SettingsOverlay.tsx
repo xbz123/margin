@@ -20,6 +20,7 @@ import { PromptSettings } from './settings/PromptSettings';
 import { NativelyLogoMark } from './NativelyLogoMark';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShortcuts } from '../hooks/useShortcuts';
+import { useWindowPreferences } from '../hooks/useWindowPreferences';
 import { isMac } from '../utils/platformUtils';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import {
@@ -396,10 +397,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         if (!result.ok) setUiLanguageError(result.message);
     };
 
-    const { shortcuts, updateShortcut, resetShortcuts } = useShortcuts();
-    const [isUndetectable, setIsUndetectable] = useState(false);
-    const [isMousePassthrough, setIsMousePassthrough] = useState(false);
-    const [disguiseMode, setDisguiseMode] = useState<'terminal' | 'settings' | 'activity' | 'none'>('none');
+    const { shortcuts, updateShortcut, resetShortcuts, shortcutError, failedShortcuts } = useShortcuts();
+    const { isUndetectable, isMousePassthrough, disguiseMode, setProtection, setPassthrough, setDisguise, preferenceErrors } = useWindowPreferences();
     const [openOnLogin, setOpenOnLogin] = useState(false);
     const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('system');
     const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
@@ -423,9 +422,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
 
             // Fetch true initial state from main process
-            window.electronAPI?.getUndetectable?.().then(setIsUndetectable).catch(() => { });
-            window.electronAPI?.getOverlayMousePassthrough?.().then(setIsMousePassthrough).catch(() => { });
-            window.electronAPI?.getDisguise?.().then(setDisguiseMode).catch(() => { });
             window.electronAPI?.getVerboseLogging?.().then(setVerboseLogging).catch(() => { });
             window.electronAPI?.getMeetingRetention?.().then(setMeetingRetention).catch(() => { });
         }
@@ -442,35 +438,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
 
     useEffect(() => {
-        if (window.electronAPI?.onUndetectableChanged) {
-            const unsubscribe = window.electronAPI.onUndetectableChanged((newState: boolean) => {
-                setIsUndetectable(newState);
-            });
-            return () => unsubscribe();
-        }
-    }, []);
-
-    useEffect(() => {
         if (window.electronAPI?.onMeetingRetentionChanged) {
             const unsubscribe = window.electronAPI.onMeetingRetentionChanged(setMeetingRetention);
-            return () => unsubscribe();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (window.electronAPI?.onDisguiseChanged) {
-            const unsubscribe = window.electronAPI.onDisguiseChanged((newMode: any) => {
-                setDisguiseMode(newMode);
-            });
-            return () => unsubscribe();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (window.electronAPI?.onOverlayMousePassthroughChanged) {
-            const unsubscribe = window.electronAPI.onOverlayMousePassthroughChanged((enabled: boolean) => {
-                setIsMousePassthrough(enabled);
-            });
             return () => unsubscribe();
         }
     }, []);
@@ -1149,10 +1118,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
     useEffect(() => {
         if (isOpen) {
-            // Load detectable status
-            if (window.electronAPI?.getUndetectable) {
-                window.electronAPI.getUndetectable().then(setIsUndetectable);
-            }
             if (window.electronAPI?.getOpenAtLogin) {
                 window.electronAPI.getOpenAtLogin().then(setOpenOnLogin);
             }
@@ -1345,6 +1310,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{t(credentialNotice)}</p>}
                             {(showGeneral || showPrivacy) && (
                                 <div className="space-y-6 animated fadeIn">
+                                    {Object.entries(preferenceErrors).map(([kind, error]) => error && <p role="alert" className="text-xs text-red-400" key={kind}>{t(error)}</p>)}
                                     <div className="space-y-3.5">
                                         {showPrivacy && <>
                                         {/* UndetectableToggle */}
@@ -1379,10 +1345,11 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             <div
                                                 onClick={() => {
                                                     const newState = !isUndetectable;
-                                                    setIsUndetectable(newState);
-                                                    window.electronAPI?.setUndetectable(newState);
+                                                    void setProtection(newState);
                                                     // Analytics: Undetectable Mode Toggle
                                                 }}
+                                                role="switch" aria-label={t('Window protection')} aria-checked={isUndetectable}
+                                                tabIndex={0} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); void setProtection(!isUndetectable); } }}
                                                 className={`w-11 h-6 rounded-full relative transition-colors ${isUndetectable ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
                                             >
                                                 <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isUndetectable ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -1403,9 +1370,10 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             <div
                                                 onClick={() => {
                                                     const newState = !isMousePassthrough;
-                                                    setIsMousePassthrough(newState);
-                                                    window.electronAPI?.setOverlayMousePassthrough(newState);
+                                                    void setPassthrough(newState);
                                                 }}
+                                                role="switch" aria-label={t('Mouse passthrough')} aria-checked={isMousePassthrough}
+                                                tabIndex={0} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); void setPassthrough(!isMousePassthrough); } }}
                                                 className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${isMousePassthrough ? 'bg-sky-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
                                             >
                                                 <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isMousePassthrough ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -1919,17 +1887,12 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             <p className="text-xs text-text-secondary">
                                                 {t('Change the displayed application identity for {name}. This does not guarantee invisibility during screen sharing.', { name: APP_NAME })}
                                                 <span className="block mt-1 text-text-tertiary">
-                                                    {t('Select a disguise to be automatically applied when Undetectable mode is on.')}
+                                                    {t('The disguise applies independently of window protection.')}
                                                 </span>
                                             </p>
                                         </div>
 
-                                        <div className={`grid grid-cols-2 gap-3 ${isUndetectable ? 'opacity-50 pointer-events-none' : ''}`}>
-                                            {isUndetectable && (
-                                                <p className="col-span-2 text-xs text-yellow-500/80 -mt-1 mb-1">
-                                                    ⚠️ {t('Disable Undetectable mode first to change disguise.')}
-                                                </p>
-                                            )}
+                                        <div className="grid grid-cols-2 gap-3">
                                             {[
                                                 { id: 'none', label: 'None (Default)', icon: <Layout size={14} /> },
                                                 { id: 'terminal', label: 'Terminal', icon: <Terminal size={14} /> },
@@ -1938,19 +1901,14 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             ].map((option) => (
                                                 <button
                                                     key={option.id}
-                                                    disabled={isUndetectable}
                                                     onClick={() => {
-                                                        if (isUndetectable) return;
-                                                        // @ts-ignore
-                                                        setDisguiseMode(option.id);
-                                                        // @ts-ignore
-                                                        window.electronAPI?.setDisguise(option.id);
+                                                        void setDisguise(option.id as 'none' | 'terminal' | 'settings' | 'activity');
                                                         // Analytics
                                                     }}
                                                     className={`p-3 rounded-lg border text-left flex items-center gap-3 transition-all ${disguiseMode === option.id
                                                         ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-blue-500/20'
                                                         : 'bg-bg-input border-border-subtle text-text-secondary hover:text-text-primary hover:bg-bg-subtle-hover'
-                                                        } ${isUndetectable ? 'cursor-not-allowed' : ''}`}
+                                                        }`}
                                                 >
                                                     <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${disguiseMode === option.id ? 'bg-white/20 text-white' : 'bg-bg-item-surface text-text-secondary'
                                                         }`}>
@@ -1977,6 +1935,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             )}
                             {activeTab === 'keybinds' && (
                                 <div className="space-y-5 animated fadeIn select-text pb-4">
+                                    {shortcutError && <p role="alert" className="text-xs text-red-400">{t(shortcutError)}</p>}
+                                    {failedShortcuts.map(item => <p role="alert" className="text-xs text-red-400" key={item.id}>{t('Shortcut unavailable: {action} ({shortcut}).', { action: item.id, shortcut: item.accelerator })}</p>)}
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <h3 className="text-lg font-bold text-text-primary mb-1">{t('Keyboard shortcuts')}</h3>

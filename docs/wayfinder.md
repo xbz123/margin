@@ -2,13 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-13，阶段 5 已由用户签收，阶段 6 的 AG-60 设置与双语已通过主 Agent 本地完整门禁及审阅，待本票公开 CI；见[AG-60 证据](margin/evidence/AG-60/README.md)。后续 AG-61/62 按依赖串行，实机、正式身份放开及发布仍需单独授权。
+**Current answer:** 截至 2026-10-13，阶段 5 已由用户签收，阶段 6 的 AG-60 已交付并通过公开 CI（`968ea59d`）；AG-61 已完成实现、独立审阅与完整本地门禁，待提交及公开普通 CI，见[AG-61 证据](margin/evidence/AG-61/README.md)。实机、正式身份放开及发布仍需单独授权。
 
-**Current focus:** 提交并推送已通过本地验收的 AG-60，取得对应提交的公开普通 CI 终态后再继续 AG-61；本次不安装、打包发布或调用真实服务。
+**Current focus:** 按已授权阶段 6 顺序核对并补齐 AG-61 的保护、穿透、伪装和快捷键契约；保留现有激活策略，不把模拟检查当作真实共享效果，不安装、打包发布或调用真实服务。
 
 ## In progress
 
-- **AG-60 设置与双语** — running；resume：[验收记录](margin/evidence/AG-60/README.md)；next：提交、推送并核对本票公开 CI；不包含图标重设计、真实共享保护或发布。
+- **AG-61 窗口控制** — running；resume：[验收记录](margin/evidence/AG-61/README.md)；next：提交两库、运行并核对普通公开 CI，成功后进入 AG-62 引导/文档；不包含实机共享或发布。
 
 ## Waiting
 
@@ -23,6 +23,7 @@
 
 ## Done (rolling)
 
+- AG-60 设置与双语（2026-10-13）：`968ea59d` 两库交付，本地完整门禁和[公开 CI](https://github.com/xbz123/margin/actions/runs/38465269168)通过；[验收记录](margin/evidence/AG-60/README.md)。
 - 阶段 5 用户签收（2026-10-13）：用户“同意，可以开始阶段6”；技术证据及未实测边界见[出口回执](margin/evidence/CI-38447881500/README.md)。
 - S42-04 原输入重试与可见首字计时（2026-10-13）：`7915b627` 已推送两库，独立审阅、本地门禁及[公开 CI](https://github.com/xbz123/margin/actions/runs/38394532024)通过；[验收证据](margin/evidence/S42-04/README.md)。回执与状态更新留待下一次已授权提交，不重复运行测试。
 - AG-40（Codex）和 AG-41a（AGY，与 AG-40 并行）（2026-10-11）：双路音频与会话生命周期；退役 Google、Deepgram、ElevenLabs、Azure、IBM Watson 五家 STT（S39）。合并后完整 gates 16/16。

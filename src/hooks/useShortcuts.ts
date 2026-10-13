@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { KeybindResult } from '../types/windowPreferences';
 import { acceleratorToKeys, keysToAccelerator } from '../utils/keyboardUtils';
 import { getPlatformShortcut, isMac } from '../utils/platformUtils';
 
@@ -84,6 +85,10 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = buildDefaultShortcuts();
 export const useShortcuts = () => {
     // Initialize state with platform-aware defaults
     const [shortcuts, setShortcuts] = useState<ShortcutConfig>(buildDefaultShortcuts);
+    const [shortcutError, setShortcutError] = useState<string>();
+    const [failedShortcuts, setFailedShortcuts] = useState<KeybindResult['failedActions']>([]);
+    const updates = useRef(0);
+    const requests = useRef(0);
 
     // Map backend keybinds (array of objects) to frontend state (ShortcutConfig)
     const mapBackendToFrontend = useCallback((backendKeybinds: any[]) => {
@@ -130,12 +135,25 @@ export const useShortcuts = () => {
         });
     }, []);
 
+    const applyResult = useCallback((result: KeybindResult) => {
+        updates.current++;
+        mapBackendToFrontend(result.keybinds);
+        setFailedShortcuts(result.failedActions);
+        setShortcutError(result.success ? undefined : result.error);
+    }, [mapBackendToFrontend]);
+
     // Load from Main Process on mount
     useEffect(() => {
         const fetchKeybinds = async () => {
             try {
+                const before = updates.current;
+                if (window.electronAPI.getKeybindStatus) {
+                    const status = await window.electronAPI.getKeybindStatus();
+                    if (before === updates.current) applyResult(status);
+                    return;
+                }
                 const keybinds = await window.electronAPI.getKeybinds();
-                mapBackendToFrontend(keybinds);
+                if (before === updates.current) mapBackendToFrontend(keybinds);
             } catch (error) {
                 console.error('Failed to fetch keybinds:', error);
             }
@@ -145,17 +163,15 @@ export const useShortcuts = () => {
 
         // Listen for updates
         const unsubscribe = window.electronAPI.onKeybindsUpdate((keybinds) => {
+            updates.current++;
             mapBackendToFrontend(keybinds);
         });
-
-        return unsubscribe;
-    }, [mapBackendToFrontend]);
+        const removeResult = window.electronAPI.onKeybindResult?.(applyResult);
+        return () => { unsubscribe(); removeResult?.(); };
+    }, [mapBackendToFrontend, applyResult]);
 
     // Function to update a specific shortcut
     const updateShortcut = useCallback(async (actionId: keyof ShortcutConfig, keys: string[]) => {
-        // Optimistic update
-        setShortcuts(prev => ({ ...prev, [actionId]: keys }));
-
         const accelerator = keysToAccelerator(keys);
         let backendId = '';
 
@@ -193,23 +209,28 @@ export const useShortcuts = () => {
         }
 
         if (backendId) {
+            const request = ++requests.current;
+            const before = updates.current;
             try {
-                await window.electronAPI.setKeybind(backendId, accelerator);
+                const result = await window.electronAPI.setKeybind(backendId, accelerator);
+                if (request === requests.current && before === updates.current) applyResult(result);
             } catch (error) {
-                console.error(`Failed to set keybind for ${actionId}:`, error);
+                if (request === requests.current && before === updates.current) setShortcutError('Keyboard shortcuts could not be saved.');
             }
         }
-    }, []);
+    }, [applyResult]);
 
     // Function to reset all shortcuts to defaults
     const resetShortcuts = useCallback(async () => {
+        const request = ++requests.current;
+        const before = updates.current;
         try {
-            const defaults = await window.electronAPI.resetKeybinds();
-            mapBackendToFrontend(defaults);
+            const result = await window.electronAPI.resetKeybinds();
+            if (request === requests.current && before === updates.current) applyResult(result);
         } catch (error) {
-            console.error('Failed to reset keybinds:', error);
+            if (request === requests.current && before === updates.current) setShortcutError('Keyboard shortcuts could not be saved.');
         }
-    }, [mapBackendToFrontend]);
+    }, [applyResult]);
 
     // Helper to check if a keyboard event matches a configured shortcut
     const isShortcutPressed = useCallback((event: KeyboardEvent | React.KeyboardEvent, actionId: keyof ShortcutConfig): boolean => {
@@ -274,6 +295,7 @@ export const useShortcuts = () => {
         shortcuts,
         updateShortcut,
         resetShortcuts,
-        isShortcutPressed
+        isShortcutPressed,
+        shortcutError, failedShortcuts
     };
 };

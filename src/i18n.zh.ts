@@ -1,5 +1,16 @@
 // Only strings used by the current consumers belong here; English is the fallback.
 export const chinese: Readonly<Record<string, string>> = {
+    'Window protection': '窗口保护',
+    'Mouse passthrough': '鼠标穿透',
+    'Invalid window preference.': '窗口设置无效。',
+    'The window preference could not be saved.': '无法保存窗口设置。',
+    'The window preference could not be fully applied. Retry the setting.': '窗口设置未能全部应用，请重试该设置。',
+    'Mouse passthrough could not be applied or restored. Retry the setting.': '无法应用或恢复鼠标穿透，请重试该设置。',
+    'Keyboard shortcuts could not be saved.': '无法保存快捷键。',
+    'Invalid keyboard shortcut.': '快捷键无效。',
+    'Some keyboard shortcuts could not be registered. Choose another shortcut or retry.': '部分快捷键无法注册，请改用其他快捷键或重试。',
+    'Shortcut unavailable: {action} ({shortcut}).': '快捷键不可用：{action}（{shortcut}）。',
+    'The disguise applies independently of window protection.': '伪装独立于窗口保护生效。',
     'Question mode': '问题场景',
     'Reload prompt settings': '重新加载提示词设置',
     'Automatic (by entry)': '自动（按入口）',

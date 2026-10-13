@@ -72,6 +72,20 @@ export class SettingsManager {
         this.saveSettings();
     }
 
+    public saveWindowPreference(key: 'isUndetectable' | 'disguiseMode', value: boolean | AppSettings['disguiseMode']): void {
+        if (key === 'isUndetectable' ? typeof value !== 'boolean' : !['none', 'terminal', 'settings', 'activity'].includes(value as string)) throw new Error('Invalid window preference.');
+        const candidate = { ...this.settings, [key]: value };
+        const temp = this.settingsPath + `.window.${randomUUID()}.tmp`;
+        try {
+            fs.writeFileSync(temp, JSON.stringify(candidate, null, 2), { flag: 'wx', mode: 0o600 });
+            fs.renameSync(temp, this.settingsPath);
+        } catch (error: any) {
+            if (error?.code !== 'EEXIST') { try { fs.unlinkSync(temp); } catch {} }
+            throw new Error('The window preference could not be saved.');
+        }
+        this.settings = candidate;
+    }
+
     public getCodexSourceConfig(): CodexSourceConfig {
         try {
             if (this.settings.codexSource) return validateCodexSourceConfig(this.settings.codexSource);

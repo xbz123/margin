@@ -8,6 +8,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
 import type { UiLanguage, UiLanguageResult } from '../src/types/uiLanguage';
+import type { KeybindResult, WindowPreferenceResult } from '../src/types/windowPreferences';
 
 let verboseLog = false;
 installConsoleLogging(console, (level, line) => {
@@ -337,8 +338,8 @@ interface ElectronAPI {
   onToggleExpand: (callback: () => void) => () => void;
   openSettingsTab: (tab: string) => Promise<void>;
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void;
-  setOverlayMousePassthrough: (enabled: boolean) => Promise<{ success: boolean }>;
-  toggleOverlayMousePassthrough: () => Promise<{ success: boolean; enabled: boolean }>;
+  setOverlayMousePassthrough: (enabled: boolean) => Promise<WindowPreferenceResult>;
+  toggleOverlayMousePassthrough: () => Promise<WindowPreferenceResult>;
   getOverlayMousePassthrough: () => Promise<boolean>;
   onOverlayMousePassthroughChanged: (callback: (enabled: boolean) => void) => () => void;
 
@@ -382,16 +383,12 @@ interface ElectronAPI {
       defaultAccelerator: string;
     }>
   >;
-  setKeybind: (id: string, accelerator: string) => Promise<boolean>;
-  resetKeybinds: () => Promise<
-    Array<{
-      id: string;
-      label: string;
-      accelerator: string;
-      isGlobal: boolean;
-      defaultAccelerator: string;
-    }>
-  >;
+  getKeybindStatus: () => Promise<KeybindResult>;
+  onKeybindResult: (callback: (result: KeybindResult) => void) => () => void;
+  getWindowPreferences: () => Promise<WindowPreferenceResult[]>;
+  onWindowPreferenceResult: (callback: (result: WindowPreferenceResult) => void) => () => void;
+  setKeybind: (id: string, accelerator: string) => Promise<KeybindResult>;
+  resetKeybinds: () => Promise<KeybindResult>;
   onKeybindsUpdate: (callback: (keybinds: Array<any>) => void) => () => void;
 
   // Global shortcut events (stealth: fired even when window is not focused)
@@ -1366,6 +1363,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 
   // Keybind Management
+  getWindowPreferences: () => ipcRenderer.invoke('window-preferences:get'),
+  onWindowPreferenceResult: (callback: (result: WindowPreferenceResult) => void) => {
+    const subscription = (_: unknown, result: WindowPreferenceResult) => callback(result);
+    ipcRenderer.on('window-preferences:result', subscription);
+    return () => ipcRenderer.removeListener('window-preferences:result', subscription);
+  },
+  getKeybindStatus: () => ipcRenderer.invoke('keybinds:get-status'),
+  onKeybindResult: (callback: (result: KeybindResult) => void) => {
+    const subscription = (_: unknown, result: KeybindResult) => callback(result);
+    ipcRenderer.on('keybinds:result', subscription);
+    return () => ipcRenderer.removeListener('keybinds:result', subscription);
+  },
   getKeybinds: () => ipcRenderer.invoke('keybinds:get-all'),
   setKeybind: (id: string, accelerator: string) =>
     ipcRenderer.invoke('keybinds:set', id, accelerator),

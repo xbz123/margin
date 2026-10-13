@@ -755,16 +755,11 @@ export function initializeIpcHandlers(appState: AppState): void {
     appState.settingsWindowHelper.closeWindow();
   });
 
-  safeHandle('set-undetectable', async (_, state: boolean) => {
-    appState.setUndetectable(state);
-    // Return the AUTHORITATIVE final state so the renderer can reconcile / roll
-    // back its optimistic toggle instead of assuming success (RC-2).
-    return { success: true, state: appState.getUndetectable() };
-  });
+  safeHandle('window-preferences:get', () => appState.getWindowPreferences());
+  safeHandle('set-undetectable', (_, state: boolean) => appState.setUndetectable(state));
 
   safeHandle('set-disguise', async (_, mode: 'terminal' | 'settings' | 'activity' | 'none') => {
-    appState.setDisguise(mode);
-    return { success: true };
+    return appState.setDisguise(mode);
   });
 
   safeHandle('get-undetectable', async () => {
@@ -773,14 +768,11 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // Adapted from public PR #113
   safeHandle('set-overlay-mouse-passthrough', async (_, enabled: boolean) => {
-    appState.setOverlayMousePassthrough(enabled);
-    // Authoritative final state for renderer reconciliation (RC-2).
-    return { success: true, enabled: appState.getOverlayMousePassthrough() };
+    return appState.setOverlayMousePassthrough(enabled);
   });
 
   safeHandle('toggle-overlay-mouse-passthrough', async () => {
-    const enabled = appState.toggleOverlayMousePassthrough();
-    return { success: true, enabled };
+    return appState.setOverlayMousePassthrough(!appState.getOverlayMousePassthrough());
   });
 
   safeHandle('get-overlay-mouse-passthrough', async () => {

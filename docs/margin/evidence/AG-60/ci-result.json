@@ -1,0 +1,116 @@
+{
+  "run": 38465269168,
+  "url": "https://github.com/xbz123/margin/actions/runs/38465269168",
+  "headSha": "968ea59d54e6c5a95a664b4051b9f738ded8be9f",
+  "status": "completed",
+  "conclusion": "success",
+  "inputs": {
+    "gate_ref": "docs/margin/evidence/AG-60",
+    "no_cache": false,
+    "package_apps": false
+  },
+  "jobs": [
+    {
+      "databaseId": 115530308978,
+      "name": "gates",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "artifact": {
+    "id": 11847918656,
+    "sha256": "15d01e90953be5f696ee7f7e47dac2cb3f1224d1075659bc9a227ed1f0503df3",
+    "archiveDigestVerified": true
+  },
+  "gates": [
+    {
+      "id": "clean-dist",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "build-electron",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "vite-build",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "tsc-renderer",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "tsc-electron",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "provenance",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "retired",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "preload-contract",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "ipc-channels",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "guard-selftest",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "tests",
+      "passed": true,
+      "exitCode": 0,
+      "counts": {
+        "tests": 1124,
+        "pass": 1123,
+        "fail": 0,
+        "skipped": 1,
+        "cancelled": 0,
+        "todo": 0
+      }
+    },
+    {
+      "id": "regression",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "storage",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "startup",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "outbound-renderer",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "id": "diff-check",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "note": "GitHub job response omitted step details; downloaded current-SHA gate reports and release identity contract were checked instead."
+}

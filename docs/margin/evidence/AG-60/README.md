@@ -57,8 +57,17 @@ esbuild-allow-list failures were repaired without weakening safety assertions.
 
 Machine-specific prefixes in generated evidence are normalized for publication;
 test results, counts and content are unchanged. No dependencies, native modules,
-icons or packaging configuration changed. Public ticket CI is pending on the
+icons or packaging configuration changed. Public ticket CI passed on the
 committed source; no earlier green run substitutes for it.
+
+Delivery recovery: `968ea59d54e6c5a95a664b4051b9f738ded8be9f` is pushed to both
+repositories. [Public ticket CI 38465269168](https://github.com/xbz123/margin/actions/runs/38465269168)
+was dispatched on that SHA with `gate_ref=docs/margin/evidence/AG-60`,
+`no_cache=false`, `package_apps=false`; it completed successfully. The downloaded
+gate artifact matches the GitHub digest and this exact SHA: gates 16/16, unit
+counts unchanged, required evidence passes and release identity contract 6/6.
+The API job response omitted its step details; those artifact reports supply the
+check evidence instead. See `ci-result.json` and the two `ci-*.log` receipts.
 
 ## Limits
 

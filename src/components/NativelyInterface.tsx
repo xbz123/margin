@@ -77,6 +77,7 @@ import remarkMath from 'remark-math';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { genMessageId } from '../utils/messageId';
 import { useShortcuts } from '../hooks/useShortcuts';
+import { useWindowPreferences } from '../hooks/useWindowPreferences';
 import type { MeetingInterfaceTheme } from '../lib/meetingInterfaceTheme';
 import {
   getGlassOverlayAppearance,
@@ -385,7 +386,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const shellRef = React.useRef<HTMLDivElement>(null);
   const [isExpanded, setIsExpanded] = useState(true);
   const [inputValue, setInputValue] = useState('');
-  const { shortcuts, isShortcutPressed } = useShortcuts();
+  const { shortcuts, isShortcutPressed, shortcutError, failedShortcuts } = useShortcuts();
   const [messages, setMessages] = useState<Message[]>([]);
   // Keep chat history visible once an answer lands until explicit clear / session reset.
   const [answerPanelPinned, setAnswerPanelPinned] = useState(false);
@@ -552,7 +553,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   );
 
   // Settings State with Persistence
-  const [isUndetectable, setIsUndetectable] = useState(false);
+  const { isUndetectable, isMousePassthrough, setPassthrough, preferenceErrors } = useWindowPreferences();
   const [hideChatHidesWidget, setHideChatHidesWidget] = useState(() => {
     const stored = localStorage.getItem('natively_hideChatHidesWidget');
     return stored ? stored === 'true' : true;
@@ -834,39 +835,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     return () => unsubscribe();
   }, []);
 
-  // Global State Sync
-  useEffect(() => {
-    // Fetch initial state
-    if (window.electronAPI?.getUndetectable) {
-      window.electronAPI.getUndetectable().then(setIsUndetectable);
-    }
-
-    if (window.electronAPI?.onUndetectableChanged) {
-      const unsubscribe = window.electronAPI.onUndetectableChanged((state) => {
-        setIsUndetectable(state);
-      });
-      return () => unsubscribe();
-    }
-  }, []);
-
   // Persist Settings
   useEffect(() => {
     localStorage.setItem('natively_undetectable', String(isUndetectable));
     localStorage.setItem('natively_hideChatHidesWidget', String(hideChatHidesWidget));
   }, [isUndetectable, hideChatHidesWidget]);
-
-  // Mouse Passthrough State
-  const [isMousePassthrough, setIsMousePassthrough] = useState(false);
-  useEffect(() => {
-    window.electronAPI
-      ?.getOverlayMousePassthrough?.()
-      .then(setIsMousePassthrough)
-      .catch(() => {});
-    const unsub = window.electronAPI?.onOverlayMousePassthroughChanged?.((v) =>
-      setIsMousePassthrough(v),
-    );
-    return () => unsub?.();
-  }, []);
 
   // Audio capture / screen-recording warning banner. Two distinct IPC
   // events feed the same banner surface but require different title and
@@ -3312,9 +3285,7 @@ Provide only the answer, nothing else.`;
       }
     },
     toggleMousePassthrough: () => {
-      const newState = !isMousePassthrough;
-      setIsMousePassthrough(newState);
-      window.electronAPI?.setOverlayMousePassthrough?.(newState);
+      void setPassthrough(!isMousePassthrough);
     },
     takeScreenshot: async () => {
       try {
@@ -3360,9 +3331,7 @@ Provide only the answer, nothing else.`;
       }
     },
     toggleMousePassthrough: () => {
-      const newState = !isMousePassthrough;
-      setIsMousePassthrough(newState);
-      window.electronAPI?.setOverlayMousePassthrough?.(newState);
+      void setPassthrough(!isMousePassthrough);
     },
     takeScreenshot: async () => {
       try {
@@ -4534,6 +4503,9 @@ Provide only the answer, nothing else.`;
                                     activation hotkey is already claimed by another app or by the
                                     OS). Click-to-activate still works (mousedown listener is
                                     independent of the hotkey), but the user can rebind in Settings. */}
+                {Object.entries(preferenceErrors).map(([kind, error]) => error && <p role="alert" className="text-xs text-red-400" key={kind}>{t(error)}</p>)}
+                {shortcutError && <p role="alert" className="text-xs text-red-400">{t(shortcutError)}</p>}
+                {failedShortcuts.map(item => <p role="alert" className="text-xs text-red-400" key={item.id}>{t('Shortcut unavailable: {action} ({shortcut}).', { action: item.id, shortcut: item.accelerator })}</p>)}
                 {stealthHotkeyConflict && (
                   <div
                     className="mb-2 px-3 py-2 rounded-xl border border-rose-400/40 bg-rose-500/10 text-[11px] flex items-center gap-2"
@@ -4754,10 +4726,9 @@ Provide only the answer, nothing else.`;
                     <div className="relative">
                       <button
                         onClick={() => {
-                          const newState = !isMousePassthrough;
-                          setIsMousePassthrough(newState);
-                          window.electronAPI?.setOverlayMousePassthrough?.(newState);
+                          void setPassthrough(!isMousePassthrough);
                         }}
+                        role="switch" aria-label={t('Mouse passthrough')} aria-checked={isMousePassthrough}
                         className={`
                                                     w-7 h-7 flex items-center justify-center rounded-lg
                                                     interaction-base interaction-press

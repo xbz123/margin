@@ -4,12 +4,13 @@ import { useShortcuts } from '../hooks/useShortcuts';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { getModifierSymbol } from '../utils/platformUtils';
 import { useI18n } from '../i18n';
+import { useWindowPreferences } from '../hooks/useWindowPreferences';
 
 const SettingsPopup = () => {
     const { t } = useI18n();
     const { shortcuts } = useShortcuts();
     const isLightTheme = useResolvedTheme() === 'light';
-    const [isUndetectable, setIsUndetectable] = useState(false);
+    const { isUndetectable, setProtection, preferenceErrors } = useWindowPreferences();
     const [useGroqFastText, setUseGroqFastText] = useState(() => {
         return localStorage.getItem('natively_groq_fast_text') === 'true';
     });
@@ -46,25 +47,6 @@ const SettingsPopup = () => {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
-    // Fetch initial undetectable state from main process (source of truth)
-    useEffect(() => {
-        if (window.electronAPI?.getUndetectable) {
-            window.electronAPI.getUndetectable().then((state: boolean) => {
-                setIsUndetectable(state);
-            });
-        }
-    }, []);
-
-    // One-way listener: receive state changes from main process, never echo back
-    useEffect(() => {
-        if (window.electronAPI?.onUndetectableChanged) {
-            const unsubscribe = window.electronAPI.onUndetectableChanged((newState: boolean) => {
-                setIsUndetectable(newState);
-                localStorage.setItem('natively_undetectable', String(newState));
-            });
-            return () => unsubscribe();
-        }
-    }, []);
 
     useEffect(() => {
         // Listen for changes from other windows (2-way sync)
@@ -179,6 +161,7 @@ const SettingsPopup = () => {
                 <div className="relative z-[1] flex flex-col">
 
                 {/* Undetectability */}
+                {preferenceErrors.protection && <p role="alert" className="px-2.5 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                 <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-200 group cursor-default ${itemHoverClass} ${glassRowClass}`}>
                     <div className="flex items-center gap-2.5">
                         <CustomGhost
@@ -187,15 +170,14 @@ const SettingsPopup = () => {
                             stroke={isUndetectable ? "none" : "currentColor"}
                             eyeColor={isUndetectable ? (isLightTheme ? "white" : "black") : (isLightTheme ? "#334155" : "white")}
                         />
-                        <span className={`text-[12px] font-medium transition-colors ${isUndetectable ? (isLightTheme ? 'text-slate-950' : 'text-white') : labelInactiveClass}`}>{isUndetectable ? 'Undetectable' : 'Detectable'}</span>
+                        <span className={`text-[12px] font-medium transition-colors ${isUndetectable ? (isLightTheme ? 'text-slate-950' : 'text-white') : labelInactiveClass}`}>{t(isUndetectable ? 'Protection on' : 'Protection off')}</span>
                     </div>
                     <button
                         onClick={() => {
                             const newState = !isUndetectable;
-                            setIsUndetectable(newState);
-                            localStorage.setItem('natively_undetectable', String(newState));
-                            window.electronAPI?.setUndetectable(newState);
+                            void setProtection(newState);
                         }}
+                        role="switch" aria-label={t('Window protection')} aria-checked={isUndetectable}
                         className={`w-[30px] h-[18px] rounded-full p-[1.5px] transition-all duration-300 ease-spring active:scale-[0.92] ${isUndetectable
                             ? (isLightTheme ? 'bg-slate-900 shadow-[0_2px_8px_rgba(15,23,42,0.18)]' : 'bg-white shadow-[0_2px_8px_rgba(255,255,255,0.2)]')
                             : defaultToggleTrackClass}`}

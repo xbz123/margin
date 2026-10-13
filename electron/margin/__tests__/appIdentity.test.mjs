@@ -237,29 +237,31 @@ test('disguise restores the build name and leaves persisted paths in its own dir
   const source = fs.readFileSync(path.join(REPO, 'electron/main.ts'), 'utf8');
   const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
   const appState = ast.statements.find((s) => ts.isClassDeclaration(s) && s.name?.text === 'AppState');
-  const method = appState.members.find((m) => m.name?.getText(ast) === '_applyDisguise').getText(ast);
-  const code = ts.transpileModule(`class DisguiseCheck { ${method} } exports.DisguiseCheck = DisguiseCheck;`, {
+  const methods = ['_applyDisguise', 'getDisguiseName', 'getDisguiseIconPath', 'preferenceWindows'].map(name => appState.members.find(m => m.name?.getText(ast) === name).getText(ast));
+  const code = ts.transpileModule(`class DisguiseCheck { ${methods.join('\n')} } exports.DisguiseCheck = DisguiseCheck;`, {
     compilerOptions: { module: ts.ModuleKind.CommonJS },
   }).outputText;
   const electron = fakeElectron();
   load(path.join(REPO, 'dist-electron/electron/margin/appIdentity.js'), electron).initializeAppIdentity();
   electron.app.getAppPath = () => REPO;
   const processDouble = { platform: 'win32', env: {}, title: '' };
-  const window = { isDestroyed: () => false, setTitle(title) { this.title = title; }, webContents: { send() {} } };
+  const window = { isDestroyed: () => false, setTitle(title) { this.title = title; }, setIcon() {}, webContents: { send() {} } };
   const exports = {};
   vm.runInNewContext(code, {
     exports, APP_IDENTITY: identity, app: electron.app, process: processDouble, path,
-    fs: { existsSync: () => false }, console: { log() {}, warn() {} },
+    fs: { existsSync: () => true }, nativeImage: { createFromPath: () => ({ isEmpty: () => false }) }, console: { log() {}, warn() {} },
     setTimeout: () => 1, clearTimeout() {},
   });
   const state = new exports.DisguiseCheck();
   Object.assign(state, {
-    _disguiseTimers: [], isUndetectable: false,
-    windowHelper: { getLauncherWindow: () => window, getOverlayWindow: () => window },
+    _disguiseTimers: [], isUndetectable: false, disguiseMode: 'terminal',
+    windowHelper: { getMainWindow: () => window, getLauncherWindow: () => window, getOverlayWindow: () => window },
     settingsWindowHelper: { getSettingsWindow: () => window },
+    modelSelectorWindowHelper: { getWindow: () => window }, cropperWindowHelper: { getWindow: () => window },
   });
   state._applyDisguise('terminal');
   assert.equal(window.title, 'Command Prompt');
+  state.disguiseMode = 'none';
   state._applyDisguise('none');
   assert.equal(electron.app.getName(), identity.name);
   assert.equal(electron.app.appId, identity.appId);

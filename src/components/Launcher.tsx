@@ -9,6 +9,7 @@ import TopSearchPill from './TopSearchPill';
 import GlobalChatOverlay from './GlobalChatOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShortcuts } from '../hooks/useShortcuts';
+import { useWindowPreferences } from '../hooks/useWindowPreferences';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { isMac } from '../utils/platformUtils';
 import WindowControls from './WindowControls';
@@ -75,7 +76,8 @@ const formatTime = (dateStr: string, language: UiLanguage, t: (english: string) 
 const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onPageChange }) => {
     const { t, language } = useI18n();
     const [meetings, setMeetings] = useState<Meeting[]>([]);
-    const [isDetectable, setIsDetectable] = useState(false);
+    const { isUndetectable, setProtection, preferenceErrors } = useWindowPreferences();
+    const isDetectable = !isUndetectable;
     const [isMeetingActive, setIsMeetingActive] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -123,21 +125,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
             window.electronAPI.seedDemo().catch(err => console.error("Failed to seed demo:", err));
         }
 
-        // Sync initial undetectable state
-        if (window.electronAPI?.getUndetectable) {
-            window.electronAPI.getUndetectable().then((undetectable) => {
-                if (mounted) setIsDetectable(!undetectable);
-            });
-        }
-
-        // Listen for undetectable changes
-        let removeUndetectableListener: (() => void) | undefined;
-        if (window.electronAPI?.onUndetectableChanged) {
-            removeUndetectableListener = window.electronAPI.onUndetectableChanged((undetectable) => {
-                setIsDetectable(!undetectable);
-            });
-        }
-
         fetchMeetings();
 
         // Sync initial meeting active state — guarded so unmounted component isn't written to
@@ -164,7 +151,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
         return () => {
             mounted = false;
             if (removeMeetingsListener) removeMeetingsListener();
-            if (removeUndetectableListener) removeUndetectableListener();
             if (removeMeetingStateListener) removeMeetingStateListener();
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,9 +187,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
     }
 
     const toggleDetectable = () => {
-        const newState = !isDetectable;
-        setIsDetectable(newState);
-        window.electronAPI?.setUndetectable(!newState); // Note: setUndetectable takes the *undetectable* state, which is inverse of *detectable*
+        void setProtection(!isUndetectable);
     };
 
     // Group meetings
@@ -459,6 +443,8 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                  <div
                                                      className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${!isDetectable ? 'bg-accent-primary' : 'bg-bg-toggle-switch'}`}
                                                      onClick={toggleDetectable}
+                                                     role="switch" aria-label={t('Window protection')} aria-checked={isUndetectable}
+                                                     tabIndex={0} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); toggleDetectable(); } }}
                                                  >
                                                      <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all ${!isDetectable ? 'left-[18px]' : 'left-0.5'}`} />
                                                  </div>
@@ -564,6 +550,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
 
                             {/* BOTTOM SECTION: Black Background (Scrollable content) */}
                             <main className="flex-1 overflow-y-auto custom-scrollbar bg-bg-primary">
+                                {preferenceErrors.protection && <p role="alert" className="px-8 pt-3 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                                 <section className="px-8 py-8 min-h-full">
                                     <div className="max-w-4xl mx-auto space-y-8">
 

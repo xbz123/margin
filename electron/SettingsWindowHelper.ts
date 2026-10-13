@@ -85,11 +85,12 @@ export class SettingsWindowHelper {
 
     public showWindow(x?: number, y?: number, options: WindowActivationOptions = {}): void {
         if (!this.settingsWindow || this.settingsWindow.isDestroyed()) {
-            this.createWindow(x, y)
+            this.createWindow(x, y, true, options)
             return
         }
 
         const activate = options.activate ?? true;
+        this.applyContentProtection();
 
         // Set parent to ensure it stays on top of the correct window
         const mainWin = this.windowHelper?.getMainWindow();
@@ -107,7 +108,7 @@ export class SettingsWindowHelper {
         if (process.platform === 'win32' && this.contentProtection) {
             this.settingsWindow.setOpacity(0);
             if (activate) this.settingsWindow.show(); else this.settingsWindow.showInactive();
-            this.settingsWindow.setContentProtection(true);
+            this.applyContentProtection();
 
             if (this.opacityTimeout) clearTimeout(this.opacityTimeout);
             this.opacityTimeout = setTimeout(() => {
@@ -117,7 +118,6 @@ export class SettingsWindowHelper {
                 }
             }, 60);
         } else {
-            this.settingsWindow.setContentProtection(this.contentProtection);
             if (activate) this.settingsWindow.show(); else this.settingsWindow.showInactive();
             if (activate) this.settingsWindow.focus();
         }
@@ -155,10 +155,11 @@ export class SettingsWindowHelper {
         }
     }
 
-    private createWindow(x?: number, y?: number, showWhenReady: boolean = true): void {
+    private createWindow(x?: number, y?: number, showWhenReady: boolean = true, showOptions: WindowActivationOptions = {}): void {
         const isMac = process.platform === 'darwin';
         const windowSettings: Electron.BrowserWindowConstructorOptions = {
-            title: APP_IDENTITY.name,
+            title: this.windowHelper?.getWindowTitle() ?? APP_IDENTITY.name,
+            icon: this.windowHelper?.getWindowIcon(),
             width: 180, // Match React component width (SettingsPopup.tsx)
             height: 200, // Trimmed; ResizeObserver in renderer pins exact height
             frame: false,
@@ -193,6 +194,7 @@ export class SettingsWindowHelper {
         }
 
         this.settingsWindow = new BrowserWindow(windowSettings)
+        this.settingsWindow.on('page-title-updated', event => event.preventDefault());
 
         if (process.platform === "darwin") {
             this.settingsWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
@@ -201,7 +203,8 @@ export class SettingsWindowHelper {
         }
 
         console.log(`[SettingsWindowHelper] Creating Settings Window with Content Protection: ${this.contentProtection}`);
-        this.settingsWindow.setContentProtection(this.contentProtection);
+        try { this.applyContentProtection(); }
+        catch (error) { console.error('[SettingsWindowHelper] Initial window protection failed:', error); }
 
         // Load with query param
         const settingsUrl = isDev
@@ -233,7 +236,8 @@ export class SettingsWindowHelper {
                 }
             }
             if (showWhenReady) {
-                this.showWindow(this.settingsWindow?.getBounds().x || 0, this.settingsWindow?.getBounds().y || 0)
+                try { this.showWindow(this.settingsWindow?.getBounds().x || 0, this.settingsWindow?.getBounds().y || 0, showOptions); }
+                catch (error) { console.error('[SettingsWindowHelper] Window protection failed:', error); }
             }
         })
 
@@ -299,25 +303,32 @@ export class SettingsWindowHelper {
         this.settingsWindow.setPosition(newX, newY);
     }
     private contentProtection: boolean = false; // Track state
+    private protectionFailed = false;
+
+    private applyContentProtection(enable = this.contentProtection): void {
+        if (!this.settingsWindow || this.settingsWindow.isDestroyed()) return;
+        try { this.settingsWindow.setContentProtection(enable); this.protectionFailed = false; }
+        catch (error) { this.protectionFailed = true; if (this.opacityTimeout) { clearTimeout(this.opacityTimeout); this.opacityTimeout = null; } if (this.contentProtection) { try { this.settingsWindow.hide(); } catch {} } this.windowHelper?.reportProtectionFailure(); throw error; }
+    }
 
     public setContentProtection(enable: boolean): void {
         // Dedupe: avoid redundant DWM affinity churn on Windows when the same
         // value is reapplied (settings IPC + show events + global toggles all
         // converge here). The first call still hits both the in-memory state
         // and the native window; later identical calls no-op.
-        if (this.contentProtection === enable && this.settingsWindow && !this.settingsWindow.isDestroyed()) return;
+        if (this.contentProtection === enable && !this.protectionFailed && this.settingsWindow && !this.settingsWindow.isDestroyed()) return;
         console.log(`[SettingsWindowHelper] Setting content protection to: ${enable}`);
         this.contentProtection = enable;
 
         if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
-            this.settingsWindow.setContentProtection(enable);
+            this.applyContentProtection(enable);
         }
     }
 
     public syncActivationPolicy(): void {
         if (process.platform !== 'win32') return;
         if (!this.settingsWindow || this.settingsWindow.isDestroyed()) return;
-        this.settingsWindow.setContentProtection(this.contentProtection);
+        this.applyContentProtection();
         if (this.settingsWindow.isVisible()) {
             this.settingsWindow.setOpacity(1);
         }

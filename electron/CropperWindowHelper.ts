@@ -102,7 +102,7 @@ export class CropperWindowHelper {
     private readonly cancelledListener: (event: IpcMainEvent) => void;
     private beforeQuitHandler: (() => void) | null = null;
 
-    constructor() {
+    constructor(private readonly windowTitle: () => string = () => APP_IDENTITY.name, private readonly protectionFailure: () => void = () => {}, private readonly windowIcon: () => string | undefined = () => undefined) {
         // Define IPC listeners as instance methods for proper cleanup
         this.confirmedListener = (event, bounds: unknown) => {
             // Type guard: validate incoming data from renderer process
@@ -249,8 +249,15 @@ export class CropperWindowHelper {
      */
     public setContentProtection(enable: boolean): void {
         this.isUndetectable = enable;
+        this.applyContentProtection();
+    }
+
+    public getWindow(): BrowserWindow | null { return this.cropperWindow; }
+
+    private applyContentProtection(): void {
         if (this.cropperWindow && !this.cropperWindow.isDestroyed()) {
-            this.cropperWindow.setContentProtection(enable);
+            try { this.cropperWindow.setContentProtection(this.isUndetectable); }
+            catch (error) { if (this.opacityTimeout) { clearTimeout(this.opacityTimeout); this.opacityTimeout = null; } if (this.isUndetectable) { try { this.cropperWindow.hide(); } catch {} } this.protectionFailure(); throw error; }
         }
     }
 
@@ -305,6 +312,7 @@ export class CropperWindowHelper {
                 resolve(bounds);
             };
 
+            try {
             if (this.cropperWindow && !this.cropperWindow.isDestroyed()) {
                 // Get cursor position and display info at the moment cropper is shown
                 const cursorPosition = screen.getCursorScreenPoint();
@@ -341,6 +349,9 @@ export class CropperWindowHelper {
                 // via ready-to-show once the URL finishes loading.
                 this.createWindow(true);
             }
+            } catch (error) {
+                this.rejectCurrentSelection(error instanceof Error ? error : new Error('Window protection could not be applied.'));
+            }
         });
     }
 
@@ -359,11 +370,12 @@ export class CropperWindowHelper {
      */
     private applyOpacityShield(): void {
         if (!this.cropperWindow || this.isDisposed) return;
+        this.applyContentProtection();
 
         if (process.platform === 'win32') {
             this.cropperWindow.setOpacity(0);
             this.cropperWindow.show();
-            this.cropperWindow.setContentProtection(this.isUndetectable);
+            this.applyContentProtection();
 
             // NOTE: Do NOT call maximize() - it limits to current monitor on Windows
             // The window already has correct bounds from createWindow()
@@ -376,7 +388,6 @@ export class CropperWindowHelper {
                 }
             }, CROPPER_CONFIG.OPACITY_DELAY_MS);
         } else {
-            this.cropperWindow.setContentProtection(this.isUndetectable);
             this.cropperWindow.show();
             this.cropperWindow.focus();
         }
@@ -395,7 +406,8 @@ export class CropperWindowHelper {
         console.log(`[CropperWindowHelper] Creating cropper window with multi-monitor bounds:`, combinedBounds);
 
         const windowSettings: Electron.BrowserWindowConstructorOptions = {
-            title: APP_IDENTITY.name,
+            title: this.windowTitle(),
+            icon: this.windowIcon(),
             width,
             height,
             x: combinedBounds.x,
@@ -427,6 +439,7 @@ export class CropperWindowHelper {
         }
 
         this.cropperWindow = new BrowserWindow(windowSettings)
+        this.cropperWindow.on('page-title-updated', event => event.preventDefault());
 
         // Apply NSPanel stealth attributes (becomesKeyOnlyIfNeeded +
         // _setPreventsActivation: SPI + sharingType=None + collectionBehavior).
@@ -489,7 +502,8 @@ export class CropperWindowHelper {
                 }
             }
             if (showImmediately) {
-                this.applyOpacityShield();
+                try { this.applyOpacityShield(); }
+                catch (error) { this.rejectCurrentSelection(error); console.error('[CropperWindowHelper] Window protection failed:', error); }
             }
         })
 

@@ -96,7 +96,7 @@ test('tray uses generated 16pt/@2x files without resizing and restore uses packa
   const main = read('electron/main.ts').toString();
   const ast = ts.createSourceFile('main.ts', main, ts.ScriptTarget.Latest, true);
   const klass = ast.statements.find(s => ts.isClassDeclaration(s) && s.name?.text === 'AppState');
-  const methods = ['showTray', '_applyDisguise'].map(name => klass.members.find(m => m.name?.getText(ast) === name).getText(ast));
+  const methods = ['showTray', '_applyDisguise', 'getDisguiseName', 'getDisguiseIconPath', 'preferenceWindows'].map(name => klass.members.find(m => m.name?.getText(ast) === name).getText(ast));
   const code = ts.transpileModule(`class IconConsumer { ${methods.join('\n')} } exports.IconConsumer = IconConsumer;`, {
     compilerOptions: { module: ts.ModuleKind.CommonJS },
   }).outputText;
@@ -117,9 +117,10 @@ test('tray uses generated 16pt/@2x files without resizing and restore uses packa
       });
       const state = new exports.IconConsumer();
       Object.assign(state, {
-        updateTrayMenu() {}, _disguiseTimers: [], isUndetectable: false,
-        windowHelper: { getLauncherWindow: () => window, getOverlayWindow: () => window },
+        updateTrayMenu() {}, _disguiseTimers: [], isUndetectable: false, disguiseMode: 'none',
+        windowHelper: { getMainWindow: () => window, getLauncherWindow: () => window, getOverlayWindow: () => window },
         settingsWindowHelper: { getSettingsWindow: () => window },
+        modelSelectorWindowHelper: { getWindow: () => window }, cropperWindowHelper: { getWindow: () => window },
       });
       state.showTray();
       assert.equal(loaded[0], path.join(root, 'assets', platform === 'darwin' ? 'iconTemplate.png' : 'icons/png/icon_16x16.png'));

@@ -3,6 +3,7 @@ import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
 import type { UiLanguage, UiLanguageResult } from './uiLanguage';
+import type { KeybindResult, WindowPreferenceResult } from './windowPreferences';
 
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from './domesticStt';
 export interface ElectronAPI {
@@ -78,13 +79,15 @@ export interface ElectronAPI {
     error?: string
     message: string
   }>
-  setUndetectable: (state: boolean) => Promise<{ success: boolean; error?: string }>
+  getWindowPreferences: () => Promise<WindowPreferenceResult[]>
+  onWindowPreferenceResult: (callback: (result: WindowPreferenceResult) => void) => () => void
+  setUndetectable: (state: boolean) => Promise<WindowPreferenceResult>
   getUndetectable: () => Promise<boolean>
-  setOverlayMousePassthrough: (enabled: boolean) => Promise<{ success: boolean }>
-  toggleOverlayMousePassthrough: () => Promise<{ success: boolean; enabled: boolean }>
+  setOverlayMousePassthrough: (enabled: boolean) => Promise<WindowPreferenceResult>
+  toggleOverlayMousePassthrough: () => Promise<WindowPreferenceResult>
   getOverlayMousePassthrough: () => Promise<boolean>
   onOverlayMousePassthroughChanged: (callback: (enabled: boolean) => void) => () => void
-  setDisguise: (mode: 'terminal' | 'settings' | 'activity' | 'none') => Promise<{ success: boolean; error?: string }>
+  setDisguise: (mode: 'terminal' | 'settings' | 'activity' | 'none') => Promise<WindowPreferenceResult>
   getDisguise: () => Promise<'none' | 'terminal' | 'settings' | 'activity'>
   onDisguiseChanged: (callback: (mode: 'terminal' | 'settings' | 'activity' | 'none') => void) => () => void
   setOpenAtLogin: (open: boolean) => Promise<{ success: boolean; error?: string }>
@@ -284,8 +287,10 @@ export interface ElectronAPI {
 
   // Keybind Management
   getKeybinds: () => Promise<Array<{ id: string; label: string; accelerator: string; isGlobal: boolean; defaultAccelerator: string }>>
-  setKeybind: (id: string, accelerator: string) => Promise<boolean>
-  resetKeybinds: () => Promise<Array<{ id: string; label: string; accelerator: string; isGlobal: boolean; defaultAccelerator: string }>>
+  getKeybindStatus: () => Promise<KeybindResult>
+  onKeybindResult: (callback: (result: KeybindResult) => void) => () => void
+  setKeybind: (id: string, accelerator: string) => Promise<KeybindResult>
+  resetKeybinds: () => Promise<KeybindResult>
   onKeybindsUpdate: (callback: (keybinds: Array<any>) => void) => () => void
   onKeybindRegistrationFailed: (callback: (data: { id: string; accelerator: string }) => void) => () => void
   onGlobalShortcut: (callback: (data: { action: string }) => void) => () => void

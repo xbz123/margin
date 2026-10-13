@@ -44,6 +44,7 @@ export class ModelSelectorWindowHelper {
         }
 
         const activate = options.activate ?? true;
+        this.applyContentProtection();
 
         // Set parent and align window settings
         const mainWin = this.windowHelper?.getMainWindow();
@@ -73,7 +74,7 @@ export class ModelSelectorWindowHelper {
         if (process.platform === 'win32' && this.contentProtection) {
             this.window.setOpacity(0);
             if (activate) this.window.show(); else this.window.showInactive();
-            this.window.setContentProtection(true);
+            this.applyContentProtection();
 
             if (this.opacityTimeout) clearTimeout(this.opacityTimeout);
             this.opacityTimeout = setTimeout(() => {
@@ -83,7 +84,6 @@ export class ModelSelectorWindowHelper {
                 }
             }, 60);
         } else {
-            this.window.setContentProtection(this.contentProtection);
             if (activate) this.window.show(); else this.window.showInactive();
             if (activate) this.window.focus();
         }
@@ -123,7 +123,8 @@ export class ModelSelectorWindowHelper {
     ): void {
         const isMac = process.platform === 'darwin';
         const windowSettings: Electron.BrowserWindowConstructorOptions = {
-            title: APP_IDENTITY.name,
+            title: this.windowHelper?.getWindowTitle() ?? APP_IDENTITY.name,
+            icon: this.windowHelper?.getWindowIcon(),
             width: 140,
             height: 200,
             frame: false,
@@ -162,6 +163,7 @@ export class ModelSelectorWindowHelper {
         }
 
         this.window = new BrowserWindow(windowSettings)
+        this.window.on('page-title-updated', event => event.preventDefault());
 
         if (process.platform === "darwin") {
             // Initial defaults - will be updated in showWindow
@@ -170,7 +172,8 @@ export class ModelSelectorWindowHelper {
 
         // Apply content protection for Undetectable Mode
         console.log(`[ModelSelectorWindowHelper] Creating window with Content Protection: ${this.contentProtection}`);
-        this.window.setContentProtection(this.contentProtection)
+        try { this.applyContentProtection(); }
+        catch (error) { console.error('[ModelSelectorWindowHelper] Initial window protection failed:', error); }
 
         // Load with query param for routing
         const url = isDev
@@ -207,11 +210,11 @@ export class ModelSelectorWindowHelper {
                 }
             }
             if (showWhenReady) {
-                this.showWindow(
+                try { this.showWindow(
                     this.window?.getBounds().x || 0,
                     this.window?.getBounds().y || 0,
                     showOptions,
-                )
+                ); } catch (error) { console.error('[ModelSelectorWindowHelper] Window protection failed:', error); }
             }
         })
 
@@ -278,20 +281,27 @@ export class ModelSelectorWindowHelper {
         // Dedupe: see WindowHelper.setContentProtection rationale — repeated
         // identical calls are common (toggle IPC fans out across helpers) and
         // produce DWM affinity churn on Windows.
-        if (this.contentProtection === enable && this.window && !this.window.isDestroyed()) return;
+        if (this.contentProtection === enable && !this.protectionFailed && this.window && !this.window.isDestroyed()) return;
         console.log(`[ModelSelectorWindowHelper] Setting content protection to: ${enable}`);
         this.contentProtection = enable;
         if (this.window && !this.window.isDestroyed()) {
-            this.window.setContentProtection(enable);
+            this.applyContentProtection(enable);
         }
     }
 
     public syncActivationPolicy(): void {
         if (process.platform !== 'win32') return;
         if (!this.window || this.window.isDestroyed()) return;
-        this.window.setContentProtection(this.contentProtection);
+        this.applyContentProtection();
         if (this.window.isVisible()) {
             this.window.setOpacity(1);
         }
+    }
+
+    private protectionFailed = false;
+    private applyContentProtection(enable = this.contentProtection): void {
+        if (!this.window || this.window.isDestroyed()) return;
+        try { this.window.setContentProtection(enable); this.protectionFailed = false; }
+        catch (error) { this.protectionFailed = true; if (this.opacityTimeout) { clearTimeout(this.opacityTimeout); this.opacityTimeout = null; } if (this.contentProtection) { try { this.window.hide(); } catch {} } this.windowHelper?.reportProtectionFailure(); throw error; }
     }
 }

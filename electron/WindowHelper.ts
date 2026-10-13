@@ -1,4 +1,3 @@
-import { APP_IDENTITY } from './margin/appIdentity';
 import { app, BrowserWindow, Menu, screen } from 'electron';
 import path from 'node:path';
 import { AppState } from './main';
@@ -70,19 +69,31 @@ export class WindowHelper {
     // workaround). Repeated identical calls trigger DWM affinity churn on
     // Windows that can leave the HWND in a transient black/blank frame state
     // for a few hundred ms. No-op when nothing actually changes.
-    if (this.contentProtection === enable) return;
+    if (this.contentProtection === enable && !this.protectionFailed) return;
     this.contentProtection = enable;
     this.applyContentProtection(enable);
   }
 
   private applyContentProtection(enable: boolean): void {
     const windows = [this.launcherWindow, this.overlayWindow];
+    this.protectionFailed = false;
     windows.forEach((win) => {
       if (win && !win.isDestroyed()) {
-        win.setContentProtection(enable);
+        try { win.setContentProtection(enable); }
+        catch { this.protectionFailed = true; if (enable) { try { win.hide(); } catch {} } }
       }
     });
+    if (this.protectionFailed) {
+      if (this.opacityTimeout) { clearTimeout(this.opacityTimeout); this.opacityTimeout = null; }
+      this.reportProtectionFailure();
+      throw new Error('Window protection could not be applied.');
+    }
   }
+
+  private protectionFailed = false;
+  public getWindowTitle(): string { return this.appState.getDisguiseName(); }
+  public getWindowIcon(): string { return this.appState.getDisguiseIconPath(); }
+  public reportProtectionFailure(): void { this.appState.reportProtectionFailure(); }
 
   public setWindowDimensions(width: number, height: number): void {
     const activeWindow = this.getMainWindow(); // Gets currently focused/relevant window
@@ -203,7 +214,7 @@ export class WindowHelper {
     const isMac = process.platform === 'darwin';
 
     const launcherSettings: Electron.BrowserWindowConstructorOptions = {
-      title: APP_IDENTITY.name,
+      title: this.getWindowTitle(),
       width: width,
       height: height,
       x: x,
@@ -270,13 +281,15 @@ export class WindowHelper {
 
     try {
       this.launcherWindow = new BrowserWindow(launcherSettings);
+      this.launcherWindow.on('page-title-updated', event => event.preventDefault());
       console.log('[WindowHelper] BrowserWindow created successfully');
     } catch (err) {
       console.error('[WindowHelper] Failed to create BrowserWindow:', err);
       return;
     }
 
-    this.launcherWindow.setContentProtection(this.contentProtection);
+    try { this.applyContentProtection(this.contentProtection); }
+    catch (error) { console.error('[WindowHelper] Initial window protection failed:', error); }
 
     this.launcherWindow
       .loadURL(`${startUrl}?window=launcher`)
@@ -307,7 +320,8 @@ export class WindowHelper {
     );
 
     const overlaySettings: Electron.BrowserWindowConstructorOptions = {
-      title: APP_IDENTITY.name,
+      title: this.getWindowTitle(),
+      icon: this.getWindowIcon(),
       width: WindowHelper.OVERLAY_DEFAULT_WIDTH,
       height: 1,
       x: overlayDefaultX,
@@ -339,7 +353,9 @@ export class WindowHelper {
     };
 
     this.overlayWindow = new BrowserWindow(overlaySettings);
-    this.overlayWindow.setContentProtection(this.contentProtection);
+    this.overlayWindow.on('page-title-updated', event => event.preventDefault());
+    try { this.applyContentProtection(this.contentProtection); }
+    catch (error) { console.error('[WindowHelper] Initial window protection failed:', error); }
 
     // Register the overlay as the sole recipient of CGEventTap captured-key
     // broadcasts. Without this, captured keystrokes fan out to ALL windows
@@ -412,8 +428,7 @@ export class WindowHelper {
 
     // --- 3. Startup Sequence ---
     this.launcherWindow.once('ready-to-show', () => {
-      this.switchToLauncher();
-      this.isWindowVisible = true;
+      try { this.switchToLauncher(); } catch (error) { console.error('[WindowHelper] Startup window protection failed:', error); }
     });
 
     this.setupWindowListeners();
@@ -619,6 +634,7 @@ export class WindowHelper {
   // Used by IPC handlers to show the overlay independently.
   public showOverlay(): void {
     if (!this.overlayWindow || this.overlayWindow.isDestroyed()) return;
+    this.applyContentProtection(this.contentProtection);
 
     // Restore opacity in case it was zeroed by hideMainWindow() before a screenshot.
     this.overlayWindow.setOpacity(1);
@@ -692,6 +708,7 @@ export class WindowHelper {
   // --- Swapping Logic ---
 
   public switchToOverlay(inactive?: boolean): void {
+    this.applyContentProtection(this.contentProtection);
     console.log(`[WindowHelper] Switching to OVERLAY (inactive: ${!!inactive})`);
     this.currentWindowMode = 'overlay';
     KeybindManager.getInstance().setMode('overlay'); // Adapted from public PR #123
@@ -741,7 +758,7 @@ export class WindowHelper {
         this.overlayWindow.setOpacity(0);
         if (inactive) this.overlayWindow.showInactive();
         else this.overlayWindow.show();
-        this.overlayWindow.setContentProtection(true);
+        this.applyContentProtection(true);
         // Small delay to ensure Windows DWM processes the flag before making it opaque
 
         if (this.opacityTimeout) clearTimeout(this.opacityTimeout);
@@ -756,7 +773,6 @@ export class WindowHelper {
       } else {
         // Restore opacity (may have been zeroed pre-screenshot by hideMainWindow)
         this.overlayWindow.setOpacity(1);
-        this.overlayWindow.setContentProtection(this.contentProtection);
         // Re-assert z-order BEFORE show on Windows — DWM processes setAlwaysOnTop
         // synchronously, so calling it before show() ensures the window lands at the
         // correct z-level on first paint. Calling it after focus() would leave a brief
@@ -781,6 +797,7 @@ export class WindowHelper {
   }
 
   public switchToLauncher(inactive?: boolean): void {
+    this.applyContentProtection(this.contentProtection);
     console.log(`[WindowHelper] Switching to LAUNCHER (inactive: ${!!inactive})`);
     this.currentWindowMode = 'launcher';
     KeybindManager.getInstance().setMode('launcher'); // Adapted from public PR #123
@@ -792,7 +809,7 @@ export class WindowHelper {
         this.launcherWindow.setOpacity(0);
         if (inactive) this.launcherWindow.showInactive();
         else this.launcherWindow.show();
-        this.launcherWindow.setContentProtection(true);
+        this.applyContentProtection(true);
 
         if (this.opacityTimeout) clearTimeout(this.opacityTimeout);
         this.opacityTimeout = setTimeout(() => {
@@ -804,7 +821,6 @@ export class WindowHelper {
       } else {
         // Restore opacity (may have been zeroed pre-screenshot by hideMainWindow)
         this.launcherWindow.setOpacity(1);
-        this.launcherWindow.setContentProtection(this.contentProtection);
         if (inactive) this.launcherWindow.showInactive();
         else this.launcherWindow.show();
         if (!inactive) this.launcherWindow.focus();

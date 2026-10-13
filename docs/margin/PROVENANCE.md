@@ -21,6 +21,35 @@ Notes:
 
 ## Ledger
 
+### AG-61 window preferences and shortcut failure handling (2026-10-13)
+
+Written on this branch from PLAN U11 and the AG-61 execution contract against
+accepted source `968ea59d`. No earlier Margin or later upstream implementation,
+tests, prompts or assets were imported. Existing helpers, AppState, settings,
+preload and renderer consumers are extended in place; no Controller/Bridge,
+dependency or native module is added. Existing platform icons are reused, not
+redesigned. This is not a clean-room claim.
+
+New source is limited to `src/types/windowPreferences.ts` and the shared
+`src/hooks/useWindowPreferences.ts`; new behavior tests are
+`WindowPreferences.test.mjs`, `WindowPreferencePersistence.test.mjs` and
+`WindowProtectionLifecycle.test.mjs`. The old skipped activation-policy source
+assertion is replaced by execution of the actual initializer under mocks for
+the retained Dock policy. The existing renderer harness exercises real consumers.
+Main-agent review adds failure regressions for a stranded blur guard and
+premature clearing of menu/update failures during shortcut health checks.
+
+Initial G2 results contained nine occurrences of six ordinary exact statements:
+three existing-helper invocations, a conditional, an existing return member,
+a two-iteration test loop, an assertion and two preload aliases. Each surrounding
+use was reviewed; exact lines and reasons are in `provenance-config.json`.
+No approved/restricted source pool or excluded path is changed. Verification and
+remaining real-machine limitations belong to the AG-61 evidence record.
+The parent recovery regression adds one further exact generic statement,
+`fail = false;`, to end an injected failure. Existing identity/icon fixtures now
+execute the new production identity lookup methods alongside `_applyDisguise`;
+their original identity, path-isolation and icon-path assertions are retained.
+
 ### AG-60 interface language and settings organization (2026-10-13)
 
 - Written on this branch against AG-60 and the accepted migration source at

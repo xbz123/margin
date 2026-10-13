@@ -1,0 +1,21 @@
+✔ AG61 mounted production consumers reconcile save/apply failures and ignore stale IPC replies (3834.602209ms)
+✔ AG60a mounted Skills settings switch language without resetting controls or calling extra IPC (1627.987834ms)
+✔ AG60 real launcher, overlay and menu share a saved interface language without losing drafts (4586.3995ms)
+(node:90921) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG60 mounted help, meeting history and a visible error fallback switch language while preserving content (4568.741208ms)
+[LLMHelper] Switched to Model: codex-cli
+✔ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (2236.140083ms)
+✔ S42-01 mounted domestic STT settings save, reload and test the chosen workspace and resource without returning keys (2594.999542ms)
+✔ AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads (1352.387791ms)
+✔ AG33 real Global React overlay preserves partial failure, fences closed callbacks and creates a new retry record (3666.875625ms)
+✔ all seven Markdown callers and streaming sanitize block image loads in a real renderer (2054.101041ms)
+✔ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8721.739375ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35683.381375
