@@ -1,0 +1,25 @@
+{
+  "run": 38472041728,
+  "url": "https://github.com/xbz123/margin/actions/runs/38472041728",
+  "headSha": "ffc08ab1c92604992e116004f0a3b88f041cc0f3",
+  "status": "completed",
+  "conclusion": "success",
+  "inputs": { "gate_ref": "docs/margin/evidence/AG-61", "no_cache": false, "package_apps": false },
+  "job": { "id": 115553311495, "name": "gates", "conclusion": "success" },
+  "artifact": {
+    "id": 11852932694,
+    "sha256": "2e82032f5b7840465b619f97af39f2b16227cbb331fb897c13f11632594fdb62",
+    "archiveDigestVerified": true,
+    "entriesChecked": 27
+  },
+  "verifiedEvidence": {
+    "summaryHeadMatches": true,
+    "gatesPassed": 16,
+    "gatesTotal": 16,
+    "allGateExitCodesZero": true,
+    "tests": { "total": 1150, "pass": 1150, "fail": 0, "skipped": 0 },
+    "s42RequiredEvidencePassed": true,
+    "releaseIdentityContract": { "total": 6, "pass": 6, "fail": 0 }
+  },
+  "note": "The GitHub job response omitted step details. The digest-verified current-SHA artifact supplies the gate and release-identity evidence; no application packaging was requested."
+}

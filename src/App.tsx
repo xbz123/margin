@@ -71,6 +71,14 @@ const App: React.FC = () => {
   const [showPermissionsToaster, setShowPermissionsToaster] = useState(false);
 
   useEffect(() => {
+    if (!isLauncherWindow && !isDefault) return;
+    const unsubscribe = window.electronAPI?.onMeetingStateChanged?.(({ isActive }) => {
+      if (isActive) setShowPermissionsToaster(false);
+    });
+    return () => unsubscribe?.();
+  }, [isLauncherWindow, isDefault]);
+
+  useEffect(() => {
     // Clean up old local storage
     localStorage.removeItem('useLegacyAudioBackend');
 
@@ -141,6 +149,7 @@ const App: React.FC = () => {
 
   // Handlers
   const handleStartMeeting = async () => {
+    setShowPermissionsToaster(false);
     try {
       localStorage.setItem('natively_last_meeting_start', Date.now().toString());
       const inputDeviceId = localStorage.getItem('preferredInputDeviceId');
@@ -309,6 +318,8 @@ const App: React.FC = () => {
                     onStartMeeting={handleStartMeeting}
                     onOpenSettings={(tab = 'general') => openSettingsExclusive(tab)}
                     onPageChange={setIsLauncherMainView}
+                    settingsOpen={isSettingsOpen}
+                    onReviewPermissions={() => setShowPermissionsToaster(true)}
                   />
                 </div>
                 <SettingsOverlay

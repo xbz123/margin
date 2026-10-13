@@ -14,6 +14,7 @@ import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { isMac } from '../utils/platformUtils';
 import WindowControls from './WindowControls';
 import { useI18n, type UiLanguage } from '../i18n';
+import { SetupChecklist } from './onboarding/SetupChecklist';
 
 interface Meeting {
     id: string;
@@ -45,6 +46,8 @@ interface LauncherProps {
     onStartMeeting: () => void;
     onOpenSettings: (tab?: string) => void;
     onPageChange?: (isMain: boolean) => void;
+    settingsOpen?: boolean;
+    onReviewPermissions?: () => void;
 }
 
 const localeFor = (language: UiLanguage) => language === 'zh-CN' ? 'zh-CN' : 'en-US';
@@ -73,7 +76,7 @@ const formatTime = (dateStr: string, language: UiLanguage, t: (english: string) 
     return date.toLocaleTimeString(localeFor(language), { hour: 'numeric', minute: '2-digit', hour12: language !== 'zh-CN' }).toLowerCase();
 };
 
-const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onPageChange }) => {
+const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onPageChange, settingsOpen = false, onReviewPermissions }) => {
     const { t, language } = useI18n();
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const { isUndetectable, setProtection, preferenceErrors } = useWindowPreferences();
@@ -553,6 +556,8 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                 {preferenceErrors.protection && <p role="alert" className="px-8 pt-3 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                                 <section className="px-8 py-8 min-h-full">
                                     <div className="max-w-4xl mx-auto space-y-8">
+
+                                        {!isMeetingActive && <SetupChecklist active={!settingsOpen} onOpenSettings={onOpenSettings} onReviewPermissions={onReviewPermissions ?? (() => onOpenSettings('privacy'))} />}
 
                                         {/* Iterating Date Groups */}
                                         {sortedGroups.map((label) => (

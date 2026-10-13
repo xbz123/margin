@@ -12,6 +12,213 @@ import { createRequire } from 'node:module';
 import { launchApp, windowWithQuery } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
+test('AG62 mounted Launcher checks local setup, refreshes on return and cleans up stale reads without outbound actions', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client';
+    import Launcher from './src/components/Launcher'; import { setUiLanguage } from './src/i18n';
+    const listeners = new Map(); const subscribe = (name, fn) => { const set = listeners.get(name) || new Set(); set.add(fn); listeners.set(name, set); return () => set.delete(fn); };
+    window.listenerCount = name => listeners.get(name)?.size || 0;
+    window.emit = (name, value) => { for (const fn of listeners.get(name) || []) fn(value); };
+    const focusListeners = new Set(), add = window.addEventListener.bind(window), remove = window.removeEventListener.bind(window);
+    window.addEventListener = (name, fn, ...rest) => { if (name === 'focus') focusListeners.add(fn); add(name, fn, ...rest); };
+    window.removeEventListener = (name, fn, ...rest) => { if (name === 'focus') focusListeners.delete(fn); remove(name, fn, ...rest); };
+    window.focusListenerCount = () => focusListeners.size;
+    window.selection = { provider: 'openai', model: 'synthetic' };
+    window.credentials = { providerConfigurations: { openai: { provider: 'openai', protocol: 'chat-completions', model: 'synthetic' } }, hasOpenaiKey: false, hasClaudeKey: true, sttProvider: 'none', hasSonioxKey: false };
+    window.permissions = { platform: 'darwin', microphone: 'denied', screen: 'not-determined' };
+    window.codex = { enabled: false, model: 'synthetic', riskConfirmedVersion: 1 };
+    window.reads = []; window.forbidden = []; window.pending = []; window.tabs = []; window.permissionReviews = 0;
+    const forbid = name => { window.forbidden.push(name); throw Error('Forbidden setup action: ' + name); };
+    window.fetch = () => forbid('fetch'); window.WebSocket = function() { forbid('WebSocket'); }; window.EventSource = function() { forbid('EventSource'); };
+    const api = {
+      getCurrentLlmConfig: async () => { window.reads.push('selection'); return { ...window.selection }; },
+      getStoredCredentials: () => { window.reads.push('credentials'); if (window.deferCredentials) return new Promise(resolve => window.pending.push(resolve)); if (window.failCredentials) return Promise.reject(Error('synthetic read failure')); return Promise.resolve(structuredClone(window.credentials)); },
+      checkPermissions: async () => { window.reads.push('permissions'); return { ...window.permissions }; },
+      getDomesticStt: async provider => { window.reads.push('domestic:' + provider); return { hasKey: true, workspaceId: '', resourceId: 'volc.seedasr.sauc.concurrent' }; },
+      getCodexCliConfig: async () => { window.reads.push('codex'); return { ...window.codex }; },
+      getWindowPreferences: async () => [], getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
+      getRecentMeetings: async () => [], getMeetingActive: async () => false, seedDemo: async () => ({ success: true })
+    };
+    window.electronAPI = new Proxy(api, { get(target, name) {
+      if (name in target) return target[name];
+      if (String(name).startsWith('on')) return fn => subscribe(name, fn);
+      if (/^(test|fetch|request|start|capture)/i.test(String(name))) return () => forbid(String(name));
+      return async () => undefined;
+    } });
+    const root = createRoot(document.getElementById('root')); let settingsOpen = false;
+    const mount = () => root.render(React.createElement(Launcher, {
+      settingsOpen, onStartMeeting() { forbid('startMeeting'); },
+      onOpenSettings(tab) { window.tabs.push(tab); settingsOpen = true; mount(); },
+      onReviewPermissions() { window.permissionReviews++; }
+    }));
+    window.returnFromSettings = () => { settingsOpen = false; mount(); };
+    window.changeLanguage = setUiLanguage; window.unmountConsumer = () => root.unmount(); mount();
+  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  const sandbox = makeSandbox('ag62-setup'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await opened, pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
+    await page.evaluate(() => {
+      const storage = new Map();
+      Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
+    });
+    const assets = path.join(REPO, 'dist/assets');
+    for (const css of fs.readdirSync(assets).filter(name => name.endsWith('.css'))) await page.addStyleTag({ path: path.join(assets, css) });
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const status = (label, text) => page.getByRole('status', { name: label, exact: true }).filter({ hasText: text }).waitFor();
+    const localReads = () => page.evaluate(() => window.reads.filter(name => name === 'selection').length);
+    const cleaned = () => page.waitForFunction(() => ['onCredentialsChanged', 'onModelChanged', 'onSttConfigChanged'].every(name => window.listenerCount(name) === 0) && window.focusListenerCount() === 0);
+    await status('Answer source and model', 'Needs configuration'); await status('Speech provider', 'Needs configuration');
+    await status('System permissions', 'Needs configuration');
+    assert.equal(await page.getByRole('button', { name: /Start temp$/ }).isDisabled(), false);
+    await page.getByRole('button', { name: 'Review Answer source and model', exact: true }).click(); await cleaned();
+    assert.deepEqual(await page.evaluate(() => window.tabs), ['ai-providers']);
+    await page.evaluate(() => { window.credentials.hasOpenaiKey = true; window.returnFromSettings(); });
+    await status('Answer source and model', 'Configured (not connection-tested)');
+    await page.getByRole('button', { name: 'Review Speech provider', exact: true }).click(); await cleaned();
+    assert.deepEqual(await page.evaluate(() => window.tabs), ['ai-providers', 'audio']);
+    await page.evaluate(() => { window.credentials.sttProvider = 'soniox'; window.credentials.hasSonioxKey = true; window.permissions.microphone = 'granted'; window.permissions.screen = 'granted'; window.returnFromSettings(); });
+    await status('Speech provider', 'Configured (not connection-tested)'); await status('System permissions', 'OS reports permissions allowed');
+    await page.getByRole('button', { name: 'Review System permissions', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.permissionReviews), 1);
+    const beforeLanguage = await localReads();
+    await page.evaluate(() => window.changeLanguage('zh-CN'));
+    await status('回答来源与模型', '已配置（未测试连接）'); await status('语音服务商', '已配置（未测试连接）');
+    assert.equal(await localReads(), beforeLanguage);
+    await page.getByRole('button', { name: '暂时隐藏', exact: true }).click();
+    await page.evaluate(() => window.changeLanguage('en'));
+    await page.getByRole('button', { name: 'Show setup checklist', exact: true }).waitFor();
+    assert.equal(await localReads(), beforeLanguage);
+    await page.getByRole('button', { name: 'Show setup checklist', exact: true }).click(); await status('Answer source and model', 'Configured');
+    // Read failure clears the previously configured result; focus uses only local metadata.
+    await page.evaluate(() => { window.failCredentials = true; window.dispatchEvent(new Event('focus')); });
+    await status('Answer source and model', 'Needs checking'); await status('Speech provider', 'Needs checking');
+    await page.evaluate(() => { window.failCredentials = false; window.credentials.hasOpenaiKey = false; window.emit('onCredentialsChanged'); });
+    await status('Answer source and model', 'Needs configuration');
+    // Codex consent is a local configuration check, not a login or connection probe.
+    await page.evaluate(() => { window.selection = { provider: 'codex-cli', model: 'codex-cli' }; window.codex = { enabled: true, model: 'synthetic' }; window.emit('onModelChanged', 'codex-cli'); });
+    await status('Answer source and model', 'Needs configuration');
+    await page.evaluate(() => { window.codex.riskConfirmedVersion = 1; window.emit('onModelChanged', 'codex-cli'); });
+    await status('Answer source and model', 'Configured');
+    await page.evaluate(() => { window.credentials.sttProvider = 'aliyun'; window.emit('onSttConfigChanged', { provider: 'aliyun', configured: true }); });
+    await status('Speech provider', 'Configured');
+    assert.equal(await page.evaluate(() => window.reads.includes('domestic:aliyun')), true);
+    // A newer refresh wins even if an older local read resolves last.
+    await page.evaluate(() => { window.selection = { provider: 'openai', model: 'synthetic' }; window.deferCredentials = true; window.emit('onCredentialsChanged'); });
+    await page.waitForFunction(() => window.pending.length === 1);
+    await page.getByRole('button', { name: 'Refresh local checks', exact: true }).click(); await page.waitForFunction(() => window.pending.length === 2);
+    await page.evaluate(() => window.pending[1]({ ...window.credentials, hasOpenaiKey: false })); await status('Answer source and model', 'Needs configuration');
+    await page.evaluate(() => window.pending[0]({ ...window.credentials, hasOpenaiKey: true }));
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await status('Answer source and model', 'Needs configuration');
+    await page.evaluate(() => { window.pending = []; window.emit('onCredentialsChanged'); }); await page.waitForFunction(() => window.pending.length === 1);
+    await page.evaluate(() => window.emit('onMeetingStateChanged', { isActive: true })); await cleaned();
+    const beforeMeeting = await localReads();
+    await page.evaluate(() => { window.pending[0]({ ...window.credentials, hasOpenaiKey: true }); window.emit('onCredentialsChanged'); window.dispatchEvent(new Event('focus')); });
+    assert.equal(await localReads(), beforeMeeting);
+    assert.equal(await page.getByRole('region', { name: 'Setup checklist', exact: true }).count(), 0);
+    await page.evaluate(() => { window.deferCredentials = false; window.emit('onMeetingStateChanged', { isActive: false }); });
+    await status('Answer source and model', 'Needs configuration');
+    await page.getByRole('button', { name: 'Optional: Local Context and Skills', exact: true }).click(); await cleaned();
+    assert.equal(await page.evaluate(() => window.tabs.at(-1)), 'context');
+    await page.evaluate(() => window.returnFromSettings()); await status('Answer source and model', 'Needs configuration');
+    await page.getByRole('button', { name: 'Privacy and data scopes', exact: true }).click(); await cleaned();
+    assert.equal(await page.evaluate(() => window.tabs.at(-1)), 'privacy');
+    await page.evaluate(() => window.returnFromSettings()); await status('Answer source and model', 'Needs configuration');
+    await page.evaluate(() => window.unmountConsumer()); await cleaned();
+    const beforeUnmount = await localReads();
+    await page.evaluate(() => { window.emit('onModelChanged'); window.dispatchEvent(new Event('focus')); });
+    assert.equal(await localReads(), beforeUnmount);
+    assert.deepEqual(await page.evaluate(() => window.forbidden), []); assert.deepEqual(pageErrors, []);
+    await page.close();
+  } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
+test('AG62 mounted App cancels permission guidance on meeting start and ignores closed toaster replies', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client';
+    import App from './src/App'; import { PermissionsToaster } from './src/components/onboarding/PermissionsToaster';
+    const listeners = new Map(); const subscribe = (name, fn) => { const set = listeners.get(name) || new Set(); set.add(fn); listeners.set(name, set); return () => set.delete(fn); };
+    window.emitMeeting = isActive => { for (const fn of listeners.get('onMeetingStateChanged') || []) fn({ isActive }); };
+    const timers = new Map(); let nextTimer = 1000000; const schedule = window.setTimeout.bind(window), cancel = window.clearTimeout.bind(window);
+    window.setTimeout = (fn, ms, ...args) => { if (ms !== 1400) return schedule(fn, ms, ...args); const id = nextTimer++; timers.set(id, fn); return id; };
+    window.clearTimeout = id => { if (timers.has(id)) timers.delete(id); else cancel(id); };
+    window.permissionTimerCount = () => timers.size;
+    window.runPermissionDelay = () => { const [id, fn] = timers.entries().next().value; timers.delete(id); void fn(); };
+    window.permissionReplies = []; window.starts = 0; window.forbidden = [];
+    const forbid = name => { window.forbidden.push(name); throw Error('Forbidden guidance action: ' + name); };
+    const api = {
+      getCurrentLlmConfig: async () => ({ provider: 'openai', model: 'synthetic' }), getStoredCredentials: async () => ({}),
+      checkPermissions: () => window.deferPermissions ? new Promise(resolve => window.permissionReplies.push(resolve)) : Promise.resolve({ platform: 'darwin', microphone: 'denied', screen: 'denied' }),
+      getCredentialLoadStatus: async () => ({ ok: true }), getThemeMode: async () => ({ mode: 'system' }),
+      getInputDevices: async () => [], getOutputDevices: async () => [], getRecognitionLanguages: async () => ({}), getAiResponseLanguages: async () => [],
+      getOpenAtLogin: async () => false, getMeetingRetention: async () => 'forever', getActionButtonMode: async () => 'recap', getDefaultModel: async () => ({ model: 'synthetic' }),
+      getWindowPreferences: async () => [], getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
+      getRecentMeetings: async () => [], getMeetingActive: async () => false, seedDemo: async () => ({ success: true }),
+      startMeeting: async () => { window.starts++; return { success: true }; }
+    };
+    window.electronAPI = new Proxy(api, { get(target, name) {
+      if (name in target) return target[name]; if (String(name).startsWith('on')) return fn => subscribe(name, fn);
+      if (/^(test|fetch|request|start|capture)/i.test(String(name))) return () => forbid(String(name));
+      return async () => undefined;
+    } });
+    const root = createRoot(document.getElementById('root'));
+    window.showToaster = isOpen => root.render(React.createElement(PermissionsToaster, { isOpen, onDismiss() { window.showToaster(false); } }));
+    window.unmountConsumer = () => root.unmount(); root.render(React.createElement(App));
+  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.webp': 'dataurl', '.webm': 'dataurl', '.otf': 'dataurl', '.woff2': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  const sandbox = makeSandbox('ag62-permissions'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await opened, errors = []; page.on('pageerror', error => errors.push(error.message));
+    await page.evaluate(() => {
+      const storage = new Map([['natively_seen_startup_v1', 'true'], ['natively_perms_shown_v1', '1']]);
+      Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
+    });
+    const assets = path.join(REPO, 'dist/assets');
+    for (const css of fs.readdirSync(assets).filter(name => name.endsWith('.css'))) await page.addStyleTag({ path: path.join(assets, css) });
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const review = () => page.getByRole('button', { name: 'Review System permissions', exact: true });
+    const absent = async () => { await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); assert.equal(await page.getByRole('heading', { name: 'Before we start', exact: true }).count(), 0); };
+    await review().waitFor();
+    // Starting before the delay expires cancels the scheduled guidance.
+    await review().click(); await page.waitForFunction(() => window.permissionTimerCount() === 1);
+    await page.getByRole('button', { name: /Start temp$/ }).click();
+    await page.waitForFunction(() => window.starts === 1 && window.permissionTimerCount() === 0); await absent();
+    // An active-meeting broadcast also closes an already visible card.
+    await review().click(); await page.waitForFunction(() => window.permissionTimerCount() === 1);
+    await page.evaluate(() => window.runPermissionDelay()); await page.getByRole('heading', { name: 'Before we start', exact: true }).waitFor();
+    await page.evaluate(() => window.emitMeeting(true)); await absent();
+    // Once the delay has fired, a pending metadata reply cannot resurrect the card.
+    await page.evaluate(() => window.emitMeeting(false)); await review().waitFor();
+    await review().click(); await page.waitForFunction(() => window.permissionTimerCount() === 1);
+    await page.evaluate(() => { window.deferPermissions = true; window.runPermissionDelay(); }); await page.waitForFunction(() => window.permissionReplies.length === 1);
+    await page.getByRole('button', { name: /Start temp$/ }).click(); await page.waitForFunction(() => window.starts === 2);
+    await page.evaluate(() => window.permissionReplies.shift()({ platform: 'darwin', microphone: 'granted', screen: 'granted' })); await absent();
+    // Reopening while an old reply is pending keeps the new card's status authoritative.
+    await page.evaluate(() => window.showToaster(true)); await page.waitForFunction(() => window.permissionTimerCount() === 1);
+    await page.evaluate(() => window.runPermissionDelay()); await page.waitForFunction(() => window.permissionReplies.length === 1);
+    await page.evaluate(() => window.showToaster(false)); await absent();
+    await page.evaluate(() => window.showToaster(true)); await page.waitForFunction(() => window.permissionTimerCount() === 1);
+    await page.evaluate(() => window.runPermissionDelay()); await page.waitForFunction(() => window.permissionReplies.length === 2);
+    await page.evaluate(() => window.permissionReplies[1]({ platform: 'darwin', microphone: 'denied', screen: 'denied' }));
+    await page.getByRole('heading', { name: 'Before we start', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Request Access', exact: true }).waitFor();
+    await page.evaluate(() => window.permissionReplies[0]({ platform: 'darwin', microphone: 'granted', screen: 'granted' }));
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.getByRole('button', { name: 'Request Access', exact: true }).waitFor();
+    assert.deepEqual(await page.evaluate(() => window.forbidden), []); assert.deepEqual(errors, []);
+    await page.evaluate(() => window.unmountConsumer()); await page.close();
+  } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('AG61 mounted production consumers reconcile save/apply failures and ignore stale IPC replies', async () => {
   const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
     import React from 'react'; import { createRoot } from 'react-dom/client';

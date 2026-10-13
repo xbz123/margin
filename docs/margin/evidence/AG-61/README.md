@@ -66,8 +66,16 @@ rerun successfully. Initial failures are retained in the working-run evidence;
 they are not counted as passing results. Machine-specific prefixes in the final
 generated logs are normalized without altering commands' outcomes or counts.
 
-Local code acceptance is complete. Submission and public ticket CI are pending;
-this does not sign off the entire phase or real sharing behavior.
+Local code acceptance is complete. Commit `ffc08ab1c92604992e116004f0a3b88f041cc0f3`
+is pushed and verified on both repositories' migration branches. Public ticket
+[CI 38472041728](https://github.com/xbz123/margin/actions/runs/38472041728)
+completed successfully on that SHA with `gate_ref=docs/margin/evidence/AG-61`,
+`no_cache=false`, `package_apps=false`. The downloaded gate artifact matches its
+GitHub SHA-256 digest and the exact source commit: gates 16/16, 1150/1150 tests,
+zero skips, required evidence passed and release identity contract 6/6. The job
+API omitted step details; the artifact reports supply those checks. See
+`ci-result.json`. Software ticket acceptance is complete; this does not sign off
+the entire phase or real sharing behavior.
 
 ## Not verified
 

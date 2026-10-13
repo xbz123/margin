@@ -8,26 +8,81 @@ source boundaries are recorded in [BASELINE](docs/margin/BASELINE.md) and
 
 ## Current implementation
 
-- Text questions, optional screenshots, streamed answers and cancellation.
-- Configurable cloud answer providers and cloud speech-to-text providers.
-- Microphone and system-audio capture through the native audio module.
-- Meeting transcripts, AI interactions and summaries stored locally in SQLite.
-- Data-scope settings applied at the application's covered outbound boundary;
-  Markdown images are rejected rather than loaded from a remote server.
-- Prompt skills and local context in the existing desktop workflow.
+- Written-question practice and manual real-time meeting assistance, using text,
+  screenshots, microphone speech and system-audio transcription.
+- Separate **What to answer**, **Answer / Stop** and text-send entry points;
+  Clarify, Brainstorm, Recap and Follow Up Question remain available. Stop finishes
+  the current dictation for sending, not the meeting; ending a meeting is separate.
+- Streamed answers, configurable deadlines and a retry of the current failed
+  question. Retry retains the original input/context but uses current model and
+  credential settings. Partial output stays separate from the retry answer;
+  starting another question releases the old retry snapshot.
+- OpenAI Chat/Responses, Anthropic Messages and Gemini answer protocols, including
+  configured compatible endpoints. Cloud STT choices are **OpenAI, Soniox, Groq,
+  Alibaba Cloud Bailian and Doubao**. There is no automatic answering or Judge.
+- Full-text Local Context and prompt-only Skills configured before use. Context
+  imports accept UTF-8 `.md`, `.markdown` and `.txt`, not PDF/DOCX. Skills append
+  instructions; they do not run tools or scripts.
+- Local meeting transcript and answer-usage records, with list/detail/copy. No
+  automatic post-meeting summary, generated title or unfinished-meeting recovery.
+- English/Simplified Chinese interface, independent recognition/answer language
+  settings, configurable shortcuts, window protection, mouse passthrough and
+  application disguise. Disguise does not hide a process from other software.
 
-Provider protocols, models and account permissions differ. A configured provider
-is not proof that a real account or device has been validated. Regression tests
-use synthetic data and loopback transports. macOS CI and local isolated checks do
-not establish Windows/Linux, real capture devices, provider, keychain or security
-acceptance. This branch does not provide local model downloads, a managed API,
-paid activation, an updater, or the retired retrieval and mode-selection features.
+### Configure before use
 
-The Codex CLI integration is a subprocess boundary: the application can gate
-launch and submitted input, but cannot inspect or enforce every request, retry,
-cache or configuration inside the CLI. Cancellation cannot retract data already
-received by a provider. See [PRIVACY](PRIVACY.md) and
-[OUTBOUND](docs/margin/OUTBOUND.md) for the precise boundaries.
+Choose an answer provider/model in **Settings → AI Providers** and save its
+configuration. Choose a speech provider and input devices under **Audio** when
+using voice. For Bailian, Workspace ID is optional: blank selects the configured
+generic Beijing endpoint; a supplied ID selects the dedicated workspace endpoint.
+For Doubao, select the hourly or concurrent resource matching your account; the
+application does not guess or silently switch billing resources.
+
+Grant only the microphone/screen permissions needed for the workflow. Add optional
+context and Skills under **Context & Skills**. Adding Local Context means it can
+be sent in full to the chosen answer provider; review sensitive text first.
+Configuration indicators do not prove account access, image support, device
+operation or service connectivity. Connection tests are explicit user actions
+and can send synthetic input to a provider; they are not automatic setup checks.
+
+Default budgets are 10 seconds to the first **visible answer text** and 60 seconds
+overall for interview answers; written answers have a 180-second total budget
+without the interview first-text limit. These values are configurable deadlines,
+not measured speed or accuracy guarantees. Timing begins with the action, Stop
+or text submission and includes speech tail collection where applicable. Speech
+actions collect both channels within the bounded window without ending their
+connections; late revisions may update the transcript, not an answer already sent.
+
+The optional **Codex login source** is separate from API-key providers. It reads
+a supported local auth file only after explicit enablement/risk confirmation and
+a local status check or generation action. It sends directly to a fixed Codex
+Responses endpoint; it does not run the Codex CLI to generate answers. It does not
+refresh or write credentials. Local file validity does not establish account
+entitlement, model availability or service compatibility. Do not downgrade secure
+credential storage to use this experimental source.
+
+### Platform and sharing status
+
+This is a development branch, not a signed-off distributable release. macOS is
+the first delivery target; Windows implementation, acceptance and release follow,
+before deciding final branch integration. The default build identity is `temp`.
+The formal `Margin` identity currently refuses to build/run outside GitHub
+Actions; changing that guard and releasing packages are separate decisions.
+
+**No real screen-sharing application/OS-version combination has been verified
+for this branch.** In particular, whole-screen sharing through Chrome, Zoom,
+Tencent Meeting and Feishu still needs receiver-side testing. A protection switch
+or successful API call is not proof of invisibility, and a black replacement
+rectangle is not an acceptable result. Verified combinations will be recorded
+here with OS version, application version, sharing mode and observed result.
+
+Tests use synthetic data and loopback transports. Local/macOS CI checks do not
+establish real-device, real-provider, Windows/Linux, keychain or adversarial
+security acceptance. This branch has no local model downloads, managed API,
+paid activation, telemetry or automatic updater. Scope settings remain enforced
+at the covered outbound boundary; remote Markdown images are not loaded.
+Cancellation cannot retract data already received by a provider. See
+[PRIVACY](PRIVACY.md) and [OUTBOUND](docs/margin/OUTBOUND.md) for precise boundaries.
 
 ## Development and checks
 

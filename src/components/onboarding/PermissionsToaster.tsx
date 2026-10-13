@@ -8,7 +8,7 @@ import { APP_NAME } from '../../appIdentity';
 // macOS: requests mic via system dialog, opens System Preferences for screen recording.
 // Windows: shows a simple instruction notice (OS handles permissions at first use).
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, Monitor, Mic, CheckCircle, AlertCircle, ExternalLink, ArrowRight } from 'lucide-react';
 import { useI18n } from '../../i18n';
@@ -62,42 +62,54 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
   const [scrStatus,  setScrStatus]  = useState<PermStatus>('loading');
   const [requesting, setRequesting] = useState(false);
   const reduced = useReducedMotion() ?? false;
+  const epoch = useRef(0);
+  const live = useRef(false);
 
   const refreshStatus = useCallback(async () => {
+    const current = epoch.current;
     try {
       const p = await window.electronAPI?.checkPermissions?.();
-      if (!p) return;
+      if (!live.current || current !== epoch.current || !p) return;
       setPlatform(p.platform);
       setMicStatus(p.microphone as PermStatus);
       setScrStatus(p.screen     as PermStatus);
     } catch {
+      if (!live.current || current !== epoch.current) return;
       setMicStatus('not-determined');
       setScrStatus('not-determined');
     }
   }, []);
 
   useEffect(() => {
-    if (!isOpen) { setVisible(false); return; }
+    const current = ++epoch.current;
+    live.current = isOpen;
+    setVisible(false);
+    if (!isOpen) return;
+    setMicStatus('loading');
+    setScrStatus('loading');
+    setRequesting(false);
     const timer = setTimeout(async () => {
       await refreshStatus();
-      setVisible(true);
+      if (live.current && current === epoch.current) setVisible(true);
     }, STARTUP_DELAY_MS);
-    return () => clearTimeout(timer);
+    return () => { live.current = false; ++epoch.current; clearTimeout(timer); };
   }, [isOpen, refreshStatus]);
 
   // Re-check permissions when window regains focus (user returned from System Preferences)
   useEffect(() => {
-    if (!visible) return;
+    if (!isOpen || !visible) return;
     const onFocus = () => refreshStatus();
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, [visible, refreshStatus]);
+  }, [isOpen, visible, refreshStatus]);
 
   const handleMicRequest = async () => {
+    const current = epoch.current;
     setRequesting(true);
     await window.electronAPI?.requestMicPermission?.();
+    if (!live.current || current !== epoch.current) return;
     await refreshStatus();
-    setRequesting(false);
+    if (live.current && current === epoch.current) setRequesting(false);
   };
 
   const openScreenSettings = () => {
@@ -113,7 +125,7 @@ export const PermissionsToaster: React.FC<Props> = ({ isOpen, onDismiss }) => {
     onDismiss();
   };
 
-  if (!visible) return null;
+  if (!isOpen || !visible) return null;
 
   // Windows has no Screen Recording TCC concept; the IPC handler reports it
   // as 'granted' on non-Darwin so the check is harmless either way, but we

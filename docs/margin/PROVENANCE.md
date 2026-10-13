@@ -21,6 +21,29 @@ Notes:
 
 ## Ledger
 
+### AG-62 local setup guidance and current documentation (2026-10-13)
+
+Written against the accepted `ffc08ab1` branch and the AG-62 behavior contract.
+New `src/components/onboarding/SetupChecklist.tsx` and `setupChecklistStatus.ts`
+reuse existing settings UI, metadata getters and the current Codex consent check;
+they do not call connection tests, auth-file inspection or capture. The public
+domestic STT validation follows this branch's accepted credential rules.
+App/Launcher wire existing settings and permission-review callbacks. The existing
+permission card drops closed/replaced reads and is dismissed when a meeting starts.
+
+`SetupChecklistStatus.test.mjs` and the existing mounted-renderer harness use
+synthetic metadata and recorded effects. No framework, dependency, IPC layer,
+native source or asset was added. The main agent corrected fixture asset loaders
+and actual accessible button names without weakening product assertions.
+README/PRIVACY are rewritten from current source and OUTBOUND, not old upstream
+prose; they remove retired summary/Google STT and opaque CLI-generation claims.
+No earlier Margin or later upstream code, prompt, dictionary or test was imported.
+Formal identity restrictions, packaging and release configuration are unchanged.
+G2 initially flagged ten exact ordinary control-flow, React state/effect and
+array-declaration lines. Each surrounding use was reviewed and its reason recorded
+in `provenance-config.json`; no code was rewritten to evade matching and no source
+pool or excluded path changed.
+
 ### AG-61 window preferences and shortcut failure handling (2026-10-13)
 
 Written on this branch from PLAN U11 and the AG-61 execution contract against
