@@ -2,16 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-13，阶段 5 已由用户签收，阶段 6 的 AG-60（`968ea59d`）和 AG-61（`ffc08ab1`）均完成软件验收、两库交付及公开 CI。AG-62 引导/文档已通过本地审阅与完整门禁，待提交及普通 CI；正式身份、Mac 包、实机及发布仍需单独授权。
+**Current answer:** 截至 2026-10-14，阶段 5 已由用户签收，阶段 6 的 AG-60（`968ea59d`）、AG-61（`ffc08ab1`）及 AG-62 引导/文档（`bae89f6c`）均完成软件验收、两库交付及公开 CI。阶段 6 尚未签收；AG-62 正式身份/Mac 包以及实机、发布仍需单独授权。
 
-**Current focus:** 完成 AG-62 的使用前清单和实际功能文档并独立验收；不把配置状态当作连接/设备验证，不安装、打包发布或调用真实服务。
-
-## In progress
-
-- **AG-62 使用前引导/文档** — running；resume：[本地验收](margin/PLAN.md#ag62-guidance)；next：提交两库并取得普通公开 CI 终态；正式身份/Mac 包仍等待，不将此部分当成整票完成。
+**Current focus:** 已就绪的软件/文档范围完成，等待用户决定正式身份运行边界及批准阶段 6 出口打包 CI，再进行对应实现和产物核对。不安装、发布或调用真实服务。
 
 ## Waiting
 
+- **AG-62 正式身份/Mac 包与阶段 6 出口** — 等用户决定正式身份在 CI 之外的运行方式及本机使用时点，并单独批准出口打包 CI；resume：[AG-62 验收与剩余边界](margin/evidence/AG-62/README.md)。引导/文档已通过 CI，不重做。
 - **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
@@ -23,6 +20,7 @@
 
 ## Done (rolling)
 
+- AG-62 引导/文档部分（2026-10-14）：`bae89f6c` 两库交付，本地完整门禁、[普通公开 CI](https://github.com/xbz123/margin/actions/runs/38474547270)及下载证据核对通过；[验收记录](margin/evidence/AG-62/README.md)。正式身份与打包仍待批准。
 - AG-61 窗口控制软件范围（2026-10-13）：`ffc08ab1` 两库交付，本地完整门禁、[公开 CI](https://github.com/xbz123/margin/actions/runs/38472041728)及下载证据核对通过；[验收记录](margin/evidence/AG-61/README.md)。实机共享效果仍未验证。
 
 - AG-60 设置与双语（2026-10-13）：`968ea59d` 两库交付，本地完整门禁和[公开 CI](https://github.com/xbz123/margin/actions/runs/38465269168)通过；[验收记录](margin/evidence/AG-60/README.md)。

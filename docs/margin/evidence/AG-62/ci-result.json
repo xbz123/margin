@@ -1,0 +1,25 @@
+{
+  "run": 38474547270,
+  "url": "https://github.com/xbz123/margin/actions/runs/38474547270",
+  "headSha": "bae89f6c66a39ec416a83e39a17738f932f0d6e5",
+  "status": "completed",
+  "conclusion": "success",
+  "inputs": { "gate_ref": "docs/margin/evidence/AG-62", "no_cache": false, "package_apps": false },
+  "job": { "id": 115561905221, "name": "gates", "conclusion": "success" },
+  "artifact": {
+    "id": 11853009102,
+    "sha256": "f8f5bd381668884eda2fa09b68954f2934fd182261f519dc63b57767727e1978",
+    "archiveDigestVerified": true,
+    "entriesChecked": 27
+  },
+  "verifiedEvidence": {
+    "summaryHeadMatches": true,
+    "gatesPassed": 16,
+    "gatesTotal": 16,
+    "allGateExitCodesZero": true,
+    "tests": { "total": 1161, "pass": 1161, "fail": 0, "skipped": 0 },
+    "s42RequiredEvidencePassed": true,
+    "releaseIdentityContract": { "total": 6, "pass": 6, "fail": 0 }
+  },
+  "note": "The GitHub job response omitted step details. The digest-verified current-SHA artifact supplies the gate and release-identity evidence. This is ordinary ticket CI, not phase-6 packaging or release acceptance."
+}

@@ -50,8 +50,18 @@ exclusions and isolation policy are unchanged. Generated evidence prefixes are
 normalized for publication without changing outcomes or counts.
 
 The main-agent software review has no remaining blocker within this slice.
-Submission and public ordinary CI are pending. No result here is a real account,
-credential store, device, permission-prompt or sharing test.
+Commit `bae89f6c66a39ec416a83e39a17738f932f0d6e5` is pushed and verified on both
+repositories' migration branches. Public ordinary
+[CI 38474547270](https://github.com/xbz123/margin/actions/runs/38474547270)
+completed successfully on that commit with `gate_ref=docs/margin/evidence/AG-62`,
+`no_cache=false`, `package_apps=false`. On 2026-10-14 the main agent downloaded
+and checked the artifact: GitHub SHA-256 digest and source SHA match, gates
+16/16, tests 1161/1161 with zero skips, required evidence passed and release
+identity contract 6/6. Job-step details were absent from the API response; the
+verified artifact reports supply that evidence. See `ci-result.json`.
+This software/documentation slice is accepted; no result here is a real account,
+credential store, device, permission-prompt or sharing test. The receipt-only
+documentation follow-up does not require a second identical CI run.
 
 ## Remaining authorization
 
