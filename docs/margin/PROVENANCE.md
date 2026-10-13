@@ -21,6 +21,21 @@ Notes:
 
 ## Ledger
 
+### Stage 5 F1 screenshot retry withdrawal repair (2026-10-13)
+
+The main agent wrote this minimal repair from the confirmed normal-use F1
+reproduction on this branch. Releasing a prepared-input entry now aborts its
+owned active task after removing the entry, preventing an untracked retry and
+reentrant cleanup of a successor. No request path, task registry, dependency or
+Local Context/Skill editing behavior was added or changed.
+The existing SpeechActions fixture covers dictation and speech successors;
+the existing mounted answer regression clicks Retry, Answer and Remove all.
+Its loopback mock gains an optional Retry-After header, reset between cases.
+The diagnostic harness under stage5-acceptance also reuses this branch's existing
+fixtures; it is not production code or an additional test framework.
+No old imported branch or later upstream code was read or copied, and the
+source scan reports zero new unreviewed matches without added exceptions.
+
 ### S42-04 prepared retry and visible-answer timing (2026-10-13)
 
 Written for this branch from PLAN U6/U7 and D9, initially by Astra during

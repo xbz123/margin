@@ -141,6 +141,40 @@ test('S42-04 a replaced failure, new question, wrong owner, and destroyed owner 
   await assert.rejects(() => c.invoke('generation:retry', current.requestId, Date.now()), /no longer available/);
 });
 
+for (const successor of ['dictation', 'speech']) test(`F1 starting ${successor} cancels an old queued retry without cancelling the successor`, async () => {
+  const c = chain(), image = path.join(root, `superseded-${successor}.png`);
+  fs.writeFileSync(image, 'synthetic image');
+  c.helper.processImage = async () => ({ mimeType: 'image/jpeg', data: 'V0lUSERSQVdO' });
+  const failure = await failTyped(c, [image]);
+  let release;
+  c.helper.rateLimiters = { openai: { acquire: () => new Promise(resolve => { release = resolve; }) } };
+  c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'NEW ANSWER' }, finish_reason: 'stop' }] }]; };
+  const retry = c.invoke('generation:retry', failure.requestId, Date.now());
+  await tick(); assert.equal(typeof release, 'function');
+  let next;
+  if (successor === 'dictation') {
+    const dictationId = crypto.randomUUID();
+    await c.invoke('dictation:begin', { dictationId, clickedAt: Date.now() - 1 });
+    c.user.emit('transcript', { segmentId: 'next', text: 'The new dictated question', isFinal: true });
+    next = await c.begin('answer', { dictationId });
+  } else next = await c.begin('clarify');
+  await c.invoke('delete-screenshot', image);
+  release();
+  assert.equal((await retry).status, 'cancelled');
+  assert.equal(c.sent.length, 1, 'the cancelled retry must not send an image');
+  c.helper.rateLimiters = undefined;
+  c.releaseSeals();
+  if (successor === 'dictation') {
+    const frozen = await c.invoke('speech-action:freeze', next);
+    assert.equal(frozen.question, 'The new dictated question', 'old cleanup left new dictation intact');
+  } else {
+    const result = await c.invoke('generate-clarify', next);
+    assert.equal(result.clarification, 'NEW ANSWER', 'old cleanup left the successor task intact');
+  }
+  await c.invoke('cancel-intelligence-generation');
+  fs.rmSync(image, { force: true });
+});
+
 for (const newInput of ['invalid image', 'dictation']) test(`S42-04 starting ${newInput} releases the prior failure before later preparation`, async () => {
   const c = chain(); const failure = await failTyped(c);
   if (newInput === 'invalid image') await assert.rejects(() => c.invoke('gemini-chat-stream', 'new question', ['/missing-image.png']), /Invalid image path/);

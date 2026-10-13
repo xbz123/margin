@@ -227,6 +227,33 @@ test('S42-04 actual Retry preserves the partial row and original wire input whil
   assert.ok(rows.some(row => row.includes('S42 independent retry body.') && !row.includes('S42 retained partial.')));
 });
 
+test('F1 actual Retry then Answer then Remove all cannot resend the withdrawn screenshot', async () => {
+  await pressScreenshotShortcut();
+  await overlay.getByAltText('Screenshot 1', { exact: true }).waitFor();
+  mock.setScript({ errorStatus: 400 });
+  try {
+    await ask('F1 original screenshot question');
+    await overlay.getByRole('button', { name: 'Retry', exact: true }).waitFor({ state: 'visible' });
+    const before = mock.chatRequests().length;
+    mock.setScript({ errorStatus: 503, retryAfterSeconds: 4 });
+    await overlay.getByRole('button', { name: 'Retry', exact: true }).click();
+    for (let n = 0; n < 100 && mock.chatRequests().length === before; n++) await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(mock.chatRequests().length, before + 1);
+    await overlay.getByRole('button', { name: 'Answer', exact: true }).click();
+    await overlay.getByRole('button', { name: 'Stop', exact: true }).waitFor();
+    await overlay.getByRole('button', { name: 'Remove all', exact: true }).click();
+    await overlay.getByAltText('Screenshot 1', { exact: true }).waitFor({ state: 'hidden' });
+    const removedAt = mock.chatRequests().length;
+    mock.setScript({ errorStatus: 0, chunks: ['Old screenshot answer.'], delayMs: 5 });
+    await new Promise(resolve => setTimeout(resolve, 4500));
+    assert.equal(mock.chatRequests().slice(removedAt).filter(entry => JSON.stringify(entry.body).includes('data:image/')).length, 0);
+    assert.equal(await overlay.getByRole('button', { name: 'Stop', exact: true }).isVisible(), true, 'old retry cleanup preserves the new dictation');
+  } finally {
+    mock.setScript({ errorStatus: 0 });
+    if (await overlay.getByRole('button', { name: 'Stop', exact: true }).isVisible()) await overlay.getByRole('button', { name: 'Stop', exact: true }).click();
+  }
+});
+
 test('S42-04 removing the attached screenshot through the actual UI revokes its failed request', async () => {
   await overlay.evaluate(() => { window.electronAPI.onGeminiStreamError((_error, metadata) => { window.__s42ImageFailure = metadata; }); });
   await pressScreenshotShortcut();

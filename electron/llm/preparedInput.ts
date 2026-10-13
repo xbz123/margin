@@ -113,5 +113,7 @@ export class PreparedInputs {
         const entry = this.held.get(ownerId);
         entry?.detach();
         this.held.delete(ownerId);
+        // Drop ownership before abort listeners run; an old task must not clear its successor.
+        entry?.task?.controller.abort(new DOMException('Question input released', 'AbortError'));
     }
 }

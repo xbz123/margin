@@ -36,7 +36,7 @@ export async function startMockOpenAI() {
       res.end(JSON.stringify({ error: { message: `mock: no route ${req.method} ${req.url}` } }));
       return;
     }
-    const { delayMs, errorStatus, respond, hold, afterChunk, disconnectAfterChunks } = script;
+    const { delayMs, errorStatus, respond, hold, afterChunk, disconnectAfterChunks, retryAfterSeconds } = script;
     if (hold) {
       openStreams.add(res);
       res.on('close', () => openStreams.delete(res));
@@ -45,7 +45,7 @@ export async function startMockOpenAI() {
     const reply = typeof respond === 'function' ? respond(json) : undefined;
     const chunks = typeof reply === 'string' ? [reply] : script.chunks;
     if (errorStatus) {
-      res.writeHead(errorStatus, { 'content-type': 'application/json' });
+      res.writeHead(errorStatus, { 'content-type': 'application/json', ...(retryAfterSeconds === undefined ? {} : { 'retry-after': String(retryAfterSeconds) }) });
       res.end(JSON.stringify({ error: { message: 'mock: injected error', type: 'invalid_request_error', code: 'mock_error' } }));
       return;
     }
@@ -85,7 +85,7 @@ export async function startMockOpenAI() {
     baseURL: `http://127.0.0.1:${port}/v1`,
     requests,
     chatRequests: () => requests.filter((r) => /^\/(openai\/)?v1\/chat\/completions/.test(r.url)),
-    setScript(next) { script = { errorStatus: 0, respond: undefined, hold: false, ...script, afterChunk: undefined, disconnectAfterChunks: undefined, ...next }; },
+    setScript(next) { script = { errorStatus: 0, respond: undefined, hold: false, ...script, afterChunk: undefined, disconnectAfterChunks: undefined, retryAfterSeconds: undefined, ...next }; },
     async close() {
       for (const s of openStreams) s.destroy();
       await new Promise((r) => server.close(r));

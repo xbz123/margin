@@ -61,7 +61,11 @@ test left its HTTP 400 script active for later cases. Its own `finally` now
 restores that fixture. Both subsequent full runs passed renderer 20/20.
 Machine-specific paths in published evidence are normalized.
 
-Public CI and remote delivery are pending at this local acceptance point.
+Commit `7915b627a736ba66867cc47e527974a594d59a1a` is on both project repositories.
+Public [CI 38394532024](https://github.com/xbz123/margin/actions/runs/38394532024)
+completed successfully on that exact commit. Full gates, required-test evidence
+and the no-packaging release-identity check all pass; the receipt is
+`ci-result.json`. Packaging and application release were not requested.
 No real STT/LLM service, device capture, shared-screen protection, answer quality
 or production latency was tested. No installation, native rebuild or release was
 performed locally. Stage-5 product sign-off is still separate.

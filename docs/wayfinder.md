@@ -2,18 +2,14 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-13，S42-05、S42-01、S42-02 和 S42-03 均已完成独立审阅、本地门禁及逐票公开 CI。S42-04 已由 Astra/Claude 串行实现并通过主 Agent 独立审阅与完整本地门禁，等待本票提交和公开 CI。阶段 5 产品签收仍独立；D8/D9 和黑框不合格均已定案。
+**Current answer:** 截至 2026-10-13，阶段 5 出口发现的截图撤回问题 F1 已最小修复并通过本地完整门禁与 Claude 只读复查；见[验收记录](margin/evidence/stage5-acceptance/README.md)。会中修改 Local Context/Skill 的 F2/F3 不在本轮验收范围。出口 CI 和产物核对待完成，不进入阶段 6。
 
-**Current focus:** 先完成 S42-05→01→02→03→04，再持续推进计划中其他边界清晰且依赖满足的票。Claude Opus 5.5 medium 执行（用户已允许 auto，非绕过权限），主 Agent 独立审阅、取得本地证据、逐票提交并核对公开 CI；图标视觉、架构、真实服务预算与发布后置。
-
-## In progress
-
-- **逐票实现与验收** — running；resume：[S43 与当前票](margin/PLAN.md#tickets-20261013)、[S42-04 本地证据](margin/evidence/S42-04/README.md)；next：提交 S42-04 并核对同一提交的公开 CI；通过后重新核对其他票依赖，不跳过阶段签收。
+**Current focus:** 提交已通过复查的 F1 修复，运行已批准的阶段 5 出口 CI，并按既有 S26 核对产物；保持 Local Context/Skill 使用前配置范围，不新增会中编辑或热更新，不安装或发布应用。
 
 ## Waiting
 
 - **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
-- **阶段 5 产品签收** — AG-51 修正版本地复核已完成；真实质量未验证，阶段签收不由逐票 CI 自动代签。resume：PLAN §8 S43 增量执行；初版 AG-51 未跟踪 gates 保持原样。
+- **阶段 5 产品签收** — F1 已关闭；resume：[验收记录](margin/evidence/stage5-acceptance/README.md)、[阶段出口规则](margin/HANDOFF-stage4-6.md#3-执行顺序)。待出口 CI、产物核对后由用户签收。初版 AG-51 未跟踪 gates 保持原样。
 - **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
 
 ## Watching
@@ -24,6 +20,7 @@
 
 ## Done (rolling)
 
+- S42-04 原输入重试与可见首字计时（2026-10-13）：`7915b627` 已推送两库，独立审阅、本地门禁及[公开 CI](https://github.com/xbz123/margin/actions/runs/38394532024)通过；[验收证据](margin/evidence/S42-04/README.md)。回执与状态更新留待下一次已授权提交，不重复运行测试。
 - AG-40（Codex）和 AG-41a（AGY，与 AG-40 并行）（2026-10-11）：双路音频与会话生命周期；退役 Google、Deepgram、ElevenLabs、Azure、IBM Watson 五家 STT（S39）。合并后完整 gates 16/16。
 - AG-40 实现和本地检查通过（2026-10-11，`5241e414`）：生产停止链、尾段排空、重配、睡眠/唤醒及 OS 订阅接线；完整门禁和复查待 Claude，未推送、未实机验证（PLAN §8，`docs/margin/evidence/AG-40/`）。
 - AG-60a 共享翻译和设置组件（2026-10-11）：Astra 实现 `e05ad25e`，Claude 复查通过（PLAN §9"AG-60a 复查"）；AG-40 起改由 AGY 执行（S37）。
