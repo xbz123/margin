@@ -1,11 +1,17 @@
-import type { ProviderConfiguration } from './llmTarget';
+import type { ModelTarget } from './llmTarget';
+
+type ImageTarget = Pick<ModelTarget, 'provider' | 'protocol' | 'baseUrl' | 'model' | 'gatewayId' | 'imageSupportConfirmedFor'>;
 
 export const PROVIDER_IMAGE_ENDPOINTS = {
   gemini: 'https://generativelanguage.googleapis.com', groq: 'https://api.groq.com/openai/v1',
   openai: 'https://api.openai.com/v1', claude: 'https://api.anthropic.com', deepseek: 'https://api.deepseek.com',
 };
 
-export function imageSupportTarget(config: ProviderConfiguration): string {
+// A gateway binding names the gateway, so an official-looking gateway URL is still a gateway.
+export function imageSupportTarget(config: ImageTarget): string {
+  if (config.provider === 'gateway') {
+    return JSON.stringify(['gateway', config.gatewayId, config.protocol, new URL(config.baseUrl!.trim()).href.replace(/\/+$/, ''), config.model.trim()]);
+  }
   const base = new URL(config.baseUrl?.trim() || PROVIDER_IMAGE_ENDPOINTS[config.provider]).href.replace(/\/+$/, '');
   return JSON.stringify([config.provider, config.protocol, base, config.model.trim()]);
 }
@@ -21,13 +27,14 @@ const KNOWN_IMAGE_MODELS: Record<string, Record<string, boolean>> = {
   deepseek: { 'deepseek-v4-flash': true },
 };
 
-export function knownModelImageSupport(config: ProviderConfiguration): boolean | undefined {
+export function knownModelImageSupport(config: ImageTarget): boolean | undefined {
+  if (config.provider === 'gateway') return undefined;
   const base = new URL(config.baseUrl?.trim() || PROVIDER_IMAGE_ENDPOINTS[config.provider]).href.replace(/\/+$/, '');
   const models = KNOWN_IMAGE_MODELS[config.provider];
   return base === PROVIDER_IMAGE_ENDPOINTS[config.provider] && Object.hasOwn(models, config.model.trim()) ? models[config.model.trim()] : undefined;
 }
 
-export function assertModelImageSupport(config: ProviderConfiguration): void {
+export function assertModelImageSupport(config: ImageTarget): void {
   const known = knownModelImageSupport(config);
   if (known === false) throw new Error('This model does not support images. Select another model; your attachments were kept.');
   if (known === undefined && config.imageSupportConfirmedFor !== imageSupportTarget(config)) {

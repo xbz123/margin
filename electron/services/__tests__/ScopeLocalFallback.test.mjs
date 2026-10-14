@@ -95,7 +95,8 @@ const SEND_STUB = 'send-stub-reached';
 // Keep the real SDK request/retry machinery; replace only its HTTP transport.
 // A retryable response closes the scope before the SDK's retry timer can fire.
 for (const construction of ['constructor', 'key update']) {
-  for (const provider of ['groq', 'openai', 'claude', 'deepseek']) {
+  // Groq is no longer an answer target; its key may stay stored for speech only.
+  for (const provider of ['openai', 'claude', 'deepseek']) {
     test(`${provider} ${construction}: SDK cannot resend after scope revocation`, async () => {
       const LLMHelper = loadBuiltLLMHelper();
       const self = construction === 'constructor'

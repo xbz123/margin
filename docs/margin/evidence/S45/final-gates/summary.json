@@ -1,0 +1,248 @@
+{
+  "startedAt": "2026-10-14T23:38:47.351Z",
+  "head": "dca94aefd8c9005250ef72a5e50203dbc1b8927a",
+  "uncommittedPaths": 36,
+  "uncommittedPathList": [
+    "M docs/margin/OUTBOUND.md",
+    " M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    " M docs/product.md",
+    " M docs/wayfinder.md",
+    " M electron/LLMHelper.ts",
+    " M electron/ProcessingHelper.ts",
+    " M electron/ipcHandlers.ts",
+    " M electron/llm/__tests__/generationInterfaces.test.mjs",
+    " M electron/llm/__tests__/multiProtocolGeneration.test.mjs",
+    " M electron/llm/llmTarget.ts",
+    " M electron/margin/__tests__/credentialTransactions.test.mjs",
+    " M electron/preload.ts",
+    " M electron/services/CredentialsManager.ts",
+    " M electron/services/__tests__/OutboundInventory.test.mjs",
+    " M electron/services/__tests__/ProviderGatewayPolicy.test.mjs",
+    " M electron/services/__tests__/ScopeLocalFallback.test.mjs",
+    " M electron/utils/modelFetcher.ts",
+    " M src/components/ModelSelectorWindow.tsx",
+    " M src/components/onboarding/setupChecklistStatus.ts",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/components/settings/ProviderCard.tsx",
+    " M src/i18n.zh.ts",
+    " M src/types/electron.d.ts",
+    " M src/types/llmTarget.ts",
+    " M src/types/modelImageSupport.ts",
+    " M src/types/modelReasoning.ts",
+    " M src/utils/modelUtils.ts",
+    " M tests/margin/answer-regression.test.mjs",
+    " M tests/margin/meeting-storage.test.mjs",
+    " M tests/margin/outbound-renderer.test.mjs",
+    "?? docs/margin/evidence/AG-51/gates/",
+    "?? docs/margin/evidence/S45/",
+    "?? src/components/settings/GatewayPanel.tsx",
+    "?? src/utils/answerModelOptions.ts"
+  ],
+  "reference": "docs/margin/evidence/AG-62",
+  "note": "S45 final acceptance after independent review fixes; fresh isolated configuration, synthetic keys and loopback services only",
+  "steps": [
+    {
+      "id": "clean-dist",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node -e require('fs').rmSync('dist-electron', { recursive: true, force: true })",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 88,
+      "log": "docs/margin/evidence/S45/final-gates/clean-dist.log",
+      "passed": true
+    },
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 806,
+      "log": "docs/margin/evidence/S45/final-gates/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "vite-build",
+      "command": "node_modules/.bin/vite build",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4972,
+      "log": "docs/margin/evidence/S45/final-gates/vite-build.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-renderer",
+      "command": "node_modules/.bin/tsc --noEmit -p .",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3163,
+      "log": "docs/margin/evidence/S45/final-gates/tsc-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "tsc-electron",
+      "command": "node_modules/.bin/tsc -p electron/tsconfig.json --noEmit",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1793,
+      "log": "docs/margin/evidence/S45/final-gates/tsc-electron.log",
+      "diagnostics": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2871,
+      "log": "docs/margin/evidence/S45/final-gates/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "retired",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/retired-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2203,
+      "log": "docs/margin/evidence/S45/final-gates/retired.log",
+      "passed": true
+    },
+    {
+      "id": "preload-contract",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/preload-contract-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 78,
+      "log": "docs/margin/evidence/S45/final-gates/preload-contract.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "ipc-channels",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/ipc-channel-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 130,
+      "log": "docs/margin/evidence/S45/final-gates/ipc-channels.log",
+      "gaps": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "guard-selftest",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-blocked --test scripts/margin/isolation/__tests__/guard.node.test.mjs scripts/margin/isolation/__tests__/native-exports.node.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 805,
+      "log": "docs/margin/evidence/S45/final-gates/guard-selftest.log",
+      "passed": true
+    },
+    {
+      "id": "tests",
+      "command": "per file: ../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --test --test-timeout=60000 --test-reporter=tap <file> (limit 180000 ms, 4 at a time); files: electron/services/__tests__/**/*.test.mjs electron/llm/__tests__/**/*.test.mjs electron/audio/__tests__/**/*.test.mjs electron/margin/__tests__/**/*.test.mjs electron/utils/__tests__/**/*.test.mjs src/lib/__tests__/**/*.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 19697,
+      "log": "docs/margin/evidence/S45/final-gates/tests.log",
+      "tap": "docs/margin/evidence/S45/final-gates/tests.tap",
+      "perFile": "docs/margin/evidence/S45/final-gates/tests.files.json",
+      "files": 133,
+      "filesNotFinished": [],
+      "filesEndedAfterFooter": [],
+      "counts": {
+        "tests": 1187,
+        "pass": 1187,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "isolationBlocked": [],
+      "unexplainedExits": [],
+      "failures": {
+        "total": 0,
+        "inherited": 0,
+        "new": [],
+        "resolved": []
+      },
+      "passed": true
+    },
+    {
+      "id": "regression",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 51682,
+      "log": "docs/margin/evidence/S45/final-gates/regression.log",
+      "passed": true
+    },
+    {
+      "id": "storage",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/meeting-storage.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 17644,
+      "log": "docs/margin/evidence/S45/final-gates/storage.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 37633,
+      "log": "docs/margin/evidence/S45/final-gates/startup.log",
+      "passed": true
+    },
+    {
+      "id": "outbound-renderer",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron:esbuild --test --test-timeout=180000 tests/margin/outbound-renderer.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 45141,
+      "log": "docs/margin/evidence/S45/final-gates/outbound-renderer.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 90,
+      "log": "docs/margin/evidence/S45/final-gates/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-14T23:41:56.154Z",
+  "allPassed": true
+}

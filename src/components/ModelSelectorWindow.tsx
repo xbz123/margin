@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Check, Loader2 } from 'lucide-react';
-import { LLM_PRESETS, modelTargetId, type LlmProvider } from '../types/llmTarget';
-import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, getCodexCliModelDisplayName, STANDARD_CLOUD_MODELS, prettifyModelId } from '../utils/modelUtils';
+import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, getCodexCliModelDisplayName, prettifyModelId } from '../utils/modelUtils';
+import { answerModelOptions } from '../utils/answerModelOptions';
 import { codexSourceAvailable } from '../types/codexSource';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { useI18n } from '../i18n';
@@ -50,18 +50,8 @@ const ModelSelectorWindow = () => {
                 // Build the list
                 const models: ModelOption[] = [];
 
-                // Cloud Models — standard models + unique preferred models
-                for (const [prov, cfg] of Object.entries(STANDARD_CLOUD_MODELS)) {
-                    if (!cfg.hasKeyCheck(creds)) continue;
-                    const target = creds?.providerConfigurations?.[prov as LlmProvider] ?? LLM_PRESETS[prov as LlmProvider];
-                    if (!target.baseUrl) cfg.ids.forEach((id, i) => {
-                        models.push({ id: modelTargetId({ ...target, model: id }), name: cfg.names[i], type: 'cloud', provider: prov });
-                    });
-                    const pm = creds?.[cfg.pmKey];
-                    if (pm && (target.baseUrl || !cfg.ids.includes(pm))) {
-                        models.push({ id: modelTargetId({ ...target, model: pm }), name: `${prettifyModelId(pm)} (${prov})`, type: 'cloud', provider: prov });
-                    }
-                }
+                // Official providers with a saved key and saved gateways; Groq is not an answer source.
+                for (const option of answerModelOptions(creds)) models.push({ id: option.id, name: option.name, type: 'cloud', provider: option.source });
 
                 // Codex CLI
                 if (codexCliConfig && codexSourceAvailable(codexCliConfig)) {

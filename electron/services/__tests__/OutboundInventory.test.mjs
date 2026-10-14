@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const ts = require('typescript');
 const registered = {
   'electron/audio/DomesticStreamingSTT.ts': { 'new WebSocket': 1 },
-  'electron/LLMHelper.ts': { 'new Groq': 1, 'new OpenAI': 3, 'new Anthropic': 1, 'new GoogleGenAI': 1 },
+  'electron/LLMHelper.ts': { 'new Groq': 1, 'new OpenAI': 3, 'new Anthropic': 2, 'new GoogleGenAI': 2 },
   'electron/audio/SonioxStreamingSTT.ts': { 'new WebSocket': 1 },
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
   'electron/audio/RestSTT.ts': { 'axios.post': 1 },

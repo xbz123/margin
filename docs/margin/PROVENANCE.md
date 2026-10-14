@@ -21,6 +21,24 @@ Notes:
 
 ## Ledger
 
+### S45 settings layout and independent gateways (2026-10-15)
+
+The settings layout follows the user's observed earlier Margin UI: answer-model
+card, three internal tabs, expandable official rows, independent gateway and
+privacy controls. No old component bodies or assets were imported. The executor
+reported writing the implementation in this branch; review covers the actual
+diff, including the new gateway panel and shared selection helper. Icons use
+the already installed lucide/react-icons dependencies. S35 candidate fragments
+remain candidates, not additional approved source files.
+
+The source scan found eight occurrences of seven generic forms. Exact entries
+in provenance-config.json cover two Tailwind container declarations, a missing-ID
+guard, an existing-record branch, a required URL string field, a local-array
+return and the standard Mermaid `sequenceDiagram` directive already in the
+product spec. Each surrounding use was reviewed; no source pools, approved
+files or scan exclusions were broadened. Synthetic gateway and mounted UI
+tests are written for the current contracts, not copied from the old UI.
+
 ### S44 follow-up: quit lifecycle and upstream model selection (2026-10-14)
 
 Written on this branch from the reported Application quit failure and the user's

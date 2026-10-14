@@ -6,7 +6,7 @@
 //   transcript, no request of any kind -> read back -> restart -> read again ->
 //   delete -> restart -> still deleted.
 // Since AG-52 (PLAN S33) a meeting is kept as its local transcript and usage only: no
-// generated title or summary, no meeting chat and no startup recovery. A Groq key and
+// generated title or summary, no meeting chat and no startup recovery. An OpenAI key and
 // default model are still set, so a regression that sends the meeting reaches the
 // loopback mock and fails the test. The second test opens a meeting from the history
 // list, checks its usage view, and rolls back a title edit that fails to save.
@@ -28,7 +28,7 @@ import { startMockOpenAI } from './mock-openai.mjs';
 import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
-const FAKE_GROQ_KEY = 'gsk-margin-regression-not-a-real-key';
+const FAKE_ANSWER_KEY = 'sk-margin-regression-not-a-real-key';
 const FAKE_STT_KEY = 'sk-margin-storage-stt-not-a-real-key';
 const TITLE = 'Margin Storage Check';
 
@@ -119,7 +119,7 @@ test.before(async () => {
   env = {
     NODE_ENV: 'test', // enables the test-inject-transcript IPC
     MARGIN_ISOLATION_MIC: 'granted', // permission double, no OS prompt (guard.cjs)
-    GROQ_BASE_URL: mock.baseURL.replace(/\/v1$/, ''),
+    MARGIN_DEV_OPENAI_BASE_URL: mock.baseURL,
   };
   await launch();
   const launcher = await launcherWindow();
@@ -154,9 +154,9 @@ test('a meeting is saved without any request, survives a restart, and stays dele
   const dbPath = path.join(userDataPath, 'natively.db');
   assert.ok(dbPath.startsWith(sandbox.root), `database must live in the sandbox, got ${dbPath}`);
 
-  const keyResult = await launcher.evaluate((k) => window.electronAPI.setGroqApiKey(k), FAKE_GROQ_KEY);
-  assert.deepEqual(keyResult, { ok: true }, `setGroqApiKey failed: ${JSON.stringify(keyResult)}`);
-  const modelResult = await launcher.evaluate(() => window.electronAPI.setDefaultModel('llm-target:groq:chat-completions:llama-3.3-70b-versatile'));
+  const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_ANSWER_KEY);
+  assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
+  const modelResult = await launcher.evaluate(() => window.electronAPI.setDefaultModel('llm-target:openai:chat-completions:gpt-5.4'));
   assert.deepEqual(modelResult, { ok: true }, `setDefaultModel failed: ${JSON.stringify(modelResult)}`);
   assert.deepEqual(await launcher.evaluate(() => window.electronAPI.getRecentMeetings()), [], 'fresh database has no meetings');
 

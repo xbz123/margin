@@ -11,6 +11,13 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "<span className=\"flex-1 min-w-0\">", "reason": "S45: generic Tailwind flex text container in the independently written expandable provider row; no old component body imported." },
+    { "line": "<div className=\"flex flex-wrap items-center gap-2\">", "reason": "S45: generic wrapping button row in the independently written provider and gateway panels; exact class list only." },
+    { "line": "if (!id) return;", "reason": "S45: ordinary guard before testing a newly saved gateway identity, written for the save-then-test requirement." },
+    { "line": "if (previous) {", "reason": "S45: ordinary branch for updating an existing independently configured gateway; surrounding transaction reviewed, not imported code." },
+    { "line": "baseUrl: string;", "reason": "S45: required TypeScript string property on the independent gateway interface, not an imported implementation." },
+    { "line": "return options;", "reason": "S45: generic return of locally built answer-model choices; no older model-list body imported." },
+    { "line": "sequenceDiagram", "reason": "Product spec from dca94aef: standard Mermaid sequence-diagram directive, not implementation source. Exact directive only." },
     { "line": "const models: any[] = [];", "reason": "S44 follow-up: generic typed empty accumulator for the two bounded provider-list pagination loops, written from the model discovery requirement. Exact statement reviewed; no upstream implementation imported." },
     { "line": "if (value instanceof Error) throw value;", "reason": "S44 follow-up: generic synthetic failure injection in the model discovery test fixture; reviewed test-only use, no imported implementation." },
     { "line": "if (apiKey?.trim()) {", "reason": "S44 follow-up: CI 38611696710 flagged three pre-existing main STT key guards from a623e3f79. Reviewed surrounding Soniox, OpenAI and Groq branches; this is a generic nonblank-string check, not imported provider implementation. Exact line only." },

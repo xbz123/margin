@@ -4,8 +4,8 @@
  */
 
 import { outboundAxios as axios } from '../services/outbound';
-import { LLM_PRESETS, type ProviderConfiguration } from '../../src/types/llmTarget';
-import { effectiveProviderConfiguration } from '../llm/llmTarget';
+import { LLM_PRESETS, type GatewayConfiguration, type LlmProtocol, type ProviderConfiguration } from '../../src/types/llmTarget';
+import { effectiveProviderConfiguration, validateGatewayConfiguration } from '../llm/llmTarget';
 
 export interface ProviderModel {
     id: string;
@@ -14,8 +14,31 @@ export interface ProviderModel {
 
 type Provider = 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek';
 
+/** Lists models at a compatible address with the request shape its protocol defines. */
+async function fetchCompatibleModels(protocol: LlmProtocol, baseUrl: string, apiKey: string): Promise<ProviderModel[]> {
+    const suffix = protocol === 'gemini' ? '/v1alpha/models'
+        : protocol === 'messages' && !/\/v\d+$/.test(baseUrl) ? '/v1/models' : '/models';
+    const response = await axios.get(baseUrl + suffix, {
+        headers: protocol === 'gemini' ? { 'x-goog-api-key': apiKey }
+            : protocol === 'messages' ? { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
+                : { Authorization: `Bearer ${apiKey}` },
+        timeout: 15000,
+    });
+    const rows = protocol === 'gemini' ? response.data?.models : response.data?.data;
+    if (!Array.isArray(rows)) throw new Error('Invalid model list response');
+    return rows.filter((row: any) => typeof (row.id ?? row.name) === 'string').map((row: any) => ({
+        id: row.id ?? row.name.replace(/^models\//, ''), label: row.display_name ?? row.displayName ?? row.id ?? row.name,
+    }));
+}
+
+/** A gateway is listed through its own address and protocol only, never an official endpoint. */
+export async function fetchGatewayModels(gateway: GatewayConfiguration, apiKey: string): Promise<ProviderModel[]> {
+    const target = validateGatewayConfiguration(gateway);
+    return fetchCompatibleModels(target.protocol, target.baseUrl, apiKey);
+}
+
 /**
- * Fetch available models from a provider's API.
+ * Fetch available models from an official provider's API.
  * Returns a filtered, sorted array of { id, label } objects.
  */
 export async function fetchProviderModels(
@@ -24,21 +47,8 @@ export async function fetchProviderModels(
     configuration: ProviderConfiguration = LLM_PRESETS[provider],
 ): Promise<ProviderModel[]> {
     const target = effectiveProviderConfiguration(configuration);
-    if (target.custom) {
-        const suffix = target.protocol === 'gemini' ? '/v1alpha/models'
-            : target.protocol === 'messages' && !/\/v\d+$/.test(target.baseUrl) ? '/v1/models' : '/models';
-        const response = await axios.get(target.baseUrl + suffix, {
-            headers: target.protocol === 'gemini' ? { 'x-goog-api-key': apiKey }
-                : target.protocol === 'messages' ? { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
-                    : { Authorization: `Bearer ${apiKey}` },
-            timeout: 15000,
-        });
-        const rows = target.protocol === 'gemini' ? response.data?.models : response.data?.data;
-        if (!Array.isArray(rows)) throw new Error('Invalid model list response');
-        return rows.filter((row: any) => typeof (row.id ?? row.name) === 'string').map((row: any) => ({
-            id: row.id ?? row.name.replace(/^models\//, ''), label: row.display_name ?? row.displayName ?? row.id ?? row.name,
-        }));
-    }
+    // Only the development loopback override can make an official provider custom.
+    if (target.custom) return fetchCompatibleModels(target.protocol, target.baseUrl, apiKey);
     switch (provider) {
         case 'openai':
             return fetchOpenAIModels(apiKey);

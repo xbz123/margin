@@ -1,4 +1,4 @@
-import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider } from './llmTarget';
+import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from './llmTarget';
 import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
@@ -98,12 +98,15 @@ export interface ElectronAPI {
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void
 
   // LLM Model Management
-  getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "codex-cli"; model: string }>
+  getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "gateway" | "codex-cli" | "unavailable"; model: string }>
   switchToGemini: (apiKey?: string, modelId?: string) => Promise<CredentialSaveResult>
-  testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string) => Promise<{ success: boolean; error?: string }>
+  testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration) => Promise<{ success: boolean; error?: string }>
+  testGatewayConnection: (id: string, expected?: GatewayConfiguration) => Promise<{ success: boolean; error?: string }>
 
   // API Key Management
   setProviderConfiguration: (value: ProviderConfigurationSave) => Promise<CredentialSaveResult>;
+  setGatewayConfiguration: (value: GatewayConfigurationSave) => Promise<CredentialSaveResult & { gatewayId?: string }>;
+  removeGateway: (id: string) => Promise<CredentialSaveResult>;
   getGenerationPolicy: () => Promise<GenerationPolicy>;
   setGenerationPolicy: (value: GenerationPolicy) => Promise<CredentialSaveResult>;
   setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
@@ -113,7 +116,7 @@ export interface ElectronAPI {
   setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>
-  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
+  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; gateways?: GatewaySummary[]; providerAddressOverrides?: Partial<Record<LlmProvider, string>>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>
   requestMicPermission: () => Promise<boolean>
@@ -241,7 +244,7 @@ export interface ElectronAPI {
   cancelChatStream: (owner?: string) => void;
 
   // Model Management
-  getDefaultModel: () => Promise<{ model: string }>;
+  getDefaultModel: () => Promise<{ model: string; unavailable?: string }>;
   setModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
   setDefaultModel: (modelId: string) => Promise<CredentialSaveResult>;
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) => Promise<void>;
@@ -314,6 +317,7 @@ export interface ElectronAPI {
 
   // Dynamic Model Discovery
   fetchProviderModels: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) => Promise<{ success: boolean; models?: {id: string, label: string}[]; error?: string }>
+  fetchGatewayModels: (id: string) => Promise<{ success: boolean; models?: {id: string, label: string}[]; error?: string }>
   setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<CredentialSaveResult>
 
   // Overlay Opacity (Stealth Mode)

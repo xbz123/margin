@@ -61,10 +61,11 @@ export class ProcessingHelper {
     };
     const savedConfigs = credManager.getAllCredentials().providerConfigurations;
     for (const config of Object.values(configs)) {
-      // An explicitly saved slot never borrows an environment key for a new endpoint.
+      // An explicitly saved slot never borrows an environment key; official slots only reach official addresses.
       const key = credManager.getProviderApiKey(config.provider) || (savedConfigs?.[config.provider] ? undefined : envKeys[config.provider]);
       this.llmHelper.configureProvider(config, key);
     }
+    for (const gateway of Object.values(credManager.getGateways())) this.llmHelper.configureGateway(gateway, credManager.getGatewayApiKey(gateway.id));
 
     // CRITICAL: Re-initialize IntelligenceManager now that keys are loaded
     // This fixes the issue where buttons don't work in production because of late key loading
@@ -79,7 +80,9 @@ export class ProcessingHelper {
     const defaultModel = credManager.getDefaultModel();
     if (defaultModel) {
       console.log(`[ProcessingHelper] Loading stored Default Model: ${defaultModel}`);
-      this.llmHelper.setModel(defaultModel);
+      // A saved choice that can no longer be used stays visible and refuses answers; nothing is substituted.
+      try { this.llmHelper.setModel(defaultModel); }
+      catch (error) { this.llmHelper.selectUnavailable(defaultModel, error instanceof Error ? error.message : 'The saved answer model is unavailable.'); }
     }
     this.llmHelper.setGenerationPolicy(credManager.getGenerationPolicy());
 

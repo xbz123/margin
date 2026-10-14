@@ -1,8 +1,8 @@
 // ipcHandlers.ts
 
 import * as crypto from 'crypto';
-import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfigurationSave } from '../src/types/llmTarget';
-import { resolveModelTarget } from './llm/llmTarget';
+import { LLM_PRESETS, ANSWER_PROVIDERS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave } from '../src/types/llmTarget';
+import { resolveModelTarget, blockedEnvironmentOverride, validateGatewayConfiguration, validateProviderConfiguration, GROQ_ANSWERS_RETIRED } from './llm/llmTarget';
 import type { GenerationTask } from './llm/generateTask';
 import { app, BrowserWindow, dialog, ipcMain, shell, systemPreferences } from 'electron';
 import * as fs from 'fs';
@@ -1070,6 +1070,35 @@ export function initializeIpcHandlers(appState: AppState): void {
     return persistCredentials(() => manager.setProviderConfiguration(value), () => {
       const helper = appState.processingHelper.getLLMHelper();
       helper.configureProvider(manager.getProviderConfigurations()[value.provider], manager.getProviderApiKey(value.provider));
+      helper.setGenerationPolicy(manager.getGenerationPolicy());
+      appState.getIntelligenceManager().resetEngine();
+      appState.getIntelligenceManager().initializeLLMs();
+      appState.sendModelChanged(helper.getCurrentModelSelection());
+    });
+  });
+
+  // Gateways have their own identity and key; saving or removing one never touches an official provider.
+  safeHandle('set-gateway-configuration', async (_, value: GatewayConfigurationSave) => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    const manager = CredentialsManager.getInstance();
+    let gatewayId: string | undefined;
+    const result = await persistCredentials(() => { const saved = manager.setGatewayConfiguration(value); gatewayId = saved.gatewayId; return saved; }, () => {
+      const helper = appState.processingHelper.getLLMHelper();
+      helper.configureGateway(manager.getGateways()[gatewayId!], manager.getGatewayApiKey(gatewayId!));
+      helper.setGenerationPolicy(manager.getGenerationPolicy());
+      appState.getIntelligenceManager().resetEngine();
+      appState.getIntelligenceManager().initializeLLMs();
+      appState.sendModelChanged(helper.getCurrentModelSelection());
+    });
+    return result.ok ? { ...result, gatewayId } : result;
+  });
+
+  safeHandle('remove-gateway', async (_, id: string) => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    const manager = CredentialsManager.getInstance();
+    return persistCredentials(() => manager.removeGateway(id), () => {
+      const helper = appState.processingHelper.getLLMHelper();
+      helper.removeGateway(id);
       appState.getIntelligenceManager().resetEngine();
       appState.getIntelligenceManager().initializeLLMs();
       appState.sendModelChanged(helper.getCurrentModelSelection());
@@ -1149,8 +1178,13 @@ export function initializeIpcHandlers(appState: AppState): void {
       // Return masked versions for security (just indicate if set)
       const hasKey = (key?: string) => !!(key && key.trim().length > 0);
 
+      let gateways: unknown[] = [];
+      try { gateways = CredentialsManager.getInstance().getGatewaySummaries(); } catch { gateways = []; }
       return {
         providerConfigurations: CredentialsManager.getInstance().getProviderConfigurations(),
+        // Configuration and key presence only; gateway keys never reach the renderer.
+        gateways,
+        providerAddressOverrides: Object.fromEntries(ANSWER_PROVIDERS.map(provider => [provider, blockedEnvironmentOverride(provider)]).filter(([, variable]) => variable)),
         hasGeminiKey: hasKey(creds.geminiApiKey),
         hasGroqKey: hasKey(creds.groqApiKey),
         hasOpenaiKey: hasKey(creds.openaiApiKey),
@@ -1199,30 +1233,22 @@ export function initializeIpcHandlers(appState: AppState): void {
   // Dynamic Model Discovery Handlers
   // ==========================================
 
+  // Discovery uses only the saved key of the saved target; nothing is selected or saved here.
   safeHandle(
     'fetch-provider-models',
     async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey: string) => {
       try {
-        // Fall back to stored key if no key was explicitly provided
-        let key = apiKey?.trim();
-        if (!key) {
-          const { CredentialsManager } = require('./services/CredentialsManager');
-          const cm = CredentialsManager.getInstance();
-          if (provider === 'gemini') key = cm.getGeminiApiKey();
-          else if (provider === 'groq') key = cm.getGroqApiKey();
-          else if (provider === 'openai') key = cm.getOpenaiApiKey();
-          else if (provider === 'claude') key = cm.getClaudeApiKey();
-          else if (provider === 'deepseek') key = cm.getDeepseekApiKey();
-        }
-
-        if (!key) {
-          return { success: false, error: 'No API key available. Please save a key first.' };
-        }
-
-        const { fetchProviderModels } = require('./utils/modelFetcher');
-        if (apiKey?.trim()) throw new Error('Save the complete provider configuration before fetching models.');
         const { CredentialsManager } = require('./services/CredentialsManager');
-        const models = await fetchProviderModels(provider, key, CredentialsManager.getInstance().getProviderConfigurations()[provider]);
+        const cm = CredentialsManager.getInstance();
+        if (!(ANSWER_PROVIDERS as readonly string[]).includes(provider)) return { success: false, error: provider === 'groq' ? GROQ_ANSWERS_RETIRED : 'Unknown provider' };
+        if (apiKey?.trim()) return { success: false, error: 'Save the complete provider configuration before fetching models.' };
+        if (!cm.getLoadStatus().ok) return { success: false, error: 'Saved credentials are unavailable.' };
+        const blocked = blockedEnvironmentOverride(provider);
+        if (blocked) return { success: false, error: `${blocked} is set, so this official provider is paused.` };
+        const key = cm.getProviderApiKey(provider);
+        if (!key) return { success: false, error: 'No API key available. Please save a key first.' };
+        const { fetchProviderModels } = require('./utils/modelFetcher');
+        const models = await fetchProviderModels(provider, key, cm.getProviderConfigurations()[provider]);
         return { success: true, models };
       } catch (error: any) {
         console.error(`[IPC] Failed to fetch ${provider} models`);
@@ -1230,6 +1256,23 @@ export function initializeIpcHandlers(appState: AppState): void {
       }
     },
   );
+
+  safeHandle('fetch-gateway-models', async (_, id: string) => {
+    try {
+      const { CredentialsManager } = require('./services/CredentialsManager');
+      const cm = CredentialsManager.getInstance();
+      if (!cm.getLoadStatus().ok) return { success: false, error: 'Saved credentials are unavailable.' };
+      const gateway = typeof id === 'string' ? cm.getGateways()[id] : undefined;
+      if (!gateway) return { success: false, error: 'This gateway no longer exists.' };
+      const key = cm.getGatewayApiKey(id);
+      if (!key) return { success: false, error: 'No API key available. Please save a key first.' };
+      const { fetchGatewayModels } = require('./utils/modelFetcher');
+      return { success: true, models: await fetchGatewayModels(gateway, key) };
+    } catch {
+      console.error('[IPC] Failed to fetch gateway models');
+      return { success: false, error: 'Failed to fetch models' };
+    }
+  });
 
   safeHandle(
     'set-provider-preferred-model',
@@ -1328,6 +1371,12 @@ export function initializeIpcHandlers(appState: AppState): void {
   const sanitizeErrorMessage = (msg: string): string => {
     // Remove patterns like ": sk-***...***" or ": sdasdada***...dwwC"
     return msg.replace(/:\s*[a-zA-Z0-9*]+\*+[a-zA-Z0-9*]+\.?$/g, '').trim();
+  };
+  // Provider errors may echo request details; the key itself and long bodies never return to the renderer.
+  const boundedProviderError = (msg: unknown, secret?: string): string => {
+    let text = sanitizeErrorMessage(typeof msg === 'string' ? msg : 'Connection failed');
+    if (secret?.trim()) text = text.split(secret.trim()).join('[redacted]');
+    return text.length > 300 ? `${text.slice(0, 300)}…` : text;
   };
 
   safeHandle(
@@ -1478,9 +1527,19 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle(
     'test-llm-connection',
-    async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string) => {
+    async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration) => {
       console.log(`[IPC] Received test-llm-connection request for provider: ${provider}`);
       try {
+        if (!(ANSWER_PROVIDERS as readonly string[]).includes(provider)) return { success: false, error: provider === 'groq' ? GROQ_ANSWERS_RETIRED : 'Unknown provider' };
+        const blocked = blockedEnvironmentOverride(provider);
+        if (blocked) return { success: false, error: `${blocked} is set, so this official provider is paused.` };
+        // Save and test checks that it tests exactly what was just saved, never an older configuration.
+        if (expected !== undefined) {
+          const { CredentialsManager } = require('./services/CredentialsManager');
+          let same = false;
+          try { same = JSON.stringify(validateProviderConfiguration(expected)) === JSON.stringify(CredentialsManager.getInstance().getProviderConfigurations()[provider]); } catch { same = false; }
+          if (!same) return { success: false, error: 'The saved configuration changed. Save again before testing.' };
+        }
         if (!apiKey || !apiKey.trim()) {
           const { CredentialsManager } = require('./services/CredentialsManager');
           const creds = CredentialsManager.getInstance();
@@ -1524,11 +1583,33 @@ export function initializeIpcHandlers(appState: AppState): void {
             ? `${error.response.data.error.type}: ${error.response.data.error.message}`
             : error.message) ||
           'Connection failed';
-        const msg = sanitizeErrorMessage(rawMsg);
-        return { success: false, error: msg };
+        return { success: false, error: boundedProviderError(rawMsg, apiKey) };
       }
     },
   );
+
+  safeHandle('test-gateway-connection', async (_, id: string, expected?: GatewayConfiguration) => {
+    try {
+      const { CredentialsManager } = require('./services/CredentialsManager');
+      const cm = CredentialsManager.getInstance();
+      const saved = typeof id === 'string' ? cm.getGateways()[id] : undefined;
+      if (!saved) return { success: false, error: 'This gateway no longer exists.' };
+      if (!cm.getGatewayApiKey(id)?.trim()) return { success: false, error: 'No API key provided' };
+      if (expected !== undefined) {
+        let same = false;
+        try { same = JSON.stringify(validateGatewayConfiguration({ ...expected, id })) === JSON.stringify(saved); } catch { same = false; }
+        if (!same) return { success: false, error: 'The saved configuration changed. Save again before testing.' };
+      }
+      const text = await appState.processingHelper.getLLMHelper().testProviderConnection({ gatewayId: id });
+      return { success: !!text.trim(), ...(text.trim() ? {} : { error: 'The provider returned an empty response.' }) };
+    } catch (error: any) {
+      console.error('Gateway connection test failed:', { status: error?.response?.status ?? error?.status, code: error?.code });
+      const rawMsg = error?.response?.data?.error?.message || error?.error?.message || error?.message || 'Connection failed';
+      let secret: string | undefined;
+      try { secret = require('./services/CredentialsManager').CredentialsManager.getInstance().getGatewayApiKey(id); } catch { secret = undefined; }
+      return { success: false, error: boundedProviderError(rawMsg, secret) };
+    }
+  });
 
   safeHandle('get-groq-fast-text-mode', () => {
     try {
@@ -1629,7 +1710,10 @@ export function initializeIpcHandlers(appState: AppState): void {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const cm = CredentialsManager.getInstance();
       const model = cm.getDefaultModel();
-      return { model: model.startsWith('codex-cli') ? model : modelTargetId(resolveModelTarget(model, cm.getProviderConfigurations())) };
+      if (model.startsWith('codex-cli')) return { model };
+      // An unusable saved choice is reported as saved, never replaced by another model.
+      try { return { model: modelTargetId(resolveModelTarget(model, cm.getProviderConfigurations(), cm.getGateways())) }; }
+      catch (error: any) { return { model, unavailable: error instanceof Error ? error.message : 'The saved answer model is unavailable.' }; }
     } catch (error: any) {
       console.error('Error getting default model:', error);
       return { model: modelTargetId(LLM_PRESETS.gemini) };

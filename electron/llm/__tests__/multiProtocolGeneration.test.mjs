@@ -21,7 +21,9 @@ try {
 const { generateOnce } = require('../../../dist-electron/electron/llm/generateOnce.js');
 const { GeminiPromptCache } = require('../../../dist-electron/electron/llm/GeminiPromptCache.js');
 const { outboundFetch } = require('../../../dist-electron/electron/services/outbound.js');
-const { fetchProviderModels } = require('../../../dist-electron/electron/utils/modelFetcher.js');
+const { fetchProviderModels, fetchGatewayModels } = require('../../../dist-electron/electron/utils/modelFetcher.js');
+// A gateway is its own target: identity, address and key never come from an official provider slot.
+const gatewayOf = (id, protocol, baseUrl, extra = {}) => ({ id, protocol, baseUrl, model: 'opaque-model', ...extra });
 const drain = async source => { const events = []; for await (const event of source) events.push(event); return events; };
 const collect = async source => { let text = ''; for await (const chunk of source) text += chunk; return text; };
 const request = (protocol, extra = {}) => ({ protocol, purpose: 'answer', model: 'opaque-model',
@@ -113,27 +115,29 @@ test('real SDK text/image serialization, saved opaque target, test and model lis
     else if (JSON.parse(body).stream) sse(res, chat());
     else { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] })); }
   }, async base => {
-    for (const [provider, protocol] of [['openai', 'chat-completions'], ['openai', 'responses'], ['claude', 'messages'], ['groq', 'chat-completions'], ['deepseek', 'chat-completions']]) {
-      const config = { provider, protocol, model: 'opaque-model', baseUrl: `${base}/v1/`, imageSupportConfirmedFor: JSON.stringify([provider, protocol, `${base}/v1`, 'opaque-model']) };
+    for (const [id, protocol] of [['gw-chat', 'chat-completions'], ['gw-responses', 'responses'], ['gw-messages', 'messages'], ['gw-second', 'chat-completions']]) {
+      const config = gatewayOf(id, protocol, `${base}/v1/`, { imageSupportConfirmedFor: JSON.stringify(['gateway', id, protocol, `${base}/v1`, 'opaque-model']) });
       const helper = new LLMHelper();
       helper.getProviderScopePolicy = () => ({});
-      helper.configureProvider(config, `synthetic-${provider}`);
-      helper.setModel(`llm-target:${provider}:${protocol}:opaque-model`);
-      assert.equal(helper.getCurrentProvider(), provider);
+      // The same wire model on an official provider keeps its own key and address.
+      helper.configureProvider({ provider: 'openai', protocol: 'chat-completions', model: 'opaque-model' }, 'synthetic-official');
+      helper.configureGateway(config, `synthetic-${id}`);
+      helper.setModel(`llm-gateway:${id}:${protocol}:opaque-model`);
+      assert.equal(helper.getCurrentProvider(), 'gateway');
       assert.equal(helper.getCurrentModel(), 'opaque-model');
       helper.setAiResponseLanguage('English');
       helper.processImage = async () => ({ mimeType: 'image/png', data: 'AAAA' });
       const task = helper.beginGenerationTask();
       assert.equal(await helper.runGeneration(() => collect(helper.streamChat('USER', ['synthetic-image'], undefined, 'SYSTEM', true, true)), 'interview', undefined, task), 'ANSWER');
       assert.equal(helper.getTaskMetadata(task).status, 'completed');
-      assert.equal(await helper.testProviderConnection(provider), 'ANSWER');
-      assert.deepEqual(await fetchProviderModels(provider, `synthetic-${provider}`, config), [{ id: 'opaque-model', label: 'opaque-model' }]);
-      assert.equal(helper.modelVersionManager[`${provider === 'claude' ? 'claude' : provider}ApiKey`] ?? null, null);
-      await helper.modelVersionManager.runDiscoveryAndUpgrade();
+      assert.equal(await helper.testProviderConnection({ gatewayId: id }), 'ANSWER');
+      assert.deepEqual(await fetchGatewayModels(config, `synthetic-${id}`), [{ id: 'opaque-model', label: 'opaque-model' }]);
+      for (const row of observed.slice(-3)) assert.match(JSON.stringify(row.headers), new RegExp(`synthetic-${id}`), 'gateway requests carry only the gateway key');
     }
   });
-  assert.equal(observed.length, 15, 'no automatic official discovery or hidden retry');
+  assert.equal(observed.length, 12, 'no automatic official discovery or hidden retry');
   for (const row of observed) {
+    assert.doesNotMatch(JSON.stringify(row.headers), /synthetic-official/);
     assert.doesNotMatch(row.url, /\/v1\/v1/);
     if (!row.body) continue;
     assert.equal(row.body.model, 'opaque-model');
@@ -142,7 +146,7 @@ test('real SDK text/image serialization, saved opaque target, test and model lis
     if (row.url.endsWith('/responses')) { assert.equal(row.body.store, false); if (row.body.input[0].content.length > 1) assert.equal(row.body.instructions, 'SYSTEM'); }
   }
   const generations = observed.filter(row => row.body && JSON.stringify(row.body).includes('AAAA'));
-  assert.equal(generations.length, 5, 'images were retained by every capable protocol adapter');
+  assert.equal(generations.length, 4, 'images were retained by every capable protocol adapter');
   for (const row of generations) assert.match(JSON.stringify(row.body), /SYSTEM/);
 });
 
@@ -175,17 +179,16 @@ test('an explicitly selected custom model is the wire model, while connection te
     else if (req.url.endsWith('/responses')) res.end(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'ANSWER' }] }] }));
     else res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
   }, async base => {
-    for (const [provider, protocol] of [['gemini', 'gemini'], ['openai', 'chat-completions'], ['openai', 'responses'],
-      ['claude', 'messages'], ['groq', 'chat-completions'], ['deepseek', 'chat-completions']]) {
-      const config = { provider, protocol, model: 'opaque-saved-model', baseUrl: protocol === 'gemini' ? base : base + '/v1' };
+    for (const protocol of ['gemini', 'chat-completions', 'responses', 'messages']) {
+      const config = gatewayOf('gw-wire', protocol, protocol === 'gemini' ? base : base + '/v1', { model: 'opaque-saved-model' });
       const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-      helper.configureProvider(config, 'synthetic-only');
-      helper.setModel(`llm-target:${provider}:${protocol}:opaque-selected-model`);
+      helper.configureGateway(config, 'synthetic-only');
+      helper.setModel(`llm-gateway:gw-wire:${protocol}:opaque-selected-model`);
       assert.equal(helper.getCurrentModel(), 'opaque-selected-model');
       assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
-      assert.equal(await helper.testProviderConnection(provider), 'ANSWER');
+      assert.equal(await helper.testProviderConnection({ gatewayId: 'gw-wire' }), 'ANSWER');
       const [generation, connection] = observed.slice(-2);
-      if (provider === 'gemini') {
+      if (protocol === 'gemini') {
         assert.match(generation.url, /models\/opaque-selected-model:generateContent$/);
         assert.match(connection.url, /models\/opaque-saved-model:generateContent$/);
       } else {
@@ -194,7 +197,7 @@ test('an explicitly selected custom model is the wire model, while connection te
       }
     }
   });
-  assert.equal(observed.length, 12);
+  assert.equal(observed.length, 8);
 });
 
 test('real three-protocol SDK terminal events remain incomplete/refused when the stream finishes normally', async () => {
@@ -246,12 +249,12 @@ test('Gemini custom target uses the same v1alpha prefix for generation, test and
     if (req.method === 'GET') res.end(JSON.stringify({ models: [{ name: 'models/opaque-model', displayName: 'Opaque' }] }));
     else res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'ANSWER' }] }, finishReason: 'STOP' }] }));
   }, async base => {
-    const config = { provider: 'gemini', protocol: 'gemini', model: 'opaque-model', baseUrl: `${base}/proxy/` };
+    const config = gatewayOf('gw-gemini', 'gemini', `${base}/proxy/`);
     const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-    helper.configureProvider(config, 'synthetic-only');
-    helper.setModel('llm-target:gemini:gemini:opaque-model');
-    assert.equal(await helper.testProviderConnection('gemini'), 'ANSWER');
-    assert.deepEqual(await fetchProviderModels('gemini', 'synthetic-only', config), [{ id: 'opaque-model', label: 'Opaque' }]);
+    helper.configureGateway(config, 'synthetic-only');
+    helper.setModel('llm-gateway:gw-gemini:gemini:opaque-model');
+    assert.equal(await helper.testProviderConnection({ gatewayId: 'gw-gemini' }), 'ANSWER');
+    assert.deepEqual(await fetchGatewayModels(config, 'synthetic-only'), [{ id: 'opaque-model', label: 'Opaque' }]);
     assert.equal(helper.modelVersionManager.geminiApiKey, null);
     assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
   });
@@ -272,48 +275,49 @@ test('structured generation never discovers an unselected OpenAI target, then us
     res.end(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'STRUCTURED' }] }] }));
   }, async base => {
     const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-    helper.configureProvider({ provider: 'openai', protocol: 'responses', model: 'opaque-model', baseUrl: `${base}/v1` }, 'synthetic-only');
+    helper.configureGateway(gatewayOf('gw-structured', 'responses', `${base}/v1`), 'synthetic-only');
     await assert.rejects(() => helper.generateContentStructured('STRUCTURED_USER'), /gemini client not initialized/);
     assert.equal(sends, 0, 'an unconfigured selected target cannot silently switch to another configured provider');
-    helper.setModel('llm-target:openai:responses:opaque-model');
+    helper.setModel('llm-gateway:gw-structured:responses:opaque-model');
     assert.equal(await helper.generateContentStructured('STRUCTURED_USER'), 'STRUCTURED');
   });
   assert.equal(sends, 1);
 });
 
-test('legacy Groq environment host root keeps the SDK API prefix while saved API roots are used unchanged', async () => {
-  const previous = process.env.GROQ_BASE_URL;
-  const observed = [];
+test('a production address variable pauses the official provider instead of redirecting its key', async () => {
+  const previous = process.env.OPENAI_BASE_URL;
+  let sends = 0;
   try {
-    await serve(async (req, res) => {
-      let body = ''; for await (const part of req) body += part;
-      observed.push(req.url);
-      res.setHeader('content-type', 'application/json');
-      if (req.method === 'GET') res.end(JSON.stringify({ data: [{ id: 'opaque-groq' }] }));
-      else res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
-    }, async base => {
-      process.env.GROQ_BASE_URL = base + '/';
-      for (const saved of [false, true]) {
-        const config = { provider: 'groq', protocol: 'chat-completions', model: 'opaque-groq', ...(saved ? { baseUrl: base + '/v1' } : {}) };
-        const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-        helper.configureProvider(config, 'synthetic-only');
-        helper.setModel('llm-target:groq:chat-completions:opaque-groq');
-        assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
-        assert.equal(await helper.testProviderConnection('groq'), 'ANSWER');
-        assert.deepEqual(await fetchProviderModels('groq', 'synthetic-only', config), [{ id: 'opaque-groq', label: 'opaque-groq' }]);
-      }
+    await serve(async (req, res) => { sends++; for await (const _ of req) {} res.end('{}'); }, async base => {
+      process.env.OPENAI_BASE_URL = base + '/v1';
+      const config = { provider: 'openai', protocol: 'chat-completions', model: 'opaque-model' };
+      assert.equal(targetApi.effectiveProviderConfiguration(config).baseUrl, 'https://api.openai.com/v1');
+      assert.equal(targetApi.blockedEnvironmentOverride('openai'), 'OPENAI_BASE_URL');
+      const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+      helper.configureProvider(config, 'synthetic-only');
+      helper.setModel('llm-target:openai:chat-completions:opaque-model');
+      await assert.rejects(() => helper.chatWithGemini('USER'), /OPENAI_BASE_URL is set/);
+      await assert.rejects(() => helper.testProviderConnection('openai'), /OPENAI_BASE_URL is set/);
     });
-    assert.deepEqual(observed, ['/openai/v1/chat/completions', '/openai/v1/chat/completions', '/openai/v1/models',
-      '/v1/chat/completions', '/v1/chat/completions', '/v1/models']);
+    assert.equal(sends, 0);
   } finally {
-    if (previous === undefined) delete process.env.GROQ_BASE_URL;
-    else process.env.GROQ_BASE_URL = previous;
+    if (previous === undefined) delete process.env.OPENAI_BASE_URL;
+    else process.env.OPENAI_BASE_URL = previous;
   }
+});
+
+test('Groq is refused as an answer target without falling back to another provider', () => {
+  const helper = new LLMHelper();
+  helper.configureProvider({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4' }, 'synthetic-only');
+  for (const id of ['llm-target:groq:chat-completions:llama-3.3-70b-versatile', 'llama', 'llama-3.3-70b-versatile']) assert.throws(() => helper.setModel(id), /Groq is not available/);
+  helper.selectUnavailable('llm-target:groq:chat-completions:llama-3.3-70b-versatile', 'Groq is not available for answers.');
+  assert.equal(helper.getCurrentProvider(), 'unavailable');
+  assert.throws(() => helper.beginGenerationTask(), /Groq is not available/);
 });
 
 test('hot configuration changes keep active provider, protocol and wire model together', () => {
   const helper = new LLMHelper();
-  const initial = { provider: 'openai', protocol: 'chat-completions', model: 'old-model', baseUrl: 'https://synthetic.invalid/v1' };
+  const initial = { provider: 'openai', protocol: 'chat-completions', model: 'old-model' };
   helper.configureProvider(initial, 'synthetic-only');
   helper.setModel('llm-target:openai:chat-completions:old-model');
   helper.configureProvider({ ...initial, protocol: 'responses', model: 'new-model' }, 'synthetic-only');
@@ -323,13 +327,15 @@ test('hot configuration changes keep active provider, protocol and wire model to
   assert.throws(() => helper.setModel('llm-target:openai:chat-completions:old-model'), /protocol changed/);
 });
 
-test('saved Gemini base takes precedence over explicit environment base without adding a second API version', () => {
+test('official providers keep their built-in address; environment and saved custom addresses never redirect them', () => {
   const previous = process.env.GOOGLE_GEMINI_BASE_URL;
   try {
     process.env.GOOGLE_GEMINI_BASE_URL = 'https://environment.invalid/proxy';
     const config = { provider: 'gemini', protocol: 'gemini', model: 'opaque' };
-    assert.equal(targetApi.effectiveProviderConfiguration(config).baseUrl, 'https://environment.invalid/proxy');
-    assert.equal(targetApi.effectiveProviderConfiguration({ ...config, baseUrl: 'https://saved.invalid/root' }).baseUrl, 'https://saved.invalid/root');
+    assert.equal(targetApi.effectiveProviderConfiguration(config).baseUrl, 'https://generativelanguage.googleapis.com');
+    assert.equal(targetApi.blockedEnvironmentOverride('gemini'), 'GOOGLE_GEMINI_BASE_URL');
+    assert.throws(() => targetApi.validateProviderConfiguration({ ...config, baseUrl: 'https://saved.invalid/root' }), /gateway/);
+    assert.equal(targetApi.validateProviderConfiguration({ ...config, baseUrl: 'https://generativelanguage.googleapis.com/' }).baseUrl, undefined);
   } finally {
     if (previous === undefined) delete process.env.GOOGLE_GEMINI_BASE_URL;
     else process.env.GOOGLE_GEMINI_BASE_URL = previous;
@@ -380,19 +386,18 @@ test('S44 each protocol serializes its own reasoning fields through the real SDK
     else res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
   }, async base => {
     const cases = [
-      ['gemini', 'gemini', { effort: 'low' }, body => assert.deepEqual(body.generationConfig.thinkingConfig, { thinkingLevel: 'LOW' })],
-      ['openai', 'chat-completions', { effort: 'xhigh' }, body => assert.equal(body.reasoning_effort, 'xhigh')],
-      ['openai', 'responses', { effort: 'minimal' }, body => assert.deepEqual(body.reasoning, { effort: 'minimal' })],
-      ['claude', 'messages', { thinking: 'adaptive', effort: 'max' }, body => { assert.deepEqual(body.thinking, { type: 'adaptive' }); assert.deepEqual(body.output_config, { effort: 'max' }); assert.equal(body.temperature, undefined); }],
-      ['groq', 'chat-completions', { effort: 'low' }, body => assert.equal(body.reasoning_effort, 'low')],
-      ['deepseek', 'chat-completions', { effort: 'medium' }, body => assert.equal(body.reasoning_effort, 'medium')],
+      ['gw-gemini', 'gemini', { effort: 'low' }, body => assert.deepEqual(body.generationConfig.thinkingConfig, { thinkingLevel: 'LOW' })],
+      ['gw-chat', 'chat-completions', { effort: 'xhigh' }, body => assert.equal(body.reasoning_effort, 'xhigh')],
+      ['gw-responses', 'responses', { effort: 'minimal' }, body => assert.deepEqual(body.reasoning, { effort: 'minimal' })],
+      ['gw-messages', 'messages', { thinking: 'adaptive', effort: 'max' }, body => { assert.deepEqual(body.thinking, { type: 'adaptive' }); assert.deepEqual(body.output_config, { effort: 'max' }); assert.equal(body.temperature, undefined); }],
+      ['gw-medium', 'chat-completions', { effort: 'medium' }, body => assert.equal(body.reasoning_effort, 'medium')],
     ];
     for (const [provider, protocol, reasoning, check] of cases) {
-      const config = { provider, protocol, model: 'opaque-model', baseUrl: protocol === 'gemini' ? base : base + '/v1', reasoning };
-      assert.deepEqual(targetApi.validateProviderConfiguration(config).reasoning, reasoning);
+      const config = gatewayOf(provider, protocol, protocol === 'gemini' ? base : base + '/v1', { reasoning });
+      assert.deepEqual(targetApi.validateGatewayConfiguration(config).reasoning, reasoning);
       const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-      helper.configureProvider(config, 'synthetic-only');
-      helper.setModel(`llm-target:${provider}:${protocol}:opaque-model`);
+      helper.configureGateway(config, 'synthetic-only');
+      helper.setModel(`llm-gateway:${provider}:${protocol}:opaque-model`);
       // The Gemini SDK reports 503 without a status, so only the other adapters retry it here.
       mode = protocol === 'gemini' ? 'ok' : 'overload'; observed.length = 0;
       assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
@@ -403,7 +408,7 @@ test('S44 each protocol serializes its own reasoning fields through the real SDK
       assert.equal(observed.length, 1, 'a rejected setting is not resent without it');
       check(observed[0].body);
       mode = 'ok';
-      helper.configureProvider({ ...config, reasoning: undefined }, 'synthetic-only');
+      helper.configureGateway({ ...config, reasoning: undefined }, 'synthetic-only');
       observed.length = 0;
       assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
       const body = observed[0].body;
@@ -411,6 +416,30 @@ test('S44 each protocol serializes its own reasoning fields through the real SDK
       assert.equal(body.generationConfig?.thinkingConfig, undefined);
     }
   });
+});
+
+test('S45 gateway error bodies never escape the generation boundary after retry classification', async () => {
+  const secret = 'synthetic-sensitive-key', observed = [];
+  await serve(async (req, res) => {
+    observed.push(req.url);
+    for await (const _ of req) { /* drain request */ }
+    res.writeHead(401, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'invalid_api_key', message: `Rejected ${secret}`, extra: secret } }));
+  }, async base => {
+    for (const protocol of ['chat-completions', 'responses', 'messages', 'gemini']) {
+      const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+      helper.configureGateway(gatewayOf('gw-secret', protocol, protocol === 'gemini' ? base : base + '/v1'), secret);
+      helper.setModel(`llm-gateway:gw-secret:${protocol}:opaque-model`);
+      await assert.rejects(() => helper.chatWithGemini('USER'), error => {
+        assert.doesNotMatch(String(error) + JSON.stringify(error) + error.stack, new RegExp(secret));
+        assert.equal(error.cause, undefined);
+        assert.equal(error.generationTaskTerminal, true);
+        assert.match(error.message, /Gateway request failed/);
+        return true;
+      });
+    }
+  });
+  assert.equal(observed.length, 4, 'authentication errors are not retried');
 });
 
 test('S44 a backup uses its own target settings, and official endpoints accept only documented values', async () => {
@@ -423,10 +452,10 @@ test('S44 a backup uses its own target settings, and official endpoints accept o
     sse(res, messages(), true);
   }, async base => {
     const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-    helper.configureProvider({ provider: 'openai', protocol: 'chat-completions', model: 'primary', baseUrl: base + '/v1', reasoning: { effort: 'high' } }, 'synthetic-only');
-    helper.configureProvider({ provider: 'claude', protocol: 'messages', model: 'backup', baseUrl: base, reasoning: { effort: 'low' } }, 'synthetic-only');
-    helper.setModel('llm-target:openai:chat-completions:primary');
-    helper.setGenerationPolicy({ ...helper.getGenerationPolicy(), backupModel: 'llm-target:claude:messages:backup' });
+    helper.configureGateway(gatewayOf('gw-primary', 'chat-completions', base + '/v1', { model: 'primary', reasoning: { effort: 'high' } }), 'synthetic-only');
+    helper.configureGateway(gatewayOf('gw-backup', 'messages', base, { model: 'backup', reasoning: { effort: 'low' } }), 'synthetic-only');
+    helper.setModel('llm-gateway:gw-primary:chat-completions:primary');
+    helper.setGenerationPolicy({ ...helper.getGenerationPolicy(), backupModel: 'llm-gateway:gw-backup:messages:backup' });
     assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
     assert.deepEqual(observed.map(row => [row.body.model, row.body.reasoning_effort, row.body.output_config?.effort]), [['primary', 'high', undefined], ['backup', undefined, 'low']]);
   });
@@ -442,6 +471,10 @@ test('S44 a backup uses its own target settings, and official endpoints accept o
   assert.throws(() => official('deepseek', 'chat-completions', 'deepseek-v4-flash', { effort: 'medium' }), /not available/);
   assert.throws(() => official('gemini', 'gemini', 'gemini-3.1-pro-preview', { effort: 'minimal' }), /not available/);
   // A compatible gateway is limited to the protocol's own fields; vendor extensions are not assumed.
-  assert.throws(() => targetApi.validateProviderConfiguration({ provider: 'deepseek', protocol: 'chat-completions', model: 'deepseek-v4-flash', baseUrl: 'https://gateway.invalid/v1', reasoning: { thinking: 'enabled' } }), /not available/);
-  assert.deepEqual(targetApi.validateProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', baseUrl: 'https://gateway.invalid/v1', reasoning: { effort: 'max' } }).reasoning, { effort: 'max' });
+  assert.throws(() => targetApi.validateGatewayConfiguration(gatewayOf('gw-x', 'chat-completions', 'https://gateway.invalid/v1', { model: 'deepseek-v4-flash', reasoning: { thinking: 'enabled' } })), /not available/);
+  assert.deepEqual(targetApi.validateGatewayConfiguration(gatewayOf('gw-x', 'chat-completions', 'https://gateway.invalid/v1', { model: 'gpt-5.4', reasoning: { effort: 'max' } })).reasoning, { effort: 'max' });
+  // An official-looking gateway address is still a gateway: protocol values, unknown image support.
+  const lookalike = gatewayOf('gw-lookalike', 'responses', 'https://api.openai.com/v1', { model: 'gpt-5.4', reasoning: { effort: 'minimal' } });
+  assert.deepEqual(targetApi.validateGatewayConfiguration(lookalike).reasoning, { effort: 'minimal' });
+  assert.throws(() => official('openai', 'responses', 'gpt-5.4', { effort: 'minimal' }), /not available/);
 });

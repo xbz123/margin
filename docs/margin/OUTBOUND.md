@@ -8,7 +8,7 @@ audio devices, keychain or Codex CLI are used by the synthetic checks.
 
 `electron/services/outbound.ts` validates absolute HTTP/HTTPS URLs without
 userinfo, fragments, whitespace or backslashes. Explicit user addresses remain
-supported, including env endpoints and HTTP-compatible STT servers. This is URL
+supported for independent gateways and HTTP-compatible STT servers. This is URL
 syntax and redirect protection, not a host-authorization allowlist: initial
 origins come from the fixed or explicit configuration sources inventoried below.
 Fetch forces `redirect: 'error'`; the separate
@@ -25,16 +25,22 @@ preserved. Nothing patches node_modules or SDK prototypes.
 
 | Entry | Effective configuration / endpoint | Content |
 | --- | --- | --- |
-| LLMHelper Groq via llm/generateOnce (Chat) | Saved API base, otherwise legacy GROQ_BASE_URL host root, otherwise official Groq API | Text/images |
-| LLMHelper OpenAI via llm/generateOnce (Chat or Responses) | Saved API base, otherwise nonpackaged loopback dev override / OPENAI_BASE_URL, otherwise https://api.openai.com/v1 | Text/images; Responses uses store:false |
-| LLMHelper Anthropic via llm/generateOnce (Messages) | Saved API base, otherwise ANTHROPIC_BASE_URL, otherwise https://api.anthropic.com | Text/images |
-| LLMHelper DeepSeek via llm/generateOnce (Chat) | Saved API base, otherwise https://api.deepseek.com; does not borrow OpenAI env | Text/images subject to exact-target capability admission |
-| LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | Saved base, otherwise GOOGLE_GEMINI_BASE_URL, otherwise https://generativelanguage.googleapis.com; explicit API-key v1alpha backend | Text/images/system instructions |
-| ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic/Groq model-list URLs, fetch; custom targets receive no discovery key | Key/config only; startup/background/model-error discovery |
-| utils/modelFetcher, fetch-provider-models IPC | Saved effective target; unfiltered model IDs for compatible targets, no official fallback | User-triggered saved key/config only |
-| test-llm-connection IPC | Same saved effective target and protocol through generateOnce | Fixed Hello and saved key |
+| LLMHelper OpenAI via llm/generateOnce (Chat or Responses) | Fixed https://api.openai.com/v1; only the nonpackaged loopback development override can change it | Text/images; Responses uses store:false |
+| LLMHelper Anthropic via llm/generateOnce (Messages) | Fixed https://api.anthropic.com | Text/images |
+| LLMHelper DeepSeek via llm/generateOnce (Chat) | Fixed https://api.deepseek.com | Text/images subject to exact-target capability admission |
+| LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | Fixed https://generativelanguage.googleapis.com; explicit API-key v1alpha backend | Text/images/system instructions |
+| LLMHelper independent gateway via llm/generateOnce | Explicit saved URL, own stable identity and Key; separate Gemini/Anthropic/OpenAI client according to protocol, never an official fallback | Text/images subject to gateway-specific confirmation; final SDK errors are replaced after retry classification before reaching renderer/log consumers |
+| ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic model-list URLs; Groq and custom targets receive no discovery key | Key/config only; startup/background/model-error discovery |
+| utils/modelFetcher, fetch-provider-models / fetch-gateway-models IPC | Saved official target or independent gateway; gateway model IDs unfiltered, no official fallback | User-triggered saved key/config only |
+| test-llm-connection / test-gateway-connection IPC | Saved target and protocol through generateOnce; supplied expected configuration must match storage | Fixed Hello and saved key |
 | test-stt-connection IPC | Soniox WS, Groq/OpenAI transcription POST | Manual validation; synthetic WAV only |
 | DomesticStreamingSTT / test-domestic-stt | Aliyun: empty workspace uses `wss://dashscope.aliyuncs.com/api-ws/v1/inference`, otherwise `wss://<validated-workspace>.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`; Doubao: `wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async` | Only explicitly selected credentials and PCM; manual test uses synthetic silence. A supplied Aliyun workspace is a validated single label, not an arbitrary authority. Doubao uses the selected hourly/concurrent resource, with no automatic resource switch. No redirects or region/model fallback. General-endpoint model availability still needs separately authorized real-service validation. |
+
+Groq is retired for answers, not STT. Production address environment variables
+cannot redirect official clients: a conflicting value pauses that provider.
+Gateway Key changes and origin binding use the same encrypted transaction as
+their configuration. The constructor inventory records both official and
+gateway clients; no new dependency or transport bypass is introduced.
 
 LLMHelper's final sends recheck request scopes after limiter/image processing and
 before application retries/fallback. Groq/OpenAI/Anthropic/DeepSeek SDK retries

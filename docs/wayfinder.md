@@ -2,13 +2,17 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-14，阶段 6 技术验收及 S44 后续软件修复通过，Natively Local 已安装。用户已授权，但真实启动仍有 CoreAudio 阻塞，待解决后继续实机复测与用户签收；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
+**Current answer:** 截至 2026-10-15，阶段 6 技术验收及 S44 软件修复通过，Natively Local 已安装且已能进入设置。此前 CoreAudio 启动卡顿风险未关闭，真实模型测试及阶段 6 实机签收仍未完成；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
 
-**Current focus:** S44 修复版已通过本地门禁、独立复查和公开 CI，并完成安装。真实启动再次受 CoreAudio 输入设备枚举阻塞，模型连接和阶段 6 实机签收仍未完成。
+**Current focus:** S45 设置对齐及独立网关已完成本地门禁和独立复查，下一步提交并核对公开 CI。S44 安装后的真实启动与阶段 6 签收风险仍独立保留。
+
+## In progress
+
+- **S45 设置对齐** — running；resume：[验收证据](margin/evidence/S45/README.md)、[执行契约](margin/PLAN.md#s45-settings)；本地验收通过，下一步两库提交及公开普通 CI，不安装或调用真实服务。
 
 ## Waiting
 
-- **S44 真实参数验证** — 等待 CoreAudio 启动阻塞解决，再通过正常设置测试已保存 Key；[证据与边界](margin/evidence/S44/README.md)。权限已由用户确认，不重复重置、不绕过钥匙串。
+- **S44 真实参数验证** — 已能进入设置；等待 S45 交互稳定后按现有授权测试已保存 Key，CoreAudio 风险不因单次恢复关闭；[证据与边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
 
 - **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 

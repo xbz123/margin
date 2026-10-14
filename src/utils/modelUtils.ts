@@ -26,13 +26,6 @@ export const STANDARD_CLOUD_MODELS: Record<string, {
         descs: ['Anthropic'],
         pmKey: 'claudePreferredModel'
     },
-    groq: {
-        hasKeyCheck: (creds) => !!creds?.hasGroqKey,
-        ids: ['llama-3.3-70b-versatile'],
-        names: ['Groq Llama 3.3'],
-        descs: ['Ultra Fast'],
-        pmKey: 'groqPreferredModel'
-    },
     deepseek: {
         hasKeyCheck: (creds) => !!creds?.hasDeepseekKey,
         ids: ['deepseek-v4-flash', 'deepseek-v4-pro'],
@@ -67,7 +60,7 @@ export const getCodexCliModelDisplayName = (id: string): string | null => {
 };
 
 export const getModelTargetDisplayName = (id: string): string | null => {
-    const match = /^llm-target:([^:]+):[^:]+:(.+)$/.exec(id);
+    const match = /^llm-(?:target|gateway):([^:]+):[^:]+:(.+)$/.exec(id);
     if (!match) return null;
     try { return `${decodeURIComponent(match[2])} (${match[1]})`; }
     catch { return id; }

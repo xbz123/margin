@@ -570,11 +570,11 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 
-test('S44 mounted AI provider settings put answer models first and send per-target reasoning to the real protocol request', async () => {
+test('S45 mounted settings preserve drafts, order save/test and pass gateway reasoning to the real protocol', async () => {
   const require = createRequire(import.meta.url), electronId = require.resolve('electron'), previous = require.cache[electronId];
-  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => fs.mkdtempSync(path.join(os.tmpdir(), 's44-ui-')), isPackaged: true, getVersion: () => 'synthetic' } } };
-  let LLMHelper, targetApi;
-  try { ({ LLMHelper } = require(`${REPO}/dist-electron/electron/LLMHelper.js`)); targetApi = require(`${REPO}/dist-electron/electron/llm/llmTarget.js`); }
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => fs.mkdtempSync(path.join(os.tmpdir(), 's45-ui-')), isPackaged: true, getVersion: () => 'synthetic' } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require(REPO + '/dist-electron/electron/LLMHelper.js')); }
   finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
   const bodies = [];
   const server = http.createServer(async (req, res) => {
@@ -583,89 +583,155 @@ test('S44 mounted AI provider settings put answer models first and send per-targ
     res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const gateway = `http://127.0.0.1:${server.address().port}/v1`;
+  const address = 'http://127.0.0.1:' + server.address().port + '/v1';
   const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
     import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
     import { AIProvidersSettings as Settings } from './src/components/settings/AIProvidersSettings'; import { LLM_PRESETS } from './src/types/llmTarget';
-    import { DEFAULT_GENERATION_POLICY as POLICY } from './src/types/generationPolicy';
-    window.saved = []; window.modelFetches = 0;
-    window.electronAPI = { getGenerationPolicy: async () => POLICY,
-      getStoredCredentials: async () => ({ providerConfigurations: LLM_PRESETS, hasOpenaiKey: true }),
+    import { DEFAULT_GENERATION_POLICY as POLICY } from './src/types/generationPolicy'; import { setUiLanguage } from './src/i18n';
+    window.events = []; window.models = [{ id: 'gpt-5.4', label: 'Upstream GPT' }, { id: 'gpt-5.4-other', label: 'Other upstream model' }];
+    window.creds = { providerConfigurations: structuredClone(LLM_PRESETS), hasOpenaiKey: true, gateways: [] };
+    window.policy = structuredClone(POLICY); window.gatewayCreates = 0;
+    window.electronAPI = { getGenerationPolicy: async () => structuredClone(window.policy),
+      setGenerationPolicy: async policy => { window.policy = structuredClone(policy); return { ok: true }; },
+      getStoredCredentials: async () => structuredClone(window.creds),
       getGroqFastTextMode: async () => ({ enabled: false }), getDefaultModel: async () => ({ model: 'llm-target:openai:chat-completions:gpt-5.4' }), getProviderDataScopes: async () => ({}),
       getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
-      fetchProviderModels: async () => { window.modelFetches++; if (window.deferModels) return new Promise(resolve => window.resolveModels = resolve); return { success: true, models: [{ id: 'gpt-5.4', label: 'GPT 5.4' }, { id: 'gpt-5.4-other', label: 'Other upstream model' }] }; },
-      setProviderConfiguration: async value => { window.saved.push(value); return { ok: true }; } };
+      fetchProviderModels: async () => { window.events.push('fetch'); if (window.deferModels) return new Promise(resolve => window.resolveModels = resolve); return { success: true, models: window.models }; },
+      setProviderConfiguration: async value => { window.events.push('save'); if (window.failSave) return { ok: false, message: 'synthetic save failure' }; window.creds.providerConfigurations[value.provider] = value; return { ok: true }; },
+      testLlmConnection: async (provider, unused, expected) => { window.events.push('test'); window.tested = expected; if (window.deferTest) return new Promise(resolve => window.resolveTest = resolve); return { success: true }; },
+      setGatewayConfiguration: async value => { window.events.push('gateway-save'); if (window.failSave) return { ok: false, message: 'synthetic save failure' };
+        if (!value.id) window.gatewayCreates++;
+        if (window.deferSave) await new Promise(resolve => window.resolveSave = resolve);
+        const previous = window.gatewaySaved;
+        const { apiKey, ...config } = value; window.gatewaySaved = { ...config, id: value.id || 'gw-synthetic' };
+        if (previous && window.policy.backupModel === 'llm-gateway:' + previous.id + ':' + previous.protocol + ':' + encodeURIComponent(previous.model))
+          window.policy.backupModel = 'llm-gateway:' + window.gatewaySaved.id + ':' + value.protocol + ':' + encodeURIComponent(value.model);
+        window.creds.gateways = [{ ...window.gatewaySaved, hasKey: true }]; return { ok: true, gatewayId: window.gatewaySaved.id }; },
+      testGatewayConnection: async (id, expected) => { window.events.push('gateway-test'); window.gatewayTested = expected; if (window.deferTest) return new Promise(resolve => window.resolveTest = resolve); return { success: true }; },
+      fetchGatewayModels: async () => { window.events.push('gateway-fetch'); return { success: true, models: [] }; },
+      setProviderDataScopes: async scopes => { window.scopes = scopes; }, openExternal: async url => { window.external = url; }
+    };
     const root = createRoot(document.getElementById('root')); window.show = () => flushSync(() => root.render(React.createElement(Settings)));
+    window.language = setUiLanguage;
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
-  const sandbox = makeSandbox('s44-provider-settings'); let app;
+  const sandbox = makeSandbox('s45-provider-settings'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
     const created = app.waitForEvent('window'); await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
     const page = await created; await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
+    await page.getByRole('button', { name: /^OpenAI/ }).click();
     const effort = page.getByRole('combobox', { name: 'OpenAI reasoning effort', exact: true });
     await effort.waitFor();
+    const cloud = page.getByRole('tabpanel', { name: 'Cloud services', exact: true });
     const text = await page.locator('body').innerText();
-    assert.ok(text.indexOf('Answer models') < text.indexOf('Backup model') && text.indexOf('Backup model') < text.indexOf('Cloud Providers'), 'primary and backup lead the page');
-    assert.ok(text.indexOf('Generation limits') < text.indexOf('Cloud Providers'));
-    assert.match(text, /Cloud provider data scopes/);
-    const options = async () => (await effort.locator('option').allTextContents());
-    assert.deepEqual((await options()).slice(1), ['none', 'low', 'medium', 'high', 'xhigh'], 'documented gpt-5.4 values on the official endpoint');
-    assert.match(text, /Vendor-documented context window: 1,050,000 tokens; maximum output: 128,000 tokens/);
-    assert.equal(await page.getByRole('spinbutton', { name: 'OpenAI context window' }).count(), 0, 'no capacity field for the official endpoint');
+    assert.ok(text.indexOf('Answer models') < text.indexOf('Backup model') && text.indexOf('Generation limits') < text.indexOf('Cloud services'));
     assert.equal(await page.getByRole('textbox', { name: 'OpenAI API base URL', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('combobox', { name: 'OpenAI connection', exact: true }).count(), 0);
     assert.equal(await page.getByRole('textbox', { name: 'OpenAI model ID', exact: true }).count(), 0);
+    assert.doesNotMatch(await page.getByRole('combobox', { name: 'Primary model', exact: true }).innerText(), /Groq|llama/i);
+    assert.equal(await page.getByRole('button', { name: /^Groq/ }).count(), 0);
+    assert.deepEqual(await page.evaluate(() => window.events), [], 'mount and expand are local only');
+    assert.deepEqual((await effort.locator('option').allTextContents()).slice(1), ['none', 'low', 'medium', 'high', 'xhigh']);
     const model = page.getByRole('combobox', { name: 'OpenAI model', exact: true });
     assert.equal(await model.isDisabled(), true);
-    await page.getByRole('button', { name: 'Fetch Models', exact: true }).click();
-    await page.waitForFunction(() => window.modelFetches === 1);
-    await model.selectOption('gpt-5.4-other');
-    assert.equal(await model.inputValue(), 'gpt-5.4-other');
-    await model.selectOption('gpt-5.4');
-    assert.deepEqual(await page.evaluate(() => window.saved), [], 'fetch and selection do not silently persist or change the active model');
+    await cloud.getByRole('button', { name: 'Fetch Models', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model"]').options.length === 2);
+    await model.selectOption('gpt-5.4-other'); await model.selectOption('gpt-5.4');
+    assert.deepEqual(await page.evaluate(() => window.events), ['fetch'], 'discovery never selects or saves automatically');
     await page.evaluate(() => { window.deferModels = true; });
-    await page.getByRole('button', { name: 'Fetch Models', exact: true }).click();
+    await cloud.getByRole('button', { name: 'Fetch Models', exact: true }).click();
     await effort.selectOption('xhigh');
-    await page.getByRole('combobox', { name: 'OpenAI connection', exact: true }).selectOption('gateway');
-    await page.getByRole('textbox', { name: 'OpenAI API base URL', exact: true }).fill(gateway);
-    await page.evaluate(() => window.resolveModels({ success: true, models: [{ id: 'stale', label: 'Stale official response' }] }));
-    assert.equal(await model.locator('option', { hasText: 'Stale official response' }).count(), 0);
-    assert.equal(await effort.inputValue(), '', 'changing the endpoint clears the previous target setting');
-    assert.deepEqual((await options()).slice(1), ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'], 'a gateway gets protocol values, not a vendor claim');
-    assert.match(await page.locator('body').innerText(), /Reasoning values come from the protocol/);
-    await page.getByRole('spinbutton', { name: 'OpenAI context window', exact: true }).fill('4096');
-    await effort.selectOption('max');
-    const save = page.getByRole('button', { name: 'Save', exact: true });
-    for (let index = 0; index < await save.count(); index++) if (await save.nth(index).isEnabled()) await save.nth(index).click();
-    await page.waitForFunction(() => window.saved.length === 1);
-    const [payload] = await page.evaluate(() => JSON.parse(JSON.stringify(window.saved)));
-    assert.deepEqual(payload, { provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', baseUrl: gateway, reasoning: { effort: 'max' }, contextWindowTokens: 4096 });
-    // Per-model settings never carry over to another model, protocol or an official address.
-    const context = page.getByRole('spinbutton', { name: 'OpenAI context window', exact: true });
-    await page.getByRole('textbox', { name: 'OpenAI model ID', exact: true }).fill('gpt-5.4-other');
-    assert.equal(await effort.inputValue(), ''); assert.equal(await context.inputValue(), '');
-    await context.fill('2048'); await effort.selectOption('high');
-    await page.getByRole('combobox', { name: 'OpenAI protocol', exact: true }).selectOption('responses');
-    assert.equal(await effort.inputValue(), ''); assert.equal(await context.inputValue(), '');
-    await context.fill('2048');
-    await page.getByRole('combobox', { name: 'OpenAI connection', exact: true }).selectOption('official');
-    assert.equal(await context.count(), 0, 'the gateway-only note is gone for the official API');
-    assert.equal(await page.getByRole('alert').count(), 0);
-    await page.waitForFunction(() => ![...document.querySelectorAll('button')].some(button => button.textContent === 'Saved!'));
-    for (let index = 0; index < await save.count(); index++) if (await save.nth(index).isEnabled()) await save.nth(index).click();
-    await page.waitForFunction(() => window.saved.length === 2);
-    const official = await page.evaluate(() => JSON.parse(JSON.stringify(window.saved[1])));
-    assert.deepEqual(official, { provider: 'openai', protocol: 'responses', model: 'gpt-5.4-other' });
-    assert.doesNotThrow(() => targetApi.validateProviderConfiguration(official));
-    await page.close();
+    await page.evaluate(() => window.resolveModels({ success: true, models: [{ id: 'stale', label: 'Stale result' }] }));
+    assert.equal(await model.locator('option', { hasText: 'Stale result' }).count(), 0);
+    await page.getByRole('tab', { name: 'Cloud services', exact: true }).press('ArrowRight');
+    assert.equal(await page.getByRole('tab', { name: 'Gateway', exact: true }).getAttribute('aria-selected'), 'true');
+    await page.getByRole('tab', { name: 'Gateway', exact: true }).press('End');
+    await page.getByRole('switch', { name: 'Allow Screenshots to cloud providers', exact: true }).click();
+    assert.equal(await page.evaluate(() => window.scopes.screenshots), false);
+    await page.getByRole('tab', { name: 'Privacy', exact: true }).press('Home');
+    assert.equal(await effort.inputValue(), 'xhigh', 'tab switch preserves the draft');
+    await page.evaluate(() => { window.failSave = true; });
+    await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => document.body.innerText.includes('synthetic save failure'));
+    assert.equal(await page.evaluate(() => window.events.filter(x => x === 'test').length), 0);
+    await page.evaluate(() => { window.failSave = false; });
+    await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => window.events.includes('test'));
+    assert.deepEqual(await page.evaluate(() => window.events.slice(-2)), ['save', 'test']);
+    assert.equal(await page.evaluate(() => window.tested.reasoning.effort), 'xhigh');
+    await page.waitForFunction(() => document.body.innerText.includes('Connection test passed'));
+    // A late test result cannot mark a newer draft connected.
+    await page.evaluate(() => { window.deferTest = true; });
+    await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => !!window.resolveTest);
+    await effort.selectOption('low');
+    await page.evaluate(() => { window.resolveTest({ success: true }); window.deferTest = false; window.resolveTest = undefined; });
+    assert.doesNotMatch(await cloud.innerText(), /Connection test passed/);
+
+    await page.getByRole('tab', { name: 'Gateway', exact: true }).click();
+    const gateway = page.getByRole('tabpanel', { name: 'Gateway', exact: true });
+    await page.getByRole('textbox', { name: 'Gateway URL', exact: true }).fill(address);
+    await page.getByLabel('Gateway API key', { exact: true }).fill('synthetic-only');
+    await page.getByLabel('Gateway model', { exact: true }).fill('gpt-5.4');
+    const gatewayEffort = page.getByRole('combobox', { name: 'Gateway reasoning effort', exact: true });
+    await gatewayEffort.selectOption('max');
+    await page.getByRole('spinbutton', { name: 'Gateway context window', exact: true }).fill('4096');
+    await page.getByRole('tab', { name: 'Gateway', exact: true }).press('ArrowRight');
+    await page.getByRole('tab', { name: 'Privacy', exact: true }).press('ArrowLeft');
+    assert.equal(await gatewayEffort.inputValue(), 'max');
+    await page.evaluate(() => { window.failSave = true; });
+    await gateway.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => document.getElementById('ai-panel-gateway').innerText.includes('synthetic save failure'));
+    assert.equal(await page.evaluate(() => window.events.filter(x => x === 'gateway-test').length), 0);
+    await page.evaluate(() => { window.failSave = false; window.deferSave = true; });
+    await gateway.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => !!window.resolveSave);
+    await page.getByLabel('Gateway model', { exact: true }).fill('new-draft');
+    assert.equal(await gateway.getByRole('button', { name: 'Save and test', exact: true }).isDisabled(), true, 'editing cannot unlock an in-flight creation');
+    await page.evaluate(() => { window.deferSave = false; window.resolveSave(); });
+    await page.waitForFunction(() => !!window.gatewaySaved && !document.querySelector('#ai-panel-gateway button').disabled);
+    assert.equal(await page.getByLabel('Gateway model', { exact: true }).inputValue(), 'new-draft');
+    assert.equal(await page.evaluate(() => window.events.filter(x => x === 'gateway-test').length), 0, 'superseded save cannot trigger a test');
+    await page.getByLabel('Gateway model', { exact: true }).fill('gpt-5.4');
+    await gatewayEffort.selectOption('max');
+    await gateway.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => window.events.includes('gateway-test'));
+    assert.deepEqual(await page.evaluate(() => window.events.slice(-2)), ['gateway-save', 'gateway-test']);
+    const payload = await page.evaluate(() => JSON.parse(JSON.stringify(window.gatewaySaved)));
+    assert.deepEqual(await page.evaluate(() => window.gatewayTested), payload);
+    assert.equal(await gateway.getByLabel('Gateway model', { exact: true }).count(), 1, 'first save keeps one stable panel');
+    assert.equal(await page.getByLabel('Gateway API key', { exact: true }).inputValue(), '');
+    assert.equal(await page.evaluate(() => window.gatewayCreates), 1, 'one first save creates exactly one gateway');
+    const primaryOptions = await page.getByRole('combobox', { name: 'Primary model', exact: true }).locator('option').evaluateAll(options => options.map(o => o.value));
+    assert.ok(primaryOptions.includes('llm-target:openai:chat-completions:gpt-5.4'));
+    assert.ok(primaryOptions.includes('llm-gateway:gw-synthetic:chat-completions:gpt-5.4'));
+    const backup = page.getByRole('combobox', { name: 'Backup model', exact: true });
+    await backup.selectOption('llm-gateway:gw-synthetic:chat-completions:gpt-5.4');
+    await page.getByRole('button', { name: 'Save backup and time limits', exact: true }).click();
+    await page.waitForFunction(() => window.policy.backupModel?.includes('gw-synthetic'));
+    const deadline = page.getByRole('spinbutton', { name: 'Interview first visible text (seconds)', exact: true });
+    await deadline.fill('33');
+    await page.getByLabel('Gateway model', { exact: true }).fill('next-model');
+    await gateway.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[aria-label="Backup model"]').value.endsWith(':next-model'));
+    assert.equal(await deadline.inputValue(), '33', 'following the saved backup keeps unsaved deadline edits');
+    await page.getByRole('textbox', { name: 'Gateway URL', exact: true }).fill('https://changed.example/v1');
+    const before = await page.evaluate(() => window.events.length);
+    await gateway.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => document.body.innerText.includes('Re-enter the API key'));
+    assert.equal(await page.evaluate(() => window.events.length), before, 'changed origin without key sends and saves nothing');
+    // The payload produced by the UI goes through the real adapter against a loopback service.
     const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
-    helper.configureProvider(targetApi.validateProviderConfiguration(payload), 'synthetic-only');
-    helper.setModel('llm-target:openai:chat-completions:gpt-5.4');
+    helper.configureGateway(payload, 'synthetic-only');
+    helper.setModel('llm-gateway:gw-synthetic:chat-completions:gpt-5.4');
     assert.equal(await helper.generateContentStructured('USER'), 'ANSWER');
     assert.equal(bodies.length, 1); assert.equal(bodies[0].reasoning_effort, 'max'); assert.equal(bodies[0].model, 'gpt-5.4');
+    await page.evaluate(() => window.language('zh-CN'));
+    await page.waitForFunction(() => document.body.innerText.includes('网关'));
+    await page.close();
   } finally { if (app) await app.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
-
 test('S42-01 mounted domestic STT settings save, reload and test the chosen workspace and resource without returning keys', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-s42-stt-')), storage = { fail: false };

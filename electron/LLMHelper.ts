@@ -1,8 +1,8 @@
 import { GoogleGenAI } from "@google/genai"
 import Groq from "groq-sdk"
 import OpenAI from "openai"
-import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ModelTarget } from '../src/types/llmTarget';
-import { effectiveProviderConfiguration, resolveModelTarget, validateProviderConfiguration } from './llm/llmTarget';
+import { LLM_PRESETS, modelTargetId, gatewayTarget, type LlmProvider, type ProviderConfiguration, type ModelTarget, type GatewayConfiguration } from '../src/types/llmTarget';
+import { blockedEnvironmentOverride, effectiveProviderConfiguration, followSelection, resolveModelTarget, validateGatewayConfiguration, validateProviderConfiguration } from './llm/llmTarget';
 import { outboundFetch } from './services/outbound';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
@@ -161,23 +161,27 @@ export class LLMHelper {
     if (this.generationClosed) throw new DOMException('Application quit', 'AbortError');
     const configs = this.providerConfigurations ?? LLM_PRESETS;
     const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', personaPrompt: this.personaPrompt ?? '', fastMode: this.groqFastTextMode };
-    const snapshot = (target: ModelTarget): GenerationTargetSnapshot => ({ kind: 'api', target: { ...target, baseUrl: effectiveProviderConfiguration(target).baseUrl },
-      language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', personaPrompt: this.personaPrompt ?? '', fastMode: this.groqFastTextMode,
-      custom: effectiveProviderConfiguration(configs[target.provider]).custom,
-      client: target.provider === 'gemini' ? this.client : target.provider === 'groq' ? this.groqClient
-        : target.provider === 'openai' ? this.openaiClient : target.provider === 'claude' ? this.claudeClient : this.deepseekClient });
+    // A gateway target only ever uses its own client; a missing gateway or key fails, never an official client.
+    const snapshot = (target: ModelTarget): GenerationTargetSnapshot => target.provider === 'gateway'
+      ? { ...context, kind: 'api', target, custom: true, client: this.gatewayClients?.get(target.gatewayId!) ?? null }
+      : { ...context, kind: 'api', target: { ...target, baseUrl: effectiveProviderConfiguration(target as ProviderConfiguration).baseUrl },
+        custom: effectiveProviderConfiguration(configs[target.provider]).custom,
+        client: target.provider === 'gemini' ? this.client : target.provider === 'groq' ? this.groqClient
+          : target.provider === 'openai' ? this.openaiClient : target.provider === 'claude' ? this.claudeClient : this.deepseekClient };
     const codexSnapshot = (selection: string, fast = false, imageConfirmation?: string, backup = false): GenerationTargetSnapshot => {
       const codex = this.getCodexCliConfig(), model = fast ? codex.fastModel : selection.startsWith('codex-cli:') ? validateCodexModel(selection.slice(10)) : codex.model;
       return { ...context, kind: 'codex', target: { provider: 'codex-cli', protocol: 'responses', model }, codex,
         imageSupportConfirmedFor: backup ? imageConfirmation : fast ? codex.fastImageSupportConfirmedFor : model === codex.model ? codex.imageSupportConfirmedFor : model === codex.fastModel ? codex.fastImageSupportConfirmedFor : undefined };
     };
+    if (!primary && this.selectionError) throw new Error(this.selectionError);
     const selected = !primary && this.isCodexCliModel(this.currentModelId ?? '') ? codexSnapshot(this.currentModelId, this.groqFastTextMode)
-      : snapshot(primary ?? this.selectedTarget ?? resolveModelTarget(this.currentModelId ?? GEMINI_FLASH_MODEL, configs));
+      : snapshot(primary ?? this.selectedTarget ?? this.resolve(this.currentModelId ?? GEMINI_FLASH_MODEL));
     const policy = this.getGenerationPolicy();
     const backup = kind !== 'compatibility' && policy.backupModel ? isCodexSelection(policy.backupModel)
       ? codexSnapshot(policy.backupModel, false, policy.backupImageSupportConfirmedFor, true)
-      : snapshot({ ...resolveModelTarget(policy.backupModel, configs), imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }) : undefined;
-    if (backup && backup.kind === selected.kind && backup.target.provider === selected.target.provider && backup.target.model === selected.target.model) throw new Error('Primary and backup model must differ.');
+      : snapshot({ ...this.resolve(policy.backupModel), imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }) : undefined;
+    if (backup && backup.kind === selected.kind && backup.target.provider === selected.target.provider && (backup.target as ModelTarget).gatewayId === (selected.target as ModelTarget).gatewayId
+      && backup.target.model === selected.target.model) throw new Error('Primary and backup model must differ.');
     const task = new GenerationTask(selected, backup, policy, kind, signal, startedAt);
     this.activeGenerationTasks ??= new Set();
     if (!task.signal.aborted) this.activeGenerationTasks.add(task);
@@ -193,7 +197,7 @@ export class LLMHelper {
     if (!replay) this.inputs().depend(task, imagePaths ?? []);
     const source = (async function* () {
       if (!task.primary.target.model.trim()) throw new Error('Selected model client is not configured.');
-      if (task.primary.kind === 'api' && !task.primary.client) throw new Error(`${task.primary.target.provider} client not initialized`);
+      if (task.primary.kind === 'api' && !task.primary.client) throw new Error(self.clientError(task.primary.target));
       const contents: any[] = replay?.contents ?? preparedContents ?? [{ text: userContent }];
       for (const path of replay ? [] : imagePaths ?? []) {
         task.check();
@@ -223,7 +227,7 @@ export class LLMHelper {
         const request = attachLocalContext({ protocol: target.protocol, model: target.model, purpose, contents,
           systemInstruction, stream, signal, dataScopes,
           maxOutputTokens: outputLimit ?? Math.min(getModelCapabilities(target.model).tier === 'local-small' ? getModelCapabilities(target.model).outputBudgetTokens : Infinity,
-            target.provider === 'claude' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
+            target.protocol === 'messages' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
         }, localContext);
         const imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0) + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
         if (snapshot.kind === 'codex') {
@@ -238,9 +242,9 @@ export class LLMHelper {
         const { client, custom } = snapshot;
         const apiTarget = snapshot.target;
         if (imageCount) assertModelImageSupport(apiTarget);
-        if (!client) throw new Error(`${target.provider} client not initialized`);
+        if (!client) throw new Error(self.clientError(apiTarget));
         assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy());
-        const limiter = self.rateLimiters?.[apiTarget.provider];
+        const limiter = apiTarget.provider === 'gateway' ? undefined : self.rateLimiters?.[apiTarget.provider];
         if (limiter) await awaitGeneration(task, limiter.acquire(signal));
         cacheReference = undefined;
         if (apiTarget.provider === 'gemini' && !custom && systemInstruction && !recovery) {
@@ -248,7 +252,7 @@ export class LLMHelper {
             () => { checkInput(); assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy()); }, signal))) ?? undefined;
         }
         yield* generateOnce({ ...request, cacheReference, ...(apiTarget.reasoning ? { reasoning: apiTarget.reasoning } : {}),
-          ...(['gemini', 'groq'].includes(target.provider) ? { temperature: purpose === 'summary' ? 0.3 : 0.4 } : {}),
+          ...(target.protocol === 'gemini' || target.provider === 'groq' ? { temperature: purpose === 'summary' ? 0.3 : 0.4 } : {}),
           providerOptions: {
             outputTokenField: ['groq', 'deepseek', 'claude'].includes(target.provider) ? 'max_tokens' : 'max_completion_tokens',
             ...(target.provider === 'openai' && !custom && systemInstruction ? { prompt_cache_key: self.getOpenAiPromptCacheKey(systemInstruction) } : {}),
@@ -265,12 +269,29 @@ export class LLMHelper {
       })(), options)) {
         if (event.type === 'delta') yield event.text;
         else { if (event.status === 'cancelled') task.check(); self.generationFinish(event, task.hasText); }
-      } } finally { codexSession.dispose(); }
+      } } catch (error: any) {
+        // Retry classification has finished. Never expose a gateway's echoed credentials or raw SDK payload.
+        if (task.actualTarget.kind === 'api' && task.actualTarget.target.provider === 'gateway' && task.sends > 0
+          && !task.signal.aborted && !(error instanceof ProviderScopeError)) {
+          const status = Number(error?.status ?? error?.statusCode ?? error?.response?.status);
+          const httpStatus = Number.isInteger(status) && status >= 400 && status <= 599 ? status : undefined;
+          const safe = error instanceof GenerationResultError ? new GenerationResultError(error.status, error.partial)
+            : new Error(`Gateway request failed${httpStatus ? ` (HTTP ${httpStatus})` : ''}. Check the gateway configuration and try again.`);
+          throw Object.assign(safe, { generationTaskTerminal: true, ...(httpStatus ? { status: httpStatus } : {}) });
+        }
+        throw error;
+      } finally { codexSession.dispose(); }
     })();
     return withGenerationTask(task, source, !inherited);
   }
   private providerConfigurations: Record<LlmProvider, ProviderConfiguration> = { ...LLM_PRESETS };
+  private gateways: Record<string, GatewayConfiguration> = {};
+  private gatewayClients = new Map<string, GoogleGenAI | OpenAI | Anthropic>();
+  /** Why an official provider is paused (production address variable set); it is never redirected or used. */
+  private blockedProviders: Partial<Record<LlmProvider, string>> = {};
   private selectedTarget: ModelTarget | undefined;
+  /** Set when the saved selection cannot be used (retired Groq, removed gateway); answers refuse until a new choice. */
+  private selectionError: string | undefined;
   private client: GoogleGenAI | null = null
   private groqClient: Groq | OpenAI | null = null
   private openaiClient: OpenAI | null = null
@@ -345,16 +366,46 @@ export class LLMHelper {
 
 
 
+  private resolve(id: string): ModelTarget {
+    return resolveModelTarget(id, this.providerConfigurations ?? LLM_PRESETS, this.gateways ?? {});
+  }
+
+  private clientError(target: Pick<ModelTarget, 'provider' | 'gatewayId'>): string {
+    if (target.provider === 'gateway') return 'This gateway has no saved API key. Save the gateway in Settings.';
+    const reason = this.blockedProviders?.[target.provider];
+    if (reason) return reason;
+    return `${target.provider} client not initialized`;
+  }
+
+  /** Re-resolves the runtime selection after one target was explicitly saved or removed. */
+  private refreshSelection(previous?: ModelTarget, next?: ModelTarget): void {
+    if (!this.selectedTarget) return;
+    let id = modelTargetId(this.selectedTarget);
+    if (previous && next) id = followSelection(id, previous, next);
+    try { this.selectedTarget = this.resolve(id); this.currentModelId = this.selectedTarget.model; }
+    catch (error) { this.selectUnavailable(id, error instanceof Error ? error.message : 'The selected model is unavailable.'); }
+  }
+
+  /** Refuses, before any change, a save that would make the running selection equal the backup. */
+  private assertFollowedDistinct(previous: ModelTarget, next: ModelTarget, configs = this.providerConfigurations ?? LLM_PRESETS, gateways = this.gateways ?? {}): void {
+    const backup = this.getGenerationPolicy().backupModel;
+    if (!backup || !this.selectedTarget || isCodexSelection(backup)) return;
+    const followed = followSelection(modelTargetId(this.selectedTarget), previous, next);
+    let backupId: string;
+    try { backupId = modelTargetId(resolveModelTarget(backup, configs, gateways)); } catch { return; }
+    if (followed === backupId) throw new Error('Primary and backup model must differ. Change the backup first.');
+  }
+
   public configureProvider(value: ProviderConfiguration, key?: string): void {
     const config = effectiveProviderConfiguration(value);
-    const nextConfigurations = { ...(this.providerConfigurations ?? LLM_PRESETS), [config.provider]: validateProviderConfiguration(value) };
-    const nextTarget = this.selectedTarget?.provider === config.provider ? value : this.selectedTarget;
-    const backup = this.getGenerationPolicy().backupModel;
-    if (backup && nextTarget && modelTargetId(nextTarget) === modelTargetId(resolveModelTarget(backup, nextConfigurations))) {
-      throw new Error('Primary and backup model must differ. Change the backup first.');
-    }
-    this.providerConfigurations = nextConfigurations;
-    const apiKey = key?.trim() || null;
+    const previous = (this.providerConfigurations ?? LLM_PRESETS)[config.provider];
+    const validated = validateProviderConfiguration(value);
+    this.assertFollowedDistinct(previous, validated, { ...(this.providerConfigurations ?? LLM_PRESETS), [config.provider]: validated });
+    this.providerConfigurations = { ...(this.providerConfigurations ?? LLM_PRESETS), [config.provider]: validated };
+    const variable = blockedEnvironmentOverride(config.provider);
+    const blocked = (variable && `${variable} is set, so this official provider is paused. Remove the variable or use a gateway; keys are not sent to an address you did not choose.`);
+    this.blockedProviders = { ...this.blockedProviders, [config.provider]: blocked || undefined };
+    const apiKey = blocked ? null : key?.trim() || null;
     if (config.provider === 'gemini') {
       this.apiKey = apiKey;
       this.client = apiKey ? new GoogleGenAI({ apiKey, httpOptions: { baseUrl: config.baseUrl, apiVersion: 'v1alpha', retryOptions: { attempts: 1 } } }) : null;
@@ -367,19 +418,53 @@ export class LLMHelper {
       this.openaiClient = apiKey ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }) : null;
     } else if (config.provider === 'groq') {
       this.groqApiKey = apiKey;
-      this.groqClient = apiKey ? config.custom
-        ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 })
-        : new Groq({ apiKey, baseURL: 'https://api.groq.com', fetch: outboundFetch, maxRetries: 0 }) : null;
+      this.groqClient = apiKey ? new Groq({ apiKey, baseURL: 'https://api.groq.com', fetch: outboundFetch, maxRetries: 0 }) : null;
     } else {
       this.deepseekApiKey = apiKey;
       this.deepseekClient = apiKey ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }) : null;
     }
-    if (this.selectedTarget?.provider === config.provider) {
-      this.selectedTarget = validateProviderConfiguration(value);
-      this.currentModelId = this.selectedTarget.model;
-      if (config.provider === 'gemini') this.geminiModel = this.selectedTarget.model;
-    }
+    this.refreshSelection(previous, validated);
+    if (config.provider === 'gemini' && this.selectedTarget?.provider === 'gemini') this.geminiModel = this.selectedTarget.model;
     this.refreshDiscoveryKeys();
+  }
+
+  /** The adapter follows the gateway's protocol only; its key is never shared with an official client. */
+  public configureGateway(value: GatewayConfiguration, key?: string): void {
+    const config = validateGatewayConfiguration(value);
+    const previous = this.gateways?.[config.id];
+    if (previous) this.assertFollowedDistinct(gatewayTarget(previous), gatewayTarget(config), undefined, { ...this.gateways, [config.id]: config });
+    this.gateways = { ...this.gateways, [config.id]: config };
+    this.gatewayClients ??= new Map();
+    const apiKey = key?.trim();
+    if (!apiKey) this.gatewayClients.delete(config.id);
+    else this.gatewayClients.set(config.id, config.protocol === 'gemini'
+      ? new GoogleGenAI({ apiKey, httpOptions: { baseUrl: config.baseUrl, apiVersion: 'v1alpha', retryOptions: { attempts: 1 } } })
+      : config.protocol === 'messages' ? new Anthropic({ apiKey, baseURL: config.baseUrl.replace(/\/v1$/, ''), fetch: outboundFetch, maxRetries: 0 })
+        : new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }));
+    if (previous) this.cancelGatewayTasks(config.id, 'Gateway configuration changed');
+    this.refreshSelection(previous && gatewayTarget(previous), gatewayTarget(config));
+  }
+
+  public removeGateway(id: string): void {
+    this.cancelGatewayTasks(id, 'Gateway removed');
+    const { [id]: _removed, ...rest } = this.gateways ?? {};
+    this.gateways = rest;
+    this.gatewayClients?.delete(id);
+    this.refreshSelection();
+  }
+
+  private cancelGatewayTasks(id: string, reason: string): void {
+    for (const task of this.activeGenerationTasks ?? []) {
+      if ([task.primary, task.backup].some((snapshot: GenerationTargetSnapshot | undefined) => (snapshot?.target as ModelTarget | undefined)?.gatewayId === id)) task.controller.abort(new DOMException(reason, 'AbortError'));
+    }
+  }
+
+  /** Keeps an unusable saved selection visible and refuses answers until the user picks another model. */
+  public selectUnavailable(modelId: string, reason: string): void {
+    if (modelId !== this.getCurrentModelSelection()) this.cancelGenerationTasks('Model selection changed');
+    this.selectedTarget = undefined;
+    this.currentModelId = modelId;
+    this.selectionError = reason;
   }
 
   private refreshDiscoveryKeys(): void {
@@ -388,12 +473,18 @@ export class LLMHelper {
       openai: effectiveProviderConfiguration(configs.openai).custom ? null : this.openaiApiKey,
       gemini: effectiveProviderConfiguration(configs.gemini).custom ? null : this.apiKey,
       claude: effectiveProviderConfiguration(configs.claude).custom ? null : this.claudeApiKey,
-      groq: effectiveProviderConfiguration(configs.groq).custom ? null : this.groqApiKey,
+      groq: null,
     });
   }
 
-  public async testProviderConnection(provider: LlmProvider): Promise<string> {
-    const target = { ...(this.providerConfigurations ?? LLM_PRESETS)[provider] };
+  /** Tests exactly the saved official provider or gateway configuration; nothing else is tried. */
+  public async testProviderConnection(provider: LlmProvider | { gatewayId: string }): Promise<string> {
+    let target: ModelTarget;
+    if (typeof provider === 'object') {
+      const gateway = this.gateways?.[provider.gatewayId];
+      if (!gateway) throw new Error('This gateway no longer exists.');
+      target = gatewayTarget(gateway);
+    } else target = { ...(this.providerConfigurations ?? LLM_PRESETS)[provider] };
     const task = this.beginGenerationTask('compatibility', undefined, target);
     try {
       let text = '';
@@ -477,6 +568,7 @@ export class LLMHelper {
     this.codexStatusController?.abort(new DOMException('Application quit', 'AbortError'));
     for (const task of this.activeGenerationTasks) task.controller.abort(new DOMException('Application quit', 'AbortError'));
     this.apiKey = null; this.groqApiKey = null; this.openaiApiKey = null; this.claudeApiKey = null; this.deepseekApiKey = null;
+    this.gatewayClients?.clear();
     this.client = null; this.groqClient = null; this.openaiClient = null; this.claudeClient = null; this.deepseekClient = null;
     if (this.rateLimiters) Object.values(this.rateLimiters).forEach(limiter => limiter.destroy());
     this.modelVersionManager.stopScheduler();
@@ -520,9 +612,10 @@ export class LLMHelper {
     if (policy.backupModel && this.generationSelectionId(isCodexSelection(primary) && fast ? `codex-cli:${config.fastModel}` : primary, false, config) === this.generationSelectionId(policy.backupModel, false, config)) throw new Error('Primary and backup model must differ.');
   }
 
+  // An unavailable selection compares as written; using it is refused when a task starts.
   private generationSelectionId(id: string, primary = false, config = this.getCodexCliConfig()): string {
     if (isCodexSelection(id)) return `codex-cli:${primary && this.groqFastTextMode ? config.fastModel : id.startsWith('codex-cli:') ? validateCodexModel(id.slice(10)) : config.model}`;
-    return modelTargetId(resolveModelTarget(id, this.providerConfigurations ?? LLM_PRESETS));
+    try { return modelTargetId(this.resolve(id)); } catch { return id; }
   }
 
   public getAiResponseLanguage(): string {
@@ -587,17 +680,18 @@ export class LLMHelper {
     if (modelId === 'deepseek') targetModelId = DEEPSEEK_MODEL;
     if (isCodexSelection(targetModelId) && targetModelId.startsWith('codex-cli:')) validateCodexModel(targetModelId.slice(10));
 
-    const selection = this.isCodexCliModel(targetModelId) ? undefined : resolveModelTarget(targetModelId, this.providerConfigurations ?? LLM_PRESETS);
+    const selection = this.isCodexCliModel(targetModelId) ? undefined : this.resolve(targetModelId);
     const backup = this.getGenerationPolicy().backupModel;
     this.validateGenerationTargets(targetModelId);
     if ((selection ? modelTargetId(selection) : targetModelId) !== this.getCurrentModelSelection()) {
       for (const task of this.activeGenerationTasks ?? []) task.controller.abort(new DOMException('Model selection changed', 'AbortError'));
     }
     if (!this.isCodexCliModel(targetModelId)) {
-      this.selectedTarget = resolveModelTarget(targetModelId, this.providerConfigurations ?? LLM_PRESETS);
-      targetModelId = this.selectedTarget.model;
+      this.selectedTarget = selection;
+      targetModelId = selection!.model;
     } else this.selectedTarget = undefined;
     this.currentModelId = targetModelId;
+    this.selectionError = undefined;
 
     // Update specific model props if needed
     if (targetModelId === GEMINI_PRO_MODEL) this.geminiModel = GEMINI_PRO_MODEL;
@@ -1134,7 +1228,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     yield* this.selectedGeneration(userContent, imagePaths, finalSystemPrompt, stream, purpose);
   }
 
-  public getCurrentProvider(): LlmProvider | "codex-cli" {
+  public getCurrentProvider(): LlmProvider | "gateway" | "codex-cli" | "unavailable" {
+    if (this.selectionError) return "unavailable";
     if (this.isCodexCliModel(this.currentModelId)) return "codex-cli";
     return this.selectedTarget?.provider ?? 'gemini';
   }

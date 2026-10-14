@@ -1,0 +1,367 @@
+✖ a typed question streams the mock answer into the overlay (1116.996292ms)
+✖ S42-04 actual hidden DOM cannot acknowledge quick EOF until the answer becomes visible (1.681292ms)
+✖ S42-04 actual Retry preserves the partial row and original wire input while creating a separately linked answer (0.093916ms)
+✖ F1 actual Retry then Answer then Remove all cannot resend the withdrawn screenshot (0.032667ms)
+✖ S42-04 removing the attached screenshot through the actual UI revokes its failed request (0.19275ms)
+✖ after cancel, and after a new stream has started, events of the old stream are not shown (0.078834ms)
+✖ while an answer streams, a typed question is held back and a new stream request supersedes it (0.161917ms)
+✖ a screenshot question sends the fixture image to the model (0.045166ms)
+✖ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (0.051292ms)
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (0.059083ms)
+✖ a provider error is shown and the next question still works (0.050042ms)
+✖ after a chat request fails before streaming, the next answer is shown once and kept (0.029958ms)
+✖ R3-1 real preload refuses a changed origin without key reentry and keeps runtime, stored selections and key availability (0.025333ms)
+✖ a complete compatible target saved through preload drives a real typed UI question (0.0195ms)
+✖ AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry (0.569875ms)
+✖ AG33 one webContents delivers chat events only to the owning UI subscription (0.029459ms)
+✖ AG33 real Written typed and captured-image questions survive interview TTFT, preserve cancellation and retry as separate records (0.0225ms)
+✖ AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire (0.022ms)
+✖ AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder (0.019958ms)
+✖ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (0.047792ms)
+✖ AG33 real Natively late action invoke cannot change the newer manual answer or erase prior UI records (0.018917ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 0
+ℹ fail 21
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1731.897667
+
+✖ failing tests:
+
+test at tests/margin/answer-regression.test.mjs:147:1
+✖ a typed question streams the mock answer into the overlay (1116.996292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:189:1
+✖ S42-04 actual hidden DOM cannot acknowledge quick EOF until the answer becomes visible (1.681292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:214:1
+✖ S42-04 actual Retry preserves the partial row and original wire input while creating a separately linked answer (0.093916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:230:1
+✖ F1 actual Retry then Answer then Remove all cannot resend the withdrawn screenshot (0.032667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:257:1
+✖ S42-04 removing the attached screenshot through the actual UI revokes its failed request (0.19275ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:273:1
+✖ after cancel, and after a new stream has started, events of the old stream are not shown (0.078834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:345:1
+✖ while an answer streams, a typed question is held back and a new stream request supersedes it (0.161917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:369:1
+✖ a screenshot question sends the fixture image to the model (0.045166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:388:1
+✖ generateWhatToSay uses the actual preload/IPC and sends one answer request with the original screenshot (0.051292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:404:1
+✖ a WhatToSay scope refusal through the real renderer action displays one error and sends nothing (0.059083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:428:1
+✖ a provider error is shown and the next question still works (0.050042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:459:1
+✖ after a chat request fails before streaming, the next answer is shown once and kept (0.029958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:488:1
+✖ R3-1 real preload refuses a changed origin without key reentry and keeps runtime, stored selections and key availability (0.025333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:505:1
+✖ a complete compatible target saved through preload drives a real typed UI question (0.0195ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:544:1
+✖ AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry (0.569875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:571:1
+✖ AG33 one webContents delivers chat events only to the owning UI subscription (0.029459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:582:1
+✖ AG33 real Written typed and captured-image questions survive interview TTFT, preserve cancellation and retry as separate records (0.0225ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:610:1
+✖ AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire (0.022ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:625:1
+✖ AG33 real Natively renderer ignores automatic intelligence while manual chat owns its placeholder (0.019958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:642:1
+✖ AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items (0.047792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/margin/answer-regression.test.mjs:663:1
+✖ AG33 real Natively late action invoke cannot change the newer manual answer or erase prior UI records (0.018917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file://<repo>/tests/margin/answer-regression.test.mjs:124:10)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -10,8 +10,8 @@ import { randomUUID } from 'crypto';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
 import { openAiSttEndpoint } from './outbound';
 import { validateSttBaseUrl } from '../utils/validateSttBaseUrl';
-import { LLM_PRESETS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave } from '../../src/types/llmTarget';
-import { validateProviderConfiguration, resolveModelTarget, effectiveProviderConfiguration } from '../llm/llmTarget';
+import { LLM_PRESETS, modelTargetId, parseModelSelection, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave, type GatewaySummary, type ModelTarget } from '../../src/types/llmTarget';
+import { validateProviderConfiguration, validateGatewayConfiguration, resolveModelTarget, followSelection, GROQ_ANSWERS_RETIRED } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
 import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
 import type { DomesticSttSettings, DoubaoResourceId } from '../../src/types/domesticStt';
@@ -26,6 +26,9 @@ export interface StoredCredentials {
     deepseekApiKey?: string;
     defaultModel?: string;
     providerConfigurations?: Partial<Record<LlmProvider, ProviderConfiguration>>;
+    /** Gateway configuration by stable ID; their keys are kept apart in gatewayKeys. */
+    gateways?: Record<string, GatewayConfiguration>;
+    gatewayKeys?: Record<string, string>;
     generationPolicy?: GenerationPolicy;
     // STT Provider settings
     sttProvider?: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao';
@@ -198,6 +201,37 @@ export class CredentialsManager {
         return this.credentials[`${provider}ApiKey` as keyof StoredCredentials] as string | undefined;
     }
 
+    public getGateways(): Record<string, GatewayConfiguration> {
+        return Object.fromEntries(Object.entries(this.credentials.gateways ?? {}).map(([id, gateway]) => {
+            const config = validateGatewayConfiguration(gateway);
+            if (config.id !== id) throw new Error('Gateway configuration does not match its identity');
+            return [id, config];
+        }));
+    }
+
+    public getGatewayApiKey(id: string): string | undefined {
+        return Object.hasOwn(this.credentials.gatewayKeys ?? {}, id) ? this.credentials.gatewayKeys![id] : undefined;
+    }
+
+    /** Configuration and key presence only; the key never leaves the main process. */
+    public getGatewaySummaries(): GatewaySummary[] {
+        return Object.values(this.getGateways()).map(gateway => ({ ...gateway, hasKey: !!this.getGatewayApiKey(gateway.id)?.trim() }));
+    }
+
+    public resolveSelection(selection: string, configs = this.getProviderConfigurations(), gateways = this.getGateways()): ModelTarget {
+        return resolveModelTarget(selection, configs, gateways);
+    }
+
+    private backupConfirmationValid(policy: GenerationPolicy, configs = this.getProviderConfigurations(), gateways = this.getGateways()): boolean {
+        try {
+            const backup = this.resolveSelection(policy.backupModel!, configs, gateways);
+            const confirmed = { ...backup, imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor };
+            return backup.provider === 'gateway'
+                ? !!validateGatewayConfiguration({ ...confirmed, id: backup.gatewayId!, baseUrl: backup.baseUrl! }).imageSupportConfirmedFor
+                : !!validateProviderConfiguration(confirmed as ProviderConfiguration).imageSupportConfirmedFor;
+        } catch { return false; }
+    }
+
     public getGenerationPolicy(): GenerationPolicy {
         const policy = validateGenerationPolicy(this.credentials.generationPolicy ?? DEFAULT_GENERATION_POLICY);
         if (policy.backupImageSupportConfirmedFor) {
@@ -205,15 +239,41 @@ export class CredentialsManager {
                 if (policy.backupModel.startsWith('codex-cli:') && policy.backupImageSupportConfirmedFor !== codexImageTarget(validateCodexModel(policy.backupModel.slice(10)))) delete policy.backupImageSupportConfirmedFor;
                 return policy;
             }
-            const backup = policy.backupModel ? resolveModelTarget(policy.backupModel, this.getProviderConfigurations()) : undefined;
-            if (!backup || !validateProviderConfiguration({ ...backup, imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }).imageSupportConfirmedFor) delete policy.backupImageSupportConfirmedFor;
+            // An unavailable backup (retired Groq, removed gateway) stays visible as saved; it is refused when used.
+            if (!policy.backupModel || !this.backupConfirmationValid(policy)) delete policy.backupImageSupportConfirmedFor;
         }
         return policy;
     }
 
     private generationSelectionId(selection: string, config: CodexSourceConfig, fast = false): string {
         return isCodexSelection(selection) ? `codex-cli:${fast ? config.fastModel : selection.startsWith('codex-cli:') ? validateCodexModel(selection.slice(10)) : config.model}`
-            : modelTargetId(resolveModelTarget(selection, this.getProviderConfigurations()));
+            : modelTargetId(this.resolveSelection(selection));
+    }
+
+    /** The selection unchanged when it is unavailable, so comparisons never invent a target. */
+    private comparableSelection(selection: string, configs: Record<LlmProvider, ProviderConfiguration>, gateways: Record<string, GatewayConfiguration>): string {
+        if (isCodexSelection(selection)) return selection;
+        try { return modelTargetId(this.resolveSelection(selection, configs, gateways)); } catch { return selection; }
+    }
+
+    /**
+     * After an explicit save of one target, a primary or backup that named that target's configured
+     * model follows it, and one that named its old protocol keeps its model on the new protocol.
+     * Other selections are left exactly as they were.
+     */
+    private followSavedTarget(selection: string | undefined, previous: ModelTarget, next: ModelTarget): string | undefined {
+        if (!selection || isCodexSelection(selection)) return selection;
+        // A legacy bare ID is compared through its canonical form, and kept as written when untouched.
+        const canonical = parseModelSelection(selection) ? selection : this.comparableSelection(selection, this.getProviderConfigurations(), this.getGateways());
+        const followed = followSelection(canonical, previous, next);
+        return followed === canonical ? selection : followed;
+    }
+
+    private assertDistinctSelections(primary: string, backup: string | undefined, configs: Record<LlmProvider, ProviderConfiguration>, gateways: Record<string, GatewayConfiguration>): void {
+        if (backup && !isCodexSelection(backup) && !primary.startsWith('codex-cli')
+            && this.comparableSelection(primary, configs, gateways) === this.comparableSelection(backup, configs, gateways)) {
+            throw new Error('Primary and backup model must differ. Change the backup first.');
+        }
     }
 
     public setGenerationPolicy(value: GenerationPolicy, codexConfig = DEFAULT_CODEX_SOURCE_CONFIG, fast = false): CredentialSaveResult {
@@ -224,37 +284,26 @@ export class CredentialsManager {
                 if (this.generationSelectionId(policy.backupModel, codexConfig) === this.generationSelectionId(this.getDefaultModel(), codexConfig, fast && isCodexSelection(this.getDefaultModel()))) throw new Error('Primary and backup model must differ.');
                 return this.saveCredentials({ generationPolicy: policy });
             }
-            const backup = resolveModelTarget(policy.backupModel, this.getProviderConfigurations());
-            if (!this.getDefaultModel().startsWith('codex-cli') && modelTargetId(backup) === modelTargetId(resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations()))) throw new Error('Primary and backup model must differ.');
+            const backup = this.resolveSelection(policy.backupModel);
+            if (!this.getDefaultModel().startsWith('codex-cli') && modelTargetId(backup) === this.comparableSelection(this.getDefaultModel(), this.getProviderConfigurations(), this.getGateways())) throw new Error('Primary and backup model must differ.');
         }
         return this.saveCredentials({ generationPolicy: policy });
     }
 
     public setProviderConfiguration(value: ProviderConfigurationSave): CredentialSaveResult {
+        if (value?.provider === 'groq') throw new Error(GROQ_ANSWERS_RETIRED);
         const config = validateProviderConfiguration(value);
         if (value.apiKey !== undefined && typeof value.apiKey !== 'string') throw new Error('Invalid API key');
-        const previous = this.getProviderConfigurations()[config.provider];
-        if (new URL(effectiveProviderConfiguration(previous).baseUrl).origin !== new URL(effectiveProviderConfiguration(config).baseUrl).origin
-            && !value.apiKey?.trim()) {
-            return { ok: false, code: 'write_failed', message: 'Re-enter an API key after changing the provider address. The previous configuration was kept.' };
-        }
-        let defaultModel = this.credentials.defaultModel;
-        if (!this.getDefaultModel().startsWith('codex-cli')) {
-            const selected = resolveModelTarget(this.getDefaultModel(), this.getProviderConfigurations());
-            if (selected.provider === config.provider) defaultModel = modelTargetId(config);
-        }
-        const nextConfigurations = { ...this.getProviderConfigurations(), [config.provider]: config };
+        const configs = this.getProviderConfigurations(), gateways = this.getGateways();
+        const previous = configs[config.provider];
+        const nextConfigurations = { ...configs, [config.provider]: config };
+        const followed = this.followSavedTarget(this.getDefaultModel(), previous, config);
+        const defaultModel = followed !== this.getDefaultModel() ? followed : this.credentials.defaultModel;
         const generationPolicy = this.getGenerationPolicy();
-        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel && !isCodexSelection(generationPolicy.backupModel)) {
-            const backupTarget = resolveModelTarget(generationPolicy.backupModel, nextConfigurations);
-            if (!validateProviderConfiguration({ ...backupTarget, imageSupportConfirmedFor: generationPolicy.backupImageSupportConfirmedFor }).imageSupportConfirmedFor) delete generationPolicy.backupImageSupportConfirmedFor;
-        }
-        const nextDefault = defaultModel ?? this.getDefaultModel();
-        const backup = this.getGenerationPolicy().backupModel;
-        if (backup && !isCodexSelection(backup) && !nextDefault.startsWith('codex-cli')
-            && modelTargetId(resolveModelTarget(nextDefault, nextConfigurations)) === modelTargetId(resolveModelTarget(backup, nextConfigurations))) {
-            throw new Error('Primary and backup model must differ. Change the backup first.');
-        }
+        generationPolicy.backupModel = this.followSavedTarget(generationPolicy.backupModel, previous, config);
+        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel && !isCodexSelection(generationPolicy.backupModel)
+            && !this.backupConfirmationValid(generationPolicy, nextConfigurations, gateways)) delete generationPolicy.backupImageSupportConfirmedFor;
+        this.assertDistinctSelections(defaultModel ?? this.getDefaultModel(), generationPolicy.backupModel, nextConfigurations, gateways);
         return this.saveCredentials({
             defaultModel,
             providerConfigurations: { ...this.credentials.providerConfigurations, [config.provider]: config },
@@ -262,6 +311,55 @@ export class CredentialsManager {
             [`${config.provider}PreferredModel`]: config.model,
             ...(value.apiKey === undefined ? {} : { [`${config.provider}ApiKey`]: value.apiKey.trim() || undefined }),
         });
+    }
+
+    /** Creates a gateway without an id. A changed address origin needs the key entered again. */
+    public setGatewayConfiguration(value: GatewayConfigurationSave): CredentialSaveResult & { gatewayId?: string } {
+        if (!value || typeof value !== 'object') throw new Error('Invalid gateway');
+        if (value.apiKey !== undefined && typeof value.apiKey !== 'string') throw new Error('Invalid API key');
+        const gateways = this.getGateways(), configs = this.getProviderConfigurations();
+        if (value.id !== undefined && !Object.hasOwn(gateways, value.id)) return { ok: false, code: 'write_failed', message: 'This gateway no longer exists. Reopen settings.' };
+        let id = value.id;
+        while (id === undefined || (value.id === undefined && Object.hasOwn(this.credentials.gateways ?? {}, id))) id = `gw-${randomUUID()}`;
+        const { apiKey, ...rest } = value;
+        const config = validateGatewayConfiguration({ ...rest, id });
+        const previous = gateways[id];
+        const key = apiKey?.trim();
+        if (!previous && !key) return { ok: false, code: 'write_failed', message: 'Enter the gateway API key before saving.' };
+        if (previous && new URL(previous.baseUrl).origin !== new URL(config.baseUrl).origin && !key) {
+            return { ok: false, code: 'write_failed', message: 'Re-enter the API key after changing the gateway address. The previous configuration was kept.' };
+        }
+        const nextGateways = { ...gateways, [id]: config };
+        let defaultModel = this.credentials.defaultModel;
+        const generationPolicy = this.getGenerationPolicy();
+        if (previous) {
+            const before = { provider: 'gateway' as const, gatewayId: id, ...previous }, after = { provider: 'gateway' as const, gatewayId: id, ...config };
+            const followed = this.followSavedTarget(this.getDefaultModel(), before, after);
+            if (followed !== this.getDefaultModel()) defaultModel = followed;
+            generationPolicy.backupModel = this.followSavedTarget(generationPolicy.backupModel, before, after);
+        }
+        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel && !isCodexSelection(generationPolicy.backupModel)
+            && !this.backupConfirmationValid(generationPolicy, configs, nextGateways)) delete generationPolicy.backupImageSupportConfirmedFor;
+        this.assertDistinctSelections(defaultModel ?? this.getDefaultModel(), generationPolicy.backupModel, configs, nextGateways);
+        const result = this.saveCredentials({
+            gateways: { ...this.credentials.gateways, [id]: config },
+            ...(key ? { gatewayKeys: { ...this.credentials.gatewayKeys, [id]: key } } : {}),
+            defaultModel,
+            ...(this.credentials.generationPolicy ? { generationPolicy } : {}),
+        });
+        return result.ok ? { ...result, gatewayId: id } : result;
+    }
+
+    /** Removes one gateway and its key only. A gateway still selected for answers is kept. */
+    public removeGateway(id: string): CredentialSaveResult {
+        if (typeof id !== 'string' || !Object.hasOwn(this.credentials.gateways ?? {}, id)) return { ok: false, code: 'write_failed', message: 'This gateway no longer exists. Reopen settings.' };
+        const uses = (selection?: string) => { const parsed = selection ? parseModelSelection(selection) : undefined; return parsed?.kind === 'gateway' && parsed.gatewayId === id; };
+        if (uses(this.credentials.defaultModel) || uses(this.credentials.generationPolicy?.backupModel)) {
+            return { ok: false, code: 'write_failed', message: 'This gateway is selected as the primary or backup answer model. Choose another model first.' };
+        }
+        const { [id]: _gateway, ...gateways } = this.credentials.gateways!;
+        const { [id]: _key, ...gatewayKeys } = this.credentials.gatewayKeys ?? {};
+        return this.saveCredentials({ gateways, gatewayKeys });
     }
 
     // =========================================================================
@@ -345,9 +443,7 @@ export class CredentialsManager {
         const backup = this.getGenerationPolicy().backupModel;
         if (backup && this.generationSelectionId(backup, codexConfig) === this.generationSelectionId(model, codexConfig, fast && isCodexSelection(model))) throw new Error('Primary and backup model must differ. Change the backup first.');
         if (isCodexSelection(model) && model.startsWith('codex-cli:')) validateCodexModel(model.slice(10));
-        if (!isCodexSelection(model)) {
-            const target = resolveModelTarget(model, this.getProviderConfigurations());
-        }
+        if (!isCodexSelection(model)) this.resolveSelection(model);
         return this.saveCredentials({ defaultModel: model });
     }
 

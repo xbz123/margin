@@ -19,20 +19,19 @@ function loadHelper() {
   finally { if (previous) require.cache[id] = previous; else delete require.cache[id]; }
 }
 
-test('LLM SDK construction and key updates preserve explicitly configured env endpoints', () => {
+test('production address variables pause official SDK clients instead of redirecting their keys', () => {
   const LLMHelper = loadHelper();
   for (const [provider, variable, setter] of [['groq', 'GROQ_BASE_URL', 'setGroqApiKey'], ['openai', 'OPENAI_BASE_URL', 'setOpenaiApiKey'], ['claude', 'ANTHROPIC_BASE_URL', 'setClaudeApiKey']]) {
     const before = process.env[variable];
     try {
       process.env[variable] = 'https://explicit.invalid/v1';
       const self = new LLMHelper(undefined, 'synthetic-only', 'synthetic-only', 'synthetic-only');
-      assert.equal(self[`${provider}Client`].baseURL, provider === 'claude' ? 'https://explicit.invalid'
-        : provider === 'groq' ? 'https://explicit.invalid/v1/openai/v1' : 'https://explicit.invalid/v1');
-      process.env[variable] = 'http://127.0.0.1:1234/v1'; self[setter]('synthetic-only');
-      assert.equal(self[`${provider}Client`].baseURL, provider === 'claude' ? 'http://127.0.0.1:1234'
-        : provider === 'groq' ? 'http://127.0.0.1:1234/v1/openai/v1' : 'http://127.0.0.1:1234/v1');
-      process.env[variable] = 'https://key@wrong.invalid';
-      assert.throws(() => self[setter]('synthetic-only'));
+      assert.equal(self[`${provider}Client`], null, `${variable} must not redirect ${provider}`);
+      self[setter]('synthetic-only');
+      assert.equal(self[`${provider}Client`], null);
+      delete process.env[variable]; self[setter]('synthetic-only');
+      assert.equal(self[`${provider}Client`].baseURL, provider === 'claude' ? 'https://api.anthropic.com'
+        : provider === 'groq' ? 'https://api.groq.com' : 'https://api.openai.com/v1');
     } finally { if (before === undefined) delete process.env[variable]; else process.env[variable] = before; }
   }
 });

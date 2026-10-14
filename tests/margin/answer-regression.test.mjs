@@ -32,6 +32,7 @@ let sandbox;
 let overlay;
 let mainErrorsLog;
 let mainPid;
+let answerGateway;
 
 // Visible transcript text of the overlay's message list.
 const overlayText = () => overlay.evaluate(() => document.body.innerText);
@@ -119,12 +120,16 @@ test.before(async () => {
   await launcher.waitForLoadState('domcontentloaded');
   const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_KEY);
   assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
-  const imageTarget = { provider: 'openai', protocol: 'chat-completions', baseUrl: mock.baseURL, model: MODEL,
-    imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', mock.baseURL.replace(/\/+$/, ''), MODEL]) };
-  assert.equal((await launcher.evaluate(config => window.electronAPI.setProviderConfiguration(config), imageTarget)).ok, true);
-  await launcher.evaluate((m) => window.electronAPI.setModel(m), MODEL); // see note in PLAN.md AG-09
+  const created = await launcher.evaluate(config => window.electronAPI.setGatewayConfiguration(config),
+    { protocol: 'chat-completions', baseUrl: mock.baseURL, model: MODEL, apiKey: FAKE_KEY });
+  assert.equal(created.ok, true);
+  answerGateway = created.gatewayId;
+  const imageTarget = { id: answerGateway, protocol: 'chat-completions', baseUrl: mock.baseURL, model: MODEL,
+    imageSupportConfirmedFor: JSON.stringify(['gateway', answerGateway, 'chat-completions', mock.baseURL.replace(/\/+$/, ''), MODEL]) };
+  assert.equal((await launcher.evaluate(config => window.electronAPI.setGatewayConfiguration(config), imageTarget)).ok, true);
+  await launcher.evaluate((m) => window.electronAPI.setModel(m), `llm-gateway:${answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`);
   const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
-  assert.equal(config?.model, `llm-target:openai:chat-completions:${encodeURIComponent(MODEL)}`, `active model is ${JSON.stringify(config)}`);
+  assert.equal(config?.model, `llm-gateway:${answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`, `active model is ${JSON.stringify(config)}`);
 
   overlay = await windowWithQuery(app, 'window=overlay');
   await overlay.waitForLoadState('domcontentloaded');
@@ -429,7 +434,8 @@ test('a provider error is shown and the next question still works', async () => 
   mock.setScript({ errorStatus: 400 });
   const before = mock.chatRequests().length;
   await ask('This one fails.');
-  await overlay.waitForFunction(() => document.body.innerText.includes('mock: injected error'), null, { timeout: 15_000 });
+  await overlay.waitForFunction(() => document.body.innerText.includes('Gateway request failed (HTTP 400)'), null, { timeout: 15_000 });
+  assert.doesNotMatch(await overlayText(), /mock: injected error/, 'raw gateway errors are not reflected into the renderer');
   await new Promise((r) => setTimeout(r, 1_000)); // a retry storm would show up here
   assert.equal(mock.chatRequests().length - before, 1, 'a 400 should not be retried');
 
@@ -493,8 +499,8 @@ test('R3-1 real preload refuses a changed origin without key reentry and keeps r
     generationPolicy: await window.electronAPI.getGenerationPolicy(),
   }));
   const before = await snapshot(), sends = mock.chatRequests().length;
-  const changed = { ...before.stored.providerConfigurations.openai, baseUrl: 'http://127.0.0.1:1/v1' };
-  const result = await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), changed);
+  const changed = { ...before.stored.gateways.find(item => item.id === answerGateway), baseUrl: 'http://127.0.0.1:1/v1' };
+  const result = await overlay.evaluate(config => window.electronAPI.setGatewayConfiguration(config), changed);
   assert.equal(result.ok, false);
   assert.match(result.message, /re-enter.*API key/i);
   assert.deepEqual(await snapshot(), before);
@@ -503,22 +509,24 @@ test('R3-1 real preload refuses a changed origin without key reentry and keeps r
 });
 
 test('a complete compatible target saved through preload drives a real typed UI question', async () => {
-  const previous = await overlay.evaluate(async () => ({
-    configuration: (await window.electronAPI.getStoredCredentials()).providerConfigurations.openai,
+  const previous = await overlay.evaluate(async id => ({
+    configuration: (await window.electronAPI.getStoredCredentials()).gateways.find(item => item.id === id),
     selection: await window.electronAPI.getCurrentLlmConfig(),
     defaultModel: await window.electronAPI.getDefaultModel(),
-  }));
-  const configuration = { provider: 'openai', protocol: 'chat-completions', baseUrl: mock.baseURL, model: 'opaque/ag31-model' };
-  const selection = `llm-target:openai:chat-completions:${encodeURIComponent(configuration.model)}`;
+  }), answerGateway);
+  const configuration = { id: answerGateway, protocol: 'chat-completions', baseUrl: mock.baseURL, model: 'opaque/ag31-model' };
+  const selection = `llm-gateway:${answerGateway}:chat-completions:${encodeURIComponent(configuration.model)}`;
   try {
     // Omit apiKey: the existing synthetic key must survive the complete configuration transaction.
-    const saved = await overlay.evaluate(value => window.electronAPI.setProviderConfiguration(value), configuration);
+    const saved = await overlay.evaluate(value => window.electronAPI.setGatewayConfiguration(value), configuration);
     assert.equal(saved.ok, true, `configuration save failed: ${JSON.stringify(saved)}`);
     const stored = await overlay.evaluate(() => window.electronAPI.getStoredCredentials());
-    assert.deepEqual(stored.providerConfigurations.openai, configuration);
+    assert.deepEqual(stored.gateways.find(item => item.id === answerGateway), { ...configuration, hasKey: true });
     assert.equal(stored.hasOpenaiKey, true);
     await overlay.evaluate(value => window.electronAPI.setModel(value), selection);
-    assert.deepEqual(await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()), { provider: 'openai', model: selection });
+    assert.deepEqual(await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()), { provider: 'gateway', model: selection });
+    const removeAll = overlay.getByRole('button', { name: 'Remove all' });
+    if (await removeAll.count()) await removeAll.click();
     mock.setScript({ errorStatus: 0, chunks: ['AG31 ', 'opaque ', 'target ', 'answer.'], delayMs: 50 });
     const before = mock.chatRequests().length;
     await ask('Synthetic AG31 saved target question');
@@ -530,7 +538,7 @@ test('a complete compatible target saved through preload drives a real typed UI 
     assert.ok(JSON.stringify(requests[0].body.messages).includes('Synthetic AG31 saved target question'));
     assert.equal(requests[0].body.prompt_cache_key, undefined, 'unknown compatible endpoint receives no OpenAI cache parameter');
   } finally {
-    const restored = await overlay.evaluate(value => window.electronAPI.setProviderConfiguration(value), previous.configuration);
+    const restored = await overlay.evaluate(value => window.electronAPI.setGatewayConfiguration(value), previous.configuration);
     assert.equal(restored.ok, true, 'restore the original synthetic configuration');
     if (previous.defaultModel?.model) {
       const result = await overlay.evaluate(value => window.electronAPI.setDefaultModel(value), previous.defaultModel.model);
@@ -542,12 +550,12 @@ test('a complete compatible target saved through preload drives a real typed UI 
 });
 
 test('AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry', async () => {
-  const original = (await overlay.evaluate(() => window.electronAPI.getStoredCredentials())).providerConfigurations.openai;
+  const original = (await overlay.evaluate(() => window.electronAPI.getStoredCredentials())).gateways.find(item => item.id === answerGateway);
   const unconfirmed = { ...original }; delete unconfirmed.imageSupportConfirmedFor;
   const input = overlay.locator('input[type="text"]').last();
   const before = mock.chatRequests().length;
   try {
-    assert.equal((await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), unconfirmed)).ok, true);
+    assert.equal((await overlay.evaluate(config => window.electronAPI.setGatewayConfiguration(config), unconfirmed)).ok, true);
     const removeAll = overlay.getByRole('button', { name: 'Remove all' });
     if (await removeAll.count()) await removeAll.click();
     await pressScreenshotShortcut();
@@ -557,7 +565,7 @@ test('AG33 unknown image capability preserves the real renderer input and attach
     assert.equal(await input.inputValue(), 'AG33 image confirmation question');
     assert.equal(await overlay.locator('img[alt="Screenshot 1"]').count(), 1);
     assert.equal(mock.chatRequests().length, before);
-    assert.equal((await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), original)).ok, true);
+    assert.equal((await overlay.evaluate(config => window.electronAPI.setGatewayConfiguration(config), original)).ok, true);
     mock.setScript({ errorStatus: 0, chunks: ['AG33 image retry accepted.'], delayMs: 20 });
     await input.press('Enter');
     await overlay.waitForFunction(() => document.body.innerText.includes('AG33 image retry accepted.'), null, { timeout: 15_000 });
@@ -565,7 +573,7 @@ test('AG33 unknown image capability preserves the real renderer input and attach
     assert.equal(mock.chatRequests().length, before + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
     await overlay.waitForFunction(() => [...document.querySelectorAll('[data-generation-status="completed"]')].some(node => node.textContent.includes('gpt-5.4')));
-  } finally { await overlay.evaluate(config => window.electronAPI.setProviderConfiguration(config), original); }
+  } finally { await overlay.evaluate(config => window.electronAPI.setGatewayConfiguration(config), original); }
 });
 
 test('AG33 one webContents delivers chat events only to the owning UI subscription', async () => {

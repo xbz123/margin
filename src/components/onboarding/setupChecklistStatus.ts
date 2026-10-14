@@ -30,6 +30,13 @@ export async function readSetupChecklist(api: SetupMetadataApi | undefined): Pro
             if (config && typeof config.enabled === 'boolean' && typeof config.model === 'string' && config.model.trim()) {
                 result.answer = codexSourceAvailable(config as unknown as CodexSourceConfig) ? 'configured' : 'missing';
             }
+        } else if (provider === 'gateway') {
+            const id = /^llm-gateway:([a-z0-9-]+):/.exec(selection.model)?.[1];
+            const gateways = Array.isArray(credentials?.gateways) ? credentials.gateways as Record<string, unknown>[] : undefined;
+            const gateway = gateways?.find(item => item?.id === id);
+            if (gateways) result.answer = gateway ? keyState(gateway.hasKey) : 'missing';
+        } else if (provider === 'unavailable' || provider === 'groq') {
+            result.answer = 'missing';
         } else if (typeof provider === 'string' && Object.hasOwn(keyFields, provider) && configurations) {
             const target = object(configurations[provider]);
             if (target?.provider === provider && typeof target.model === 'string' && target.model.trim()

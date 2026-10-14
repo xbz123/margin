@@ -26,6 +26,7 @@ const plain = value => JSON.parse(JSON.stringify(value));
 
 test('generation policy persists independent deadlines and rejects invalid or identical targets without mutation', () => {
   const disk = storage(); const manager = disk.boot();
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, model: 'primary' }).ok, true);
   const primary = 'llm-target:openai:chat-completions:primary';
   const backup = 'llm-target:openai:chat-completions:backup';
   assert.equal(manager.setDefaultModel(primary).ok, true);
@@ -121,30 +122,38 @@ function storage() {
   return { files, filename, reads, boot, setFault(value) { fault = value; } };
 }
 
-test('R3-1 changed effective origin requires an explicitly reentered nonempty key and leaves all stored selections untouched on refusal', () => {
+const llmTargetApi = () => require('../../../dist-electron/electron/llm/llmTarget.js');
+const newGateway = (manager, extra = {}) => manager.setGatewayConfiguration({ protocol: 'chat-completions', baseUrl: 'https://custom.invalid/v1', model: 'primary', apiKey: 'synthetic-gateway', ...extra });
+
+test('S45 gateway origin change requires a reentered key and official providers never take a custom address', () => {
   const disk = storage(), manager = disk.boot();
-  manager.setDefaultModel('llm-target:openai:chat-completions:primary');
-  manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:backup' });
+  const created = newGateway(manager);
+  assert.equal(created.ok, true); assert.match(created.gatewayId, /^gw-[0-9a-f-]{36}$/);
+  const id = created.gatewayId;
+  assert.equal(manager.setDefaultModel(`llm-gateway:${id}:chat-completions:primary`).ok, true);
   const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
   for (const apiKey of [undefined, '', '   ']) {
-    const result = manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://custom.invalid/v1', apiKey });
-    assert.equal(result.ok, false);
-    assert.match(result.message, /re-enter.*API key/i);
-    assert.deepEqual(plain(manager.getAllCredentials()), before);
-    assert.deepEqual(disk.files.get(disk.filename), cipher);
+    const result = manager.setGatewayConfiguration({ id, protocol: 'chat-completions', baseUrl: 'https://other.invalid/v1', model: 'primary', apiKey });
+    assert.equal(result.ok, false); assert.match(result.message, /re-enter.*API key/i);
+    assert.deepEqual(plain(manager.getAllCredentials()), before); assert.deepEqual(disk.files.get(disk.filename), cipher);
   }
-  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://custom.invalid/v1', apiKey: 'synthetic-old' }).ok, true, 'reentering the same bytes authorizes the new origin');
-  assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-old');
-  assert.equal(disk.boot().getProviderConfigurations().openai.baseUrl, 'https://custom.invalid/v1');
-  for (const baseUrl of [undefined, 'http://custom.invalid/v1', 'https://custom.invalid:8443/v1']) {
-    assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl }).ok, false);
+  for (const baseUrl of ['http://custom.invalid/v1', 'https://custom.invalid:8443/v1']) assert.equal(manager.setGatewayConfiguration({ id, protocol: 'chat-completions', baseUrl, model: 'primary' }).ok, false);
+  assert.equal(manager.setGatewayConfiguration({ id, protocol: 'chat-completions', baseUrl: 'https://CUSTOM.invalid:443/other/', model: 'primary' }).ok, true, 'same normalized origin keeps its key');
+  assert.equal(manager.setGatewayConfiguration({ id, protocol: 'chat-completions', baseUrl: 'https://other.invalid/v1', model: 'primary', apiKey: 'synthetic-rebound' }).ok, true);
+  const restarted = disk.boot();
+  assert.equal(restarted.getGatewayApiKey(id), 'synthetic-rebound');
+  assert.equal(restarted.getProviderApiKey('openai'), 'synthetic-old', 'the official key is separate and untouched');
+  assert.equal(restarted.getDefaultModel(), `llm-gateway:${id}:chat-completions:primary`);
+  const stored = disk.files.get(disk.filename);
+  for (const baseUrl of ['https://custom.invalid/v1', 'http://127.0.0.1:9999/v1']) {
+    assert.throws(() => manager.setProviderConfiguration({ ...targets.openai, baseUrl, apiKey: 'synthetic-any' }), /gateway/);
   }
-  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://CUSTOM.invalid:443/other/' }).ok, true, 'same normalized origin keeps its key');
-  assert.equal(manager.setProviderConfiguration({ ...targets.openai, apiKey: 'synthetic-old' }).ok, true, 'custom to official also requires reentry');
-  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://API.OPENAI.COM:443/another/' }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://API.OPENAI.COM:443/v1/' }).ok, true, 'the official address itself is accepted');
+  assert.equal(manager.getProviderConfigurations().openai.baseUrl, undefined);
+  assert.notDeepEqual(disk.files.get(disk.filename), stored);
 });
 
-test('R3-1 effective environment and development endpoints participate in origin comparison', () => {
+test('S45 environment addresses never redirect an official provider; only the development loopback hook applies', () => {
   const variable = 'OPENAI_BASE_URL', previous = process.env[variable];
   const electronId = require.resolve('electron'), cached = require.cache[electronId];
   const previousDev = process.env.MARGIN_DEV_OPENAI_BASE_URL;
@@ -155,12 +164,10 @@ test('R3-1 effective environment and development endpoints participate in origin
       if (dev) process.env.MARGIN_DEV_OPENAI_BASE_URL = 'http://127.0.0.1:19331/v1';
       else delete process.env.MARGIN_DEV_OPENAI_BASE_URL;
       const disk = storage(), manager = disk.boot();
-      const effectiveBase = dev ? 'http://127.0.0.1:19331/path' : 'https://environment.invalid/other';
-      assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: effectiveBase }).ok, true);
-      assert.equal(manager.setProviderConfiguration({ ...targets.openai }).ok, true, 'clearing saved base returns to the same env origin');
-      assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://api.openai.com/v1' }).ok, false);
-      assert.equal(manager.setProviderConfiguration({ ...targets.openai, baseUrl: 'https://api.openai.com/v1', apiKey: 'synthetic-old' }).ok, true);
-      assert.equal(manager.setProviderConfiguration({ ...targets.openai }).ok, false, 'saved official to environment origin requires reentry');
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai, apiKey: 'synthetic-new' }).ok, true);
+      const api = llmTargetApi();
+      assert.equal(api.effectiveProviderConfiguration(manager.getProviderConfigurations().openai).baseUrl, dev ? 'http://127.0.0.1:19331/v1' : 'https://api.openai.com/v1');
+      assert.equal(api.blockedEnvironmentOverride('openai'), dev ? undefined : variable);
     }
   } finally {
     if (previous === undefined) delete process.env[variable]; else process.env[variable] = previous;
@@ -169,17 +176,79 @@ test('R3-1 effective environment and development endpoints participate in origin
   }
 });
 
+test('S45 official and gateway targets with the same wire model keep separate identities and keys across restart', () => {
+  const disk = storage(), manager = disk.boot();
+  assert.equal(manager.setProviderConfiguration({ ...targets.openai, model: 'same-model', apiKey: 'synthetic-official' }).ok, true);
+  const { gatewayId: id } = newGateway(manager, { model: 'same-model', apiKey: 'synthetic-gateway' });
+  assert.equal(manager.setDefaultModel('llm-target:openai:chat-completions:same-model').ok, true);
+  assert.equal(manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: `llm-gateway:${id}:chat-completions:same-model` }).ok, true, 'same model name, different targets');
+  const restarted = disk.boot();
+  assert.equal(restarted.getProviderApiKey('openai'), 'synthetic-official');
+  assert.equal(restarted.getGatewayApiKey(id), 'synthetic-gateway');
+  const official = restarted.resolveSelection(restarted.getDefaultModel()), gateway = restarted.resolveSelection(restarted.getGenerationPolicy().backupModel);
+  assert.equal(official.provider, 'openai'); assert.equal(official.baseUrl, undefined);
+  assert.deepEqual([gateway.provider, gateway.gatewayId, gateway.baseUrl], ['gateway', id, 'https://custom.invalid/v1']);
+  assert.deepEqual(plain(restarted.getGatewaySummaries()).map(item => Object.keys(item).sort()), [['baseUrl', 'hasKey', 'id', 'model', 'protocol']], 'summaries carry no key');
+  assert.doesNotMatch(JSON.stringify(restarted.getGatewaySummaries()), /synthetic-/);
+});
+
+test('S45 gateway removal keeps official credentials, refuses a selected gateway and leaves no fallback', () => {
+  const disk = storage(), manager = disk.boot();
+  const { gatewayId: id } = newGateway(manager);
+  assert.equal(manager.setDefaultModel(`llm-gateway:${id}:chat-completions:primary`).ok, true);
+  const cipher = disk.files.get(disk.filename);
+  const refused = manager.removeGateway(id);
+  assert.equal(refused.ok, false); assert.match(refused.message, /selected/); assert.deepEqual(disk.files.get(disk.filename), cipher);
+  assert.equal(manager.setDefaultModel('gpt-5.4').ok, true);
+  disk.setFault('rename');
+  assert.equal(manager.removeGateway(id).ok, false, 'a failed write keeps the gateway');
+  assert.equal(manager.getGatewayApiKey(id), 'synthetic-gateway');
+  disk.setFault(undefined);
+  assert.equal(manager.removeGateway(id).ok, true);
+  const restarted = disk.boot();
+  assert.deepEqual(plain(restarted.getGateways()), {}); assert.equal(restarted.getGatewayApiKey(id), undefined);
+  assert.equal(restarted.getProviderApiKey('openai'), 'synthetic-old');
+  assert.throws(() => restarted.resolveSelection(`llm-gateway:${id}:chat-completions:primary`), /no longer exists/);
+  assert.throws(() => restarted.setDefaultModel(`llm-gateway:${id}:chat-completions:primary`), /no longer exists/);
+});
+
+test('S45 a new gateway needs its own key, and failed writes keep memory and disk unchanged', () => {
+  for (const fault of ['encrypt', 'write', 'rename', 'unavailable']) {
+    const disk = storage(), manager = disk.boot();
+    const cipher = disk.files.get(disk.filename), before = plain(manager.getAllCredentials());
+    assert.equal(newGateway(manager, { apiKey: '' }).ok, false);
+    disk.setFault(fault);
+    assert.equal(newGateway(manager).ok, false, fault);
+    assert.deepEqual(plain(manager.getAllCredentials()), before, fault); assert.deepEqual(disk.files.get(disk.filename), cipher, fault);
+    assert.deepEqual([...disk.files.keys()], [disk.filename], 'no temporary file remains');
+  }
+});
+
+test('S45 Groq is refused as an answer target while its stored key is kept apart from speech', () => {
+  const disk = storage(), manager = disk.boot();
+  assert.equal(manager.setGroqApiKey('synthetic-groq-answer').ok, true);
+  const cipher = disk.files.get(disk.filename);
+  for (const selection of ['llm-target:groq:chat-completions:llama-3.3-70b-versatile', 'llama']) {
+    assert.throws(() => manager.setDefaultModel(selection), /Groq is not available/);
+    assert.throws(() => manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: selection }), /Groq is not available/);
+  }
+  assert.throws(() => manager.setProviderConfiguration({ ...targets.groq, apiKey: 'synthetic-any' }), /Groq is not available/);
+  assert.deepEqual(disk.files.get(disk.filename), cipher);
+  assert.equal(manager.getGroqApiKey(), 'synthetic-groq-answer');
+  assert.equal(manager.getGroqSttApiKey(), undefined, 'the answer key is not a speech key');
+});
+
 test('R3-1 real save handler refuses origin changes and failed atomic saves before any runtime effect', async () => {
   const disk = storage(), manager = disk.boot(), effects = [];
   const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
   const apply = () => effects.push('runtime');
   const invoke = handler('set-provider-configuration', {
     require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: apply, getCurrentModelSelection: () => 'synthetic' }) },
+    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: apply, setGenerationPolicy: apply, getCurrentModelSelection: () => 'synthetic' }) },
       getIntelligenceManager: () => ({ resetEngine: apply, initializeLLMs: apply }), sendModelChanged: apply },
   });
-  const config = { ...targets.openai, baseUrl: 'https://new.invalid/v1' };
-  assert.equal((await invoke({}, config)).ok, false);
+  assert.equal((await invoke({}, { ...targets.openai, baseUrl: 'https://new.invalid/v1', apiKey: 'synthetic-new' })).ok, false, 'an official provider never takes a custom address');
+  const config = { ...targets.openai, protocol: 'responses' };
   disk.setFault('rename');
   assert.equal((await invoke({}, { ...config, apiKey: 'synthetic-new' })).ok, false);
   assert.deepEqual(effects, []);
@@ -187,26 +256,33 @@ test('R3-1 real save handler refuses origin changes and failed atomic saves befo
   assert.deepEqual(disk.files.get(disk.filename), cipher);
   disk.setFault(undefined);
   assert.equal((await invoke({}, { ...config, apiKey: 'synthetic-new' })).ok, true);
-  assert.equal(effects.length, 4);
+  assert.equal(effects.length, 5);
   assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-new');
 });
 
-test('AG33 primary and same-provider backup image confirmations survive restart independently and reset on endpoint/model changes', () => {
+test('AG33 gateway primary and backup image confirmations survive restart independently and reset on address/model changes', () => {
   const disk = storage(), manager = disk.boot();
-  const config = { ...targets.openai, baseUrl: 'https://custom.example/v1', model: 'primary' };
-  const binding = model => JSON.stringify(['openai', 'chat-completions', config.baseUrl, model]);
-  assert.equal(manager.setProviderConfiguration({ ...config, apiKey: 'synthetic-old', imageSupportConfirmedFor: binding('primary') }).ok, true);
-  assert.equal(manager.setDefaultModel('llm-target:openai:chat-completions:primary').ok, true);
-  assert.equal(manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:backup', backupImageSupportConfirmedFor: binding('backup') }).ok, true);
+  const { gatewayId: id } = newGateway(manager, { baseUrl: 'https://custom.example/v1' });
+  const binding = (model, base = 'https://custom.example/v1') => JSON.stringify(['gateway', id, 'chat-completions', base, model]);
+  const config = { id, protocol: 'chat-completions', baseUrl: 'https://custom.example/v1', model: 'primary' };
+  assert.equal(manager.setGatewayConfiguration({ ...config, imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(manager.setDefaultModel(`llm-gateway:${id}:chat-completions:primary`).ok, true);
+  assert.equal(manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: `llm-gateway:${id}:chat-completions:backup`, backupImageSupportConfirmedFor: binding('backup') }).ok, true);
   const restarted = disk.boot();
-  assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, binding('primary'));
+  assert.equal(restarted.getGateways()[id].imageSupportConfirmedFor, binding('primary'));
   assert.equal(restarted.getGenerationPolicy().backupImageSupportConfirmedFor, binding('backup'));
-  assert.equal(restarted.setProviderConfiguration({ ...config, baseUrl: 'https://changed.example/v1', apiKey: 'synthetic-old', imageSupportConfirmedFor: binding('primary') }).ok, true);
-  assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, undefined);
+  // An official-looking binding for the same address is not a gateway confirmation.
+  assert.equal(restarted.setGatewayConfiguration({ ...config, imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', config.baseUrl, 'primary']) }).ok, true);
+  assert.equal(restarted.getGateways()[id].imageSupportConfirmedFor, undefined);
+  assert.equal(restarted.setGatewayConfiguration({ ...config, imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(restarted.setGatewayConfiguration({ ...config, baseUrl: 'https://changed.example/v1', apiKey: 'synthetic-new', imageSupportConfirmedFor: binding('primary') }).ok, true);
+  assert.equal(restarted.getGateways()[id].imageSupportConfirmedFor, undefined);
   assert.equal(restarted.getGenerationPolicy().backupImageSupportConfirmedFor, undefined);
   assert.equal(disk.boot().getGenerationPolicy().backupImageSupportConfirmedFor, undefined);
-  assert.equal(restarted.setProviderConfiguration({ ...config, model: 'different', apiKey: 'synthetic-old', imageSupportConfirmedFor: binding('primary') }).ok, true);
-  assert.equal(restarted.getProviderConfigurations().openai.imageSupportConfirmedFor, undefined);
+  const changed = { ...config, baseUrl: 'https://changed.example/v1' };
+  assert.equal(restarted.setGatewayConfiguration({ ...changed, model: 'different', imageSupportConfirmedFor: binding('primary', changed.baseUrl) }).ok, true);
+  assert.equal(restarted.getGateways()[id].imageSupportConfirmedFor, undefined);
+  assert.equal(restarted.getDefaultModel(), `llm-gateway:${id}:chat-completions:different`, 'an explicit save of the selected configured model keeps the selection on it');
 });
 
 for (const fault of ['unavailable', 'encrypt', 'write', 'rename', 'decrypt', 'parse', 'read', 'load-unavailable']) {
@@ -292,19 +368,21 @@ test('all credential setters commit only after persistence and can be read after
     setSonioxApiKey: 'sonioxApiKey',
     setDomesticStt: 'domesticStt',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
+    setGatewayConfiguration: 'gateways',
   };
-  assert.equal(names.length, 18);
+  assert.equal(names.length, 19);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
+    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setGatewayConfiguration' ? [{ protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
     if (name === 'setDomesticStt') args.splice(0, args.length, 'aliyun', { key: 'synthetic-key', workspaceId: 'workspace', appId: '' });
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
     assert.equal(manager[name](...args).ok, true, name);
     if (name === 'setProviderConfiguration') { const { apiKey, ...config } = args[0]; assert.deepEqual(plain(manager.getAllCredentials().providerConfigurations.openai), plain(config)); }
+    else if (name === 'setGatewayConfiguration') { const { apiKey, ...config } = args[0]; assert.deepEqual(plain(Object.values(manager.getAllCredentials().gateways)).map(({ id, ...rest }) => rest), [plain(config)]); }
     else if (name === 'setGenerationPolicy') assert.deepEqual(plain(manager.getAllCredentials().generationPolicy), plain(args[0]));
     else if (name === 'setDomesticStt') assert.deepEqual(plain(manager.getDomesticStt('aliyun')), plain(args[1]));
     else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
@@ -382,19 +460,21 @@ function handler(channel, context) {
   return expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent)
     && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, {
       persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId,
-      resolveModelTarget: require('../../../dist-electron/electron/llm/llmTarget.js').resolveModelTarget, ...context });
+      ANSWER_PROVIDERS: targetModule.exports.ANSWER_PROVIDERS, sanitizeErrorMessage: message => message,
+      boundedProviderError: expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'boundedProviderError', { sanitizeErrorMessage: message => message }),
+      ...require('../../../dist-electron/electron/llm/llmTarget.js'), ...context });
 }
 
 test('AG31 complete configuration saves key, endpoint, protocol, model and matching default atomically across restart', async () => {
   const disk = storage(), manager = disk.boot();
   assert.equal(manager.setDefaultModel('gpt-5.4').ok, true);
-  const value = { provider: 'openai', protocol: 'responses', baseUrl: 'http://127.0.0.1:9999/v1/', model: 'opaque', apiKey: 'synthetic-new' };
+  const value = { provider: 'openai', protocol: 'responses', model: 'opaque', apiKey: 'synthetic-new' };
   const previous = disk.files.get(disk.filename);
   const applied = [];
   const broadcast = [];
   const invoke = handler('set-provider-configuration', {
     require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: (...args) => applied.push(args),
+    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: (...args) => applied.push(args), setGenerationPolicy() {},
       getCurrentModelSelection: () => 'llm-target:openai:responses:opaque' }) }, sendModelChanged: value => broadcast.push(value),
       getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) },
   });
@@ -409,7 +489,7 @@ test('AG31 complete configuration saves key, endpoint, protocol, model and match
   assert.deepEqual(broadcast, ['llm-target:openai:responses:opaque']);
   const restarted = disk.boot();
   const config = restarted.getProviderConfigurations().openai;
-  assert.deepEqual(plain(config), { provider: 'openai', protocol: 'responses', baseUrl: 'http://127.0.0.1:9999/v1', model: 'opaque' });
+  assert.deepEqual(plain(config), { provider: 'openai', protocol: 'responses', model: 'opaque' });
   assert.equal(restarted.getProviderApiKey('openai'), 'synthetic-new');
   assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:opaque');
   assert.equal(restarted.setProviderConfiguration({ ...targets.claude, model: 'other-slot' }).ok, true);
@@ -447,13 +527,15 @@ test('AG31 env-only startup retains explicit keys, saved slots bind their own ke
     // Start without the old synthetic stored key for the env-only control.
     if (scenario === 'env-only') manager.setOpenaiApiKey('');
     if (scenario === 'saved-target' || scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...targets.openai,
-      protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-saved' }).ok, true);
+      protocol: 'responses', model: 'opaque', apiKey: 'synthetic-saved' }).ok, true);
+    if (scenario === 'saved-target') assert.equal(newGateway(manager).ok, true);
     if (scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...manager.getProviderConfigurations().openai, apiKey: '' }).ok, true);
     if (scenario === 'unreadable') { disk.setFault('decrypt'); manager.init(); }
     const configured = [];
     class Helper {
       constructor() {}
       configureProvider(config, key) { configured.push([config.provider, key, config]); }
+      configureGateway(config, key) { configured.push(['gateway', key, config]); }
       initModelVersionManager() { return Promise.resolve(); }
       setModel() {} setGenerationPolicy() {} setSttLanguage() {} setAiResponseLanguage() {}
     }
@@ -473,6 +555,8 @@ test('AG31 env-only startup retains explicit keys, saved slots bind their own ke
     const [, key, config] = configured.find(([provider]) => provider === 'openai');
     assert.equal(key, scenario === 'env-only' ? 'synthetic-env' : scenario === 'saved-target' ? 'synthetic-saved' : undefined);
     if (scenario === 'saved-target') { assert.equal(config.protocol, 'responses'); assert.equal(config.model, 'opaque'); }
+    const gateways = configured.filter(([provider]) => provider === 'gateway');
+    assert.deepEqual(gateways.map(([, key, gateway]) => [key, gateway.baseUrl]), scenario === 'saved-target' ? [['synthetic-gateway', 'https://custom.invalid/v1']] : []);
   }
 });
 
@@ -548,8 +632,8 @@ test('ProviderCard stops model Fetch while complete configuration is unsaved', a
   let fetched = false;
   const callback = expression('src/components/settings/ProviderCard.tsx', node => ts.isArrowFunction(node)
     && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'handleFetchModels', {
-    unsaved: true, apiKey: 'synthetic-input', onSaveKey: async () => failure, providerId: 'openai',
-    setIsFetching() {}, setFetchError() {}, window: { electronAPI: { fetchProviderModels: async () => { fetched = true; return { success: false }; } } },
+    dirty: true, hasStoredKey: true, providerId: 'openai', fetchRevision: { current: 0 },
+    setBusy() {}, setFetchError() {}, window: { electronAPI: { fetchProviderModels: async () => { fetched = true; return { success: false }; } } },
   });
   await callback();
   assert.equal(fetched, false);
@@ -619,6 +703,7 @@ function ui(file, name, result, extra = {}) {
   const context = {
     confirm: () => true, setTimeout: () => 1, t: (text, values = {}) => text.replace(/\{(\w+)\}/g, (match, key) => key in values ? String(values[key]) : match), t: (text, values = {}) => text.replace(/\{(\w+)\}/g, (match, key) => key in values ? String(values[key]) : match),
     providerConfigurations: targets, hasStoredKey: {}, unsaved: false,
+    PROVIDER_NAMES: { gemini: 'Gemini', groq: 'Groq', openai: 'OpenAI', claude: 'Claude', deepseek: 'DeepSeek' },
     window: { electronAPI: new Proxy({}, { get: () => async () => result }) },
     availableLanguages: { 'english-us': { group: 'English' } }, sttOpenaiBaseUrl: 'https://synthetic.invalid',
     ...extra,
@@ -707,8 +792,8 @@ test('renderer cannot report rollback when default-model refresh fails after a c
   assert.match(subject.changes.get('setCredentialNotice'), /^Saved;/);
 });
 
-test('all five LLM Save/Remove branches use their matching endpoint and show failure without clearing input', async () => {
-  for (const [provider, method] of Object.entries({ gemini: 'setGeminiApiKey', groq: 'setGroqApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' })) {
+test('all four answer-provider Save/Remove branches use their matching endpoint and show failure without clearing input', async () => {
+  for (const [provider, method] of Object.entries({ gemini: 'setGeminiApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' })) {
     for (const name of ['handleSaveKey', 'handleRemoveKey']) {
       const calls = [];
       const subject = ui('src/components/settings/AIProvidersSettings.tsx', name, failure, {
@@ -740,7 +825,7 @@ test('detected-language save failure does not submit an unsaved language selecti
 
 test('Fetch lists models without implicitly selecting or saving the first model', async () => {
   const subject = ui('src/components/settings/ProviderCard.tsx', 'handleFetchModels', failure, {
-    apiKey: '', providerId: 'openai', selectedModel: 'synthetic-old-model',
+    providerId: 'openai', hasStoredKey: true, dirty: false,
     fetchRevision: { current: 0 },
     onPreferredModelChange: () => assert.fail('failed model was selected'),
     window: { electronAPI: {
@@ -852,22 +937,25 @@ test('S44 per-target reasoning saves through the real handler, survives restart,
     const base = `http://127.0.0.1:${server.address().port}/v1`;
     const disk = storage(), manager = disk.boot(), helper = new LLMHelper();
     helper.getProviderScopePolicy = () => ({});
-    const invoke = handler('set-provider-configuration', {
+    const context = {
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
       appState: { processingHelper: { getLLMHelper: () => helper }, sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) },
-    });
-    const gateway = { provider: 'openai', protocol: 'chat-completions', baseUrl: base, model: 'opaque', contextWindowTokens: 4096 };
-    // Old saved configuration without the field: the request keeps its prior shape.
-    assert.equal((await invoke({}, { ...gateway, apiKey: 'synthetic-only' })).ok, true);
-    helper.setModel('llm-target:openai:chat-completions:opaque');
+    };
+    const save = handler('set-gateway-configuration', context);
+    const created = await save({}, { protocol: 'chat-completions', baseUrl: base, model: 'opaque', contextWindowTokens: 4096, apiKey: 'synthetic-only' });
+    assert.equal(created.ok, true);
+    const id = created.gatewayId, gateway = { id, protocol: 'chat-completions', baseUrl: base, model: 'opaque', contextWindowTokens: 4096 };
+    const invoke = (_event, value) => save({}, value);
+    // Saved without a reasoning field: the request keeps its default shape.
+    helper.setModel(`llm-gateway:${id}:chat-completions:opaque`);
     assert.equal(await helper.chat('LEGACY'), 'ANSWER');
     for (const field of ['reasoning_effort', 'thinking', 'reasoning']) assert.equal(Object.hasOwn(bodies.at(-1), field), false);
 
     assert.equal((await invoke({}, { ...gateway, reasoning: { effort: 'high' } })).ok, true);
-    assert.deepEqual(plain(disk.boot().getProviderConfigurations().openai), { ...gateway, reasoning: { effort: 'high' } });
+    assert.deepEqual(plain(disk.boot().getGateways()[id]), { ...gateway, reasoning: { effort: 'high' } });
     assert.equal(await helper.chat('SAVED'), 'ANSWER');
     assert.equal(bodies.at(-1).reasoning_effort, 'high');
-    assert.equal(await helper.testProviderConnection('openai'), 'ANSWER');
+    assert.equal(await helper.testProviderConnection({ gatewayId: id }), 'ANSWER');
     assert.equal(bodies.at(-1).reasoning_effort, 'high', 'the connection test sends the saved target as configured');
 
     const stored = disk.files.get(disk.filename);
@@ -877,15 +965,55 @@ test('S44 per-target reasoning saves through the real handler, survives restart,
     }
     // Known official target: only the documented values for this exact model.
     assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', reasoning: { effort: 'minimal' }, apiKey: 'synthetic-only' }), /not available/);
-    assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', contextWindowTokens: 1, apiKey: 'synthetic-only' }), /custom endpoint/);
+    assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', contextWindowTokens: 1, apiKey: 'synthetic-only' }), /gateway/);
     assert.deepEqual(disk.files.get(disk.filename), stored);
     assert.equal(await helper.chat('AFTER REFUSAL'), 'ANSWER');
     assert.equal(bodies.at(-1).reasoning_effort, 'high');
 
     // A different model of the same provider does not inherit the configured model's setting.
-    helper.setModel('llm-target:openai:chat-completions:other-model');
+    helper.setModel(`llm-gateway:${id}:chat-completions:other-model`);
     assert.equal(await helper.chat('OTHER'), 'ANSWER');
     assert.equal(bodies.at(-1).model, 'other-model');
     assert.equal(Object.hasOwn(bodies.at(-1), 'reasoning_effort'), false);
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
+});
+
+test('S45 Save and test checks the exact saved target before any send, and gateway errors never reflect the key', async () => {
+  const disk = storage(), manager = disk.boot();
+  const { gatewayId: id } = newGateway(manager, { apiKey: 'synthetic-secret-key' });
+  const calls = [];
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+    appState: { processingHelper: { getLLMHelper: () => ({ testProviderConnection: async target => { calls.push(target); if (calls.length === 2) throw Error('bad key synthetic-secret-key rejected'); return 'ANSWER'; } }) } } };
+  const testGateway = handler('test-gateway-connection', context), testOfficial = handler('test-llm-connection', context);
+  const saved = { id, protocol: 'chat-completions', baseUrl: 'https://custom.invalid/v1', model: 'primary' };
+  const stale = await testGateway({}, id, { ...saved, model: 'older' });
+  assert.equal(stale.success, false); assert.match(stale.error, /changed/); assert.equal(calls.length, 0, 'a stale target is never sent');
+  assert.deepEqual(plain(await testGateway({}, id, { ...saved, baseUrl: 'https://custom.invalid/v1/' })), { success: true });
+  const failed = await testGateway({}, id, saved);
+  assert.equal(failed.success, false); assert.doesNotMatch(failed.error, /synthetic-secret-key/);
+  assert.deepEqual(plain(calls), [{ gatewayId: id }, { gatewayId: id }]);
+  assert.match((await testGateway({}, 'gw-missing', saved)).error, /no longer exists/);
+  assert.equal((await testOfficial({}, 'openai', undefined, { ...targets.openai, model: 'other' })).success, false);
+  assert.match((await testOfficial({}, 'groq')).error, /Groq is not available/);
+  assert.equal(calls.length, 2);
+});
+
+test('S45 gateway save and removal handlers apply only after a committed write and leave official runtime alone', async () => {
+  const disk = storage(), manager = disk.boot(), effects = [];
+  const helper = { configureGateway: (config, key) => effects.push(['gateway', config.id, key]), removeGateway: id => effects.push(['remove', id]),
+    configureProvider: () => effects.push(['official']), setGenerationPolicy() {}, getCurrentModelSelection: () => 'synthetic' };
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+    appState: { processingHelper: { getLLMHelper: () => helper }, sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) } };
+  const save = handler('set-gateway-configuration', context), remove = handler('remove-gateway', context);
+  const value = { protocol: 'messages', baseUrl: 'https://custom.invalid', model: 'opaque', apiKey: 'synthetic-gateway' };
+  disk.setFault('rename');
+  assert.equal((await save({}, value)).ok, false); assert.deepEqual(effects, []);
+  disk.setFault(undefined);
+  const created = await save({}, value);
+  assert.equal(created.ok, true);
+  assert.deepEqual(effects, [['gateway', created.gatewayId, 'synthetic-gateway']]);
+  assert.equal((await remove({}, created.gatewayId)).ok, true);
+  assert.deepEqual(effects.at(-1), ['remove', created.gatewayId]);
+  assert.equal(effects.some(([kind]) => kind === 'official'), false);
+  assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-old');
 });

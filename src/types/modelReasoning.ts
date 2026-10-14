@@ -1,4 +1,6 @@
-import type { LlmProtocol, ProviderConfiguration, ReasoningSetting } from './llmTarget';
+import type { LlmProtocol, ModelTarget, ProviderConfiguration, ReasoningSetting } from './llmTarget';
+
+type ReasoningTarget = Pick<ModelTarget, 'provider' | 'protocol' | 'baseUrl' | 'model'>;
 import { PROVIDER_IMAGE_ENDPOINTS } from './modelImageSupport';
 
 export type ThinkingMode = NonNullable<ReasoningSetting['thinking']>;
@@ -53,24 +55,25 @@ const PROTOCOL_REASONING: Record<LlmProtocol, Omit<ReasoningOptions, 'verified'>
   gemini: { effort: ['minimal', 'low', 'medium', 'high'], thinking: [] },
 };
 
-export function isOfficialEndpoint(config: Pick<ProviderConfiguration, 'provider' | 'baseUrl'>): boolean {
+export function isOfficialEndpoint(config: Pick<ModelTarget, 'provider' | 'baseUrl'>): boolean {
+  if (config.provider === 'gateway') return false;
   const base = new URL(config.baseUrl?.trim() || PROVIDER_IMAGE_ENDPOINTS[config.provider]).href.replace(/\/+$/, '');
   return base === PROVIDER_IMAGE_ENDPOINTS[config.provider];
 }
 
 /** Read-only vendor reference for the exact official target; undefined for gateways and unlisted models. */
-export function officialModelCapacity(config: ProviderConfiguration): { contextTokens: number; outputTokens: number } | undefined {
-  const entry = isOfficialEndpoint(config) ? OFFICIAL_MODELS[config.provider]?.[config.model.trim()] : undefined;
+export function officialModelCapacity(config: ReasoningTarget): { contextTokens: number; outputTokens: number } | undefined {
+  const entry = config.provider !== 'gateway' && isOfficialEndpoint(config) ? OFFICIAL_MODELS[config.provider]?.[config.model.trim()] : undefined;
   return entry && { contextTokens: entry.contextTokens, outputTokens: entry.outputTokens };
 }
 
-export function reasoningOptions(config: ProviderConfiguration): ReasoningOptions {
-  const entry = isOfficialEndpoint(config) ? OFFICIAL_MODELS[config.provider]?.[config.model.trim()] : undefined;
+export function reasoningOptions(config: ReasoningTarget): ReasoningOptions {
+  const entry = config.provider !== 'gateway' && isOfficialEndpoint(config) ? OFFICIAL_MODELS[config.provider]?.[config.model.trim()] : undefined;
   return entry?.reasoning ? { verified: true, ...entry.reasoning } : { verified: false, ...PROTOCOL_REASONING[config.protocol] };
 }
 
 /** Rejects, never strips, a value the target cannot take. An empty setting means the provider default. */
-export function validateReasoning(config: ProviderConfiguration, value: unknown): ReasoningSetting | undefined {
+export function validateReasoning(config: ReasoningTarget, value: unknown): ReasoningSetting | undefined {
   if (value === undefined) return undefined;
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid reasoning setting');
   const { effort, thinking, ...rest } = value as ReasoningSetting;

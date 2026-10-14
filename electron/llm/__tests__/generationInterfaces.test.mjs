@@ -591,8 +591,14 @@ test('backup updates and selected provider reconfiguration reject identical targ
   const { self } = helper();
   assert.throws(() => self.setGenerationPolicy(policy(selector('gemini-a'))), /must differ/);
   self.setGenerationPolicy(policy(selector('gemini-b'))); const client = self.client;
+  self.geminiPromptCache = { clear() {} };
+  // The selection follows a save only when it named the saved configured model.
+  self.providerConfigurations = { ...self.providerConfigurations, gemini: target('gemini-a') };
   assert.throws(() => self.configureProvider(target('gemini-b'), 'synthetic-not-used'), /must differ/);
   assert.equal(self.client, client); assert.equal(self.selectedTarget.model, 'gemini-a');
+  self.providerConfigurations = { ...self.providerConfigurations, gemini: target('gemini-c') };
+  self.configureProvider(target('gemini-b'), 'synthetic-not-used');
+  assert.equal(self.selectedTarget.model, 'gemini-a', 'another configured model never changes the running selection');
 });
 
 test('explicit Codex selector clears stale API selection and snapshots its configured fast model', () => {
@@ -649,11 +655,13 @@ test('AG33 unknown image capability needs exact target confirmation; primary con
 
 test('AG33 custom endpoint with a vendor model ID remains unknown; known text-only model cannot be overridden', async () => {
   for (const config of [
-    { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-pro-preview', baseUrl: 'https://compatible.example' },
+    // A gateway with a vendor model ID is still a gateway: image support stays unknown until confirmed.
+    { provider: 'gateway', gatewayId: 'gw-vendor-id', protocol: 'gemini', model: 'gemini-3.1-pro-preview', baseUrl: 'https://compatible.example' },
     { provider: 'gemini', protocol: 'gemini', model: 'toString' },
     { provider: 'groq', protocol: 'chat-completions', model: 'llama-3.3-70b-versatile', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'llama-3.3-70b-versatile']) },
   ]) {
     const { self, requests } = helper(); self.selectedTarget = config; self.currentModelId = config.model;
+    self.gatewayClients = new Map([['gw-vendor-id', self.client]]);
     self.groqClient = { chat: { completions: { create: () => { throw Error('must not send'); } } } };
     await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), /unconfirmed|does not support/);
     assert.equal(requests.length, 0);
