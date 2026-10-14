@@ -45,7 +45,25 @@ function fixture({ failCreation = false } = {}) {
   const Main = load('WindowHelper'), Settings = load('SettingsWindowHelper'), Selector = load('ModelSelectorWindowHelper'), Cropper = load('CropperWindowHelper');
   const main = new Main(state), settings = new Settings(), selector = new Selector(), cropper = new Cropper(state.getDisguiseName, state.reportProtectionFailure, state.getDisguiseIconPath);
   settings.setWindowHelper(main); selector.setWindowHelper(main);
-  return { main, settings, selector, cropper, windows, calls };
+  return { main, settings, selector, cropper, windows, calls, state };
+}
+
+for (const quitting of [false, true]) for (const meeting of [false, true]) for (const visible of [false, true]) {
+  test(`overlay close: quitting=${quitting}, meeting=${meeting}, visible=${visible}`, () => {
+    const f = fixture();
+    f.state.isQuitting = () => quitting;
+    f.state.getIsMeetingActive = () => meeting;
+    f.main.createWindow();
+    const overlay = f.windows[1];
+    overlay.visible = visible;
+    const actions = [];
+    f.main.hideOverlay = () => actions.push('hide');
+    f.main.switchToLauncher = () => actions.push('launcher');
+    let prevented = false;
+    overlay.emit('close', { preventDefault() { prevented = true; } });
+    assert.equal(prevented, visible && !quitting);
+    assert.deepEqual(actions, visible && !quitting ? [meeting ? 'hide' : 'launcher'] : []);
+  });
 }
 
 test('AG61: cold and destroyed settings creation preserves inactive activation and current disguise', () => {

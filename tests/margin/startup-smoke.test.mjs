@@ -97,6 +97,12 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
     }, PROBE);
     await new Promise((r) => setTimeout(r, 1_000));
 
+    const overlayVisible = await app.evaluate(({ BrowserWindow }) => {
+      const overlay = BrowserWindow.getAllWindows().find(window => window.webContents.getURL().includes('window=overlay'));
+      overlay.show();
+      return overlay.isVisible();
+    });
+    assert.equal(overlayVisible, true, 'quit must close even a visible overlay after credential cleanup');
     await app.evaluate(({ app: electronApp }) => { setTimeout(() => electronApp.quit(), 0); });
     const { code, signal } = await Promise.race([
       exited,

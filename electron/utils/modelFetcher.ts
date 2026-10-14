@@ -63,21 +63,9 @@ async function fetchOpenAIModels(apiKey: string): Promise<ProviderModel[]> {
         timeout: 15000,
     });
 
-    const models: any[] = response.data?.data || [];
-
-    // Only include: gpt-4o series, gpt-5.x+, o1, o3, o4 series
-    const filtered = models.filter((m: any) => {
-        const id = (m.id || '').toLowerCase();
-        // Include gpt-4o variants
-        if (id.includes('gpt-4o')) return true;
-        // Include gpt-5 and above
-        if (/gpt-[5-9]/.test(id)) return true;
-        // Include o1/o3/o4 reasoning models (but not audio/realtime variants)
-        if (/^o[134]/.test(id) && !id.includes('audio') && !id.includes('realtime')) return true;
-        return false;
-    });
-
-    return filtered
+    const models: any[] = response.data?.data;
+    if (!Array.isArray(models)) throw new Error('Invalid model list response');
+    return models.filter(m => typeof m.id === 'string')
         .map((m: any) => ({ id: m.id, label: m.id }))
         .sort((a, b) => a.label.localeCompare(b.label));
 }
@@ -90,20 +78,9 @@ async function fetchGroqModels(apiKey: string): Promise<ProviderModel[]> {
         timeout: 15000,
     });
 
-    const models: any[] = response.data?.data || [];
-
-    // Only include text/chat models — exclude everything non-chat
-    const excludePatterns = [
-        'whisper', 'distil', 'guard', 'tool-use',
-        'vision-preview', 'tts', 'playai', 'speech',
-    ];
-
-    const filtered = models.filter((m: any) => {
-        const id = (m.id || '').toLowerCase();
-        return !excludePatterns.some(p => id.includes(p));
-    });
-
-    return filtered
+    const models: any[] = response.data?.data;
+    if (!Array.isArray(models)) throw new Error('Invalid model list response');
+    return models.filter(m => typeof m.id === 'string')
         .map((m: any) => ({ id: m.id, label: m.id }))
         .sort((a, b) => a.label.localeCompare(b.label));
 }
@@ -111,118 +88,72 @@ async function fetchGroqModels(apiKey: string): Promise<ProviderModel[]> {
 // ─── Anthropic ───────────────────────────────────────────────────────────────
 
 async function fetchAnthropicModels(apiKey: string): Promise<ProviderModel[]> {
-    const response = await axios.get('https://api.anthropic.com/v1/models', {
+    const models: any[] = [];
+    let after: string | undefined;
+    const seen = new Set<string>();
+    for (let page = 0; page < 20; page++) {
+      const response = await axios.get('https://api.anthropic.com/v1/models', {
         headers: {
             'x-api-key': apiKey,
             'anthropic-version': '2023-06-01',
         },
         timeout: 15000,
-    });
+        params: { limit: 100, ...(after ? { after_id: after } : {}) },
+      });
+      if (!Array.isArray(response.data?.data)) throw new Error('Invalid model list response');
+      models.push(...response.data.data);
+      if (!response.data.has_more) break;
+      after = response.data.last_id;
+      if (typeof after !== 'string' || !after || seen.has(after) || page === 19) throw new Error('Incomplete model list response');
+      seen.add(after);
+    }
 
-    const models: any[] = response.data?.data || [];
-
-    // Only include Claude 3.5+ models (haiku, sonnet, opus)
-    const filtered = models.filter((m: any) => {
-        const id = (m.id || '').toLowerCase();
-        if (!id.includes('claude')) return false;
-        
-        // Match models that are version 3.5, 3.7, 4.0, etc.
-        // e.g. claude-3-5-sonnet, claude-3-7-sonnet, claude-4-opus
-        const versionMatch = id.match(/claude-(\d+)-(\d+)?/);
-        if (versionMatch) {
-            const major = parseInt(versionMatch[1], 10);
-            const minor = versionMatch[2] ? parseInt(versionMatch[2], 10) : 0;
-            if (major > 3 || (major === 3 && minor >= 5)) {
-                return true;
-            }
-        }
-        return false;
-    });
-
-    return filtered
+    return models.filter(m => typeof m.id === 'string')
         .map((m: any) => ({ id: m.id, label: m.display_name || m.id }))
         .sort((a, b) => a.label.localeCompare(b.label));
 }
 
 // ─── DeepSeek ────────────────────────────────────────────────────────────────
 
-// Documented current DeepSeek text models; used as fallback if /models call fails
-// or returns an unexpected shape. deepseek-chat / deepseek-reasoner are deprecated
-// (2026-07-24) and intentionally excluded.
-const DEEPSEEK_DEFAULT_MODELS: ProviderModel[] = [
-    { id: 'deepseek-v4-flash', label: 'deepseek-v4-flash' },
-    { id: 'deepseek-v4-pro', label: 'deepseek-v4-pro' },
-];
-
 async function fetchDeepSeekModels(apiKey: string): Promise<ProviderModel[]> {
-    try {
         const response = await axios.get('https://api.deepseek.com/models', {
             headers: { Authorization: `Bearer ${apiKey}` },
             timeout: 15000,
         });
 
-        const models: any[] = response.data?.data || [];
-        if (!Array.isArray(models) || models.length === 0) {
-            return DEEPSEEK_DEFAULT_MODELS;
-        }
+        const models: any[] = response.data?.data;
+        if (!Array.isArray(models)) throw new Error('Invalid model list response');
 
-        const excludePatterns = [
-            'embedding', 'embed', 'vision', 'image', 'audio',
-            'tts', 'speech', 'whisper', 'stt',
-        ];
-
-        const filtered = models.filter((m: any) => {
-            const id = (m.id || '').toLowerCase();
-            if (!/^deepseek-v\d/.test(id)) return false;
-            if (excludePatterns.some(p => id.includes(p))) return false;
-            return true;
-        });
-
-        if (filtered.length === 0) return DEEPSEEK_DEFAULT_MODELS;
-
-        return filtered
+        return models.filter(m => typeof m.id === 'string')
             .map((m: any) => ({ id: m.id, label: m.id }))
             .sort((a, b) => a.label.localeCompare(b.label));
-    } catch (error: any) {
-        const status = error?.response?.status;
-        if (status === 401 || status === 403) {
-            throw new Error('Invalid or unauthorized DeepSeek API key');
-        }
-        return DEEPSEEK_DEFAULT_MODELS;
-    }
 }
 
 // ─── Gemini ──────────────────────────────────────────────────────────────────
 
 async function fetchGeminiModels(apiKey: string): Promise<ProviderModel[]> {
-    const response = await axios.get(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
+    const models: any[] = [];
+    let token: string | undefined;
+    const seen = new Set<string>();
+    for (let page = 0; page < 20; page++) {
+      const response = await axios.get(
+        'https://generativelanguage.googleapis.com/v1beta/models',
         {
+            headers: { 'x-goog-api-key': apiKey },
+            params: { pageSize: 100, ...(token ? { pageToken: token } : {}) },
             timeout: 15000,
         }
-    );
+      );
+      if (!Array.isArray(response.data?.models)) throw new Error('Invalid model list response');
+      models.push(...response.data.models);
+      token = response.data.nextPageToken;
+      if (!token) break;
+      if (typeof token !== 'string' || seen.has(token) || page === 19) throw new Error('Incomplete model list response');
+      seen.add(token);
+    }
 
-    const models: any[] = response.data?.models || [];
-
-    // Only include Gemini 2.5+ models (gemini-2.5-*, gemini-3-*, etc.)
-    // Must support generateContent
-    const excludePatterns = ['nano', 'custom', 'computer-use', 'banana', 'tts', 'embedding', 'aqa', 'vision'];
-
-    const filtered = models.filter((m: any) => {
-        const name = (m.name || '').toLowerCase();
-        const displayName = (m.displayName || '').toLowerCase();
-        const combined = name + ' ' + displayName;
-
-        // Must support generateContent
-        const supportsChat = m.supportedGenerationMethods?.includes('generateContent');
-        if (!supportsChat) return false;
-
-        // Must NOT match any exclude patterns
-        if (excludePatterns.some(p => combined.includes(p))) return false;
-
-        // Match gemini-2.5, gemini-3, gemini-4, etc. (version 2.5 and above)
-        return /gemini-([3-9]|2\.5)/.test(combined);
-    });
+    // Use the upstream capability field, not a model-name/version allowlist.
+    const filtered = models.filter(m => typeof m.name === 'string' && m.supportedGenerationMethods?.includes('generateContent'));
 
     return filtered
         .map((m: any) => {

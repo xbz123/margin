@@ -4,13 +4,17 @@
 
 **Current answer:** 截至 2026-10-14，阶段 6 技术验收通过，等待授权后实机复测与用户签收。`f35f7b3f` 的出口 CI、产物核对和隔离启动通过，Natively Local 已安装；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
 
-**Current focus:** S44 回答模型设置改造已由 Claude 实现并通过主 Agent 本地验收；真实参数验证等待正常凭据读取。保留已安装测试版，不自动安装本轮改动或修改系统权限；阶段 6 实机签收仍独立。
+**Current focus:** 修复 S44 本机发现的退出后残留进程问题，并将官方 API 改为内置地址与上游模型选择；完成复查、门禁及已批准的 Natively Local 重装。阶段 6 实机签收独立。
+
+## In progress
+
+- **S44 本机反馈修复** — running；resume：[修复与验证](margin/evidence/S44/README.md#user-reported-connection-failure-and-follow-up)；完整门禁与独立复查通过，接下来提交、公开 CI、重装。
 
 ## Waiting
 
-- **S44 真实网关参数验证与交付** — [本地软件验收通过](margin/evidence/S44/README.md)，尚未提交推送/远端 CI。用户已授权使用 Margin 已保存 Key，但只读安全存储诊断超时并已停止，原因未定，尚无真实调用结果；需确认正常读取路径后再执行，不绕过钥匙串，不把模拟测试当作网关受理证明。
+- **S44 真实参数验证** — 等待修复版安装后通过正常设置测试已保存 Key；[证据与边界](margin/evidence/S44/README.md)。权限已由用户确认，不重复重置、不绕过钥匙串。
 
-- **阶段 6 实机复测与用户签收** — 等用户授权权限及相应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
+- **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。

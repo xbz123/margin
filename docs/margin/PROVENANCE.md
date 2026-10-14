@@ -21,6 +21,23 @@ Notes:
 
 ## Ledger
 
+### S44 follow-up: quit lifecycle and upstream model selection (2026-10-14)
+
+Written on this branch from the reported Application quit failure and the user's
+official-provider configuration requirements. The overlay respects the existing
+application-quitting flag; normal close behavior and terminal credential cleanup
+remain. ProviderCard reuses the saved-credential discovery IPC and native select
+controls, with explicit official/gateway modes and stale-response invalidation.
+The existing discovery client follows official pagination and keeps upstream model
+IDs, without substituting preset DeepSeek models on failure. No later upstream
+implementation or additional dependencies were imported.
+
+CI 38611696710 reported two generic line forms in four older locations, not the
+four S44 lines previously reviewed locally. Their existing surrounding code and
+history were reviewed and the exact forms registered in provenance-config.json:
+the main STT nonblank-key guard and a synthetic discovery boolean assertion.
+No path exclusions or restricted-source pool reductions were made.
+
 ### S44 answer-model settings and protocol reasoning (2026-10-14)
 
 Written for this branch from the user's approved S44 behavior requirements.

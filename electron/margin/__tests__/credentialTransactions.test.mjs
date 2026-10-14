@@ -741,6 +741,7 @@ test('detected-language save failure does not submit an unsaved language selecti
 test('Fetch lists models without implicitly selecting or saving the first model', async () => {
   const subject = ui('src/components/settings/ProviderCard.tsx', 'handleFetchModels', failure, {
     apiKey: '', providerId: 'openai', selectedModel: 'synthetic-old-model',
+    fetchRevision: { current: 0 },
     onPreferredModelChange: () => assert.fail('failed model was selected'),
     window: { electronAPI: {
       fetchProviderModels: async () => ({ success: true, models: [{ id: 'synthetic-new-model' }] }),

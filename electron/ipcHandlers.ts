@@ -1226,9 +1226,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         return { success: true, models };
       } catch (error: any) {
         console.error(`[IPC] Failed to fetch ${provider} models`);
-        const msg =
-          error?.response?.data?.error?.message || error.message || 'Failed to fetch models';
-        return { success: false, error: msg };
+        return { success: false, error: 'Failed to fetch models' };
       }
     },
   );

@@ -56,8 +56,65 @@ The final code was independently checked using the existing complete gate runner
   and test source did not change after the full run, so those passing checks were
   reused rather than rerun. No directory exclusions or source pools were widened.
 
-Local software verification is complete. No commit, push, remote CI, package or
-installation was performed for S44; real-parameter verification remains incomplete.
+Local software verification is complete. Commit `b66523c9` is pushed to both
+repositories. Ordinary [CI 38611696710](https://github.com/xbz123/margin/actions/runs/38611696710)
+completed with 15/16 gates passing. Provenance flagged four occurrences of two
+generic line forms in older STT startup and credential tests. These are distinct
+from the four locally reviewed S44 lines; the follow-up records their review and
+must obtain a new full pass. No CI success is claimed for this run.
+
+The user subsequently approved installation. The local package passed its checks
+and guarded asar startup passed 10/10. Natively Local was replaced with that exact
+source version; installed asar SHA-256 is
+`6c45df614e9fb3df38d5e18fb012ed56684f9d94d4559645df45d32dde3aae48`.
+Before/after hashes confirmed existing local settings/credential files, Margin's
+credential file and Margin's application asar were unchanged. Only the replaced
+old Natively Local application package was removed, with no old-package backup
+as previously requested. User data was not deleted. The new launcher rendered.
+
+The user reports completing all requested permissions. Subsequent UI automation
+could read the launcher but could not reliably trigger settings/refresh actions,
+including a window-location error. A two-second main-thread sample showed the
+application event loop, not the prior CoreAudio enumeration stall. This does not
+prove a fix or identify a permissions failure. Real-parameter testing remains
+incomplete; no real request has been sent.
+
+## User-reported connection failure and follow-up
+
+The displayed error was `Application quit`, not an authentication rejection.
+Production-method reproduction shows that a visible overlay can veto window
+closure after before-quit has scrubbed the LLM service. The remaining UI then
+fails a connection test before sending anything. The installed-process lifecycle
+events are consistent with this sequence; the user's successful earlier test is
+not contradicted because a fresh, non-quitting process does not enter this state.
+The overlay veto is inherited; commit `06006149` added terminal generation
+closure, and `5241e414` added the two-pass asynchronous audio shutdown. The recent
+settings change did not add the veto or generation-closed guard.
+
+The follow-up preserves the terminal guard and lets a quitting overlay close.
+Eight close-state combinations were added to the existing window fixture; before
+the fix two visible/quitting cases failed, afterwards all eight and five existing
+window cases pass, along with the existing audio shutdown test (14/14 total).
+The production-method shutdown reproduction also exits successfully after repair.
+
+Official configurations now use built-in endpoints and an upstream model select,
+not an editable Model ID. Discovery remains an explicit user action after saving
+the Key; it does not silently select/save a model or call a service on page open.
+Gateway mode retains URL/Key and manual model fallback for unsupported list APIs.
+Changing origin still requires a newly entered key at the main-process boundary.
+Paginated official results are collected, stale UI responses are discarded, and
+DeepSeek errors do not become a fabricated preset list. Official lists no longer
+use local model-name/version allowlists; Gemini uses its upstream generateContent
+capability field. List membership alone does not certify text/protocol support.
+
+Final [followup-gates](followup-gates/summary.json) passes **16/16**: 133 unit files,
+1181/1181 tests, answer regression 21/21, storage 2/2, startup 1/1, mounted renderer
+13/13. The startup test now makes the actual Electron overlay visible, invokes
+the real two-pass app.quit chain and requires exit code 0 without a signal.
+Claude Opus 5.5 medium reviewed read-only; two P2 discovery findings were corrected
+and a second review returned no blocking findings. No original acceptance record
+was rewritten as if it covered this later fix. Public CI and installation of the
+follow-up are pending; real-service inference has not been performed by this run.
 
 Real parameter testing is authorized only for existing Margin credential-bound
 targets and synthetic text. A read-only credential inspection did not return and

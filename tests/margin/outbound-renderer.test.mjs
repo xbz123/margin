@@ -588,11 +588,12 @@ test('S44 mounted AI provider settings put answer models first and send per-targ
     import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
     import { AIProvidersSettings as Settings } from './src/components/settings/AIProvidersSettings'; import { LLM_PRESETS } from './src/types/llmTarget';
     import { DEFAULT_GENERATION_POLICY as POLICY } from './src/types/generationPolicy';
-    window.saved = [];
+    window.saved = []; window.modelFetches = 0;
     window.electronAPI = { getGenerationPolicy: async () => POLICY,
       getStoredCredentials: async () => ({ providerConfigurations: LLM_PRESETS, hasOpenaiKey: true }),
       getGroqFastTextMode: async () => ({ enabled: false }), getDefaultModel: async () => ({ model: 'llm-target:openai:chat-completions:gpt-5.4' }), getProviderDataScopes: async () => ({}),
       getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
+      fetchProviderModels: async () => { window.modelFetches++; if (window.deferModels) return new Promise(resolve => window.resolveModels = resolve); return { success: true, models: [{ id: 'gpt-5.4', label: 'GPT 5.4' }, { id: 'gpt-5.4-other', label: 'Other upstream model' }] }; },
       setProviderConfiguration: async value => { window.saved.push(value); return { ok: true }; } };
     const root = createRoot(document.getElementById('root')); window.show = () => flushSync(() => root.render(React.createElement(Settings)));
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
@@ -611,8 +612,23 @@ test('S44 mounted AI provider settings put answer models first and send per-targ
     assert.deepEqual((await options()).slice(1), ['none', 'low', 'medium', 'high', 'xhigh'], 'documented gpt-5.4 values on the official endpoint');
     assert.match(text, /Vendor-documented context window: 1,050,000 tokens; maximum output: 128,000 tokens/);
     assert.equal(await page.getByRole('spinbutton', { name: 'OpenAI context window' }).count(), 0, 'no capacity field for the official endpoint');
+    assert.equal(await page.getByRole('textbox', { name: 'OpenAI API base URL', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('textbox', { name: 'OpenAI model ID', exact: true }).count(), 0);
+    const model = page.getByRole('combobox', { name: 'OpenAI model', exact: true });
+    assert.equal(await model.isDisabled(), true);
+    await page.getByRole('button', { name: 'Fetch Models', exact: true }).click();
+    await page.waitForFunction(() => window.modelFetches === 1);
+    await model.selectOption('gpt-5.4-other');
+    assert.equal(await model.inputValue(), 'gpt-5.4-other');
+    await model.selectOption('gpt-5.4');
+    assert.deepEqual(await page.evaluate(() => window.saved), [], 'fetch and selection do not silently persist or change the active model');
+    await page.evaluate(() => { window.deferModels = true; });
+    await page.getByRole('button', { name: 'Fetch Models', exact: true }).click();
     await effort.selectOption('xhigh');
+    await page.getByRole('combobox', { name: 'OpenAI connection', exact: true }).selectOption('gateway');
     await page.getByRole('textbox', { name: 'OpenAI API base URL', exact: true }).fill(gateway);
+    await page.evaluate(() => window.resolveModels({ success: true, models: [{ id: 'stale', label: 'Stale official response' }] }));
+    assert.equal(await model.locator('option', { hasText: 'Stale official response' }).count(), 0);
     assert.equal(await effort.inputValue(), '', 'changing the endpoint clears the previous target setting');
     assert.deepEqual((await options()).slice(1), ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'], 'a gateway gets protocol values, not a vendor claim');
     assert.match(await page.locator('body').innerText(), /Reasoning values come from the protocol/);
@@ -631,14 +647,14 @@ test('S44 mounted AI provider settings put answer models first and send per-targ
     await page.getByRole('combobox', { name: 'OpenAI protocol', exact: true }).selectOption('responses');
     assert.equal(await effort.inputValue(), ''); assert.equal(await context.inputValue(), '');
     await context.fill('2048');
-    await page.getByRole('textbox', { name: 'OpenAI API base URL', exact: true }).fill('https://api.openai.com/v1');
-    assert.equal(await context.count(), 0, 'the gateway-only note is gone for the explicit official address');
+    await page.getByRole('combobox', { name: 'OpenAI connection', exact: true }).selectOption('official');
+    assert.equal(await context.count(), 0, 'the gateway-only note is gone for the official API');
     assert.equal(await page.getByRole('alert').count(), 0);
     await page.waitForFunction(() => ![...document.querySelectorAll('button')].some(button => button.textContent === 'Saved!'));
     for (let index = 0; index < await save.count(); index++) if (await save.nth(index).isEnabled()) await save.nth(index).click();
     await page.waitForFunction(() => window.saved.length === 2);
     const official = await page.evaluate(() => JSON.parse(JSON.stringify(window.saved[1])));
-    assert.deepEqual(official, { provider: 'openai', protocol: 'responses', model: 'gpt-5.4-other', baseUrl: 'https://api.openai.com/v1' });
+    assert.deepEqual(official, { provider: 'openai', protocol: 'responses', model: 'gpt-5.4-other' });
     assert.doesNotThrow(() => targetApi.validateProviderConfiguration(official));
     await page.close();
     const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});

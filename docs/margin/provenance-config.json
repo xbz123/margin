@@ -11,6 +11,10 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "const models: any[] = [];", "reason": "S44 follow-up: generic typed empty accumulator for the two bounded provider-list pagination loops, written from the model discovery requirement. Exact statement reviewed; no upstream implementation imported." },
+    { "line": "if (value instanceof Error) throw value;", "reason": "S44 follow-up: generic synthetic failure injection in the model discovery test fixture; reviewed test-only use, no imported implementation." },
+    { "line": "if (apiKey?.trim()) {", "reason": "S44 follow-up: CI 38611696710 flagged three pre-existing main STT key guards from a623e3f79. Reviewed surrounding Soniox, OpenAI and Groq branches; this is a generic nonblank-string check, not imported provider implementation. Exact line only." },
+    { "line": "assert.equal(fetched, false);", "reason": "S44 follow-up: CI 38611696710 flagged the synthetic credential transaction test that refuses discovery on unsaved settings. Generic boolean assertion reviewed in context; no source pool or directory exclusions changed." },
     { "line": "const target = (() => {", "reason": "S44: generic immediately invoked function opening in ProviderCard, computed from the edited provider draft to obtain reasoning options and reference metadata; written on this branch, not imported source." },
     { "line": "} catch { return undefined; }", "reason": "S44: generic catch return in ProviderCard for a partially typed URL; defers displaying metadata rather than guessing a target. Surrounding code was reviewed, no copied implementation." },
     { "line": "const os = await import('node:os');", "reason": "S44: standard Node builtin dynamic import in the synthetic credential transaction test, used only for its temporary test directory." },

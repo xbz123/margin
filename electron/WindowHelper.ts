@@ -528,6 +528,7 @@ export class WindowHelper {
       }
 
       this.overlayWindow.on('close', (e) => {
+        if (this.appState.isQuitting()) return;
         if (this.overlayWindow?.isVisible()) {
           e.preventDefault();
           if (this.appState.getIsMeetingActive()) {

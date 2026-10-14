@@ -3,7 +3,7 @@ import { imageSupportTarget, knownModelImageSupport } from '../../types/modelIma
 import { isOfficialEndpoint, officialModelCapacity, reasoningOptions, validateReasoning } from '../../types/modelReasoning';
 import React, { useState, useEffect, useRef } from 'react';
 import type { CredentialSaveResult } from '../../types/credentialSave';
-import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, ChevronDown, Check, RefreshCw } from 'lucide-react';
+import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { useI18n } from '../../i18n';
 
 interface FetchedModel {
@@ -42,7 +42,6 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
     providerName,
     configuration,
     apiKey,
-    preferredModel,
     hasStoredKey,
     onKeyChange,
     onSaveKey,
@@ -59,63 +58,46 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
     const savedConfig = configuration ?? LLM_PRESETS[providerId];
     const [draft, setDraft] = useState<ProviderConfiguration>(savedConfig);
     const unsaved = JSON.stringify(draft) !== JSON.stringify(savedConfig) || !!apiKey.trim();
-    useEffect(() => { setDraft(savedConfig); setFetchedModels([]); }, [configuration]);
+    const [gatewayMode, setGatewayMode] = useState(() => customEndpoint(savedConfig));
+    const fetchRevision = useRef(0);
+    const resetModels = () => { fetchRevision.current++; setFetchedModels([]); setFetchError(null); setIsFetching(false); };
+    useEffect(() => { setDraft(savedConfig); setGatewayMode(customEndpoint(savedConfig)); resetModels(); }, [configuration, hasStoredKey]);
+    useEffect(() => () => { fetchRevision.current++; }, []);
     const [fetchedModels, setFetchedModels] = useState<FetchedModel[]>([]);
     const [isFetching, setIsFetching] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
-    const [selectedModel, setSelectedModel] = useState<string>(preferredModel || '');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-    // Sync preferredModel prop
-    useEffect(() => {
-        if (preferredModel) setSelectedModel(preferredModel);
-    }, [preferredModel]);
-
-    // Close dropdown on outside click
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     const handleFetchModels = async () => {
+        if (unsaved) { setFetchError('Save the complete configuration before fetching models.'); return; }
+        const revision = ++fetchRevision.current;
         setIsFetching(true);
         setFetchError(null);
 
         try {
-            if (unsaved) { setFetchError('Save the complete configuration before fetching models.'); return; }
             const result = await window.electronAPI?.fetchProviderModels(providerId, '');
-
+            if (revision !== fetchRevision.current) return;
             if (result?.success && result.models) {
                 setFetchedModels(result.models);
+                if (!result.models.length) setFetchError('No models were returned by this provider.');
             } else {
                 setFetchError(result?.error || 'Failed to fetch models');
             }
         } catch (e: any) {
-            setFetchError(e.message || 'Failed to fetch models');
+            if (revision === fetchRevision.current) setFetchError('Failed to fetch models');
         } finally {
-            setIsFetching(false);
+            if (revision === fetchRevision.current) setIsFetching(false);
         }
     };
 
     const handleSelectModel = async (modelId: string) => {
-        setIsDropdownOpen(false);
         setDraft(prev => ({ ...prev, model: modelId, ...TARGET_RESET }));
-        setSelectedModel(modelId);
     };
-
-    const selectedOption = fetchedModels.find(m => m.id === selectedModel);
     const target = (() => {
         try {
             return { reasoning: reasoningOptions(draft), capacity: officialModelCapacity(draft), custom: !isOfficialEndpoint(draft) };
         } catch { return undefined; }
     })();
     const draftError = (() => {
+        if (gatewayMode && !customEndpoint(draft)) return 'Enter a custom gateway URL, or select the official API.';
         try { validateReasoning(draft, draft.reasoning); } catch (e: any) { return e.message as string; }
         const tokens = draft.contextWindowTokens;
         return tokens !== undefined && (!Number.isSafeInteger(tokens) || tokens <= 0) ? 'Context window must be a positive whole number of tokens.' : undefined;
@@ -151,7 +133,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                 <input
                     type="password"
                     value={apiKey}
-                    onChange={(e) => onKeyChange(e.target.value)}
+                    onChange={(e) => { resetModels(); onKeyChange(e.target.value); }}
                     placeholder={hasStoredKey ? "••••••••••••" : keyPlaceholder}
                     className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
                 />
@@ -177,27 +159,44 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
             </div>
 
             <div className="space-y-2 mb-3">
-                <label className="block text-xs text-text-secondary">{t('API base URL (empty uses the vendor preset)')}
+                <label className="block text-xs text-text-secondary">{t('Connection')}
+                    <select aria-label={t('{provider} connection', { provider: providerName })} value={gatewayMode ? 'gateway' : 'official'}
+                        onChange={e => { const gateway = e.target.value === 'gateway'; setGatewayMode(gateway); resetModels(); setDraft(prev => ({ ...prev, baseUrl: undefined, ...TARGET_RESET })); }}
+                        className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
+                        <option value="official">{t('Official API')}</option><option value="gateway">{t('Custom gateway')}</option>
+                    </select>
+                </label>
+                {gatewayMode && <>
+                <label className="block text-xs text-text-secondary">{t('Gateway API base URL')}
                     <input aria-label={t('{provider} API base URL', { provider: providerName })} value={draft.baseUrl ?? ''}
-                        onChange={e => setDraft(prev => {
+                        onChange={e => { resetModels(); setDraft(prev => {
                             const next = { ...prev, baseUrl: e.target.value, imageSupportConfirmedFor: undefined, reasoning: undefined };
                             return customEndpoint(next) ? next : { ...next, contextWindowTokens: undefined };
-                        })}
-                        placeholder={providerId === 'gemini' ? 'https://generativelanguage.googleapis.com' : providerId === 'claude' ? 'https://api.anthropic.com' : 'https://service.example/v1'}
+                        }); }}
+                        placeholder="https://gateway.example/v1"
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
                 <p className="text-xs text-text-secondary">{t('Re-enter your API key when changing the provider address.')}</p>
+                </>}
                 {providerId === 'openai' && <label className="block text-xs text-text-secondary">{t('Protocol')}
-                    <select aria-label={t('OpenAI protocol')} value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], ...TARGET_RESET }))}
+                    <select aria-label={t('OpenAI protocol')} value={draft.protocol} onChange={e => { resetModels(); setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], ...TARGET_RESET })); }}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
                         <option value="chat-completions">Chat Completions</option><option value="responses">Responses</option>
                     </select>
                 </label>}
-                <label className="block text-xs text-text-secondary">{t('Model ID')}
+                <label className="block text-xs text-text-secondary">{t('Select model')}
+                    <select aria-label={t('{provider} model', { provider: providerName })} value={draft.model}
+                        onChange={e => handleSelectModel(e.target.value)} disabled={!fetchedModels.length}
+                        className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
+                        {!fetchedModels.some(model => model.id === draft.model) && <option value={draft.model}>{draft.model} — {t('Current configuration (not fetched)')}</option>}
+                        {fetchedModels.map(model => <option key={model.id} value={model.id}>{model.label}</option>)}
+                    </select>
+                </label>
+                {gatewayMode && <label className="block text-xs text-text-secondary">{t('Gateway model ID (if model listing is unavailable)')}
                     <input aria-label={t('{provider} model ID', { provider: providerName })} value={draft.model}
                         onChange={e => setDraft(prev => ({ ...prev, model: e.target.value, ...TARGET_RESET }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
-                </label>
+                </label>}
                 {target && <>
                     {target.reasoning.thinking.length > 0 && <label className="block text-xs text-text-secondary">{t('Thinking')}
                         <select aria-label={t('{provider} thinking', { provider: providerName })} value={draft.reasoning?.thinking ?? ''} onChange={e => setReasoning('thinking', e.target.value)}
@@ -238,14 +237,14 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                         <span className="block text-[10px] mt-1">{t('Check the provider model documentation yourself before confirming. Applies only to this model, protocol and endpoint; not other or backup models.')}</span>
                     </label>;
                 })()}
-                {providerId === 'gemini' && <p className="text-[10px] text-text-secondary">{t('Gemini uses v1alpha for generation and model discovery. Do not include the API version in the base URL.')}</p>}
+                {providerId === 'gemini' && gatewayMode && <p className="text-[10px] text-text-secondary">{t('Do not include an API version in the Gemini gateway URL.')}</p>}
             </div>
 
             {/* Action Row: Test Connection + Conditional Dropdown + Fetch Models */}
             <div className="flex items-center justify-between mb-3 w-full">
                 <button
                     onClick={onTestConnection}
-                    disabled={unsaved || !hasStoredKey || testStatus === 'testing'}
+                    disabled={unsaved || !!draftError || !hasStoredKey || testStatus === 'testing'}
                     className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-border-subtle flex items-center gap-2 shrink-0 ${testStatus === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
                         testStatus === 'error' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                             'bg-bg-input hover:bg-bg-elevated text-text-primary'
@@ -258,44 +257,10 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                                 <>{/* No Icon */} {t('Test Connection')}</>}
                 </button>
 
-                {/* Inline Model Dropdown */}
-                {fetchedModels.length > 0 || preferredModel ? (
-                    <div className="relative flex-1 max-w-[200px] mx-4" ref={dropdownRef}>
-                        <button
-                            onClick={() => fetchedModels.length > 0 && setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full bg-bg-input border border-border-subtle rounded-md px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent-primary flex items-center justify-between transition-colors ${fetchedModels.length > 0 ? 'hover:bg-bg-elevated' : 'opacity-80 cursor-default'}`}
-                            type="button"
-                        >
-                            <span className="truncate pr-2">{selectedOption ? selectedOption.label : (preferredModel || t('Select model'))}</span>
-                            <ChevronDown size={14} className={`text-text-secondary transition-transform ${isDropdownOpen ? 'rotate-180' : ''} ${fetchedModels.length === 0 ? 'opacity-50' : ''}`} />
-                        </button>
-
-                        {isDropdownOpen && fetchedModels.length > 0 && (
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-full min-w-[200px] bg-bg-elevated border border-border-subtle rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto animated fadeIn">
-                                <div className="p-1 space-y-0.5">
-                                    {fetchedModels.map((model) => (
-                                        <button
-                                            key={model.id}
-                                            onClick={() => handleSelectModel(model.id)}
-                                            className={`w-full text-left px-3 py-2 text-xs rounded-md flex items-center justify-between group transition-colors ${selectedModel === model.id ? 'bg-bg-input hover:bg-bg-elevated text-text-primary' : 'text-text-secondary hover:bg-bg-input hover:text-text-primary'}`}
-                                            type="button"
-                                        >
-                                            <span className="truncate">{model.label}</span>
-                                            {selectedModel === model.id && <Check size={14} className="text-accent-primary shrink-0 ml-2" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="flex-1 mx-4" />
-                )}
-
                 {hasStoredKey ? (
                     <button
                         onClick={handleFetchModels}
-                        disabled={isFetching || unsaved}
+                        disabled={isFetching || unsaved || !!draftError}
                         className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border border-border-subtle flex items-center gap-2 shrink-0 ${isFetching
                             ? 'bg-bg-input text-text-secondary'
                             : 'bg-accent-primary/10 text-accent-primary border-accent-primary/20 hover:bg-accent-primary/20'
