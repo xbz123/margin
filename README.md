@@ -68,6 +68,12 @@ the first delivery target; Windows implementation, acceptance and release follow
 before deciding final branch integration. The default build identity is `temp`.
 The formal `Margin` identity currently refuses to build/run outside GitHub
 Actions; changing that guard and releasing packages are separate decisions.
+The separately approved `local` test identity uses `Natively Local` /
+`local.natively.desktop` and a fresh `Natively Local` data directory, not the
+legacy `natively-local` or `Margin` directory. On macOS arm64,
+`MARGIN_APP_VARIANT=local node scripts/build-local.cjs` packages committed source
+using existing verified native binaries without rebuilding them. It does not
+install, migrate data or publish the package automatically.
 
 **No real screen-sharing application/OS-version combination has been verified
 for this branch.** In particular, whole-screen sharing through Chrome, Zoom,

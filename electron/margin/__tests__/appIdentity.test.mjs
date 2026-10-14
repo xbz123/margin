@@ -83,6 +83,9 @@ function load(file, electron, main) {
 
 test('build selection defaults to temp and rejects release outside CI', () => {
   assert.equal(selectIdentity({}).name, 'temp');
+  assert.deepEqual(selectIdentity({ MARGIN_APP_VARIANT: 'local' }), {
+    variant: 'local', name: 'Natively Local', appId: 'local.natively.desktop',
+  });
   assert.throws(() => selectIdentity({ MARGIN_APP_VARIANT: 'release' }), /GitHub Actions/);
   assert.throws(() => selectIdentity({ MARGIN_APP_VARIANT: 'invalid' }), /Unknown/);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(REPO, 'dist-electron/app-identity.json'))), identity);
@@ -92,6 +95,30 @@ test('build selection defaults to temp and rejects release outside CI', () => {
   assert.equal(build.mac.extendInfo.CFBundleName, identity.name);
   assert.equal(build.mac.extendInfo.CFBundleDisplayName, identity.name);
   assert.equal(require('../../../package.json').main, 'dist-electron/electron/bootstrap.js');
+});
+
+test('local packaging reuses native modules without allowing formal identity locally', () => {
+  const savedVariant = process.env.MARGIN_APP_VARIANT;
+  const savedOut = process.env.MARGIN_PACKAGE_OUT;
+  const configs = ['../../../electron-builder.config.cjs', '../../../scripts/margin/package.config.cjs'];
+  try {
+    process.env.MARGIN_APP_VARIANT = 'local';
+    process.env.MARGIN_PACKAGE_OUT = path.join(process.env.MARGIN_ISOLATION_HOME, 'package');
+    for (const file of configs) delete require.cache[require.resolve(file)];
+    const config = require(configs[1]);
+    assert.equal(config.productName, 'Natively Local');
+    assert.equal(config.appId, 'local.natively.desktop');
+    assert.equal(config.npmRebuild, false);
+    assert.equal(config.nodeGypRebuild, false);
+    assert.equal(config.publish, null);
+    assert.throws(() => selectIdentity({ MARGIN_APP_VARIANT: 'release' }), /GitHub Actions/);
+  } finally {
+    if (savedVariant === undefined) delete process.env.MARGIN_APP_VARIANT;
+    else process.env.MARGIN_APP_VARIANT = savedVariant;
+    if (savedOut === undefined) delete process.env.MARGIN_PACKAGE_OUT;
+    else process.env.MARGIN_PACKAGE_OUT = savedOut;
+    for (const file of configs) delete require.cache[require.resolve(file)];
+  }
 });
 
 test('guard first-launch preflight uses the built identity before path setup', () => {
@@ -140,9 +167,13 @@ test('bootstrap precedes real credentials/storage imports and settings survive a
 
 test('synthetic protected directories reject reads, writes, alternate APIs and symlink aliases', () => {
   const sandbox = makeSandbox('identity-access');
-  const other = identity.variant === 'release' ? 'temp' : 'Margin';
+  const other = identity.variant === 'local' ? 'temp' : 'Natively Local';
   const protectedFile = path.join(sandbox.home, 'Library/Application Support', other, 'identity-sentinel');
   const canonicalProtectedFile = fs.realpathSync(protectedFile);
+  const protectedId = identity.variant === 'local' ? 'io.github.xbz123.temp' : 'local.natively.desktop';
+  const protectedPlist = path.join(sandbox.home, 'Library/Preferences', `${protectedId}.plist`);
+  fs.mkdirSync(path.dirname(protectedPlist), { recursive: true });
+  fs.writeFileSync(protectedPlist, 'synthetic preferences');
   const alias = path.join(sandbox.work, 'alias');
   fs.symlinkSync(path.dirname(protectedFile), alias);
   const script = `
@@ -156,6 +187,8 @@ test('synthetic protected directories reject reads, writes, alternate APIs and s
       () => fs.readFileSync(Buffer.from(file)), () => fs.readFileSync(alias),
       () => fs.readFileSync(file.replace('/${other}/', '/${other.toUpperCase()}/')),
       () => fs.readFileSync(${JSON.stringify(canonicalProtectedFile)}),
+      () => fs.readFileSync(${JSON.stringify(protectedPlist)}),
+      () => fs.writeFileSync(${JSON.stringify(protectedPlist)}, 'bad'),
       () => fs.symlinkSync('../home/Library/Application Support/${other}', ${JSON.stringify(path.join(sandbox.work, 'link'))}),
     ];
     for (const operation of operations) assert.throws(operation, { code: 'EMARGINISOLATION' });
@@ -167,9 +200,10 @@ test('synthetic protected directories reject reads, writes, alternate APIs and s
   const result = spawnSync(process.execPath, ['-e', script], { env: isolatedEnv(sandbox), encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   const blocks = readGuardLog(sandbox, { pid: result.pid }).filter((r) => r.kind === 'storage');
-  assert.equal(blocks.length, 15);
+  assert.equal(blocks.length, 17);
   assert.ok(blocks.every((r) => r.detail.startsWith(sandbox.root) || r.detail.startsWith(fs.realpathSync(sandbox.root))), 'only synthetic paths were provoked');
   assert.equal(fs.readFileSync(protectedFile, 'utf8'), 'synthetic protected data\n');
+  assert.equal(fs.readFileSync(protectedPlist, 'utf8'), 'synthetic preferences');
 });
 
 test('recursive and directory operations refuse parents containing protected data', () => {

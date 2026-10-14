@@ -149,6 +149,15 @@ jobs:
           node_modules/.bin/vite build 2>&1 | tee ci-evidence/identity-release-renderer.log
           node scripts/margin/isolation/run-node.mjs --test electron/margin/__tests__/appIdentity.test.mjs 2>&1 | tee ci-evidence/identity-release-contract.log
 
+      - name: Check local acceptance identity contract (no packaging)
+        env:
+          MARGIN_APP_VARIANT: local
+        run: |
+          set -o pipefail
+          node scripts/build-electron.js 2>&1 | tee ci-evidence/identity-local-build.log
+          node_modules/.bin/vite build 2>&1 | tee ci-evidence/identity-local-renderer.log
+          node scripts/margin/isolation/run-node.mjs --test electron/margin/__tests__/appIdentity.test.mjs 2>&1 | tee ci-evidence/identity-local-contract.log
+
       # The packaging steps run independently of each other's result (not after a
       # cancel) so one run reports every failing check; the job still fails.
       - name: Package the temp app (AG-25; workflow artifacts only)

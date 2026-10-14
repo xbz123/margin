@@ -7,7 +7,7 @@ const { fileURLToPath } = require('node:url');
 
 // AG-20's known application directories only; this is not a general filesystem sandbox.
 function installStorageGuard(identity, sandboxHome, blockedError) {
-  const names = ['Natively', 'natively', 'natively-local', 'ai assistant', 'Margin', 'margin', 'temp'];
+  const names = ['Natively', 'natively', 'natively-local', 'Natively Local', 'ai assistant', 'Margin', 'margin', 'temp'];
   const roots = [];
   const homes = [os.userInfo().homedir, sandboxHome].flatMap((home) => [home, fs.realpathSync(home)]);
   for (const home of new Set(homes)) {
@@ -16,7 +16,7 @@ function installStorageGuard(identity, sandboxHome, blockedError) {
       if (synthetic && name.toLowerCase() === identity.name.toLowerCase()) continue;
       roots.push(path.join(home, 'Library/Application Support', name), path.join(home, 'Library/Logs', name));
     }
-    for (const id of ['io.github.xbz123.margin', 'io.github.xbz123.temp', 'com.electron.meeting-notes']) {
+    for (const id of ['io.github.xbz123.margin', 'io.github.xbz123.temp', 'local.natively.desktop', 'com.electron.meeting-notes']) {
       if (synthetic && id === identity.appId) continue;
       roots.push(path.join(home, 'Library/Preferences', `${id}.plist`));
     }

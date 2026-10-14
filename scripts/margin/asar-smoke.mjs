@@ -12,6 +12,10 @@ import { execFileSync } from 'node:child_process';
 import { REPO } from './isolation/env.mjs';
 import { launchApp, windowWithQuery, readMainErrors } from '../../tests/margin/launch-app.mjs';
 import { makeSandbox, readBlocked } from './isolation/env.mjs';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+
+const identity = createRequire(import.meta.url)('./app-identity.cjs').selectIdentity();
 
 const [appBundle, reportFile] = process.argv.slice(2).map((item) => path.resolve(item));
 const asar = path.join(appBundle, 'Contents/Resources/app.asar');
@@ -27,12 +31,12 @@ try {
   await launcher.waitForFunction(() => document.body && document.body.innerText.trim().length > 0, null, { timeout: 30_000 });
   add('launcher-window', true, 'window=launcher rendered');
   add('preload-api', await launcher.evaluate(() => typeof window.electronAPI === 'object'), 'window.electronAPI');
-  add('renderer-from-package', launcher.url().startsWith(`file://${asar}/dist/index.html`), launcher.url().split(asar).join('<asar>'));
+  add('renderer-from-package', launcher.url().startsWith(pathToFileURL(path.join(asar, 'dist/index.html')).href), launcher.url().split(asar).join('<asar>'));
   const state = await app.evaluate(({ app: a }) => ({
     appPath: a.getAppPath(), name: a.getName(), userData: a.getPath('userData'),
   }));
   add('app-path', state.appPath === asar, state.appPath.split(asar).join('<asar>'));
-  add('app-name', state.name === 'temp', state.name);
+  add('app-name', state.name === identity.name, state.name);
   add('user-data-in-sandbox', state.userData.startsWith(sandbox.root), state.userData.split(sandbox.root).join('<sandbox>'));
   // Native code mapped into the main process: the package's own modules, none from the repository.
   const mapped = execFileSync('/usr/sbin/lsof', ['-p', String(pid), '-Fn'], { encoding: 'utf8' }).split('\n')

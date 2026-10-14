@@ -21,6 +21,18 @@ Notes:
 
 ## Ledger
 
+### AG-62 local acceptance identity (2026-10-14)
+
+Written on this branch from the user's approved local installation requirements.
+`scripts/margin/app-identity.cjs` adds the fixed Natively Local identity while
+retaining temp defaults and the Margin release restriction. `scripts/build-local.cjs`
+and `package.config.cjs` allow only that identity to use the local packaging
+exception without native rebuilds. The existing isolation environment, storage
+guard, identity tests and asar smoke now cover its independent data directory.
+No code or assets were copied from the installed application; its bundle metadata
+was inspected only to identify the authorized replacement target. No dependencies,
+native sources, signing identity or release distribution settings were changed.
+
 ### AG-62 local setup guidance and current documentation (2026-10-13)
 
 Written against the accepted `ffc08ab1` branch and the AG-62 behavior contract.

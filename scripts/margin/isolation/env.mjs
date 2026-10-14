@@ -22,7 +22,7 @@ export function makeSandbox(label = 'run') {
   const tmp = path.join(root, 'tmp');
   for (const d of [home, work, tmp]) fs.mkdirSync(d, { recursive: true });
   // Synthetic legacy data exists before the guarded process starts. No real data is read.
-  for (const name of ['Natively', 'natively', 'natively-local', 'ai assistant', 'Margin', 'temp']) {
+  for (const name of ['Natively', 'natively', 'natively-local', 'Natively Local', 'ai assistant', 'Margin', 'temp']) {
     const dir = path.join(home, 'Library/Application Support', name);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'identity-sentinel'), 'synthetic protected data\n');
@@ -49,6 +49,7 @@ export function isolatedEnv(sandbox, extra = {}) {
     NATIVELY_DEV_BYPASS_SCREEN_TCC: '1',
     ELECTRON_NO_ATTACH_CONSOLE: '1',
   }, extra);
+  if (process.env.MARGIN_APP_VARIANT === 'local') env.MARGIN_APP_VARIANT = 'local';
   // Release runtime checks run only on CI; do not inherit arbitrary caller variables.
   if (process.env.CI === 'true' && process.env.GITHUB_ACTIONS === 'true') {
     env.CI = 'true';
@@ -86,6 +87,9 @@ const WATCHED = [
   'Library/Application Support/Natively',
   'Library/Application Support/natively',
   'Library/Application Support/natively-local',
+  'Library/Application Support/Natively Local',
+  'Library/Preferences/local.natively.desktop.plist',
+  'Library/Logs/Natively Local',
   'Library/Application Support/ai assistant',
   'Library/Application Support/Margin',
   'Library/Application Support/margin',
@@ -122,7 +126,7 @@ export function changedRealPaths(before, after) {
 // owner is running, a change to its path cannot be attributed to the isolated run;
 // run-electron reports it separately and checks the sandbox's own log instead.
 const OWNERS = [
-  { app: 'Natively Local.app', paths: ['Library/Application Support/natively-local', 'Documents/natively_debug.log'] },
+  { app: 'Natively Local.app', paths: ['Library/Application Support/natively-local', 'Library/Application Support/Natively Local', 'Library/Preferences/local.natively.desktop.plist', 'Library/Logs/Natively Local', 'Documents/natively_debug.log'] },
   { app: 'Natively.app', paths: ['Library/Application Support/Natively', 'Library/Application Support/natively', 'Library/Logs/Natively', 'Documents/natively_debug.log'] },
   { app: 'Margin.app', paths: ['Library/Application Support/Margin', 'Library/Application Support/margin', 'Library/Logs/Margin'] },
   { app: 'ai assistant.app', paths: ['Library/Application Support/ai assistant'] },

@@ -3,6 +3,7 @@
 // One build-time source for runtime, renderer and package metadata (PLAN.md AG-20).
 const identities = {
   temp: Object.freeze({ variant: 'temp', name: 'temp', appId: 'io.github.xbz123.temp' }),
+  local: Object.freeze({ variant: 'local', name: 'Natively Local', appId: 'local.natively.desktop' }),
   release: Object.freeze({ variant: 'release', name: 'Margin', appId: 'io.github.xbz123.margin' }),
 };
 
