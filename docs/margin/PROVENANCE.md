@@ -33,6 +33,13 @@ No code or assets were copied from the installed application; its bundle metadat
 was inspected only to identify the authorized replacement target. No dependencies,
 native sources, signing identity or release distribution settings were changed.
 
+Installed acceptance then exposed an existing runtime ICNS decoding failure in
+`AppState.getDisguiseIconPath`. The repair selects the already-generated PNG for
+macOS runtime use while preserving ICNS bundle metadata and Windows ICO behavior.
+The existing icon-consumer test now models ICNS decode failure; source startup and
+CI packaged-launch checks assert all window preferences actually applied. This
+repair was written from the reproduced installed behavior, not copied code.
+
 ### AG-62 local setup guidance and current documentation (2026-10-13)
 
 Written against the accepted `ffc08ab1` branch and the AG-62 behavior contract.

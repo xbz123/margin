@@ -111,7 +111,7 @@ test('tray uses generated 16pt/@2x files without resizing and restore uses packa
         process: { platform, resourcesPath: root, env: {} },
         app: { isPackaged: packaged, getAppPath: () => root, setName() {}, setAppUserModelId() {}, dock: { setIcon() {} } },
         fs: { existsSync: () => true },
-        nativeImage: { createFromPath(file) { loaded.push(file); return { setTemplateImage(value) { this.template = value; } }; } },
+        nativeImage: { createFromPath(file) { loaded.push(file); return { isEmpty: () => platform === 'darwin' && file.endsWith('.icns'), setTemplateImage(value) { this.template = value; } }; } },
         Tray: class { constructor(image) { this.image = image; } setToolTip() {} on() {} },
         console: { log() {}, warn() {} }, setTimeout: () => 1, clearTimeout() {},
       });
@@ -126,8 +126,7 @@ test('tray uses generated 16pt/@2x files without resizing and restore uses packa
       assert.equal(loaded[0], path.join(root, 'assets', platform === 'darwin' ? 'iconTemplate.png' : 'icons/png/icon_16x16.png'));
       assert.equal(state.tray.image.template, platform === 'darwin');
       state._applyDisguise('none');
-      const restore = platform === 'darwin' ? (packaged ? 'margin.icns' : 'assets/margin.icns')
-        : platform === 'win32' ? 'assets/icons/win/icon.ico' : 'assets/icon.png';
+      const restore = platform === 'win32' ? 'assets/icons/win/icon.ico' : 'assets/icon.png';
       assert.equal(loaded[1], path.join(root, restore));
     }
   }

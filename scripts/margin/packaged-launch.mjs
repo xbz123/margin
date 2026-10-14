@@ -41,6 +41,8 @@ try {
   if (launcher) {
     await launcher.waitForLoadState('domcontentloaded');
     add('preload-api', await launcher.evaluate(() => typeof window.electronAPI === 'object'), 'window.electronAPI');
+    const preferences = await launcher.evaluate(() => window.electronAPI.getWindowPreferences());
+    add('window-preferences-applied', preferences.length === 3 && preferences.every(item => item.success), preferences);
   }
   const state = await electronApp.evaluate(({ app: a }) => ({
     packaged: a.isPackaged, name: a.getName(), userData: a.getPath('userData'), logs: a.getPath('logs'), appData: a.getPath('appData'),

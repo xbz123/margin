@@ -2398,7 +2398,8 @@ export class AppState {
   public getDisguiseIconPath(): string {
     const base = app.isPackaged ? process.resourcesPath : app.getAppPath();
     if (this.disguiseMode !== 'none') return path.join(base, 'assets/fakeicon', process.platform === 'win32' ? 'win' : 'mac', `${this.disguiseMode}.png`);
-    return path.join(base, process.platform === 'darwin' ? (app.isPackaged ? 'margin.icns' : 'assets/margin.icns') : process.platform === 'win32' ? 'assets/icons/win/icon.ico' : 'assets/icon.png');
+    // nativeImage cannot decode ICNS; keep ICNS for bundle metadata, PNG for runtime.
+    return path.join(base, process.platform === 'win32' ? 'assets/icons/win/icon.ico' : 'assets/icon.png');
   }
 
   private _applyDisguise(mode: 'terminal' | 'settings' | 'activity' | 'none'): void {

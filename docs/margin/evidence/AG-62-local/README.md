@@ -29,5 +29,26 @@ isolation finding after 36 synthetic filesystem assertions; its final review
 also confirmed the encoded package URL and the CI local identity contract step.
 No real service, capture, sharing receiver or release compatibility is claimed.
 
-Package checks, installed launch and CI receipts remain pending. At the user's
-latest instruction no separate backup of the old application will be retained.
+## Installed acceptance finding
+
+`2f989957` packaged successfully (12/12 checks; 861 notices) and passed the guarded
+asar smoke (10/10 using the canonical path; an earlier alias-path invocation failed
+two provenance assertions). It was installed without an old-app backup as requested.
+The native binary hash was unchanged. A real fresh profile opened welcome, launcher
+and settings, but settings reported `disguise=none` / `apply_failed`.
+
+A separate packaged launch with synthetic HOME and mock keychain reproduced it:
+ICNS existed but `nativeImage.createFromPath` was empty; PNG decoded, Dock PNG and
+window-title application succeeded. The icon consumer regression failed before the
+fix and passed after selecting the existing PNG for runtime. Bundle ICNS is unchanged.
+Source startup and CI packaged launch now check the preference result explicitly.
+The first install is not accepted as defect-free; repaired package/installation and
+current CI evidence are still pending. No real provider, capture or sharing was used.
+
+The repair's complete local gates passed 16/16 (1162/1162, zero failure/skip;
+answer 21/21, storage 2/2, startup 1/1 including the new preference assertion,
+outbound-renderer 12/12). Independent review passed six platform/package icon
+combinations and confirmed the regression reaches the real preference IPC.
+CI 38490881488 was cancelled after detecting an invalid reference input;
+38490923452 was cancelled as superseded by this installed-acceptance repair.
+Neither run is claimed as current acceptance evidence.

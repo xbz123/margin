@@ -45,6 +45,9 @@ test('the app starts, opens the launcher and settings, stays up, and quits clean
     await launcher.waitForLoadState('domcontentloaded');
     await launcher.waitForFunction(() => document.body && document.body.innerText.trim().length > 0, null, { timeout: 30_000 });
     const launcherReadyMs = Date.now() - started;
+    const preferences = await launcher.evaluate(() => window.electronAPI.getWindowPreferences());
+    assert.equal(preferences.length, 3);
+    assert.ok(preferences.every(item => item.success), 'fresh startup applies every window preference');
 
     await launcher.evaluate(() => window.electronAPI.toggleSettingsWindow());
     const settings = await windowWithQuery(app, 'window=settings', 30_000);
