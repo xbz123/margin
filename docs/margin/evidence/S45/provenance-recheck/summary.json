@@ -1,0 +1,37 @@
+{
+  "startedAt": "2026-10-14T23:56:15.451Z",
+  "head": "dd3eb703adb33db79d4691ce49f5e3ce79f05fab",
+  "uncommittedPaths": 4,
+  "uncommittedPathList": [
+    "M docs/margin/PROVENANCE.md",
+    " M docs/margin/evidence/S45/README.md",
+    " M docs/margin/provenance-config.json",
+    "?? docs/margin/evidence/AG-51/gates/"
+  ],
+  "reference": null,
+  "note": "Refreshed upstream pool matches CI 38655838677; exact generic statements reviewed; runtime and tests unchanged from dd3eb703",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2495,
+      "log": "docs/margin/evidence/S45/provenance-recheck/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 37,
+      "log": "docs/margin/evidence/S45/provenance-recheck/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-14T23:56:17.984Z",
+  "allPassed": true
+}

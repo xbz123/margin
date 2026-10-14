@@ -39,6 +39,25 @@ product spec. Each surrounding use was reviewed; no source pools, approved
 files or scan exclusions were broadened. Synthetic gateway and mounted UI
 tests are written for the current contracts, not copied from the old UI.
 
+### S45 refreshed upstream pool (CI 38655838677)
+
+The first public run passed every runtime/build test but failed G2 after fetching
+the new upstream `granola/parity` branch and updated main (`bb66e95b`). The local
+pool had 630362 restricted keys; the refreshed pool has 641312. Repeating the
+scan locally with those refs reproduces the same 51 occurrences / 21 exact forms.
+
+Blame and surrounding control flow were checked: STT lifecycle statements from
+`759a64849`, pipeline and provider interface from `5241e414a`, task fields/close
+guards from `060061497`, `49b44e8c9`, `7915b627a`, scope/turn fields from
+`7c9f5b850`, cache generation from `85cade1cb`, and the translated tooltip from
+`968ea59d5`. These precede S45. The three interface declarations name methods
+already implemented by audio adapters in approved `a786910e`; matching the new
+upstream recovery interface does not import that recovery implementation.
+The other forms are ordinary assignments, guards, local calls and isolated
+CommonJS/ESM test fixtures. Only the 21 exact forms, with individual reasons,
+are added to allowLines. No reference, directory or source pool is excluded.
+Runtime source and tests are unchanged by this provenance repair.
+
 ### S44 follow-up: quit lifecycle and upstream model selection (2026-10-14)
 
 Written on this branch from the reported Application quit failure and the user's

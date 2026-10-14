@@ -65,8 +65,15 @@ Machine-specific paths in retained evidence are replaced with stable placeholder
 
 ## Delivery boundary
 
-Public CI is pending at this record's creation; its receipt is recorded after
-the implementation commit. No installation, packaging, release, live API call,
+Implementation `dd3eb703` reached both established repositories. Public run
+[38655838677](https://github.com/xbz123/margin/actions/runs/38655838677) passed
+15/16 gates: all 1187 unit tests and all app/renderer tests passed; only G2 failed
+after its refreshed upstream pool introduced 51 exact matches. The same result
+was reproduced locally and reviewed against source context, blame and approved
+baseline method contracts. The repair registers 21 exact generic forms, without
+changing runtime source/tests or broadening exclusions. `provenance-recheck/`
+records the focused recheck; the full follow-up public run remains pending.
+No installation, packaging, release, live API call,
 personal-key read, OS permission reset or device/shared-screen acceptance was
 performed. Synthetic protocol acceptance does not establish a gateway's real
 model availability, supported output limits or reasoning implementation.
