@@ -41,6 +41,7 @@ async function* generateGemini(request: GenerateRequest, access: GenerateAccess)
         ...request.providerOptions,
         maxOutputTokens: request.maxOutputTokens,
         ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
+        ...(request.reasoning?.effort ? { thinkingConfig: { thinkingLevel: request.reasoning.effort.toUpperCase() as any } } : {}),
         ...(request.cacheReference ? { cachedContent: request.cacheReference }
           : request.systemInstruction ? { systemInstruction: { parts: [{ text: request.systemInstruction }] } } : {}),
         abortSignal: signal,
@@ -98,6 +99,7 @@ export async function* generateOnce(request: GenerateRequest, access: GenerateAc
   let text = '', reason: string | undefined, usage: unknown, refused = false, terminal = false;
   let failure: unknown;
   const options = request.providerOptions ?? {};
+  const reasoning = request.reasoning;
   const rows = turns(request);
   try {
     if (signal.aborted) { yield { type: 'finish', status: 'cancelled' }; return; }
@@ -111,6 +113,8 @@ export async function* generateOnce(request: GenerateRequest, access: GenerateAc
       ], stream: request.stream, [options.outputTokenField ?? 'max_completion_tokens']: request.maxOutputTokens,
         ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
         ...(options.prompt_cache_key ? { prompt_cache_key: options.prompt_cache_key } : {}),
+        ...(reasoning?.effort ? { reasoning_effort: reasoning.effort } : {}),
+        ...(reasoning?.thinking ? { thinking: { type: reasoning.thinking } } : {}),
         ...(options.top_p === undefined ? {} : { top_p: options.top_p }),
         ...(options.stop === undefined ? {} : { stop: options.stop }) };
     } else if (request.protocol === 'responses') {
@@ -120,6 +124,7 @@ export async function* generateOnce(request: GenerateRequest, access: GenerateAc
           ? { type: 'input_text', text: part.text }
           : { type: 'input_image', image_url: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`, detail: 'auto' }) })),
         ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
+        ...(reasoning?.effort ? { reasoning: { effort: reasoning.effort } } : {}),
         ...(options.prompt_cache_key ? { prompt_cache_key: options.prompt_cache_key } : {}) };
     } else {
       args = { model: request.model, max_tokens: request.maxOutputTokens, stream: true,
@@ -127,6 +132,8 @@ export async function* generateOnce(request: GenerateRequest, access: GenerateAc
         messages: rows.map(row => ({ role: row.role, content: row.parts.map(part => 'text' in part
           ? { type: 'text', text: part.text }
           : { type: 'image', source: { type: 'base64', media_type: part.inlineData.mimeType, data: part.inlineData.data } }) })),
+        ...(reasoning?.thinking ? { thinking: { type: reasoning.thinking } } : {}),
+        ...(reasoning?.effort ? { output_config: { effort: reasoning.effort } } : {}),
         ...(request.temperature === undefined ? {} : { temperature: request.temperature }) };
     }
     access.beforeSend();

@@ -1,5 +1,6 @@
 import { LLM_PRESETS, type ProviderConfiguration } from '../../types/llmTarget';
 import { imageSupportTarget, knownModelImageSupport } from '../../types/modelImageSupport';
+import { isOfficialEndpoint, officialModelCapacity, reasoningOptions, validateReasoning } from '../../types/modelReasoning';
 import React, { useState, useEffect, useRef } from 'react';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { Trash2, AlertCircle, CheckCircle, ExternalLink, Loader2, ChevronDown, Check, RefreshCw } from 'lucide-react';
@@ -29,6 +30,12 @@ interface ProviderCardProps {
     keyUrl: string;
     onPreferredModelChange?: (modelId: string) => void;
 }
+
+// Reasoning and the gateway context note belong to one model, protocol and endpoint.
+const TARGET_RESET = { imageSupportConfirmedFor: undefined, reasoning: undefined, contextWindowTokens: undefined } as const;
+const customEndpoint = (config: ProviderConfiguration): boolean => {
+    try { return !!config.baseUrl?.trim() && !isOfficialEndpoint(config); } catch { return true; }
+};
 
 export const ProviderCard: React.FC<ProviderCardProps> = ({
     providerId,
@@ -98,11 +105,27 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
 
     const handleSelectModel = async (modelId: string) => {
         setIsDropdownOpen(false);
-        setDraft(prev => ({ ...prev, model: modelId, imageSupportConfirmedFor: undefined }));
+        setDraft(prev => ({ ...prev, model: modelId, ...TARGET_RESET }));
         setSelectedModel(modelId);
     };
 
     const selectedOption = fetchedModels.find(m => m.id === selectedModel);
+    const target = (() => {
+        try {
+            return { reasoning: reasoningOptions(draft), capacity: officialModelCapacity(draft), custom: !isOfficialEndpoint(draft) };
+        } catch { return undefined; }
+    })();
+    const draftError = (() => {
+        try { validateReasoning(draft, draft.reasoning); } catch (e: any) { return e.message as string; }
+        const tokens = draft.contextWindowTokens;
+        return tokens !== undefined && (!Number.isSafeInteger(tokens) || tokens <= 0) ? 'Context window must be a positive whole number of tokens.' : undefined;
+    })();
+    const setReasoning = (field: 'effort' | 'thinking', value: string) => setDraft(prev => {
+        const next = { ...prev.reasoning, [field]: value || undefined };
+        if (!next.effort) delete next.effort;
+        if (!next.thinking) delete next.thinking;
+        return { ...prev, reasoning: Object.keys(next).length ? next as ProviderConfiguration['reasoning'] : undefined };
+    });
 
     return (
         <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle">
@@ -134,7 +157,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                 />
                 <button
                     onClick={() => onSaveKey(draft)}
-                    disabled={savingStatus || (!apiKey.trim() && !hasStoredKey)}
+                    disabled={savingStatus || !!draftError || (!apiKey.trim() && !hasStoredKey)}
                     className={`px-5 py-2.5 rounded-lg text-xs font-medium transition-colors ${savedStatus
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-bg-input hover:bg-bg-secondary border border-border-subtle text-text-primary disabled:opacity-50'
@@ -156,22 +179,54 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
             <div className="space-y-2 mb-3">
                 <label className="block text-xs text-text-secondary">{t('API base URL (empty uses the vendor preset)')}
                     <input aria-label={t('{provider} API base URL', { provider: providerName })} value={draft.baseUrl ?? ''}
-                        onChange={e => setDraft(prev => ({ ...prev, baseUrl: e.target.value, imageSupportConfirmedFor: undefined }))}
+                        onChange={e => setDraft(prev => {
+                            const next = { ...prev, baseUrl: e.target.value, imageSupportConfirmedFor: undefined, reasoning: undefined };
+                            return customEndpoint(next) ? next : { ...next, contextWindowTokens: undefined };
+                        })}
                         placeholder={providerId === 'gemini' ? 'https://generativelanguage.googleapis.com' : providerId === 'claude' ? 'https://api.anthropic.com' : 'https://service.example/v1'}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
                 <p className="text-xs text-text-secondary">{t('Re-enter your API key when changing the provider address.')}</p>
                 {providerId === 'openai' && <label className="block text-xs text-text-secondary">{t('Protocol')}
-                    <select aria-label={t('OpenAI protocol')} value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], imageSupportConfirmedFor: undefined }))}
+                    <select aria-label={t('OpenAI protocol')} value={draft.protocol} onChange={e => setDraft(prev => ({ ...prev, protocol: e.target.value as ProviderConfiguration['protocol'], ...TARGET_RESET }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
                         <option value="chat-completions">Chat Completions</option><option value="responses">Responses</option>
                     </select>
                 </label>}
                 <label className="block text-xs text-text-secondary">{t('Model ID')}
                     <input aria-label={t('{provider} model ID', { provider: providerName })} value={draft.model}
-                        onChange={e => setDraft(prev => ({ ...prev, model: e.target.value, imageSupportConfirmedFor: undefined }))}
+                        onChange={e => setDraft(prev => ({ ...prev, model: e.target.value, ...TARGET_RESET }))}
                         className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
                 </label>
+                {target && <>
+                    {target.reasoning.thinking.length > 0 && <label className="block text-xs text-text-secondary">{t('Thinking')}
+                        <select aria-label={t('{provider} thinking', { provider: providerName })} value={draft.reasoning?.thinking ?? ''} onChange={e => setReasoning('thinking', e.target.value)}
+                            className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
+                            <option value="">{t('Provider default (not sent)')}</option>
+                            {target.reasoning.thinking.map(mode => <option key={mode} value={mode}>{t(mode)}</option>)}
+                        </select>
+                    </label>}
+                    {target.reasoning.effort.length > 0 && <label className="block text-xs text-text-secondary">{t('Reasoning effort')}
+                        <select aria-label={t('{provider} reasoning effort', { provider: providerName })} value={draft.reasoning?.effort ?? ''} onChange={e => setReasoning('effort', e.target.value)}
+                            className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary">
+                            <option value="">{t('Provider default (not sent)')}</option>
+                            {target.reasoning.effort.map(effort => <option key={effort} value={effort}>{t(effort)}</option>)}
+                        </select>
+                    </label>}
+                    <p className="text-[10px] text-text-secondary">{t(!target.reasoning.verified
+                        ? 'Reasoning values come from the protocol, not from this model or endpoint. They are sent as chosen and may be rejected; nothing is removed or lowered automatically.'
+                        : target.reasoning.effort.length || target.reasoning.thinking.length
+                            ? 'Reasoning values follow the vendor documentation for this exact model.'
+                            : 'The vendor documents no reasoning setting for this model.')}</p>
+                    {target.capacity && <p className="text-[10px] text-text-secondary">{t('Vendor-documented context window: {context} tokens; maximum output: {output} tokens. Reference only; requests are not checked against it.', { context: target.capacity.contextTokens.toLocaleString(), output: target.capacity.outputTokens.toLocaleString() })}</p>}
+                    {target.custom && <label className="block text-xs text-text-secondary">{t('Context window in tokens (optional note for this endpoint)')}
+                        <input aria-label={t('{provider} context window', { provider: providerName })} type="number" min="1" step="1" value={draft.contextWindowTokens ?? ''}
+                            onChange={e => setDraft(prev => ({ ...prev, contextWindowTokens: e.target.value ? Number(e.target.value) : undefined }))}
+                            className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary" />
+                        <span className="block text-[10px] mt-1">{t('Informational only. Requests are never refused or shortened because of it.')}</span>
+                    </label>}
+                </>}
+                {draftError && <p role="alert" className="text-[10px] text-red-400">{t(draftError)}</p>}
                 <p className="text-[10px] text-text-secondary">{t('Use Save to activate the complete configuration. Test and model discovery use only the saved target. Custom addresses may receive your data and API key.')}</p>
                 {(() => {
                     let known: boolean | undefined;

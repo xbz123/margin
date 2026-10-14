@@ -298,3 +298,23 @@ test('AG60 settings groups keep every section and old tab names open the moved s
   const overlay = fs.readFileSync(`${REPO}/src/components/SettingsOverlay.tsx`, 'utf8');
   assert.match(overlay, /activeTab === 'context'[\s\S]{0,200}<LocalContextSettings \/>[\s\S]{0,200}<PromptSettings \/>/);
 });
+
+test('S44 reasoning validation messages and option values are bounded and have Chinese entries', () => {
+  const { chinese } = sourceModule('src/i18n.zh.ts');
+  const transpile = file => ts.transpileModule(fs.readFileSync(`${REPO}/${file}`, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const images = { exports: {} }; vm.runInNewContext(transpile('src/types/modelImageSupport.ts'), { module: images, exports: images.exports, URL });
+  const api = { exports: {} }; vm.runInNewContext(transpile('src/types/modelReasoning.ts'), { module: api, exports: api.exports, URL, require: () => images.exports });
+  const { validateReasoning, reasoningOptions } = api.exports;
+  const targets = [{ provider: 'openai', protocol: 'responses', model: 'gpt-5.4' }, { provider: 'claude', protocol: 'messages', model: 'unlisted-<script>' },
+    { provider: 'deepseek', protocol: 'chat-completions', model: 'deepseek-v4-flash' }, { provider: 'gemini', protocol: 'gemini', model: 'x', baseUrl: 'https://gateway.invalid' }];
+  const messages = new Set();
+  for (const target of targets) {
+    for (const option of [...reasoningOptions(target).effort, ...reasoningOptions(target).thinking]) assert.ok(Object.hasOwn(chinese, option), option);
+    for (const value of [{ effort: 'USER<VALUE>' }, { thinking: 'USER<VALUE>' }, { thinking: 'disabled', effort: 'high' }, { extra: 'USER<VALUE>' }, 'USER<VALUE>']) {
+      try { validateReasoning(target, value); } catch (error) { messages.add(error.message); }
+    }
+  }
+  assert.ok(messages.size >= 4);
+  for (const message of messages) { assert.doesNotMatch(message, /USER|VALUE|script/); assert.ok(Object.hasOwn(chinese, message), message); }
+  for (const message of ['Context window must be a positive whole number of tokens.', 'A context window can only be noted for a custom endpoint.']) assert.ok(Object.hasOwn(chinese, message));
+});

@@ -247,7 +247,7 @@ export class LLMHelper {
           cacheReference = (await awaitGeneration(task, self.geminiPromptCache.getOrCreate(client, target.model, systemInstruction,
             () => { checkInput(); assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy()); }, signal))) ?? undefined;
         }
-        yield* generateOnce({ ...request, cacheReference,
+        yield* generateOnce({ ...request, cacheReference, ...(apiTarget.reasoning ? { reasoning: apiTarget.reasoning } : {}),
           ...(['gemini', 'groq'].includes(target.provider) ? { temperature: purpose === 'summary' ? 0.3 : 0.4 } : {}),
           providerOptions: {
             outputTokenField: ['groq', 'deepseek', 'claude'].includes(target.provider) ? 'max_tokens' : 'max_completion_tokens',
@@ -397,7 +397,8 @@ export class LLMHelper {
     const task = this.beginGenerationTask('compatibility', undefined, target);
     try {
       let text = '';
-      for await (const chunk of this.selectedGeneration('Hello', undefined, undefined, false, 'compatibility', task, undefined, 64)) text += chunk;
+      // Explicit reasoning is part of the tested target; leave it room to finish visibly.
+      for await (const chunk of this.selectedGeneration('Hello', undefined, undefined, false, 'compatibility', task, undefined, target.reasoning ? 2048 : 64)) text += chunk;
       return text;
     } finally { task.close(); }
   }

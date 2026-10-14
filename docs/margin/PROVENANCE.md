@@ -21,6 +21,27 @@ Notes:
 
 ## Ledger
 
+### S44 answer-model settings and protocol reasoning (2026-10-14)
+
+Written for this branch from the user's approved S44 behavior requirements.
+The existing provider configuration and request adapters carry optional per-model
+reasoning settings; official model metadata is a small reference table based on
+public vendor documentation, not copied implementation code. The settings reuse
+ProviderCard and existing controls. Local Context's heuristic model-capacity
+refusal is removed by explicit user decision; byte limits, privacy, withdrawal,
+attachment validation and generation deadlines remain. Existing tests are extended
+for configuration persistence, protocol payloads, retries and mounted settings.
+No later upstream or older Margin code, tests, prompts or assets were imported;
+no dependencies, source exclusions or native modules changed. Official references
+and final verification belong to the S44 evidence; real credentials are not part
+of the implementation or test artifacts.
+
+The first G2 scan found four generic lines: the ProviderCard metadata IIFE and
+catch return, a Node builtin `os` import in the synthetic transaction test, and
+the numeric `outputTokens` interface field. Each surrounding use was reviewed and
+its exact line recorded in `provenance-config.json`; no source text was changed
+to evade matching and no directory exclusion or restricted source pool changed.
+
 ### AG-62 local acceptance identity (2026-10-14)
 
 Written on this branch from the user's approved local installation requirements.

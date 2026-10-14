@@ -1,5 +1,3 @@
-import { LOCAL_CONTEXT_CAPACITY_MESSAGE } from '../llm/localContextRequest';
-
 export const MANUAL_ANSWER_FAILED = 'Answer failed. Check the model configuration and try again.';
 export const MANUAL_ANSWER_UNCONFIGURED = 'Configure an answer model and its credentials first.';
 export const MANUAL_ANSWER_CANCELLED = 'Cancelled';
@@ -21,7 +19,6 @@ export function manualAnswerError(error: unknown): string {
     case 'InvalidImagePathError': return 'Invalid image path';
     case 'LocalContextError': return 'Local Context could not be read. Check its local storage.';
     case 'PromptSettingsError': return 'Prompt settings could not be read. Clear them in Settings to recover.';
-    case 'LocalContextCapacityError': return LOCAL_CONTEXT_CAPACITY_MESSAGE;
     default: return MANUAL_ANSWER_FAILED;
   }
 }

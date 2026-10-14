@@ -290,18 +290,34 @@ for (const at of ['queue', 'automatic retry']) test(`S42-04 manual retry recheck
   assert.equal(c.sent.length, at === 'queue' ? 1 : 2, 'no sends after the permission was withdrawn');
 });
 
-test('S42-04 a smaller retry model rechecks full capacity even with no Local Context, without losing the original', async () => {
+test('S44 a smaller retry model receives the full original input with no local capacity refusal; provider overflow stays terminal and retryable', async () => {
   const c = chain();
   c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw new Error('synthetic failure'); };
   await c.invoke('gemini-chat-stream', 'large original '.repeat(900));
   const failure = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')[3];
   assert.equal(c.sent.length, 1); assert.equal(failure.retryable, true);
   c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'tiny-8b' };
+  c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw Object.assign(new Error('synthetic overflow'), { status: 400, error: { code: 'context_length_exceeded' } }); };
   const smaller = await c.invoke('generation:retry', failure.requestId, Date.now());
-  assert.match(smaller.error, /capacity/); assert.equal(c.sent.length, 1); assert.equal(smaller.retryable, true);
+  assert.equal(c.sent.length, 2, 'the smaller model was asked once, with no hidden retry');
+  assert.deepEqual(c.sent[1].messages, c.sent[0].messages, 'nothing was trimmed');
+  assert.equal(smaller.answer, null); assert.equal(smaller.retryable, true);
   c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' };
   c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'LARGER MODEL ANSWER' }, finish_reason: 'stop' }] }]; };
   assert.equal((await c.invoke('generation:retry', smaller.requestId, Date.now())).answer, 'LARGER MODEL ANSWER');
+  assert.deepEqual(c.sent[2].messages, c.sent[0].messages);
+});
+
+test('S44 manual retry sends the original input with the reasoning setting saved since the failure', async () => {
+  const c = chain();
+  c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw new Error('synthetic failure'); };
+  await c.invoke('gemini-chat-stream', 'original question');
+  const failure = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')[3];
+  assert.equal(Object.hasOwn(c.sent[0], 'reasoning_effort'), false);
+  c.helper.selectedTarget = { ...c.helper.selectedTarget, reasoning: { effort: 'low' } };
+  c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'RETRIED' }, finish_reason: 'stop' }] }]; };
+  assert.equal((await c.invoke('generation:retry', failure.requestId, Date.now())).answer, 'RETRIED');
+  assert.equal(c.sent[1].reasoning_effort, 'low');
   assert.deepEqual(c.sent[1].messages, c.sent[0].messages);
 });
 

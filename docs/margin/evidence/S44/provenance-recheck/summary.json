@@ -1,0 +1,59 @@
+{
+  "startedAt": "2026-10-14T17:55:32.118Z",
+  "head": "2ba5cf926a26026b0563e0baee01aa4197ad3b0e",
+  "uncommittedPaths": 26,
+  "uncommittedPathList": [
+    "M PRIVACY.md",
+    " M README.md",
+    " M docs/margin/HANDOFF-stage4-6.md",
+    " M docs/margin/PLAN.md",
+    " M docs/margin/PROVENANCE.md",
+    " M docs/margin/provenance-config.json",
+    " M docs/wayfinder.md",
+    " M electron/LLMHelper.ts",
+    " M electron/direct-assist/errors.ts",
+    " M electron/llm/__tests__/multiProtocolGeneration.test.mjs",
+    " M electron/llm/generateContract.ts",
+    " M electron/llm/generateOnce.ts",
+    " M electron/llm/llmTarget.ts",
+    " M electron/llm/localContextRequest.ts",
+    " M electron/margin/__tests__/credentialTransactions.test.mjs",
+    " M electron/services/__tests__/LocalContext.test.mjs",
+    " M electron/services/__tests__/SpeechActions.test.mjs",
+    " M src/components/settings/AIProvidersSettings.tsx",
+    " M src/components/settings/ProviderCard.tsx",
+    " M src/i18n.zh.ts",
+    " M src/lib/__tests__/settingsFoundation.test.mjs",
+    " M src/types/llmTarget.ts",
+    " M tests/margin/outbound-renderer.test.mjs",
+    "?? docs/margin/evidence/AG-51/gates/",
+    "?? docs/margin/evidence/S44/",
+    "?? src/types/modelReasoning.ts"
+  ],
+  "reference": null,
+  "note": "Recheck only G2 exact generic-line registrations; application and test source unchanged from S44/gates",
+  "steps": [
+    {
+      "id": "provenance",
+      "command": "<node> scripts/margin/provenance-check.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3320,
+      "log": "docs/margin/evidence/S44/provenance-recheck/provenance.log",
+      "passed": true
+    },
+    {
+      "id": "diff-check",
+      "command": "git diff HEAD --check",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 50,
+      "log": "docs/margin/evidence/S44/provenance-recheck/diff-check.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-14T17:55:35.489Z",
+  "allPassed": true
+}

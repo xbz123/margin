@@ -404,66 +404,13 @@ export const AIProvidersSettings: React.FC = () => {
 
     return (
         <div className="space-y-5 animated fadeIn pb-10">
-            <section className="space-y-3 rounded-xl border border-border-subtle p-5">
-                <h3 className="text-sm font-bold text-text-primary">{t('Generation limits')}</h3>
-                <p className="text-xs text-text-secondary">{t('At most two sends per request. Switching manually cancels the current request and keeps its partial output. A backup can receive the same request data and incur additional costs, subject to current privacy settings. First-token timeout ends the request without extra backup time; hidden reasoning may consume that budget before any visible text.')}</p>
-                <label className="block text-xs text-text-secondary">{t('Backup model')}
-                    <select className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" value={generationPolicy.backupModel ?? ''} onChange={event => setGenerationPolicy({ ...generationPolicy, backupModel: event.target.value || undefined, backupImageSupportConfirmedFor: undefined })}>
-                        <option value="">{t('None — retry the same model only for a transient failure')}</option>
-                        {cloudModelOptions.filter(option => option.id !== defaultModel).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
-                    </select>
-                </label>
-                {([
-                    ['interviewFirstTokenSeconds', 'Interview first visible text (seconds)'],
-                    ['interviewTotalSeconds', 'Interview total (seconds)'],
-                    ['writtenTotalSeconds', 'Written answer total (seconds)'],
-                ] as const).map(([key, label]) => <label key={key} className="block text-xs text-text-secondary">{t(label)}
-                    <input className="block bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" type="number" min="0" step="any" value={Number.isFinite(generationPolicy[key]) ? generationPolicy[key] : ''} onChange={event => setGenerationPolicy({ ...generationPolicy, [key]: event.target.value ? Number(event.target.value) : NaN })} />
-                </label>)}
-                <p className="text-xs text-text-secondary">{t('Background summaries and transcript compression: 180 seconds, with no first-token deadline.')}</p>
-                {(() => {
-                    if (generationPolicy.backupModel?.startsWith('codex-cli')) {
-                        const model = generationPolicy.backupModel.startsWith('codex-cli:') ? generationPolicy.backupModel.slice(10) : codexCliConfig.model;
-                        const binding = codexImageTarget(model);
-                        return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
-                            checked={generationPolicy.backupImageSupportConfirmedFor === binding}
-                            onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> {t('Backup Codex model supports images')}
-                            <span className="block text-[10px]">{t('Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.')}</span></label>;
-                    }
-                    const match = /^llm-target:(gemini|groq|openai|claude|deepseek):(gemini|chat-completions|responses|messages):(.+)$/.exec(generationPolicy.backupModel ?? '');
-                    if (!match) return null;
-                    const config = { ...providerConfigurations[match[1] as LlmProvider], model: decodeURIComponent(match[3]) };
-                    let binding: string;
-                    try { if (knownModelImageSupport(config) !== undefined) return null; binding = imageSupportTarget(config); } catch { return null; }
-                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
-                        checked={generationPolicy.backupImageSupportConfirmedFor === binding}
-                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> {t('Backup model supports images')}
-                        <span className="block text-[10px]">{t("Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.")}</span>
-                    </label>;
-                })()}
-                <button type="button" disabled={generationPolicySaving} className="text-xs text-accent-primary disabled:opacity-50" onClick={async () => {
-                    setGenerationPolicySaving(true); setGenerationPolicyNotice('');
-                    try {
-                        const result = await window.electronAPI.setGenerationPolicy(generationPolicy);
-                        setGenerationPolicyNotice(result.ok ? result.warning ?? 'Saved' : result.message);
-                    } catch (error) { setGenerationPolicyNotice(error instanceof Error ? error.message : 'Could not save'); }
-                    finally { setGenerationPolicySaving(false); }
-                }}>{t(generationPolicySaving ? 'Saving…' : 'Save generation limits')}</button>
-                {generationPolicyNotice && <p role="status" className="text-xs text-text-secondary">{t(generationPolicyNotice)}</p>}
-            </section>
-            {credentialNotice && <p role="alert" className="text-xs text-amber-500">{t(credentialNotice)}</p>}
-            {/* Default Model for Chat */}
-            <div className="space-y-5">
+            <section className="space-y-4 rounded-xl border border-border-subtle p-5">
                 <div>
-                    <h3 className="text-sm font-bold text-text-primary mb-1">{t('Default Model for Chat')}</h3>
-                    <p className="text-xs text-text-secondary mb-2">{t('Primary model for new requests. Only an explicitly selected backup may replace it.')}</p>
+                    <h3 className="text-sm font-bold text-text-primary mb-1">{t('Answer models')}</h3>
+                    <p className="text-xs text-text-secondary">{t('The primary model answers every request. The optional backup is tried only after a failed send; it receives the same request data under your privacy settings and may add cost. Reasoning set in a provider below applies only to that provider\'s configured model; other listed models use provider defaults.')}</p>
                 </div>
-
-                <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle flex items-center justify-between">
-                    <div>
-                        <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">{t('Active Model')}</label>
-                        <p className="text-[10px] text-text-secondary">{t('Applies to new chats instantly.')}</p>
-                    </div>
+                <div className="flex items-center justify-between gap-4">
+                    <label className="block text-xs font-medium text-text-primary uppercase tracking-wide">{t('Primary model')}</label>
                     <ModelSelect
                         value={defaultModel}
                         options={(() => {
@@ -488,7 +435,57 @@ export const AIProvidersSettings: React.FC = () => {
                         onChange={handleDefaultModelChange}
                     />
                 </div>
-
+                <label className="flex items-center justify-between gap-4 text-xs font-medium text-text-primary uppercase tracking-wide">{t('Backup model')}
+                    <select className="w-40 bg-bg-input border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-text-primary normal-case font-normal" value={generationPolicy.backupModel ?? ''} onChange={event => setGenerationPolicy({ ...generationPolicy, backupModel: event.target.value || undefined, backupImageSupportConfirmedFor: undefined })}>
+                        <option value="">{t('None — retry the same model only for a transient failure')}</option>
+                        {cloudModelOptions.filter(option => option.id !== defaultModel).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
+                    </select>
+                </label>
+                {(() => {
+                    if (generationPolicy.backupModel?.startsWith('codex-cli')) {
+                        const model = generationPolicy.backupModel.startsWith('codex-cli:') ? generationPolicy.backupModel.slice(10) : codexCliConfig.model;
+                        const binding = codexImageTarget(model);
+                        return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
+                            checked={generationPolicy.backupImageSupportConfirmedFor === binding}
+                            onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> {t('Backup Codex model supports images')}
+                            <span className="block text-[10px]">{t('Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.')}</span></label>;
+                    }
+                    const match = /^llm-target:(gemini|groq|openai|claude|deepseek):(gemini|chat-completions|responses|messages):(.+)$/.exec(generationPolicy.backupModel ?? '');
+                    if (!match) return null;
+                    const config = { ...providerConfigurations[match[1] as LlmProvider], model: decodeURIComponent(match[3]) };
+                    let binding: string;
+                    try { if (knownModelImageSupport(config) !== undefined) return null; binding = imageSupportTarget(config); } catch { return null; }
+                    return <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
+                        checked={generationPolicy.backupImageSupportConfirmedFor === binding}
+                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? binding : undefined })} /> {t('Backup model supports images')}
+                        <span className="block text-[10px]">{t("Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.")}</span>
+                    </label>;
+                })()}
+                <div>
+                    <h4 className="text-xs font-medium text-text-primary uppercase tracking-wide mb-2">{t('Generation limits')}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {([
+                            ['interviewFirstTokenSeconds', 'Interview first visible text (seconds)'],
+                            ['interviewTotalSeconds', 'Interview total (seconds)'],
+                            ['writtenTotalSeconds', 'Written answer total (seconds)'],
+                        ] as const).map(([key, label]) => <label key={key} className="block text-xs text-text-secondary">{t(label)}
+                            <input className="block w-full mt-1 bg-bg-input border border-border-subtle rounded-lg p-2 text-text-primary" type="number" min="0" step="any" value={Number.isFinite(generationPolicy[key]) ? generationPolicy[key] : ''} onChange={event => setGenerationPolicy({ ...generationPolicy, [key]: event.target.value ? Number(event.target.value) : NaN })} />
+                        </label>)}
+                    </div>
+                    <p className="text-[10px] text-text-secondary mt-2">{t('At most two sends per request. Switching models manually cancels the current request and keeps its partial output. The first-visible-text timeout ends the request without extra backup time; hidden reasoning may use that time before any visible text.')}</p>
+                </div>
+                <button type="button" disabled={generationPolicySaving} className="text-xs text-accent-primary disabled:opacity-50" onClick={async () => {
+                    setGenerationPolicySaving(true); setGenerationPolicyNotice('');
+                    try {
+                        const result = await window.electronAPI.setGenerationPolicy(generationPolicy);
+                        setGenerationPolicyNotice(result.ok ? result.warning ?? 'Saved' : result.message);
+                    } catch (error) { setGenerationPolicyNotice(error instanceof Error ? error.message : 'Could not save'); }
+                    finally { setGenerationPolicySaving(false); }
+                }}>{t(generationPolicySaving ? 'Saving…' : 'Save backup and time limits')}</button>
+                {generationPolicyNotice && <p role="status" className="text-xs text-text-secondary">{t(generationPolicyNotice)}</p>}
+            </section>
+            {credentialNotice && <p role="alert" className="text-xs text-amber-500">{t(credentialNotice)}</p>}
+            <div className="space-y-5">
                 {/* Fast Response Mode */}
                 <div
                     className={`bg-bg-item-surface rounded-xl p-5 border border-border-subtle flex items-center justify-between gap-4 ${!canUseFastMode ? 'opacity-50 grayscale' : ''}`}
@@ -758,17 +755,13 @@ export const AIProvidersSettings: React.FC = () => {
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <h3 className="text-sm font-bold text-text-primary">{t('Screen input')}</h3>
-                <p className="text-xs text-text-secondary">{t('Original screenshots go directly to the selected model, with only your explicit backup eligible for retry. Enable Screenshots below to share them; no separate generative screen analysis is run.')}</p>
-            </div>
-
             {/* Cloud Provider Data Scopes — fail-closed cloud share controls */}
             <div className="space-y-5">
                 <div>
                     <h3 className="text-sm font-bold text-text-primary mb-1">{t('Cloud provider data scopes')}</h3>
                     <p className="text-xs text-text-secondary mb-2">{t('Control what data cloud AI providers can access. Disabled types are left out of requests.')}</p>
                     <p className="text-[10px] text-text-secondary mb-2">{t('Profile history covers your persona and notes, saved meetings, and the separate list of earlier answers. Answers within the current conversation are part of its transcript.')}</p>
+                    <p className="text-[10px] text-text-secondary mb-2">{t('Original screenshots go directly to the selected model, with only your explicit backup eligible for retry. Enable Screenshots below to share them; no separate generative screen analysis is run.')}</p>
                 </div>
                 <div className="bg-bg-item-surface rounded-xl p-4 border border-border-subtle flex flex-col gap-2">
                     {([

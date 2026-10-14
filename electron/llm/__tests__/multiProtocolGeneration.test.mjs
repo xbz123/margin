@@ -362,3 +362,86 @@ test('endpoint validation and explicit selection refuse wrong protocol, version 
   assert.throws(() => helper.setModel('gpt-arbitrary-not-configured'), /Unknown model/);
   helper.setModel('llm-target:claude:messages:same'); assert.equal(helper.getCurrentProvider(), 'claude');
 });
+
+test('S44 each protocol serializes its own reasoning fields through the real SDKs; retries keep them and a rejection is not downgraded', async () => {
+  const observed = [];
+  let mode = 'ok';
+  await serve(async (req, res) => {
+    let body = ''; for await (const part of req) body += part;
+    const payload = JSON.parse(body); observed.push({ url: req.url, body: payload });
+    res.setHeader('content-type', 'application/json');
+    if (mode === 'overload' && observed.filter(row => row.body.model === payload.model).length === 1) {
+      res.writeHead(503); res.end('{"error":{"message":"synthetic overload"}}'); return;
+    }
+    if (mode === 'reject') { res.writeHead(400); res.end('{"error":{"type":"invalid_request_error","message":"synthetic unsupported reasoning"}}'); return; }
+    if (req.url.includes(':generateContent')) res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'ANSWER' }] }, finishReason: 'STOP' }] }));
+    else if (req.url.endsWith('/messages')) sse(res, messages(), true);
+    else if (req.url.endsWith('/responses')) res.end(JSON.stringify({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'ANSWER' }] }] }));
+    else res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
+  }, async base => {
+    const cases = [
+      ['gemini', 'gemini', { effort: 'low' }, body => assert.deepEqual(body.generationConfig.thinkingConfig, { thinkingLevel: 'LOW' })],
+      ['openai', 'chat-completions', { effort: 'xhigh' }, body => assert.equal(body.reasoning_effort, 'xhigh')],
+      ['openai', 'responses', { effort: 'minimal' }, body => assert.deepEqual(body.reasoning, { effort: 'minimal' })],
+      ['claude', 'messages', { thinking: 'adaptive', effort: 'max' }, body => { assert.deepEqual(body.thinking, { type: 'adaptive' }); assert.deepEqual(body.output_config, { effort: 'max' }); assert.equal(body.temperature, undefined); }],
+      ['groq', 'chat-completions', { effort: 'low' }, body => assert.equal(body.reasoning_effort, 'low')],
+      ['deepseek', 'chat-completions', { effort: 'medium' }, body => assert.equal(body.reasoning_effort, 'medium')],
+    ];
+    for (const [provider, protocol, reasoning, check] of cases) {
+      const config = { provider, protocol, model: 'opaque-model', baseUrl: protocol === 'gemini' ? base : base + '/v1', reasoning };
+      assert.deepEqual(targetApi.validateProviderConfiguration(config).reasoning, reasoning);
+      const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+      helper.configureProvider(config, 'synthetic-only');
+      helper.setModel(`llm-target:${provider}:${protocol}:opaque-model`);
+      // The Gemini SDK reports 503 without a status, so only the other adapters retry it here.
+      mode = protocol === 'gemini' ? 'ok' : 'overload'; observed.length = 0;
+      assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
+      assert.equal(observed.length, protocol === 'gemini' ? 1 : 2, `${provider}/${protocol}: one transient retry`);
+      for (const row of observed) check(row.body);
+      mode = 'reject'; observed.length = 0;
+      await assert.rejects(() => helper.chatWithGemini('USER'));
+      assert.equal(observed.length, 1, 'a rejected setting is not resent without it');
+      check(observed[0].body);
+      mode = 'ok';
+      helper.configureProvider({ ...config, reasoning: undefined }, 'synthetic-only');
+      observed.length = 0;
+      assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
+      const body = observed[0].body;
+      for (const field of ['reasoning_effort', 'reasoning', 'thinking', 'output_config']) assert.equal(Object.hasOwn(body, field), false, `${provider}/${protocol}: default request unchanged`);
+      assert.equal(body.generationConfig?.thinkingConfig, undefined);
+    }
+  });
+});
+
+test('S44 a backup uses its own target settings, and official endpoints accept only documented values', async () => {
+  const observed = [];
+  await serve(async (req, res) => {
+    let body = ''; for await (const part of req) body += part;
+    const payload = JSON.parse(body); observed.push({ url: req.url, body: payload });
+    res.setHeader('content-type', 'application/json');
+    if (req.url.endsWith('/chat/completions')) { res.writeHead(503); res.end('{"error":{"message":"synthetic overload"}}'); return; }
+    sse(res, messages(), true);
+  }, async base => {
+    const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+    helper.configureProvider({ provider: 'openai', protocol: 'chat-completions', model: 'primary', baseUrl: base + '/v1', reasoning: { effort: 'high' } }, 'synthetic-only');
+    helper.configureProvider({ provider: 'claude', protocol: 'messages', model: 'backup', baseUrl: base, reasoning: { effort: 'low' } }, 'synthetic-only');
+    helper.setModel('llm-target:openai:chat-completions:primary');
+    helper.setGenerationPolicy({ ...helper.getGenerationPolicy(), backupModel: 'llm-target:claude:messages:backup' });
+    assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
+    assert.deepEqual(observed.map(row => [row.body.model, row.body.reasoning_effort, row.body.output_config?.effort]), [['primary', 'high', undefined], ['backup', undefined, 'low']]);
+  });
+  const official = (provider, protocol, model, reasoning) => targetApi.validateProviderConfiguration({ provider, protocol, model, reasoning });
+  assert.deepEqual(official('openai', 'responses', 'gpt-5.4', { effort: 'none' }).reasoning, { effort: 'none' });
+  assert.throws(() => official('openai', 'responses', 'gpt-5.4', { effort: 'max' }), /not available/);
+  assert.throws(() => official('claude', 'messages', 'claude-sonnet-4-6', { effort: 'xhigh' }), /not available/);
+  assert.deepEqual(official('claude', 'messages', 'claude-sonnet-4-6', { thinking: 'disabled', effort: 'low' }).reasoning, { thinking: 'disabled', effort: 'low' });
+  assert.throws(() => official('groq', 'chat-completions', 'llama-3.3-70b-versatile', { effort: 'low' }), /not available/);
+  assert.deepEqual(official('groq', 'chat-completions', 'openai/gpt-oss-120b', { effort: 'high' }).reasoning, { effort: 'high' });
+  assert.deepEqual(official('deepseek', 'chat-completions', 'deepseek-v4-flash', { thinking: 'disabled' }).reasoning, { thinking: 'disabled' });
+  assert.throws(() => official('deepseek', 'chat-completions', 'deepseek-v4-flash', { thinking: 'disabled', effort: 'high' }), /thinking enabled/);
+  assert.throws(() => official('deepseek', 'chat-completions', 'deepseek-v4-flash', { effort: 'medium' }), /not available/);
+  assert.throws(() => official('gemini', 'gemini', 'gemini-3.1-pro-preview', { effort: 'minimal' }), /not available/);
+  // A compatible gateway is limited to the protocol's own fields; vendor extensions are not assumed.
+  assert.throws(() => targetApi.validateProviderConfiguration({ provider: 'deepseek', protocol: 'chat-completions', model: 'deepseek-v4-flash', baseUrl: 'https://gateway.invalid/v1', reasoning: { thinking: 'enabled' } }), /not available/);
+  assert.deepEqual(targetApi.validateProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', baseUrl: 'https://gateway.invalid/v1', reasoning: { effort: 'max' } }).reasoning, { effort: 'max' });
+});

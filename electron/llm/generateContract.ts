@@ -1,6 +1,6 @@
 import { rethrowProviderScopeError, type ProviderDataScope } from './ProviderRouter';
 import type { GenerateContentConfig } from '@google/genai';
-import type { LlmProtocol } from '../../src/types/llmTarget';
+import type { LlmProtocol, ReasoningSetting } from '../../src/types/llmTarget';
 
 export type GeneratePart = { text: string } | { inlineData: { mimeType: string; data: string } };
 export type GenerateContents = string | readonly (GeneratePart | { role: 'user' | 'model'; parts: readonly GeneratePart[] })[];
@@ -15,6 +15,8 @@ export interface GenerateRequest {
   cacheReference?: string;
   maxOutputTokens: number;
   temperature?: number;
+  /** Validated for this exact target; serialized as the protocol's own fields, never dropped. */
+  reasoning?: ReasoningSetting;
   dataScopes: readonly ProviderDataScope[];
   signal?: AbortSignal;
   stream: boolean;

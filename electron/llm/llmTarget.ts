@@ -2,6 +2,7 @@ import { LLM_PRESETS, type LlmProvider, type ProviderConfiguration, type ModelTa
 import { validateHttpEndpoint } from '../services/outbound';
 import { devOpenAIBaseUrl } from '../margin/devOverrides';
 import { imageSupportTarget } from '../../src/types/modelImageSupport';
+import { isOfficialEndpoint, validateReasoning } from '../../src/types/modelReasoning';
 
 export const PROVIDER_BASE_URLS: Record<LlmProvider, string> = {
   gemini: 'https://generativelanguage.googleapis.com', groq: 'https://api.groq.com/openai/v1',
@@ -22,7 +23,19 @@ export function validateProviderConfiguration(value: ProviderConfiguration): Pro
   }
   const config = { provider: value.provider, protocol: value.protocol, model: value.model.trim(), ...(baseUrl ? { baseUrl } : {}) };
   if (value.imageSupportConfirmedFor !== undefined && typeof value.imageSupportConfirmedFor !== 'string') throw new Error('Invalid image support confirmation');
-  return { ...config, ...(value.imageSupportConfirmedFor === imageSupportTarget(config) ? { imageSupportConfirmedFor: value.imageSupportConfirmedFor } : {}) };
+  const reasoning = validateReasoning(config, value.reasoning);
+  const contextWindow = value.contextWindowTokens;
+  if (contextWindow !== undefined && (!Number.isSafeInteger(contextWindow) || contextWindow <= 0)) throw new Error('Context window must be a positive whole number of tokens.');
+  if (contextWindow !== undefined && isOfficialEndpoint(config)) throw new Error('A context window can only be noted for a custom endpoint.');
+  return { ...config, ...(value.imageSupportConfirmedFor === imageSupportTarget(config) ? { imageSupportConfirmedFor: value.imageSupportConfirmedFor } : {}),
+    ...(reasoning ? { reasoning } : {}), ...(contextWindow !== undefined ? { contextWindowTokens: contextWindow } : {}) };
+}
+
+/** Another model of the same provider never inherits the configured model's settings. */
+function forModel(config: ProviderConfiguration, model: string): ProviderConfiguration {
+  if (model === config.model) return config;
+  const { reasoning: _reasoning, contextWindowTokens: _window, ...rest } = config;
+  return { ...rest, model };
 }
 
 export function effectiveProviderConfiguration(config: ProviderConfiguration): ProviderConfiguration & { baseUrl: string; custom: boolean } {
@@ -43,7 +56,7 @@ export function resolveModelTarget(id: string, configs: Record<LlmProvider, Prov
     if (!match) throw new Error('Invalid model target');
     const config = configs[match[1] as LlmProvider];
     if (match[2] !== config.protocol) throw new Error('Model target protocol changed. Select the model again.');
-    return validateProviderConfiguration({ ...config, model: decodeURIComponent(match[3]) });
+    return validateProviderConfiguration(forModel(config, decodeURIComponent(match[3])));
   }
   const aliases: Record<string, string> = { gemini: LLM_PRESETS.gemini.model, 'gemini-pro': 'gemini-3.1-pro-preview', claude: LLM_PRESETS.claude.model, llama: LLM_PRESETS.groq.model, deepseek: LLM_PRESETS.deepseek.model };
   const model = aliases[id] ?? id;
@@ -53,5 +66,5 @@ export function resolveModelTarget(id: string, configs: Record<LlmProvider, Prov
   if (configured.length > 1) throw new Error('Model ID is ambiguous. Select its provider explicitly.');
   const config = configured[0] ?? (known[model] ? configs[known[model]] : undefined);
   if (!config) throw new Error('Unknown model ID. Configure and select its provider first.');
-  return { ...config, model };
+  return forModel(config, model);
 }

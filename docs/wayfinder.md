@@ -2,13 +2,15 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-14，`f35f7b3f` 的出口 CI 38492031013、下载产物与源码核对、本机隔离启动均通过；Natively Local 同源修复版已安装且保留配置，无需重复安装。CoreAudio 启动卡顿风险尚未关闭，真实权限/设备/共享测试及稳定签名待授权；阶段 6 尚未整体签收。
+**Current answer:** 截至 2026-10-14，阶段 6 技术验收通过，等待授权后实机复测与用户签收。`f35f7b3f` 的出口 CI、产物核对和隔离启动通过，Natively Local 已安装；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
 
-**Current focus:** 自动化和打包验收已闭环，保留已安装测试版供用户检查；按用户要求等待下一轮权限/签名授权，再处理实际设备启动风险与产品签收，不自动修改系统设置。
+**Current focus:** S44 回答模型设置改造已由 Claude 实现并通过主 Agent 本地验收；真实参数验证等待正常凭据读取。保留已安装测试版，不自动安装本轮改动或修改系统权限；阶段 6 实机签收仍独立。
 
 ## Waiting
 
-- **阶段 6 实机风险与产品签收** — 等用户后续授权权限/签名及相应实测；需复核 CoreAudio 启动卡顿、采集/设备切换及共享接收端，自动化通过不替代实测；resume：[出口回执](margin/evidence/CI-38492031013/README.md)。
+- **S44 真实网关参数验证与交付** — [本地软件验收通过](margin/evidence/S44/README.md)，尚未提交推送/远端 CI。用户已授权使用 Margin 已保存 Key，但只读安全存储诊断超时并已停止，原因未定，尚无真实调用结果；需确认正常读取路径后再执行，不绕过钥匙串，不把模拟测试当作网关受理证明。
+
+- **阶段 6 实机复测与用户签收** — 等用户授权权限及相应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
@@ -24,7 +26,7 @@
 
 - 阶段 6 软件/打包验证（2026-10-14）：`f35f7b3f` 出口 CI、产物和源码核对、下载版隔离启动通过；同源 Natively Local 已安装并核对；[验收记录](margin/evidence/CI-38492031013/README.md)。不是整体签收。
 
-- AG-62 引导/文档部分（2026-10-14）：`bae89f6c` 两库交付，本地完整门禁、[普通公开 CI](https://github.com/xbz123/margin/actions/runs/38474547270)及下载证据核对通过；[验收记录](margin/evidence/AG-62/README.md)。正式身份与打包仍待批准。
+- AG-62 引导/文档及本机测试包：软件门禁、CI 与产物核对通过，Natively Local 已安装；[引导验收](margin/evidence/AG-62/README.md)、[本机包](margin/evidence/AG-62-local/README.md)。正式 Margin 身份放开仍待决定。
 - AG-61 窗口控制软件范围（2026-10-13）：`ffc08ab1` 两库交付，本地完整门禁、[公开 CI](https://github.com/xbz123/margin/actions/runs/38472041728)及下载证据核对通过；[验收记录](margin/evidence/AG-61/README.md)。实机共享效果仍未验证。
 
 - AG-60 设置与双语（2026-10-13）：`968ea59d` 两库交付，本地完整门禁和[公开 CI](https://github.com/xbz123/margin/actions/runs/38465269168)通过；[验收记录](margin/evidence/AG-60/README.md)。

@@ -45,6 +45,14 @@ Configuration indicators do not prove account access, image support, device
 operation or service connectivity. Connection tests are explicit user actions
 and can send synthetic input to a provider; they are not automatic setup checks.
 
+Primary and backup models are selected together; configure reasoning in each
+provider card for its saved model. Gateway options describe protocol fields, not
+verified server support, and rejected settings are not silently downgraded.
+Context-window figures are reference information only; custom gateways allow an
+optional note. Requests are not rejected by a local model-capacity estimate, while
+privacy, withdrawal, attachment and memory limits still apply. A provider may
+reject an oversized request.
+
 Default budgets are 10 seconds to the first **visible answer text** and 60 seconds
 overall for interview answers; written answers have a 180-second total budget
 without the interview first-text limit. These values are configurable deadlines,

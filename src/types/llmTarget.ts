@@ -1,11 +1,20 @@
 export type LlmProvider = 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek';
 export type LlmProtocol = 'gemini' | 'chat-completions' | 'responses' | 'messages';
+/** Sent as the selected protocol's own reasoning fields; absent fields keep the provider default. */
+export interface ReasoningSetting {
+  effort?: string;
+  thinking?: 'adaptive' | 'enabled' | 'disabled';
+}
 export interface ProviderConfiguration {
   provider: LlmProvider;
   protocol: LlmProtocol;
   baseUrl?: string;
   model: string;
   imageSupportConfirmedFor?: string;
+  /** Applies to this configured model only, not to other models of the same provider. */
+  reasoning?: ReasoningSetting;
+  /** Custom endpoints only. Informational; requests are never refused or trimmed by it. */
+  contextWindowTokens?: number;
 }
 export interface ModelTarget extends ProviderConfiguration {}
 export interface ProviderConfigurationSave extends ProviderConfiguration { apiKey?: string }

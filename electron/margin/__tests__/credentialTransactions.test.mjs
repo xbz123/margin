@@ -825,3 +825,66 @@ test('AG-41a: CredentialsManager.getSttProvider() returns none for all retired p
     assert.equal(manager.getSttProvider(), 'none', `stored provider '${retired}' should resolve to 'none'`);
   }
 });
+
+test('S44 per-target reasoning saves through the real handler, survives restart, reaches the wire and is never silently stripped', async () => {
+  const http = await import('node:http');
+  const os = await import('node:os');
+  const electronId = require.resolve('electron'), cached = require.cache[electronId];
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => fs.mkdtempSync(path.join(os.tmpdir(), 's44-reasoning-')), isPackaged: false } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require('../../../dist-electron/electron/LLMHelper.js')); }
+  finally { if (cached) require.cache[electronId] = cached; else delete require.cache[electronId]; }
+  const bodies = [];
+  const server = http.createServer(async (req, res) => {
+    let body = ''; for await (const part of req) body += part;
+    const payload = JSON.parse(body); bodies.push(payload);
+    if (payload.stream) {
+      res.writeHead(200, { 'content-type': 'text/event-stream' });
+      for (const event of [{ choices: [{ delta: { content: 'ANSWER' } }] }, { choices: [{ delta: {}, finish_reason: 'stop' }] }]) res.write(`data: ${JSON.stringify(event)}\n\n`);
+      res.end(); return;
+    }
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const base = `http://127.0.0.1:${server.address().port}/v1`;
+    const disk = storage(), manager = disk.boot(), helper = new LLMHelper();
+    helper.getProviderScopePolicy = () => ({});
+    const invoke = handler('set-provider-configuration', {
+      require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+      appState: { processingHelper: { getLLMHelper: () => helper }, sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) },
+    });
+    const gateway = { provider: 'openai', protocol: 'chat-completions', baseUrl: base, model: 'opaque', contextWindowTokens: 4096 };
+    // Old saved configuration without the field: the request keeps its prior shape.
+    assert.equal((await invoke({}, { ...gateway, apiKey: 'synthetic-only' })).ok, true);
+    helper.setModel('llm-target:openai:chat-completions:opaque');
+    assert.equal(await helper.chat('LEGACY'), 'ANSWER');
+    for (const field of ['reasoning_effort', 'thinking', 'reasoning']) assert.equal(Object.hasOwn(bodies.at(-1), field), false);
+
+    assert.equal((await invoke({}, { ...gateway, reasoning: { effort: 'high' } })).ok, true);
+    assert.deepEqual(plain(disk.boot().getProviderConfigurations().openai), { ...gateway, reasoning: { effort: 'high' } });
+    assert.equal(await helper.chat('SAVED'), 'ANSWER');
+    assert.equal(bodies.at(-1).reasoning_effort, 'high');
+    assert.equal(await helper.testProviderConnection('openai'), 'ANSWER');
+    assert.equal(bodies.at(-1).reasoning_effort, 'high', 'the connection test sends the saved target as configured');
+
+    const stored = disk.files.get(disk.filename);
+    for (const reasoning of [{ thinking: 'enabled' }, { effort: 'turbo' }, { effort: 'high', budget: 1024 }]) {
+      assert.equal((await invoke({}, { ...gateway, reasoning })).ok, false);
+      assert.deepEqual(disk.files.get(disk.filename), stored);
+    }
+    // Known official target: only the documented values for this exact model.
+    assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', reasoning: { effort: 'minimal' }, apiKey: 'synthetic-only' }), /not available/);
+    assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', contextWindowTokens: 1, apiKey: 'synthetic-only' }), /custom endpoint/);
+    assert.deepEqual(disk.files.get(disk.filename), stored);
+    assert.equal(await helper.chat('AFTER REFUSAL'), 'ANSWER');
+    assert.equal(bodies.at(-1).reasoning_effort, 'high');
+
+    // A different model of the same provider does not inherit the configured model's setting.
+    helper.setModel('llm-target:openai:chat-completions:other-model');
+    assert.equal(await helper.chat('OTHER'), 'ANSWER');
+    assert.equal(bodies.at(-1).model, 'other-model');
+    assert.equal(Object.hasOwn(bodies.at(-1), 'reasoning_effort'), false);
+  } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
+});

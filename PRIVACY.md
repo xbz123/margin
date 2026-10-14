@@ -7,8 +7,11 @@ your chosen providers' own policies before using them.
 
 ## Local data
 
-Profiles are identity-specific: the development identity is `temp`, the release
-identity is `Margin`. Startup does not migrate or read a legacy Natively profile.
+Profiles are identity-specific: development uses `temp`, the approved local test
+variant uses `local` / `Natively Local`, and release uses `release` / `Margin`.
+Their data directories are independent. The local test variant uses a fresh
+`Natively Local` directory, not the legacy `natively-local` or `Margin` directory.
+Startup does not migrate or read a legacy Natively profile.
 Profiles contain settings, logs, credential ciphertext, the SQLite database and
 screenshot files. OS and filesystem permissions remain part of the boundary.
 

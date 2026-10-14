@@ -83,15 +83,17 @@ test('AG50 mock wire has fixed reference-first position, no scope tag, and chang
   assert.doesNotMatch(JSON.stringify(attachLocalContext(request, s.list())), /ENTIRE REFERENCE/);
 });
 
-test('AG50 capacity fails before mock send and preserves caller contents and roles', () => {
-  const entries = [{ id: 'x', name: 'x.txt', content: 'x'.repeat(32768) }];
-  assert.throws(() => attachLocalContext({ ...request, model: 'llama-3.1-8b-instant' }, entries), /Local Context.*capacity/);
+test('S44 large Local Context is attached whole for a small model, with no capacity refusal, and preserves caller contents and roles', () => {
+  const content = 'x'.repeat(32757) + 'TAIL_MARKER';
+  const entries = [{ id: 'x', name: 'x.txt', content }];
+  const small = attachLocalContext({ ...request, model: 'llama-3.1-8b-instant', maxOutputTokens: 1_000_000 }, entries);
+  assert.equal(JSON.parse(small.contents[0].parts[0].text.split('\n').slice(1).join('\n'))[0].content, content, 'no truncation');
   const contents = [{ role: 'user', parts: [{ text: 'earlier' }] }, { role: 'model', parts: [{ text: 'reply' }] }, { role: 'user', parts: [{ text: 'now' }] }];
   const prepared = attachLocalContext({ ...request, contents }, entries);
   assert.deepEqual(prepared.contents.slice(1), contents);
   assert.equal(contents.length, 3);
   const { manualAnswerError } = require('../../../dist-electron/electron/direct-assist/errors.js');
-  assert.match(manualAnswerError({ name: 'LocalContextCapacityError', message: 'UNTRUSTED' }), /exceed the model capacity/);
+  assert.doesNotMatch(manualAnswerError({ name: 'LocalContextCapacityError', message: 'UNTRUSTED' }), /capacity|UNTRUSTED/);
   assert.doesNotMatch(manualAnswerError({ name: 'LocalContextError', message: 'UNTRUSTED' }), /UNTRUSTED/);
 });
 
@@ -140,11 +142,19 @@ test('AG50 shared generation covers manual answer and text chat; existing scope 
   s.remove(s.list()[0].id);
   await helper.chat('AFTER DELETE');
   assert.doesNotMatch(JSON.stringify(sent.at(-1)), /SHARED_LOCAL_CONTEXT/);
-  s.addFiles([fixture('capacity.txt', 'x'.repeat(32768))]);
+  s.addFiles([fixture('capacity.txt', 'x'.repeat(32758) + 'LARGE_TAIL')]);
   helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'llama-3.1-8b-instant' };
+  assert.equal(await helper.chat('LARGE CONTEXT'), 'ANSWER');
+  assert.match(JSON.stringify(sent.at(-1).messages), /x{32758}LARGE_TAIL/, 'sent whole to a small model');
+  // The provider, not a local estimate, decides capacity; its overflow stays a terminal failure.
+  const create = helper.openaiClient.chat.completions.create;
+  helper.openaiClient.chat.completions.create = async body => { sent.push(body); throw Object.assign(new Error('synthetic overflow'), { status: 400, error: { code: 'context_length_exceeded' } }); };
+  const beforeOverflow = sent.length;
+  await assert.rejects(() => helper.chat('OVERFLOW'), /synthetic overflow/);
+  assert.equal(sent.length, beforeOverflow + 1, 'no hidden retry or trimmed resend');
+  helper.openaiClient.chat.completions.create = create;
+  s.clear();
   const beforeBudgetFailure = sent.length;
-  await assert.rejects(() => helper.chat('TOO LARGE'), { name: 'LocalContextCapacityError' });
-  assert.equal(sent.length, beforeBudgetFailure);
   helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' };
   fs.writeFileSync(path.join(root, 'local-context.json'), '{CORRUPTED');
   const unreadable = { name: 'LocalContextError', message: 'Local Context could not be read. Check its local storage.' };

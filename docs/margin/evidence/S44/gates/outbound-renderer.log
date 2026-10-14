@@ -1,0 +1,25 @@
+✔ AG62 mounted Launcher checks local setup, refreshes on return and cleans up stale reads without outbound actions (3523.749625ms)
+✔ AG62 mounted App cancels permission guidance on meeting start and ignores closed toaster replies (4701.839792ms)
+✔ AG61 mounted production consumers reconcile save/apply failures and ignore stale IPC replies (3530.591791ms)
+✔ AG60a mounted Skills settings switch language without resetting controls or calling extra IPC (1780.399875ms)
+✔ AG60 real launcher, overlay and menu share a saved interface language without losing drafts (4541.094ms)
+(node:35365) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+✔ AG60 mounted help, meeting history and a visible error fallback switch language while preserving content (4188.112083ms)
+[LLMHelper] Switched to Model: codex-cli
+✔ AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal (2499.236083ms)
+[LLMHelper] Switched to Model: gpt-5.4
+✔ S44 mounted AI provider settings put answer models first and send per-target reasoning to the real protocol request (3920.791625ms)
+✔ S42-01 mounted domestic STT settings save, reload and test the chosen workspace and resource without returning keys (2681.222375ms)
+✔ AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads (1565.758125ms)
+✔ AG33 real Global React overlay preserves partial failure, fences closed callbacks and creates a new retry record (3822.257875ms)
+✔ all seven Markdown callers and streaming sanitize block image loads in a real renderer (2256.798167ms)
+✔ app windows refuse foreign navigation and child windows; only https links the user clicks go to the browser (8759.088334ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48217.451667

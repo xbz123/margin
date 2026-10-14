@@ -11,6 +11,10 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "const target = (() => {", "reason": "S44: generic immediately invoked function opening in ProviderCard, computed from the edited provider draft to obtain reasoning options and reference metadata; written on this branch, not imported source." },
+    { "line": "} catch { return undefined; }", "reason": "S44: generic catch return in ProviderCard for a partially typed URL; defers displaying metadata rather than guessing a target. Surrounding code was reviewed, no copied implementation." },
+    { "line": "const os = await import('node:os');", "reason": "S44: standard Node builtin dynamic import in the synthetic credential transaction test, used only for its temporary test directory." },
+    { "line": "outputTokens: number;", "reason": "S44: generic TypeScript numeric field in the official-model reference interface; the values are public vendor documentation facts, not imported implementation code." },
     {"line":"if (!isLauncherWindow && !isDefault) return;","reason":"AG-62: Guard the new meeting-state listener with existing App window-role flags; ordinary condition derived from this branch's routing, no later body imported. Exact line reviewed 2026-10-13."},
     {"line":"}, [isLauncherWindow, isDefault]);","reason":"AG-62: React effect dependency list for the existing two App role flags used in the new permission-card dismissal listener. Exact line reviewed 2026-10-13."},
     {"line":"const [hidden, setHidden] = useState(false);","reason":"AG-62: Standard React local boolean state for temporarily hiding the new setup checklist, written for this branch. Exact line reviewed 2026-10-13."},
