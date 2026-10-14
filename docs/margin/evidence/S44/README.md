@@ -2,7 +2,8 @@
 
 2026-10-14. Worktree change over `2ba5cf92`; implementation by Claude Opus 5.5
 medium with auto permissions, independent review and acceptance by the main agent.
-This is not installation, stage-6 user acceptance or a release.
+Software evidence is separate from the later installation receipts below,
+stage-6 user acceptance and public release.
 
 ## Contract
 
@@ -113,8 +114,35 @@ Final [followup-gates](followup-gates/summary.json) passes **16/16**: 133 unit f
 the real two-pass app.quit chain and requires exit code 0 without a signal.
 Claude Opus 5.5 medium reviewed read-only; two P2 discovery findings were corrected
 and a second review returned no blocking findings. No original acceptance record
-was rewritten as if it covered this later fix. Public CI and installation of the
-follow-up are pending; real-service inference has not been performed by this run.
+was rewritten as if it covered this later fix.
+
+The repair is committed and pushed to both repositories as `51eeed7a`.
+[Public CI 38616962535](https://github.com/xbz123/margin/actions/runs/38616962535)
+completed successfully for `51eeed7a`, including the ordinary gates, S42 required
+checks and both identity contracts; release packaging was not requested.
+The same-ticket local acceptance package passed 12/12 package checks
+and 10/10 guarded asar checks, then replaced Natively Local under the existing
+installation approval while CI was running; that installation is not a CI signoff.
+Installed asar SHA-256:
+`5f2005cbe63cd8e5cbe8285de1410a67ad2967cdff630a50f7e5ae53b4ac36f1`.
+The local settings and encrypted credentials, and the original Margin application
+and encrypted credentials, were unchanged by before/after hash comparison. The
+old application package was removed as requested; user data was not deleted.
+
+Real launch of this package did not reach app-ready. A two-second main-thread
+sample showed native get_input_devices → list_input_devices → cpal
+supported_input_configs → AudioUnitSetProperty → AudioDeviceCreateIOProcID.
+After more than a minute the same process still had only logging-ready. The
+test-launched process was stopped with SIGTERM and its absence verified. This
+reproduces the separate CoreAudio startup risk; it does not establish a permission
+root cause or a regression in the quit repair. No system audio service was reset,
+no permissions were changed, and no real model request was sent. Installed-app
+connection and reasoning tests remain blocked on real startup, not on a proven
+API-key rejection. Stage-6 user acceptance remains incomplete.
+
+The previous and replacement packages' native audio module hashes are identical
+(`71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603`);
+this follow-up changed neither native audio source nor AudioDevices.ts.
 
 Real parameter testing is authorized only for existing Margin credential-bound
 targets and synthetic text. A read-only credential inspection did not return and

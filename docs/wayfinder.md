@@ -2,17 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-14，阶段 6 技术验收通过，等待授权后实机复测与用户签收。`f35f7b3f` 的出口 CI、产物核对和隔离启动通过，Natively Local 已安装；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
+**Current answer:** 截至 2026-10-14，阶段 6 技术验收及 S44 后续软件修复通过，Natively Local 已安装。用户已授权，但真实启动仍有 CoreAudio 阻塞，待解决后继续实机复测与用户签收；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
 
-**Current focus:** 修复 S44 本机发现的退出后残留进程问题，并将官方 API 改为内置地址与上游模型选择；完成复查、门禁及已批准的 Natively Local 重装。阶段 6 实机签收独立。
-
-## In progress
-
-- **S44 本机反馈修复** — running；resume：[修复与验证](margin/evidence/S44/README.md#user-reported-connection-failure-and-follow-up)；完整门禁与独立复查通过，接下来提交、公开 CI、重装。
+**Current focus:** S44 修复版已通过本地门禁、独立复查和公开 CI，并完成安装。真实启动再次受 CoreAudio 输入设备枚举阻塞，模型连接和阶段 6 实机签收仍未完成。
 
 ## Waiting
 
-- **S44 真实参数验证** — 等待修复版安装后通过正常设置测试已保存 Key；[证据与边界](margin/evidence/S44/README.md)。权限已由用户确认，不重复重置、不绕过钥匙串。
+- **S44 真实参数验证** — 等待 CoreAudio 启动阻塞解决，再通过正常设置测试已保存 Key；[证据与边界](margin/evidence/S44/README.md)。权限已由用户确认，不重复重置、不绕过钥匙串。
 
 - **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 
@@ -27,6 +23,8 @@
 - 截图截取环节是否为原生像素密度只能用真实屏幕确认（PLAN §9"S34 删除 sharp"）。
 
 ## Done (rolling)
+
+- S44 设置与退出修复（2026-10-14）：`51eeed7a` 两库推送、本地门禁、独立复查及公开 CI 38616962535 通过，新 Natively Local 已安装并保留配置；[验收记录](margin/evidence/S44/README.md)。真实启动/连接仍有独立阻塞。
 
 - 阶段 6 软件/打包验证（2026-10-14）：`f35f7b3f` 出口 CI、产物和源码核对、下载版隔离启动通过；同源 Natively Local 已安装并核对；[验收记录](margin/evidence/CI-38492031013/README.md)。不是整体签收。
 
