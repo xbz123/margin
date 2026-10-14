@@ -13,8 +13,8 @@
 - **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
-- **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
-- **阶段 7** — Windows（AG-71–73）按 S33 推迟；AG-74 先只发 macOS，等 AG-62；签名（D6）和架构（D7）等用户决定。
+- **S42-06 保护与平台交付** — 图标参考旧 Margin、简洁，具体图形及真实服务预算待定；D2 与发布仍按授权范围；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受，README 只录实测。
+- **阶段 7** — Windows（AG-71–73）后置；AG-74 先 Mac，等 AG-62。D7 已定 Mac M 系列/Windows x64；D6 未购买、后续处理，见 [Spec](product.md#open-questions)。
 
 ## Watching
 
