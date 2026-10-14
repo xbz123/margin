@@ -6,6 +6,11 @@ not a hosted service operated by this repository. The exact upstream baseline an
 source boundaries are recorded in [BASELINE](docs/margin/BASELINE.md) and
 [PROVENANCE](docs/margin/PROVENANCE.md).
 
+The [product spec](docs/product.md) owns current expectations; the
+[plan](docs/margin/PLAN.md) owns execution and acceptance records, and
+[Wayfinder](docs/wayfinder.md) records current progress. Expectations are not
+claims that implementation or real-world acceptance is complete.
+
 ## Current implementation
 
 - Written-question practice and manual real-time meeting assistance, using text,

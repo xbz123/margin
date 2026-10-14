@@ -1,8 +1,8 @@
 # Margin adaptation checklist
 
-What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. Current behavior is owned by [PLAN S41/S42](PLAN.md#requirements-20261013), with checked implementation gaps and incremental tickets in [S42](PLAN.md#tickets-20261013). The earlier Margin plan (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`) is a historical behavior reference only, not the current specification or a source of code.
+What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. Current behavior is owned solely by the [product spec](../product.md), including S43/S44 decisions; checked implementation gaps and incremental tickets remain in [PLAN S42](PLAN.md#tickets-20261013). The earlier Margin plan (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`) is a historical behavior reference only, not the current specification or a source of code.
 
-Status values: `todo`, `doing`, `done`, `blocked`. "Not verified" lists anything not yet checked for real. Tickets, acceptance checks and execution order are in [PLAN.md](PLAN.md); if this table and PLAN.md disagree, PLAN.md wins.
+Status values: `todo`, `doing`, `done`, `blocked`. "Not verified" lists anything not yet checked for real. Product expectations belong to the spec; tickets, acceptance checks and execution order belong to [PLAN.md](PLAN.md). This comparison table does not override either owner.
 
 The phase 0–2 rows below retain the original baseline comparison, not current execution status. Do not reopen completed tickets from their historical `todo` labels; current acceptance belongs to PLAN. The later-phase targets below reflect S33/S34/S41; baseline columns remain historical.
 

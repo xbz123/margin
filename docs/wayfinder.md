@@ -1,6 +1,6 @@
 # Wayfinder
 
-**Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
+**Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
 **Current answer:** 截至 2026-10-14，阶段 6 技术验收及 S44 后续软件修复通过，Natively Local 已安装。用户已授权，但真实启动仍有 CoreAudio 阻塞，待解决后继续实机复测与用户签收；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
 
