@@ -1,0 +1,204 @@
+{
+  "passed": true,
+  "identity": {
+    "variant": "temp",
+    "name": "temp",
+    "appId": "io.github.xbz123.temp"
+  },
+  "checks": [
+    {
+      "id": "info-plist:CFBundleName",
+      "passed": true,
+      "detail": {
+        "expected": "temp",
+        "actual": "temp"
+      }
+    },
+    {
+      "id": "info-plist:CFBundleDisplayName",
+      "passed": true,
+      "detail": {
+        "expected": "temp",
+        "actual": "temp"
+      }
+    },
+    {
+      "id": "info-plist:CFBundleIdentifier",
+      "passed": true,
+      "detail": {
+        "expected": "io.github.xbz123.temp",
+        "actual": "io.github.xbz123.temp"
+      }
+    },
+    {
+      "id": "executable-name",
+      "passed": true,
+      "detail": {
+        "expected": "MacOS/temp"
+      }
+    },
+    {
+      "id": "no-update-config",
+      "passed": true,
+      "detail": "electron-builder writes app-update.yml only for a publish target"
+    },
+    {
+      "id": "publish-null",
+      "passed": true,
+      "detail": {
+        "packagedBuildPublish": "absent"
+      }
+    },
+    {
+      "id": "built-identity",
+      "passed": true,
+      "detail": {
+        "variant": "temp",
+        "name": "temp",
+        "appId": "io.github.xbz123.temp"
+      }
+    },
+    {
+      "id": "forbidden-content",
+      "passed": true,
+      "detail": {
+        "matches": [],
+        "count": 0,
+        "scanned": 23259
+      }
+    },
+    {
+      "id": "native-arm64",
+      "passed": true,
+      "detail": {
+        "count": 19,
+        "wrongArch": []
+      }
+    },
+    {
+      "id": "codesign-verify",
+      "passed": true,
+      "detail": [
+        "--validated:<ci-workspace> Framework.framework/Versions/Current/.",
+        "<ci-workspace> valid on disk",
+        "<ci-workspace> satisfies its Designated Requirement"
+      ]
+    },
+    {
+      "id": "ad-hoc-signature",
+      "passed": true,
+      "detail": [
+        "Identifier=io.github.xbz123.temp",
+        "Signature=adhoc",
+        "TeamIdentifier=not set"
+      ]
+    },
+    {
+      "id": "license-files",
+      "passed": true,
+      "detail": {
+        "checkedNotices": 861,
+        "candidateInventoryOnly": true
+      }
+    }
+  ],
+  "native": [
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
+      "archs": "arm64",
+      "sha256": "370f09ed58b52c29653afbd08fa643a85ed5f93f302c0cd5b5b3cbe5328d8124"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Helpers/chrome_crashpad_handler",
+      "archs": "arm64",
+      "sha256": "3cc110d01aa8140d8a552964083657ab3de066fe813f526ce2d65d47256de64a"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib",
+      "archs": "arm64",
+      "sha256": "8664b824b6569890e94bd5b370cbe2ecefa4202ec701068f6a033f113d3df08b"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib",
+      "archs": "arm64",
+      "sha256": "0a0a294de6c6c2be69b734a9db5bec9b8638f42fc68423a5fcfe40aade9940c1"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib",
+      "archs": "arm64",
+      "sha256": "d210a2e4b52cb44fd9bb5cabc890bc3f2d271477b44592a1492e0e21012ff9be"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib",
+      "archs": "arm64",
+      "sha256": "0cb37261bf61d52cc9d05bfbc6e53b86e3ff3f497da35a26d953660a23e30fa7"
+    },
+    {
+      "path": "Frameworks/Mantle.framework/Versions/A/Mantle",
+      "archs": "arm64",
+      "sha256": "7b6f11694401107fbb80dafc2465e4caa9267c6337d6600ea850d654028fd5cd"
+    },
+    {
+      "path": "Frameworks/ReactiveObjC.framework/Versions/A/ReactiveObjC",
+      "archs": "arm64",
+      "sha256": "f602b9cbe73a26b418d1354019b8c5043b72a5e8578d7c2f282945f93dc989e2"
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt",
+      "archs": "arm64",
+      "sha256": "34710dbe8916b8029e2a979281adb1f74f6c9cab269f1ef2a1d20066e7d4e201"
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Squirrel",
+      "archs": "arm64",
+      "sha256": "2b185870ecccede8b62d7886e9b648e1959ed14ff524391eb4ef828527354081"
+    },
+    {
+      "path": "Frameworks/temp Helper (GPU).app/Contents/MacOS/temp Helper (GPU)",
+      "archs": "arm64",
+      "sha256": "141ae0fb043c518bdeccebcb03eb90897abf882e8fcb713fcd716e6ced792098"
+    },
+    {
+      "path": "Frameworks/temp Helper (Plugin).app/Contents/MacOS/temp Helper (Plugin)",
+      "archs": "arm64",
+      "sha256": "63b2e515cb023f669845a234fbde6eb7d1c814090b9851b89289981e3ca97381"
+    },
+    {
+      "path": "Frameworks/temp Helper (Renderer).app/Contents/MacOS/temp Helper (Renderer)",
+      "archs": "arm64",
+      "sha256": "87840f07258977e77496219f385ba7bf9de2a74ff280902a4f3219e6badb993d"
+    },
+    {
+      "path": "Frameworks/temp Helper.app/Contents/MacOS/temp Helper",
+      "archs": "arm64",
+      "sha256": "ee5a0c253f068c844741f7daef10e8d7ef40d84341be96c59213ea71879a07ab"
+    },
+    {
+      "path": "MacOS/temp",
+      "archs": "arm64",
+      "sha256": "ec2f65de5381e0a5695e2be3628567d8783568443b14809aebbdc5809db78834"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
+      "archs": "arm64",
+      "sha256": "0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",
+      "archs": "arm64",
+      "sha256": "0b6fc1dc4dce7557351620197e26c5699dc3d873b22bdece73bb8d9c01f9746b"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "archs": "arm64",
+      "sha256": "0b6fc1dc4dce7557351620197e26c5699dc3d873b22bdece73bb8d9c01f9746b"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node",
+      "archs": "arm64",
+      "sha256": "6c32c41c0e5a9e546616607b0383eada5bb646d0164324f20baab59d5b7963fa"
+    }
+  ],
+  "commit": "f35f7b3ff0244df17f18894367d611301137018a",
+  "run": "38492031013/1"
+}

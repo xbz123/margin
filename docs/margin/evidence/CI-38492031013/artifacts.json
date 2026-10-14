@@ -1,0 +1,104 @@
+{
+  "artifacts": [
+    {
+      "id": 11863210293,
+      "node_id": "MDg6QXJ0aWZhY3QxMTg2MzIxMDI5Mw==",
+      "name": "margin-app-release-f35f7b3ff0244df17f18894367d611301137018a",
+      "size_in_bytes": 30476,
+      "url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11863210293",
+      "archive_download_url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11863210293/zip",
+      "expired": false,
+      "digest": "sha256:7e488e0c3248b7d2a8dfc7575877b4ed556938266655c0fbf57b3d049e21954f",
+      "created_at": "2026-10-14T01:00:13Z",
+      "updated_at": "2026-10-14T01:00:13Z",
+      "expires_at": "2026-10-28T01:00:11Z",
+      "workflow_run": {
+        "id": 38492031013,
+        "repository_id": 1412515326,
+        "head_repository_id": 1412515326,
+        "head_branch": "codex/margin-agpl-migration",
+        "head_sha": "f35f7b3ff0244df17f18894367d611301137018a"
+      }
+    },
+    {
+      "id": 11863005926,
+      "node_id": "MDg6QXJ0aWZhY3QxMTg2MzAwNTkyNg==",
+      "name": "margin-source-f35f7b3ff0244df17f18894367d611301137018a",
+      "size_in_bytes": 211257980,
+      "url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11863005926",
+      "archive_download_url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11863005926/zip",
+      "expired": false,
+      "digest": "sha256:ab75c59209f959e2fbcb8d8423c398913d1d2adf735af5fc857901eebc702ba9",
+      "created_at": "2026-10-14T01:00:20Z",
+      "updated_at": "2026-10-14T01:00:20Z",
+      "expires_at": "2026-11-13T01:00:13Z",
+      "workflow_run": {
+        "id": 38492031013,
+        "repository_id": 1412515326,
+        "head_repository_id": 1412515326,
+        "head_branch": "codex/margin-agpl-migration",
+        "head_sha": "f35f7b3ff0244df17f18894367d611301137018a"
+      }
+    },
+    {
+      "id": 11862821934,
+      "node_id": "MDg6QXJ0aWZhY3QxMTg2MjgyMTkzNA==",
+      "name": "margin-gates-f35f7b3ff0244df17f18894367d611301137018a",
+      "size_in_bytes": 77270,
+      "url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11862821934",
+      "archive_download_url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11862821934/zip",
+      "expired": false,
+      "digest": "sha256:3f9246dbf91bac2ef2b0d6f1498e8df64644e07d53badc5843a4e02c9cc7350f",
+      "created_at": "2026-10-14T01:00:22Z",
+      "updated_at": "2026-10-14T01:00:22Z",
+      "expires_at": "2026-11-13T01:00:20Z",
+      "workflow_run": {
+        "id": 38492031013,
+        "repository_id": 1412515326,
+        "head_repository_id": 1412515326,
+        "head_branch": "codex/margin-agpl-migration",
+        "head_sha": "f35f7b3ff0244df17f18894367d611301137018a"
+      }
+    },
+    {
+      "id": 11862692031,
+      "node_id": "MDg6QXJ0aWZhY3QxMTg2MjY5MjAzMQ==",
+      "name": "margin-app-temp-f35f7b3ff0244df17f18894367d611301137018a",
+      "size_in_bytes": 289064911,
+      "url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11862692031",
+      "archive_download_url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11862692031/zip",
+      "expired": false,
+      "digest": "sha256:b6cba86eb56e55f2ce6cad8c18de678c1032e99e00e7e084eac4ae38aae55f96",
+      "created_at": "2026-10-14T01:00:11Z",
+      "updated_at": "2026-10-14T01:00:11Z",
+      "expires_at": "2026-10-28T01:00:06Z",
+      "workflow_run": {
+        "id": 38492031013,
+        "repository_id": 1412515326,
+        "head_repository_id": 1412515326,
+        "head_branch": "codex/margin-agpl-migration",
+        "head_sha": "f35f7b3ff0244df17f18894367d611301137018a"
+      }
+    },
+    {
+      "id": 11862178351,
+      "node_id": "MDg6QXJ0aWZhY3QxMTg2MjE3ODM1MQ==",
+      "name": "margin-native-f35f7b3ff0244df17f18894367d611301137018a",
+      "size_in_bytes": 718279,
+      "url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11862178351",
+      "archive_download_url": "https://api.github.com/repos/xbz123/margin/actions/artifacts/11862178351/zip",
+      "expired": false,
+      "digest": "sha256:2ee5c23892b11f8687fcd9aaa83490182d7e05a2862eaea1e2d38dfcfbc9bfea",
+      "created_at": "2026-10-14T00:49:23Z",
+      "updated_at": "2026-10-14T00:49:23Z",
+      "expires_at": "2026-11-13T00:49:21Z",
+      "workflow_run": {
+        "id": 38492031013,
+        "repository_id": 1412515326,
+        "head_repository_id": 1412515326,
+        "head_branch": "codex/margin-agpl-migration",
+        "head_sha": "f35f7b3ff0244df17f18894367d611301137018a"
+      }
+    }
+  ]
+}

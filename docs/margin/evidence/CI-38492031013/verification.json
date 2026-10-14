@@ -1,0 +1,111 @@
+{
+  "run": 38492031013,
+  "commit": "f35f7b3ff0244df17f18894367d611301137018a",
+  "passed": true,
+  "artifacts": [
+    {
+      "id": 11863210293,
+      "name": "margin-app-release-f35f7b3ff0244df17f18894367d611301137018a",
+      "digest": "sha256:7e488e0c3248b7d2a8dfc7575877b4ed556938266655c0fbf57b3d049e21954f"
+    },
+    {
+      "id": 11863005926,
+      "name": "margin-source-f35f7b3ff0244df17f18894367d611301137018a",
+      "digest": "sha256:ab75c59209f959e2fbcb8d8423c398913d1d2adf735af5fc857901eebc702ba9"
+    },
+    {
+      "id": 11862821934,
+      "name": "margin-gates-f35f7b3ff0244df17f18894367d611301137018a",
+      "digest": "sha256:3f9246dbf91bac2ef2b0d6f1498e8df64644e07d53badc5843a4e02c9cc7350f"
+    },
+    {
+      "id": 11862692031,
+      "name": "margin-app-temp-f35f7b3ff0244df17f18894367d611301137018a",
+      "digest": "sha256:b6cba86eb56e55f2ce6cad8c18de678c1032e99e00e7e084eac4ae38aae55f96"
+    },
+    {
+      "id": 11862178351,
+      "name": "margin-native-f35f7b3ff0244df17f18894367d611301137018a",
+      "digest": "sha256:2ee5c23892b11f8687fcd9aaa83490182d7e05a2862eaea1e2d38dfcfbc9bfea"
+    }
+  ],
+  "gates": 16,
+  "tests": {
+    "tests": 1162,
+    "pass": 1162,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "packaging": {
+    "temp": {
+      "packageChecks": 12,
+      "launchChecks": 8
+    },
+    "release": {
+      "packageChecks": 12,
+      "launchChecks": 8
+    }
+  },
+  "localIdentity": "7/7",
+  "releaseIdentity": "7/7",
+  "sourceFiles": 499,
+  "sourceHashesVerified": true,
+  "sourceMatchesGitArchive": true,
+  "releaseZipUploaded": false,
+  "builds": {
+    "native": {
+      "fields": {
+        "commit": "f35f7b3ff0244df17f18894367d611301137018a",
+        "run": "38492031013 (attempt 1)",
+        "no_cache": "false",
+        "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+        "xcode": "Xcode 16.4 Build version 16F6",
+        "cidre compiled in this run": "0"
+      },
+      "files": [
+        {
+          "sha256": "0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782",
+          "file": "index.darwin-arm64.node"
+        },
+        {
+          "sha256": "f477730bb66f3e31d996e33e0b2c7ff35eda586fbe9bcecd8f74d397d9ffb24a",
+          "file": "natively-audio-aarch64-apple-darwin.map"
+        },
+        {
+          "sha256": "589f4c63cf9c242b284e4570956a95c1fd29b2c4ead6a5dcabe369c3df8b817a",
+          "file": "link-set.json"
+        }
+      ]
+    },
+    "temp": {
+      "fields": {
+        "commit": "f35f7b3ff0244df17f18894367d611301137018a",
+        "run": "38492031013/1",
+        "variant": "temp",
+        "name": "temp",
+        "appId": "io.github.xbz123.temp",
+        "checks": "passed"
+      },
+      "files": [
+        {
+          "sha256": "3fa4f73d9504b1fa275d1143b9b5c65608a354110b948652eb2038a457a5d4f2",
+          "file": "temp-temp-arm64.zip"
+        }
+      ]
+    },
+    "source": {
+      "fields": {
+        "commit": "f35f7b3ff0244df17f18894367d611301137018a",
+        "run": "38492031013/1"
+      },
+      "files": [
+        {
+          "sha256": "c516146a0fabd655221f35441e6b8e1ff2e82a686c8081b88b63810f4485d5b9",
+          "file": "MANIFEST.json"
+        }
+      ]
+    }
+  }
+}

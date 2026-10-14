@@ -1,0 +1,10 @@
+commit: f35f7b3ff0244df17f18894367d611301137018a
+run: 38492031013 (attempt 1)
+no_cache: false
+rustc: rustc 1.98.1 (48a229cea 2026-09-01)
+xcode: Xcode 16.4 Build version 16F6 
+cidre compiled in this run: 0
+0f92a0b1093bb901726adda75810a43d35453860e595c63a805dcbd8dbfce782  native-artifact/index.darwin-arm64.node
+native-artifact/index.darwin-arm64.node: Mach-O 64-bit dynamically linked shared library arm64
+f477730bb66f3e31d996e33e0b2c7ff35eda586fbe9bcecd8f74d397d9ffb24a  native-artifact/natively-audio-aarch64-apple-darwin.map
+589f4c63cf9c242b284e4570956a95c1fd29b2c4ead6a5dcabe369c3df8b817a  native-artifact/link-set.json

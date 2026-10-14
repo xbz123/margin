@@ -1,0 +1,204 @@
+{
+  "passed": true,
+  "identity": {
+    "variant": "local",
+    "name": "Natively Local",
+    "appId": "local.natively.desktop"
+  },
+  "checks": [
+    {
+      "id": "info-plist:CFBundleName",
+      "passed": true,
+      "detail": {
+        "expected": "Natively Local",
+        "actual": "Natively Local"
+      }
+    },
+    {
+      "id": "info-plist:CFBundleDisplayName",
+      "passed": true,
+      "detail": {
+        "expected": "Natively Local",
+        "actual": "Natively Local"
+      }
+    },
+    {
+      "id": "info-plist:CFBundleIdentifier",
+      "passed": true,
+      "detail": {
+        "expected": "local.natively.desktop",
+        "actual": "local.natively.desktop"
+      }
+    },
+    {
+      "id": "executable-name",
+      "passed": true,
+      "detail": {
+        "expected": "MacOS/Natively Local"
+      }
+    },
+    {
+      "id": "no-update-config",
+      "passed": true,
+      "detail": "electron-builder writes app-update.yml only for a publish target"
+    },
+    {
+      "id": "publish-null",
+      "passed": true,
+      "detail": {
+        "packagedBuildPublish": "absent"
+      }
+    },
+    {
+      "id": "built-identity",
+      "passed": true,
+      "detail": {
+        "variant": "local",
+        "name": "Natively Local",
+        "appId": "local.natively.desktop"
+      }
+    },
+    {
+      "id": "forbidden-content",
+      "passed": true,
+      "detail": {
+        "matches": [],
+        "count": 0,
+        "scanned": 23259
+      }
+    },
+    {
+      "id": "native-arm64",
+      "passed": true,
+      "detail": {
+        "count": 19,
+        "wrongArch": []
+      }
+    },
+    {
+      "id": "codesign-verify",
+      "passed": true,
+      "detail": [
+        "--validated:<local-package>/builder/mac-arm64/Natively Local.app/Contents/Frameworks/Electron Framework.framework/Versions/Current/.",
+        "<local-package>/builder/mac-arm64/Natively Local.app: valid on disk",
+        "<local-package>/builder/mac-arm64/Natively Local.app: satisfies its Designated Requirement"
+      ]
+    },
+    {
+      "id": "ad-hoc-signature",
+      "passed": true,
+      "detail": [
+        "Identifier=local.natively.desktop",
+        "Signature=adhoc",
+        "TeamIdentifier=not set"
+      ]
+    },
+    {
+      "id": "license-files",
+      "passed": true,
+      "detail": {
+        "checkedNotices": 861,
+        "candidateInventoryOnly": true
+      }
+    }
+  ],
+  "native": [
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Electron Framework",
+      "archs": "arm64",
+      "sha256": "0eec634af8ee92e3d62462377766ddcef0eab92efa2d90393577b9eeed42c8eb"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Helpers/chrome_crashpad_handler",
+      "archs": "arm64",
+      "sha256": "84bea6fe6735e46a0df05e9484be5c8d3eee8ce256f8a9c47059a1815918f39e"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libEGL.dylib",
+      "archs": "arm64",
+      "sha256": "8664b824b6569890e94bd5b370cbe2ecefa4202ec701068f6a033f113d3df08b"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib",
+      "archs": "arm64",
+      "sha256": "0a0a294de6c6c2be69b734a9db5bec9b8638f42fc68423a5fcfe40aade9940c1"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libGLESv2.dylib",
+      "archs": "arm64",
+      "sha256": "d210a2e4b52cb44fd9bb5cabc890bc3f2d271477b44592a1492e0e21012ff9be"
+    },
+    {
+      "path": "Frameworks/Electron Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib",
+      "archs": "arm64",
+      "sha256": "0cb37261bf61d52cc9d05bfbc6e53b86e3ff3f497da35a26d953660a23e30fa7"
+    },
+    {
+      "path": "Frameworks/Mantle.framework/Versions/A/Mantle",
+      "archs": "arm64",
+      "sha256": "d092b549724bfd553aa2f43214105952592d69c69b7bb797a5b4287870f3c8c8"
+    },
+    {
+      "path": "Frameworks/Natively Local Helper (GPU).app/Contents/MacOS/Natively Local Helper (GPU)",
+      "archs": "arm64",
+      "sha256": "a67744166acacd164109c106ee6da1e9ab66044a33e32ed87a9f6c1269d80216"
+    },
+    {
+      "path": "Frameworks/Natively Local Helper (Plugin).app/Contents/MacOS/Natively Local Helper (Plugin)",
+      "archs": "arm64",
+      "sha256": "beaf04f9725e8033cb99c5f10da23a26f3e51331011ace9c43277dbb38f02de2"
+    },
+    {
+      "path": "Frameworks/Natively Local Helper (Renderer).app/Contents/MacOS/Natively Local Helper (Renderer)",
+      "archs": "arm64",
+      "sha256": "251a6b0ef3c30eeb9b60c61d165e69c0a074510e1f2487106fed1df7591bbe91"
+    },
+    {
+      "path": "Frameworks/Natively Local Helper.app/Contents/MacOS/Natively Local Helper",
+      "archs": "arm64",
+      "sha256": "0e47bb224cc384b05b3baf03c298bc22025fbaae89d21d382176f7010df8e726"
+    },
+    {
+      "path": "Frameworks/ReactiveObjC.framework/Versions/A/ReactiveObjC",
+      "archs": "arm64",
+      "sha256": "9ac190c54f7711d8dd5b7b94c26973fa7b448e9d352e36a76b2c633c087714c8"
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt",
+      "archs": "arm64",
+      "sha256": "34710dbe8916b8029e2a979281adb1f74f6c9cab269f1ef2a1d20066e7d4e201"
+    },
+    {
+      "path": "Frameworks/Squirrel.framework/Versions/A/Squirrel",
+      "archs": "arm64",
+      "sha256": "c78aeb37b2b332c97a150c4e002c29140e6543a90b44f74401632dbc77fdf593"
+    },
+    {
+      "path": "MacOS/Natively Local",
+      "archs": "arm64",
+      "sha256": "7cfe0a6ef07a815c8472c714a58e6e4df375118a4ab2719ad649190dbd46f3c4"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/native-module/index.darwin-arm64.node",
+      "archs": "arm64",
+      "sha256": "71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/bin/darwin-arm64-148/better-sqlite3.node",
+      "archs": "arm64",
+      "sha256": "8b56e43f8fe02042839ad9bf4fe07947a77c883426e080c274cae12e1dcb0747"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "archs": "arm64",
+      "sha256": "8b56e43f8fe02042839ad9bf4fe07947a77c883426e080c274cae12e1dcb0747"
+    },
+    {
+      "path": "Resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node",
+      "archs": "arm64",
+      "sha256": "6c32c41c0e5a9e546616607b0383eada5bb646d0164324f20baab59d5b7963fa"
+    }
+  ],
+  "commit": "f35f7b3ff0244df17f18894367d611301137018a",
+  "run": "local"
+}

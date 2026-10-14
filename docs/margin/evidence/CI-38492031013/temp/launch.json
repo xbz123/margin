@@ -1,0 +1,105 @@
+{
+  "app": "temp.app",
+  "expected": {
+    "name": "temp",
+    "appId": "io.github.xbz123.temp"
+  },
+  "home": "<throwaway>",
+  "checks": [
+    {
+      "id": "launcher-window",
+      "passed": true,
+      "detail": "window=launcher loaded"
+    },
+    {
+      "id": "preload-api",
+      "passed": true,
+      "detail": "window.electronAPI"
+    },
+    {
+      "id": "window-preferences-applied",
+      "passed": true,
+      "detail": [
+        {
+          "success": true,
+          "kind": "protection",
+          "value": false,
+          "revision": 0
+        },
+        {
+          "success": true,
+          "kind": "passthrough",
+          "value": false,
+          "revision": 0
+        },
+        {
+          "success": true,
+          "kind": "disguise",
+          "value": "none",
+          "revision": 0
+        }
+      ]
+    },
+    {
+      "id": "packaged",
+      "passed": true,
+      "detail": true
+    },
+    {
+      "id": "app-name",
+      "passed": true,
+      "detail": "temp"
+    },
+    {
+      "id": "user-data",
+      "passed": true,
+      "detail": {
+        "userData": "<home>/Library/Application Support/temp"
+      }
+    },
+    {
+      "id": "logs",
+      "passed": true,
+      "detail": {
+        "logs": "<home>/Library/Application Support/temp"
+      }
+    },
+    {
+      "id": "only-own-directory",
+      "passed": true,
+      "detail": [
+        "temp"
+      ]
+    }
+  ],
+  "output": [
+    "console.log [{\"type\":\"string\",\"length\":61}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":55}]",
+    "console.log [{\"type\":\"string\",\"length\":57}]",
+    "2026-10-14 00:59:29.465 temp[36029:108834] NSWindow does not support nonactivating panel styleMask 0x80",
+    "console.log [{\"type\":\"string\",\"length\":30}]",
+    "console.log [{\"type\":\"string\",\"length\":54}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":54}]",
+    "console.log [{\"type\":\"string\",\"length\":60}]",
+    "console.log [{\"type\":\"string\",\"length\":63}]",
+    "app-quitting []",
+    "console.log [{\"type\":\"string\",\"length\":63}]",
+    "app-quitting []",
+    "console.log [{\"type\":\"string\",\"length\":34}]",
+    "console.log [{\"type\":\"string\",\"length\":43}]",
+    "console.log [{\"type\":\"string\",\"length\":35}]",
+    "console.log [{\"type\":\"string\",\"length\":39}]",
+    "console.log [{\"type\":\"string\",\"length\":36}]",
+    "console.log [{\"type\":\"string\",\"length\":50}]",
+    "Debugger ending on ws://127.0.0.1:49392/fa73dd43-d5c7-4e41-9a80-2534c5d29ce4",
+    "For help, see: https://nodejs.org/learn/getting-started/debugging",
+    "console.log [{\"type\":\"string\",\"length\":47}]",
+    "console.log [{\"type\":\"string\",\"length\":40}]",
+    "[36029:1014/005934.244508:ERROR:base/process/process_mac.cc:53] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)",
+    "[36029:1014/005934.244573:ERROR:base/process/process_mac.cc:98] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)",
+    ""
+  ],
+  "passed": true
+}

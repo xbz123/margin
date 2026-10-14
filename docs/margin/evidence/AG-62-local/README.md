@@ -1,6 +1,6 @@
 # AG-62 local acceptance package
 
-2026-10-14. In progress, not phase-6 sign-off.
+2026-10-14. Automated/package checks and local installation verified; not full phase-6 sign-off.
 
 The user approved replacing Natively Local, not Margin, with a locally packaged
 test build. Display name and bundle ID remain Natively Local / local.natively.desktop;
@@ -42,8 +42,8 @@ ICNS existed but `nativeImage.createFromPath` was empty; PNG decoded, Dock PNG a
 window-title application succeeded. The icon consumer regression failed before the
 fix and passed after selecting the existing PNG for runtime. Bundle ICNS is unchanged.
 Source startup and CI packaged launch now check the preference result explicitly.
-The first install is not accepted as defect-free; repaired package/installation and
-current CI evidence are still pending. No real provider, capture or sharing was used.
+The first install was not accepted as defect-free; the repaired result is recorded
+below. No real provider, capture or sharing was used.
 
 The repair's complete local gates passed 16/16 (1162/1162, zero failure/skip;
 answer 21/21, storage 2/2, startup 1/1 including the new preference assertion,
@@ -52,3 +52,40 @@ combinations and confirmed the regression reaches the real preference IPC.
 CI 38490881488 was cancelled after detecting an invalid reference input;
 38490923452 was cancelled as superseded by this installed-acceptance repair.
 Neither run is claimed as current acceptance evidence.
+
+## Repaired local installation
+
+`f35f7b3ff0244df17f18894367d611301137018a` was packaged and installed under the
+approved local identity. Package checks 12/12 and guarded asar smoke 10/10 passed.
+A real packaged binary in a synthetic HOME reported all three window preferences
+successful; PNG decoding, Dock application and window titles succeeded. ZIP SHA-256:
+`856a35bd7da5043b6f03000fd93e3acedb3f0e8bcabaecc9a790df83b72b1283`.
+Installed asar SHA-256:
+`60ec1a55fdfb6df4e6507f37a00486c1e39c55399830fb16b4310ad285543979`.
+No old-app backup was retained; the Margin app was unchanged.
+
+The first real-profile reopen stalled in synchronous native input-device enumeration
+(CoreAudio AudioUnitSetProperty / AudioDeviceGetProperty). Only that stalled process
+was terminated; a single retry opened the Chinese launcher and retained the user's
+settings. This is an observed, unresolved intermittent device-startup risk, not a
+claim that native startup is now fully reliable. No audio service or permissions
+were reset and no native code was rebuilt.
+
+User also reported repeated permission requests after reinstall. Both local builds
+use ad-hoc signatures with the same bundle ID but different cdhash-based designated
+requirements. A stable signing identity is a proposed separate change; no certificate
+or TCC configuration has been created/changed. Initial authorization and OS policy
+prompts may still apply even with stable signing.
+
+Exit CI [38492031013](https://github.com/xbz123/margin/actions/runs/38492031013)
+completed successfully for `f35f7b3f`, `package_apps=true`, `no_cache=false`, reference
+AG-62. All five archive digests, 499 source entries and exact Git source archive
+were verified. Gates 16/16, tests 1162/1162, both package checks 12/12 and CI launches
+8/8, identity contracts 7/7 each, downloaded asar smoke 10/10. See the
+[exit receipt](../CI-38492031013/README.md).
+
+After completion the installed Info.plist, executable, asar and native binary were
+matched to the validated local package. No redundant reinstall or settings reset
+was necessary. User authorization for system permissions/signing is deferred.
+Stage 6 remains unsigned because the unresolved device-startup risk and outstanding
+real-machine boundaries are not replaced by the automated evidence.

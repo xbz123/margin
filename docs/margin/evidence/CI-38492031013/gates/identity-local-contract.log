@@ -1,0 +1,17 @@
+[SettingsManager] Settings loaded successfully { keys: 1 }
+[SettingsManager] Settings loaded
+✔ build selection defaults to temp and rejects release outside CI (13.90275ms)
+✔ local packaging reuses native modules without allowing formal identity locally (3.439708ms)
+✔ guard first-launch preflight uses the built identity before path setup (8.191375ms)
+✔ bootstrap precedes real credentials/storage imports and settings survive a restart (111.079041ms)
+✔ synthetic protected directories reject reads, writes, alternate APIs and symlink aliases (98.249375ms)
+✔ recursive and directory operations refuse parents containing protected data (93.490917ms)
+✔ disguise restores the build name and leaves persisted paths in its own directory (59.495875ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 612.164208

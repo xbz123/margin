@@ -2,15 +2,13 @@
 
 **Project outcome:** 在上游 `a786910e` 基线上以 AGPL 重建 Margin：来源可追溯，先发布 macOS、后完成并发布 Windows，最后核对共享代码和平台差异再统一分支；不引入上游 6 月之后的代码。发布在公开仓库 `xbz123/margin`，以 [PLAN S41](margin/PLAN.md#requirements-20261013) 与 AG-74 为准。
 
-**Current answer:** 截至 2026-10-14，阶段 5 已签收；阶段 6 的 AG-60/61 和 AG-62 引导/文档已完成软件验收与 CI。用户新批准 Natively Local 本机打包安装测试并继续阶段 6 验收，正在执行；正式 Margin 身份、真实服务/共享及发布仍未授权，阶段 6 尚未签收。
+**Current answer:** 截至 2026-10-14，`f35f7b3f` 的出口 CI 38492031013、下载产物与源码核对、本机隔离启动均通过；Natively Local 同源修复版已安装且保留配置，无需重复安装。CoreAudio 启动卡顿风险尚未关闭，真实权限/设备/共享测试及稳定签名待授权；阶段 6 尚未整体签收。
 
-**Current focus:** 按用户新授权完成 Natively Local 本机测试包、直接替换及阶段 6 出口验证；独立数据目录，不动已安装 Margin，不调用真实服务或发布；旧包不另存备份。
-
-## In progress
-
-- **AG-62 本机测试与阶段 6 出口** — running；resume：[本机测试包](margin/evidence/AG-62-local/README.md)；next：完成身份隔离回归、本机包检查、安装启动及出口 CI。
+**Current focus:** 自动化和打包验收已闭环，保留已安装测试版供用户检查；按用户要求等待下一轮权限/签名授权，再处理实际设备启动风险与产品签收，不自动修改系统设置。
 
 ## Waiting
+
+- **阶段 6 实机风险与产品签收** — 等用户后续授权权限/签名及相应实测；需复核 CoreAudio 启动卡顿、采集/设备切换及共享接收端，自动化通过不替代实测；resume：[出口回执](margin/evidence/CI-38492031013/README.md)。
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标视觉、发布架构、真实服务预算留后，D2 实机及发布授权仍未给出；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受已定，README 只录实测结果。
@@ -23,6 +21,8 @@
 - 截图截取环节是否为原生像素密度只能用真实屏幕确认（PLAN §9"S34 删除 sharp"）。
 
 ## Done (rolling)
+
+- 阶段 6 软件/打包验证（2026-10-14）：`f35f7b3f` 出口 CI、产物和源码核对、下载版隔离启动通过；同源 Natively Local 已安装并核对；[验收记录](margin/evidence/CI-38492031013/README.md)。不是整体签收。
 
 - AG-62 引导/文档部分（2026-10-14）：`bae89f6c` 两库交付，本地完整门禁、[普通公开 CI](https://github.com/xbz123/margin/actions/runs/38474547270)及下载证据核对通过；[验收记录](margin/evidence/AG-62/README.md)。正式身份与打包仍待批准。
 - AG-61 窗口控制软件范围（2026-10-13）：`ffc08ab1` 两库交付，本地完整门禁、[公开 CI](https://github.com/xbz123/margin/actions/runs/38472041728)及下载证据核对通过；[验收记录](margin/evidence/AG-61/README.md)。实机共享效果仍未验证。
