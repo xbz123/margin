@@ -1,12 +1,12 @@
 # Wayfinder
 
-**接手审阅（2026-10-15）：** [工作方向、两位 Astra 独立分析与下一步](margin/REVIEW-2026-10-15.md)。建议尚未实施；当前产品与执行依据仍为 Spec / PLAN。
+**接手审阅（2026-10-15）：** [审阅及后续状态](margin/REVIEW-2026-10-15.md)。启动问题已关闭，其余建议仍按 Spec / PLAN 决定。
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-15，退出修复已验证并安装；首次等待后恢复，后续启动及实际退出正常，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。会议保存失败处理、公开 CI 与阶段 6 实机签收仍未完成。
+**Current answer:** 截至 2026-10-15，退出修复已安装验证；首次等待已确认是麦克风及钥匙串授权，用户确认关闭，见[记录](margin/evidence/S45/native-quit/installation/README.md)。会议保存失败、公开 CI 与阶段 6 实机签收仍未完成。
 
-**Current focus:** 退出修复已交付；下一候选为会议保存失败处理，须先确定失败交互。初次启动风险继续保留，公开推送须确认文档范围。
+**Current focus:** 下一候选为会议保存失败处理，先确定失败交互；真实服务/设备验收另行授权，公开推送须确认文档范围。
 
 ## Waiting
 
@@ -29,7 +29,7 @@
 
 - S45 设置对齐与独立网关（2026-10-15）：两库交付，本地门禁、独立复查及公开 CI 成功；本机测试包已安装；[验收记录](margin/evidence/S45/README.md)。真实界面与服务尚未签收。
 
-- S44 设置与退出修复（2026-10-14）：`51eeed7a` 两库推送、本地门禁、独立复查及公开 CI 38616962535 通过，新 Natively Local 已安装并保留配置；[验收记录](margin/evidence/S44/README.md)。真实启动/连接仍有独立阻塞。
+- S44 设置与退出修复（2026-10-14）：`51eeed7a` 两库推送、门禁及 CI 38616962535 通过；[历史记录](margin/evidence/S44/README.md)。当前启动/退出问题后续已处理，真实服务验收独立。
 
 - 阶段 6 软件/打包验证（2026-10-14）：`f35f7b3f` 出口 CI、产物和源码核对、下载版隔离启动通过；同源 Natively Local 已安装并核对；[验收记录](margin/evidence/CI-38492031013/README.md)。不是整体签收。
 

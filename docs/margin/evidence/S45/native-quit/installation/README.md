@@ -35,17 +35,15 @@ get_input_devices_c_callback
   -> mach_msg
 ```
 
-This is the separate pre-ready CoreAudio device-enumeration stall, not evidence
-that the repaired post-ready quit path failed. The sample was not waiting in a
-keychain API; it does not rule out permissions as an underlying trigger.
+The sample captured the first, microphone-authorization phase of initialization,
+not the later keychain wait. It was not a failure of the repaired quit path.
 The process subsequently reached `app-ready` at 12:55:33.428 and its launcher
 was visibly readable. Later starts reached `app-ready` in **0.743 s** and
 **0.321 s** from `logging-ready`; another observed start took **0.367 s**.
 These intervals measure application initialization, not click-to-visible latency.
 The installed app's `Cmd+Q` path was exercised and process absence verified before
 reopening. New process creation and the visible launcher were verified. This
-satisfies the user's bounded criterion for normal subsequent starts, not a claim
-that the 150-second initial delay has a proven permission root cause.
+satisfies the user's bounded criterion for normal subsequent starts.
 
 No permissions were changed by the agent, no audio service reset, no real model
 request sent, and the installed process was not forcibly terminated. The later
@@ -53,19 +51,40 @@ launcher reported system permissions allowed, but device capture was not tested.
 Configuration and encrypted credential files remained byte-identical after the
 follow-up starts as well. Lifecycle-only log excerpts are in [launch-events.log](launch-events.log).
 
+## Authorization cause confirmed; user closed the issue
+
+Read-only macOS unified-log inspection subsequently established the complete
+timeline (2026-10-15, Europe/Stockholm):
+
+| Time | Evidence | Duration |
+| --- | --- | --- |
+| 12:53:03.358 | TCC reports `Failed to match existing code requirement` for this app's microphone authorization after the ad-hoc package update | — |
+| 12:53:03.420–12:54:11.187 | `AUTHREQ_PROMPTING` for `kTCCServiceMicrophone`, request `70230.3588`, then authorization result/reply | 67.767 s |
+| 12:54:11.352–12:55:33.272 | securityd displays the app's keychain prompt, then records the user's `always allow` / `allow` approval | about 81.92 s |
+| 12:55:33.428 | Application reaches `app-ready`, 0.156 s after keychain approval | total initialization 150.219 s |
+| 12:55:34.381 | Screen-capture authorization request occurs after app readiness | not the preceding 150-second wait |
+
+The installed ad-hoc designated requirement differs from the previously stored
+authorization requirement. Both the renewed microphone prompt and keychain prompt
+are recorded; this is no longer merely a suspected permission cause. No secret
+values or full keychain records were read or retained.
+
+The user explicitly accepted marking this problem **resolved**: waiting for
+first-time authorization is acceptable when subsequent launches are normal.
+This closes the current slow-start incident; it does not claim a source change
+removed synchronous initialization or that every historical stall has the same
+cause. Reopen only if startup still blocks after the required grants are complete.
+Future ad-hoc updates may prompt again; stable signing remains separate later work.
+
 ## Remaining work
 
-1. Resolve or characterize the first-launch authorization/device wait. The user
-   accepts first-time authorization waiting if later launches are consistently
-   normal; this package now meets that bounded observation. The initial cause
-   remains unknown and further updates may prompt again under ad-hoc signing.
-2. Repair meeting-save failure reporting/data retention: current persistence
+1. Repair meeting-save failure reporting/data retention: current persistence
    clears the session before database save and returns null on failure, while
    the ending IPC can still report success. The failure interaction is undecided.
-3. Real microphone/system audio, device changes, selected model/STT compatibility,
+2. Real microphone/system audio, device changes, selected model/STT compatibility,
    cancellation/retry, end-to-end latency and shared-screen receiver acceptance
    remain separate from synthetic tests and a single successful Gemini test.
-4. Stable signing, formal identity/release, final icons and Windows remain later
+3. Stable signing, formal identity/release, final icons and Windows remain later
    work. Ad-hoc rebuilds can change designated requirements and provoke renewed
    OS authorization. Public CI for this repair still awaits the separate
    disclosure decision for earlier unpublished document commits.

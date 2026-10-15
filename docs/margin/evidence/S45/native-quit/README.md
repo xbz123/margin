@@ -66,5 +66,6 @@ The user subsequently authorized installation: the repaired local package passed
 Initial startup waited in CoreAudio device enumeration, then recovered. Subsequent
 initialization took 0.743 s and 0.321 s; actual Cmd+Q process exit and launcher
 visibility were verified. See the [installation record](installation/README.md).
-This repair does not close the separate first-launch CoreAudio or authorization-delay
-investigation, nor constitute stage-6 user acceptance.
+Subsequent system-log analysis confirmed the initial delay was microphone and
+keychain authorization waiting; the user accepted closing that incident after
+normal later launches. This does not constitute stage-6 user acceptance.
