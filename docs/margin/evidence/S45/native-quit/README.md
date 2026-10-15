@@ -61,5 +61,10 @@ pending: the branch also contains three previously private document/publication
 manifest commits; publishing those is a separate disclosure decision. No stage
 exit packaging workflow or release was requested.
 
-The installed app has not been replaced. This repair does not close the separate first-launch CoreAudio or
-authorization-delay investigation, nor constitute stage-6 user acceptance.
+The user subsequently authorized installation: the repaired local package passed
+12/12 package checks and 10/10 isolated asar checks and replaced Natively Local.
+Initial startup waited in CoreAudio device enumeration, then recovered. Subsequent
+initialization took 0.743 s and 0.321 s; actual Cmd+Q process exit and launcher
+visibility were verified. See the [installation record](installation/README.md).
+This repair does not close the separate first-launch CoreAudio or authorization-delay
+investigation, nor constitute stage-6 user acceptance.

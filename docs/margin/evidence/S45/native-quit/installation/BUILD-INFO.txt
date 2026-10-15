@@ -1,0 +1,7 @@
+commit: cfa3470552ad1cd1ad3ff5aaecf619bc71741a6b
+run: local
+variant: local
+name: Natively Local
+appId: local.natively.desktop
+checks: passed
+592b33589cab4d36b3d00458577a82ebb2e909898ac83af7361a06311f8ffd04  Natively Local-local-arm64.zip
