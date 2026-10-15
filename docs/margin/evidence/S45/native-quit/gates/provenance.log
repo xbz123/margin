@@ -1,0 +1,63 @@
+
+electron/audio/__tests__/MeetingAudioPipelineRaces.test.mjs: 5 hit(s)
+  28: const f = fixture();
+  45: const f = fixture();
+  59: const f = fixture();
+  89: const f = fixture();
+  116: const f = fixture();
+
+electron/audio/__tests__/TranscriptDisplayThrottle.test.mjs: 3 hit(s)
+  37: const f = fixture();
+  51: const f = fixture();
+  63: const f = fixture();
+
+electron/audio/__tests__/WindowProtectionLifecycle.test.mjs: 2 hit(s)
+  53: const f = fixture();
+  70: const f = fixture();
+
+electron/audio/__tests__/MicRecoveryUsesCanonicalWiring.test.mjs: 1 hit(s)
+  6: const f = fixture();
+
+electron/audio/__tests__/StartStopRaceDeferredInit.test.mjs: 1 hit(s)
+  6: const f = fixture();
+
+electron/margin/__tests__/loggingPrivacy.test.mjs: 1 hit(s)
+  193: assert.equal(calls, 3);
+
+electron/services/__tests__/AudioTestSystemAudioLevelMeter.test.mjs: 1 hit(s)
+  189: assert.equal(done, false);
+
+electron/services/__tests__/MicRecoveryEmitsTerminalIpc.test.mjs: 1 hit(s)
+  6: const f = fixture();
+
+electron/services/__tests__/SetupSystemAudioPipelineConstructionGuards.test.mjs: 1 hit(s)
+  18: const f = fixture();
+
+{
+  "target": "HEAD + working tree",
+  "baseline": "a786910e33767a00116a519a3009ec14db812123",
+  "approvedLineKeys": 128377,
+  "restrictedLineKeys": 644185,
+  "addedSubstantiveLines": 50375,
+  "hits": 16,
+  "genericIdiomHits": 241,
+  "allowlistedHits": 2252,
+  "filesWithHits": 9,
+  "binariesToReviewByHand": [
+    "assets/icon.png",
+    "assets/iconTemplate.png",
+    "assets/iconTemplate@2x.png",
+    "assets/icons/png/icon_1024x1024.png",
+    "assets/icons/png/icon_128x128.png",
+    "assets/icons/png/icon_16x16.png",
+    "assets/icons/png/icon_256x256.png",
+    "assets/icons/png/icon_32x32.png",
+    "assets/icons/png/icon_512x512.png",
+    "assets/icons/png/icon_64x64.png",
+    "assets/icons/win/icon.ico",
+    "assets/margin.icns",
+    "src/assets/logo.png",
+    "src/assets/logo.webp",
+    "src/components/icon.png"
+  ]
+}

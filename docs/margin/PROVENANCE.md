@@ -21,6 +21,26 @@ Notes:
 
 ## Ledger
 
+### S45 native macOS quit follow-up (2026-10-15)
+
+Written for this branch from the reproduced native-termination failure. The
+existing two-pass shutdown retains audio release, persistence and credential
+cleanup; only the second quit is scheduled on the next event-loop turn. The
+existing startup harness now sends a native termination request to its own
+guarded child and requires actual process exit. No application source was
+imported from another branch; no dependencies or native binaries changed.
+Electron 43.1.0's public termination implementation was read to explain the
+event ordering, not copied into the application. The macOS-only test is skipped
+on other platforms; the existing cross-platform internal-quit test remains.
+
+The first full run's updated restricted pool (644185 keys) flagged 16 old test
+lines, none changed by this fix. Surrounding tests and blame were reviewed:
+14 `const f = fixture();` occurrences in seven fixture consumers originate in
+`5241e414a`, `ffc08ab1c` and `51eeed7a6`; `assert.equal(calls, 3);` in logging
+privacy originates in `ca7ff6862`; `assert.equal(done, false);` in audio-test
+release originates in `5241e414a`. Only these three generic exact statements
+are registered. No fixture bodies, directories or source pools are excluded.
+
 ### S45 settings layout and independent gateways (2026-10-15)
 
 The settings layout follows the user's observed earlier Margin UI: answer-model

@@ -2753,7 +2753,8 @@ async function initializeApp() {
         audioShutdownStarted = true;
         void appState.shutdownAudio().catch(() => console.error('[Main] Audio shutdown failed')).finally(() => {
           audioShutdownFinished = true;
-          app.quit();
+          // Let the cancelled native quit unwind before requesting the final quit.
+          setImmediate(() => app.quit());
         });
       }
       return;

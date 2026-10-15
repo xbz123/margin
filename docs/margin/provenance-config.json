@@ -11,6 +11,9 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "const f = fixture();", "reason": "S45 native-quit review: exact generic fixture initialization in 14 existing test locations across seven files; reviewed surrounding behavior and branch history from 5241e414a, ffc08ab1c and 51eeed7a6. No fixture body or later upstream implementation imported." },
+    { "line": "assert.equal(calls, 3);", "reason": "S45 native-quit review: exact generic count assertion in loggingPrivacy.test.mjs from ca7ff6862; verifies three safe log events, not imported behavior. Surrounding test reviewed." },
+    { "line": "assert.equal(done, false);", "reason": "S45 native-quit review: exact generic pending-state assertion in AudioTestSystemAudioLevelMeter.test.mjs from 5241e414a; verifies both release barriers are awaited. Surrounding test reviewed." },
     { "line": "private enabled = false;", "reason": "CI 38655838677: generic boolean lifecycle field in DomesticStreamingSTT, introduced on this branch in 759a64849; surrounding implementation reviewed, exact statement only." },
     { "line": "this.enabled = true;", "reason": "CI 38655838677: generic start-state assignment in the reviewed 759a64849 STT lifecycle, not an imported start method." },
     { "line": "this.enabled = false;", "reason": "CI 38655838677: generic stop-state assignment in the reviewed 759a64849 STT lifecycle, exact statement only." },

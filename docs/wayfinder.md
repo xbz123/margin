@@ -4,14 +4,14 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-15，阶段 6 技术验收及 S45 软件验收通过，S45 本机版已安装。隔离包启动通过，真实进程已启动但自动窗口读取超时，用户正在接手测试。CoreAudio 风险、真实模型及实机签收仍未关闭；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
+**Current answer:** 截至 2026-10-15，S45 重启后 Gemini 连接测试成功。原生退出残留进程修复已通过独立审阅及完整门禁，尚未安装；[修复证据](margin/evidence/S45/native-quit/README.md)。公开 CI、CoreAudio 风险及阶段 6 实机签收未关闭。
 
-**Current focus:** S45 新版本已安装交给用户测试，接收真实启动、设置和服务连接反馈；软件门禁及隔离启动通过不替代阶段 6 用户签收。
+**Current focus:** 交付已验证的退出修复；安装与实机复测另行执行，公开推送先确认既有未公开文档的披露范围。
 
 ## Waiting
 
-- **S45 用户测试** — 本机包已安装，等待用户反馈真实启动及设置操作；入口：[安装与验收记录](margin/evidence/S45/README.md)。用户重新填写 Key，不迁移旧配置；当前未删除本机数据。
-- **真实参数验证** — 等待用户重新配置 Key；CoreAudio 风险不因单次恢复关闭；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
+- **S45 用户测试** — 重启后连接测试成功；原生退出修复尚未安装，见[修复记录](margin/evidence/S45/native-quit/README.md)。未迁移或删除用户数据。
+- **真实参数验证** — 单次 Gemini 连接成功不代表全部服务或质量验收；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
 
 - **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 

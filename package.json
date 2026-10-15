@@ -21,7 +21,7 @@
     "build:native": "node scripts/build-native.js",
     "setup:native": "node scripts/margin/setup-native.mjs",
     "test": "npm run build:electron && node scripts/margin/isolation/run-node.mjs --test 'electron/services/__tests__/**/*.test.mjs' 'electron/llm/__tests__/**/*.test.mjs' 'electron/audio/__tests__/**/*.test.mjs' 'electron/margin/__tests__/**/*.test.mjs' 'electron/utils/__tests__/**/*.test.mjs' 'src/lib/__tests__/**/*.test.mjs'",
-    "test:margin": "npm run build:electron && vite build && node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=240000 tests/margin/answer-regression.test.mjs tests/margin/meeting-storage.test.mjs tests/margin/startup-smoke.test.mjs",
+    "test:margin": "npm run build:electron && vite build && node scripts/margin/isolation/run-node.mjs --allow-exec Electron:osascript --test --test-timeout=240000 tests/margin/answer-regression.test.mjs tests/margin/meeting-storage.test.mjs tests/margin/startup-smoke.test.mjs",
     "gates": "node scripts/margin/run-gates.mjs",
     "test:e2e": "npx playwright test",
     "test:e2e:headed": "npx playwright test --headed",

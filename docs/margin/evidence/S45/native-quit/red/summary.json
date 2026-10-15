@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-10-15T09:23:47.398Z",
+  "head": "2ca67beaf62de521de67f490ea21ad0317bb19d9",
+  "uncommittedPaths": 4,
+  "uncommittedPathList": [
+    "M package.json",
+    " M scripts/margin/run-gates.mjs",
+    " M tests/margin/startup-smoke.test.mjs",
+    "?? docs/margin/evidence/AG-51/gates/"
+  ],
+  "reference": "docs/margin/evidence/S45/final-gates",
+  "note": "Regression before production fix; existing Local build; native termination must exit",
+  "steps": [
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron:osascript --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 49883,
+      "log": "docs/margin/evidence/S45/native-quit/red/startup.log",
+      "passed": false
+    }
+  ],
+  "finishedAt": "2026-10-15T09:24:37.282Z",
+  "allPassed": false
+}

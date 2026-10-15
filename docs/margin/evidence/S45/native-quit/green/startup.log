@@ -1,0 +1,13 @@
+✔ macOS native termination exits after asynchronous cleanup (1641.946291ms)
+ℹ native termination events: before-quit -> before-quit -> will-quit -> quit
+[startup-smoke] launcher ready 1058 ms; settings ready 1072 ms; observed 15000 ms; exit code 0; windows [{"url":"?window=model-selector","visible":false},{"url":"?window=settings","visible":true},{"url":"?window=overlay","visible":false},{"url":"?window=launcher","visible":true},{"url":"?window=cropper","visible":false}]
+✔ the app starts, opens the launcher and settings, stays up, and quits cleanly (17545.974291ms)
+ℹ launcher ready 1058 ms, settings ready 1072 ms, observed 15000 ms, exit code 0
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39112.931209

@@ -1,0 +1,39 @@
+{
+  "startedAt": "2026-10-15T09:25:06.414Z",
+  "head": "2ca67beaf62de521de67f490ea21ad0317bb19d9",
+  "uncommittedPaths": 6,
+  "uncommittedPathList": [
+    "M electron/main.ts",
+    " M package.json",
+    " M scripts/margin/run-gates.mjs",
+    " M tests/margin/startup-smoke.test.mjs",
+    "?? docs/margin/evidence/AG-51/gates/",
+    "?? docs/margin/evidence/S45/native-quit/"
+  ],
+  "reference": "docs/margin/evidence/S45/final-gates",
+  "note": "Rebuild with deferred second quit; native and internal termination regression",
+  "steps": [
+    {
+      "id": "build-electron",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/build-electron.js",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1299,
+      "log": "docs/margin/evidence/S45/native-quit/green/build-electron.log",
+      "passed": true
+    },
+    {
+      "id": "startup",
+      "command": "../../../../../../../opt/homebrew/Cellar/node/26.0.0/bin/node scripts/margin/isolation/run-node.mjs --allow-exec Electron:osascript --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 39283,
+      "log": "docs/margin/evidence/S45/native-quit/green/startup.log",
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-15T09:25:46.997Z",
+  "allPassed": true
+}

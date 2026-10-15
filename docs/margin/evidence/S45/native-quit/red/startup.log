@@ -1,0 +1,37 @@
+✖ macOS native termination exits after asynchronous cleanup (12175.790042ms)
+ℹ native termination events: before-quit -> before-quit -> window-all-closed
+[startup-smoke] launcher ready 1078 ms; settings ready 1099 ms; observed 15000 ms; exit code 0; windows [{"url":"?window=model-selector","visible":false},{"url":"?window=settings","visible":true},{"url":"?window=overlay","visible":false},{"url":"?window=launcher","visible":true},{"url":"?window=cropper","visible":false}]
+✔ the app starts, opens the launcher and settings, stays up, and quits cleanly (17599.00275ms)
+ℹ launcher ready 1078 ms, settings ready 1099 ms, observed 15000 ms, exit code 0
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49701.273417
+
+✖ failing tests:
+
+test at tests/margin/startup-smoke.test.mjs:36:1
+✖ macOS native termination exits after asynchronous cleanup (12175.790042ms)
+  AssertionError [ERR_ASSERTION]: native quit must end the process, not just close its windows
+  + actual - expected
+  
+  + null
+  - {
+  -   code: 0,
+  -   signal: null
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/mac/code/Natively/.claude/worktrees/margin-agpl-migration/tests/margin/startup-smoke.test.mjs:63:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: { code: 0, signal: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
