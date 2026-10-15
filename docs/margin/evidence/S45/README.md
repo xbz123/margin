@@ -72,7 +72,15 @@ after its refreshed upstream pool introduced 51 exact matches. The same result
 was reproduced locally and reviewed against source context, blame and approved
 baseline method contracts. The repair registers 21 exact generic forms, without
 changing runtime source/tests or broadening exclusions. `provenance-recheck/`
-records the focused recheck; the full follow-up public run remains pending.
+records the focused recheck. Follow-up public run
+[38657160310](https://github.com/xbz123/margin/actions/runs/38657160310) succeeded
+on `1bcd8ea07795e5b5727fb6c2e71831331932fba8`: downloaded evidence confirms
+**16/16**, **1187/1187** unit tests, answer **21/21**, storage **2/2**, startup
+**1/1**, renderer **13/13**, and the required S42 checks. The release/local
+identity checks passed; packaging, packaged launch and source-bundle steps were
+skipped as requested. This commit's application/test trees are identical to
+`dd3eb703`; the later receipt commit changes documentation only, so it does not
+repeat testing of the same source. S45 software acceptance is complete.
 No installation, packaging, release, live API call,
 personal-key read, OS permission reset or device/shared-screen acceptance was
 performed. Synthetic protocol acceptance does not establish a gateway's real

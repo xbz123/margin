@@ -2,17 +2,17 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-15，阶段 6 技术验收及 S44 软件修复通过，Natively Local 已安装且已能进入设置。此前 CoreAudio 启动卡顿风险未关闭，真实模型测试及阶段 6 实机签收仍未完成；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
+**Current answer:** 截至 2026-10-15，阶段 6 技术验收、S44 修复及 S45 设置软件验收通过。当前本机仍是 S44 版本，S45 已两库交付但未安装。CoreAudio 风险、真实模型测试及阶段 6 实机签收仍未关闭；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
 
-**Current focus:** S45 设置对齐及独立网关已完成本地门禁和独立复查，下一步提交并核对公开 CI。S44 安装后的真实启动与阶段 6 签收风险仍独立保留。
+**Current focus:** S45 设置对齐及独立网关已完成本地门禁、独立复查和公开 CI。后续核对新版安装与用户实测，真实服务按既有授权单独执行；软件通过不替代阶段 6 用户签收。
 
-## In progress
+## Next actions
 
-- **S45 设置对齐** — running；resume：[验收证据](margin/evidence/S45/README.md)、[执行契约](margin/PLAN.md#s45-settings)；本地验收通过，下一步两库提交及公开普通 CI，不安装或调用真实服务。
+- **S45 本机测试版** — 软件已交付，尚未安装；入口：[验收证据](margin/evidence/S45/README.md)、[本机身份边界](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。用户按全新应用重新配置 Key，不做旧数据迁移。
 
 ## Waiting
 
-- **S44 真实参数验证** — 已能进入设置；等待 S45 交互稳定后按现有授权测试已保存 Key，CoreAudio 风险不因单次恢复关闭；[证据与边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
+- **真实参数验证** — 等待 S45 本机测试版及用户重新配置 Key；CoreAudio 风险不因单次恢复关闭；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
 
 - **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 
@@ -27,6 +27,8 @@
 - 截图截取环节是否为原生像素密度只能用真实屏幕确认（PLAN §9"S34 删除 sharp"）。
 
 ## Done (rolling)
+
+- S45 设置对齐与独立网关（2026-10-15）：两库交付，本地 16/16、独立复查与公开 CI 成功，下载证据已核对；[验收记录](margin/evidence/S45/README.md)。未安装、未实服验证。
 
 - S44 设置与退出修复（2026-10-14）：`51eeed7a` 两库推送、本地门禁、独立复查及公开 CI 38616962535 通过，新 Natively Local 已安装并保留配置；[验收记录](margin/evidence/S44/README.md)。真实启动/连接仍有独立阻塞。
 
