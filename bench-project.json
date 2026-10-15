@@ -28,6 +28,15 @@
       "topics": [
         "project-progress"
       ]
+    },
+    {
+      "id": "direction-review-20261015",
+      "path": "docs/margin/REVIEW-2026-10-15.md",
+      "category": "knowledge",
+      "role": "topic",
+      "topics": [
+        "project-progress"
+      ]
     }
   ],
   "withdrawn_documents": []
