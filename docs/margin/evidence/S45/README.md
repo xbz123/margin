@@ -81,8 +81,33 @@ identity checks passed; packaging, packaged launch and source-bundle steps were
 skipped as requested. This commit's application/test trees are identical to
 `dd3eb703`; the later receipt commit changes documentation only, so it does not
 repeat testing of the same source. S45 software acceptance is complete.
-No installation, packaging, release, live API call,
+During software acceptance, no installation, packaging, release, live API call,
 personal-key read, OS permission reset or device/shared-screen acceptance was
 performed. Synthetic protocol acceptance does not establish a gateway's real
 model availability, supported output limits or reasoning implementation.
 The UI supports configuring a gateway, not a new multi-gateway management suite.
+
+## User-authorized local installation (2026-10-15)
+
+The user requested installation for hands-on testing. Committed source
+`31587a4404c00f65a0ff8697a7364d7133a23431` was packaged through the existing local
+identity path: Natively Local / `local.natively.desktop`, macOS arm64, ad-hoc
+signature and no publishing. Package checks passed **12/12**; the package's own
+asar and native modules passed the isolated startup smoke **10/10**. The native
+audio module was reused, not rebuilt, and still has SHA-256
+`71f9cf8e25767a338e3c8a7bd73273db9b6428afcfd3ae21cb871e4759fb2603`.
+
+The previous application exited normally before replacement. Only the installed
+Natively Local application bundle was replaced, without retaining that old bundle.
+No user data was deleted or migrated. The installed bundle identity, strict code
+signature verification and asar digest were checked after copying. Asar SHA-256:
+`7ad11f8c355de03064b59095f9d1e76e65fe5eaef55b4d799fc1af305fd1b2d8`.
+The built ZIP digest is
+`3eee649f6e3f595aa352116c5f05101704b10d16b771b27a6909b7a205e80022`.
+The separate Margin application's asar hash was unchanged before/after installation.
+
+The installed executable was launched and its process path verified. Automatic
+window inspection timed out, so successful real-profile UI startup is **not**
+claimed. No forced termination, permission reset, credential inspection or real
+API test followed. The user owns the requested hands-on test; repeated permission
+prompts and the existing CoreAudio startup risk remain separate unresolved items.
