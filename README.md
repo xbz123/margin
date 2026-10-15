@@ -11,6 +11,11 @@ The [product spec](docs/product.md) owns current expectations; the
 [Wayfinder](docs/wayfinder.md) records current progress. Expectations are not
 claims that implementation or real-world acceptance is complete.
 
+For the latest development branch handoff, read the
+[2026-10-15 direction and architecture review](docs/margin/REVIEW-2026-10-15.md).
+It covers the S45 baseline, two independent Astra reviews, and the recommended
+next steps before real-device acceptance and release.
+
 ## Current implementation
 
 - Written-question practice and manual real-time meeting assistance, using text,

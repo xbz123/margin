@@ -1,5 +1,7 @@
 # Wayfinder
 
+**接手审阅（2026-10-15）：** [工作方向、两位 Astra 独立分析与下一步](margin/REVIEW-2026-10-15.md)。建议尚未实施；当前产品与执行依据仍为 Spec / PLAN。
+
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
 **Current answer:** 截至 2026-10-15，阶段 6 技术验收及 S45 软件验收通过，S45 本机版已安装。隔离包启动通过，真实进程已启动但自动窗口读取超时，用户正在接手测试。CoreAudio 风险、真实模型及实机签收仍未关闭；[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)。
