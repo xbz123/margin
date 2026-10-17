@@ -15,6 +15,7 @@ import { isMac } from '../utils/platformUtils';
 import WindowControls from './WindowControls';
 import { useI18n, type UiLanguage } from '../i18n';
 import { SetupChecklist } from './onboarding/SetupChecklist';
+import { UnsavedMeetingBanner } from './UnsavedMeetingBanner';
 
 interface Meeting {
     id: string;
@@ -43,7 +44,7 @@ interface Meeting {
 }
 
 interface LauncherProps {
-    onStartMeeting: () => void;
+    onStartMeeting: () => void | Promise<{ success: boolean; code?: string } | void>;
     onOpenSettings: (tab?: string) => void;
     onPageChange?: (isMain: boolean) => void;
     settingsOpen?: boolean;
@@ -84,6 +85,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
     const [isMeetingActive, setIsMeetingActive] = useState(false);
     const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [startRefusals, setStartRefusals] = useState(0);
 
     // Global search state (for AI chat overlay)
     const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
@@ -367,6 +369,10 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                 {!isDetectable && (
                     <div className={`absolute inset-1 border-2 border-dashed rounded-2xl pointer-events-none z-[100] ${isLight ? 'border-black/15' : 'border-white/20'}`} />
                 )}
+                {/* Shared by the list and a meeting's details, so an unsaved meeting stays visible until resolved. */}
+                <div className="shrink-0 px-8 pt-4 empty:hidden *:max-w-4xl *:mx-auto">
+                    <UnsavedMeetingBanner startRefusals={startRefusals} />
+                </div>
                 <AnimatePresence mode="wait">
                     {selectedMeeting ? (
                         <motion.div
@@ -482,7 +488,10 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                     // would re-show the launcher rather than switch to overlay.
                                                     window.electronAPI?.setWindowMode?.('overlay', true);
                                                 } else {
-                                                    onStartMeeting();
+                                                    // A pending unsaved meeting refuses start; point the user to it.
+                                                    void Promise.resolve(onStartMeeting()).then(result => {
+                                                        if (result && result.code === 'pending-unsaved-meeting') setStartRefusals(n => n + 1);
+                                                    }).catch(() => { /* App logs start failures. */ });
                                                 }
                                             }}
                                             whileHover={{ scale: 1.01, filter: 'brightness(1.1)' }}

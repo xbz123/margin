@@ -334,3 +334,134 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
   assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: meeting.id, t: TITLE }), true);
   assert.deepEqual(mock.requests.slice(requestsBefore).map((r) => r.url), [], 'opening and editing a meeting sends nothing');
 });
+
+// Failed meeting save (PLAN §8). The fault is injected from the test, without a
+// production hook: a second SQLite connection in the main process holds the write lock
+// on the app's database file, so the app's own save fails after its busy timeout
+// (write error). Each esbuild entry bundles its own DatabaseManager, so the app's
+// instance cannot be reached to clear its handle; the database-unavailable path is
+// covered by DatabaseUnavailable.test.mjs on the actual class and by the mounted banner
+// test. The meeting stays in memory, the launcher banner shows it, Start is refused
+// without touching permission, audio or the overlay, a retry once the lock is released
+// saves it under the same id, and a discard needs confirmation.
+test('a failed save is kept, blocks start without side effects, and is saved on retry or discarded on confirmation', async () => {
+  const launcher = await launcherWindow();
+  const requestsBefore = mock.requests.length;
+  const fault = (kind) => app.evaluate(({}, { file, repo, kind }) => {
+    if (kind === 'lock') {
+      const req = process.getBuiltinModule('module').createRequire(`${repo}/package.json`);
+      const Database = req('better-sqlite3');
+      const lock = new Database(file);
+      lock.exec('BEGIN EXCLUSIVE');
+      globalThis.__marginTestLock = lock;
+    } else {
+      const lock = globalThis.__marginTestLock;
+      delete globalThis.__marginTestLock;
+      lock?.exec('ROLLBACK');
+      lock?.close();
+    }
+  }, { file: path.join(userDataPath, 'natively.db'), repo: REPO, kind });
+  const visibleOverlay = () => app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows().some((w) => !w.isDestroyed() && w.isVisible() && w.webContents.getURL().includes('window=overlay')));
+  const sideEffects = () => readBlocked(sandbox).filter((b) => ['permission', 'device'].includes(b.kind)).length;
+  const banner = launcher.getByTestId('unsaved-meeting-banner');
+  const unsaved = () => launcher.evaluate(() => window.electronAPI.getUnsavedMeeting());
+  const stopWithFailure = async (lines) => {
+    const started = await launcher.evaluate(() => window.electronAPI.startMeeting());
+    assert.equal(started?.success, true, `startMeeting: ${JSON.stringify(started)}`);
+    for (const [speaker, text] of lines) {
+      assert.equal((await launcher.evaluate((seg) => window.electronAPI.testInjectTranscript(seg), { speaker, text, final: true }))?.success, true);
+    }
+    await new Promise((r) => setTimeout(r, 1_200));
+    const ended = await launcher.evaluate(() => window.electronAPI.endMeeting());
+    assert.equal(ended?.success, true, 'stopping stays successful when only the save fails');
+    await banner.waitFor({ state: 'visible', timeout: 20_000 });
+    return unsaved();
+  };
+
+  await launcher.evaluate((flags) => {
+    for (const [key, value] of Object.entries(flags)) localStorage.setItem(key, value);
+  }, { natively_seen_startup_v1: 'true', natively_perms_shown_v1: '1' });
+  await launcher.reload();
+  await launcher.waitForLoadState('domcontentloaded');
+  await new Promise((r) => setTimeout(r, 2_000)); // past the permissions card's delay
+
+  // 1. The write fails: the meeting is kept and only its metadata is exposed.
+  await fault('lock');
+  const lines = [['interviewer', 'UNSAVED one: keep this in memory.'], ['user', 'UNSAVED two: retry should store it.']];
+  const pending = await stopWithFailure(lines);
+  assert.deepEqual(Object.keys(pending).sort(), ['durationMs', 'id', 'reason', 'startedAt', 'transcriptCount']);
+  assert.equal(pending.reason, 'write-error');
+  assert.equal(pending.transcriptCount, 2);
+  assert.match(await banner.innerText(), /Writing to the meeting database failed\./);
+  assert.match(await banner.innerText(), /kept only in memory and will be lost if the app quits or crashes/);
+  assert.equal((await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).some((m) => m.id === pending.id), false);
+  // A reloaded launcher restores the banner from the query.
+  await launcher.reload();
+  await launcher.waitForLoadState('domcontentloaded');
+  await banner.waitFor({ state: 'visible', timeout: 10_000 });
+  // The banner is shared by the list and a meeting's details: opening a saved meeting
+  // (the previous test's TITLE) and going back keeps it visible and usable.
+  await clickOrExplain(launcher, launcher.getByText(TITLE, { exact: true }).first(), 'the saved meeting in the history list');
+  await launcher.locator('h1[contenteditable]').first().waitFor();
+  await banner.waitFor({ state: 'visible', timeout: 10_000 });
+  assert.equal((await unsaved())?.id, pending.id, 'the same meeting is pending on the details page');
+  assert.equal(await banner.getByRole('button', { name: 'Retry save', exact: true }).isEnabled(), true);
+  assert.equal(await banner.getByRole('button', { name: 'Discard', exact: true }).isEnabled(), true);
+  await clickOrExplain(launcher, launcher.getByRole('button', { name: 'Back', exact: true }).first(), 'Back');
+  await launcher.getByRole('button', { name: /Start \S+$/ }).waitFor();
+  await banner.waitFor({ state: 'visible', timeout: 10_000 });
+  assert.equal((await unsaved())?.id, pending.id, 'the same meeting is pending after going back');
+
+  // 2. Start is refused (through the real button and IPC) before permission, audio or
+  //    overlay steps.
+  const effectsBefore = sideEffects();
+  await clickOrExplain(launcher, launcher.getByRole('button', { name: /Start \S+$/ }), 'the Start button');
+  await waitFor(async () => (await banner.getAttribute('data-highlighted')) === 'true', 'the highlighted banner', 10_000);
+  const refused = await launcher.evaluate(() => window.electronAPI.startMeeting());
+  assert.equal(refused?.success, false);
+  assert.equal(refused?.code, 'pending-unsaved-meeting');
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal(await launcher.evaluate(() => window.electronAPI.getMeetingActive()), false);
+  assert.equal(await visibleOverlay(), false, 'a refused start does not show the overlay');
+  assert.equal(sideEffects(), effectsBefore, 'a refused start asks for no permission and opens no device');
+
+  // 3. A retry while the write still fails keeps the meeting.
+  await clickOrExplain(launcher, banner.getByRole('button', { name: 'Retry save', exact: true }), 'Retry save');
+  await banner.getByRole('alert').filter({ hasText: 'could not be saved' }).waitFor({ timeout: 20_000 });
+  assert.equal((await unsaved())?.id, pending.id);
+
+  // 4. Lock released: retry saves the same meeting once, the banner goes, start works.
+  await fault('release');
+  await clickOrExplain(launcher, banner.getByRole('button', { name: 'Retry save', exact: true }), 'Retry save');
+  await banner.waitFor({ state: 'detached', timeout: 10_000 });
+  assert.equal(await unsaved(), null);
+  const saved = await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), pending.id);
+  assert.deepEqual(saved.transcript.map((t) => t.text), lines.map(([, text]) => text));
+  assert.equal((await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).filter((m) => m.id === pending.id).length, 1);
+  const after = await saveMeeting(launcher, [['interviewer', 'AFTER RETRY: a new meeting starts and saves.']]);
+  assert.notEqual(after.id, pending.id);
+  assert.ok(sideEffects() > effectsBefore, 'an accepted start is seen by the same permission/device count');
+
+  // 5. Another failed write, then discard: cancelling keeps it, confirming drops it
+  //    without a row.
+  await fault('lock');
+  const second = await stopWithFailure([['interviewer', 'DISCARD one: this meeting will be dropped.']]);
+  assert.equal(second.reason, 'write-error');
+  assert.match(await banner.innerText(), /Writing to the meeting database failed\./);
+  await clickOrExplain(launcher, banner.getByRole('button', { name: 'Discard', exact: true }), 'Discard');
+  const dialog = banner.getByRole('alertdialog');
+  await clickOrExplain(launcher, dialog.getByRole('button', { name: 'Cancel', exact: true }), 'Cancel');
+  await dialog.waitFor({ state: 'detached' });
+  assert.equal((await unsaved())?.id, second.id, 'cancel keeps the meeting');
+  await clickOrExplain(launcher, banner.getByRole('button', { name: 'Discard', exact: true }), 'Discard');
+  await clickOrExplain(launcher, dialog.getByRole('button', { name: 'Discard permanently', exact: true }), 'Discard permanently');
+  await banner.waitFor({ state: 'detached', timeout: 10_000 });
+  assert.equal(await unsaved(), null);
+  await fault('release');
+  assert.equal(await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), second.id), null, 'a discarded meeting has no row');
+  assert.equal((await launcher.evaluate(() => window.electronAPI.startMeeting()))?.success, true, 'start works after the discard');
+  assert.equal((await launcher.evaluate(() => window.electronAPI.endMeeting()))?.success, true);
+
+  assert.deepEqual(mock.requests.slice(requestsBefore).map((r) => r.url), [], 'the failed-save run sends nothing');
+});

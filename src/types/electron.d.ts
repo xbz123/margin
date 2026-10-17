@@ -3,6 +3,7 @@ import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
 import type { UiLanguage, UiLanguageResult } from './uiLanguage';
+import type { PendingUnsavedMeetingCode, UnsavedMeeting, UnsavedMeetingCommandResult } from './meetingSave';
 import type { KeybindResult, WindowPreferenceResult } from './windowPreferences';
 
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from './domesticStt';
@@ -196,8 +197,12 @@ export interface ElectronAPI {
 
 
   // Meeting Lifecycle
-  startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string }>
+  startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string; code?: PendingUnsavedMeetingCode }>
   endMeeting: () => Promise<{ success: boolean; error?: string }>
+  getUnsavedMeeting: () => Promise<UnsavedMeeting | null>
+  retryUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>
+  discardUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>
+  onUnsavedMeetingChanged: (callback: (meeting: UnsavedMeeting | null) => void) => () => void
   getRecentMeetings: () => Promise<Array<{ id: string; title: string; date: string; duration: string; summary: string }>>
   getMeetingDetails: (id: string) => Promise<any>
   updateMeetingTitle: (id: string, title: string) => Promise<boolean>

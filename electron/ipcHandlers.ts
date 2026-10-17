@@ -1784,9 +1784,18 @@ export function initializeIpcHandlers(appState: AppState): void {
       return { success: true };
     } catch (error: any) {
       console.error('Error starting meeting:', error);
+      // Keep the structured code the launcher acts on (PLAN §8, failed meeting save).
+      if (error?.code === 'pending-unsaved-meeting') return { success: false, error: error.message, code: error.code };
       return { success: false, error: error.message };
     }
   });
+
+  // The one meeting whose save failed: metadata only, never its transcript.
+  safeHandle('get-unsaved-meeting', async () => appState.getIntelligenceManager().getUnsavedMeeting());
+
+  safeHandle('retry-unsaved-meeting', async (_, id: unknown) => appState.getIntelligenceManager().retryUnsavedMeeting(id));
+
+  safeHandle('discard-unsaved-meeting', async (_, id: unknown) => appState.getIntelligenceManager().discardUnsavedMeeting(id));
 
   safeHandle('end-meeting', async () => {
     appState.processingHelper.getLLMHelper().clearPreparedInput();

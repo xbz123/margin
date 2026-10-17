@@ -36,7 +36,7 @@ export function mainFixture(options = {}) {
     { randomUUID: () => 'meeting-' + providers.length + '-' + order.length },
     { getInstance: () => ({ getDefaultModel: () => 'synthetic-model', getSttProvider: () => 'synthetic',
       requireSttConfigured: options.requireSttConfigured ?? (() => {}) }) },
-    { log() {}, warn() {}, error() {} },
+    options.console ?? { log() {}, warn() {}, error() {} },
   );
   const state = new Class();
   const audio = fixture({ ...options, querySnapshot: () => ({
@@ -74,7 +74,7 @@ export function mainFixture(options = {}) {
       getLLMHelper: () => ({ setModel() {}, getCurrentModelSelection: () => 'synthetic-model' }),
     },
     intelligenceManager: {
-      reset() {}, setMeetingMetadata() {}, resetEngine: () => order.push('answers-cancel'),
+      reset() {}, setMeetingMetadata() {}, resetEngine: () => order.push('answers-cancel'), getUnsavedMeeting: () => null,
       handleTranscript: payload => { transcripts.push(payload); order.push('transcript:' + payload.text); },
       stopMeeting: async () => { order.push('archive-save'); },
     },

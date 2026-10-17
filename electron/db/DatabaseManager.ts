@@ -39,6 +39,16 @@ export interface Meeting {
     isProcessed?: boolean;
 }
 
+// Thrown by saveMeeting when there is no open database, so a caller can tell it apart
+// from a failed write (MeetingPersistence checks `code`).
+export class DatabaseUnavailableError extends Error {
+    readonly code = 'database-unavailable';
+    constructor() {
+        super('The meeting database is not available');
+        this.name = 'DatabaseUnavailableError';
+    }
+}
+
 export class DatabaseManager {
     private static instance: DatabaseManager;
     private db: Database.Database | null = null;
@@ -400,7 +410,7 @@ export class DatabaseManager {
     public saveMeeting(meeting: Meeting, startTimeMs: number, durationMs: number) {
         if (!this.db) {
             console.error('[DatabaseManager] DB not initialized');
-            return;
+            throw new DatabaseUnavailableError();
         }
 
         const insertMeeting = this.db.prepare(`
