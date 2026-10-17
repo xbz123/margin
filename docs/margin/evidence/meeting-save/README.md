@@ -102,8 +102,34 @@ fix commit message.
 
 ## Publication state
 
-Stage 1 was pushed to the private repository. Its code was also published as a
-code-only projection, without private history or evidence, to the public
-branch. Public CI failed only on provenance against the refreshed upstream pool,
-which the Stage 2 registrations address. Stage 2 and this fix are local, pending
-code-only projection and public CI.
+Stage 1 is private commit `7cccf381` and public code-only commit `03b059a8`.
+Public CI [38989960867](https://github.com/xbz123/margin/actions/runs/38989960867)
+passed 15/16 gates and failed only on provenance against the refreshed pool.
+The exact-statement registrations in Stage 2 address that failure.
+
+Stage 2 (`506bf492`) and the accepted navigation fix (`dbc6b2dc`) are published
+as public code-only commit `55b981957270584e3ac599e519ea36a52442c123`.
+The code, tests and necessary gate configuration match the locally accepted
+version byte-for-byte. Neither private-only commit ancestry nor new documentation,
+handoff records or evidence logs were imported. Public CI
+[38992504973](https://github.com/xbz123/margin/actions/runs/38992504973) completed
+successfully on that exact public commit. The private branch retains the three
+implementation commits and this delivery record; the public branch has only two
+new code-only commits above its previous `eddba6b8` head, not the private ancestry.
+
+The downloaded gate artifact was verified against GitHub's SHA-256:
+`3f1df3a63aa557114b371d6e7fc1e6d482425275d6d927b7b515c83c4d06abc2`.
+Its raw summary confirms all 16 gate steps exited 0; 134 unit-test files passed
+1197/1197 tests, answer regression 21/21, storage 3/3, startup 2/2 and mounted
+renderer 14/14. S42's required checks passed. Release and local identity
+contracts each passed 7/7. No packaging was requested.
+
+The final source diff, caller contracts and raw local/CI results were independently
+reviewed; the navigation finding was corrected and there are no remaining blocking
+findings in this scope. The original untracked `AG-51/gates/` contents were checked
+unchanged and were never staged. The last receipt update changes documentation
+only; it reuses the verified code results rather than running the same tests again.
+
+No application installation, real-service acceptance or Windows execution is
+included in this delivery. Unsaved meetings remain memory-only and are lost on
+exit or crash; neither export nor quit interception was added.
