@@ -36,10 +36,6 @@ export interface Meeting {
         items?: string[];
         generation?: import('../../src/types/generationMetadata').GenerationMetadata;
     } & Partial<import('../../src/types/generationMetadata').GenerationMetadata>>;
-    // Calendar was removed (PLAN.md AG-10/AG-16). The column and the 'calendar'
-    // source stay so meetings saved by older builds still load.
-    calendarEventId?: string;
-    source?: 'manual' | 'calendar';
     isProcessed?: boolean;
 }
 
@@ -120,8 +116,6 @@ export class DatabaseManager {
                     duration_ms INTEGER,
                     summary_json TEXT,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                    calendar_event_id TEXT,
-                    source TEXT,
                     is_processed INTEGER DEFAULT 1
                 );
 
@@ -176,8 +170,6 @@ export class DatabaseManager {
             // For fresh installs these columns already exist from v1, so we guard with try/catch.
             // Unlike the old code, these are versioned and run exactly once.
             const columnsToAdd = [
-                "ALTER TABLE meetings ADD COLUMN calendar_event_id TEXT",
-                "ALTER TABLE meetings ADD COLUMN source TEXT",
                 "ALTER TABLE meetings ADD COLUMN is_processed INTEGER DEFAULT 1"
             ];
             for (const sql of columnsToAdd) {
@@ -412,8 +404,8 @@ export class DatabaseManager {
         }
 
         const insertMeeting = this.db.prepare(`
-            INSERT OR REPLACE INTO meetings (id, title, start_time, duration_ms, summary_json, created_at, calendar_event_id, source, is_processed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO meetings (id, title, start_time, duration_ms, summary_json, created_at, is_processed)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
 
         const insertTranscript = this.db.prepare(`
@@ -440,8 +432,6 @@ export class DatabaseManager {
                 durationMs,
                 summaryJson,
                 meeting.date, // Using the ISO string as created_at for sorting simply
-                meeting.calendarEventId || null,
-                meeting.source || 'manual',
                 meeting.isProcessed ? 1 : 0
             );
 
@@ -544,8 +534,6 @@ export class DatabaseManager {
                 duration: durationStr,
                 summary: summaryData.legacySummary || '',
                 detailedSummary: summaryData.detailedSummary,
-                calendarEventId: row.calendar_event_id,
-                source: row.source as any,
                 // We don't load full transcript/usage for list view to keep it light
                 transcript: [] as any[],
                 usage: [] as any[]
@@ -615,8 +603,6 @@ export class DatabaseManager {
             duration: durationStr,
             summary: summaryData.legacySummary || '',
             detailedSummary: summaryData.detailedSummary,
-            calendarEventId: meetingRow.calendar_event_id,
-            source: meetingRow.source,
             transcript: transcript,
             usage: usage
         };

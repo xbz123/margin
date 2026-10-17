@@ -16,13 +16,14 @@
 //
 // Prerequisites: `node scripts/build-electron.js` and `npx vite build`.
 // Run:
-//   node scripts/margin/isolation/run-node.mjs --allow-exec Electron \
+//   node scripts/margin/isolation/run-node.mjs --allow-exec Electron:osascript \
 //     --test --test-timeout=180000 tests/margin/startup-smoke.test.mjs
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { launchApp, windowWithQuery, readMainErrors } from './launch-app.mjs';
 import { assertCriticalEvents } from './logging-evidence.mjs';
 import { makeSandbox, readBlocked, readGuardLog, REPO } from '../../scripts/margin/isolation/env.mjs';
@@ -31,6 +32,51 @@ const OBSERVE_MS = 15_000;
 const PROBE = 'MARGIN-SMOKE-PROBE';
 const LOG_CANARY = 'SYNTHETIC_AG23_STARTUP_PRIVATE_LOG_CONTENT';
 const identity = JSON.parse(fs.readFileSync(path.join(REPO, 'dist-electron/app-identity.json'), 'utf8'));
+
+test('macOS native termination exits after asynchronous cleanup', { skip: process.platform !== 'darwin' }, async (t) => {
+  const sandbox = makeSandbox('native-quit');
+  const { app, mainErrorsLog } = await launchApp(sandbox, { NODE_ENV: 'production' });
+  const child = app.process();
+  const exited = new Promise(resolve => child.once('exit', (code, signal) => resolve({ code, signal })));
+  const eventsFile = path.join(sandbox.root, 'quit-events.jsonl');
+  let deadline;
+  try {
+    const launcher = await windowWithQuery(app, 'window=launcher', 30_000);
+    await launcher.waitForLoadState('domcontentloaded');
+    await launcher.waitForFunction(() => document.body?.innerText.trim().length > 0);
+    await app.evaluate(({ app: electronApp, BrowserWindow }, file) => {
+      const fs = process.getBuiltinModule('fs');
+      for (const event of ['before-quit', 'will-quit', 'quit', 'window-all-closed']) {
+        electronApp.on(event, () => fs.appendFileSync(file, JSON.stringify({ event }) + '\n'));
+      }
+      BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('window=launcher')).show();
+    }, eventsFile);
+
+    // Target only this guarded child; no permission changes or real-account app lookup.
+    const request = `ObjC.import('AppKit'); $.NSRunningApplication.runningApplicationWithProcessIdentifier(${child.pid}).terminate;`;
+    assert.equal(execFileSync('/usr/bin/osascript', ['-l', 'JavaScript', '-e', request], {
+      encoding: 'utf8', timeout: 10_000,
+    }).trim(), 'true', 'macOS accepted the termination request');
+    const exit = await Promise.race([exited, new Promise(resolve => { deadline = setTimeout(() => resolve(null), 10_000); })]);
+    const events = fs.readFileSync(eventsFile, 'utf8').trim().split('\n').map(line => JSON.parse(line).event);
+    t.diagnostic(`native termination events: ${events.join(' -> ')}`);
+    assert.deepEqual(exit, { code: 0, signal: null }, 'native quit must end the process, not just close its windows');
+    assert.ok(events.includes('will-quit') && events.includes('quit'), 'cleanup reaches final termination');
+    assert.deepEqual(readMainErrors(mainErrorsLog, child.pid), []);
+    const blocked = readBlocked(sandbox, { pid: child.pid }).filter(e => !['permission', 'device', 'local-exec'].includes(e.kind));
+    assert.deepEqual(blocked, [], 'native quit uses no real credentials, devices or network');
+  } finally {
+    clearTimeout(deadline);
+    if (child.exitCode === null && child.signalCode === null) {
+      // Failed assertion cleanup is restricted to the child this test launched.
+      await app.evaluate(({ app: electronApp }) => { setImmediate(() => electronApp.exit(0)); }).catch(() => {});
+      let cleanupDeadline;
+      await Promise.race([exited, new Promise(resolve => { cleanupDeadline = setTimeout(resolve, 3000); })]);
+      clearTimeout(cleanupDeadline);
+      if (child.exitCode === null && child.signalCode === null) { child.kill('SIGKILL'); await exited; }
+    }
+  }
+});
 
 test('the app starts, opens the launcher and settings, stays up, and quits cleanly', async (t) => {
   const sandbox = makeSandbox('startup-smoke');

@@ -74,7 +74,6 @@ export class MeetingPersistence {
             detailedSummary: { actionItems: [], keyPoints: [] },
             transcript,
             usage,
-            source: 'manual',
             isProcessed: true
         };
 
