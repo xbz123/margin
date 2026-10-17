@@ -1,7 +1,7 @@
 # Calendar residue removal and failed meeting save retention
 
-2026-10-17. Base `90b2ec62`. Two local commits; the decisions are recorded in
-PLAN §8. All runs used the isolation guard, a synthetic HOME, a fresh
+2026-10-17. Base `90b2ec62`. Stage 1 (`7cccf381`), Stage 2 (`506bf492`) and an
+acceptance fix that moves the banner; the decisions are recorded in PLAN §8. All runs used the isolation guard, a synthetic HOME, a fresh
 app-created database, mock credentials and a loopback mock. No real user data,
 devices, credentials or model services were used. Raw runner logs are kept
 outside the repository; this file records only their results.
@@ -85,4 +85,25 @@ refs were refreshed. Both sets are explained in PROVENANCE.
 platform-specific code was added) but not compiled or tested. The Electron E2E
 injects a write error; database-unavailable is covered by unit and mounted UI
 tests, because each esbuild entry bundles its own `DatabaseManager`. These are
-local results: nothing has been pushed and no public CI has run.
+local results.
+
+## Acceptance fix: banner shared by list and details
+
+Review found the banner inside the list view, so opening a saved meeting
+unmounted it and removed retry and discard. It now sits in the launcher area
+shared by the list and a meeting's details, outside that conditional. There is
+no new state, and the wrapper collapses when nothing is pending. In the storage
+failure scenario, while a meeting is pending, the test opens the saved `TITLE`
+meeting and checks that the banner is visible with Retry/Discard enabled and the
+same pending id. It then goes Back and checks again. Against the previous
+placement this step fails (banner not found on the details page); with the fix,
+storage passes 3/3. Final local gates on the final content are listed in the
+fix commit message.
+
+## Publication state
+
+Stage 1 was pushed to the private repository. Its code was also published as a
+code-only projection, without private history or evidence, to the public
+branch. Public CI failed only on provenance against the refreshed upstream pool,
+which the Stage 2 registrations address. Stage 2 and this fix are local, pending
+code-only projection and public CI.

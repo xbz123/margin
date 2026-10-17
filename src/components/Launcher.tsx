@@ -369,6 +369,10 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                 {!isDetectable && (
                     <div className={`absolute inset-1 border-2 border-dashed rounded-2xl pointer-events-none z-[100] ${isLight ? 'border-black/15' : 'border-white/20'}`} />
                 )}
+                {/* Shared by the list and a meeting's details, so an unsaved meeting stays visible until resolved. */}
+                <div className="shrink-0 px-8 pt-4 empty:hidden *:max-w-4xl *:mx-auto">
+                    <UnsavedMeetingBanner startRefusals={startRefusals} />
+                </div>
                 <AnimatePresence mode="wait">
                     {selectedMeeting ? (
                         <motion.div
@@ -561,8 +565,6 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                 {preferenceErrors.protection && <p role="alert" className="px-8 pt-3 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                                 <section className="px-8 py-8 min-h-full">
                                     <div className="max-w-4xl mx-auto space-y-8">
-
-                                        <UnsavedMeetingBanner startRefusals={startRefusals} />
 
                                         {!isMeetingActive && <SetupChecklist active={!settingsOpen} onOpenSettings={onOpenSettings} onReviewPermissions={onReviewPermissions ?? (() => onOpenSettings('privacy'))} />}
 

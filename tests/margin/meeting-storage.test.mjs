@@ -400,6 +400,18 @@ test('a failed save is kept, blocks start without side effects, and is saved on 
   await launcher.reload();
   await launcher.waitForLoadState('domcontentloaded');
   await banner.waitFor({ state: 'visible', timeout: 10_000 });
+  // The banner is shared by the list and a meeting's details: opening a saved meeting
+  // (the previous test's TITLE) and going back keeps it visible and usable.
+  await clickOrExplain(launcher, launcher.getByText(TITLE, { exact: true }).first(), 'the saved meeting in the history list');
+  await launcher.locator('h1[contenteditable]').first().waitFor();
+  await banner.waitFor({ state: 'visible', timeout: 10_000 });
+  assert.equal((await unsaved())?.id, pending.id, 'the same meeting is pending on the details page');
+  assert.equal(await banner.getByRole('button', { name: 'Retry save', exact: true }).isEnabled(), true);
+  assert.equal(await banner.getByRole('button', { name: 'Discard', exact: true }).isEnabled(), true);
+  await clickOrExplain(launcher, launcher.getByRole('button', { name: 'Back', exact: true }).first(), 'Back');
+  await launcher.getByRole('button', { name: /Start \S+$/ }).waitFor();
+  await banner.waitFor({ state: 'visible', timeout: 10_000 });
+  assert.equal((await unsaved())?.id, pending.id, 'the same meeting is pending after going back');
 
   // 2. Start is refused (through the real button and IPC) before permission, audio or
   //    overlay steps.
