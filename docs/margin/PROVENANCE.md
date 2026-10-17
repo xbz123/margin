@@ -21,6 +21,31 @@ Notes:
 
 ## Ledger
 
+### Calendar residue removal and failed meeting save (2026-10-17)
+
+Written for this branch from the approved requirements (PLAN §8). The calendar
+change only deletes columns, fields and mapping. The failed-save handling adds
+`src/types/meetingSave.ts`, `src/components/UnsavedMeetingBanner.tsx`, the
+pending snapshot and commands in `MeetingPersistence`, a
+`DatabaseUnavailableError` in `DatabaseManager`, three IPC channels with
+matching preload/type members, a start guard and a metadata-only quit log in
+`main.ts`, and tests. The banner reuses the existing `CredentialLoadBanner`
+styling and `useI18n`. No code was imported from another branch or project, and
+no dependencies changed.
+
+The provenance check flagged 17 generic single statements in the new code
+(for example `const pending = this.pending;`, `setConfirming(false);`,
+`{t('Cancel')}`). They were written here and are registered exactly as written.
+During the work, another session refreshed the shared upstream refs, which grew
+the restricted pool from 644185 to 664426 keys. The larger pool flagged 17
+unchanged older lines (13 distinct statements) that had passed against the
+previous pool. Blame dates each to this branch between 2026-10-07 and
+2026-10-13 (`31a86aa66` … `968ea59d5`). Where a matching upstream line could be
+dated it first appears on 2026-10-15/17, except the
+`setAudioChannelCount() {},` no-op. That method is from the baseline STT
+interface (`a786910e:electron/audio/DeepgramStreamingSTT.ts:55`). Only these
+exact statements are registered; no paths or pools are excluded.
+
 ### S45 native macOS quit follow-up (2026-10-15)
 
 Written for this branch from the reproduced native-termination failure. The

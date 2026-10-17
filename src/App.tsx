@@ -184,6 +184,7 @@ const App: React.FC = () => {
       } else {
         console.error("Failed to start meeting:", result.error);
       }
+      return result;
     } catch (err) {
       console.error("Failed to start meeting:", err);
     }

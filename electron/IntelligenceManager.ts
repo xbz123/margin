@@ -219,8 +219,20 @@ export class IntelligenceManager extends EventEmitter {
     // Meeting Lifecycle (delegates to persistence)
     // ============================================
 
-    async stopMeeting(): Promise<string | null> {
+    async stopMeeting(): Promise<import('../src/types/meetingSave').StopMeetingResult> {
         return this.persistence.stopMeeting();
+    }
+
+    getUnsavedMeeting(): import('../src/types/meetingSave').UnsavedMeeting | null {
+        return this.persistence.getUnsavedMeeting();
+    }
+
+    retryUnsavedMeeting(id: unknown): import('../src/types/meetingSave').UnsavedMeetingCommandResult {
+        return this.persistence.retryUnsavedMeeting(id);
+    }
+
+    discardUnsavedMeeting(id: unknown): import('../src/types/meetingSave').UnsavedMeetingCommandResult {
+        return this.persistence.discardUnsavedMeeting(id);
     }
 
     // ============================================

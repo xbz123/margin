@@ -8,6 +8,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
 import type { UiLanguage, UiLanguageResult } from '../src/types/uiLanguage';
+import type { PendingUnsavedMeetingCode, UnsavedMeeting, UnsavedMeetingCommandResult } from '../src/types/meetingSave';
 import type { KeybindResult, WindowPreferenceResult } from '../src/types/windowPreferences';
 
 let verboseLog = false;
@@ -265,8 +266,12 @@ interface ElectronAPI {
   finishDictation: () => Promise<{ speechActionId: string; question: string }>;
 
   // Meeting Lifecycle
-  startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string }>;
+  startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string; code?: PendingUnsavedMeetingCode }>;
   endMeeting: () => Promise<{ success: boolean; error?: string }>;
+  getUnsavedMeeting: () => Promise<UnsavedMeeting | null>;
+  retryUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>;
+  discardUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>;
+  onUnsavedMeetingChanged: (callback: (meeting: UnsavedMeeting | null) => void) => () => void;
   getRecentMeetings: () => Promise<
     Array<{ id: string; title: string; date: string; duration: string; summary: string }>
   >;
@@ -1061,6 +1066,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Meeting Lifecycle
   startMeeting: (metadata?: any) => ipcRenderer.invoke('start-meeting', metadata),
   endMeeting: () => ipcRenderer.invoke('end-meeting'),
+  getUnsavedMeeting: () => ipcRenderer.invoke('get-unsaved-meeting'),
+  retryUnsavedMeeting: (id: string) => ipcRenderer.invoke('retry-unsaved-meeting', id),
+  discardUnsavedMeeting: (id: string) => ipcRenderer.invoke('discard-unsaved-meeting', id),
+  onUnsavedMeetingChanged: (callback: (meeting: UnsavedMeeting | null) => void) => {
+    const subscription = (_: any, meeting: UnsavedMeeting | null) => callback(meeting);
+    ipcRenderer.on('unsaved-meeting-changed', subscription);
+    return () => {
+      ipcRenderer.removeListener('unsaved-meeting-changed', subscription);
+    };
+  },
   getRecentMeetings: () => ipcRenderer.invoke('get-recent-meetings'),
   getMeetingDetails: (id: string) => ipcRenderer.invoke('get-meeting-details', id),
   updateMeetingTitle: (id: string, title: string) =>

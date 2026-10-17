@@ -1191,3 +1191,126 @@ test('app windows refuse foreign navigation and child windows; only https links 
   const outbound = readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec', 'external-open'].includes(record.kind));
   assert.deepEqual(outbound, [], 'followed links are counted apart from automatic requests, and nothing else left the machine');
 });
+
+// Failed meeting save (PLAN §8): the mounted Launcher banner listens before it queries,
+// ignores a query reply older than an event, is highlighted when Start is refused,
+// disables both commands while one runs, keeps the meeting after a failed retry or a
+// cancelled discard, and removes its listener on unmount. No outbound action.
+test('mounted Launcher unsaved meeting banner orders query and events, guards commands and confirms discard', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client';
+    import Launcher from './src/components/Launcher';
+    const listeners = new Map(); const subscribe = (name, fn) => { const set = listeners.get(name) || new Set(); set.add(fn); listeners.set(name, set); return () => set.delete(fn); };
+    window.listenerCount = name => listeners.get(name)?.size || 0;
+    window.emit = (name, value) => { for (const fn of listeners.get(name) || []) fn(value); };
+    window.forbidden = []; window.queries = []; window.commands = []; window.pending = []; window.starts = 0;
+    const forbid = name => { window.forbidden.push(name); throw Error('Forbidden action: ' + name); };
+    window.fetch = () => forbid('fetch'); window.WebSocket = function() { forbid('WebSocket'); };
+    const deferred = kind => (id) => new Promise(resolve => { window.commands.push([kind, id]); window.pending.push(resolve); });
+    const api = {
+      getUnsavedMeeting: () => new Promise(resolve => { window.queries.push(window.listenerCount('onUnsavedMeetingChanged')); window.pending.push(resolve); }),
+      retryUnsavedMeeting: deferred('retry'), discardUnsavedMeeting: deferred('discard'),
+      getCurrentLlmConfig: async () => ({ provider: 'openai', model: 'synthetic' }),
+      getStoredCredentials: async () => ({ providerConfigurations: {}, sttProvider: 'none' }),
+      checkPermissions: async () => ({ platform: 'darwin', microphone: 'granted', screen: 'granted' }),
+      getCodexCliConfig: async () => ({ enabled: false }), getWindowPreferences: async () => [],
+      getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
+      getRecentMeetings: async () => [], getMeetingActive: async () => false, seedDemo: async () => ({ success: true })
+    };
+    window.electronAPI = new Proxy(api, { get(target, name) {
+      if (name in target) return target[name];
+      if (String(name).startsWith('on')) return fn => subscribe(name, fn);
+      if (/^(test|fetch|request|start|capture)/i.test(String(name))) return () => forbid(String(name));
+      return async () => undefined;
+    } });
+    const root = createRoot(document.getElementById('root'));
+    root.render(React.createElement(Launcher, {
+      settingsOpen: true, onOpenSettings() {}, onReviewPermissions() {},
+      async onStartMeeting() { window.starts++; return { success: false, error: 'refused', code: 'pending-unsaved-meeting' }; }
+    }));
+    window.unmountConsumer = () => root.unmount();
+  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  const sandbox = makeSandbox('unsaved-meeting-banner'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
+    await windowWithQuery(app, 'window=launcher', 30_000);
+    const opened = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await opened, pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
+    await page.evaluate(() => {
+      const storage = new Map();
+      Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
+    });
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const banner = page.getByTestId('unsaved-meeting-banner');
+    const meeting = (id, reason) => ({ id, startedAt: Date.UTC(2026, 9, 17, 9, 0), durationMs: 125_000, transcriptCount: 7, reason });
+    const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const resolveNext = value => page.evaluate(v => window.pending.shift()(v), value);
+
+    // The listener exists when the query is sent; an event wins over the older reply.
+    await page.waitForFunction(() => window.queries.length === 1);
+    assert.deepEqual(await page.evaluate(() => window.queries), [1]);
+    await page.evaluate(m => window.emit('onUnsavedMeetingChanged', m), meeting('A', 'write-error'));
+    await banner.waitFor();
+    await resolveNext(null); await settle();
+    assert.equal(await banner.count(), 1, 'the older query reply does not hide the banner');
+    const text = await banner.innerText();
+    assert.match(text, /2:05 · 7 transcript lines/);
+    assert.match(text, /Writing to the meeting database failed\./);
+    assert.match(text, /kept only in memory and will be lost if the app quits or crashes/);
+    assert.equal(await banner.getByRole('button', { name: /close|dismiss/i }).count(), 0, 'no close control');
+
+    // A refused Start highlights the banner.
+    await page.getByRole('button', { name: /Start temp$/ }).click();
+    await page.waitForFunction(() => document.querySelector('[data-testid="unsaved-meeting-banner"]')?.dataset.highlighted === 'true');
+    assert.equal(await page.evaluate(() => window.starts), 1);
+    await banner.getByRole('alert').filter({ hasText: 'Save or discard this meeting before starting a new one.' }).waitFor();
+    await page.waitForFunction(() => window.queries.length === 2);
+    await resolveNext(meeting('A', 'write-error')); // the refusal re-reads the state
+
+    // Retry: both commands are disabled while it runs; a failed retry keeps the meeting.
+    await banner.getByRole('button', { name: 'Retry save', exact: true }).click();
+    await banner.getByRole('button', { name: 'Saving…', exact: true }).waitFor();
+    assert.equal(await banner.getByRole('button', { name: 'Saving…', exact: true }).isDisabled(), true);
+    assert.equal(await banner.getByRole('button', { name: 'Discard', exact: true }).isDisabled(), true);
+    await page.evaluate(m => window.emit('onUnsavedMeetingChanged', m), meeting('A', 'database-unavailable'));
+    await resolveNext({ ok: false, code: 'save-failed', reason: 'database-unavailable' });
+    await banner.getByRole('alert').filter({ hasText: 'The meeting could not be saved. It is still kept in memory.' }).waitFor();
+    assert.match(await banner.innerText(), /database is unavailable, so retrying may not work/);
+    assert.equal(await banner.getByRole('button', { name: 'Retry save', exact: true }).isDisabled(), false);
+
+    // Discard asks first; Escape and Cancel keep the meeting without a command.
+    await banner.getByRole('button', { name: 'Discard', exact: true }).click();
+    const dialog = banner.getByRole('alertdialog');
+    await dialog.waitFor();
+    assert.match(await dialog.innerText(), /permanently lost/);
+    assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Cancel', 'focus moves to Cancel');
+    await page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'detached' });
+    await banner.getByRole('button', { name: 'Discard', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await dialog.waitFor({ state: 'detached' });
+    assert.deepEqual(await page.evaluate(() => window.commands), [['retry', 'A']], 'cancelling sends nothing');
+    await banner.getByRole('button', { name: 'Discard', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Discard permanently', exact: true }).click();
+    assert.equal(await dialog.getByRole('button', { name: 'Discard permanently', exact: true }).isDisabled(), true);
+    await resolveNext({ ok: true });
+    await banner.waitFor({ state: 'detached' });
+    assert.deepEqual(await page.evaluate(() => window.commands), [['retry', 'A'], ['discard', 'A']]);
+
+    // A later meeting: a successful retry removes the banner.
+    await page.evaluate(m => window.emit('onUnsavedMeetingChanged', m), meeting('B', 'write-error'));
+    await banner.waitFor();
+    assert.equal(await banner.getAttribute('data-highlighted'), null, 'the earlier highlight belonged to the resolved meeting');
+    await banner.getByRole('button', { name: 'Retry save', exact: true }).click();
+    await resolveNext({ ok: true });
+    await banner.waitFor({ state: 'detached' });
+    assert.deepEqual(await page.evaluate(() => window.commands.at(-1)), ['retry', 'B']);
+
+    await page.evaluate(() => window.unmountConsumer());
+    assert.equal(await page.evaluate(() => window.listenerCount('onUnsavedMeetingChanged')), 0, 'the listener is removed on unmount');
+    assert.deepEqual(await page.evaluate(() => window.forbidden), []); assert.deepEqual(pageErrors, []);
+    await page.close();
+  } finally { if (app) await app.close(); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});

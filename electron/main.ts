@@ -1257,6 +1257,12 @@ export class AppState {
     this.setQuitting(true);
     this.shutdownTask = (async () => {
       const results = await Promise.allSettled([this.stopAudioTest(), this.endMeeting()]);
+      // Quitting does not wait for an unsaved meeting; log only its metadata.
+      const unsaved = this.intelligenceManager.getUnsavedMeeting();
+      if (unsaved) {
+        const { startedAt, durationMs, transcriptCount, reason } = unsaved;
+        console.warn('[Main] Quitting with an unsaved meeting; it is lost on exit:', { startedAt, durationMs, transcriptCount, reason });
+      }
       try { await this.suspendAudio(); }
       finally { await this.meetingStt.cancel(); }
       if (results.some(result => result.status === 'rejected')) throw new Error('Audio shutdown did not complete cleanly');
@@ -1561,6 +1567,11 @@ export class AppState {
 
   public async startMeeting(metadata?: any): Promise<void> {
     return this.meetingLifecycle.start(async () => {
+      // Before any STT, permission, audio or window step: a meeting whose save failed
+      // must be saved or discarded first (PLAN §8, failed meeting save).
+      if (this.intelligenceManager.getUnsavedMeeting()) {
+        throw Object.assign(new Error('Save or discard the unsaved meeting before starting a new one.'), { code: 'pending-unsaved-meeting' });
+      }
       if (this._isQuitting) throw new Error('Application is quitting');
       CredentialsManager.getInstance().requireSttConfigured();
       await this.meetingAudio.waitForRelease();
