@@ -1485,6 +1485,12 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### 日历数据库残留删除（2026-10-17）
+
+用户批准删除日历的数据库残留。日历界面和服务已在 AG-10/AG-16 删除；AG-16 当时保留了 `meetings.calendar_event_id`、`meetings.source` 及 `Meeting.calendarEventId`/`source`，理由是读取旧版本保存的会议。这个理由已不成立：Margin 使用独立的新应用数据目录（S7、S15），不读取旧 Natively、ai assistant 或 `Margin` 旧版本的数据，也不做旧版数据迁移（第 1 节非目标），因此没有需要兼容的旧会议，也没有回滚要求。
+
+本次删除：v1 建表和 v1→v2 补列中的两列、保存语句的列/占位符/参数、列表和详情的映射，以及 `MeetingPersistence` 中固定的 `source: 'manual'`。迁移步骤和版本号不变（仍为 17），v1→v2 的 `is_processed` 补列保留。不加删列迁移，不处理已有旧库，不清理令牌文件；开发期旧库中残留的列无人读写，按原样留下。其他含义的 `source` 字段不受影响。`tests/margin/meeting-storage.test.mjs` 在应用新建的沙箱数据库上用 `PRAGMA table_info(meetings)` 断言两列不存在。
+
 ### S45 原生退出后残留进程修复（2026-10-15）
 
 **首次启动问题已关闭（用户确认）**：系统日志核实初次 150.219 秒主要由麦克风授权等待 67.767 秒和钥匙串授权等待约 81.92 秒构成；钥匙串允许后 0.156 秒即就绪。临时签名更新导致旧授权要求不匹配，录屏请求在就绪后才发起。后续启动正常，用户明确允许标为已解决；不再以该事件阻塞交付。不代表同步初始化结构已重构，或所有历史卡顿均已定因。详细时间线见下方安装记录。
@@ -2201,7 +2207,7 @@ AG-13 对照时发现，之前的测试结果有两处会失真，已修正，�
   - 删除 `FollowUpEmailModal.tsx`（没有任何地方引用）、`emailUtils.ts`；3 个 IPC（`generate-followup-email`、`extract-emails-from-transcript`、`open-mailto`）及 preload 和类型成员；`FOLLOWUP_EMAIL_PROMPT`、`GROQ_FOLLOWUP_EMAIL_PROMPT`、`TINY_FOLLOWUP_EMAIL_PROMPT`。
   - 会后流程里按模板拼出的邮件草稿（`buildFollowUpDraft`、`followUpDraft` 字段和会议详情页的"Follow-up Draft"一节）也是跟进邮件，一并删除。结构化的下一步事项（`actionItemsStructured`）保留。
   - 旧会议在数据库 JSON 里存的 `followUpDraft` 不迁移，只是不再显示。
-- **日历残留**（主体已在 AG-10 删除）：`SessionTracker`/`MeetingPersistence` 的会议元数据只剩 `title`，保存时 `source` 固定为 `manual`。数据库的 `calendar_event_id` 列和 `Meeting` 类型中的两个字段保留，以便读取旧版本保存的会议，代码中有注释说明。
+- **日历残留**（主体已在 AG-10 删除）：`SessionTracker`/`MeetingPersistence` 的会议元数据只剩 `title`，保存时 `source` 固定为 `manual`。数据库的 `calendar_event_id` 列和 `Meeting` 类型中的两个字段保留，以便读取旧版本保存的会议，代码中有注释说明。（以上为 AG-16 当时的记录；这两个字段及 `source` 列后已删除，见第 8 节"日历数据库残留删除"。）
 - **画像残留**：AG-10 已删除画像本身。这次只改了 `LLMHelper` 中提到它的一处注释。
   - `prompts.ts` 中仍有一段描述简历注入块（`<candidate_experience>` 等）的提示词。改提示词会改变回答行为，与决定 1 同属提示词范围，这次不动，留到阶段 2/3 重写提示词时处理（这是 AG-16 当时的安排；现由 S12 接替：阶段 3 在 AG-33 中用真实模型评估后一并处理）。
   - 自定义备注和 persona（`profile_custom_notes`、`profile_persona`）以及数据范围 `profile_history` 是保留的功能。

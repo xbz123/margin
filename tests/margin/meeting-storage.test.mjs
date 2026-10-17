@@ -194,8 +194,8 @@ test('a meeting is saved without any request, survives a restart, and stays dele
   assert.equal((await launcher.evaluate(() => window.electronAPI.getRecentMeetings())).some((m) => m.id === meeting.id), false);
   assert.equal(await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id), null);
 
-  // 5. Schema: fully migrated, no mode or RAG tables, and the vector extension was
-  //    never loaded (AG-13, AG-14; phase 1 exit item 7).
+  // 5. Schema: fully migrated, no mode or RAG tables, no calendar columns, and the vector
+  //    extension was never loaded (AG-13, AG-14; phase 1 exit item 7).
   const schema = await app.evaluate((_electron, { file, repo }) => {
     // Playwright's main-process evaluate has no `require`; build one at the repo root.
     const req = process.getBuiltinModule('module').createRequire(`${repo}/package.json`);
@@ -205,6 +205,7 @@ test('a meeting is saved without any request, survives a restart, and stays dele
       return {
         version: db.pragma('user_version', { simple: true }),
         tables: db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((r) => r.name),
+        meetingColumns: db.prepare('PRAGMA table_info(meetings)').all().map((r) => r.name),
         loadedVecModules: Object.keys(process.getBuiltinModule('module')._cache).filter((k) => /sqlite-vec/.test(k)),
       };
     } finally {
@@ -218,6 +219,12 @@ test('a meeting is saved without any request, survives a restart, and stays dele
     assert.equal(schema.tables.includes(t), false, `${t} should not exist`);
   }
   assert.deepEqual(schema.tables.filter((t) => t.startsWith('vec_')), [], 'no vector tables');
+  // The retired calendar fields are not created on a fresh database (calendar was retired
+  // in AG-10/AG-16; the columns were removed later as residue).
+  assert.ok(schema.meetingColumns.includes('is_processed'), `meetings columns: ${schema.meetingColumns}`);
+  for (const c of ['calendar_event_id', 'source']) {
+    assert.equal(schema.meetingColumns.includes(c), false, `meetings.${c} should not exist`);
+  }
   assert.deepEqual(schema.loadedVecModules, [], 'sqlite-vec must not be loaded in the main process');
 });
 
