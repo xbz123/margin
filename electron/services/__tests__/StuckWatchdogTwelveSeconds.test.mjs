@@ -43,7 +43,7 @@ function extractMethodBody(src, methodName) {
   // Look for `private <name>(...): ...{` — the wire* helpers are private methods.
   // We use a generous signature pattern that matches the actual declarations.
   const sigPattern = new RegExp(
-    `private\\s+${methodName}\\s*\\([^)]*\\)\\s*:\\s*void\\s*\\{`,
+    `private\\s+${methodName}\\s*\\([^)]*\\)\\s*:\\s*\\(\\)\\s*=>\\s*void\\s*\\{`,
     'm'
   );
   const sigMatch = sigPattern.exec(src);

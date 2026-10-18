@@ -11,7 +11,7 @@ export interface MeetingAudioEvents {
   captureFailed(payload: { channel: string; message: string; terminal?: boolean }): void;
   systemPermissionDenied(message: string): void;
   deviceSelection(payload: { kind: 'input' | 'output'; requested: string | null; actual: string | null; fellBack: boolean; reason?: string }): void;
-  monitorCapture?(capture: Capture, channel: SttChannel): void;
+  monitorCapture?(capture: Capture, channel: SttChannel): () => void;
 }
 export type MeetingAudioSttPort<P extends ManagedSttProvider> = Pick<MeetingSttSession<P>, 'get' | 'ensure' | 'stopChannels'>;
 
@@ -35,6 +35,7 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
   private recoveryAttempts = 0;
   private micRecoveryAttempts = 0;
   private micRecovery: Promise<void> | null = null;
+  private readonly monitorCleanups = new WeakMap<Capture, () => void>();
 
   constructor(
     private readonly stt: MeetingAudioSttPort<P>,
@@ -99,9 +100,11 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
 
   private destroy(capture: Capture | null): Promise<void> {
     if (!capture) return this.released;
+    const cleanup = this.monitorCleanups.get(capture);
+    this.monitorCleanups.delete(capture);
     const release = (async () => {
       // Baseline health monitors must be disarmed before deferred native stop.
-      try { (capture as Capture & { __disarmStuckWatchdog?: () => void }).__disarmStuckWatchdog?.(); }
+      try { cleanup?.(); }
       finally { await capture.destroy(); }
     })();
     this.released = Promise.allSettled([this.released, release]).then(results => {
@@ -308,7 +311,7 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
         }, 1500);
       }
     });
-    this.events.monitorCapture?.(capture, channel);
+    if (this.events.monitorCapture) this.monitorCleanups.set(capture, this.events.monitorCapture(capture, channel));
   }
 
   private report(channel: string, message: string): void {

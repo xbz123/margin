@@ -361,8 +361,8 @@ export class AppState {
       systemPermissionDenied: message => this.sendSystemAudioPermissionDenied(message),
       deviceSelection: payload => this.broadcastDeviceSelection(payload),
       monitorCapture: (capture, channel) => {
-        if (channel === 'user') this.wireMicCapture(capture as MicrophoneCapture);
-        else this.wireSystemCapture(capture as SystemAudioCapture);
+        if (channel === 'user') return this.wireMicCapture(capture as MicrophoneCapture);
+        return this.wireSystemCapture(capture as SystemAudioCapture);
       },
     }, resolveMacScreenCaptureCapability);
   // Only this session's final transcripts are accepted while stopping.
@@ -936,7 +936,7 @@ export class AppState {
   }
 
   // Keep baseline health calibration; the pipeline owns PCM, format and recovery.
-  private wireSystemCapture(capture: SystemAudioCapture, label: string = ''): void {
+  private wireSystemCapture(capture: SystemAudioCapture, label: string = ''): () => void {
     const prefix = label ? `[Main] ${label} ` : '[Main] ';
     let chunkCount = 0;
     // Watchdog: if no chunks arrive within 8s of capture start, the most likely
@@ -1020,7 +1020,7 @@ export class AppState {
     let firstChunkAt = 0;
     let zerofillLatched = false;       // true once a non-zero peak has been observed (detector off)
     let zerofillTriggered = false;     // true once we've already broadcast — prevent repeats
-    // Synchronous disarm closure exposed on the capture instance so endMeeting()
+    // Synchronous disarm closure returned to the audio pipeline so endMeeting()
     // and abortStaleAudioInit() can cancel the stuck watchdog BEFORE stop()/destroy()
     // — without relying on the on('stop') event firing synchronously. Otherwise a
     // short meeting that produced 0 chunks can fire a false "system-audio-stuck"
@@ -1028,7 +1028,6 @@ export class AppState {
     const disarmStuckWatchdog = () => {
       if (stuckTimer) { clearTimeout(stuckTimer); stuckTimer = null; }
     };
-    (capture as any).__disarmStuckWatchdog = disarmStuckWatchdog;
     capture.on('start', armStuckWatchdog);
     capture.on('stop', disarmStuckWatchdog);
     // Inter-chunk gap tracking. Normal cadence is one 20ms chunk every 20ms
@@ -1101,9 +1100,10 @@ export class AppState {
         }
       }
     });
+    return disarmStuckWatchdog;
   }
 
-  private wireMicCapture(capture: MicrophoneCapture, label: string = ''): void {
+  private wireMicCapture(capture: MicrophoneCapture, label: string = ''): () => void {
     const prefix = label ? `[Main] ${label} ` : '[Main] ';
     let chunkCount = 0;
     // Mirror of the system-audio stuck watchdog: if the cpal callback never
@@ -1134,12 +1134,11 @@ export class AppState {
         });
       }, STUCK_WATCHDOG_MS);
     };
-    // Mirror wireSystemCapture: expose a synchronous disarm closure so the mic
+    // Mirror wireSystemCapture: return a synchronous disarm closure so the mic
     // stuck watchdog can be cancelled BEFORE stop()/destroy() during teardown.
     const disarmStuckWatchdog = () => {
       if (stuckTimer) { clearTimeout(stuckTimer); stuckTimer = null; }
     };
-    (capture as any).__disarmStuckWatchdog = disarmStuckWatchdog;
     capture.on('start', armStuckWatchdog);
     capture.on('stop', disarmStuckWatchdog);
     // Inter-chunk gap tracking — see wireSystemCapture for rationale.
@@ -1204,6 +1203,7 @@ export class AppState {
         }
       }
     });
+    return disarmStuckWatchdog;
   }
 
   /**
