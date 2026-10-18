@@ -94,14 +94,15 @@ const SEND_STUB = 'send-stub-reached';
 
 // Keep the real SDK request/retry machinery; replace only its HTTP transport.
 // A retryable response closes the scope before the SDK's retry timer can fire.
-for (const construction of ['constructor', 'key update']) {
+for (const construction of ['first configuration', 'key update']) {
   // Groq is no longer an answer target; its key may stay stored for speech only.
   for (const provider of ['openai', 'claude', 'deepseek']) {
     test(`${provider} ${construction}: SDK cannot resend after scope revocation`, async () => {
       const LLMHelper = loadBuiltLLMHelper();
-      const self = construction === 'constructor'
-        ? new LLMHelper(undefined, 'test-only', 'test-only', 'test-only', 'test-only')
-        : new LLMHelper();
+      const model = { groq: 'llama-3.3-70b-versatile', openai: 'gpt-5.4', claude: 'claude-sonnet-4-6', deepseek: 'deepseek-v4-flash' }[provider];
+      const protocol = provider === 'claude' ? 'messages' : 'chat-completions';
+      const self = new LLMHelper();
+      if (construction === 'first configuration') self.configureProvider({ provider, protocol, model }, 'test-only');
       if (construction === 'key update') {
         const setters = { groq: 'setGroqApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' };
         self[setters[provider]]('test-only');
@@ -119,8 +120,7 @@ for (const construction of ['constructor', 'key update']) {
           status: 500, headers: { 'content-type': 'application/json', 'retry-after-ms': '1' },
         });
       };
-      const model = { groq: 'llama-3.3-70b-versatile', openai: 'gpt-5.4', claude: 'claude-sonnet-4-6', deepseek: 'deepseek-v4-flash' }[provider];
-      self.setModel(`llm-target:${provider}:${provider === 'claude' ? 'messages' : 'chat-completions'}:${model}`);
+      self.setModel(`llm-target:${provider}:${protocol}:${model}`);
       const calls = { [provider]: () => self.chatWithGemini('SCOPE_SENTINEL') };
       await assert.rejects(calls[provider]);
       assert.equal(requests, 1, 'no hidden SDK replay after the scope closes');

@@ -521,42 +521,104 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: current });
 });
 
-test('AG31 env-only startup retains explicit keys, saved slots bind their own keys, and unreadable storage never falls back', () => {
-  for (const scenario of ['env-only', 'saved-target', 'removed-key', 'unreadable']) {
-    const disk = storage(), manager = disk.boot();
-    // Start without the old synthetic stored key for the env-only control.
-    if (scenario === 'env-only') manager.setOpenaiApiKey('');
-    if (scenario === 'saved-target' || scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...targets.openai,
+const ENV_KEYS = { GEMINI_API_KEY: 'synthetic-env-gemini', GROQ_API_KEY: 'synthetic-env-groq', OPENAI_API_KEY: 'synthetic-env-openai',
+  CLAUDE_API_KEY: 'synthetic-env-claude', DEEPSEEK_API_KEY: 'synthetic-env-deepseek' };
+const PROVIDERS = ['gemini', 'groq', 'openai', 'claude', 'deepseek'];
+// Compiles the production ProcessingHelper against the given credentials, LLMHelper class and process.
+function processingHelperClass(manager, LLMHelper, processValue) {
+  const module = { exports: {} };
+  vm.runInNewContext(compile(read('electron/ProcessingHelper.ts')), {
+    module, exports: module.exports, console: quiet, process: processValue,
+    require(id) {
+      if (id === './LLMHelper') return { LLMHelper };
+      if (id === './services/CredentialsManager') return { CredentialsManager: { getInstance: () => manager } };
+      if (id === '../src/types/llmTarget') return targetModule.exports;
+      if (id === 'electron') return { app: { isPackaged: true } };
+      return require(id);
+    },
+  });
+  return module.exports.ProcessingHelper;
+}
+
+test('AG31 startup ignores environment keys: never-saved, saved, removed and unreadable credentials use only saved keys', () => {
+  for (const scenario of ['never-saved', 'saved-differs', 'removed-key', 'unreadable']) {
+    const disk = storage();
+    // The never-saved control starts from a credentials file with no key at all.
+    if (scenario === 'never-saved') disk.files.set(disk.filename, Buffer.from('cipher:{}'));
+    const manager = disk.boot();
+    if (scenario === 'never-saved') for (const provider of PROVIDERS) assert.equal(manager.getProviderApiKey(provider), undefined);
+    if (scenario === 'saved-differs' || scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...targets.openai,
       protocol: 'responses', model: 'opaque', apiKey: 'synthetic-saved' }).ok, true);
-    if (scenario === 'saved-target') assert.equal(newGateway(manager).ok, true);
+    if (scenario === 'saved-differs') assert.equal(newGateway(manager).ok, true);
     if (scenario === 'removed-key') assert.equal(manager.setProviderConfiguration({ ...manager.getProviderConfigurations().openai, apiKey: '' }).ok, true);
     if (scenario === 'unreadable') { disk.setFault('decrypt'); manager.init(); }
-    const configured = [];
+    const configured = [], constructed = [];
     class Helper {
-      constructor() {}
+      constructor(...args) { constructed.push(args); }
       configureProvider(config, key) { configured.push([config.provider, key, config]); }
       configureGateway(config, key) { configured.push(['gateway', key, config]); }
       initModelVersionManager() { return Promise.resolve(); }
       setModel() {} setGenerationPolicy() {} setSttLanguage() {} setAiResponseLanguage() {}
     }
-    const module = { exports: {} };
-    vm.runInNewContext(compile(read('electron/ProcessingHelper.ts')), {
-      module, exports: module.exports, console: quiet, process: { env: { OPENAI_API_KEY: 'synthetic-env' } },
-      require(id) {
-        if (id === './LLMHelper') return { LLMHelper: Helper };
-        if (id === './services/CredentialsManager') return { CredentialsManager: { getInstance: () => manager } };
-        if (id === '../src/types/llmTarget') return targetModule.exports;
-        if (id === 'electron') return { app: { isPackaged: true } };
-        return require(id);
-      },
-    });
-    const processing = new module.exports.ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() {} }) });
-    processing.loadStoredCredentials();
-    const [, key, config] = configured.find(([provider]) => provider === 'openai');
-    assert.equal(key, scenario === 'env-only' ? 'synthetic-env' : scenario === 'saved-target' ? 'synthetic-saved' : undefined);
-    if (scenario === 'saved-target') { assert.equal(config.protocol, 'responses'); assert.equal(config.model, 'opaque'); }
+    const ProcessingHelper = processingHelperClass(manager, Helper, { env: { ...ENV_KEYS } });
+    new ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() {} }) }).loadStoredCredentials();
+    assert.deepEqual(constructed, [[]], 'LLMHelper is constructed without keys');
+    const official = configured.filter(([provider]) => provider !== 'gateway');
+    assert.deepEqual(official.map(([provider]) => provider).sort(), [...PROVIDERS].sort(), scenario);
+    for (const [provider, key] of official) {
+      assert.equal(key || undefined, scenario === 'saved-differs' && provider === 'openai' ? 'synthetic-saved' : undefined, `${scenario} ${provider}`);
+    }
+    const [, , config] = official.find(([provider]) => provider === 'openai');
+    if (scenario === 'saved-differs') { assert.equal(config.protocol, 'responses'); assert.equal(config.model, 'opaque'); }
     const gateways = configured.filter(([provider]) => provider === 'gateway');
-    assert.deepEqual(gateways.map(([, key, gateway]) => [key, gateway.baseUrl]), scenario === 'saved-target' ? [['synthetic-gateway', 'https://custom.invalid/v1']] : []);
+    assert.deepEqual(gateways.map(([, key, gateway]) => [key, gateway.baseUrl]), scenario === 'saved-differs' ? [['synthetic-gateway', 'https://custom.invalid/v1']] : []);
+  }
+});
+
+test('real ProcessingHelper construction and startup create no official client from environment keys', () => {
+  const os = require('node:os');
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'saved-keys-only-'));
+  const electronId = require.resolve('electron'), cachedElectron = require.cache[electronId];
+  const built = require.resolve('../../../dist-electron/electron/LLMHelper.js'), cachedHelper = require.cache[built];
+  delete require.cache[built];
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => userData, isPackaged: true } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require(built)); }
+  finally {
+    if (cachedElectron) require.cache[electronId] = cachedElectron; else delete require.cache[electronId];
+    if (cachedHelper) require.cache[built] = cachedHelper; else delete require.cache[built];
+  }
+  const variables = [...Object.keys(ENV_KEYS), 'OPENAI_BASE_URL', 'GROQ_BASE_URL', 'ANTHROPIC_BASE_URL', 'GOOGLE_GEMINI_BASE_URL'];
+  const previous = Object.fromEntries(variables.map(name => [name, process.env[name]]));
+  const clientFields = { gemini: ['client', 'apiKey'], groq: ['groqClient', 'groqApiKey'], openai: ['openaiClient', 'openaiApiKey'],
+    claude: ['claudeClient', 'claudeApiKey'], deepseek: ['deepseekClient', 'deepseekApiKey'] };
+  const usable = helper => PROVIDERS.filter(provider => helper[clientFields[provider][0]] || helper[clientFields[provider][1]]);
+  const helpers = [];
+  try {
+    for (const name of variables) delete process.env[name];
+    Object.assign(process.env, ENV_KEYS);
+    for (const scenario of ['never-saved', 'saved']) {
+      const disk = storage();
+      if (scenario === 'never-saved') disk.files.set(disk.filename, Buffer.from('cipher:{}'));
+      const manager = disk.boot();
+      if (scenario === 'saved') assert.equal(manager.setProviderConfiguration({ ...targets.openai, apiKey: 'synthetic-saved' }).ok, true);
+      const calls = [];
+      const ProcessingHelper = processingHelperClass(manager, LLMHelper, process);
+      const processing = new ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() { calls.push('initializeLLMs'); } }) });
+      const helper = processing.getLLMHelper(); helpers.push(helper);
+      assert.deepEqual(usable(helper), [], `${scenario}: construction creates no official client`);
+      assert.equal(helper.gatewayClients?.size ?? 0, 0);
+      // The real manager would fetch model lists with the key and start a background timer.
+      helper.initModelVersionManager = async () => { calls.push('initModelVersionManager'); };
+      processing.loadStoredCredentials();
+      assert.deepEqual(calls, ['initializeLLMs', 'initModelVersionManager']);
+      assert.deepEqual(usable(helper), scenario === 'saved' ? ['openai'] : [], `${scenario}: startup uses only saved keys`);
+      if (scenario === 'saved') { assert.equal(helper.openaiApiKey, 'synthetic-saved'); assert.equal(helper.openaiClient.apiKey, 'synthetic-saved'); }
+    }
+  } finally {
+    for (const helper of helpers) helper.scrubKeys();
+    for (const [name, value] of Object.entries(previous)) if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    fs.rmSync(userData, { recursive: true, force: true });
   }
 });
 

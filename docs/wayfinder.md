@@ -6,7 +6,7 @@
 
 **Current answer:** 音频监测清理于 2026-10-18 通过本地独立验收，见[记录](margin/evidence/audio-monitor-cleanup/README.md)。会议保存已通过 CI；新版未安装，实机签收未完成。
 
-**Current focus:** 已授权 Claude 串行实现回答配置 A、B，各步独立验收后提交。本次不推送、不触发 CI、不安装；见 PLAN §8。
+**Current focus:** 回答配置 A 已通过独立本地验收；提交固定基线后由 Claude 执行 B，B 仍须独立验收。本次不推送、不触发 CI、不安装；见 [回执](margin/evidence/answer-config/README.md) 与 PLAN §8。
 
 ## Waiting
 

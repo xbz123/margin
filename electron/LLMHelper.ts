@@ -510,17 +510,13 @@ export class LLMHelper {
     console.warn(`[ScopeFallback] ${scope} denied for cloud providers; omitting from context`);
   }
 
-  constructor(apiKey?: string, groqApiKey?: string, openaiApiKey?: string, claudeApiKey?: string, deepseekApiKey?: string) {
+  constructor() {
 
     // Initialize rate limiters
     this.rateLimiters = createProviderRateLimiters();
 
     // Initialize model version manager
     this.modelVersionManager = new ModelVersionManager();
-
-    for (const [provider, key] of Object.entries({ gemini: apiKey, groq: groqApiKey, openai: openaiApiKey, claude: claudeApiKey, deepseek: deepseekApiKey })) {
-      if (key) this.configureProvider(LLM_PRESETS[provider as LlmProvider], key);
-    }
   }
 
 

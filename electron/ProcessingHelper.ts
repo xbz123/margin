@@ -4,7 +4,7 @@ import { AppState } from "./main"
 import { LLMHelper } from "./LLMHelper"
 import { CredentialsManager } from "./services/CredentialsManager"
 import { app } from "electron"
-import { LLM_PRESETS, type LlmProvider } from '../src/types/llmTarget';
+import { LLM_PRESETS } from '../src/types/llmTarget';
 // import dotenv from "dotenv" // Removed static import
 
 if (!app.isPackaged) {
@@ -25,20 +25,8 @@ export class ProcessingHelper {
 
   constructor(appState: AppState) {
     this.appState = appState
-
-    // Try environment first (for development)
-    const apiKey = process.env.GEMINI_API_KEY
-    const groqApiKey = process.env.GROQ_API_KEY
-    const openaiApiKey = process.env.OPENAI_API_KEY
-    const claudeApiKey = process.env.CLAUDE_API_KEY
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY
-
-    // Allow initializing without key (will be loaded in loadStoredCredentials or via Settings)
-    if (!apiKey) {
-      console.warn("[ProcessingHelper] GEMINI_API_KEY not found in env. Will try CredentialsManager after ready.")
-    }
-
-    this.llmHelper = new LLMHelper(apiKey, groqApiKey, openaiApiKey, claudeApiKey, deepseekApiKey)
+    // API keys come only from the app's saved credentials (loadStoredCredentials or Settings), never the environment.
+    this.llmHelper = new LLMHelper()
   }
 
   /**
@@ -55,16 +43,8 @@ export class ProcessingHelper {
     }
 
     const configs = credManager.getProviderConfigurations();
-    const envKeys: Record<LlmProvider, string | undefined> = {
-      gemini: process.env.GEMINI_API_KEY, groq: process.env.GROQ_API_KEY, openai: process.env.OPENAI_API_KEY,
-      claude: process.env.CLAUDE_API_KEY, deepseek: process.env.DEEPSEEK_API_KEY,
-    };
-    const savedConfigs = credManager.getAllCredentials().providerConfigurations;
-    for (const config of Object.values(configs)) {
-      // An explicitly saved slot never borrows an environment key; official slots only reach official addresses.
-      const key = credManager.getProviderApiKey(config.provider) || (savedConfigs?.[config.provider] ? undefined : envKeys[config.provider]);
-      this.llmHelper.configureProvider(config, key);
-    }
+    // Only saved keys are used; official slots only reach official addresses.
+    for (const config of Object.values(configs)) this.llmHelper.configureProvider(config, credManager.getProviderApiKey(config.provider));
     for (const gateway of Object.values(credManager.getGateways())) this.llmHelper.configureGateway(gateway, credManager.getGatewayApiKey(gateway.id));
 
     // CRITICAL: Re-initialize IntelligenceManager now that keys are loaded

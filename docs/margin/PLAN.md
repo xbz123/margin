@@ -1485,6 +1485,14 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### 回答服务只用已保存 Key（2026-10-18，提交 A，本地验收通过）
+
+用户批准的回答配置方案分两步，A 由 Claude 实现：使用 API Key 的回答服务只用软件里保存的 Key，任何情况下都不读取 `GEMINI/GROQ/OPENAI/CLAUDE/DEEPSEEK_API_KEY` 环境变量；Codex 登录模式不变。`ProcessingHelper` 构造改为 `new LLMHelper()`，`loadStoredCredentials` 每个服务只取 `getProviderApiKey`；`LLMHelper` 构造不再接收 Key。`dotenv`、`blockedEnvironmentOverride`、STT、`CredentialsManager` 存储事务及 `configureProvider/Gateway/removeGateway` 内部不变；旧 setter 与旧 IPC 留给 B。测试：启动四场景（从未保存、保存值不同于环境、删除后、凭据不可读）都设 5 个环境 Key，只得到保存的 Key；真实 `ProcessingHelper` + `LLMHelper` 构造和启动不创建官方客户端；`ProviderGatewayPolicy`、`ScopeLocalFallback` 改为无参构造后 `configureProvider`。
+
+**对开发的影响**：不能再靠 `.env` 里的 `*_API_KEY` 调试回答服务，要在软件设置里输入 Key；`.env` 中的地址变量仍被 `blockedEnvironmentOverride` 拦截。B（启动与保存共用应用操作、清理旧入口）等 A 验收提交后再开始。
+
+**独立验收**：当前 Codex 核对生产 diff、全部构造消费者、测试和旧代码红灯记录，无阻断发现；完整门禁独立重跑最终 16/16、单元 1200/1200、回答 21/21、存储 3/3、启动 2/2、renderer 14/14。首次重跑仅旧 `MeetingPersistence` 测试的实时时钟断言失败：fixture 每次查询重新计算开始时间，可能跨毫秒边界；单独复核 9/9，未改代码的第二次完整运行通过。失败记录保留；详见[验收回执](evidence/answer-config/README.md)。未推送、未触发远端 CI、未安装，Windows 未运行。A 提交后按已授权方案由 Claude 执行 B，仍需独立验收。
+
 ### 音频监测清理接口（2026-10-18，本地验收通过）
 
 用户批准按[审阅第 3 项](REVIEW-2026-10-15.md)整理监测清理契约，不是修复已复现的误报。`monitorCapture` 返回清理函数，管线用 `WeakMap` 按 capture 保存，`destroy` 先清理并在 `finally` 中释放原生资源；阈值与平台行为不变。Claude 实现，本地 gates 16/16（单元 1199/1199），9 个内存变异被识别。CLI 汇报因模型不受支持而失败；用户另行授权当前 Codex 独立验收：核对 diff、消费者及原始日志，复跑相关测试 22/22，无阻断发现。本地验收通过，未推送、未安装；Windows 仅静态审阅。证据：[audio-monitor-cleanup](evidence/audio-monitor-cleanup/README.md)。后续回答配置 A、B 已授权均由 Claude 串行实现，每步经独立验收后提交；本次不推送或触发 CI。
