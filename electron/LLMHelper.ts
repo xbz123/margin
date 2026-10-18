@@ -519,27 +519,6 @@ export class LLMHelper {
     this.modelVersionManager = new ModelVersionManager();
   }
 
-
-  public setApiKey(apiKey: string) {
-    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).gemini, apiKey);
-  }
-
-  public setGroqApiKey(apiKey: string) {
-    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).groq, apiKey);
-  }
-
-  public setOpenaiApiKey(apiKey: string) {
-    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).openai, apiKey);
-  }
-
-  public setClaudeApiKey(apiKey: string) {
-    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).claude, apiKey);
-  }
-
-  public setDeepseekApiKey(apiKey: string) {
-    this.configureProvider((this.providerConfigurations ?? LLM_PRESETS).deepseek, apiKey);
-  }
-
   /**
    * Initialize the self-improving model version manager.
    * Should be called after all API keys are configured.
@@ -661,10 +640,6 @@ export class LLMHelper {
   // ---------------------------
 
   private currentModelId: string = GEMINI_FLASH_MODEL;
-
-  // Tripped when local Groq returns 401 (invalid key). Prevents re-trying every chat
-  // turn for the rest of the session — saves ~200-500ms per turn. Reset on key update
-  // via setGroqApiKey().
 
   public setModel(modelId: string) {
     // Map UI short codes to internal Model IDs
@@ -1263,20 +1238,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   public hasDeepseek(): boolean {
     return this.deepseekClient !== null;
-  }
-
-  public async switchToGemini(apiKey?: string, modelId?: string): Promise<void> {
-    if (modelId) {
-      this.geminiModel = modelId;
-    }
-
-    if (apiKey) {
-      this.setApiKey(apiKey);
-    } else if (!this.client) {
-      throw new Error("No Gemini API key provided and no existing client");
-    }
-
-    // console.log(`[LLMHelper] Switched to Gemini: ${this.geminiModel}`);
   }
 
   public async testConnection(): Promise<{ success: boolean; error?: string }> {

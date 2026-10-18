@@ -1,4 +1,4 @@
-import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from './llmTarget';
+import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from './llmTarget';
 import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
@@ -100,7 +100,6 @@ export interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "gateway" | "codex-cli" | "unavailable"; model: string }>
-  switchToGemini: (apiKey?: string, modelId?: string) => Promise<CredentialSaveResult>
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration) => Promise<{ success: boolean; error?: string }>
   testGatewayConnection: (id: string, expected?: GatewayConfiguration) => Promise<{ success: boolean; error?: string }>
 
@@ -110,11 +109,7 @@ export interface ElectronAPI {
   removeGateway: (id: string) => Promise<CredentialSaveResult>;
   getGenerationPolicy: () => Promise<GenerationPolicy>;
   setGenerationPolicy: (value: GenerationPolicy) => Promise<CredentialSaveResult>;
-  setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
-  setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>
-  setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>
-  setClaudeApiKey: (apiKey: string) => Promise<CredentialSaveResult>
-  setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>
+  removeProviderApiKey: (provider: AnswerProvider) => Promise<CredentialSaveResult>
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>
   getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; gateways?: GatewaySummary[]; providerAddressOverrides?: Partial<Record<LlmProvider, string>>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>

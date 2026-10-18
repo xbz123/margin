@@ -242,11 +242,9 @@ test('R3-1 real save handler refuses origin changes and failed atomic saves befo
   const disk = storage(), manager = disk.boot(), effects = [];
   const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
   const apply = () => effects.push('runtime');
-  const invoke = handler('set-provider-configuration', {
-    require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: apply, setGenerationPolicy: apply, getCurrentModelSelection: () => 'synthetic' }) },
-      getIntelligenceManager: () => ({ resetEngine: apply, initializeLLMs: apply }), sendModelChanged: apply },
-  });
+  const appState = { getIntelligenceManager: () => ({ resetEngine: apply, initializeLLMs: apply }), sendModelChanged: apply };
+  answerOperations(manager, { configureProvider: apply, setGenerationPolicy: apply, getCurrentModelSelection: () => 'synthetic' }, appState);
+  const invoke = handler('set-provider-configuration', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState });
   assert.equal((await invoke({}, { ...targets.openai, baseUrl: 'https://new.invalid/v1', apiKey: 'synthetic-new' })).ok, false, 'an official provider never takes a custom address');
   const config = { ...targets.openai, protocol: 'responses' };
   disk.setFault('rename');
@@ -434,8 +432,7 @@ test('a warm instance clears old memory and stays locked until a successful relo
 });
 
 const channels = [
-  'set-ai-response-language', 'switch-to-gemini', 'set-gemini-api-key', 'set-groq-api-key',
-  'set-openai-api-key', 'set-claude-api-key', 'set-deepseek-api-key', 'set-provider-preferred-model',
+  'set-ai-response-language', 'remove-provider-api-key', 'set-provider-preferred-model',
   'set-stt-provider', 'set-groq-stt-api-key', 'set-openai-stt-api-key', 'set-openai-stt-base-url',
   'set-groq-stt-model', 'set-soniox-api-key',
   'set-default-model', 'set-recognition-language', 'set-provider-configuration',
@@ -460,6 +457,8 @@ function handler(channel, context) {
   return expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent)
     && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, {
       persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId,
+      ANSWER_APPLY_WARNING: expression('electron/ipcHandlers.ts', node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent)
+        && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {}),
       ANSWER_PROVIDERS: targetModule.exports.ANSWER_PROVIDERS, sanitizeErrorMessage: message => message,
       boundedProviderError: expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'boundedProviderError', { sanitizeErrorMessage: message => message }),
       ...require('../../../dist-electron/electron/llm/llmTarget.js'), ...context });
@@ -472,12 +471,10 @@ test('AG31 complete configuration saves key, endpoint, protocol, model and match
   const previous = disk.files.get(disk.filename);
   const applied = [];
   const broadcast = [];
-  const invoke = handler('set-provider-configuration', {
-    require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    appState: { processingHelper: { getLLMHelper: () => ({ configureProvider: (...args) => applied.push(args), setGenerationPolicy() {},
-      getCurrentModelSelection: () => 'llm-target:openai:responses:opaque' }) }, sendModelChanged: value => broadcast.push(value),
-      getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) },
-  });
+  const appState = { sendModelChanged: value => broadcast.push(value), getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) };
+  answerOperations(manager, { configureProvider: (...args) => applied.push(args), setGenerationPolicy() {},
+    getCurrentModelSelection: () => 'llm-target:openai:responses:opaque' }, appState);
+  const invoke = handler('set-provider-configuration', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState });
   disk.setFault('rename');
   assert.equal((await invoke({}, value)).ok, false);
   assert.deepEqual(applied, []);
@@ -575,27 +572,64 @@ test('AG31 startup ignores environment keys: never-saved, saved, removed and unr
   }
 });
 
-test('real ProcessingHelper construction and startup create no official client from environment keys', () => {
+const CLIENT_FIELDS = { gemini: ['client', 'apiKey'], groq: ['groqClient', 'groqApiKey'], openai: ['openaiClient', 'openaiApiKey'],
+  claude: ['claudeClient', 'claudeApiKey'], deepseek: ['deepseekClient', 'deepseekApiKey'] };
+const ADDRESS_VARIABLES = ['OPENAI_BASE_URL', 'GROQ_BASE_URL', 'ANTHROPIC_BASE_URL', 'GOOGLE_GEMINI_BASE_URL'];
+const ANSWER_APPLY_WARNING = 'Saved, but the running service could not fully apply the change. Try restarting the application; if the problem persists, check the configuration.';
+
+// A freshly loaded built LLMHelper (userData in a temporary directory) with official address variables cleared.
+// cleanup() scrubs every instance, restores the variables and removes the directory.
+function realAnswerRuntime() {
   const os = require('node:os');
-  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'saved-keys-only-'));
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'answer-runtime-'));
   const electronId = require.resolve('electron'), cachedElectron = require.cache[electronId];
   const built = require.resolve('../../../dist-electron/electron/LLMHelper.js'), cachedHelper = require.cache[built];
   delete require.cache[built];
   require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => userData, isPackaged: true } } };
-  let LLMHelper;
-  try { ({ LLMHelper } = require(built)); }
+  let Base;
+  try { ({ LLMHelper: Base } = require(built)); }
   finally {
     if (cachedElectron) require.cache[electronId] = cachedElectron; else delete require.cache[electronId];
     if (cachedHelper) require.cache[built] = cachedHelper; else delete require.cache[built];
   }
-  const variables = [...Object.keys(ENV_KEYS), 'OPENAI_BASE_URL', 'GROQ_BASE_URL', 'ANTHROPIC_BASE_URL', 'GOOGLE_GEMINI_BASE_URL'];
-  const previous = Object.fromEntries(variables.map(name => [name, process.env[name]]));
-  const clientFields = { gemini: ['client', 'apiKey'], groq: ['groqClient', 'groqApiKey'], openai: ['openaiClient', 'openaiApiKey'],
-    claude: ['claudeClient', 'claudeApiKey'], deepseek: ['deepseekClient', 'deepseekApiKey'] };
-  const usable = helper => PROVIDERS.filter(provider => helper[clientFields[provider][0]] || helper[clientFields[provider][1]]);
-  const helpers = [];
+  const instances = [];
+  class LLMHelper extends Base { constructor() { super(); instances.push(this); } }
+  const previous = Object.fromEntries(ADDRESS_VARIABLES.map(name => [name, process.env[name]]));
+  for (const name of ADDRESS_VARIABLES) delete process.env[name];
+  return { LLMHelper, cleanup() {
+    for (const helper of instances) helper.scrubKeys();
+    for (const [name, value] of Object.entries(previous)) if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    fs.rmSync(userData, { recursive: true, force: true });
+  } };
+}
+
+// Real ProcessingHelper over the manager and LLMHelper class; the model-list manager is replaced by an async recorder.
+function startAnswerRuntime(manager, LLMHelper, appState, calls = []) {
+  const processing = new (processingHelperClass(manager, LLMHelper, process))(appState);
+  appState.processingHelper = processing;
+  processing.getLLMHelper().initModelVersionManager = async () => { calls.push('initModelVersionManager'); };
+  processing.loadStoredCredentials();
+  return processing.getLLMHelper();
+}
+
+// The production answer operations of ProcessingHelper over a real manager and an LLMHelper stand-in, each call recorded in order.
+function answerOperations(manager, llm, appState, calls = []) {
+  class Helper { constructor() { return llm; } }
+  const processing = new (processingHelperClass(manager, Helper, { env: {} }))(appState);
+  for (const name of ['applyStoredProvider', 'applyStoredGateway', 'refreshAnswerRuntime']) {
+    const operation = processing[name].bind(processing);
+    processing[name] = (...args) => { calls.push([name, ...args]); return operation(...args); };
+  }
+  appState.processingHelper = processing;
+  return calls;
+}
+
+const usable = helper => PROVIDERS.filter(provider => helper[CLIENT_FIELDS[provider][0]] || helper[CLIENT_FIELDS[provider][1]]);
+
+test('real ProcessingHelper construction and startup create no official client from environment keys', () => {
+  const runtime = realAnswerRuntime(), { LLMHelper } = runtime;
+  const previous = Object.fromEntries(Object.keys(ENV_KEYS).map(name => [name, process.env[name]]));
   try {
-    for (const name of variables) delete process.env[name];
     Object.assign(process.env, ENV_KEYS);
     for (const scenario of ['never-saved', 'saved']) {
       const disk = storage();
@@ -605,7 +639,7 @@ test('real ProcessingHelper construction and startup create no official client f
       const calls = [];
       const ProcessingHelper = processingHelperClass(manager, LLMHelper, process);
       const processing = new ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() { calls.push('initializeLLMs'); } }) });
-      const helper = processing.getLLMHelper(); helpers.push(helper);
+      const helper = processing.getLLMHelper();
       assert.deepEqual(usable(helper), [], `${scenario}: construction creates no official client`);
       assert.equal(helper.gatewayClients?.size ?? 0, 0);
       // The real manager would fetch model lists with the key and start a background timer.
@@ -616,9 +650,174 @@ test('real ProcessingHelper construction and startup create no official client f
       if (scenario === 'saved') { assert.equal(helper.openaiApiKey, 'synthetic-saved'); assert.equal(helper.openaiClient.apiKey, 'synthetic-saved'); }
     }
   } finally {
-    for (const helper of helpers) helper.scrubKeys();
     for (const [name, value] of Object.entries(previous)) if (value === undefined) delete process.env[name]; else process.env[name] = value;
-    fs.rmSync(userData, { recursive: true, force: true });
+    runtime.cleanup();
+  }
+});
+
+// Comparable running state: configurations, exact keys, addresses, client availability and gateway clients.
+const clientState = client => client ? { apiKey: client.apiKey ?? null, baseURL: client.baseURL ?? null } : null;
+const runtimeState = helper => ({
+  configurations: plain(helper.providerConfigurations), gateways: plain(helper.gateways ?? {}), blocked: plain(helper.blockedProviders ?? {}),
+  keys: Object.fromEntries(PROVIDERS.map(provider => [provider, helper[CLIENT_FIELDS[provider][1]] ?? null])),
+  clients: Object.fromEntries(PROVIDERS.map(provider => [provider, clientState(helper[CLIENT_FIELDS[provider][0]])])),
+  gatewayClients: Object.fromEntries([...(helper.gatewayClients ?? new Map())].map(([id, client]) => [id, clientState(client)])),
+});
+const GATEWAY_SAVE = { protocol: 'chat-completions', baseUrl: 'https://custom.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' };
+
+test('B answer save entries apply through the shared ProcessingHelper operations in their own order without warnings', async () => {
+  const disk = storage(), manager = disk.boot(), calls = [];
+  const llm = { configureProvider: (config, key) => calls.push(['configureProvider', config.provider, key]),
+    configureGateway: (config, key) => calls.push(['configureGateway', config.id, key]), removeGateway: id => calls.push(['removeGateway', id]),
+    setGenerationPolicy: () => calls.push(['setGenerationPolicy']), getCurrentModelSelection: () => 'synthetic-selection' };
+  const appState = { getIntelligenceManager: () => ({ resetEngine: () => calls.push(['resetEngine']), initializeLLMs: () => calls.push(['initializeLLMs']) }),
+    sendModelChanged: value => calls.push(['sendModelChanged', value]) };
+  answerOperations(manager, llm, appState, calls);
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+  const refresh = [['refreshAnswerRuntime'], ['resetEngine'], ['initializeLLMs'], ['sendModelChanged', 'synthetic-selection']];
+  const run = async (channel, ...args) => {
+    calls.length = 0;
+    const result = plain(await handler(channel, context)({}, ...args));
+    assert.equal(result.ok, true, channel); assert.equal('warning' in result, false, channel);
+    return { result, calls: plain(calls) };
+  };
+  assert.deepEqual((await run('set-provider-configuration', { ...targets.openai, apiKey: 'synthetic-openai' })).calls,
+    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', 'synthetic-openai'], ['setGenerationPolicy'], ...refresh]);
+  const created = await run('set-gateway-configuration', GATEWAY_SAVE), id = created.result.gatewayId;
+  assert.deepEqual(created.calls, [['applyStoredGateway', id], ['configureGateway', id, 'synthetic-gateway'], ['setGenerationPolicy'], ...refresh]);
+  assert.deepEqual((await run('set-provider-preferred-model', 'openai', 'gpt-5.5')).calls,
+    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', 'synthetic-openai'], ['sendModelChanged', 'synthetic-selection']]);
+  assert.deepEqual((await run('remove-provider-api-key', 'openai')).calls,
+    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', ''], ...refresh]);
+  assert.deepEqual((await run('remove-gateway', id)).calls, [['removeGateway', id], ...refresh]);
+  const restarted = disk.boot();
+  assert.equal(restarted.getProviderApiKey('openai') || undefined, undefined);
+  assert.deepEqual(plain(restarted.getGateways()), {});
+});
+
+test('remove-provider-api-key refuses anything but the four answer providers with no storage or runtime change', async () => {
+  const disk = storage(), manager = disk.boot(), calls = [];
+  assert.equal(manager.setGroqApiKey('synthetic-groq').ok, true);
+  const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
+  const llm = { configureProvider: () => calls.push('configureProvider'), getCurrentModelSelection: () => 'synthetic' };
+  const appState = { getIntelligenceManager: () => ({ resetEngine: () => calls.push('resetEngine'), initializeLLMs: () => calls.push('initializeLLMs') }),
+    sendModelChanged: () => calls.push('sendModelChanged') };
+  answerOperations(manager, llm, appState, calls);
+  const remove = handler('remove-provider-api-key', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState });
+  for (const provider of ['groq', 'unknown', 'OPENAI', 'constructor', null, { provider: 'openai' }, ['openai'], 1]) {
+    assert.deepEqual(plain(await remove({}, provider)), { ok: false, code: 'write_failed', message: 'Credentials could not be saved. The previous credentials were kept.' }, JSON.stringify(provider));
+  }
+  assert.deepEqual(calls, []);
+  assert.deepEqual(plain(manager.getAllCredentials()), before);
+  assert.deepEqual(disk.files.get(disk.filename), cipher);
+  assert.equal(disk.boot().getGroqApiKey(), 'synthetic-groq');
+});
+
+test('remove-provider-api-key with a failed storage write keeps the running key and client', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage(), manager = disk.boot(), changed = [];
+    assert.equal(manager.setProviderConfiguration({ ...targets.openai, apiKey: 'synthetic-openai' }).ok, true);
+    const appState = { getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }), sendModelChanged: value => changed.push(value) };
+    const live = startAnswerRuntime(manager, runtime.LLMHelper, appState);
+    const client = live.openaiClient, cipher = disk.files.get(disk.filename);
+    assert.equal(client.apiKey, 'synthetic-openai');
+    disk.setFault('rename');
+    const result = await handler('remove-provider-api-key', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState })({}, 'openai');
+    assert.equal(result.ok, false); assert.equal(result.code, 'write_failed');
+    assert.equal(live.openaiApiKey, 'synthetic-openai'); assert.equal(live.openaiClient, client);
+    assert.deepEqual(changed, []);
+    assert.deepEqual(disk.files.get(disk.filename), cipher);
+    assert.equal(manager.getProviderApiKey('openai'), 'synthetic-openai');
+  } finally { runtime.cleanup(); }
+});
+
+test('after every answer save or removal the running service equals a cold start from the same saved file', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage();
+    disk.files.set(disk.filename, Buffer.from('cipher:{}'));
+    const manager = disk.boot(), changed = [];
+    const appState = { getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }), sendModelChanged: value => changed.push(value) };
+    const live = startAnswerRuntime(manager, runtime.LLMHelper, appState);
+    const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+    let gatewayId;
+    const steps = [
+      ['save openai', () => handler('set-provider-configuration', context)({}, { ...targets.openai, apiKey: 'synthetic-openai' }), () => {
+        assert.deepEqual(clientState(live.openaiClient), { apiKey: 'synthetic-openai', baseURL: 'https://api.openai.com/v1' });
+      }],
+      ['save claude', () => handler('set-provider-configuration', context)({}, { ...targets.claude, apiKey: 'synthetic-claude' }), () => {
+        assert.deepEqual(clientState(live.claudeClient), { apiKey: 'synthetic-claude', baseURL: 'https://api.anthropic.com' });
+      }],
+      ['save gateway', async () => { const result = await handler('set-gateway-configuration', context)({}, GATEWAY_SAVE); gatewayId = result.gatewayId; return result; }, () => {
+        assert.deepEqual(clientState(live.gatewayClients.get(gatewayId)), { apiKey: 'synthetic-gateway', baseURL: 'https://custom.invalid/v1' });
+      }],
+      ['remove openai key', () => handler('remove-provider-api-key', context)({}, 'openai'), () => {
+        assert.equal(live.openaiClient, null); assert.equal(live.openaiApiKey, null);
+        assert.equal(live.claudeClient.apiKey, 'synthetic-claude'); assert.equal(live.gatewayClients.get(gatewayId).apiKey, 'synthetic-gateway');
+      }],
+      ['remove gateway', () => handler('remove-gateway', context)({}, gatewayId), () => {
+        assert.equal(live.gatewayClients.has(gatewayId), false); assert.deepEqual(plain(live.gateways), {});
+        assert.equal(live.claudeClient.apiKey, 'synthetic-claude');
+      }],
+    ];
+    for (const [step, operate, expect] of steps) {
+      const before = changed.length;
+      const result = plain(await operate());
+      assert.equal(result.ok, true, step); assert.equal('warning' in result, false, step);
+      assert.equal(changed.length, before + 1, `${step}: windows are told the current selection`);
+      expect();
+      const cold = startAnswerRuntime(disk.boot(), runtime.LLMHelper, { getIntelligenceManager: () => ({ initializeLLMs() {} }) });
+      assert.deepEqual(runtimeState(cold), runtimeState(live), `${step}: running state equals a cold start`);
+    }
+  } finally { runtime.cleanup(); }
+});
+
+test('a committed answer save that cannot be applied returns the new warning without the key', async () => {
+  const disk = storage(), manager = disk.boot();
+  const id = newGateway(manager).gatewayId;
+  const fail = () => { throw Error('synthetic-secret-key rejected'); };
+  const appState = { processingHelper: { getLLMHelper: () => ({ setGenerationPolicy() {}, removeGateway: fail, getCurrentModelSelection: () => 'synthetic' }),
+    applyStoredProvider: fail, applyStoredGateway: fail, refreshAnswerRuntime() {} }, sendModelChanged() {} };
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+  for (const [channel, ...args] of [['remove-provider-api-key', 'openai'], ['set-provider-configuration', { ...targets.openai, apiKey: 'synthetic-secret-key' }],
+    ['set-gateway-configuration', { ...GATEWAY_SAVE, apiKey: 'synthetic-secret-key' }], ['set-provider-preferred-model', 'openai', 'gpt-5.5'], ['remove-gateway', id]]) {
+    const result = plain(await handler(channel, context)({}, ...args));
+    assert.equal(result.ok, true, channel);
+    assert.equal(result.warning, ANSWER_APPLY_WARNING, channel);
+    assert.doesNotMatch(JSON.stringify(result), /synthetic-secret-key/, channel);
+  }
+  assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-secret-key', 'the save itself was committed');
+});
+
+test('a session model follows each answer save by the selection rules and is never reset to the default', async () => {
+  const defaultModel = 'llm-target:claude:messages:claude-sonnet-4-6', session = 'llm-target:openai:chat-completions:gpt-5.4';
+  for (const [change, operate, expected] of [
+    ['another provider', context => handler('set-provider-configuration', context)({}, { ...targets.claude, apiKey: 'synthetic-claude-new' }), session],
+    ['the current provider', context => handler('set-provider-configuration', context)({}, { ...targets.openai, protocol: 'responses', apiKey: 'synthetic-openai-new' }),
+      'llm-target:openai:responses:gpt-5.4'],
+    ['the current provider key removed', context => handler('remove-provider-api-key', context)({}, 'openai'), session],
+    ['the preferred model', context => handler('set-provider-preferred-model', context)({}, 'openai', 'gpt-5.5'), 'llm-target:openai:chat-completions:gpt-5.5'],
+  ]) {
+    const runtime = realAnswerRuntime();
+    try {
+      const disk = storage(), manager = disk.boot();
+      assert.equal(manager.setProviderConfiguration({ ...targets.openai, apiKey: 'synthetic-openai' }).ok, true);
+      assert.equal(manager.setProviderConfiguration({ ...targets.claude, apiKey: 'synthetic-claude' }).ok, true);
+      assert.equal(manager.setDefaultModel(defaultModel).ok, true);
+      const appState = { getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }), sendModelChanged() {}, modelSelectorWindowHelper: { hideWindow() {} } };
+      const live = startAnswerRuntime(manager, runtime.LLMHelper, appState);
+      assert.equal(live.getCurrentModelSelection(), defaultModel);
+      const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+      assert.equal((await handler('set-model', context)({}, session)).success, true);
+      assert.equal(live.getCurrentModelSelection(), session);
+      const selections = [], setModel = live.setModel.bind(live);
+      live.setModel = value => { selections.push(value); return setModel(value); };
+      const result = plain(await operate(context));
+      assert.equal(result.ok, true, change); assert.equal('warning' in result, false, change);
+      assert.equal(live.getCurrentModelSelection(), expected, change);
+      assert.equal(selections.includes(defaultModel), false, `${change}: no setModel(default)`);
+    } finally { runtime.cleanup(); }
   }
 });
 
@@ -676,7 +875,8 @@ test('all saving IPC handlers return storage failure before runtime, events or w
     const llm = new Proxy({}, { get: (_, key) => ['validateGenerationTargets', 'getCodexCliConfig', 'getGroqFastTextMode', 'getCurrentModelSelection'].includes(key)
       ? () => key === 'getCodexCliConfig' ? codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG : key === 'getCurrentModelSelection' ? 'gpt-5.4' : undefined : effect });
     const appState = {
-      processingHelper: { getLLMHelper: () => llm }, getIntelligenceManager: () => ({ resetEngine: effect, initializeLLMs: effect }),
+      processingHelper: { getLLMHelper: () => llm, applyStoredProvider: effect, applyStoredGateway: effect, refreshAnswerRuntime: effect },
+      getIntelligenceManager: () => ({ resetEngine: effect, initializeLLMs: effect }),
       reconfigureSttProvider: effect, sendModelChanged: effect,
       modelSelectorWindowHelper: { hideWindow: effect },
       setRecognitionLanguage: () => failure,
@@ -684,7 +884,7 @@ test('all saving IPC handlers return storage failure before runtime, events or w
     const result = await handler(channel, {
       appState, BrowserWindow: { getAllWindows: () => [{ isDestroyed: () => false, webContents: { send: effect } }] },
       require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    })({}, ...(channel === 'set-provider-preferred-model' ? ['gemini', 'synthetic-model'] : ['synthetic-value']));
+    })({}, ...(channel === 'set-provider-preferred-model' ? ['gemini', 'synthetic-model'] : channel === 'remove-provider-api-key' ? ['openai'] : ['synthetic-value']));
     assert.deepEqual(plain(result), failure, channel);
     assert.deepEqual(effects, [], channel);
   }
@@ -699,22 +899,6 @@ test('ProviderCard stops model Fetch while complete configuration is unsaved', a
   });
   await callback();
   assert.equal(fetched, false);
-});
-
-test('IPC warns safely after a committed save fails to apply, and cancellation is not a write failure', async () => {
-  const applied = () => { throw Error('synthetic-key-must-not-leak'); };
-  const context = {
-    require: () => ({ CredentialsManager: { getInstance: () => new Proxy({}, { get: () => () => ({ ok: true }) }) } }),
-    appState: { processingHelper: { getLLMHelper: () => new Proxy({}, { get: () => applied }) } },
-  };
-  for (const channel of ['set-openai-api-key', 'switch-to-gemini']) {
-    const result = await handler(channel, context)({}, 'synthetic-key');
-    assert.equal(result.ok, true, channel);
-    assert.match(result.warning, /Saved/);
-    assert.doesNotMatch(result.warning, /synthetic-key/);
-  }
-  const unsaved = await handler('switch-to-gemini', context)({}, undefined);
-  assert.match(unsaved.warning, /No credentials were saved/);
 });
 
 test('recognition language applies only after its real manager setter succeeds', () => {
@@ -739,9 +923,7 @@ test('recognition language applies only after its real manager setter succeeds',
 
 const apiChannels = {
   setProviderConfiguration: 'set-provider-configuration',
-  setAiResponseLanguage: 'set-ai-response-language', switchToGemini: 'switch-to-gemini',
-  setGeminiApiKey: 'set-gemini-api-key', setGroqApiKey: 'set-groq-api-key', setOpenaiApiKey: 'set-openai-api-key',
-  setClaudeApiKey: 'set-claude-api-key', setDeepseekApiKey: 'set-deepseek-api-key',
+  setAiResponseLanguage: 'set-ai-response-language', removeProviderApiKey: 'remove-provider-api-key',
   setProviderPreferredModel: 'set-provider-preferred-model', setSttProvider: 'set-stt-provider',
   setGroqSttApiKey: 'set-groq-stt-api-key', setOpenAiSttApiKey: 'set-openai-stt-api-key',
   setOpenAiSttBaseUrl: 'set-openai-stt-base-url',
@@ -855,7 +1037,7 @@ test('renderer cannot report rollback when default-model refresh fails after a c
 });
 
 test('all four answer-provider Save/Remove branches use their matching endpoint and show failure without clearing input', async () => {
-  for (const [provider, method] of Object.entries({ gemini: 'setGeminiApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' })) {
+  for (const provider of ['gemini', 'openai', 'claude', 'deepseek']) {
     for (const name of ['handleSaveKey', 'handleRemoveKey']) {
       const calls = [];
       const subject = ui('src/components/settings/AIProvidersSettings.tsx', name, failure, {
@@ -864,7 +1046,7 @@ test('all four answer-provider Save/Remove branches use their matching endpoint 
       const keep = () => assert.fail('failed input was cleared');
       await subject.fn(...(name === 'handleSaveKey' ? [provider, 'synthetic-key', keep] : [provider, keep]));
       assert.deepEqual(plain(calls), name === 'handleSaveKey'
-        ? [['setProviderConfiguration', plain({ ...targets[provider], apiKey: 'synthetic-key' })]] : [[method, '']]);
+        ? [['setProviderConfiguration', plain({ ...targets[provider], apiKey: 'synthetic-key' })]] : [['removeProviderApiKey', provider]]);
       assert.equal(subject.changes.has('setHasStoredKey'), false);
       assert.equal(subject.changes.get('setCredentialNotice'), failure.message);
     }
@@ -909,11 +1091,9 @@ test('storage failures cross the real manager, IPC, preload and renderer without
     disk.setFault(loading ? undefined : fault);
     const before = disk.files.get(disk.filename);
     let effects = 0;
-    const callback = handler('set-provider-configuration', {
-      require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-      appState: { processingHelper: { getLLMHelper: () => ({ configureProvider() { effects++; } }) },
-        getIntelligenceManager: () => ({ resetEngine() { effects++; }, initializeLLMs() { effects++; } }) },
-    });
+    const appState = { getIntelligenceManager: () => ({ resetEngine() { effects++; }, initializeLLMs() { effects++; } }), sendModelChanged() { effects++; } };
+    const operations = answerOperations(manager, { configureProvider() { effects++; }, setGenerationPolicy() { effects++; }, getCurrentModelSelection: () => 'synthetic' }, appState);
+    const callback = handler('set-provider-configuration', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState });
     const bridge = expression('electron/preload.ts', node => ts.isArrowFunction(node) && ts.isPropertyAssignment(node.parent)
       && node.parent.name.getText() === 'setProviderConfiguration', { ipcRenderer: { invoke: (channel, ...args) => {
         assert.equal(channel, 'set-provider-configuration'); return callback({}, ...args);
@@ -924,6 +1104,7 @@ test('storage failures cross the real manager, IPC, preload and renderer without
     const result = await subject.fn('openai', 'synthetic-new', () => assert.fail('failed input was cleared'));
     assert.equal(result.ok, false, fault);
     assert.equal(effects, 0, fault);
+    assert.deepEqual(operations, [], fault);
     assert.deepEqual(disk.files.get(disk.filename), before, fault);
     assert.equal(subject.changes.has('setHasStoredKey'), false, fault);
     assert.equal(subject.changes.get('setSavedStatus').openai, false, fault);
@@ -999,10 +1180,9 @@ test('S44 per-target reasoning saves through the real handler, survives restart,
     const base = `http://127.0.0.1:${server.address().port}/v1`;
     const disk = storage(), manager = disk.boot(), helper = new LLMHelper();
     helper.getProviderScopePolicy = () => ({});
-    const context = {
-      require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-      appState: { processingHelper: { getLLMHelper: () => helper }, sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) },
-    };
+    const appState = { sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) };
+    answerOperations(manager, helper, appState);
+    const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
     const save = handler('set-gateway-configuration', context);
     const created = await save({}, { protocol: 'chat-completions', baseUrl: base, model: 'opaque', contextWindowTokens: 4096, apiKey: 'synthetic-only' });
     assert.equal(created.ok, true);
@@ -1064,8 +1244,9 @@ test('S45 gateway save and removal handlers apply only after a committed write a
   const disk = storage(), manager = disk.boot(), effects = [];
   const helper = { configureGateway: (config, key) => effects.push(['gateway', config.id, key]), removeGateway: id => effects.push(['remove', id]),
     configureProvider: () => effects.push(['official']), setGenerationPolicy() {}, getCurrentModelSelection: () => 'synthetic' };
-  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }),
-    appState: { processingHelper: { getLLMHelper: () => helper }, sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) } };
+  const appState = { sendModelChanged() {}, getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) };
+  answerOperations(manager, helper, appState);
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
   const save = handler('set-gateway-configuration', context), remove = handler('remove-gateway', context);
   const value = { protocol: 'messages', baseUrl: 'https://custom.invalid', model: 'opaque', apiKey: 'synthetic-gateway' };
   disk.setFault('rename');

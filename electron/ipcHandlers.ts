@@ -40,6 +40,9 @@ const SPEECH_ACTION_CHANNELS: Record<string, [SpeechActionKind, number]> = {
   'generate-code-hint': ['code-hint', 2], 'generate-brainstorm': ['brainstorm', 2],
 };
 
+// Answer configuration saves that committed but could not be applied to the running service.
+const ANSWER_APPLY_WARNING = 'Saved, but the running service could not fully apply the change. Try restarting the application; if the problem persists, check the configuration.';
+
 export function initializeIpcHandlers(appState: AppState): void {
   const validateImages = (value: unknown): string[] | undefined => {
     if (value === undefined) return undefined;
@@ -1055,26 +1058,30 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('switch-to-gemini', async (_, apiKey?: string, modelId?: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(
-      () => apiKey ? CredentialsManager.getInstance().setGeminiApiKey(apiKey) : { ok: true },
-      () => appState.processingHelper.getLLMHelper().switchToGemini(apiKey, modelId),
-      apiKey ? undefined : 'No credentials were saved. The provider switch could not be applied. Please try again.',
-    );
-  });
-
   safeHandle('set-provider-configuration', async (_, value: ProviderConfigurationSave) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     const manager = CredentialsManager.getInstance();
     return persistCredentials(() => manager.setProviderConfiguration(value), () => {
-      const helper = appState.processingHelper.getLLMHelper();
-      helper.configureProvider(manager.getProviderConfigurations()[value.provider], manager.getProviderApiKey(value.provider));
-      helper.setGenerationPolicy(manager.getGenerationPolicy());
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-      appState.sendModelChanged(helper.getCurrentModelSelection());
-    });
+      appState.processingHelper.applyStoredProvider(value.provider);
+      appState.processingHelper.getLLMHelper().setGenerationPolicy(manager.getGenerationPolicy());
+      appState.processingHelper.refreshAnswerRuntime();
+    }, ANSWER_APPLY_WARNING);
+  });
+
+  // Removing an answer key stores an empty key through that provider's own storage method.
+  safeHandle('remove-provider-api-key', async (_, provider: unknown) => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    const manager = CredentialsManager.getInstance();
+    return persistCredentials(() => {
+      if (typeof provider !== 'string' || !(ANSWER_PROVIDERS as readonly string[]).includes(provider)) throw new Error('Unknown answer provider');
+      if (provider === 'gemini') return manager.setGeminiApiKey('');
+      if (provider === 'openai') return manager.setOpenaiApiKey('');
+      if (provider === 'claude') return manager.setClaudeApiKey('');
+      return manager.setDeepseekApiKey('');
+    }, () => {
+      appState.processingHelper.applyStoredProvider(provider as LlmProvider);
+      appState.processingHelper.refreshAnswerRuntime();
+    }, ANSWER_APPLY_WARNING);
   });
 
   // Gateways have their own identity and key; saving or removing one never touches an official provider.
@@ -1083,13 +1090,10 @@ export function initializeIpcHandlers(appState: AppState): void {
     const manager = CredentialsManager.getInstance();
     let gatewayId: string | undefined;
     const result = await persistCredentials(() => { const saved = manager.setGatewayConfiguration(value); gatewayId = saved.gatewayId; return saved; }, () => {
-      const helper = appState.processingHelper.getLLMHelper();
-      helper.configureGateway(manager.getGateways()[gatewayId!], manager.getGatewayApiKey(gatewayId!));
-      helper.setGenerationPolicy(manager.getGenerationPolicy());
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-      appState.sendModelChanged(helper.getCurrentModelSelection());
-    });
+      appState.processingHelper.applyStoredGateway(gatewayId!);
+      appState.processingHelper.getLLMHelper().setGenerationPolicy(manager.getGenerationPolicy());
+      appState.processingHelper.refreshAnswerRuntime();
+    }, ANSWER_APPLY_WARNING);
     return result.ok ? { ...result, gatewayId } : result;
   });
 
@@ -1097,12 +1101,9 @@ export function initializeIpcHandlers(appState: AppState): void {
     const { CredentialsManager } = require('./services/CredentialsManager');
     const manager = CredentialsManager.getInstance();
     return persistCredentials(() => manager.removeGateway(id), () => {
-      const helper = appState.processingHelper.getLLMHelper();
-      helper.removeGateway(id);
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-      appState.sendModelChanged(helper.getCurrentModelSelection());
-    });
+      appState.processingHelper.getLLMHelper().removeGateway(id);
+      appState.processingHelper.refreshAnswerRuntime();
+    }, ANSWER_APPLY_WARNING);
   });
 
   safeHandle('get-generation-policy', async () => require('./services/CredentialsManager').CredentialsManager.getInstance().getGenerationPolicy());
@@ -1110,52 +1111,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     const manager = require('./services/CredentialsManager').CredentialsManager.getInstance();
     const helper = appState.processingHelper.getLLMHelper();
     return persistCredentials(() => { helper.validateGenerationTargets(helper.getCurrentModelSelection(), value); return manager.setGenerationPolicy(value, helper.getCodexCliConfig(), helper.getGroqFastTextMode()); }, () => helper.setGenerationPolicy(manager.getGenerationPolicy()));
-  });
-
-  // Dedicated API key setters (for Settings UI Save buttons)
-  safeHandle('set-gemini-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setGeminiApiKey(apiKey), () => {
-      appState.processingHelper.getLLMHelper().setApiKey(apiKey);
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-    });
-  });
-
-  safeHandle('set-groq-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setGroqApiKey(apiKey), () => {
-      appState.processingHelper.getLLMHelper().setGroqApiKey(apiKey);
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-    });
-  });
-
-  safeHandle('set-openai-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setOpenaiApiKey(apiKey), () => {
-      appState.processingHelper.getLLMHelper().setOpenaiApiKey(apiKey);
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-    });
-  });
-
-  safeHandle('set-claude-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setClaudeApiKey(apiKey), () => {
-      appState.processingHelper.getLLMHelper().setClaudeApiKey(apiKey);
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-    });
-  });
-
-  safeHandle('set-deepseek-api-key', async (_, apiKey: string) => {
-    const { CredentialsManager } = require('./services/CredentialsManager');
-    return persistCredentials(() => CredentialsManager.getInstance().setDeepseekApiKey(apiKey), () => {
-      appState.processingHelper.getLLMHelper().setDeepseekApiKey(apiKey);
-      appState.getIntelligenceManager().resetEngine();
-      appState.getIntelligenceManager().initializeLLMs();
-    });
   });
 
   // Get stored API keys (masked for UI display)
@@ -1280,10 +1235,9 @@ export function initializeIpcHandlers(appState: AppState): void {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const manager = CredentialsManager.getInstance();
       return persistCredentials(() => manager.setPreferredModel(provider, modelId), () => {
-        const helper = appState.processingHelper.getLLMHelper();
-        helper.configureProvider(manager.getProviderConfigurations()[provider], manager.getProviderApiKey(provider));
-        appState.sendModelChanged(helper.getCurrentModelSelection());
-      });
+        appState.processingHelper.applyStoredProvider(provider);
+        appState.sendModelChanged(appState.processingHelper.getLLMHelper().getCurrentModelSelection());
+      }, ANSWER_APPLY_WARNING);
     },
   );
 

@@ -118,8 +118,8 @@ test.before(async () => {
   mainPid = app.process().pid;
   const launcher = await windowWithQuery(app, 'window=launcher');
   await launcher.waitForLoadState('domcontentloaded');
-  const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_KEY);
-  assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
+  const keyResult = await launcher.evaluate((apiKey) => window.electronAPI.setProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', apiKey }), FAKE_KEY);
+  assert.deepEqual(keyResult, { ok: true }, `setProviderConfiguration failed: ${JSON.stringify(keyResult)}`);
   const created = await launcher.evaluate(config => window.electronAPI.setGatewayConfiguration(config),
     { protocol: 'chat-completions', baseUrl: mock.baseURL, model: MODEL, apiKey: FAKE_KEY });
   assert.equal(created.ok, true);
