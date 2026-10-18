@@ -14,7 +14,8 @@
     "AG-41b",
     "AG-42",
     "AG-50",
-    "AG-51"
+    "AG-51",
+    "answer-config"
   ],
   "scanRoots": [
     "electron",
@@ -39,6 +40,7 @@
     "native-module/package-lock.json"
   ],
   "rules": [
+    { "ticket": "answer-config", "kind": "symbol", "value": "switchToGemini" },
     { "ticket": "AG-51", "kind": "symbol", "value": "skills:list" },
     { "ticket": "AG-51", "kind": "symbol", "value": "skills:open-folder" },
     { "ticket": "AG-51", "kind": "symbol", "value": "skillsRefresh" },

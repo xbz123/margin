@@ -1485,6 +1485,12 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### 回答配置启动与保存共用应用操作（2026-10-18，提交 B，本地验收通过）
+
+基线 A 提交 `aff0c66e`，Claude 实现。`ProcessingHelper` 新增 `applyStoredProvider`、`applyStoredGateway`、`refreshAnswerRuntime`；启动改为循环调用前两者，后续初始化、模型版本、默认模型及生成策略/语言的顺序和凭据不可读分支不变。保存服务/网关、删除网关、偏好模型和新增 `remove-provider-api-key` 按方案顺序调用这些操作（偏好模型只应用并通知，不重置引擎；生成策略仍在入口内），应用失败统一返回新的英文 `Saved, but the running service could not fully apply the change…` 警告；`persistCredentials` 默认文字、语言与 STT 警告不变。`remove-provider-api-key` 只接受 gemini/openai/claude/deepseek，其余输入 `write_failed` 且无副作用，合法时用原存储方法写空 Key。删除 `set-{gemini,groq,openai,claude,deepseek}-api-key`、`switch-to-gemini` 六个 IPC 及其 preload/d.ts 声明，删除 `LLMHelper` 的 `switchToGemini`、`setApiKey` 及四个 `set*ApiKey`，以及已失效的 Groq 401 注释；`CredentialsManager` 同名存储方法保留。设置页删除改用 `removeProviderApiKey`；两个 Electron 回归改用 `setProviderConfiguration`；`retired-rules.json` 新增 `switchToGemini` 符号规则。测试新增入口调用顺序、非法输入、写入失败、真实 `LLMHelper` 每步冷启动等价、应用失败警告和会中临时模型四场景。证据：[answer-config](evidence/answer-config/README.md)。
+
+**独立验收**：当前 Codex 按用户授权核对实际 diff、生产调用者、来源登记与原始测试/变异记录，未发现阻断问题；独立完整重跑 16/16、单元 1205/1205、回答 21/21、存储 3/3、启动 2/2、renderer 14/14，全部 exit 0，无跳过。实现者首轮来源检查的单条通用测试语句命中已精确登记，失败记录保留；未放宽路径或来源池。A 已提交 `aff0c66e`，B 在其上独立验收；两步均仅本地交付，未推送、未触发远端 CI、未安装。Windows 仅静态审查；真实服务与设备未验证。
+
 ### 回答服务只用已保存 Key（2026-10-18，提交 A，本地验收通过）
 
 用户批准的回答配置方案分两步，A 由 Claude 实现：使用 API Key 的回答服务只用软件里保存的 Key，任何情况下都不读取 `GEMINI/GROQ/OPENAI/CLAUDE/DEEPSEEK_API_KEY` 环境变量；Codex 登录模式不变。`ProcessingHelper` 构造改为 `new LLMHelper()`，`loadStoredCredentials` 每个服务只取 `getProviderApiKey`；`LLMHelper` 构造不再接收 Key。`dotenv`、`blockedEnvironmentOverride`、STT、`CredentialsManager` 存储事务及 `configureProvider/Gateway/removeGateway` 内部不变；旧 setter 与旧 IPC 留给 B。测试：启动四场景（从未保存、保存值不同于环境、删除后、凭据不可读）都设 5 个环境 Key，只得到保存的 Key；真实 `ProcessingHelper` + `LLMHelper` 构造和启动不创建官方客户端；`ProviderGatewayPolicy`、`ScopeLocalFallback` 改为无参构造后 `configureProvider`。

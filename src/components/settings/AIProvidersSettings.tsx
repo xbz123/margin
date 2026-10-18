@@ -300,11 +300,7 @@ export const AIProvidersSettings: React.FC = () => {
         if (!confirm(t('Are you sure you want to remove the {provider} API key?', { provider: PROVIDER_NAMES[provider as LlmProvider] ?? provider }))) return;
         setCredentialNotice('');
         try {
-            let result;
-            if (provider === 'gemini') result = await window.electronAPI.setGeminiApiKey('');
-            if (provider === 'openai') result = await window.electronAPI.setOpenaiApiKey('');
-            if (provider === 'claude') result = await window.electronAPI.setClaudeApiKey('');
-            if (provider === 'deepseek') result = await window.electronAPI.setDeepseekApiKey('');
+            const result = await window.electronAPI.removeProviderApiKey(provider as AnswerProvider);
             if (result?.ok) {
                 setHasStoredKey(prev => ({ ...prev, [provider]: false }));
                 setter('');

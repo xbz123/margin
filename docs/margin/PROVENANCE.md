@@ -21,6 +21,17 @@ Notes:
 
 ## Ledger
 
+### Answer configuration A and B (2026-10-18)
+
+Written for this branch from the approved answer-configuration plan (PLAN §8).
+A removes environment API-key reads; B adds three `ProcessingHelper` apply
+operations, a `remove-provider-api-key` IPC with its preload/type member,
+removes six legacy key IPC channels and six `LLMHelper` methods, and updates
+tests. No code was imported and no dependencies changed. The provenance check
+flagged one generic statement in the new B test, `assert.deepEqual(calls, []);`;
+it was written here and is registered exactly as written. No paths or pools are
+excluded.
+
 ### Calendar residue removal and failed meeting save (2026-10-17)
 
 Written for this branch from the approved requirements (PLAN §8). The calendar

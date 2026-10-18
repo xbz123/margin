@@ -94,7 +94,7 @@ const SEND_STUB = 'send-stub-reached';
 
 // Keep the real SDK request/retry machinery; replace only its HTTP transport.
 // A retryable response closes the scope before the SDK's retry timer can fire.
-for (const construction of ['first configuration', 'key update']) {
+for (const construction of ['first configuration', 'reconfiguration']) {
   // Groq is no longer an answer target; its key may stay stored for speech only.
   for (const provider of ['openai', 'claude', 'deepseek']) {
     test(`${provider} ${construction}: SDK cannot resend after scope revocation`, async () => {
@@ -102,16 +102,15 @@ for (const construction of ['first configuration', 'key update']) {
       const model = { groq: 'llama-3.3-70b-versatile', openai: 'gpt-5.4', claude: 'claude-sonnet-4-6', deepseek: 'deepseek-v4-flash' }[provider];
       const protocol = provider === 'claude' ? 'messages' : 'chat-completions';
       const self = new LLMHelper();
-      if (construction === 'first configuration') self.configureProvider({ provider, protocol, model }, 'test-only');
-      if (construction === 'key update') {
-        const setters = { groq: 'setGroqApiKey', openai: 'setOpenaiApiKey', claude: 'setClaudeApiKey', deepseek: 'setDeepseekApiKey' };
-        self[setters[provider]]('test-only');
-      }
+      self.configureProvider({ provider, protocol, model }, 'test-only');
+      // A saved key change replaces the client; the replacement must keep the same retry guard.
+      if (construction === 'reconfiguration') self.configureProvider({ provider, protocol, model }, 'test-only-updated');
       const policy = {};
       self.getProviderScopePolicy = () => policy;
       self.withTimeout = promise => promise;
       self.rateLimiters[provider] = { acquire: async () => {} };
       const client = self[`${provider}Client`];
+      assert.equal(client.apiKey, construction === 'reconfiguration' ? 'test-only-updated' : 'test-only');
       let requests = 0;
       client.fetch = async () => {
         requests++;

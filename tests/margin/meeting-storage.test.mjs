@@ -154,8 +154,8 @@ test('a meeting is saved without any request, survives a restart, and stays dele
   const dbPath = path.join(userDataPath, 'natively.db');
   assert.ok(dbPath.startsWith(sandbox.root), `database must live in the sandbox, got ${dbPath}`);
 
-  const keyResult = await launcher.evaluate((k) => window.electronAPI.setOpenaiApiKey(k), FAKE_ANSWER_KEY);
-  assert.deepEqual(keyResult, { ok: true }, `setOpenaiApiKey failed: ${JSON.stringify(keyResult)}`);
+  const keyResult = await launcher.evaluate((apiKey) => window.electronAPI.setProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', apiKey }), FAKE_ANSWER_KEY);
+  assert.deepEqual(keyResult, { ok: true }, `setProviderConfiguration failed: ${JSON.stringify(keyResult)}`);
   const modelResult = await launcher.evaluate(() => window.electronAPI.setDefaultModel('llm-target:openai:chat-completions:gpt-5.4'));
   assert.deepEqual(modelResult, { ok: true }, `setDefaultModel failed: ${JSON.stringify(modelResult)}`);
   assert.deepEqual(await launcher.evaluate(() => window.electronAPI.getRecentMeetings()), [], 'fresh database has no meetings');

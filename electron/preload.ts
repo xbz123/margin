@@ -1,4 +1,4 @@
-import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from '../src/types/llmTarget';
+import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from '../src/types/llmTarget';
 import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
@@ -103,10 +103,6 @@ interface ElectronAPI {
     provider: LlmProvider | 'gateway' | 'codex-cli' | 'unavailable';
     model: string;
   }>;
-  switchToGemini: (
-    apiKey?: string,
-    modelId?: string,
-  ) => Promise<CredentialSaveResult>;
   testLlmConnection: (
     provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek',
     apiKey?: string,
@@ -120,11 +116,7 @@ interface ElectronAPI {
   removeGateway: (id: string) => Promise<CredentialSaveResult>;
   getGenerationPolicy: () => Promise<GenerationPolicy>;
   setGenerationPolicy: (value: GenerationPolicy) => Promise<CredentialSaveResult>;
-  setGeminiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setGroqApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setOpenaiApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setClaudeApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
-  setDeepseekApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
+  removeProviderApiKey: (provider: AnswerProvider) => Promise<CredentialSaveResult>;
   setProviderPreferredModel: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => Promise<CredentialSaveResult>;
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>;
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>;
@@ -814,8 +806,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // LLM Model Management
   getCurrentLlmConfig: () => ipcRenderer.invoke('get-current-llm-config'),
-  switchToGemini: (apiKey?: string, modelId?: string) =>
-    ipcRenderer.invoke('switch-to-gemini', apiKey, modelId),
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration) =>
     ipcRenderer.invoke('test-llm-connection', provider, apiKey, expected),
   testGatewayConnection: (id: string, expected?: GatewayConfiguration) => ipcRenderer.invoke('test-gateway-connection', id, expected),
@@ -826,11 +816,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   removeGateway: (id: string) => ipcRenderer.invoke('remove-gateway', id),
   getGenerationPolicy: () => ipcRenderer.invoke('get-generation-policy'),
   setGenerationPolicy: (value: GenerationPolicy) => ipcRenderer.invoke('set-generation-policy', value),
-  setGeminiApiKey: (apiKey: string) => ipcRenderer.invoke('set-gemini-api-key', apiKey),
-  setGroqApiKey: (apiKey: string) => ipcRenderer.invoke('set-groq-api-key', apiKey),
-  setOpenaiApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-api-key', apiKey),
-  setClaudeApiKey: (apiKey: string) => ipcRenderer.invoke('set-claude-api-key', apiKey),
-  setDeepseekApiKey: (apiKey: string) => ipcRenderer.invoke('set-deepseek-api-key', apiKey),
+  removeProviderApiKey: (provider: AnswerProvider) => ipcRenderer.invoke('remove-provider-api-key', provider),
   getStoredCredentials: () => ipcRenderer.invoke('get-stored-credentials'),
   getCredentialLoadStatus: () => ipcRenderer.invoke('credentials-load-status'),
   discardUnreadableCredentials: () => ipcRenderer.invoke('credentials-discard-unreadable'),

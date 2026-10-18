@@ -4,9 +4,9 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 音频监测清理于 2026-10-18 通过本地独立验收，见[记录](margin/evidence/audio-monitor-cleanup/README.md)。会议保存已通过 CI；新版未安装，实机签收未完成。
+**Current answer:** 截至 2026-10-18，音频清理及回答配置 A、B 已通过独立本地验收，见[回执](margin/evidence/answer-config/README.md)。会议保存已通过 CI；新版未安装，实机签收未完成。
 
-**Current focus:** 回答配置 A 已通过独立本地验收；提交固定基线后由 Claude 执行 B，B 仍须独立验收。本次不推送、不触发 CI、不安装；见 [回执](margin/evidence/answer-config/README.md) 与 PLAN §8。
+**Current focus:** 本轮音频与回答配置改动本地交付完成，暂无继续实现项。推送、远端 CI、安装及真实服务/设备验收仍待另行授权；见 PLAN §8。
 
 ## Waiting
 

@@ -27,16 +27,16 @@ function loadHelper() {
 
 test('production address variables pause official SDK clients instead of redirecting their keys', () => {
   const LLMHelper = loadHelper();
-  for (const [provider, variable, setter] of [['groq', 'GROQ_BASE_URL', 'setGroqApiKey'], ['openai', 'OPENAI_BASE_URL', 'setOpenaiApiKey'], ['claude', 'ANTHROPIC_BASE_URL', 'setClaudeApiKey']]) {
+  for (const [provider, variable] of [['groq', 'GROQ_BASE_URL'], ['openai', 'OPENAI_BASE_URL'], ['claude', 'ANTHROPIC_BASE_URL']]) {
     const before = process.env[variable];
     try {
       process.env[variable] = 'https://explicit.invalid/v1';
       const self = new LLMHelper();
       self.configureProvider(LLM_PRESETS[provider], 'synthetic-only');
       assert.equal(self[`${provider}Client`], null, `${variable} must not redirect ${provider}`);
-      self[setter]('synthetic-only');
-      assert.equal(self[`${provider}Client`], null);
-      delete process.env[variable]; self[setter]('synthetic-only');
+      self.configureProvider(LLM_PRESETS[provider], 'synthetic-only');
+      assert.equal(self[`${provider}Client`], null, `${variable} still pauses ${provider} on reconfiguration`);
+      delete process.env[variable]; self.configureProvider(LLM_PRESETS[provider], 'synthetic-only');
       assert.equal(self[`${provider}Client`].baseURL, provider === 'claude' ? 'https://api.anthropic.com'
         : provider === 'groq' ? 'https://api.groq.com' : 'https://api.openai.com/v1');
     } finally { if (before === undefined) delete process.env[variable]; else process.env[variable] = before; }
