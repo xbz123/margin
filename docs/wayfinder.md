@@ -4,9 +4,9 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-17，日历数据库残留删除和会议保存失败处理已通过本地验收及公开 CI；见[验收记录](margin/evidence/meeting-save/README.md)。未安装新版，阶段 6 实机签收仍未完成。
+**Current answer:** 音频监测清理于 2026-10-18 通过本地独立验收，见[记录](margin/evidence/audio-monitor-cleanup/README.md)。会议保存已通过 CI；新版未安装，实机签收未完成。
 
-**Current focus:** 本轮代码已定版：公开仅同步代码，日志和交接记录留在私有仓库。后续安装及真实服务/设备验收另行授权。
+**Current focus:** 已授权 Claude 串行实现回答配置 A、B，各步独立验收后提交。本次不推送、不触发 CI、不安装；见 PLAN §8。
 
 ## Waiting
 
