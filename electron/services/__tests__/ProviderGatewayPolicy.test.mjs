@@ -4,11 +4,17 @@ import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
+import vm from 'node:vm';
 import { createRequire } from 'node:module';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
 const read = rel => fs.readFileSync(path.join(repoRoot, rel), 'utf8');
+const ts = createRequire(import.meta.url)('typescript');
+const presetsModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(read('src/types/llmTarget.ts'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText,
+  { module: presetsModule, exports: presetsModule.exports });
+const { LLM_PRESETS } = presetsModule.exports;
 
 function loadHelper() {
   const require = createRequire(import.meta.url);
@@ -25,7 +31,8 @@ test('production address variables pause official SDK clients instead of redirec
     const before = process.env[variable];
     try {
       process.env[variable] = 'https://explicit.invalid/v1';
-      const self = new LLMHelper(undefined, 'synthetic-only', 'synthetic-only', 'synthetic-only');
+      const self = new LLMHelper();
+      self.configureProvider(LLM_PRESETS[provider], 'synthetic-only');
       assert.equal(self[`${provider}Client`], null, `${variable} must not redirect ${provider}`);
       self[setter]('synthetic-only');
       assert.equal(self[`${provider}Client`], null);
