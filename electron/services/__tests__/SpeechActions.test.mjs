@@ -727,3 +727,40 @@ test('S42-03 registry: a failed collection releases its task, and dictation mark
   assert.throws(() => actions.beginDictation(owner, { dictationId: 'not-a-uuid', clickedAt: Date.now() }), { name: 'SpeechActionError' });
   for (const task of tasks) task.close();
 });
+
+const GENERATION_CHANNELS = ['generate-assist', 'submit-manual-question', 'generate-what-to-say', 'generate-clarify', 'generate-follow-up',
+  'generate-recap', 'generate-follow-up-questions', 'generate-code-hint', 'generate-brainstorm'];
+
+test('every generation entry point is registered once, through the generation wrapper', () => {
+  const file = new URL('../../ipcHandlers.ts', import.meta.url);
+  const tree = ts.createSourceFile('ipcHandlers.ts', fs.readFileSync(file, 'utf8'), ts.ScriptTarget.ES2022, true);
+  const registrations = new Map();
+  const visit = node => {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)
+      && ['safeHandle', 'registerGenerationHandler'].includes(node.expression.text) && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
+      const channel = node.arguments[0].text;
+      registrations.set(channel, [...(registrations.get(channel) ?? []), node.expression.text]);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(tree);
+  for (const channel of GENERATION_CHANNELS) assert.deepEqual(registrations.get(channel), ['registerGenerationHandler'], channel);
+});
+
+test('a non-speech generation entry point runs in its own task bound to the calling window', async () => {
+  const c = chain(), tasks = [], closed = [];
+  const begin = c.helper.beginGenerationTask.bind(c.helper);
+  c.helper.beginGenerationTask = (...args) => {
+    const task = begin(...args), close = task.close.bind(task);
+    task.close = () => { closed.push(task.requestId); close(); };
+    tasks.push(task);
+    return task;
+  };
+  c.intelligence.runAssistMode = async () => 'SYNTHETIC INSIGHT';
+  const result = await c.invoke('generate-assist');
+  assert.equal(tasks.length, 1);
+  assert.equal(tasks[0].rendererOwner, c.sender);
+  assert.equal(result.insight, 'SYNTHETIC INSIGHT');
+  assert.equal(result.requestId, tasks[0].requestId);
+  assert.ok(closed.includes(tasks[0].requestId), 'the task is closed when the call ends');
+});
