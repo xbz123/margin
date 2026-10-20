@@ -764,3 +764,116 @@ test('a non-speech generation entry point runs in its own task bound to the call
   assert.equal(result.requestId, tasks[0].requestId);
   assert.ok(closed.includes(tasks[0].requestId), 'the task is closed when the call ends');
 });
+
+// A provider whose first request ignores cancellation: it can stay silent or show a first part, then
+// sends LATE only when the test releases it. Later requests answer normally.
+function gatedProvider(c, firstPart) {
+  let started, shown, late;
+  const gates = { started: new Promise(r => { started = r; }), shown: new Promise(r => { shown = r; }), late: new Promise(r => { late = r; }) };
+  let calls = 0;
+  c.helper.openaiClient.chat.completions.create = async body => {
+    c.sent.push(body);
+    if (calls++ > 0) return body.stream ? [{ choices: [{ delta: { content: 'NEW ANSWER' }, finish_reason: 'stop' }] }]
+      : { choices: [{ message: { content: 'NEW ANSWER' }, finish_reason: 'stop' }] };
+    started();
+    if (!body.stream) { await gates.late; return { choices: [{ message: { content: `${firstPart ?? ''}LATE OLD`, finish_reason: 'stop' } }] }; }
+    return (async function* () {
+      if (firstPart) { yield { choices: [{ delta: { content: firstPart } }] }; shown(); }
+      await gates.late;
+      yield { choices: [{ delta: { content: 'LATE OLD' }, finish_reason: 'stop' }] };
+    })();
+  };
+  return { ...gates, release: late };
+}
+
+function trackTasks(c) {
+  const tasks = [];
+  const begin = c.helper.beginGenerationTask.bind(c.helper);
+  c.helper.beginGenerationTask = (...args) => { const task = begin(...args); tasks.push(task); return task; };
+  return tasks;
+}
+
+async function startShortcut(c) {
+  const ref = await c.begin('what-to-say');
+  c.releaseSeals();
+  return c.invoke('generate-what-to-say', undefined, undefined, ref);
+}
+
+async function startAnswerStop(c) {
+  const dictationId = crypto.randomUUID();
+  await c.invoke('dictation:begin', { dictationId, clickedAt: Date.now() - 1 });
+  c.user.emit('transcript', { segmentId: `dictated-${dictationId}`, text: 'how would you resize the table', isFinal: true });
+  const ref = await c.begin('answer', { dictationId });
+  c.releaseSeals();
+  const frozen = await c.invoke('speech-action:freeze', ref);
+  return c.invoke('gemini-chat-stream', frozen.question, undefined, 'PROMPT', { skipSystemPrompt: true, speechActionId: ref.speechActionId });
+}
+
+const startTyped = c => c.invoke('gemini-chat-stream', 'typed follow-up question', undefined, 'PROMPT', { skipSystemPrompt: true });
+
+// Records the old request leaves behind: history items and usage entries, as stored by the session.
+function oldRecords(c, requestId) {
+  const history = c.intelligence.getContext(Number.MAX_SAFE_INTEGER);
+  const usage = c.intelligence.session.getFullUsage().filter(entry => entry.requestId === requestId);
+  return { history, text: JSON.stringify(history) + JSON.stringify(c.intelligence.session.getFullUsage()), usage };
+}
+
+for (const [name, firstPart, next] of [
+  ['a silent shortcut replaced by Answer/Stop', undefined, startAnswerStop],
+  ['a shortcut with partial output replaced by Answer/Stop', 'OLD FIRST ', startAnswerStop],
+  ['a shortcut with partial output replaced by a typed question', 'OLD FIRST ', startTyped],
+]) {
+  test(`cross-entry: ${name} is cancelled, its late output is dropped, and the new request completes`, async () => {
+    const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c, firstPart);
+    c.interviewer.emit('transcript', { segmentId: 'question', text: 'Explain how a hash table handles collisions', isFinal: true });
+    const old = startShortcut(c);
+    await provider.started;
+    if (firstPart) await provider.shown;
+    await tick();
+    const oldTask = tasks[0];
+    assert.equal(oldTask.signal.aborted, false, 'the old request is still running before it is replaced');
+    const fresh = next(c);
+    await fresh;
+    const newTask = tasks.at(-1);
+    assert.notEqual(newTask, oldTask);
+    assert.equal(oldTask.signal.aborted, true, 'the old task is cancelled');
+    provider.release();
+    await old.catch(() => {});
+    await tick();
+    assert.equal(newTask.terminalStatus, 'completed', 'the new request completes');
+    const { history, text, usage } = oldRecords(c, oldTask.requestId);
+    assert.doesNotMatch(text, /LATE OLD/, 'late output never reaches history or usage');
+    assert.equal(usage.some(entry => entry.status === 'completed'), false, 'the cancelled request is not recorded as a success');
+    const answers = history.filter(item => item.role === 'assistant').map(item => item.text);
+    assert.equal(answers.filter(text => text === 'NEW ANSWER').length, 1, 'the new answer is recorded once');
+    const others = answers.filter(text => text !== 'NEW ANSWER');
+    if (firstPart) assert.ok(others.length === 1 && others[0].includes('OLD FIRST'), 'only the part already shown is kept');
+    else assert.deepEqual(others, [], 'a silent old request leaves no answer');
+    assert.equal(oldTask.terminalStatus, 'cancelled');
+    assert.match(JSON.stringify(c.sender.sent), /NEW ANSWER/);
+  });
+}
+
+test('cross-entry: a typed stream with partial output replaced by a shortcut is cancelled, sends nothing late, and the shortcut completes', async () => {
+  const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c, 'OLD FIRST ');
+  c.interviewer.emit('transcript', { segmentId: 'question', text: 'Explain how a hash table handles collisions', isFinal: true });
+  const old = startTyped(c);
+  await provider.started; await provider.shown; await tick();
+  const oldTask = tasks[0];
+  const result = await startShortcut(c);
+  const newTask = tasks.at(-1);
+  assert.notEqual(newTask, oldTask);
+  assert.equal(oldTask.signal.aborted, true, 'the old stream is cancelled');
+  provider.release();
+  await old.catch(() => {});
+  await tick();
+  assert.equal(newTask.terminalStatus, 'completed', 'the shortcut completes');
+  assert.equal(result.requestId, newTask.requestId);
+  const tokens = c.sender.sent.filter(([name]) => name === 'gemini-stream-token').map(([, token]) => token);
+  assert.equal(tokens.includes('LATE OLD'), false, 'no late token is sent for the old stream');
+  assert.equal(c.sender.sent.some(([name, , , meta]) => name === 'gemini-stream-done' && meta?.requestId === oldTask.requestId), false,
+    'the old stream does not finish as a success');
+  const { text, usage } = oldRecords(c, oldTask.requestId);
+  assert.doesNotMatch(text, /LATE OLD/);
+  assert.equal(usage.some(entry => entry.status === 'completed'), false);
+});

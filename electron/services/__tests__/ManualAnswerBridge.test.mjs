@@ -138,3 +138,66 @@ test('S42-03 preload: Stop names its main-owned dictation mark and never waits f
   assert.equal(calls.length, count + 1);
   assert.equal(calls.at(-1).channel, 'gemini-chat-stream');
 });
+
+// Cross-entry switching in the actual preload: after a new request takes over, late output and the
+// terminal of the replaced request must not reach the new request, while the new one is delivered.
+function switchBridge() {
+  const ipc = new EventEmitter(), sent = [], invoked = [];
+  ipc.send = channel => sent.push(channel);
+  ipc.invoke = (channel, ...args) => { invoked.push({ channel, args }); return channel.startsWith('generate-') || channel === 'gemini-chat-stream' ? new Promise(() => {}) : Promise.resolve(); };
+  let api;
+  vm.runInNewContext(readFileSync(new URL('../../../dist-electron/electron/preload.js', import.meta.url), 'utf8'), {
+    module: { exports: {} }, exports: {}, require: () => ({ ipcRenderer: ipc, contextBridge: { exposeInMainWorld: (_, value) => { api = value; } } }),
+    window: { addEventListener() {} }, process: { platform: 'darwin' }, setTimeout, clearTimeout, Date, crypto,
+    console: { log() {}, warn() {}, error() {}, info() {}, debug() {} }, URL,
+  });
+  const seen = { intelligenceTokens: [], intelligenceTerminals: [], chatTokens: [], chatDone: [], chatErrors: [] };
+  api.onIntelligenceTokenBatch(data => seen.intelligenceTokens.push(...data.items.map(item => `${data.requestId}:${item.token}`)));
+  api.onIntelligenceGenerationTerminal(data => seen.intelligenceTerminals.push(`${data.requestId}:${data.status}`));
+  api.onGeminiStreamToken((token, meta) => seen.chatTokens.push(`${meta?.requestId}:${token}`));
+  api.onGeminiStreamDone(meta => seen.chatDone.push(`${meta?.requestId}:${meta?.status}`));
+  api.onGeminiStreamError((error, meta) => seen.chatErrors.push(`${meta?.requestId}:${meta?.status}`));
+  const intelligence = (name, value) => ipc.emit('intelligence-' + name, {}, value);
+  const streamId = () => invoked.findLast(call => call.channel === 'gemini-chat-stream').args[3].clientStreamId;
+  return { api, ipc, sent, invoked, seen, intelligence, streamId };
+}
+const settle = async () => { for (let i = 0; i < 10; i++) await new Promise(resolve => setImmediate(resolve)); };
+
+test('cross-entry preload: a shortcut replaced by a typed question delivers no late shortcut output; the new stream is delivered', async () => {
+  const b = switchBridge();
+  void b.api.generateWhatToSay();
+  await settle();
+  assert.ok(b.invoked.some(call => call.channel === 'generate-what-to-say'));
+  b.intelligence('generation-started', { requestId: 'old' });
+  b.intelligence('token-batch', { requestId: 'old', items: [{ token: 'OLD FIRST' }] });
+  void b.api.streamGeminiChat('typed question');
+  const id = b.streamId();
+  b.intelligence('token-batch', { requestId: 'old', items: [{ token: 'LATE OLD' }] });
+  b.intelligence('generation-terminal', { requestId: 'old', status: 'completed' });
+  b.ipc.emit('gemini-stream-token', {}, 'NEW ANSWER', id, { requestId: 'new' });
+  b.ipc.emit('gemini-stream-done', {}, id, { requestId: 'new', status: 'completed' });
+  assert.deepEqual(b.seen.intelligenceTokens, ['old:OLD FIRST']);
+  assert.deepEqual(b.seen.intelligenceTerminals, [], 'the replaced shortcut does not finish on the new request');
+  assert.deepEqual(b.seen.chatTokens, ['new:NEW ANSWER']);
+  assert.deepEqual(b.seen.chatDone, ['new:completed']);
+});
+
+test('cross-entry preload: a typed stream replaced by a shortcut stops, delivers no late stream output; the shortcut is delivered', async () => {
+  const b = switchBridge();
+  void b.api.streamGeminiChat('typed question');
+  const id = b.streamId();
+  b.ipc.emit('gemini-stream-token', {}, 'OLD FIRST', id, { requestId: 'old' });
+  void b.api.generateWhatToSay();
+  assert.ok(b.sent.includes('gemini-chat-stream-stop'), 'switching stops the old stream in main');
+  await settle();
+  b.ipc.emit('gemini-stream-token', {}, 'LATE OLD', id, { requestId: 'old' });
+  b.ipc.emit('gemini-stream-done', {}, id, { requestId: 'old', status: 'completed' });
+  b.intelligence('generation-started', { requestId: 'new' });
+  b.intelligence('token-batch', { requestId: 'new', items: [{ token: 'NEW ANSWER' }] });
+  b.intelligence('generation-terminal', { requestId: 'new', status: 'completed' });
+  assert.deepEqual(b.seen.chatTokens, ['old:OLD FIRST']);
+  assert.deepEqual(b.seen.chatDone, [], 'the replaced stream does not finish as a success');
+  assert.deepEqual(b.seen.chatErrors, ['old:cancelled'], 'only the cancellation sent at the switch');
+  assert.deepEqual(b.seen.intelligenceTokens, ['new:NEW ANSWER']);
+  assert.deepEqual(b.seen.intelligenceTerminals, ['new:completed']);
+});

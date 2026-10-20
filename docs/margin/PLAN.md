@@ -1485,6 +1485,10 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### 跨入口取消与迟到输出验证（2026-10-20，本地验收通过）
+
+用户批准按定稿方案只写测试，发现缺陷再最小修复。主进程 4 个场景（快捷动作还没输出或已输出一部分时，被 Answer/Stop 或文字提交替代；文字流被快捷动作替代），加上真实 preload 两个切换方向，均通过，未发现缺陷，生产代码未修改。本地 gates 16/16（单元 1213/1213）。验证范围是主进程行为和 preload 过滤两层，不含 `main.ts` 转发层、界面端到端和真实服务；不关闭整个生成协调主题。证据：[cross-entry-cancel](evidence/cross-entry-cancel/README.md)。
+
 ### 生成入口显式注册（2026-10-20，本地验收通过）
 
 用户批准按[审阅第 3 项](REVIEW-2026-10-15.md)的精简方案执行，不是修复已复现的故障。`safeHandle` 只做注册；新增 `registerGenerationHandler`，原生成包装整块移入，内容和顺序不变；9 个生成频道改为显式注册，`SPEECH_ACTION_CHANNELS`、listener 和原错误差异（仅 what-to-say 转换异常）不变。两处 IPC 覆盖检查识别新函数名，无白名单。新增 AST 注册检查和 `generate-assist` 真实回调测试，1 个变异被识别。Claude 实现，本地 gates 16/16（单元 1207/1207）。只标为"生成入口显式注册完成"；文字流、重试、截图和引擎内部任务未动。未推送、未安装；Windows 仅静态审阅。证据：[generation-registration](evidence/generation-registration/README.md)。公开仅代码交付 `b3782364`、`f600fc68`，最终 CI 39391240062 通过（首次 39388726818 只有来源核查失败，原因是 7 条旧通用语句，已精确登记）；文档不公开。
