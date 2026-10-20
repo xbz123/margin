@@ -1487,7 +1487,7 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ### 生成入口显式注册（2026-10-20，本地验收通过）
 
-用户批准按[审阅第 3 项](REVIEW-2026-10-15.md)的精简方案执行，不是修复已复现的故障。`safeHandle` 只做注册；新增 `registerGenerationHandler`，原生成包装整块移入，内容和顺序不变；9 个生成频道改为显式注册，`SPEECH_ACTION_CHANNELS`、listener 和原错误差异（仅 what-to-say 转换异常）不变。两处 IPC 覆盖检查识别新函数名，无白名单。新增 AST 注册检查和 `generate-assist` 真实回调测试，1 个变异被识别。Claude 实现，本地 gates 16/16（单元 1207/1207）。只标为"生成入口显式注册完成"；文字流、重试、截图和引擎内部任务未动。未推送、未安装；Windows 仅静态审阅。证据：[generation-registration](evidence/generation-registration/README.md)。
+用户批准按[审阅第 3 项](REVIEW-2026-10-15.md)的精简方案执行，不是修复已复现的故障。`safeHandle` 只做注册；新增 `registerGenerationHandler`，原生成包装整块移入，内容和顺序不变；9 个生成频道改为显式注册，`SPEECH_ACTION_CHANNELS`、listener 和原错误差异（仅 what-to-say 转换异常）不变。两处 IPC 覆盖检查识别新函数名，无白名单。新增 AST 注册检查和 `generate-assist` 真实回调测试，1 个变异被识别。Claude 实现，本地 gates 16/16（单元 1207/1207）。只标为"生成入口显式注册完成"；文字流、重试、截图和引擎内部任务未动。未推送、未安装；Windows 仅静态审阅。证据：[generation-registration](evidence/generation-registration/README.md)。公开仅代码交付 `b3782364`、`f600fc68`，最终 CI 39391240062 通过（首次 39388726818 只有来源核查失败，原因是 7 条旧通用语句，已精确登记）；文档不公开。
 
 ### 音频与回答配置公开仅代码交付（2026-10-18）
 
