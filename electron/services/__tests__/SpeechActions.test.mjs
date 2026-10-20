@@ -871,9 +871,12 @@ test('cross-entry: a typed stream with partial output replaced by a shortcut is 
   assert.equal(result.requestId, newTask.requestId);
   const tokens = c.sender.sent.filter(([name]) => name === 'gemini-stream-token').map(([, token]) => token);
   assert.equal(tokens.includes('LATE OLD'), false, 'no late token is sent for the old stream');
-  assert.equal(c.sender.sent.some(([name, , , meta]) => name === 'gemini-stream-done' && meta?.requestId === oldTask.requestId), false,
-    'the old stream does not finish as a success');
-  const { text, usage } = oldRecords(c, oldTask.requestId);
+  // gemini-stream-done is sent as (clientStreamId, metadata).
+  assert.equal(c.sender.sent.some(([name, , meta]) => name === 'gemini-stream-done' && meta?.requestId === oldTask.requestId
+    && meta?.status === 'completed'), false, 'the old stream does not finish as a success');
+  const { history, text, usage } = oldRecords(c, oldTask.requestId);
   assert.doesNotMatch(text, /LATE OLD/);
   assert.equal(usage.some(entry => entry.status === 'completed'), false);
+  const answers = history.filter(item => item.role === 'assistant').map(item => item.text);
+  assert.equal(answers.filter(answer => answer === 'NEW ANSWER').length, 1, 'the shortcut answer is recorded once');
 });
