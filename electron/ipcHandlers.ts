@@ -113,8 +113,14 @@ export function initializeIpcHandlers(appState: AppState): void {
     listener: (event: any, ...args: any[]) => Promise<any> | any,
   ) => {
     ipcMain.removeHandler(channel);
-    ipcMain.handle(channel, async (event, ...args) => {
-      if (!['generate-assist', 'generate-what-to-say', 'generate-clarify', 'generate-follow-up', 'generate-recap', 'generate-follow-up-questions', 'submit-manual-question', 'generate-code-hint', 'generate-brainstorm'].includes(channel)) return listener(event, ...args);
+    ipcMain.handle(channel, async (event, ...args) => listener(event, ...args));
+  };
+  // Generation entry points: each call owns a task bound to its window, from start to close.
+  const registerGenerationHandler = (
+    channel: string,
+    listener: (event: any, ...args: any[]) => Promise<any> | any,
+  ) => {
+    safeHandle(channel, async (event, ...args) => {
       const helper = appState.processingHelper.getLLMHelper();
       const speech = SPEECH_ACTION_CHANNELS[channel];
       let task: GenerationTask<any> | undefined;
@@ -1878,7 +1884,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   // ==========================================
 
   // MODE 1: Assist (Passive observation)
-  safeHandle('generate-assist', async () => {
+  registerGenerationHandler('generate-assist', async () => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const insight = await intelligenceManager.runAssistMode();
@@ -1926,7 +1932,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   // MODE 2: User-triggered answer using the current session.
   //
   // Validated original images reach the selected answer task without generative preanalysis.
-  safeHandle(
+  registerGenerationHandler(
     'generate-what-to-say',
     async (
       _,
@@ -1990,7 +1996,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     },
   );
 
-  safeHandle('generate-clarify', async (_, freeze: () => Promise<TranscriptView>) => {
+  registerGenerationHandler('generate-clarify', async (_, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const clarification = await intelligenceManager.runClarify(await freeze());
@@ -2010,7 +2016,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('generate-code-hint', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
+  registerGenerationHandler('generate-code-hint', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
@@ -2034,7 +2040,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('generate-brainstorm', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
+  registerGenerationHandler('generate-brainstorm', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       // If no explicit images were passed from the frontend, fall back to the
       // screenshot queue so the AI can always "see" the user's screen.
@@ -2079,7 +2085,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 3: Follow-Up (Refinement)
-  safeHandle('generate-follow-up', async (_, intent: string, userRequest: string | undefined, freeze: () => Promise<TranscriptView>) => {
+  registerGenerationHandler('generate-follow-up', async (_, intent: string, userRequest: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const refined = await intelligenceManager.runFollowUp(intent, userRequest, await freeze());
@@ -2090,7 +2096,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 4: Recap (Summary)
-  safeHandle('generate-recap', async (_, freeze: () => Promise<TranscriptView>) => {
+  registerGenerationHandler('generate-recap', async (_, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const summary = await intelligenceManager.runRecap(await freeze());
@@ -2101,7 +2107,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 6: Follow-Up Questions
-  safeHandle('generate-follow-up-questions', async (_, freeze: () => Promise<TranscriptView>) => {
+  registerGenerationHandler('generate-follow-up-questions', async (_, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const questions = await intelligenceManager.runFollowUpQuestions(await freeze());
@@ -2112,7 +2118,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // MODE 5: Manual Answer (Fallback)
-  safeHandle('submit-manual-question', async (_, question: string) => {
+  registerGenerationHandler('submit-manual-question', async (_, question: string) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
       const answer = await intelligenceManager.runManualAnswer(question);

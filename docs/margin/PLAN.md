@@ -1485,6 +1485,10 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### 生成入口显式注册（2026-10-20，本地验收通过）
+
+用户批准按[审阅第 3 项](REVIEW-2026-10-15.md)的精简方案执行，不是修复已复现的故障。`safeHandle` 只做注册；新增 `registerGenerationHandler`，原生成包装整块移入，内容和顺序不变；9 个生成频道改为显式注册，`SPEECH_ACTION_CHANNELS`、listener 和原错误差异（仅 what-to-say 转换异常）不变。两处 IPC 覆盖检查识别新函数名，无白名单。新增 AST 注册检查和 `generate-assist` 真实回调测试，1 个变异被识别。Claude 实现，本地 gates 16/16（单元 1207/1207）。只标为"生成入口显式注册完成"；文字流、重试、截图和引擎内部任务未动。未推送、未安装；Windows 仅静态审阅。证据：[generation-registration](evidence/generation-registration/README.md)。
+
 ### 音频与回答配置公开仅代码交付（2026-10-18）
 
 用户授权按既有仅代码规则推送公开分支及普通 CI。音频、A、B 的公开提交分别为 `34051212`、`dde1dd3c`、`ac3d4090`，以公开 `55b98195` 为祖先，不导入私有文档或提交历史；源码、测试及必要门禁配置与本地 `00dbfb17` 一致。公开分支已核对，[CI 39125836864](https://github.com/xbz123/margin/actions/runs/39125836864) completed/success：16/16、1205/1205，身份契约各 7/7，下载报告哈希与 GitHub 匹配。推送前简要复核未发现新阻断问题。未打包、未安装、未发布；详见[交付回执](evidence/answer-config/README.md#公开仅代码交付及远端-ci2026-10-18)。

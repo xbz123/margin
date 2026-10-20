@@ -22,9 +22,9 @@ for (const f of files) {
     if (!invoked.has(m[1])) invoked.set(m[1], f);
   }
   if (f.startsWith('electron/') && !f.endsWith('preload.ts')) {
-    for (const m of text.matchAll(/(?:safeHandle|ipcMain\.handle|registerStealthHandler|handle)\(\s*['"]([\w:.\-/]+)['"]/g)) handled.add(m[1]);
-    // safeHandle(\n 'channel', ...) spread over lines
-    for (const m of text.matchAll(/(?:safeHandle|ipcMain\.handle)\(\s*\n\s*['"]([\w:.\-/]+)['"]/g)) handled.add(m[1]);
+    for (const m of text.matchAll(/(?:safeHandle|registerGenerationHandler|ipcMain\.handle|registerStealthHandler|handle)\(\s*['"]([\w:.\-/]+)['"]/g)) handled.add(m[1]);
+    // safeHandle(\n or registerGenerationHandler(\n 'channel', ...) spread over lines
+    for (const m of text.matchAll(/(?:safeHandle|registerGenerationHandler|ipcMain\.handle)\(\s*\n\s*['"]([\w:.\-/]+)['"]/g)) handled.add(m[1]);
   }
 }
 

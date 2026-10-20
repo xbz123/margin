@@ -12,7 +12,7 @@ export function sliceSafeHandleBlock(source, channel) {
   if (!startMatch || startMatch.index === undefined) return '';
   const start = startMatch.index;
   const searchFrom = start + startMatch[0].length;
-  const nextRel = source.slice(searchFrom).search(/safeHandle\s*\(\s*['"]/);
+  const nextRel = source.slice(searchFrom).search(/(?:safeHandle|registerGenerationHandler)\s*\(\s*['"]/);
   const end = nextRel === -1 ? source.length : searchFrom + nextRel;
   return source.slice(start, end);
 }

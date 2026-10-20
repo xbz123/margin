@@ -10,7 +10,7 @@ test('every preload ipcRenderer.invoke channel has a matching ipcMain.handle reg
   const channels = new Set([...preload.matchAll(/ipcRenderer\.invoke\(\s*['"]([a-z0-9:_\-./]+)['"]/gi)].map(match => match[1]));
   assert.ok(channels.size > 50, `expected many invoke channels, found ${channels.size}`);
   const registered = new Set();
-  const handleRe = /(?:ipcMain\.handle|safeHandle|registerStealthHandler|registerHandler|handle)\(\s*['"]([a-z0-9:_\-./]+)['"]/gi;
+  const handleRe = /(?:ipcMain\.handle|safeHandle|registerGenerationHandler|registerStealthHandler|registerHandler|handle)\(\s*['"]([a-z0-9:_\-./]+)['"]/gi;
   const walk = dir => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       if (['node_modules', '__tests__', 'dist', 'dist-electron'].includes(entry.name)) continue;
