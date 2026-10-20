@@ -21,6 +21,29 @@ Notes:
 
 ## Ledger
 
+### Generation entry registration and CI 39388726818 (2026-10-20)
+
+Written for this branch from the approved plan (PLAN §8). `safeHandle` only
+registers; `registerGenerationHandler` carries the unchanged generation wrapper
+and the nine generation channels use it. Gate scripts and tests recognise the
+new name. No code was imported and no dependencies changed.
+
+Public CI 39388726818 failed only on provenance: its fresh upstream fetch
+flagged 13 older lines (7 distinct statements) that this commit did not touch.
+Each was reviewed in context; the surrounding lines are this branch's own and
+were not flagged. They are registered exactly as written, with no paths or
+pools excluded:
+
+- `const dir = tempDir();`: UiLanguageSettings.test.mjs (4), from `968ea59d`
+- `assert.equal(created.ok, true);`: credentialTransactions.test.mjs (2) and
+  answer-regression.test.mjs (1), from `dd3eb703`
+- `const safeStorage = {`: credentialTransactions.test.mjs, from `2db88817`
+- `const [confirm, setConfirm] = useState(false);` and `setConfirm(false);`:
+  PromptSettings.tsx, from `45a4e9ce`
+- `id: crypto.randomUUID(),`: MeetingPersistence.ts, from `180a87c0`
+- `f.calls.length = 0;`: WindowProtectionLifecycle.test.mjs and
+  WindowPreferences.test.mjs, from `ffc08ab1`
+
 ### Answer configuration A and B (2026-10-18)
 
 Written for this branch from the approved answer-configuration plan (PLAN §8).
