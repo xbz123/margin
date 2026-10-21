@@ -566,6 +566,26 @@
     {"line":"live = false;","reason":"Pool refresh 2026-10-17: unchanged SetupChecklist cleanup from bae89f6c6 (2026-10-13); generic flag assignment."},
     {"line":"setBusy(false);","reason":"Pool refresh 2026-10-17: unchanged CredentialLoadBanner setter from 156a669d9 (2026-10-09); generic React state setter call."},
     {"line":"setError('');","reason":"Pool refresh 2026-10-17: unchanged LocalContextSettings (2dc6a8353) and PromptSettings (45a4e9ce7) setters, 2026-10-11; generic React state reset."},
-    {"line":"const test = async () => {","reason":"Pool refresh 2026-10-17: unchanged SpeechProviderSettings handler from 759a64849 (2026-10-11); generic async function opening."}
+    {"line":"const test = async () => {","reason":"Pool refresh 2026-10-17: unchanged SpeechProviderSettings handler from 759a64849 (2026-10-11); generic async function opening."},
+    {"line":"<section className=\"space-y-2\">","reason":"Settings restyle 2026-10-21: SettingsKit group wrapper written for this change; generic Tailwind spacing on a section element."},
+    {"line":"children?: ReactNode;","reason":"Settings restyle 2026-10-21: SettingsKit row props written for this change; generic optional React children prop."},
+    {"line":"checked: boolean;","reason":"Settings restyle 2026-10-21: SettingsKit switch props written for this change; generic boolean prop."},
+    {"line":"onChange: (next: boolean) => void;","reason":"Settings restyle 2026-10-21: SettingsKit switch props written for this change; generic change-callback signature."},
+    {"line":"disabled?: boolean;","reason":"Settings restyle 2026-10-21: SettingsKit switch props written for this change; generic optional prop."},
+    {"line":"aria-checked={checked}","reason":"Settings restyle 2026-10-21: SettingsKit switch written for this change; standard ARIA switch state attribute."},
+    {"line":"aria-label={label}","reason":"Settings restyle 2026-10-21: SettingsKit switch written for this change; standard ARIA label attribute."},
+    {"line":"onClick={() => onChange(!checked)}","reason":"Settings restyle 2026-10-21: SettingsKit switch written for this change; generic toggle handler."},
+    {"line":"hover: 'var(--accent-hover)',","reason":"Settings restyle 2026-10-21: tailwind accent token added for the new violet accent; follows the baseline a786910e pattern primary: 'var(--accent-primary)'."},
+    {"line":"pressed: 'var(--accent-pressed)',","reason":"Settings restyle 2026-10-21: tailwind accent token added for the new violet accent; same baseline var() pattern."},
+    {"line":"muted: 'var(--accent-muted)',","reason":"Settings restyle 2026-10-21: tailwind alias for the baseline a786910e --accent-muted variable; same var() pattern."},
+    {"line":"subtle: 'var(--accent-subtle)',","reason":"Settings restyle 2026-10-21: tailwind accent token added for the new violet accent; same baseline var() pattern."},
+    {"line":"border: 'var(--accent-border)',","reason":"Settings restyle 2026-10-21: tailwind accent token added for the new violet accent; same baseline var() pattern."},
+    {"line":"'on-accent': 'var(--on-accent)',","reason":"Settings restyle 2026-10-21: tailwind token for text on the accent fill, added with the new accent; same baseline var() pattern."},
+    {"line":"if (isSelectedItem) return 'bg-accent-primary text-on-accent shadow-sm';","reason":"Settings restyle 2026-10-21: baseline a786910e line (SettingsOverlay and HelpSettings ProviderSelect) with text-white replaced by the new on-accent token for contrast."},
+    {"line":"<div className=\"flex items-center gap-3.5\">","reason":"Settings restyle 2026-10-21: SettingsOverlay opacity row written for this change; generic Tailwind flex layout."},
+    {"line":"</SettingsRow>","reason":"Settings restyle 2026-10-21: closing tag of the SettingsRow component written for this change."},
+    {"line":"<div className=\"bg-accent-primary text-on-accent px-4 py-2 rounded-2xl rounded-tr-sm max-w-[75%] text-xs leading-relaxed shadow-sm\">","reason":"Settings restyle 2026-10-21: baseline a786910e HelpSettings demo bubble with text-white replaced by the new on-accent token for contrast."},
+    {"line":"a: ({ node, ...props }: any) => <a className=\"text-accent-primary hover:underline\" {...props} />,","reason":"Settings restyle 2026-10-21: baseline a786910e MeetingDetails markdown link with text-blue-500 replaced by the accent token."},
+    {"line":"return 0.2126 * r + 0.7152 * g + 0.0722 * b;","reason":"Settings restyle 2026-10-21: contrast test written for this change; the WCAG 2 relative-luminance formula constants."}
   ]
 }

@@ -1,15 +1,12 @@
 // Settings sections in sidebar order. Tab names sent by other windows keep working through aliases.
-export type SettingsTab = 'general' | 'privacy' | 'keybinds' | 'ai-providers' | 'context' | 'audio' | 'help' | 'about';
+export const SETTINGS_TABS = [
+    'general', 'ai-providers', 'audio', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about',
+] as const;
 
-export const SETTINGS_GROUPS: ReadonlyArray<{ title: string; tabs: readonly SettingsTab[] }> = [
-    { title: 'Application', tabs: ['general', 'privacy', 'keybinds'] },
-    { title: 'Answers', tabs: ['ai-providers', 'context'] },
-    { title: 'Speech', tabs: ['audio'] },
-    { title: 'Support', tabs: ['help', 'about'] },
-];
+export type SettingsTab = typeof SETTINGS_TABS[number];
 
-const TABS = new Set<string>(SETTINGS_GROUPS.flatMap(group => group.tabs));
-const ALIASES: Readonly<Record<string, SettingsTab>> = { skills: 'context', 'local-context': 'context' };
+const TABS = new Set<string>(SETTINGS_TABS);
+const ALIASES: Readonly<Record<string, SettingsTab>> = { skills: 'context', 'local-context': 'context', 'window-privacy': 'privacy' };
 
 export function resolveSettingsTab(tab: unknown): SettingsTab {
     if (typeof tab !== 'string') return 'general';

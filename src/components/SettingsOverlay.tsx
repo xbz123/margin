@@ -9,7 +9,8 @@ import {
     Camera, RotateCcw, Eye, Layout, MessageSquare, Crop,
     ChevronDown, ChevronUp, Check, BadgeCheck, Power, Palette, Ghost, Sun, Moon, RefreshCw, Info, Globe, FlaskConical, Terminal, Settings, Activity, ExternalLink, Trash2,
     Sparkles, Pencil, Briefcase, Building2, Search, MapPin, CheckCircle, HelpCircle, Zap, SlidersHorizontal, PointerOff,
-    Star, AlertCircle, Gift, Shield
+    Star, AlertCircle, Gift, Archive, Languages,
+    type LucideIcon
 } from 'lucide-react';
 import { AboutSection } from './AboutSection';
 import { HelpSettings } from './settings/HelpSettings';
@@ -34,7 +35,8 @@ import { getMeetingInterfaceTheme, setMeetingInterfaceTheme, type MeetingInterfa
 import { KeyRecorder } from './ui/KeyRecorder';
 import icon from './icon.png';
 import { requestUiLanguage, useI18n, type UiLanguage } from '../i18n';
-import { resolveSettingsTab, SETTINGS_GROUPS, type SettingsTab } from './settings/settingsTabs';
+import { resolveSettingsTab, SETTINGS_TABS, type SettingsTab } from './settings/settingsTabs';
+import { SettingsGroup, SettingsHeading, SettingsRow, SettingsSwitch, settingsButtonClass } from './settings/SettingsKit';
 
 // ---------------------------------------------------------------------------
 // StarRating — renders filled/empty stars for culture ratings
@@ -174,18 +176,19 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label, icon, value, options
     const selectedLabel = options.find(o => o.deviceId === value)?.label || t(placeholder);
 
     return (
-        <div className="bg-bg-card rounded-xl p-4 border border-border-subtle" ref={containerRef}>
+        <div ref={containerRef}>
             {label && (
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-2">
                     <span className="text-text-secondary">{icon}</span>
-                    <label className="text-xs font-medium text-text-primary uppercase tracking-wide">{t(label)}</label>
+                    <label className="text-xs font-medium text-text-secondary">{t(label)}</label>
                 </div>
             )}
 
             <div className="relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full bg-bg-input border border-border-subtle rounded-lg px-3 py-2.5 text-sm text-text-primary flex items-center justify-between hover:bg-bg-elevated transition-colors"
+                    type="button"
+                    className="w-full bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary flex items-center justify-between hover:bg-bg-item-surface transition-colors"
                 >
                     <span className="truncate pr-4">{selectedLabel}</span>
                     <ChevronDown size={14} className={`text-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -208,7 +211,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ label, icon, value, options
                                 </button>
                             ))}
                             {options.length === 0 && (
-                                <div className="px-3 py-2 text-sm text-gray-500 italic">{t('No devices found')}</div>
+                                <div className="px-3 py-2 text-sm text-text-tertiary italic">{t('No devices found')}</div>
                             )}
                         </div>
                     </div>
@@ -266,7 +269,7 @@ const ProviderSelect: React.FC<ProviderSelectProps> = ({ value, options, onChang
     };
 
     const getIconStyle = (color?: string, isSelectedItem: boolean = false) => {
-        if (isSelectedItem) return 'bg-accent-primary text-white shadow-sm';
+        if (isSelectedItem) return 'bg-accent-primary text-on-accent shadow-sm';
         // For unselected items in list or trigger
         switch (color) {
             case 'blue': return 'bg-blue-500/10 text-blue-600';
@@ -284,7 +287,7 @@ const ProviderSelect: React.FC<ProviderSelectProps> = ({ value, options, onChang
         <div ref={containerRef} className="relative z-20 font-sans">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full group bg-bg-input border border-border-subtle hover:border-border-muted shadow-sm rounded-xl p-2.5 pr-3.5 flex items-center justify-between transition-all duration-200 outline-none focus:ring-2 focus:ring-accent-primary/20 ${isOpen ? 'ring-2 ring-accent-primary/20 border-accent-primary/50' : 'hover:shadow-md'}`}
+                className={`w-full group bg-bg-input border border-border-subtle hover:border-border-muted shadow-sm rounded-xl p-2.5 pr-3.5 flex items-center justify-between transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent-border ${isOpen ? 'ring-2 ring-accent-border border-accent-border' : 'hover:shadow-md'}`}
             >
                 {selected ? (
                     <div className="flex items-center gap-3 overflow-hidden">
@@ -372,18 +375,17 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         }
     }, [isOpen, initialTab]);
 
-    const tabLabels: Record<SettingsTab, { label: string; icon: React.ReactNode }> = {
-        general: { label: 'General', icon: <Monitor size={16} /> },
-        privacy: { label: 'Privacy & Data', icon: <Shield size={16} /> },
-        keybinds: { label: 'Keybinds', icon: <Keyboard size={16} /> },
-        'ai-providers': { label: 'AI Providers', icon: <FlaskConical size={16} /> },
-        context: { label: 'Context & Skills', icon: <Sparkles size={16} className={activeTab === 'context' ? 'text-accent-primary' : 'text-text-secondary'} /> },
-        audio: { label: 'Speech & Audio', icon: <Mic size={16} /> },
-        help: { label: 'Setup & Help', icon: <HelpCircle size={16} /> },
-        about: { label: 'About', icon: <Info size={16} /> },
+    const tabMeta: Record<SettingsTab, { label: string; icon: LucideIcon }> = {
+        general: { label: 'General', icon: Monitor },
+        'ai-providers': { label: 'AI Providers', icon: FlaskConical },
+        audio: { label: 'Speech & Audio', icon: Mic },
+        context: { label: 'Context & Skills', icon: Sparkles },
+        'meeting-records': { label: 'Meeting records', icon: Archive },
+        privacy: { label: 'Window & privacy', icon: Eye },
+        keybinds: { label: 'Keybinds', icon: Keyboard },
+        help: { label: 'Setup & Help', icon: HelpCircle },
+        about: { label: 'About', icon: Info },
     };
-    const showGeneral = activeTab === 'general';
-    const showPrivacy = activeTab === 'privacy';
 
     // Interface language is saved by main; drafts and other settings stay mounted while it changes.
     const [uiLanguageSaving, setUiLanguageSaving] = useState(false);
@@ -1239,6 +1241,14 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         }
     }, [isOpen, activeTab, selectedInput]);
 
+    const dropdownButtonClass = 'bg-bg-component hover:bg-bg-item-surface border border-border-subtle text-text-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 min-w-[110px] justify-between';
+    const dropdownMenuClass = 'absolute right-0 top-full mt-1 min-w-full w-max bg-bg-elevated border border-border-subtle rounded-lg shadow-xl overflow-hidden z-20 p-1 animated fadeIn select-none';
+    const dropdownItemClass = (selected: boolean) => `w-full text-left px-2 py-1.5 rounded-md text-xs flex items-center gap-2 transition-colors ${selected ? 'text-text-primary bg-bg-item-active' : 'text-text-secondary hover:bg-bg-item-surface hover:text-text-primary'}`;
+    const shortcutRows = (items: { id: string; label: string; icon: LucideIcon }[]) => items.map(item => (
+        <SettingsRow key={item.id} icon={item.icon} title={t(item.label)}
+            control={<KeyRecorder currentKeys={shortcuts[item.id as keyof typeof shortcuts]} onSave={(keys) => updateShortcut(item.id as any, keys)} />} />
+    ));
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -1269,630 +1279,332 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             style={{ visibility: isPreviewingOpacity ? 'hidden' : 'visible' }}
                         >
                         {/* Sidebar */}
-                        <div className="w-64 bg-bg-sidebar flex flex-col border-r border-border-subtle">
-                            <div className="p-6">
-                                <h2 className="font-semibold text-gray-400 text-xs uppercase tracking-wider mb-2">{t('Settings')}</h2>
-                                <nav className="space-y-3" aria-label={t('Settings')}>
-                                    {SETTINGS_GROUPS.map(group => (
-                                        <div key={group.title} className="space-y-1">
-                                            <h3 className="px-3 text-[10px] font-semibold text-text-tertiary uppercase tracking-wider">{t(group.title)}</h3>
-                                            {group.tabs.map(tab => (
-                                                <button
-                                                    key={tab}
-                                                    onClick={() => setActiveTab(tab)}
-                                                    aria-current={activeTab === tab ? 'page' : undefined}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-3 ${activeTab === tab ? 'bg-bg-item-active text-text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-item-active/50'}`}
-                                                >
-                                                    {tabLabels[tab].icon} {t(tabLabels[tab].label)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    ))}
+                        <div className="w-60 shrink-0 bg-bg-sidebar flex flex-col border-r border-border-subtle">
+                            <div className="px-4 pt-6 pb-3 overflow-y-auto flex-1 min-h-0">
+                                <h2 className="px-3 mb-3 text-[13px] font-semibold uppercase tracking-wider text-text-primary">{t('Settings')}</h2>
+                                <nav className="space-y-0.5" aria-label={t('Settings')}>
+                                    {SETTINGS_TABS.map(tab => {
+                                        const { label, icon: Icon } = tabMeta[tab];
+                                        const active = activeTab === tab;
+                                        return (
+                                            <button
+                                                key={tab}
+                                                type="button"
+                                                onClick={() => setActiveTab(tab)}
+                                                aria-current={active ? 'page' : undefined}
+                                                className={`w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium transition-colors flex items-center gap-3 ${active ? 'bg-bg-item-active text-text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-bg-item-surface'}`}
+                                            >
+                                                <Icon size={16} className={active ? 'text-accent-primary' : undefined} /> {t(label)}
+                                            </button>
+                                        );
+                                    })}
                                 </nav>
                             </div>
 
-                            <div className="mt-auto p-6 border-t border-border-subtle">
+                            <div className="p-4 border-t border-border-subtle">
                                 <button
+                                    type="button"
                                     onClick={() => window.electronAPI.quitApp()}
-                                    className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-3"
+                                    className="w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-3"
                                 >
                                     <LogOut size={16} /> {t('Quit {name}', { name: APP_NAME })}
-                                </button>
-                                <button onClick={onClose} className="group mt-2 w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-bg-item-active/50 transition-colors flex items-center gap-3">
-                                    <X size={18} className="group-hover:text-red-500 transition-colors" /> {t('Close')}
                                 </button>
                             </div>
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 bg-bg-main overflow-y-auto p-8 relative">
+                        <div className="flex-1 min-w-0 relative bg-bg-main">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                title={t('Close')}
+                                aria-label={t('Close')}
+                                className="absolute top-3 right-3 z-30 p-1.5 rounded-lg bg-bg-main text-text-tertiary hover:text-text-primary hover:bg-bg-item-surface transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                            <div className="h-full overflow-y-auto px-8 pt-12 pb-10">
                             <CredentialLoadBanner />
                             {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{t(credentialNotice)}</p>}
-                            {(showGeneral || showPrivacy) && (
+
+                            {activeTab === 'general' && (
                                 <div className="space-y-6 animated fadeIn">
-                                    {Object.entries(preferenceErrors).map(([kind, error]) => error && <p role="alert" className="text-xs text-red-400" key={kind}>{t(error)}</p>)}
-                                    <div className="space-y-3.5">
-                                        {showPrivacy && <>
-                                        {/* UndetectableToggle */}
-                                        <div className={`${isLight ? 'bg-bg-card' : 'bg-bg-item-surface'} rounded-xl p-5 border border-border-subtle flex items-center justify-between transition-all ${isUndetectable ? 'shadow-lg shadow-blue-500/10' : ''}`}>
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-2">
-                                                    {isUndetectable ? (
-                                                        <svg
-                                                            width="18"
-                                                            height="18"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            className="text-text-primary"
-                                                        >
-                                                            <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z" fill="currentColor" stroke="currentColor" />
-                                                            <path d="M9 10h.01" stroke="var(--bg-item-surface)" strokeWidth="2.5" />
-                                                            <path d="M15 10h.01" stroke="var(--bg-item-surface)" strokeWidth="2.5" />
-                                                        </svg>
-                                                    ) : (
-                                                        <Ghost size={18} className="text-text-primary" />
-                                                    )}
-                                                    <h3 className="text-lg font-bold text-text-primary">{t(isUndetectable ? 'Protection on' : 'Protection off')}</h3>
-                                                </div>
-                                                <p className="text-xs text-text-secondary">
-                                                    {t(isUndetectable ? 'Window protection is enabled for {name}.' : 'Window protection is disabled for {name}.', { name: APP_NAME })} <button className="text-blue-400 hover:underline">{t('Supported apps here')}</button>
-                                                </p>
-                                            </div>
-                                            <div
-                                                onClick={() => {
-                                                    const newState = !isUndetectable;
-                                                    void setProtection(newState);
-                                                    // Analytics: Undetectable Mode Toggle
-                                                }}
-                                                role="switch" aria-label={t('Window protection')} aria-checked={isUndetectable}
-                                                tabIndex={0} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); void setProtection(!isUndetectable); } }}
-                                                className={`w-11 h-6 rounded-full relative transition-colors ${isUndetectable ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                            >
-                                                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isUndetectable ? 'translate-x-5' : 'translate-x-0'}`} />
-                                            </div>
-                                        </div>
+                                    <SettingsHeading title={t('General settings')} description={t('Customize how {name} works for you', { name: APP_NAME })} />
 
-                                        {/* Mouse Passthrough Toggle — Adapted from public PR #113 */}
-                                        <div className={`${isLight ? 'bg-bg-card' : 'bg-bg-item-surface'} rounded-xl p-5 border border-border-subtle flex items-center justify-between transition-all ${isMousePassthrough ? 'shadow-lg shadow-sky-500/10' : ''}`}>
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-2">
-                                                    <PointerOff size={18} className={isMousePassthrough ? 'text-sky-400' : 'text-text-primary'} />
-                                                    <h3 className="text-lg font-bold text-text-primary">{t('Mouse Passthrough')}</h3>
-                                                </div>
-                                                <p className="text-xs text-text-secondary">
-                                                    {t('Overlay stays visible but lets all mouse clicks pass through to the app beneath.')}
-                                                </p>
-                                            </div>
-                                            <div
-                                                onClick={() => {
-                                                    const newState = !isMousePassthrough;
-                                                    void setPassthrough(newState);
-                                                }}
-                                                role="switch" aria-label={t('Mouse passthrough')} aria-checked={isMousePassthrough}
-                                                tabIndex={0} onKeyDown={event => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); void setPassthrough(!isMousePassthrough); } }}
-                                                className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${isMousePassthrough ? 'bg-sky-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                            >
-                                                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isMousePassthrough ? 'translate-x-5' : 'translate-x-0'}`} />
-                                            </div>
-                                        </div>
-                                        </>}
-
-                                        <div>
-                                            <h3 className="text-lg font-bold text-text-primary mb-1">{t(showPrivacy ? 'Privacy & Data' : 'General settings')}</h3>
-                                            <p className="text-xs text-text-secondary mb-2">{showPrivacy ? t('Choose what {name} keeps on this device.', { name: APP_NAME }) : t('Customize how {name} works for you', { name: APP_NAME })}</p>
-
-                                            <div className={`rounded-xl border ${isLight ? 'bg-bg-card border-border-subtle divide-y divide-border-subtle' : 'bg-transparent border-transparent divide-y divide-border-subtle/20'}`}>
-                                            <div className="space-y-0">
-                                                {showGeneral && <>
-                                                {/* Interface Language */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 bg-bg-item-surface rounded-lg border border-border-subtle flex items-center justify-center text-text-tertiary shrink-0">
-                                                            <Globe size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 id="interface-language-label" className="text-sm font-bold text-text-primary">{t('Interface Language')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">{t('Language for menus, settings and messages. AI response and recognition languages are set separately.')}</p>
-                                                            {uiLanguageError && <p role="alert" className="text-xs text-amber-500 mt-1">{t(uiLanguageError)}</p>}
-                                                        </div>
-                                                    </div>
-                                                    <div role="radiogroup" aria-labelledby="interface-language-label" className="flex shrink-0 rounded-lg border border-border-subtle bg-bg-component p-0.5">
-                                                        {([['en', 'English'], ['zh-CN', '简体中文']] as const).map(([code, name]) => (
-                                                            <button
-                                                                key={code}
-                                                                type="button"
-                                                                role="radio"
-                                                                lang={code}
-                                                                aria-checked={language === code}
-                                                                disabled={uiLanguageSaving}
-                                                                onClick={() => handleUiLanguageChange(code)}
-                                                                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${language === code ? 'bg-bg-item-active text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
-                                                            >
-                                                                {name}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                {/* Open at Login */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            openOnLogin
-                                                                ? isLight
-                                                                    ? 'border-indigo-500/30 text-indigo-600 bg-indigo-50/50'
-                                                                    : 'border-indigo-500/40 text-indigo-400 bg-indigo-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <Power size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Open {name} when you log in', { name: APP_NAME })}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">{t('{name} will open automatically when you log in to your computer', { name: APP_NAME })}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        onClick={() => {
-                                                            const newState = !openOnLogin;
-                                                            setOpenOnLogin(newState);
-                                                            window.electronAPI?.setOpenAtLogin(newState);
-                                                        }}
-                                                        className={`w-11 h-6 rounded-full relative transition-colors ${openOnLogin ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                                    >
-                                                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${openOnLogin ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                    </div>
-                                                </div>
-                                                </>}
-
-                                                {showPrivacy && <>
-                                                {/* Meeting Retention */}
-                                                <div className="flex items-start justify-between px-4 py-3 gap-4">
-                                                    <div className="flex items-start gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            meetingRetention === 'never'
-                                                                ? isLight
-                                                                    ? 'border-emerald-500/30 text-emerald-600 bg-emerald-50/50'
-                                                                    : 'border-emerald-500/40 text-emerald-400 bg-emerald-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <Shield size={20} />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Do not save meetings')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5 leading-normal">{t('When enabled, live assistance works but transcripts, summaries, and history are discarded when the meeting ends')}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        onClick={() => {
-                                                            const nextRetention = meetingRetention === 'never' ? 'forever' : 'never';
-                                                            setMeetingRetention(nextRetention);
-                                                            window.electronAPI?.setMeetingRetention?.(nextRetention);
-                                                        }}
-                                                        className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer shrink-0 mt-2 ${meetingRetention === 'never' ? 'bg-emerald-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                                        role="switch"
-                                                        aria-checked={meetingRetention === 'never'}
-                                                        aria-label={t('Do not save meetings')}
-                                                    >
-                                                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${meetingRetention === 'never' ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                    </div>
-                                                </div>
-
-                                                {/* Debug Logging */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            verboseLogging
-                                                                ? isLight
-                                                                    ? 'border-amber-500/30 text-amber-600 bg-amber-50/50'
-                                                                    : 'border-amber-500/40 text-amber-400 bg-amber-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <Terminal size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Verbose debug logging')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">{t('Print detailed audio, STT, and pipeline diagnostics')}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        onClick={() => {
-                                                            const newState = !verboseLogging;
-                                                            setVerboseLogging(newState);
-                                                            window.electronAPI?.setVerboseLogging?.(newState);
-                                                            if (newState) {
-                                                                setShowVerboseToast(true);
-                                                            }
-                                                        }}
-                                                        className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${verboseLogging ? 'bg-amber-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                                    >
-                                                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${verboseLogging ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                    </div>
-                                                </div>
-
-                                                {/* Verbose logging toast */}
-                                                <AnimatePresence>
-                                                    {showVerboseToast && (
-                                                        <motion.div
-                                                            key="verbose-toast"
-                                                            initial={{ opacity: 0, y: -6, height: 0 }}
-                                                            animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                                            exit={{ opacity: 0, y: -4, height: 0 }}
-                                                            transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
-                                                            className="mx-4 mb-1 overflow-hidden"
-                                                        >
-                                                            <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                                    <Terminal size={14} className="text-amber-400 shrink-0" />
-                                                                    <p className="text-xs text-amber-200/80 leading-snug truncate">
-                                                                        {t('Logs')} → <span className="font-mono text-amber-300">{isMac ? `~/Library/Application Support/${APP_NAME}/debug.log` : t('{name} application data/debug.log', { name: APP_NAME })}</span>
-                                                                    </p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => window.electronAPI?.openLogFile?.()}
-                                                                    className="shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25"
-                                                                >
-                                                                    {t('Open')}
-                                                                </button>
-                                                            </div>
-                                                            {/* 5-second drain bar */}
-                                                            <motion.div
-                                                                className="h-[2px] bg-amber-500/40 rounded-b-xl"
-                                                                initial={{ scaleX: 1, originX: 0 }}
-                                                                animate={{ scaleX: 0 }}
-                                                                transition={{ duration: 5, ease: 'linear', delay: 0.2 }}
-                                                            />
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
-                                                </>}
-
-                                                {showGeneral && <>
-                                                {/* Interviewer Transcript */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            showTranscript
-                                                                ? isLight
-                                                                    ? 'border-blue-500/30 text-blue-600 bg-blue-50/50'
-                                                                    : 'border-blue-500/40 text-blue-400 bg-blue-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <MessageSquare size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Interviewer Transcript')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">{t('Show real-time transcription of the interviewer')}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        onClick={() => {
-                                                            const newState = !showTranscript;
-                                                            setShowTranscript(newState);
-                                                            localStorage.setItem('natively_interviewer_transcript', String(newState));
-                                                            window.dispatchEvent(new Event('storage'));
-                                                        }}
-                                                        className={`w-11 h-6 rounded-full relative transition-colors ${showTranscript ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                                    >
-                                                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${showTranscript ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                    </div>
-                                                </div>
-
-                                                {/* Auto Scroll */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            autoScroll
-                                                                ? isLight
-                                                                    ? 'border-purple-500/30 text-purple-600 bg-purple-50/50'
-                                                                    : 'border-purple-500/40 text-purple-400 bg-purple-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <ArrowDown size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Auto Scroll')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">{t('Automatically scroll to the latest message as new responses arrive')}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        onClick={() => {
-                                                            const newState = !autoScroll;
-                                                            setAutoScroll(newState);
-                                                            localStorage.setItem('natively_auto_scroll', String(newState));
-                                                            window.dispatchEvent(new Event('storage'));
-                                                        }}
-                                                        className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${autoScroll ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                                    >
-                                                        <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${autoScroll ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                    </div>
-                                                </div>
-
-
-                                                {/* Theme */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            themeMode !== 'system'
-                                                                ? isLight
-                                                                    ? 'border-violet-500/30 text-violet-600 bg-violet-50/50'
-                                                                    : 'border-violet-500/40 text-violet-400 bg-violet-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <Palette size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Theme')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">{t('Customize how {name} looks on your device', { name: APP_NAME })}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="relative" ref={themeDropdownRef}>
+                                    <SettingsGroup title={t('Language')}>
+                                        <SettingsRow
+                                            icon={Globe}
+                                            title={t('Interface Language')}
+                                            titleId="interface-language-label"
+                                            description={<>
+                                                {t('Language for menus, settings and messages. AI response and recognition languages are set separately.')}
+                                                {uiLanguageError && <p role="alert" className="text-xs text-amber-500 mt-1">{t(uiLanguageError)}</p>}
+                                            </>}
+                                            control={
+                                                <div role="radiogroup" aria-labelledby="interface-language-label" className="flex rounded-lg border border-border-subtle bg-bg-component p-0.5">
+                                                    {([['en', 'English'], ['zh-CN', '简体中文']] as const).map(([code, name]) => (
                                                         <button
-                                                            onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-                                                            className="bg-bg-component hover:bg-bg-elevated border border-border-subtle text-text-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 min-w-[110px] justify-between"
+                                                            key={code}
+                                                            type="button"
+                                                            role="radio"
+                                                            lang={code}
+                                                            aria-checked={language === code}
+                                                            disabled={uiLanguageSaving}
+                                                            onClick={() => handleUiLanguageChange(code)}
+                                                            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${language === code ? 'bg-accent-primary text-on-accent' : 'text-text-secondary hover:text-text-primary'}`}
                                                         >
-                                                            <div className="flex items-center gap-2 overflow-hidden">
-                                                                <span className="text-text-secondary shrink-0">
-                                                                    {themeMode === 'system' && <Monitor size={14} />}
-                                                                    {themeMode === 'light' && <Sun size={14} />}
-                                                                    {themeMode === 'dark' && <Moon size={14} />}
-                                                                </span>
-                                                                <span className="capitalize text-ellipsis overflow-hidden whitespace-nowrap">{t(themeMode === 'system' ? 'System' : themeMode === 'light' ? 'Light' : 'Dark')}</span>
-                                                            </div>
-                                                            <ChevronDown size={12} className={`shrink-0 transition-transform ${isThemeDropdownOpen ? 'rotate-180' : ''}`} />
+                                                            {name}
                                                         </button>
-
-                                                        {/* Dropdown Menu */}
-                                                        {isThemeDropdownOpen && (
-                                                            <div className="absolute right-0 top-full mt-1 min-w-full w-max bg-bg-elevated border border-border-subtle rounded-lg shadow-xl overflow-hidden z-20 p-1 animated fadeIn select-none">
-                                                                {[
-                                                                    { mode: 'system', label: 'System', icon: <Monitor size={14} /> },
-                                                                    { mode: 'light', label: 'Light', icon: <Sun size={14} /> },
-                                                                    { mode: 'dark', label: 'Dark', icon: <Moon size={14} /> }
-                                                                ].map((option) => (
-                                                                    <button
-                                                                        key={option.mode}
-                                                                        onClick={() => {
-                                                                            handleSetTheme(option.mode as any);
-                                                                            setIsThemeDropdownOpen(false);
-                                                                        }}
-                                                                        className={`w-full text-left px-2 py-1.5 rounded-md text-xs flex items-center gap-2 transition-colors ${themeMode === option.mode ? 'text-text-primary bg-bg-item-active/50' : 'text-text-secondary hover:bg-bg-input hover:text-text-primary'}`}
-                                                                    >
-                                                                        <span className={themeMode === option.mode ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'}>{option.icon}</span>
-                                                                        <span className="font-medium">{t(option.label)}</span>
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    ))}
                                                 </div>
-
-                                                {/* Meeting Interface Style */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            (meetingInterfaceTheme === 'liquid-glass' || meetingInterfaceTheme === 'modern')
-                                                                ? isLight
-                                                                    ? 'border-sky-500/30 text-sky-600 bg-sky-50/50'
-                                                                    : 'border-sky-500/40 text-sky-400 bg-sky-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <Layout size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Meeting Interface Style')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">
-                                                                {t(meetingInterfaceTheme === 'liquid-glass'
-                                                                    ? 'Liquid glass — Apple-inspired transparent overlay'
-                                                                    : meetingInterfaceTheme === 'modern'
-                                                                        ? 'Modern — polished dark glass with cobalt accents'
-                                                                        : 'Default overlay appearance')}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="relative" ref={interfaceThemeDropdownRef}>
-                                                        <button
-                                                            onClick={() => setIsInterfaceThemeDropdownOpen(!isInterfaceThemeDropdownOpen)}
-                                                            className="bg-bg-component hover:bg-bg-elevated border border-border-subtle text-text-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 min-w-[110px] justify-between"
-                                                        >
-                                                            <span className="text-ellipsis overflow-hidden whitespace-nowrap">
-                                                                {t(meetingInterfaceTheme === 'liquid-glass'
-                                                                    ? 'Liquid Glass'
-                                                                    : meetingInterfaceTheme === 'modern'
-                                                                        ? 'Modern'
-                                                                        : 'Default')}
-                                                            </span>
-                                                            <ChevronDown size={12} className={`shrink-0 transition-transform ${isInterfaceThemeDropdownOpen ? 'rotate-180' : ''}`} />
-                                                        </button>
-
-                                                        {isInterfaceThemeDropdownOpen && (
-                                                            <div className="absolute right-0 top-full mt-1 w-full bg-bg-elevated border border-border-subtle rounded-lg shadow-xl overflow-hidden z-20 p-1 animated fadeIn select-none">
-                                                                {([
-                                                                    { mode: 'default' as MeetingInterfaceTheme, label: 'Default' },
-                                                                    { mode: 'liquid-glass' as MeetingInterfaceTheme, label: 'Liquid Glass' },
-                                                                    { mode: 'modern' as MeetingInterfaceTheme, label: 'Modern' },
-                                                                ] as const).map((option) => (
-                                                                    <button
-                                                                        key={option.mode}
-                                                                        onClick={() => {
-                                                                            setMeetingInterfaceTheme(option.mode);
-                                                                            setMeetingInterfaceThemeState(option.mode);
-                                                                            setIsInterfaceThemeDropdownOpen(false);
-                                                                        }}
-                                                                        className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs flex items-center gap-2 transition-colors ${meetingInterfaceTheme === option.mode ? 'text-text-primary bg-bg-item-active/50' : 'text-text-secondary hover:bg-bg-input hover:text-text-primary'}`}
-                                                                    >
-                                                                        <span className="font-medium">{t(option.label)}</span>
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                    {/* AI Response Language */}
-                                                <div className="flex items-center justify-between px-4 py-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 bg-bg-item-surface rounded-lg border flex items-center justify-center shrink-0 transition-all duration-200 ${
-                                                            aiResponseLanguage !== 'auto'
-                                                                ? isLight
-                                                                    ? 'border-teal-500/30 text-teal-600 bg-teal-50/50'
-                                                                    : 'border-teal-500/40 text-teal-400 bg-teal-500/5'
-                                                                : 'border-border-subtle text-text-tertiary'
-                                                        }`}>
-                                                            <Globe size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('AI Response Language')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">
-                                                                {t(aiResponseLanguage === 'auto'
-                                                                    ? 'Mirrors user\'s language automatically'
-                                                                    : 'Language for AI suggestions and notes'
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="relative" ref={aiLangDropdownRef}>
-                                                        <button
-                                                            onClick={() => setIsAiLangDropdownOpen(!isAiLangDropdownOpen)}
-                                                            className="bg-bg-component hover:bg-bg-elevated border border-border-subtle text-text-primary px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 min-w-[110px] justify-between"
-                                                        >
-                                                            <span className="capitalize text-ellipsis overflow-hidden whitespace-nowrap flex items-center gap-1">
-                                                                {aiResponseLanguage === 'auto' ? t('Auto') : aiResponseLanguage}
-                                                            </span>
-                                                            <ChevronDown size={12} className={`shrink-0 transition-transform ${isAiLangDropdownOpen ? 'rotate-180' : ''}`} />
-                                                        </button>
-
-                                                        {/* Dropdown Menu */}
-                                                        {isAiLangDropdownOpen && (
-                                                            <div className="absolute right-0 top-full mt-1 min-w-full w-max bg-bg-elevated border border-border-subtle rounded-lg shadow-xl overflow-hidden z-20 p-1 animated fadeIn select-none max-h-60 overflow-y-auto custom-scrollbar">
-                                                                {availableAiLanguages.map((option) => (
-                                                                    <button
-                                                                        key={option.code}
-                                                                        onClick={() => {
-                                                                            handleAiLanguageChange(option.code);
-                                                                            setIsAiLangDropdownOpen(false);
-                                                                        }}
-                                                                        className={`w-full text-left px-2 py-1.5 rounded-md text-xs flex items-center gap-2 transition-colors ${aiResponseLanguage === option.code ? 'text-text-primary bg-bg-item-active/50' : 'text-text-secondary hover:bg-bg-input hover:text-text-primary'}`}
-                                                                    >
-                                                                        {option.code === 'auto' ? (
-                                                                            <span className="font-medium">{t('Auto')}</span>
-                                                                        ) : (
-                                                                            <span className="font-medium">{option.label}</span>
-                                                                        )}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Version */}
-                                                <div className="flex items-start justify-between gap-4 px-4 py-3">
-                                                    <div className="flex items-start gap-4">
-                                                        <div className="w-10 h-10 bg-bg-item-surface rounded-lg border border-border-subtle flex items-center justify-center text-text-tertiary shrink-0">
-                                                            <BadgeCheck size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-text-primary">{t('Version')}</h3>
-                                                            <p className="text-xs text-text-secondary mt-0.5">
-                                                                {t('You are currently using {name} version {version}', { name: APP_NAME, version: packageJson.version })}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                </>}
-                                            </div>
-                                            </div>
-
-                                                {/* ------------------------------------------------------------------ */}
-                                                {/* Interface Opacity (Stealth Mode)                                   */}
-                                                {/* ------------------------------------------------------------------ */}
-                                                {showGeneral && (
-                                                <div
-                                                    id="opacity-slider-card"
-                                                    style={isPreviewingOpacity ? { visibility: 'visible', position: 'relative', zIndex: 9999 } : {}}
-                                                    className={`${isLight ? 'bg-bg-card' : 'bg-bg-item-surface'} rounded-xl p-5 border border-border-subtle mt-4`}
-                                                >
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <label className="flex items-center gap-2 text-xs font-medium text-text-secondary uppercase tracking-wide">
-                                                            <Eye size={13} className="text-text-secondary" />
-                                                            {t('Interface Opacity')}
-                                                        </label>
-                                                        {/*
-                                                         * Render previewOverlayOpacity (live drag value), NOT
-                                                         * overlayOpacity (committed). The drag handler at
-                                                         * handleOpacityChange does an imperative
-                                                         *   document.querySelectorAll('.opacity-percent-label')
-                                                         *     .forEach(el => el.textContent = percentText)
-                                                         * for sub-frame latency, then calls setPreviewOverlayOpacity(val).
-                                                         * That setter queues a React re-render — if this JSX read
-                                                         * `overlayOpacity` (the un-committed pre-drag value), React
-                                                         * would clobber the imperative text back to the stale value
-                                                         * on the next commit, producing a visible flicker every
-                                                         * drag tick. Reading previewOverlayOpacity keeps React's
-                                                         * render and the imperative write in agreement — the
-                                                         * imperative write still wins the sub-frame race, React's
-                                                         * commit just confirms the same value.
-                                                         */}
-                                                        <span className="opacity-percent-label text-xs font-semibold text-text-primary tabular-nums">
-                                                            {Math.round(previewOverlayOpacity * 100)}%
+                                            }
+                                        />
+                                        <SettingsRow
+                                            icon={Languages}
+                                            title={t('AI Response Language')}
+                                            description={t(aiResponseLanguage === 'auto' ? 'Mirrors user\'s language automatically' : 'Language for AI suggestions and notes')}
+                                            control={
+                                                <div className="relative" ref={aiLangDropdownRef}>
+                                                    <button type="button" onClick={() => setIsAiLangDropdownOpen(!isAiLangDropdownOpen)} className={dropdownButtonClass}>
+                                                        <span className="capitalize text-ellipsis overflow-hidden whitespace-nowrap">
+                                                            {aiResponseLanguage === 'auto' ? t('Auto') : aiResponseLanguage}
                                                         </span>
-                                                    </div>
+                                                        <ChevronDown size={12} className={`shrink-0 transition-transform ${isAiLangDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    {isAiLangDropdownOpen && (
+                                                        <div className={`${dropdownMenuClass} max-h-60 overflow-y-auto custom-scrollbar`}>
+                                                            {availableAiLanguages.map((option) => (
+                                                                <button
+                                                                    key={option.code}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        handleAiLanguageChange(option.code);
+                                                                        setIsAiLangDropdownOpen(false);
+                                                                    }}
+                                                                    className={dropdownItemClass(aiResponseLanguage === option.code)}
+                                                                >
+                                                                    <span className="font-medium">{option.code === 'auto' ? t('Auto') : option.label}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            }
+                                        />
+                                    </SettingsGroup>
 
-                                                    <input
-                                                        type="range"
-                                                        min={OVERLAY_OPACITY_MIN}
-                                                        max={1.0}
-                                                        step={0.01}
-                                                        defaultValue={overlayOpacity}
-                                                        onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
-                                                        onPointerDown={startPreviewingOpacity}
-                                                        onPointerUp={stopPreviewingOpacity}
-                                                        onPointerCancel={stopPreviewingOpacity}
-                                                        onPointerLeave={stopPreviewingOpacity}
-                                                        className="w-full h-1.5 rounded-full appearance-none bg-bg-input accent-accent-primary"
-                                                        style={{ WebkitAppearance: 'none' } as React.CSSProperties}
-                                                    />
+                                    <SettingsGroup title={t('Appearance')}>
+                                        <SettingsRow
+                                            icon={Palette}
+                                            title={t('Theme')}
+                                            description={t('Customize how {name} looks on your device', { name: APP_NAME })}
+                                            control={
+                                                <div className="relative" ref={themeDropdownRef}>
+                                                    <button type="button" onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)} className={dropdownButtonClass}>
+                                                        <span className="flex items-center gap-2 overflow-hidden">
+                                                            <span className="text-text-secondary shrink-0">
+                                                                {themeMode === 'system' && <Monitor size={14} />}
+                                                                {themeMode === 'light' && <Sun size={14} />}
+                                                                {themeMode === 'dark' && <Moon size={14} />}
+                                                            </span>
+                                                            <span className="capitalize text-ellipsis overflow-hidden whitespace-nowrap">{t(themeMode === 'system' ? 'System' : themeMode === 'light' ? 'Light' : 'Dark')}</span>
+                                                        </span>
+                                                        <ChevronDown size={12} className={`shrink-0 transition-transform ${isThemeDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    {isThemeDropdownOpen && (
+                                                        <div className={dropdownMenuClass}>
+                                                            {[
+                                                                { mode: 'system', label: 'System', icon: <Monitor size={14} /> },
+                                                                { mode: 'light', label: 'Light', icon: <Sun size={14} /> },
+                                                                { mode: 'dark', label: 'Dark', icon: <Moon size={14} /> }
+                                                            ].map((option) => (
+                                                                <button
+                                                                    key={option.mode}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        handleSetTheme(option.mode as any);
+                                                                        setIsThemeDropdownOpen(false);
+                                                                    }}
+                                                                    className={dropdownItemClass(themeMode === option.mode)}
+                                                                >
+                                                                    {option.icon}
+                                                                    <span className="font-medium">{t(option.label)}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            }
+                                        />
+                                        <SettingsRow
+                                            icon={Layout}
+                                            title={t('Meeting Interface Style')}
+                                            description={t(meetingInterfaceTheme === 'liquid-glass'
+                                                ? 'Liquid glass — Apple-inspired transparent overlay'
+                                                : meetingInterfaceTheme === 'modern'
+                                                    ? 'Modern — polished dark glass with cobalt accents'
+                                                    : 'Default overlay appearance')}
+                                            control={
+                                                <div className="relative" ref={interfaceThemeDropdownRef}>
+                                                    <button type="button" onClick={() => setIsInterfaceThemeDropdownOpen(!isInterfaceThemeDropdownOpen)} className={dropdownButtonClass}>
+                                                        <span className="text-ellipsis overflow-hidden whitespace-nowrap">
+                                                            {t(meetingInterfaceTheme === 'liquid-glass'
+                                                                ? 'Liquid Glass'
+                                                                : meetingInterfaceTheme === 'modern'
+                                                                    ? 'Modern'
+                                                                    : 'Default')}
+                                                        </span>
+                                                        <ChevronDown size={12} className={`shrink-0 transition-transform ${isInterfaceThemeDropdownOpen ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    {isInterfaceThemeDropdownOpen && (
+                                                        <div className={dropdownMenuClass}>
+                                                            {([
+                                                                { mode: 'default' as MeetingInterfaceTheme, label: 'Default' },
+                                                                { mode: 'liquid-glass' as MeetingInterfaceTheme, label: 'Liquid Glass' },
+                                                                { mode: 'modern' as MeetingInterfaceTheme, label: 'Modern' },
+                                                            ] as const).map((option) => (
+                                                                <button
+                                                                    key={option.mode}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setMeetingInterfaceTheme(option.mode);
+                                                                        setMeetingInterfaceThemeState(option.mode);
+                                                                        setIsInterfaceThemeDropdownOpen(false);
+                                                                    }}
+                                                                    className={dropdownItemClass(meetingInterfaceTheme === option.mode)}
+                                                                >
+                                                                    <span className="font-medium">{t(option.label)}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            }
+                                        />
+                                    </SettingsGroup>
 
-                                                    <div className="flex justify-between mt-1.5">
-                                                        <span className="text-[10px] text-text-tertiary">{t('More Stealth')}</span>
-                                                        <span className="text-[10px] text-text-tertiary">{t('Fully Visible')}</span>
-                                                    </div>
+                                    <SettingsGroup title={t('Meeting overlay')}>
+                                        <SettingsRow
+                                            icon={MessageSquare}
+                                            title={t('Interviewer Transcript')}
+                                            description={t('Show real-time transcription of the interviewer')}
+                                            control={<SettingsSwitch label={t('Interviewer Transcript')} checked={showTranscript} onChange={(next) => {
+                                                setShowTranscript(next);
+                                                localStorage.setItem('natively_interviewer_transcript', String(next));
+                                                window.dispatchEvent(new Event('storage'));
+                                            }} />}
+                                        />
+                                        <SettingsRow
+                                            icon={ArrowDown}
+                                            title={t('Auto Scroll')}
+                                            description={t('Automatically scroll to the latest message as new responses arrive')}
+                                            control={<SettingsSwitch label={t('Auto Scroll')} checked={autoScroll} onChange={(next) => {
+                                                setAutoScroll(next);
+                                                localStorage.setItem('natively_auto_scroll', String(next));
+                                                window.dispatchEvent(new Event('storage'));
+                                            }} />}
+                                        />
+                                    </SettingsGroup>
 
-                                                    <p className="text-xs text-text-tertiary mt-2">
+                                    <SettingsGroup title={t('Startup')}>
+                                        <SettingsRow
+                                            icon={Power}
+                                            title={t('Open {name} when you log in', { name: APP_NAME })}
+                                            description={t('{name} will open automatically when you log in to your computer', { name: APP_NAME })}
+                                            control={<SettingsSwitch label={t('Open {name} when you log in', { name: APP_NAME })} checked={openOnLogin} onChange={(next) => {
+                                                setOpenOnLogin(next);
+                                                window.electronAPI?.setOpenAtLogin(next);
+                                            }} />}
+                                        />
+                                        <SettingsRow
+                                            icon={BadgeCheck}
+                                            title={t('Version')}
+                                            description={t('You are currently using {name} version {version}', { name: APP_NAME, version: packageJson.version })}
+                                        />
+                                    </SettingsGroup>
+                                </div>
+                            )}
+
+                            {activeTab === 'privacy' && (
+                                <div className="space-y-6 animated fadeIn">
+                                    <SettingsHeading title={t('Window & privacy')} description={t('Control the overlay and its visibility')} />
+                                    {Object.entries(preferenceErrors).map(([kind, error]) => error && <p role="alert" className="text-xs text-red-400" key={kind}>{t(error)}</p>)}
+
+                                    <SettingsGroup title={t('Screen sharing')}>
+                                        <SettingsRow
+                                            icon={Ghost}
+                                            title={t(isUndetectable ? 'Protection on' : 'Protection off')}
+                                            description={<>
+                                                {t(isUndetectable ? 'Window protection is enabled for {name}.' : 'Window protection is disabled for {name}.', { name: APP_NAME })}{' '}
+                                                <button type="button" className="text-accent-primary hover:underline">{t('Supported apps here')}</button>
+                                            </>}
+                                            control={<SettingsSwitch label={t('Window protection')} checked={isUndetectable} onChange={(next) => { void setProtection(next); }} />}
+                                        />
+                                        <SettingsRow
+                                            icon={PointerOff}
+                                            title={t('Mouse Passthrough')}
+                                            description={t('Overlay stays visible but lets all mouse clicks pass through to the app beneath.')}
+                                            control={<SettingsSwitch label={t('Mouse passthrough')} checked={isMousePassthrough} onChange={(next) => { void setPassthrough(next); }} />}
+                                        />
+                                    </SettingsGroup>
+
+                                    <SettingsGroup title={t('Interface Opacity')}>
+                                        <div
+                                            id="opacity-slider-card"
+                                            style={isPreviewingOpacity ? { visibility: 'visible', position: 'relative', zIndex: 9999 } : {}}
+                                            className="bg-bg-card rounded-xl px-4 py-3.5"
+                                        >
+                                            <div className="flex items-center gap-3.5">
+                                                <span className="w-8 h-8 shrink-0 rounded-lg border border-border-subtle bg-bg-item-surface flex items-center justify-center text-text-secondary" aria-hidden="true">
+                                                    <Eye size={15} strokeWidth={1.75} />
+                                                </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs text-text-secondary leading-relaxed">
                                                         {t('Controls the visibility of the in-meeting overlay.')}{' '}
-                                                        <span className="text-text-secondary">{t('Hold the slider to preview.')}</span>
+                                                        <span className="text-text-tertiary">{t('Hold the slider to preview.')}</span>
                                                     </p>
                                                 </div>
-                                                )}
-
-                                        </div>
-
-                                    </div>
-
-                                    {/* Process Disguise */}
-                                    {/* Process Disguise */}
-                                    {showPrivacy && (
-                                    <div className={`${isLight ? 'bg-bg-card' : 'bg-bg-item-surface'} rounded-xl p-5 border border-border-subtle`}>
-                                        <div className="flex flex-col gap-1 mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="text-lg font-bold text-text-primary">{t('Process Disguise')}</h3>
-                                            </div>
-                                            <p className="text-xs text-text-secondary">
-                                                {t('Change the displayed application identity for {name}. This does not guarantee invisibility during screen sharing.', { name: APP_NAME })}
-                                                <span className="block mt-1 text-text-tertiary">
-                                                    {t('The disguise applies independently of window protection.')}
+                                                {/*
+                                                 * Render previewOverlayOpacity (live drag value), not overlayOpacity:
+                                                 * handleOpacityChange writes this label imperatively during a drag, and
+                                                 * reading the committed value would make React flicker it back.
+                                                 */}
+                                                <span className="opacity-percent-label text-xs font-semibold text-text-primary tabular-nums">
+                                                    {Math.round(previewOverlayOpacity * 100)}%
                                                 </span>
-                                            </p>
+                                            </div>
+                                            <div className="mt-3 pl-[46px]">
+                                                <input
+                                                    type="range"
+                                                    aria-label={t('Interface Opacity')}
+                                                    min={OVERLAY_OPACITY_MIN}
+                                                    max={1.0}
+                                                    step={0.01}
+                                                    defaultValue={overlayOpacity}
+                                                    onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
+                                                    onPointerDown={startPreviewingOpacity}
+                                                    onPointerUp={stopPreviewingOpacity}
+                                                    onPointerCancel={stopPreviewingOpacity}
+                                                    onPointerLeave={stopPreviewingOpacity}
+                                                    className="w-full h-1.5 rounded-full appearance-none bg-bg-input accent-accent-primary"
+                                                    style={{ WebkitAppearance: 'none' } as React.CSSProperties}
+                                                />
+                                                <div className="flex justify-between mt-1.5">
+                                                    <span className="text-[10px] text-text-tertiary">{t('More Stealth')}</span>
+                                                    <span className="text-[10px] text-text-tertiary">{t('Fully Visible')}</span>
+                                                </div>
+                                            </div>
                                         </div>
+                                    </SettingsGroup>
 
-                                        <div className="grid grid-cols-2 gap-3">
+                                    <SettingsGroup
+                                        title={t('Process Disguise')}
+                                        description={<>
+                                            {t('Change the displayed application identity for {name}. This does not guarantee invisibility during screen sharing.', { name: APP_NAME })}{' '}
+                                            {t('The disguise applies independently of window protection.')}
+                                        </>}
+                                    >
+                                        <div className="p-3 grid grid-cols-2 gap-2">
                                             {[
                                                 { id: 'none', label: 'None (Default)', icon: <Layout size={14} /> },
                                                 { id: 'terminal', label: 'Terminal', icon: <Terminal size={14} /> },
@@ -1901,26 +1613,80 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             ].map((option) => (
                                                 <button
                                                     key={option.id}
-                                                    onClick={() => {
-                                                        void setDisguise(option.id as 'none' | 'terminal' | 'settings' | 'activity');
-                                                        // Analytics
-                                                    }}
-                                                    className={`p-3 rounded-lg border text-left flex items-center gap-3 transition-all ${disguiseMode === option.id
-                                                        ? 'bg-accent-primary border-accent-primary text-white shadow-lg shadow-blue-500/20'
-                                                        : 'bg-bg-input border-border-subtle text-text-secondary hover:text-text-primary hover:bg-bg-subtle-hover'
+                                                    type="button"
+                                                    aria-pressed={disguiseMode === option.id}
+                                                    onClick={() => { void setDisguise(option.id as 'none' | 'terminal' | 'settings' | 'activity'); }}
+                                                    className={`px-3 py-2.5 rounded-lg border text-left flex items-center gap-3 transition-colors ${disguiseMode === option.id
+                                                        ? 'bg-accent-subtle border-accent-border text-text-primary'
+                                                        : 'bg-bg-input border-border-subtle text-text-secondary hover:text-text-primary hover:bg-bg-item-surface'
                                                         }`}
                                                 >
-                                                    <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${disguiseMode === option.id ? 'bg-white/20 text-white' : 'bg-bg-item-surface text-text-secondary'
-                                                        }`}>
+                                                    <span className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${disguiseMode === option.id ? 'bg-accent-primary text-on-accent' : 'bg-bg-item-surface text-text-secondary'}`}>
                                                         {option.icon}
-                                                    </div>
+                                                    </span>
                                                     <span className="text-xs font-medium">{t(option.label)}</span>
                                                 </button>
                                             ))}
                                         </div>
-                                    </div>
-                                    )}
+                                    </SettingsGroup>
+                                </div>
+                            )}
 
+                            {activeTab === 'meeting-records' && (
+                                <div className="space-y-6 animated fadeIn">
+                                    <SettingsHeading title={t('Meeting records')} description={t('Choose what {name} keeps on this device.', { name: APP_NAME })} />
+                                    <SettingsGroup title={t('Meetings')}>
+                                        <SettingsRow
+                                            icon={Archive}
+                                            align="start"
+                                            title={t('Do not save meetings')}
+                                            description={t('When enabled, live assistance works but transcripts, summaries, and history are discarded when the meeting ends')}
+                                            control={<SettingsSwitch label={t('Do not save meetings')} checked={meetingRetention === 'never'} onChange={() => {
+                                                const nextRetention = meetingRetention === 'never' ? 'forever' : 'never';
+                                                setMeetingRetention(nextRetention);
+                                                window.electronAPI?.setMeetingRetention?.(nextRetention);
+                                            }} />}
+                                        />
+                                    </SettingsGroup>
+                                    <SettingsGroup title={t('Diagnostics')}>
+                                        <SettingsRow
+                                            icon={Terminal}
+                                            title={t('Verbose debug logging')}
+                                            description={t('Print detailed audio, STT, and pipeline diagnostics')}
+                                            control={<SettingsSwitch label={t('Verbose debug logging')} checked={verboseLogging} onChange={(next) => {
+                                                setVerboseLogging(next);
+                                                window.electronAPI?.setVerboseLogging?.(next);
+                                                if (next) setShowVerboseToast(true);
+                                            }} />}
+                                        >
+                                            {showVerboseToast ? (
+                                                    <motion.div
+                                                        key="verbose-toast"
+                                                        initial={{ opacity: 0, y: -6, height: 0 }}
+                                                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                                        exit={{ opacity: 0, y: -4, height: 0 }}
+                                                        transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
+                                                        className="overflow-hidden"
+                                                    >
+                                                        <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-bg-item-surface border border-border-subtle">
+                                                            <p className="text-xs text-text-secondary leading-snug truncate min-w-0">
+                                                                {t('Logs')} → <span className="font-mono text-text-primary">{isMac ? `~/Library/Application Support/${APP_NAME}/debug.log` : t('{name} application data/debug.log', { name: APP_NAME })}</span>
+                                                            </p>
+                                                            <button type="button" onClick={() => window.electronAPI?.openLogFile?.()} className={settingsButtonClass}>
+                                                                {t('Open')}
+                                                            </button>
+                                                        </div>
+                                                        {/* 5-second drain bar */}
+                                                        <motion.div
+                                                            className="h-[2px] bg-accent-primary rounded-b-lg"
+                                                            initial={{ scaleX: 1, originX: 0 }}
+                                                            animate={{ scaleX: 0 }}
+                                                            transition={{ duration: 5, ease: 'linear', delay: 0.2 }}
+                                                        />
+                                                    </motion.div>
+                                            ) : null}
+                                        </SettingsRow>
+                                    </SettingsGroup>
                                 </div>
                             )}
 
@@ -1934,347 +1700,245 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                 </div>
                             )}
                             {activeTab === 'keybinds' && (
-                                <div className="space-y-5 animated fadeIn select-text pb-4">
+                                <div className="space-y-6 animated fadeIn select-text">
+                                    <SettingsHeading
+                                        title={t('Keyboard shortcuts')}
+                                        description={t('{name} works with these easy to remember commands.', { name: APP_NAME })}
+                                        action={
+                                            <button type="button" onClick={resetShortcuts} className={settingsButtonClass}>
+                                                <RotateCcw size={13} />
+                                                {t('Restore Default')}
+                                            </button>
+                                        }
+                                    />
                                     {shortcutError && <p role="alert" className="text-xs text-red-400">{t(shortcutError)}</p>}
                                     {failedShortcuts.map(item => <p role="alert" className="text-xs text-red-400" key={item.id}>{t('Shortcut unavailable: {action} ({shortcut}).', { action: item.id, shortcut: item.accelerator })}</p>)}
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-text-primary mb-1">{t('Keyboard shortcuts')}</h3>
-                                            <p className="text-xs text-text-secondary">{t('{name} works with these easy to remember commands.', { name: APP_NAME })}</p>
-                                        </div>
-                                        <button
-                                            onClick={resetShortcuts}
-                                            className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-border-subtle bg-bg-subtle/30 hover:bg-bg-subtle hover:border-green-500/30 transition-all duration-200 text-xs font-medium text-text-secondary hover:text-green-500 active:scale-95 mt-1"
-                                        >
-                                            <RotateCcw size={13} strokeWidth={2.5} />
-                                            {t('Restore Default')}
-                                        </button>
-                                    </div>
 
-                                    <div className="grid gap-6">
-                                        {/* General Category */}
-                                        <div>
-                                            <h4 className="text-sm font-bold text-text-primary mb-3">{t('General')}</h4>
-                                            <div className="space-y-1">
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><Eye size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Toggle Visibility')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.toggleVisibility}
-                                                        onSave={(keys) => updateShortcut('toggleVisibility', keys)}
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><PointerOff size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Toggle Mouse Passthrough')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.toggleMousePassthrough}
-                                                        onSave={(keys) => updateShortcut('toggleMousePassthrough', keys)}
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><MessageSquare size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Process Screenshots')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.processScreenshots}
-                                                        onSave={(keys) => updateShortcut('processScreenshots', keys)}
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><Sparkles size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Capture Screen & Ask AI')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.captureAndProcess}
-                                                        onSave={(keys) => updateShortcut('captureAndProcess', keys)}
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><RotateCcw size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Reset / Cancel')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.resetCancel}
-                                                        onSave={(keys) => updateShortcut('resetCancel', keys)}
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><Camera size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Take Screenshot')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.takeScreenshot}
-                                                        onSave={(keys) => updateShortcut('takeScreenshot', keys)}
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between py-1.5 group">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center"><Crop size={14} /></span>
-                                                        <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t('Selective Screenshot')}</span>
-                                                    </div>
-                                                    <KeyRecorder
-                                                        currentKeys={shortcuts.selectiveScreenshot}
-                                                        onSave={(keys) => updateShortcut('selectiveScreenshot', keys)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Chat Category */}
-                                        <div>
-                                            <div className="mb-3">
-                                                <h4 className="text-sm font-bold text-text-primary">{t('Chat')}</h4>
-                                            </div>
-                                            <div className="space-y-1">
-                                                {[
-                                                    { id: 'whatToAnswer', label: 'What to Answer', icon: <Sparkles size={14} /> },
-                                                    { id: 'clarify', label: 'Clarify', icon: <MessageSquare size={14} /> },
-                                                    { id: 'followUp', label: 'Follow Up', icon: <MessageSquare size={14} /> },
-                                                    { id: 'dynamicAction4', label: 'Recap / Brainstorm', icon: <RefreshCw size={14} /> },
-                                                    { id: 'answer', label: 'Answer / Record', icon: <Mic size={14} /> },
-                                                    { id: 'codeHint', label: 'Get Code Hint', icon: <Zap size={14} /> },
-                                                    { id: 'brainstorm', label: 'Brainstorm Approaches', icon: <Zap size={14} /> },
-                                                    { id: 'scrollUp', label: 'Scroll Up', icon: <ArrowUp size={14} /> },
-                                                    { id: 'scrollDown', label: 'Scroll Down', icon: <ArrowDown size={14} /> },
-                                                    { id: 'scrollLeft', label: 'Scroll Left (code block)', icon: <ArrowLeft size={14} /> },
-                                                    { id: 'scrollRight', label: 'Scroll Right (code block)', icon: <ArrowRight size={14} /> },
-                                                    { id: 'focusInput', label: 'Toggle Stealth Typing', icon: <MessageSquare size={14} /> },
-                                                ].map((item, i) => (
-                                                    <div key={i} className="flex items-center justify-between py-1.5 group">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center">{item.icon}</span>
-                                                            <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t(item.label)}</span>
-                                                        </div>
-                                                        <KeyRecorder
-                                                            currentKeys={shortcuts[item.id as keyof typeof shortcuts]}
-                                                            onSave={(keys) => updateShortcut(item.id as any, keys)}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Window Category */}
-                                        <div>
-                                            <h4 className="text-sm font-bold text-text-primary mb-3">{t('Window')}</h4>
-                                            <div className="space-y-1">
-                                                {[
-                                                    { id: 'moveWindowUp', label: 'Move Window Up', icon: <ArrowUp size={14} /> },
-                                                    { id: 'moveWindowDown', label: 'Move Window Down', icon: <ArrowDown size={14} /> },
-                                                    { id: 'moveWindowLeft', label: 'Move Window Left', icon: <ArrowLeft size={14} /> },
-                                                    { id: 'moveWindowRight', label: 'Move Window Right', icon: <ArrowRight size={14} /> }
-                                                ].map((item, i) => (
-                                                    <div key={i} className="flex items-center justify-between py-1.5 group">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-text-tertiary group-hover:text-text-primary transition-colors w-5 flex justify-center">{item.icon}</span>
-                                                            <span className="text-sm text-text-secondary font-medium group-hover:text-text-primary transition-colors">{t(item.label)}</span>
-                                                        </div>
-                                                        <KeyRecorder
-                                                            currentKeys={shortcuts[item.id as keyof typeof shortcuts]}
-                                                            onSave={(keys) => updateShortcut(item.id as any, keys)}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <SettingsGroup title={t('General')}>
+                                        {shortcutRows([
+                                            { id: 'toggleVisibility', label: 'Toggle Visibility', icon: Eye },
+                                            { id: 'toggleMousePassthrough', label: 'Toggle Mouse Passthrough', icon: PointerOff },
+                                            { id: 'processScreenshots', label: 'Process Screenshots', icon: MessageSquare },
+                                            { id: 'captureAndProcess', label: 'Capture Screen & Ask AI', icon: Sparkles },
+                                            { id: 'resetCancel', label: 'Reset / Cancel', icon: RotateCcw },
+                                            { id: 'takeScreenshot', label: 'Take Screenshot', icon: Camera },
+                                            { id: 'selectiveScreenshot', label: 'Selective Screenshot', icon: Crop },
+                                        ])}
+                                    </SettingsGroup>
+                                    <SettingsGroup title={t('Chat')}>
+                                        {shortcutRows([
+                                            { id: 'whatToAnswer', label: 'What to Answer', icon: Sparkles },
+                                            { id: 'clarify', label: 'Clarify', icon: MessageSquare },
+                                            { id: 'followUp', label: 'Follow Up', icon: MessageSquare },
+                                            { id: 'dynamicAction4', label: 'Recap / Brainstorm', icon: RefreshCw },
+                                            { id: 'answer', label: 'Answer / Record', icon: Mic },
+                                            { id: 'codeHint', label: 'Get Code Hint', icon: Zap },
+                                            { id: 'brainstorm', label: 'Brainstorm Approaches', icon: Zap },
+                                            { id: 'scrollUp', label: 'Scroll Up', icon: ArrowUp },
+                                            { id: 'scrollDown', label: 'Scroll Down', icon: ArrowDown },
+                                            { id: 'scrollLeft', label: 'Scroll Left (code block)', icon: ArrowLeft },
+                                            { id: 'scrollRight', label: 'Scroll Right (code block)', icon: ArrowRight },
+                                            { id: 'focusInput', label: 'Toggle Stealth Typing', icon: MessageSquare },
+                                        ])}
+                                    </SettingsGroup>
+                                    <SettingsGroup title={t('Window')}>
+                                        {shortcutRows([
+                                            { id: 'moveWindowUp', label: 'Move Window Up', icon: ArrowUp },
+                                            { id: 'moveWindowDown', label: 'Move Window Down', icon: ArrowDown },
+                                            { id: 'moveWindowLeft', label: 'Move Window Left', icon: ArrowLeft },
+                                            { id: 'moveWindowRight', label: 'Move Window Right', icon: ArrowRight },
+                                        ])}
+                                    </SettingsGroup>
                                 </div>
                             )}
 
                             {activeTab === 'audio' && (
                                 <div className="space-y-6 animated fadeIn">
-                                    {/* ── Speech Provider Section ── */}
-                                    <div>
-                                        <h3 className="text-lg font-bold text-text-primary mb-1">{t('Speech Provider')}</h3>
-                                        <p className="text-xs text-text-secondary mb-5">{t('Choose the engine that transcribes audio to text.')}</p>
+                                    <SettingsHeading title={t('Speech & Audio')} description={t('Choose the engine that transcribes audio to text, the spoken language and your audio devices.')} />
 
-                                        <div className="space-y-4">
-                                            <div className="bg-bg-card rounded-xl border border-border-subtle p-4 space-y-3">
-                                                <label className="text-xs font-medium text-text-secondary block">{t('Speech Provider')}</label>
-                                                <div className="relative">
-                                                    <ProviderSelect
-                                                        value={sttProvider}
-                                                        onChange={(val) => handleSttProviderChange(val as any)}
-                                                        options={[
-                                                            { id: 'aliyun', label: '阿里云百炼 / Alibaba Cloud', desc: 'Streaming STT', color: 'orange', icon: <Mic size={14} /> },
-                                                            { id: 'doubao', label: '豆包 / Doubao', desc: 'Streaming STT', color: 'blue', icon: <Mic size={14} /> },
-                                                            { id: 'groq', label: 'Groq Whisper', badge: hasStoredSttGroqKey ? 'Saved' : null, recommended: true, desc: 'Ultra-fast REST transcription', color: 'orange', icon: <Mic size={14} /> },
-                                                            { id: 'openai', label: 'OpenAI Whisper', badge: hasStoredSttOpenaiKey ? 'Saved' : null, desc: 'OpenAI-compatible Whisper API', color: 'green', icon: <Mic size={14} /> },
-                                                            { id: 'soniox', label: 'Soniox', badge: hasStoredSonioxKey ? 'Saved' : null, recommended: true, desc: '60+ languages, multilingual, domain context', color: 'cyan', icon: <Mic size={14} /> },
-                                                        ]}
-                                                    />
-                                                </div>
-                                            </div>
+                                    <SettingsGroup title={t('Speech Provider')}>
+                                        <div className="p-4">
+                                            <ProviderSelect
+                                                value={sttProvider}
+                                                onChange={(val) => handleSttProviderChange(val as any)}
+                                                options={[
+                                                    { id: 'aliyun', label: '阿里云百炼 / Alibaba Cloud', desc: 'Streaming STT', color: 'orange', icon: <Mic size={14} /> },
+                                                    { id: 'doubao', label: '豆包 / Doubao', desc: 'Streaming STT', color: 'blue', icon: <Mic size={14} /> },
+                                                    { id: 'groq', label: 'Groq Whisper', badge: hasStoredSttGroqKey ? 'Saved' : null, recommended: true, desc: 'Ultra-fast REST transcription', color: 'orange', icon: <Mic size={14} /> },
+                                                    { id: 'openai', label: 'OpenAI Whisper', badge: hasStoredSttOpenaiKey ? 'Saved' : null, desc: 'OpenAI-compatible Whisper API', color: 'green', icon: <Mic size={14} /> },
+                                                    { id: 'soniox', label: 'Soniox', badge: hasStoredSonioxKey ? 'Saved' : null, recommended: true, desc: '60+ languages, multilingual, domain context', color: 'cyan', icon: <Mic size={14} /> },
+                                                ]}
+                                            />
+                                        </div>
 
-                                            {/* Groq Model Selector */}
-                                            {sttProvider === 'groq' && (
-                                                <div className="bg-bg-card rounded-xl border border-border-subtle p-4">
-                                                    <label className="text-xs font-medium text-text-secondary mb-2.5 block">{t('Whisper Model')}</label>
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        {[
-                                                            { id: 'whisper-large-v3-turbo', label: 'V3 Turbo', desc: 'Fastest' },
-                                                            { id: 'whisper-large-v3', label: 'V3', desc: 'Most Accurate' },
-                                                        ].map((m) => (
-                                                            <button
-                                                                key={m.id}
-                                                                onClick={() => handleGroqSttModelChange(m.id)}
-                                                                className={`rounded-lg px-3 py-2.5 text-left transition-all duration-200 ease-in-out active:scale-[0.98] ${groqSttModel === m.id
-                                                                    ? 'bg-blue-600 text-white shadow-md'
-                                                                    : 'bg-bg-input hover:bg-bg-elevated text-text-primary'
-                                                                    }`}
-                                                            >
-                                                                <span className="text-sm font-medium block">{m.label}</span>
-                                                                <span className={`text-[11px] transition-colors ${groqSttModel === m.id ? 'text-white/70' : 'text-text-tertiary'
-                                                                    }`}>{t(m.desc)}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* API Key Input */}
-                                            {(sttProvider === 'aliyun' || sttProvider === 'doubao') && <SpeechProviderSettings key={sttProvider} provider={sttProvider} />}
-                                            {sttProvider !== 'none' && sttProvider !== 'aliyun' && sttProvider !== 'doubao' && (
-                                                <div className="bg-bg-card rounded-xl border border-border-subtle p-4 space-y-3">
-                                                    <label className="text-xs font-medium text-text-secondary block">
-                                                        {t('{provider} API Key', { provider: sttProvider === 'groq' ? 'Groq' : sttProvider === 'openai' ? 'OpenAI STT' : 'Soniox' })}
-                                                    </label>
-                                                    {sttProvider === 'openai' && (
-                                                        <p className="text-[10px] text-text-tertiary mb-1.5">
-                                                            {t('This key is separate from your main AI Provider key.')}
-                                                        </p>
-                                                    )}
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="password"
-                                                            value={
-                                                                sttProvider === 'groq' ? sttGroqKey
-                                                                    : sttProvider === 'openai' ? sttOpenaiKey
-                                                                        : sttSonioxKey
-                                                            }
-                                                            onChange={(e) => {
-                                                                if (sttProvider === 'groq') setSttGroqKey(e.target.value);
-                                                                else if (sttProvider === 'openai') setSttOpenaiKey(e.target.value);
-                                                                else if (sttProvider === 'soniox') setSttSonioxKey(e.target.value);
-                                                            }}
-                                                            placeholder={
-                                                                sttProvider === 'groq'
-                                                                    ? (hasStoredSttGroqKey ? '••••••••••••' : t('Enter Groq API key'))
-                                                                    : sttProvider === 'openai'
-                                                                        ? (hasStoredSttOpenaiKey ? '••••••••••••' : t('Enter OpenAI STT API key'))
-                                                                        : (hasStoredSonioxKey ? '••••••••••••' : t('Enter Soniox API key'))
-                                                            }
-                                                            className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
-                                                        />
+                                        {/* Groq Model Selector */}
+                                        {sttProvider === 'groq' && (
+                                            <div className="p-4">
+                                                <label className="text-xs font-medium text-text-secondary mb-2.5 block">{t('Whisper Model')}</label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {[
+                                                        { id: 'whisper-large-v3-turbo', label: 'V3 Turbo', desc: 'Fastest' },
+                                                        { id: 'whisper-large-v3', label: 'V3', desc: 'Most Accurate' },
+                                                    ].map((m) => (
                                                         <button
-                                                            onClick={() => {
-                                                                const keyMap: Record<string, string> = {
-                                                                    groq: sttGroqKey, openai: sttOpenaiKey,
-                                                                    soniox: sttSonioxKey,
-                                                                };
-                                                                handleSttKeySubmit(sttProvider as any, keyMap[sttProvider] || '');
-                                                            }}
-                                                            disabled={sttSaving || !(() => {
-                                                                const keyMap: Record<string, string> = {
-                                                                    groq: sttGroqKey, openai: sttOpenaiKey,
-                                                                    soniox: sttSonioxKey,
-                                                                };
-                                                                return (keyMap[sttProvider] || '').trim();
-                                                            })()}
-                                                            className={`px-5 py-2.5 rounded-lg text-xs font-medium transition-colors ${sttSaved
-                                                                ? 'bg-green-500/20 text-green-400'
-                                                                : 'bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary disabled:opacity-50'
+                                                            key={m.id}
+                                                            type="button"
+                                                            onClick={() => handleGroqSttModelChange(m.id)}
+                                                            className={`rounded-lg border px-3 py-2.5 text-left transition-colors ${groqSttModel === m.id
+                                                                ? 'bg-accent-subtle border-accent-border text-text-primary'
+                                                                : 'bg-bg-input border-border-subtle hover:bg-bg-item-surface text-text-primary'
                                                                 }`}
                                                         >
-                                                            {t(sttSaving ? 'Saving...' : sttSaved ? 'Saved!' : 'Save')}
+                                                            <span className="text-sm font-medium block">{m.label}</span>
+                                                            <span className={`text-[11px] ${groqSttModel === m.id ? 'text-accent-primary' : 'text-text-tertiary'}`}>{t(m.desc)}</span>
                                                         </button>
-                                                        {(() => {
-                                                            const hasKeyMap: Record<string, boolean> = {
-                                                                groq: hasStoredSttGroqKey,
-                                                                openai: hasStoredSttOpenaiKey,
-                                                                soniox: hasStoredSonioxKey,
-                                                            };
-                                                            return hasKeyMap[sttProvider] ? (
-                                                                <button
-                                                                    onClick={() => handleRemoveSttKey(sttProvider as any)}
-                                                                    className="px-2.5 py-2.5 rounded-lg text-xs font-medium text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-all"
-                                                                    title={t('Remove API Key')}
-                                                                    aria-label={t('Remove API Key')}
-                                                                >
-                                                                    <Trash2 size={16} strokeWidth={1.5} />
-                                                                </button>
-                                                            ) : null;
-                                                        })()}
-                                                    </div>
-
-                                                    {/* OpenAI Custom Base URL — for self-hosted OpenAI-compatible servers (e.g. Speaches).
-                                                        When set, the WebSocket Realtime path is skipped and REST is used against the custom host. */}
-                                                    {sttProvider === 'openai' && (
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-xs font-medium text-text-secondary block">{t('Custom Base URL')} <span className="text-text-tertiary">{t('(optional)')}</span></label>
-                                                            <div className="flex gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={sttOpenaiBaseUrl}
-                                                                    onChange={(e) => setSttOpenaiBaseUrl(e.target.value)}
-                                                                    placeholder={t('https://api.openai.com (default)')}
-                                                                    className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
-                                                                />
-                                                                <button
-                                                                    onClick={handleOpenAiSttBaseUrlSave}
-                                                                    className="px-5 py-2.5 rounded-lg text-xs font-medium bg-bg-input hover:bg-bg-input/80 border border-border-subtle text-text-primary transition-colors"
-                                                                >
-                                                                    {t('Save')}
-                                                                </button>
-                                                            </div>
-                                                            <p className="text-[10px] text-text-tertiary">{t('Point at any OpenAI-compatible server (e.g. Speaches). Custom servers use REST only — Realtime WebSocket is skipped. Leave blank for default.')}</p>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex items-center gap-3">
-                                                        <button
-                                                            onClick={handleTestSttConnection}
-                                                            disabled={sttTestStatus === 'testing'}
-                                                            className="text-xs bg-bg-input hover:bg-bg-elevated text-text-primary px-3 py-1.5 rounded-md transition-colors flex items-center gap-2 disabled:opacity-50"
-                                                        >
-                                                            {sttTestStatus === 'testing' ? (
-                                                                <><RefreshCw size={12} className="animate-spin" /> {t('Testing...')}</>
-                                                            ) : sttTestStatus === 'success' ? (
-                                                                <><Check size={12} className="text-green-500" /> {t('Connected')}</>
-                                                            ) : (
-                                                                <>{t('Test Connection')}</>
-                                                            )}
-                                                        </button>
-                                                        <button
-                                                            data-external-url={sttKeyUrl}
-                                                            onClick={() => {
-                                                                if (sttKeyUrl) {
-                                                                    // @ts-ignore
-                                                                    window.electronAPI?.openExternal(sttKeyUrl);
-                                                                }
-                                                            }}
-                                                            className="text-xs text-text-tertiary hover:text-text-primary flex items-center gap-1 transition-colors ml-1"
-                                                            title={t('Get API Key')}
-                                                            aria-label={t('Get API Key')}
-                                                        >
-                                                            <ExternalLink size={12} />
-                                                        </button>
-                                                        {sttTestStatus === 'error' && (
-                                                            <span className="text-xs text-red-400">{t(sttTestError)}</span>
-                                                        )}
-                                                    </div>
+                                                    ))}
                                                 </div>
-                                            )}
+                                            </div>
+                                        )}
 
+                                        {/* API Key Input */}
+                                        {sttProvider !== 'none' && sttProvider !== 'aliyun' && sttProvider !== 'doubao' && (
+                                            <div className="p-4 space-y-3">
+                                                <label className="text-xs font-medium text-text-secondary block">
+                                                    {t('{provider} API Key', { provider: sttProvider === 'groq' ? 'Groq' : sttProvider === 'openai' ? 'OpenAI STT' : 'Soniox' })}
+                                                </label>
+                                                {sttProvider === 'openai' && (
+                                                    <p className="text-[10px] text-text-tertiary mb-1.5">
+                                                        {t('This key is separate from your main AI Provider key.')}
+                                                    </p>
+                                                )}
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="password"
+                                                        value={
+                                                            sttProvider === 'groq' ? sttGroqKey
+                                                                : sttProvider === 'openai' ? sttOpenaiKey
+                                                                    : sttSonioxKey
+                                                        }
+                                                        onChange={(e) => {
+                                                            if (sttProvider === 'groq') setSttGroqKey(e.target.value);
+                                                            else if (sttProvider === 'openai') setSttOpenaiKey(e.target.value);
+                                                            else if (sttProvider === 'soniox') setSttSonioxKey(e.target.value);
+                                                        }}
+                                                        placeholder={
+                                                            sttProvider === 'groq'
+                                                                ? (hasStoredSttGroqKey ? '••••••••••••' : t('Enter Groq API key'))
+                                                                : sttProvider === 'openai'
+                                                                    ? (hasStoredSttOpenaiKey ? '••••••••••••' : t('Enter OpenAI STT API key'))
+                                                                    : (hasStoredSonioxKey ? '••••••••••••' : t('Enter Soniox API key'))
+                                                        }
+                                                        className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const keyMap: Record<string, string> = {
+                                                                groq: sttGroqKey, openai: sttOpenaiKey,
+                                                                soniox: sttSonioxKey,
+                                                            };
+                                                            handleSttKeySubmit(sttProvider as any, keyMap[sttProvider] || '');
+                                                        }}
+                                                        disabled={sttSaving || !(() => {
+                                                            const keyMap: Record<string, string> = {
+                                                                groq: sttGroqKey, openai: sttOpenaiKey,
+                                                                soniox: sttSonioxKey,
+                                                            };
+                                                            return (keyMap[sttProvider] || '').trim();
+                                                        })()}
+                                                        className={`px-5 py-2 rounded-lg text-xs font-medium transition-colors ${sttSaved
+                                                            ? 'bg-green-500/20 text-green-400'
+                                                            : 'bg-accent-primary hover:bg-accent-hover text-on-accent disabled:opacity-50'
+                                                            }`}
+                                                    >
+                                                        {t(sttSaving ? 'Saving...' : sttSaved ? 'Saved!' : 'Save')}
+                                                    </button>
+                                                    {(() => {
+                                                        const hasKeyMap: Record<string, boolean> = {
+                                                            groq: hasStoredSttGroqKey,
+                                                            openai: hasStoredSttOpenaiKey,
+                                                            soniox: hasStoredSonioxKey,
+                                                        };
+                                                        return hasKeyMap[sttProvider] ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveSttKey(sttProvider as any)}
+                                                                className="px-2.5 py-2 rounded-lg text-xs font-medium text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                                                title={t('Remove API Key')}
+                                                                aria-label={t('Remove API Key')}
+                                                            >
+                                                                <Trash2 size={16} strokeWidth={1.5} />
+                                                            </button>
+                                                        ) : null;
+                                                    })()}
+                                                </div>
+
+                                                {/* OpenAI Custom Base URL — for self-hosted OpenAI-compatible servers (e.g. Speaches).
+                                                    When set, the WebSocket Realtime path is skipped and REST is used against the custom host. */}
+                                                {sttProvider === 'openai' && (
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-xs font-medium text-text-secondary block">{t('Custom Base URL')} <span className="text-text-tertiary">{t('(optional)')}</span></label>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={sttOpenaiBaseUrl}
+                                                                onChange={(e) => setSttOpenaiBaseUrl(e.target.value)}
+                                                                placeholder={t('https://api.openai.com (default)')}
+                                                                className="flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleOpenAiSttBaseUrlSave}
+                                                                className={settingsButtonClass}
+                                                            >
+                                                                {t('Save')}
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-[10px] text-text-tertiary">{t('Point at any OpenAI-compatible server (e.g. Speaches). Custom servers use REST only — Realtime WebSocket is skipped. Leave blank for default.')}</p>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleTestSttConnection}
+                                                        disabled={sttTestStatus === 'testing'}
+                                                        className={settingsButtonClass}
+                                                    >
+                                                        {sttTestStatus === 'testing' ? (
+                                                            <><RefreshCw size={12} className="animate-spin" /> {t('Testing...')}</>
+                                                        ) : sttTestStatus === 'success' ? (
+                                                            <><Check size={12} className="text-green-500" /> {t('Connected')}</>
+                                                        ) : (
+                                                            <>{t('Test Connection')}</>
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        data-external-url={sttKeyUrl}
+                                                        onClick={() => {
+                                                            if (sttKeyUrl) {
+                                                                // @ts-ignore
+                                                                window.electronAPI?.openExternal(sttKeyUrl);
+                                                            }
+                                                        }}
+                                                        className="text-xs text-text-tertiary hover:text-text-primary flex items-center gap-1 transition-colors ml-1"
+                                                        title={t('Get API Key')}
+                                                        aria-label={t('Get API Key')}
+                                                    >
+                                                        <ExternalLink size={12} />
+                                                    </button>
+                                                    {sttTestStatus === 'error' && (
+                                                        <span className="text-xs text-red-400">{t(sttTestError)}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </SettingsGroup>
+                                    {(sttProvider === 'aliyun' || sttProvider === 'doubao') && <SpeechProviderSettings key={sttProvider} provider={sttProvider} />}
+
+                                    <SettingsGroup title={t('Recognition language')}>
+                                        <div className="p-4 space-y-3">
                                             {/* Recognition Language Family */}
                                             <CustomSelect
                                                 label="Language"
@@ -2293,19 +1957,17 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
                                             {/* Variant/Accent Selector (Conditional) */}
                                             {currentGroupVariants.length > 1 && (
-                                                <div className="mt-3 animated fadeIn">
-                                                    <CustomSelect
-                                                        label="Accent / Region"
-                                                        icon={<MapPin size={14} />}
-                                                        value={recognitionLanguage}
-                                                        options={currentGroupVariants}
-                                                        onChange={handleLanguageChange}
-                                                        placeholder="Select Region"
-                                                    />
-                                                </div>
+                                                <CustomSelect
+                                                    label="Accent / Region"
+                                                    icon={<MapPin size={14} />}
+                                                    value={recognitionLanguage}
+                                                    options={currentGroupVariants}
+                                                    onChange={handleLanguageChange}
+                                                    placeholder="Select Region"
+                                                />
                                             )}
 
-                                            <div className="flex gap-2 items-center mt-2 px-1">
+                                            <div className="flex gap-2 items-center">
                                                 <Info size={14} className="text-text-secondary shrink-0" />
                                                 <p className="text-xs text-text-secondary">
                                                     {recognitionLanguage === 'auto'
@@ -2322,54 +1984,51 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
+                                    </SettingsGroup>
 
-                                    <div className="h-px bg-border-subtle" />
-
-                                    {/* ── Audio Configuration Section ── */}
-                                    <div>
-                                        <h3 className="text-lg font-bold text-text-primary mb-1">{t('Audio Configuration')}</h3>
-                                        <p className="text-xs text-text-secondary mb-5">{t('Manage input and output devices.')}</p>
-
+                                    <SettingsGroup title={t('Audio Configuration')} description={t('Manage input and output devices.')}>
                                         {/* Device-fallback banner: shown when main process couldn't
                                             open the selected device and silently used the default. */}
                                         {deviceFallbackNotice && (
-                                            <div className="mb-4 flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                                <AlertCircle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-xs text-amber-200/90 leading-snug">
-                                                        {t(deviceFallbackNotice.kind === 'input' ? 'Selected microphone{device} couldn\'t be opened — using {actual} instead.' : 'Selected output device{device} couldn\'t be opened — using {actual} instead.', {
-                                                            device: deviceFallbackNotice.requested ? ` "${deviceFallbackNotice.requested}"` : '',
-                                                            actual: deviceFallbackNotice.actual ?? t('no device'),
-                                                        })}
-                                                    </p>
-                                                    {deviceFallbackNotice.reason && (
-                                                        <p className="text-[11px] text-amber-200/60 mt-1 font-mono break-all">{deviceFallbackNotice.reason}</p>
-                                                    )}
+                                            <div className="p-4">
+                                                <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                                                    <AlertCircle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-xs text-text-primary leading-snug">
+                                                            {t(deviceFallbackNotice.kind === 'input' ? 'Selected microphone{device} couldn\'t be opened — using {actual} instead.' : 'Selected output device{device} couldn\'t be opened — using {actual} instead.', {
+                                                                device: deviceFallbackNotice.requested ? ` "${deviceFallbackNotice.requested}"` : '',
+                                                                actual: deviceFallbackNotice.actual ?? t('no device'),
+                                                            })}
+                                                        </p>
+                                                        {deviceFallbackNotice.reason && (
+                                                            <p className="text-[11px] text-text-secondary mt-1 font-mono break-all">{deviceFallbackNotice.reason}</p>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            // Clear stale localStorage so the next meeting starts clean.
+                                                            if (deviceFallbackNotice.kind === 'input') {
+                                                                localStorage.removeItem('preferredInputDeviceId');
+                                                                setSelectedInput('default');
+                                                            } else {
+                                                                localStorage.removeItem('preferredOutputDeviceId');
+                                                                setSelectedOutput('default');
+                                                            }
+                                                            setDeviceFallbackNotice(null);
+                                                        }}
+                                                        className={settingsButtonClass}
+                                                    >
+                                                        {t('Reset')}
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        // Clear stale localStorage so the next meeting starts clean.
-                                                        if (deviceFallbackNotice.kind === 'input') {
-                                                            localStorage.removeItem('preferredInputDeviceId');
-                                                            setSelectedInput('default');
-                                                        } else {
-                                                            localStorage.removeItem('preferredOutputDeviceId');
-                                                            setSelectedOutput('default');
-                                                        }
-                                                        setDeviceFallbackNotice(null);
-                                                    }}
-                                                    className="shrink-0 text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25"
-                                                >
-                                                    {t('Reset')}
-                                                </button>
                                             </div>
                                         )}
 
-                                        <div className="space-y-4">
+                                        <div className="p-4 space-y-3">
                                             <CustomSelect
                                                 label="Input Device"
-                                                icon={<Mic size={16} />}
+                                                icon={<Mic size={14} />}
                                                 value={selectedInput}
                                                 options={inputDevices}
                                                 onChange={(id) => {
@@ -2378,24 +2037,21 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 }}
                                                 placeholder="Default Microphone"
                                             />
-
                                             <div>
-                                                <div className="flex justify-between text-xs text-text-secondary mb-2 px-1">
-                                                    <span>{t('Input Level')}</span>
-                                                </div>
+                                                <div className="text-xs text-text-secondary mb-2">{t('Input Level')}</div>
                                                 <div className="h-1.5 bg-bg-input rounded-full overflow-hidden">
                                                     <div
-                                                        className="h-full bg-green-500 transition-all duration-100 ease-out"
+                                                        className="h-full bg-accent-primary transition-all duration-100 ease-out"
                                                         style={{ width: `${micLevel}%` }}
                                                     />
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div className="h-px bg-border-subtle my-2" />
-
+                                        <div className="p-4 space-y-3">
                                             <CustomSelect
                                                 label="Output Device"
-                                                icon={<Speaker size={16} />}
+                                                icon={<Speaker size={14} />}
                                                 value={selectedOutput}
                                                 options={outputDevices}
                                                 onChange={(id) => {
@@ -2404,24 +2060,21 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 }}
                                                 placeholder="Default Speakers"
                                             />
-
                                             <div>
-                                                <div className="flex justify-between text-xs text-text-secondary mb-2 px-1">
-                                                    <span>{t('System Audio Level')}</span>
-                                                </div>
+                                                <div className="text-xs text-text-secondary mb-2">{t('System Audio Level')}</div>
                                                 <div className="h-1.5 bg-bg-input rounded-full overflow-hidden">
                                                     <div
-                                                        className="h-full bg-green-500 transition-all duration-100 ease-out"
+                                                        className="h-full bg-accent-primary transition-all duration-100 ease-out"
                                                         style={{ width: `${systemAudioLevel}%` }}
                                                     />
                                                 </div>
                                                 {systemAudioTestError && (
-                                                    <p className="text-[11px] text-yellow-600 dark:text-yellow-500 mt-2 px-1">{t(systemAudioTestError)}</p>
+                                                    <p className="text-[11px] text-amber-500 mt-2">{t(systemAudioTestError)}</p>
                                                 )}
                                             </div>
-
                                             <div className="flex justify-end">
                                                 <button
+                                                    type="button"
                                                     onClick={async () => {
                                                         try {
                                                             const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -2461,53 +2114,31 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             console.error("Error playing test sound", e);
                                                         }
                                                     }}
-                                                    className="text-xs bg-bg-input hover:bg-bg-elevated text-text-primary px-3 py-1.5 rounded-md transition-colors flex items-center gap-2"
+                                                    className={settingsButtonClass}
                                                 >
                                                     <Speaker size={12} /> {t('Test Sound')}
                                                 </button>
                                             </div>
-
-                                            {/* SCK Backend Toggle — macOS only. The ScreenCaptureKit
-                                                backend is a CoreAudio alternative implemented in the
-                                                Rust speaker module under #[cfg(target_os="macos")];
-                                                Windows audio runs via WASAPI loopback so the toggle
-                                                has no meaning there and routing "sck" as a device id
-                                                silently breaks system audio (issue #252 audit / F-003). */}
-                                            {isMac && (
-                                                <>
-                                                    <div className="h-px bg-border-subtle my-2" />
-                                                    <div className="bg-amber-500/5 rounded-xl border border-amber-500/20 p-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-start gap-3">
-                                                                <div className="mt-0.5 p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
-                                                                    <FlaskConical size={18} />
-                                                                </div>
-                                                                <div>
-                                                                    <div className="flex items-center gap-2 mb-0.5">
-                                                                        <h3 className="text-sm font-bold text-text-primary">{t('SCK Backend')}</h3>
-                                                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-400 uppercase tracking-wide">{t('Alternative')}</span>
-                                                                    </div>
-                                                                    <p className="text-xs text-text-secondary leading-relaxed max-w-[300px]">
-                                                                        {t('Use the ScreenCaptureKit backend. An optimized alternative to CoreAudio if you experience any capture issues.')}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <div
-                                                                onClick={() => {
-                                                                    const newState = !useExperimentalSck;
-                                                                    setUseExperimentalSck(newState);
-                                                                    window.localStorage.setItem('useExperimentalSckBackend', newState ? 'true' : 'false');
-                                                                }}
-                                                                className={`w-11 h-6 rounded-full relative transition-colors shrink-0 ${useExperimentalSck ? 'bg-amber-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                                                            >
-                                                                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${useExperimentalSck ? 'translate-x-5' : 'translate-x-0'}`} />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
                                         </div>
-                                    </div>
+
+                                        {/* SCK Backend Toggle — macOS only. The ScreenCaptureKit
+                                            backend is a CoreAudio alternative implemented in the
+                                            Rust speaker module under #[cfg(target_os="macos")];
+                                            Windows audio runs via WASAPI loopback so the toggle
+                                            has no meaning there and routing "sck" as a device id
+                                            silently breaks system audio (issue #252 audit / F-003). */}
+                                        {isMac && (
+                                            <SettingsRow
+                                                icon={FlaskConical}
+                                                title={<span className="flex items-center gap-2">{t('SCK Backend')}<span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-accent-muted text-accent-primary uppercase tracking-wide">{t('Alternative')}</span></span>}
+                                                description={t('Use the ScreenCaptureKit backend. An optimized alternative to CoreAudio if you experience any capture issues.')}
+                                                control={<SettingsSwitch label={t('SCK Backend')} checked={useExperimentalSck} onChange={(next) => {
+                                                    setUseExperimentalSck(next);
+                                                    window.localStorage.setItem('useExperimentalSckBackend', next ? 'true' : 'false');
+                                                }} />}
+                                            />
+                                        )}
+                                    </SettingsGroup>
                                 </div>
                             )}
 
@@ -2519,12 +2150,12 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             {activeTab === 'about' && (
                                 <AboutSection />
                             )}
+                            </div>
                         </div>
                     </div>
                     </motion.div>
                 </motion.div>
-            )
-            }
+            )}
 
 
             {/* ------------------------------------------------------------------ */}

@@ -21,6 +21,30 @@ Notes:
 
 ## Ledger
 
+### Settings restyle after the old Margin layout (2026-10-21)
+
+Written for this branch (PLAN §8). The old Margin settings (`b8ade3f7`) were
+used only as a visual reference: their source was bundled in a scratch
+directory and rendered to screenshots. No old Margin code was imported. Its
+violet palette, card CSS and sidebar selection style also appear in late
+upstream `f326de04` (`periwinkle` 103 places, `aip-card` 67), so none of it was
+used; the palette values, accent variables, `SettingsKit` components and page
+layout were written for this change. No dependencies changed.
+
+The local provenance check flagged 20 distinct lines (21 hits). Each was
+reviewed and is generic or mechanical, so each is registered exactly as
+written, with no paths or pools excluded:
+
+- `SettingsKit.tsx` (8): React prop types, ARIA attributes, the toggle handler
+  and a spacing wrapper.
+- `tailwind.config.js` (6): accent token aliases in the baseline
+  `primary: 'var(--accent-primary)'` pattern.
+- Three baseline `a786910e` lines with `text-white` replaced by the new
+  `on-accent` token, and one baseline link with `text-blue-500` replaced by the
+  accent (SettingsOverlay, HelpSettings, MeetingDetails).
+- A flex wrapper and the closing `</SettingsRow>` tag in SettingsOverlay.
+- The WCAG relative-luminance formula in the new contrast test.
+
 ### Generation entry registration and CI 39388726818 (2026-10-20)
 
 Written for this branch from the approved plan (PLAN §8). `safeHandle` only
