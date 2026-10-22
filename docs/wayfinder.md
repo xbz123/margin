@@ -4,9 +4,9 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-21，保存失败、音频清理、配置应用、生成入口显式注册及跨入口取消验证均完成（[交叉验证](margin/evidence/cross-entry-cancel/README.md)，最新公开 CI 39404092608）。包含近期修复的 Natively Local `44a5e3a8` 已安装，包检查 12/12、隔离启动 10/10；[安装记录](margin/evidence/local-install-20261021/README.md)。尚未用真实用户配置启动新版，实机签收未完成。
+**Current answer:** 截至 2026-10-22，近期修复及跨入口验证完成（[记录](margin/evidence/cross-entry-cancel/README.md)，修复版公开 CI 39404092608）。设置 UI 改版 `16c565a7` 已随 Natively Local `9ea320d6` 安装，包检查 12/12、隔离启动 10/10；[安装记录](margin/evidence/local-install-20261022/README.md)。UI 改版的公开 CI 39785283178 已通过；之后的无消费者清理 `faa4da27`（公开 CI 39801535976 通过）不改应用行为，没有另装。Agent 未用真实配置启动新版，实机签收未完成。
 
-**Current focus:** 下一步是已安装新版的阶段 6 实机复测：确定测试组合（D2）并按授权做真实服务/设备验证；本次安装不代替服务、设备或共享签收，见 PLAN §8。
+**Current focus:** 下一步是已安装新版的阶段 6 实机复测：先快速走查新版设置界面，再确定测试组合（D2）并按授权做真实服务/设备和共享验证，按[实机复测清单](margin/STAGE6-CHECKLIST.md)勾选记录；本次安装不代替服务、设备或共享签收，见 PLAN §8。之后是正式身份、最终图标和 Mac 发布，Windows 后置。
 
 ## Waiting
 
