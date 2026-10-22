@@ -158,3 +158,50 @@ test('AG42 real answer row and feedback callback use shared translations and sho
     }
   } finally { i18n.setUiLanguage('en'); }
 });
+
+test('S46-02 manual submit records the scene it actually sends, and only written questions use the neutral style in both themes', async () => {
+  const ref = current => ({ current });
+  const submit = async questionMode => {
+    const messages = [], sent = [];
+    await handler('handleManualSubmit', {
+      questionMode, inputValue: 'Synthetic question', attachedContext: [], pendingCaptureRef: ref(null),
+      manualSubmitInFlightRef: ref(false), lastManualSubmitRef: ref(null), shouldDedupeManualSubmit: () => false,
+      generationEpochRef: ref(0), submittedChatRef: ref(), flushToken() {}, tokenBufRef: ref({ intent: '', text: '', raf: null }),
+      setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
+      genMessageId: () => String(messages.length), setTimeout() {}, messagesEndRef: ref(),
+      streamingMsgIdRef: ref(), streamingIntentRef: ref(), streamingTextRef: ref(''), streamingNodeRef: ref(null), streamingRafRef: ref(null),
+      setIsExpanded() {}, setIsProcessing() {}, pinAnswerPanel() {}, requestStartTimeRef: ref(null), conversationContext: '',
+      window: { electronAPI: { cancelIntelligenceGeneration: async () => {}, streamGeminiChat: async (...args) => { sent.push(args[3]); } } },
+    })();
+    return { user: messages.find(message => message.role === 'user'), options: sent[0] };
+  };
+  for (const [mode, kind, scene] of [['auto', undefined, 'written'], ['written', 'written', 'written'], ['interview', 'interview', 'interview']]) {
+    const { user, options } = await submit(mode);
+    assert.equal(options.generationKind, kind, mode);
+    assert.equal(user.scene, scene, mode);
+  }
+
+  const Row = handler('MessageRow', { React, useI18n: i18n.useI18n, Copy: () => null, Image: () => null,
+    MessageSquareText: props => React.createElement('svg', { 'data-icon': 'message-text', ...props }), subtleSurfaceClass: '' });
+  const render = (msg, isLightTheme) => renderToStaticMarkup(React.createElement(Row, {
+    msg: { id: '1', ...msg }, isLightTheme, appearance: {}, onCopy() {},
+    renderMessageText: message => React.createElement('span', null, message.text),
+  }));
+  for (const isLightTheme of [true, false]) {
+    const written = render({ role: 'user', text: 'Written question', scene: 'written' }, isLightTheme);
+    assert.match(written, /data-message-scene="written"/);
+    assert.match(written, isLightTheme ? /bg-black\/\[0\.04\][^"]*border border-black\/10 text-slate-900/ : /bg-white\/\[0\.06\][^"]*border border-white\/15 text-slate-100/);
+    assert.doesNotMatch(written, /blue/);
+    assert.match(written, /data-icon="message-text"[^>]*aria-hidden="true"/);
+    assert.match(written, /Written question/);
+    // Interview and pre-existing messages without a scene keep the original blue bubble.
+    for (const msg of [{ role: 'user', text: 'Interview question', scene: 'interview' }, { role: 'user', text: 'Legacy question' }]) {
+      const markup = render(msg, isLightTheme);
+      assert.match(markup, isLightTheme ? /bg-blue-500\/10[^"]*text-blue-900/ : /bg-blue-600\/20[^"]*text-blue-100/);
+      assert.doesNotMatch(markup, /message-text/);
+    }
+    // Model replies stay frameless.
+    const reply = render({ role: 'system', text: 'Answer' }, isLightTheme);
+    assert.doesNotMatch(reply, /border|bg-|message-text|data-message-scene/);
+  }
+});

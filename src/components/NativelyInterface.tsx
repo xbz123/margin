@@ -10,6 +10,7 @@ import {
   Image,
   Lightbulb,
   MessageSquare,
+  MessageSquareText,
   Mic,
   Monitor,
   Pencil,
@@ -110,6 +111,8 @@ interface Message {
   isCode?: boolean;
   intent?: string;
   generation?: import('../types/generationMetadata').GenerationMetadata;
+  // Scene the question was actually sent with; written questions get the neutral style.
+  scene?: import('../types/promptSettings').PromptScene;
 }
 
 interface NativelyInterfaceProps {
@@ -298,11 +301,12 @@ const MessageRow = React.memo(
   }: MessageRowProps) {
     const { t } = useI18n();
     const isCodeMsg = msg.role === 'system' && (msg.isCode || msg.text.includes('```'));
+    const isWrittenQuestion = msg.role === 'user' && msg.scene === 'written';
     // bubbleMaxClass: user bubbles are tighter; system + code use the same width.
     const bubbleMaxClass =
       msg.role === 'user' ? 'max-w-[72%] px-[13.6px] py-[10.2px]' : 'max-w-[85%] px-4 py-3';
     return (
-      <div className="w-full" data-question-id={msg.generation?.questionId} data-answer-request-id={msg.role === 'system' && msg.text.trim() ? msg.generation?.requestId : undefined} {...(isCodeMsg ? { 'data-code-msg': 'true' } : {})}>
+      <div className="w-full" data-message-scene={msg.role === 'user' ? msg.scene : undefined} data-question-id={msg.generation?.questionId} data-answer-request-id={msg.role === 'system' && msg.text.trim() ? msg.generation?.requestId : undefined} {...(isCodeMsg ? { 'data-code-msg': 'true' } : {})}>
         <div
           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}
         >
@@ -310,7 +314,11 @@ const MessageRow = React.memo(
             className={`
               ${bubbleMaxClass} text-[14px] leading-relaxed relative group whitespace-pre-wrap
               ${
-                msg.role === 'user'
+                isWrittenQuestion
+                  ? isLightTheme
+                    ? 'bg-black/[0.04] backdrop-blur-md border border-black/10 text-slate-900 rounded-[20px] rounded-tr-[4px] font-medium'
+                    : 'bg-white/[0.06] backdrop-blur-md border border-white/15 text-slate-100 rounded-[20px] rounded-tr-[4px] font-medium'
+                  : msg.role === 'user'
                   ? isLightTheme
                     ? 'bg-blue-500/10 backdrop-blur-md border border-blue-500/20 text-blue-900 rounded-[20px] rounded-tr-[4px] shadow-sm font-medium'
                     : 'bg-blue-600/20 backdrop-blur-md border border-blue-500/30 text-blue-100 rounded-[20px] rounded-tr-[4px] shadow-sm font-medium'
@@ -354,7 +362,12 @@ const MessageRow = React.memo(
                 <Copy className="w-3.5 h-3.5" />
               </button>
             )}
-            {renderMessageText(msg)}
+            {isWrittenQuestion ? (
+              <div className="flex items-start gap-1.5">
+                <MessageSquareText className="w-3 h-3 mt-[4px] shrink-0 opacity-60" aria-hidden="true" />
+                <div className="min-w-0">{renderMessageText(msg)}</div>
+              </div>
+            ) : renderMessageText(msg)}
             {msg.generation && <div className="text-[10px] opacity-60 mt-1" data-generation-status={msg.generation.status}>
               {msg.generation.provider} · {msg.generation.model} · {msg.generation.partial ? `${t('Incomplete')} · ` : ''}{msg.generation.timeout ? `timeout:${msg.generation.timeout}` : msg.generation.status === 'cancelled' ? t('Cancelled') : msg.generation.status}
             </div>}
@@ -2631,6 +2644,8 @@ Provide only the answer, nothing else.`;
       ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
 
     submittedChatRef.current = { text: userText, paths: currentAttachments.map(item => item.path) };
+    // Main sends a question without a kind as written, so Auto is recorded as written.
+    const generationKind = questionMode === 'auto' ? undefined : questionMode;
 
     // Seal any in-flight streaming rows from a previous turn before we
     // append the new user message + placeholder. Without this, the rAF
@@ -2660,6 +2675,7 @@ Provide only the answer, nothing else.`;
         text: userText || (currentAttachments.length > 0 ? 'Analyze this screenshot' : ''),
         hasScreenshot: currentAttachments.length > 0,
         screenshotPreview: currentAttachments[0]?.preview,
+        scene: generationKind ?? 'written',
       },
     ]);
 
@@ -2701,7 +2717,7 @@ Provide only the answer, nothing else.`;
         userText || 'Analyze this screenshot',
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         conversationContext, // Pass context so "answer this" works
-        { generationKind: questionMode === 'auto' ? undefined : questionMode, clickedAt: nowMs },
+        { generationKind, clickedAt: nowMs },
       );
     } catch (err) {
       if (generationEpochRef.current !== epoch) return;

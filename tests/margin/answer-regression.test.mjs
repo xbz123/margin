@@ -617,8 +617,14 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
 
 test('AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire', async () => {
   const { scenarioPrompt } = require('../../dist-electron/electron/llm/scenarioPrompts.js');
+  // S46-02: the sent question's row keeps the scene of its request, not the current selection.
+  const questionRow = question => overlay.evaluate(text => {
+    const row = [...document.querySelectorAll('[data-message-scene]')].find(node => node.textContent.includes(text));
+    return row && { scene: row.dataset.messageScene, blue: /blue/.test(row.innerHTML), icon: !!row.querySelector('svg[aria-hidden="true"]') };
+  }, question);
+  const modes = [['auto', 'written'], ['interview', 'interview'], ['written', 'written']];
   try {
-    for (const [selection, scene] of [['auto', 'written'], ['interview', 'interview'], ['written', 'written']]) {
+    for (const [selection, scene] of modes) {
       await overlay.getByLabel('Question mode').selectOption(selection);
       const answer = `AG51 ${selection} completed.`;
       mock.setScript({ errorStatus: 0, chunks: [answer], delayMs: 20 });
@@ -626,6 +632,10 @@ test('AG51 Question mode uses automatic written prompts and explicit interview p
       await overlay.getByText(answer, { exact: true }).waitFor();
       const system = mock.chatRequests().at(-1).body.messages.find(message => message.role === 'system').content;
       assert.ok(system.startsWith(scenarioPrompt(scene)));
+      assert.equal(system.includes('submittable code first'), scene === 'written');
+    }
+    for (const [selection, scene] of modes) {
+      assert.deepEqual(await questionRow(`AG51 synthetic ${selection} question`), { scene, blue: scene === 'interview', icon: scene === 'written' }, selection);
     }
   } finally { await overlay.getByLabel('Question mode').selectOption('auto'); }
 });

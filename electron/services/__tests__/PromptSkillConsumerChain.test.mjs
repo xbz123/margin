@@ -22,8 +22,8 @@ const count = (text, phrase) => text.split(phrase).length - 1;
 test('S42-02 scene composition retains the approved guidance fingerprints', () => {
   assert.equal(scenarioPrompt('interview'), `${prompts.UNIVERSAL_WHAT_TO_ANSWER_PROMPT}\n\n## ACTIVE MODE\n${prompts.DEFAULT_ANSWER_PROMPT_SUFFIX}`);
   assert.equal(scenarioPrompt('written'), prompts.CHAT_MODE_PROMPT);
-  // Hashes of the joined prompts after the S42-02 (PLAN U8) wording; dd6ef564 held the AG-51 originals.
-  assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), '7d448923f911b119c40ab18f83b6fb54c63993c1b78574ea5bf10c5d7e02072f');
+  // Hashes of the joined prompts after the S42-02 (PLAN U8) wording, written updated by S46-01; dd6ef564 held the AG-51 originals.
+  assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), 'd52c4544dc702cdfe1ba0e319e1822f23841dab3d8082e5171af925d9441ee10');
   assert.equal(createHash('sha256').update(scenarioPrompt('interview')).digest('hex'), '17cb60bdf1d4edab86b17ccbc49996c600de509f5e3f61ddc67d675d6a6140ac');
   assert.equal(createHash('sha256').update(scenarioPrompt('interview', true)).digest('hex'), 'a24cf049888050846260d0ba14f81a4abc7189cc2bef7a42d7901de1d5dfd2cb');
 });
@@ -42,10 +42,10 @@ test('S42-02 written, interview and tiny scene prompts carry the U8 rules once, 
     assert.match(prompt, /I can't share that information/, name);
     assert.match(prompt, /open WITHOUT a name/, name);
   }
-  assert.match(scenes.written, /Give the conclusion first, then the reasoning or solution steps\. For a coding problem, include complete runnable code\./);
+  assert.match(scenes.written, /For a non-coding question, give the conclusion first, then the reasoning or solution steps\. For a coding problem, follow the <coding> rules: complete submittable code first/);
   for (const name of ['interview', 'tiny']) {
     assert.match(scenes[name], /open with one or two sentences the user can say aloud right away, then expand/, name);
-    assert.doesNotMatch(scenes[name], /conclusion first/, name);
+    assert.doesNotMatch(scenes[name], /conclusion first|ACM-style|LeetCode-style|submittable code first/, name);
   }
   assert.doesNotMatch(scenes.interview, /Don't enumerate alternatives unless explicitly asked\./);
   assert.doesNotMatch(scenes.interview, /outcomes\/metrics/);
@@ -58,6 +58,26 @@ test('S42-02 written, interview and tiny scene prompts carry the U8 rules once, 
     assert.doesNotMatch(prompt, /do not stop to ask/);
     assert.doesNotMatch(prompt, FORCED_OPENERS);
   }
+});
+
+test('S46-01 written coding contract replaces approach-before-code and stays out of interview prompts', () => {
+  const written = scenarioPrompt('written');
+  const coding = written.slice(written.indexOf('<coding>'), written.indexOf('</coding>'));
+  assert.equal(count(written, '<coding>\n'), 1);
+  assert.doesNotMatch(written, /approach and key steps briefly before the code/);
+  for (const rule of [
+    /language the user explicitly names or the problem requires\. Otherwise use the language\/version selected in the screenshot's editor, then the language of the given code template\. Only when none of these is clear, use Python 3\./,
+    /signals conflict in a way that affects submission, say so/,
+    /follow the format the problem states \(ACM-style or LeetCode-style\) first; otherwise decide from the stdin\/stdout description and any class or function template/,
+    /ACM-style: a complete program that reads stdin and writes stdout, follows the problem's multiple-test-case input rules, and prints no input prompts/,
+    /LeetCode-style: keep the required class name, function signature, parameters and return type exactly; do not switch it/,
+    /Defaulting to Python 3 does not mean defaulting to ACM-style\./,
+    /complete, submittable code first[^\n]*then a brief explanation of the approach, then time and space complexity/,
+    /first give the complete corrected code based on the code in the screenshot, then list the original error\(s\) and each change with its reason\. Prefer local fixes/,
+    /do not invent them and do not claim the code was run or tested[^\n]*never fabricate a complete fix just to put code first/,
+    /clear names, normal indentation, straightforward control flow and only necessary comments\. No clever one-liners/,
+  ]) assert.match(coding, rule);
+  assert.ok(coding.indexOf('Programming language') < coding.indexOf('Submission format'));
 });
 
 test('AG51 validates, installs, selects by scene, bounds additions, persists and recovers', () => {
@@ -177,12 +197,23 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     await invoke('gemini-chat-stream', 'WRITTEN');
     const written = sent.at(-1).messages.find(message => message.role === 'system').content;
     assert.ok(written.startsWith(scenarioPrompt('written')));
-    assert.match(written, /Give the conclusion first/);
+    assert.match(written, /complete, submittable code first/);
+    assert.match(written, /Defaulting to Python 3 does not mean defaulting to ACM-style/);
+    assert.doesNotMatch(system, /ACM-style|submittable code first/, 'interview request keeps its own contract');
     assert.equal(count(written, 'one to three candidates'), 1);
     assert.doesNotMatch(JSON.stringify(sent.at(-1)), /SKILL_MARKER|ADD_MARKER/);
     await invoke('gemini-chat-stream', 'MANUAL SCENE SWITCH', undefined, undefined, { generationKind: 'interview' });
     assert.match(JSON.stringify(sent.at(-1)), /SKILL_MARKER|ADD_MARKER/);
     assert.equal((JSON.stringify(sent.at(-1)).match(/<user_guidance>/g) ?? []).length, 1);
+    // A written Skill still reaches the automatic (written) request, after the S46-01 contract.
+    assert.equal((await invoke('prompt-settings:save', { scene: 'written', skillId: 'concise', additional: 'WRITTEN_ADD_MARKER' })).ok, true);
+    await invoke('gemini-chat-stream', 'WRITTEN WITH SKILL');
+    const writtenSkill = sent.at(-1).messages.find(message => message.role === 'system').content;
+    assert.ok(writtenSkill.startsWith(scenarioPrompt('written')));
+    assert.equal((writtenSkill.match(/<user_guidance>/g) ?? []).length, 1);
+    assert.ok(writtenSkill.indexOf('</coding>') < writtenSkill.indexOf('<user_guidance>'));
+    assert.match(writtenSkill.slice(writtenSkill.indexOf('<user_guidance>')), /SKILL_MARKER[^\n]*WRITTEN_ADD_MARKER/);
+    assert.equal((await invoke('prompt-settings:save', { scene: 'written', skillId: null, additional: '' })).ok, true);
     for (const channel of ['gemini-chat-stream', 'gemini-chat']) {
       await invoke(channel, 'EXPLICIT NO SYSTEM', undefined, 'CONTEXT MARKER', { skipSystemPrompt: true });
       assert.equal(sent.at(-1).messages.some(message => message.role === 'system'), false);
