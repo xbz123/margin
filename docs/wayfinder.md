@@ -10,6 +10,7 @@
 
 ## Waiting
 
+- **S46 笔试回答契约与消息样式（2026-10-22）** — 独立代码验收、针对性测试和界面回归通过；用户已授权公开仅代码 CI 及通过后安装，交付中；resume：[S46](margin/evidence/S46/README.md)。
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。
 - **真实参数验证** — 单次 Gemini 连接成功不代表全部服务或质量验收；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
 

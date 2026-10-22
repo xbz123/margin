@@ -1485,6 +1485,28 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### S46 笔试回答契约与笔试消息样式（2026-10-22，本地实现，待独立验收）
+
+用户 2026-10-22 确认两张小票，产品要求见 [Spec U8](../product.md#u8) 与[截图、文字与回答显示](../product.md#截图文字与回答显示)。Claude 为唯一写入者，按 A→B 顺序实施；不提交、不推送、不安装、不调用真实服务，交当前 Codex 独立验收。基线 `d6bc80ce`。
+
+**S46-01 笔试截图回答契约**
+
+- Outcome：笔试实际拼接的系统提示词含编程语言、ACM/LeetCode 框架、代码先、报错修复、真实性和可读性规则；原“思路先于代码”的笔试规则同步改掉，不留冲突。
+- Scope：`src/types/answerGuidance.ts` 的 `WRITTEN_ANSWER_SHAPE`、`electron/llm/prompts.ts` 的 `WRITTEN_SCENE_PROMPT`。实际入口为 `NativelyInterface.handleManualSubmit` → `gemini-chat-stream`（未指定时默认 written）→ `scenarioPrompt('written')` → `LLMHelper.streamChat` → `appendPromptGuidance`；旧 `ProcessingHelper.generateRollingScript`、Code Hint 不动。面试/tiny 提示词、模型路由、取消/重试、数据范围、Skill 存储及用户文件不变；不迁移旧用户 Skill。
+- Steps：改写笔试场景层 coding 段和笔试回答形状；更新固定哈希及文字断言；在既有 IPC→`streamChat`→mock 协议测试中断言笔试实际请求带新契约、面试不带、笔试 Skill 仍追加在默认规则之后。
+- Validation：`PromptSkillConsumerChain`、`IdentityGuard`、`answer-regression` AG51 线上请求；面试/tiny 哈希不变；完整 gates 16/16，`git diff --check`。只证明提示词拼接，不证明真实模型遵从或解题正确。
+- Stop condition：契约需要新设置项/新模块，或与面试共享文本无法分开时暂停报告。
+
+**S46-02 笔试用户消息中性色样式**
+
+- Outcome：笔试用户消息为随深浅主题变化的中性色框、细边框和小文本消息图标；面试用户消息保持原蓝色；模型回复仍无外框。
+- Scope：`src/components/NativelyInterface.tsx` 的 `Message` 加可选 `scene` 字段，只在 `handleManualSubmit` 按实际请求场景写入（`auto` 与 `written` 记为 written，与主进程默认一致），`MessageRow` 按该字段选样式。旧消息无字段保持原样式；切换下拉框不改变历史消息。发送、附件、流式、Markdown/代码、复制、快捷键、加载状态及 Launcher/其他页面不变，不改全局 accent。
+- Steps：加字段和写入点；`MessageRow` 分支样式与图标；在现有渲染测试中按场景和深浅主题渲染 `MessageRow`，并在 Electron 挂载测试中核对三种模式的用户消息场景及切换后历史不变。
+- Validation：`manualAnswerRenderer`、`answer-regression` AG51；完整 gates 16/16。截图如隔离环境取不到则标未验证，不碰用户运行中的应用。
+- Stop condition：需要全局 token 或扩展到其他页面才能实现时暂停报告。
+
+**本地结果**：两票均按上述范围实现，无暂停项。完整本地门禁 16/16（单元 1215/1215，回答 21/21，存储 3/3，启动 2/2，挂载界面 14/14），来源检查 0 命中；面试/tiny 提示词哈希不变；3 个变异均被识别。隔离 Electron 中渲染了深浅两套合成消息截图。当前 Codex 独立审查无阻断项，重跑针对性测试 20/20、真实界面隔离回归 21/21。用户随后授权提交交付、远端 CI 及通过后安装；仍不授权真实服务代测。Windows 仅静态审查，真实模型遵从未评估。证据：[S46](evidence/S46/README.md)。
+
 ### 无消费者残留清理（2026-10-22，本地验收和公开 CI 通过）
 
 处理 2026-10-15 审阅 4 项清理候选中的 3 项：删除 `react-query` 别名（含 lock 条目和许可脚本特例，许可清单重新生成）、`renderer/` CRA 脚手架、未接线的 `ConversationSummarizer.ts` 及其专属测试。`ClarifyLLM` 重复代码留到下次修改该动作时。不改应用行为、不升级依赖。本地门禁 16/16，单元测试 1213/1213（少的 1 条就是删除的专属测试）。Claude 实现。公开仅代码 `075d2f44`（含 `licenses/`、`NOTICE` 和 `renderer/` 的删除）的 CI 39801535976 通过：16/16，来源检查 0 命中，单元测试 1213/1213。证据：[cleanup-20261022](evidence/cleanup-20261022/README.md)。

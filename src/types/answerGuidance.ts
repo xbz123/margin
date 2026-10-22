@@ -1,6 +1,6 @@
 // Answer requirements (PLAN U8) shared by the written and interview scene prompts and by
 // the spoken-question prompt the overlay sends with an empty system prompt.
-export const WRITTEN_ANSWER_SHAPE = 'Give the conclusion first, then the reasoning or solution steps. For a coding problem, include complete runnable code.';
+export const WRITTEN_ANSWER_SHAPE = 'For a non-coding question, give the conclusion first, then the reasoning or solution steps. For a coding problem, follow the <coding> rules: complete submittable code first, then a brief explanation.';
 
 export const INTERVIEW_ANSWER_SHAPE = 'In a live interview, open with one or two sentences the user can say aloud right away, then expand with the supporting detail. For a coding problem, still give complete runnable code after the opening.';
 
