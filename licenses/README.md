@@ -12,10 +12,10 @@ containing complete embedded licenses are retained rather than replaced by
 generic templates. Unresolved entries remain unresolved.
 
 Missing optional paths are excluded only when their OS/CPU constraints do not
-match the collection host. The two malformed react-query aliases are explicitly
-identified; the separately installed @tanstack/react-query is inventoried. This
-does not repair the alias or prove clean installation. Missing required/current-
-platform package metadata fails collection.
+match the collection host. The malformed react-query alias was removed from
+package.json and the lock file on 2026-10-22; @tanstack/react-query is
+inventoried as an ordinary package. Missing required/current-platform package
+metadata fails collection.
 
 ## Electron and assets
 
@@ -82,7 +82,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-599 candidates; 347 unique stored texts; 2 excluded paths; 0 unresolved candidates; 2 deferred notices.
+599 candidates; 347 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
