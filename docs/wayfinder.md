@@ -4,9 +4,9 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-20，交接审阅的保存失败、音频清理、配置应用均已完成，生成入口完成显式注册及跨入口取消验证（[记录](margin/evidence/cross-entry-cancel/README.md)）；均经本地门禁和公开 CI（最新 39391240062），公开仓库只含代码，见[审阅后续状态](margin/REVIEW-2026-10-15.md#后续状态2026-10-20)。新版未安装，实机签收未完成。
+**Current answer:** 截至 2026-10-21，保存失败、音频清理、配置应用、生成入口显式注册及跨入口取消验证均完成（[交叉验证](margin/evidence/cross-entry-cancel/README.md)，最新公开 CI 39404092608）。包含近期修复的 Natively Local `44a5e3a8` 已安装，包检查 12/12、隔离启动 10/10；[安装记录](margin/evidence/local-install-20261021/README.md)。尚未用真实用户配置启动新版，实机签收未完成。
 
-**Current focus:** 下一步是阶段 6 实机复测：先确定测试组合（D2），再安装新版做真实服务/设备验证，均待另行授权；见 PLAN §8。
+**Current focus:** 下一步是已安装新版的阶段 6 实机复测：确定测试组合（D2）并按授权做真实服务/设备验证；本次安装不代替服务、设备或共享签收，见 PLAN §8。
 
 ## Waiting
 
