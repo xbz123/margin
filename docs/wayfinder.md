@@ -4,13 +4,13 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-22，近期修复及跨入口验证完成（[记录](margin/evidence/cross-entry-cancel/README.md)，修复版公开 CI 39404092608）。设置 UI 改版 `16c565a7` 已随 Natively Local `9ea320d6` 安装，包检查 12/12、隔离启动 10/10；[安装记录](margin/evidence/local-install-20261022/README.md)。UI 改版的公开 CI 39785283178 已通过；之后的无消费者清理 `faa4da27`（公开 CI 39801535976 通过）不改应用行为，没有另装。Agent 未用真实配置启动新版，实机签收未完成。
+**Current answer:** 截至 2026-10-22，近期修复、设置改版及无消费者清理均已交付。最新笔试回答规则和中性消息框 S46 经独立验收、公开 CI 39818808638（16/16、1215/1215）通过；同源 Natively Local `d7d01ccb` 已安装，含此前 UI 与清理，包/安装各 12/12、隔离启动 10/10，用户数据及旧 Margin 保留；[交付与安装记录](margin/evidence/S46/README.md)。Agent 未用真实配置启动新版，实机签收未完成。
 
-**Current focus:** 下一步是已安装新版的阶段 6 实机复测：先快速走查新版设置界面，再确定测试组合（D2）并按授权做真实服务/设备和共享验证，按[实机复测清单](margin/STAGE6-CHECKLIST.md)勾选记录；本次安装不代替服务、设备或共享签收，见 PLAN §8。之后是正式身份、最终图标和 Mac 发布，Windows 后置。
+**Current focus:** 下一步由用户检查 S46 的实际截图解题与消息样式，并继续阶段 6 实机复测：走查设置界面，确定测试组合（D2），按[清单](margin/STAGE6-CHECKLIST.md)验证真实服务/设备和共享；安装不代替实机签收。正式 Margin 名称及权限列表显示、最终图标在发布前核查，Windows 后置。
 
 ## Waiting
 
-- **S46 笔试回答契约与消息样式（2026-10-22）** — 独立代码验收、针对性测试和界面回归通过；用户已授权公开仅代码 CI 及通过后安装，交付中；resume：[S46](margin/evidence/S46/README.md)。
+- **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。
 - **真实参数验证** — 单次 Gemini 连接成功不代表全部服务或质量验收；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
 
