@@ -586,6 +586,7 @@
     {"line":"</SettingsRow>","reason":"Settings restyle 2026-10-21: closing tag of the SettingsRow component written for this change."},
     {"line":"<div className=\"bg-accent-primary text-on-accent px-4 py-2 rounded-2xl rounded-tr-sm max-w-[75%] text-xs leading-relaxed shadow-sm\">","reason":"Settings restyle 2026-10-21: baseline a786910e HelpSettings demo bubble with text-white replaced by the new on-accent token for contrast."},
     {"line":"a: ({ node, ...props }: any) => <a className=\"text-accent-primary hover:underline\" {...props} />,","reason":"Settings restyle 2026-10-21: baseline a786910e MeetingDetails markdown link with text-blue-500 replaced by the accent token."},
-    {"line":"return 0.2126 * r + 0.7152 * g + 0.0722 * b;","reason":"Settings restyle 2026-10-21: contrast test written for this change; the WCAG 2 relative-luminance formula constants."}
+    {"line":"return 0.2126 * r + 0.7152 * g + 0.0722 * b;","reason":"Settings restyle 2026-10-21: contrast test written for this change; the WCAG 2 relative-luminance formula constants."},
+    {"line":"const i = process.argv.indexOf(name);","reason":"CI 39783330684 (2026-10-22): unchanged gate-runner argument parser at scripts/margin/run-gates.mjs:29, written for this branch in fdf9cd7c (2026-10-07); generic process.argv lookup. Flagged only after the CI upstream pool grew to 679248 keys."}
   ]
 }

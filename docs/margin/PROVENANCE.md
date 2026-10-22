@@ -45,6 +45,13 @@ written, with no paths or pools excluded:
 - A flex wrapper and the closing `</SettingsRow>` tag in SettingsOverlay.
 - The WCAG relative-luminance formula in the new contrast test.
 
+Public CI 39783330684 then failed only on provenance: its fresh upstream fetch
+(679248 restricted keys) flagged one older line this change did not touch,
+`const i = process.argv.indexOf(name);` at `scripts/margin/run-gates.mjs:29`.
+It is this branch's own gate-runner argument parser from `fdf9cd7c`
+(2026-10-07), a generic `process.argv` lookup, and is registered exactly as
+written, with no paths or pools excluded.
+
 ### Generation entry registration and CI 39388726818 (2026-10-20)
 
 Written for this branch from the approved plan (PLAN §8). `safeHandle` only
