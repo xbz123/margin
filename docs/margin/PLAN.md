@@ -1485,9 +1485,9 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
-### 无消费者残留清理（2026-10-22，本地验收通过）
+### 无消费者残留清理（2026-10-22，本地验收和公开 CI 通过）
 
-处理 2026-10-15 审阅 4 项清理候选中的 3 项：删除 `react-query` 别名（含 lock 条目和许可脚本特例，许可清单重新生成）、`renderer/` CRA 脚手架、未接线的 `ConversationSummarizer.ts` 及其专属测试。`ClarifyLLM` 重复代码留到下次修改该动作时。不改应用行为、不升级依赖。本地门禁 16/16，单元测试 1213/1213（少的 1 条就是删除的专属测试）。Claude 实现；未推送、未跑公开 CI；公开交付时需带上 `licenses/`、`NOTICE` 和 `renderer/` 的删除。证据：[cleanup-20261022](evidence/cleanup-20261022/README.md)。
+处理 2026-10-15 审阅 4 项清理候选中的 3 项：删除 `react-query` 别名（含 lock 条目和许可脚本特例，许可清单重新生成）、`renderer/` CRA 脚手架、未接线的 `ConversationSummarizer.ts` 及其专属测试。`ClarifyLLM` 重复代码留到下次修改该动作时。不改应用行为、不升级依赖。本地门禁 16/16，单元测试 1213/1213（少的 1 条就是删除的专属测试）。Claude 实现。公开仅代码 `075d2f44`（含 `licenses/`、`NOTICE` 和 `renderer/` 的删除）的 CI 39801535976 通过：16/16，来源检查 0 命中，单元测试 1213/1213。证据：[cleanup-20261022](evidence/cleanup-20261022/README.md)。
 
 ### 设置界面改为旧 Margin 风格（2026-10-21，本地验收和公开 CI 通过）
 
