@@ -51,6 +51,8 @@ Public CI 39783330684 then failed only on provenance: its fresh upstream fetch
 It is this branch's own gate-runner argument parser from `fdf9cd7c`
 (2026-10-07), a generic `process.argv` lookup, and is registered exactly as
 written, with no paths or pools excluded.
+Public CI 39785283178 on `acb45f7d` (config only) then passed 16/16 with 0
+provenance hits against the same 679248-key pool.
 
 ### Generation entry registration and CI 39388726818 (2026-10-20)
 
