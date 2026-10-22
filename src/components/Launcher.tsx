@@ -289,7 +289,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
     };
 
     return (
-        <div className="h-full w-full flex flex-col bg-bg-primary text-text-primary font-sans overflow-hidden selection:bg-accent-secondary/30">
+        <div className="h-full w-full flex flex-col bg-bg-primary text-text-primary font-sans overflow-hidden selection:bg-accent-muted">
             {/* 1. Header (Static) */}
             <header className={`relative w-full h-[40px] shrink-0 flex items-center justify-between pl-0 drag-region select-none ${isLight ? 'bg-bg-primary' : 'bg-bg-secondary'} border-b border-border-subtle z-[200]`}>
                 {/* Left: Spacing for Traffic Lights + Navigation Arrows */}
@@ -501,13 +501,13 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                             style={{
                                                 boxShadow: isMeetingActive
                                                     ? 'inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 10px rgba(16,185,129,0.45), 0 0 0 1px rgba(255,255,255,0.15)'
-                                                    : 'inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 10px rgba(14,165,233,0.4), 0 0 0 1px rgba(255,255,255,0.15)',
+                                                    : 'inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -1px 2px rgba(0,0,0,0.1), 0 2px 10px rgba(108,75,211,0.4), 0 0 0 1px rgba(255,255,255,0.15)',
                                                 transition: 'box-shadow 0.5s ease-out',
                                             }}
                                         >
-                                            {/* Blue gradient layer (idle) */}
+                                            {/* Accent gradient layer (idle) */}
                                             <div
-                                                className="absolute inset-0 bg-gradient-to-b from-sky-400 via-sky-500 to-blue-600 transition-opacity duration-500 ease-out"
+                                                className="absolute inset-0 bg-gradient-to-b from-[#8D72E6] via-[#6C4BD3] to-[#5B3BC0] transition-opacity duration-500 ease-out"
                                                 style={{ opacity: isMeetingActive ? 0 : 1 }}
                                             />
                                             {/* Green gradient layer (meeting active) */}

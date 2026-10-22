@@ -383,7 +383,7 @@ export const AIProvidersSettings: React.FC = () => {
     return (
         <div className="space-y-5 animated fadeIn pb-10">
             <div>
-                <h3 className="text-lg font-bold text-text-primary mb-1">{t('AI services')}</h3>
+                <h3 className="text-[17px] font-semibold text-text-primary mb-1">{t('AI services')}</h3>
                 <p className="text-xs text-text-secondary">{t('Choose answer models, connect official providers or your own gateway, and control what data is shared.')}</p>
             </div>
             <section className="space-y-4 rounded-2xl bg-bg-item-surface border border-border-subtle p-5" aria-label={t('Answer models')}>
@@ -448,7 +448,7 @@ export const AIProvidersSettings: React.FC = () => {
             <div role="tablist" aria-label={t('AI services')} className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-bg-input border border-border-subtle">
                 {tabs.map((tab, index) => <button key={tab.id} id={`ai-tab-${tab.id}`} type="button" role="tab" aria-selected={activeTab === tab.id} aria-controls={`ai-panel-${tab.id}`}
                     tabIndex={activeTab === tab.id ? 0 : -1} onClick={() => setActiveTab(tab.id)} onKeyDown={event => onTabKey(event, index)}
-                    className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === tab.id ? 'bg-bg-elevated text-text-primary border border-accent-primary/50 shadow-sm' : 'text-text-secondary border border-transparent hover:text-text-primary'}`}>
+                    className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors ${activeTab === tab.id ? 'bg-bg-elevated text-text-primary border border-accent-border shadow-sm' : 'text-text-secondary border border-transparent hover:text-text-primary'}`}>
                     {tab.icon}{t(tab.label)}
                 </button>)}
             </div>

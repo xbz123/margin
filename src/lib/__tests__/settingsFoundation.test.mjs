@@ -288,12 +288,14 @@ test('AG60 requesting a language never applies it unless main saved it', async (
   assert.equal(offline.getUiLanguage(), 'en');
 });
 
-test('AG60 settings groups keep every section and old tab names open the moved sections', () => {
-  const { resolveSettingsTab, SETTINGS_GROUPS } = sourceModule('src/components/settings/settingsTabs.ts');
-  assert.deepEqual([...SETTINGS_GROUPS.flatMap(group => group.tabs)], ['general', 'privacy', 'keybinds', 'ai-providers', 'context', 'audio', 'help', 'about']);
-  for (const tab of ['general', 'privacy', 'keybinds', 'ai-providers', 'context', 'audio', 'help', 'about']) assert.equal(resolveSettingsTab(tab), tab);
+test('AG60 settings keep every section and old tab names open the moved sections', () => {
+  const { resolveSettingsTab, SETTINGS_TABS } = sourceModule('src/components/settings/settingsTabs.ts');
+  const tabs = ['general', 'ai-providers', 'audio', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about'];
+  assert.deepEqual([...SETTINGS_TABS], tabs);
+  for (const tab of tabs) assert.equal(resolveSettingsTab(tab), tab);
   assert.equal(resolveSettingsTab('skills'), 'context');
   assert.equal(resolveSettingsTab('local-context'), 'context');
+  assert.equal(resolveSettingsTab('window-privacy'), 'privacy');
   for (const unknown of ['constructor', '__proto__', 'Skills', undefined, null, 3]) assert.equal(resolveSettingsTab(unknown), 'general');
   const overlay = fs.readFileSync(`${REPO}/src/components/SettingsOverlay.tsx`, 'utf8');
   assert.match(overlay, /activeTab === 'context'[\s\S]{0,200}<LocalContextSettings \/>[\s\S]{0,200}<PromptSettings \/>/);
@@ -317,4 +319,22 @@ test('S44 reasoning validation messages and option values are bounded and have C
   assert.ok(messages.size >= 4);
   for (const message of messages) { assert.doesNotMatch(message, /USER|VALUE|script/); assert.ok(Object.hasOwn(chinese, message), message); }
   for (const message of ['Context window must be a positive whole number of tokens.', 'A context window can only be noted for a custom endpoint.']) assert.ok(Object.hasOwn(chinese, message));
+});
+
+test('accent tokens keep readable contrast in both themes', () => {
+  const css = fs.readFileSync(`${REPO}/src/index.css`, 'utf8');
+  const block = selector => css.slice(css.indexOf(`${selector} {`), css.indexOf('}', css.indexOf(`${selector} {`)));
+  const token = (text, name) => text.match(new RegExp(`--${name}:\\s*(#[0-9A-Fa-f]{6})`))?.[1];
+  const luminance = hex => {
+    const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a, b) => { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  for (const [selector, surfaces] of [[':root', ['bg-main', 'bg-card', 'bg-elevated']], ["[data-theme='light']", ['bg-main', 'bg-card', 'bg-elevated']]]) {
+    const theme = block(selector);
+    const accent = token(theme, 'accent-primary'), onAccent = token(theme, 'on-accent');
+    assert.ok(accent && onAccent, selector);
+    assert.ok(contrast(accent, onAccent) >= 4.5, `${selector}: text on the accent`);
+    for (const surface of surfaces) assert.ok(contrast(accent, token(theme, surface)) >= 4.5, `${selector}: accent text on ${surface}`);
+  }
 });

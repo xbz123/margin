@@ -267,7 +267,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                         {/* User Question */}
                                         {interaction.question && (
                                             <div className="flex justify-end">
-                                                <div className="bg-accent-primary text-white px-5 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed shadow-sm">
+                                                <div className="bg-accent-primary text-on-accent px-5 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed shadow-sm">
                                                     {interaction.question}
                                                 </div>
                                             </div>
@@ -298,7 +298,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                                                 ol: ({ node, ...props }) => <ol className="list-decimal ml-4 mb-2 space-y-1" {...props} />,
                                                                 li: ({ node, ...props }) => <li className="text-[15px] text-text-secondary font-normal" {...props} />,
                                                                 strong: ({ node, ...props }) => <span className="font-normal text-text-secondary" {...props} />,
-                                                                a: ({ node, ...props }: any) => <a className="text-blue-500 hover:underline" {...props} />,
+                                                                a: ({ node, ...props }: any) => <a className="text-accent-primary hover:underline" {...props} />,
                                                                 pre: ({ children }: any) => <div className="not-prose mb-4">{children}</div>,
                                                                 code: ({ node, inline, className, children, ...props }: any) => {
                                                                     const match = /language-(\w+)/.exec(className || '');

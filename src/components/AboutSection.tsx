@@ -29,7 +29,7 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
         <div className="space-y-6 animated fadeIn pb-10">
             {/* Header */}
             <div>
-                <h3 className="text-lg font-bold text-text-primary mb-1">{t('About {name}', { name: APP_NAME })}</h3>
+                <h3 className="text-[17px] font-semibold text-text-primary mb-1">{t('About {name}', { name: APP_NAME })}</h3>
                 <p className="text-sm text-text-secondary">{t('A meeting assistant with manual answers and configurable privacy controls.')}</p>
             </div>
 
@@ -55,7 +55,7 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                     {/* 2. DeepSeek AI Integrated */}
                     <div className="p-3 border-b border-border-subtle bg-bg-card/50">
                         <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-accent-muted flex items-center justify-center text-accent-primary shrink-0">
                                 <Cpu size={20} />
                             </div>
                             <div>
@@ -91,7 +91,7 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                 <div className="bg-bg-item-surface rounded-xl border border-border-subtle overflow-hidden">
                     <div className="p-3 border-b border-border-subtle bg-bg-card/50">
                         <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-accent-muted flex items-center justify-center text-accent-primary shrink-0">
                                 <Cpu size={20} />
                             </div>
                             <div>
@@ -243,7 +243,7 @@ export const AboutSection: React.FC<AboutSectionProps> = () => {
                     {/* 3. Get in Touch */}
                     <div className="bg-bg-item-surface rounded-xl border border-border-subtle p-5 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-sm shadow-blue-500/5">
+                            <div className="w-10 h-10 rounded-full bg-accent-muted flex items-center justify-center text-accent-primary shadow-sm">
                                 <Mail size={18} className="opacity-80" />
                             </div>
                             <div>

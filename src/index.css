@@ -64,8 +64,14 @@
   --border-subtle: transparent;
   --border-muted: #333333;
 
-  --accent-primary: #3b82f6;
-  --accent-muted: rgba(59, 130, 246, 0.15);
+  /* Margin accent: a violet tuned for dark surfaces; on-accent text stays dark for contrast. */
+  --accent-primary: #A994F5;
+  --accent-hover: #BCABF8;
+  --accent-pressed: #9580EC;
+  --accent-muted: rgba(169, 148, 245, 0.16);
+  --accent-subtle: rgba(169, 148, 245, 0.10);
+  --accent-border: rgba(169, 148, 245, 0.32);
+  --on-accent: #16112B;
 
   --bg-component: #262626;
   /* Specific legacy value */
@@ -141,7 +147,7 @@
   /* ── Interactive elements ── */
   --bg-component:      #F3F4F6;   /* Secondary button fill (gray-100)             */
   --bg-item-surface:   #EAECEF;   /* Row hover — clearly visible against canvas   */
-  --bg-item-active:    rgba(37, 99, 235, 0.09); /* Blue-tinted selection (Linear/Notion style) */
+  --bg-item-active:    rgba(108, 75, 211, 0.09); /* Accent-tinted selection */
   --bg-toggle-switch:  #D1D5DB;   /* Toggle off-state track (gray-300)            */
 
   /* ── Typography — Tailwind gray scale, proven for readability ── */
@@ -154,8 +160,13 @@
   --border-muted:      rgba(0, 0, 0, 0.11);   /* inputs, tables                   */
 
   /* ── Accent ── */
-  --accent-primary:    #2563EB;   /* blue-600 — accessible, confident             */
-  --accent-muted:      rgba(37, 99, 235, 0.10);
+  --accent-primary:    #6C4BD3;   /* Margin violet, 5.9:1 against white            */
+  --accent-hover:      #5B3BC0;
+  --accent-pressed:    #4F32A8;
+  --accent-muted:      rgba(108, 75, 211, 0.10);
+  --accent-subtle:     rgba(108, 75, 211, 0.07);
+  --accent-border:     rgba(108, 75, 211, 0.28);
+  --on-accent:         #FFFFFF;
 
   --bg-component:      #F3F4F6;
 

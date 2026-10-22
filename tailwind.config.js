@@ -20,10 +20,17 @@ module.exports = {
           'item-surface': 'var(--bg-item-surface)',
           'item-active': 'var(--bg-item-active)',
         },
+        // These are bare var() colors: Tailwind cannot apply a /NN opacity to them, so add a token instead.
         accent: {
           primary: 'var(--accent-primary)',
           secondary: 'var(--accent-muted)',
+          hover: 'var(--accent-hover)',
+          pressed: 'var(--accent-pressed)',
+          muted: 'var(--accent-muted)',
+          subtle: 'var(--accent-subtle)',
+          border: 'var(--accent-border)',
         },
+        'on-accent': 'var(--on-accent)',
         button: {
           primary: {
             bg: 'var(--btn-primary-bg)',

@@ -232,7 +232,7 @@ const MockMeetingInterfaceAnim = () => {
                     {tab === 'usage' && (
                         <motion.div key="usage" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-4">
                             <div className="flex justify-end pt-2">
-                                <div className="bg-accent-primary text-white px-4 py-2 rounded-2xl rounded-tr-sm max-w-[75%] text-xs leading-relaxed shadow-sm">
+                                <div className="bg-accent-primary text-on-accent px-4 py-2 rounded-2xl rounded-tr-sm max-w-[75%] text-xs leading-relaxed shadow-sm">
                                     {t('Could you elaborate on the Redis rate limiting?')}
                                 </div>
                             </div>
@@ -378,7 +378,7 @@ const MockPermissionsAnim = () => {
 
                     <motion.div
                         initial={false}
-                        animate={{ backgroundColor: toggled ? '#3b82f6' : 'var(--bg-toggle-switch)' }}
+                        animate={{ backgroundColor: toggled ? 'var(--accent-primary)' : 'var(--bg-toggle-switch)' }}
                         className="w-10 h-6 rounded-full relative shadow-inner"
                     >
                         <motion.div
@@ -529,7 +529,7 @@ const getBadgeStyle = (color?: string) => {
 };
 
 const getIconStyle = (color?: string, isSelectedItem: boolean = false) => {
-    if (isSelectedItem) return 'bg-accent-primary text-white shadow-sm';
+    if (isSelectedItem) return 'bg-accent-primary text-on-accent shadow-sm';
     switch (color) {
         case 'blue': return 'bg-blue-500/10 text-blue-600';
         case 'orange': return 'bg-orange-500/10 text-orange-600';
@@ -562,7 +562,7 @@ const MockProviderSelectionAnim = () => {
             <div className="w-[340px] flex flex-col gap-2 relative z-10 font-sans">
                 <label className="text-xs font-medium text-text-secondary">{t('Speech Provider')}</label>
                 <div className="relative">
-                    <button className={`w-full group bg-bg-input border border-border-subtle shadow-sm rounded-xl p-2.5 pr-3.5 flex items-center justify-between transition-all duration-200 outline-none ${isOpen ? 'ring-2 ring-accent-primary/20 border-accent-primary/50' : 'hover:shadow-md'}`}>
+                    <button className={`w-full group bg-bg-input border border-border-subtle shadow-sm rounded-xl p-2.5 pr-3.5 flex items-center justify-between transition-all duration-200 outline-none ${isOpen ? 'ring-2 ring-accent-border border-accent-border' : 'hover:shadow-md'}`}>
                         <div className="flex items-center gap-3 overflow-hidden">
                             <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 transition-all duration-300 transform ${getIconStyle(selected.color, false)}`}>
                                 {selected.icon}
@@ -790,7 +790,7 @@ const SetupGuide = () => {
                             {/* Step indicator column */}
                             <div className="flex flex-col items-center shrink-0" style={{ width: 28 }}>
                                 <div className="w-7 h-7 rounded-full bg-accent-primary flex items-center justify-center shrink-0">
-                                    <span className="text-[11px] font-bold text-white leading-none">{i + 1}</span>
+                                    <span className="text-[11px] font-bold text-on-accent leading-none">{i + 1}</span>
                                 </div>
                                 {!isLast && (
                                     <div className="w-px bg-border-subtle flex-1" style={{ minHeight: 32, marginTop: 5, marginBottom: 5 }} />
@@ -835,11 +835,11 @@ export const HelpSettings: React.FC = () => {
     return (
         <div className="w-full h-full flex flex-col animated fadeIn pb-10">
             <div className="mb-6 shrink-0">
-                <h2 className={`text-2xl font-bold text-text-primary flex items-center gap-3`}>
-                    <HelpCircle className="w-6 h-6 text-accent-primary" />
+                <h2 className="text-[17px] font-semibold text-text-primary flex items-center gap-2 mb-1">
+                    <HelpCircle className="w-[18px] h-[18px] text-accent-primary" />
                     {t('Help & Setup Guide')}
                 </h2>
-                <p className={`text-sm text-text-secondary mt-3 max-w-2xl`}>
+                <p className="text-xs text-text-secondary leading-relaxed max-w-2xl">
                     {t('Learn how to deeply configure {name}. Everything from providing the right API scopes to executing conversational interviews seamlessly is covered below.', { name: APP_NAME })}
                 </p>
             </div>
