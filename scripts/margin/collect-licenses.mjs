@@ -254,11 +254,9 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
     if (!location || (entry.dev && !bundled.has(location))) continue;
     const manifest = path.join(root, location, 'package.json');
     if (!location.startsWith('node_modules/') || !fs.existsSync(manifest)) {
-      const alias = location === '@tanstack/react-query@^5.100.10' && !Object.keys(entry).length;
-      const linkedAlias = location === 'node_modules/react-query' && entry.link === true && entry.resolved === '@tanstack/react-query@^5.100.10' && fs.lstatSync(path.join(root, location)).isSymbolicLink() && fs.readlinkSync(path.join(root, location)) === '../@tanstack/react-query@^5.100.10';
       const supports = (values, current) => !values?.length || (!values.includes(`!${current}`) && (!values.some((value) => !value.startsWith('!')) || values.includes(current) || values.includes('any')));
       const incompatible = entry.optional && (!supports(entry.os, process.platform) || !supports(entry.cpu, process.arch));
-      if (alias || linkedAlias || incompatible) excluded.push({ location, version: entry.version, reason: incompatible ? 'not installed; optional OS/CPU does not match collection host' : 'verified dangling react-query lock alias; not an installed component' });
+      if (incompatible) excluded.push({ location, version: entry.version, reason: 'not installed; optional OS/CPU does not match collection host' });
       else unresolved.push({ id: `lock:${location}`, reason: 'required/current-platform installed package metadata is missing' });
       continue;
     }

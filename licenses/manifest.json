@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
-  "packageLockSHA256": "1549d4264c209cc7a10709a38819b724b912b81f2cc8382b2660d6ce5ffa402e",
+  "packageLockSHA256": "81f487b004acb3df5d68ff2ecfe44ee694b9addbc4a070a401c7c94067e3f583",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
   "sourceConfigSHA256": "2eeb3a5e3a92b9c6e130704143de3af0d2de1a6607ed0d6d11b703707355145c",
   "electronVersion": "43.1.0",
@@ -14673,16 +14673,7 @@
       }
     }
   ],
-  "excluded": [
-    {
-      "location": "@tanstack/react-query@^5.100.10",
-      "reason": "verified dangling react-query lock alias; not an installed component"
-    },
-    {
-      "location": "node_modules/react-query",
-      "reason": "verified dangling react-query lock alias; not an installed component"
-    }
-  ],
+  "excluded": [],
   "unresolved": [],
   "deferred": [
     {
