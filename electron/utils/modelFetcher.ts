@@ -6,6 +6,7 @@
 import { outboundAxios as axios } from '../services/outbound';
 import { LLM_PRESETS, type GatewayConfiguration, type LlmProtocol, type ProviderConfiguration } from '../../src/types/llmTarget';
 import { effectiveProviderConfiguration, validateGatewayConfiguration } from '../llm/llmTarget';
+import { isOfficialAnswerCandidate } from '../../src/types/modelCapabilities';
 
 export interface ProviderModel {
     id: string;
@@ -49,20 +50,23 @@ export async function fetchProviderModels(
     const target = effectiveProviderConfiguration(configuration);
     // Only the development loopback override can make an official provider custom.
     if (target.custom) return fetchCompatibleModels(target.protocol, target.baseUrl, apiKey);
+    let models: ProviderModel[];
     switch (provider) {
         case 'openai':
-            return fetchOpenAIModels(apiKey);
+            models = await fetchOpenAIModels(apiKey); break;
         case 'groq':
             return fetchGroqModels(apiKey);
         case 'claude':
-            return fetchAnthropicModels(apiKey);
+            models = await fetchAnthropicModels(apiKey); break;
         case 'gemini':
-            return fetchGeminiModels(apiKey);
+            models = await fetchGeminiModels(apiKey); break;
         case 'deepseek':
-            return fetchDeepSeekModels(apiKey);
+            models = await fetchDeepSeekModels(apiKey); break;
         default:
             throw new Error(`Unknown provider: ${provider}`);
     }
+    // Intersect the account's list with reviewed answer capabilities; never invent account access.
+    return models.filter(model => isOfficialAnswerCandidate({ ...target, model: model.id }));
 }
 
 // ─── OpenAI ──────────────────────────────────────────────────────────────────
@@ -162,7 +166,7 @@ async function fetchGeminiModels(apiKey: string): Promise<ProviderModel[]> {
       seen.add(token);
     }
 
-    // Use the upstream capability field, not a model-name/version allowlist.
+    // First require the upstream operation; the shared official answer catalogue is applied above.
     const filtered = models.filter(m => typeof m.name === 'string' && m.supportedGenerationMethods?.includes('generateContent'));
 
     return filtered

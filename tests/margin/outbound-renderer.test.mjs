@@ -645,8 +645,10 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
     await page.evaluate(() => { window.deferModels = true; });
     await cloud.getByRole('button', { name: 'Fetch Models', exact: true }).click();
     await protocol.selectOption('responses');
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model to add"]').options.length === 1);
     await page.evaluate(() => window.resolveModels({ success: true, models: [{ id: 'stale', label: 'Stale result' }] }));
     assert.equal(await toAdd.locator('option', { hasText: 'Stale result' }).count(), 0);
+    assert.equal(await toAdd.locator('option', { hasText: 'Other upstream model' }).count(), 0, 'S49 a changed protocol also clears the previously fetched catalogue');
     await page.getByRole('tab', { name: 'Cloud services', exact: true }).press('ArrowRight');
     assert.equal(await page.getByRole('tab', { name: 'Gateway', exact: true }).getAttribute('aria-selected'), 'true');
     await page.getByRole('tab', { name: 'Gateway', exact: true }).press('End');
@@ -737,6 +739,50 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
   } finally { if (app) await app.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
+test('S49 mounted provider discards a late list after an external protocol update and can fetch again', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React, { useState } from 'react'; import { createRoot } from 'react-dom/client';
+    import { ProviderCard } from './src/components/settings/ProviderCard';
+    window.fetchCalls = 0; window.resolved = false;
+    window.electronAPI = { fetchProviderModels: async () => {
+      window.fetchCalls++;
+      if (window.fetchCalls === 1) return new Promise(resolve => { window.resolveList = value => { window.resolved = true; resolve(value); }; });
+      return { success: true, models: [{ id: 'gpt-5.4-mini', label: 'Current protocol model' }] };
+    } };
+    function ExternalProtocolFixture() {
+      const [config, setConfig] = useState({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4' });
+      window.replaceConfig = () => setConfig({ ...config, protocol: 'chat-completions' });
+      return <ProviderCard providerId="openai" providerName="OpenAI" icon={null} configuration={config}
+        hasStoredKey={true} keyPlaceholder="synthetic" keyUrl="https://example.invalid"
+        onSave={async () => ({ ok: true })} onRemoveKey={async () => {}} />;
+    }
+    createRoot(document.getElementById('root')).render(<ExternalProtocolFixture />);
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
+  const sandbox = makeSandbox('s49-external-protocol'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
+    const created = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await created; await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    await page.getByRole('button', { name: /^OpenAI/ }).click();
+    const fetch = page.getByRole('button', { name: 'Fetch Models', exact: true });
+    const list = page.getByRole('combobox', { name: 'OpenAI model to add', exact: true });
+    await fetch.click(); await page.waitForFunction(() => !!window.resolveList);
+    await page.evaluate(() => window.replaceConfig());
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI protocol"]').value === 'chat-completions');
+    await page.evaluate(() => window.resolveList({ success: true, models: [{ id: 'gpt-5.4-pro', label: 'Stale Responses-only model' }] }));
+    await page.waitForFunction(() => window.resolved);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await list.locator('option', { hasText: 'Stale Responses-only model' }).count(), 0);
+    assert.equal(await fetch.isEnabled(), true, 'a superseded fetch cannot leave the card busy');
+    await fetch.click();
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model to add"]').options.length === 2);
+    assert.deepEqual(await list.locator('option').allTextContents(), ['Choose a model to add', 'Current protocol model']);
+    assert.equal(await page.getByRole('combobox', { name: 'OpenAI model', exact: true }).inputValue(), 'gpt-5.4');
+  } finally { await app?.close().catch(() => {}); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('S47 mounted settings and session selector share saved candidates through the real manager, IPC callbacks and LLMHelper', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const load = file => { const module = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/${file}`, 'utf8')), { module, exports: module.exports, URL }); return module.exports; };

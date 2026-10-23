@@ -601,6 +601,8 @@ export const chinese: Readonly<Record<string, string>> = {
     'Do not include an API version in the Gemini gateway URL.': 'Gemini 网关地址中不要包含 API 版本。',
     'Gateway model ID (if model listing is unavailable)': '网关模型 ID（无法获取列表时填写）',
     'Current configuration (not fetched)': '当前配置（未从服务商获取）',
+    'No supported answer models were returned for this provider and protocol.': '此服务商和协议下没有返回本应用支持的回答模型。',
+    'This model requires non-streaming responses, which this app does not support yet. Select another answer model.': '此模型需要非流式回答，本应用尚未接入。请选择其他回答模型。',
     'No models were returned by this provider.': '服务商没有返回可选模型。',
     'Enter a custom gateway URL, or select the official API.': '请填写自定义网关地址，或选择官方 API。',
     'Fetching...': '正在获取…',

@@ -83,6 +83,42 @@ test('S48 each model offers its own native levels: default first, off only where
   assert.deepEqual(choices(PREVIEW), ['default'], 'the retired preview has no verified levels');
 });
 
+test('S49 coverage: reviewed model families and exact aliases have image facts and native choices', () => {
+  const groups = [
+    ['gemini', 'gemini', ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools'], ['low', 'medium', 'high']],
+    ['gemini', 'gemini', ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'], ['minimal', 'low', 'medium', 'high']],
+    ['openai', 'responses', ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-nano', 'gpt-5.5', 'gpt-5.4-2026-03-05', 'gpt-5.4-mini-2026-03-17', 'gpt-5.4-nano-2026-03-17', 'gpt-5.5-2026-04-23'], ['none', 'low', 'medium', 'high', 'xhigh']],
+    ['openai', 'responses', ['gpt-5.4-pro', 'gpt-5.5-pro', 'gpt-5.4-pro-2026-03-05', 'gpt-5.5-pro-2026-04-23'], ['medium', 'high', 'xhigh']],
+    ['openai', 'responses', ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-6-sol', 'gpt-6-luna'], ['none', 'low', 'medium', 'high', 'xhigh', 'max']],
+    ['openai', 'responses', ['gpt-6-astra', 'gpt-6.1-sol'], ['low', 'medium', 'high', 'xhigh', 'max']],
+    ['openai', 'responses', ['gpt-5.6-cyber'], []],
+    ['claude', 'messages', ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-fable-5', 'claude-fable-5-1', 'claude-mythos-5', 'claude-mythos-5-1'], ['low', 'medium', 'high', 'xhigh', 'max']],
+    ['claude', 'messages', ['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-5-5', 'claude-opus-4-8', 'claude-opus-4-7'], ['off', 'low', 'medium', 'high', 'xhigh', 'max']],
+    ['claude', 'messages', ['claude-opus-4-6', 'claude-sonnet-4-6'], ['off', 'low', 'medium', 'high', 'max']],
+    ['claude', 'messages', ['claude-opus-4-5', 'claude-opus-4-5-20251101'], ['off', 'low', 'medium', 'high']],
+    ['claude', 'messages', ['claude-sonnet-4-5', 'claude-sonnet-4-5-20250929', 'claude-haiku-4-5', 'claude-haiku-4-5-20251001'], ['off']],
+    ['deepseek', 'chat-completions', ['deepseek-flash', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp'], ['off', 'low', 'high', 'max']],
+  ];
+  for (const [provider, protocol, ids, choices] of groups) for (const id of ids) {
+    const target = official(provider, protocol, id), record = caps.officialCapability(target);
+    assert.equal(record?.images, true, id);
+    assert.ok(record.sources.every(source => source.startsWith('https://')), id);
+    assert.deepEqual(plain(caps.reasoningChoices(target)), ['default', ...choices], id);
+    assert.equal(caps.isOfficialAnswerCandidate(target), !id.startsWith('gpt-5.5-pro'), id);
+    images.assertModelImageSupport(target);
+  }
+  assert.equal(caps.isOfficialAnswerCandidate(V4_PRO), true);
+  assert.equal(caps.officialCapability(V4_PRO).images, false);
+  assert.equal(caps.isOfficialAnswerCandidate(PREVIEW), false, 'saved retired preview retains facts but is not offered for new selections');
+  assert.equal(caps.isOfficialAnswerCandidate(official('openai', 'responses', 'gpt-5.4-cyber')), false);
+  for (const target of [official('openai', 'chat-completions', 'gpt-5.4-pro'), official('openai', 'responses', 'gpt-5.4-mini-2099-01-01'),
+    official('gemini', 'gemini', 'gemini-3-flash-preview'), official('gemini', 'gemini', 'gemini-2.5-pro'),
+    official('openai', 'responses', 'gpt-5.3-codex'), official('claude', 'messages', 'claude-sonnet-4-20250514')]) {
+    assert.equal(caps.isOfficialAnswerCandidate(target), false, target.model);
+    assert.equal(caps.officialCapability(target), undefined, target.model);
+  }
+});
+
 test('S48 a choice sends the complete legal combination; default sends nothing; illegal choices are refused', () => {
   const fields = (target, choice) => plain(caps.reasoningForChoice(target, choice) ?? null);
   assert.deepEqual(fields(SONNET_46, 'high'), { thinking: 'adaptive', effort: 'high' });
@@ -157,6 +193,13 @@ test('S48 mock wire fields are exact per model and absent for the provider defau
     [LITE, 'minimal', { thinkingConfig: { thinkingLevel: 'MINIMAL' } }],
     [GPT54, 'xhigh', { reasoning: { effort: 'xhigh' } }],
     [LUNA, 'none', { reasoning_effort: 'none' }],
+    [official('gemini', 'gemini', 'gemini-3.8-flash'), 'medium', { thinkingConfig: { thinkingLevel: 'MEDIUM' } }],
+    [official('openai', 'responses', 'gpt-5.4-pro-2026-03-05'), 'xhigh', { reasoning: { effort: 'xhigh' } }],
+    [official('openai', 'chat-completions', 'gpt-5.4-mini'), 'none', { reasoning_effort: 'none' }],
+    [official('claude', 'messages', 'claude-opus-4-7'), 'xhigh', { thinking: { type: 'adaptive' }, output_config: { effort: 'xhigh' } }],
+    [official('claude', 'messages', 'claude-opus-4-5-20251101'), 'high', { output_config: { effort: 'high' } }],
+    [official('claude', 'messages', 'claude-sonnet-4-5'), 'off', { thinking: { type: 'disabled' } }],
+    [official('deepseek', 'chat-completions', 'deepseek-v4-flash-vision-exp'), 'low', { reasoning_effort: 'low', thinking: { type: 'enabled' } }],
     ...[SONNET_46, OPUS, FLASH, LITE, GPT54].map(target => [target, 'default', {}]),
   ]) {
     r.select(target); r.helper.setSavedReasoning({ choice });
@@ -181,6 +224,43 @@ test('S48 image refusals happen before any send and the text path still works', 
   }
   r.select(LITE);
   assert.ok((await r.ask([image])).some(body => JSON.stringify(body.contents).includes('inlineData')), 'a listed image model receives the image');
+});
+
+test('S49 non-streaming-only Pro stays identifiable but is not offered or sent on the streaming answer path', async t => {
+  const r = runtime(t);
+  for (const id of ['gpt-5.5-pro', 'gpt-5.5-pro-2026-04-23']) {
+    const target = official('openai', 'responses', id);
+    assert.equal(caps.officialCapability(target).images, true, 'keep the documented capability, not a false image claim');
+    assert.equal(caps.isOfficialAnswerCandidate(target), false);
+    r.select(target);
+    assert.equal(r.helper.getCurrentModelSelection(), `llm-target:openai:responses:${id}`, 'never delete or substitute the saved selection');
+    await assert.rejects(async () => { for await (const _ of r.helper.streamChat('QUESTION')) {} }, /requires non-streaming/);
+    assert.equal(r.bodies.length, 0, 'refuse before a client call');
+  }
+  assert.equal(caps.isOfficialAnswerCandidate(official('openai', 'responses', 'gpt-5.4-pro')), true, 'streaming Pro is still offered');
+});
+
+test('S49 an unsupported saved backup does not block the primary and is refused only when fallback is attempted', async t => {
+  const r = runtime(t), h = r.helper;
+  r.select(GPT54);
+  h.setGenerationPolicy({ ...h.getGenerationPolicy(), backupModel: 'llm-target:openai:responses:gpt-5.5-pro' });
+  const task = h.beginGenerationTask('interview');
+  try { assert.equal(task.primary.target.model, 'gpt-5.4'); assert.equal(task.backup.target.model, 'gpt-5.5-pro'); }
+  finally { task.close(); }
+  h.openaiClient.responses.create = async function* (body) {
+    r.bodies.push(body);
+    yield { type: 'response.output_text.delta', delta: 'PRIMARY ANSWER' };
+    yield { type: 'response.completed', response: { status: 'completed' } };
+  };
+  let answer = '';
+  for await (const part of h.streamChat('QUESTION')) answer += part;
+  assert.equal(answer, 'PRIMARY ANSWER');
+  assert.deepEqual(r.bodies.map(body => body.model), ['gpt-5.4'], 'the primary reaches its client despite the old backup');
+  r.bodies.length = 0;
+  h.openaiClient.responses.create = async body => { r.bodies.push(body); throw Object.assign(new Error('synthetic primary unavailable'), { status: 503 }); };
+  await assert.rejects(async () => { for await (const _ of h.streamChat('QUESTION')) {} }, /requires non-streaming/);
+  assert.deepEqual(r.bodies.map(body => body.model), ['gpt-5.4'], 'fallback is refused before sending to the unsupported model');
+  assert.equal(h.getGenerationPolicy().backupModel, 'llm-target:openai:responses:gpt-5.5-pro', 'stored intent is not silently removed');
 });
 
 test('S48 the snapshot is fixed at task start; backups, explicit targets and gateways never take the primary level', async t => {

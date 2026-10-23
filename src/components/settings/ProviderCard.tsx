@@ -60,6 +60,11 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
         savedRef.current = configuration;
     }, [configuration]);
     useEffect(() => () => { fetchRevision.current++; operation.current++; }, []);
+    useEffect(() => {
+        fetchRevision.current++;
+        setFetchedModels([]);
+        setBusy(current => current === 'fetching' ? null : current);
+    }, [draft.protocol]);
 
     const candidates = providerCandidates(draft);
     const current = candidates.find(candidate => candidate.model === editing) ?? candidates[0];
@@ -122,7 +127,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
             if (revision !== fetchRevision.current) return;
             if (result?.success && result.models) {
                 setFetchedModels(result.models);
-                if (!result.models.length) setFetchError('No models were returned by this provider.');
+                if (!result.models.length) setFetchError('No supported answer models were returned for this provider and protocol.');
             } else setFetchError(result?.error || 'Failed to fetch models');
         } catch { if (revision === fetchRevision.current) setFetchError('Failed to fetch models'); }
         finally { if (revision === fetchRevision.current) setBusy(null); }
@@ -201,6 +206,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                         title={t('Remove {model} from this provider', { model: current.model })}>{t('Remove model')}</button>
                 </div>
                 {capability?.retired && <p role="note" className="text-[11px] text-amber-500">{t(capability.retired)}</p>}
+                {capability?.answerUnavailable && <p role="note" className="text-[11px] text-amber-500">{t(capability.answerUnavailable)}</p>}
                 <p className="text-[10px] text-text-secondary">{t(capability?.images === true ? 'Image input: supported according to the official model record.'
                     : capability?.images === false ? 'Image input: not supported according to the official model record. Image questions are refused before sending; text works.'
                         : 'Image input has not been verified for this model yet. Image questions are refused before sending; text works.')}</p>

@@ -252,6 +252,9 @@ export class LLMHelper {
         }
         const { client, custom } = snapshot;
         const apiTarget = snapshot.target;
+        // Check the attempted target, not every configured backup before a valid primary can run.
+        const unavailable = officialCapability(apiTarget)?.answerUnavailable;
+        if (unavailable) throw new Error(unavailable);
         if (imageCount) assertModelImageSupport(apiTarget);
         if (!client) throw new Error(self.clientError(apiTarget));
         assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy());
