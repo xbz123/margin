@@ -1,8 +1,11 @@
 import { GoogleGenAI } from "@google/genai"
 import Groq from "groq-sdk"
 import OpenAI from "openai"
-import { LLM_PRESETS, modelTargetId, gatewayTarget, type LlmProvider, type ProviderConfiguration, type ModelTarget, type GatewayConfiguration } from '../src/types/llmTarget';
+import { LLM_PRESETS, candidateConfiguration, modelTargetId, gatewayTarget, type LlmProvider, type ProviderConfiguration, type ModelTarget, type GatewayConfiguration } from '../src/types/llmTarget';
 import { blockedEnvironmentOverride, effectiveProviderConfiguration, followSelection, resolveModelTarget, validateGatewayConfiguration, validateProviderConfiguration } from './llm/llmTarget';
+import { NOT_AVAILABLE_NOTICE, capabilityTarget, controlState, effectiveReasoning, reasoningApplies, type SavedReasoning } from './llm/answerReasoning';
+import { isReasoningChoice, officialCapability, type ReasoningChoice } from '../src/types/modelCapabilities';
+import type { ReasoningControlState } from '../src/types/answerReasoning';
 import { outboundFetch } from './services/outbound';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
@@ -65,7 +68,11 @@ async function* withRequestDataScopes<T>(store: RequestDataScopes, gen: AsyncGen
 }
 
 // Model constant for Gemini 3 Flash
-const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview"
+const GEMINI_FLASH_MODEL = LLM_PRESETS.gemini.model
+const withReasoning = <T extends ModelTarget>(target: T, reasoning: ModelTarget['reasoning']): T => {
+  const { reasoning: _old, ...rest } = target;
+  return (reasoning ? { ...rest, reasoning } : rest) as T;
+};
 const GEMINI_PRO_MODEL = "gemini-3.1-pro-preview"
 const GROQ_MODEL = "llama-3.3-70b-versatile"
 const CLAUDE_MODEL = "claude-sonnet-4-6"
@@ -162,9 +169,13 @@ export class LLMHelper {
     const configs = this.providerConfigurations ?? LLM_PRESETS;
     const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', personaPrompt: this.personaPrompt ?? '', fastMode: this.groqFastTextMode };
     // A gateway target only ever uses its own client; a missing gateway or key fails, never an official client.
-    const snapshot = (target: ModelTarget): GenerationTargetSnapshot => target.provider === 'gateway'
+    // Reasoning is fixed here for the whole task (S48 C3): the selected primary takes the session or saved
+    // default; an official backup or an explicit target (connection test) takes the provider default.
+    const reasoningSource = this.reasoningSource();
+    const snapshot = (target: ModelTarget, selectedPrimary = false): GenerationTargetSnapshot => target.provider === 'gateway'
       ? { ...context, kind: 'api', target, custom: true, client: this.gatewayClients?.get(target.gatewayId!) ?? null }
-      : { ...context, kind: 'api', target: { ...target, baseUrl: effectiveProviderConfiguration(target as ProviderConfiguration).baseUrl },
+      : { ...context, kind: 'api', target: withReasoning({ ...target, baseUrl: effectiveProviderConfiguration(target as ProviderConfiguration).baseUrl },
+          selectedPrimary ? effectiveReasoning(target, reasoningSource) : undefined),
         custom: effectiveProviderConfiguration(configs[target.provider]).custom,
         client: target.provider === 'gemini' ? this.client : target.provider === 'groq' ? this.groqClient
           : target.provider === 'openai' ? this.openaiClient : target.provider === 'claude' ? this.claudeClient : this.deepseekClient };
@@ -175,7 +186,7 @@ export class LLMHelper {
     };
     if (!primary && this.selectionError) throw new Error(this.selectionError);
     const selected = !primary && this.isCodexCliModel(this.currentModelId ?? '') ? codexSnapshot(this.currentModelId, this.groqFastTextMode)
-      : snapshot(primary ?? this.selectedTarget ?? this.resolve(this.currentModelId ?? GEMINI_FLASH_MODEL));
+      : primary ? snapshot(primary) : snapshot(this.selectedTarget ?? this.resolve(this.currentModelId ?? GEMINI_FLASH_MODEL), true);
     const policy = this.getGenerationPolicy();
     const backup = kind !== 'compatibility' && policy.backupModel ? isCodexSelection(policy.backupModel)
       ? codexSnapshot(policy.backupModel, false, policy.backupImageSupportConfirmedFor, true)
@@ -241,6 +252,9 @@ export class LLMHelper {
         }
         const { client, custom } = snapshot;
         const apiTarget = snapshot.target;
+        // Check the attempted target, not every configured backup before a valid primary can run.
+        const unavailable = officialCapability(apiTarget)?.answerUnavailable;
+        if (unavailable) throw new Error(unavailable);
         if (imageCount) assertModelImageSupport(apiTarget);
         if (!client) throw new Error(self.clientError(apiTarget));
         assertProviderDataScopes(apiTarget.provider, dataScopes, self.getProviderScopePolicy());
@@ -459,6 +473,45 @@ export class LLMHelper {
     }
   }
 
+  /** Saved default reasoning (applied by startup and every save); in-flight tasks keep their snapshot. */
+  private savedReasoning: SavedReasoning = { choice: 'default' };
+  /** Session override: undefined inherits the saved default; 'default' explicitly uses the provider default. */
+  private sessionReasoning: ReasoningChoice | undefined;
+
+  public setSavedReasoning(saved: SavedReasoning): void { this.savedReasoning = saved; }
+  private reasoningSource(): SavedReasoning | ReasoningChoice { return this.sessionReasoning ?? this.savedReasoning ?? { choice: 'default' }; }
+  public clearSessionReasoning(): void { this.sessionReasoning = undefined; }
+
+  /** Sets the session level for `expected`, which must still be the running selection. */
+  public setSessionReasoning(expected: unknown, choice: unknown): void {
+    if (typeof expected !== 'string' || !isReasoningChoice(choice)) throw new Error('Invalid reasoning setting');
+    if (expected !== this.getCurrentModelSelection()) throw new Error('The answer model changed. Choose the reasoning level again.');
+    const target = this.selectedTarget;
+    if (!target || target.provider === 'gateway') throw new Error('This answer model sets reasoning in its own configuration.');
+    if (!reasoningApplies(target, choice)) throw new Error('This reasoning level is not available for the selected model.');
+    this.sessionReasoning = choice;
+  }
+
+  /**
+   * After the running model changed: a session level the new model does not take becomes an explicit
+   * provider default, never a silently mapped level. Returns the notice to show. An inherited saved
+   * default is left inheriting; it is checked against each target where it is used.
+   */
+  public reconcileSessionReasoning(): string | undefined {
+    const target = this.selectedTarget;
+    if (this.sessionReasoning === undefined || !target || target.provider === 'gateway') return undefined;
+    if (reasoningApplies(target, this.sessionReasoning)) return undefined;
+    this.sessionReasoning = 'default';
+    return NOT_AVAILABLE_NOTICE;
+  }
+
+  /** The session control: what the next answer uses for the running selection. */
+  public getSessionReasoningState(): ReasoningControlState & { overridden: boolean } {
+    const selection = this.getCurrentModelSelection();
+    const state = controlState(selection, this.selectedTarget, this.reasoningSource(), !!this.selectionError);
+    return { ...state, overridden: this.sessionReasoning !== undefined };
+  }
+
   /** Keeps an unusable saved selection visible and refuses answers until the user picks another model. */
   public selectUnavailable(modelId: string, reason: string): void {
     if (modelId !== this.getCurrentModelSelection()) this.cancelGenerationTasks('Model selection changed');
@@ -477,19 +530,28 @@ export class LLMHelper {
     });
   }
 
-  /** Tests exactly the saved official provider or gateway configuration; nothing else is tried. */
-  public async testProviderConnection(provider: LlmProvider | { gatewayId: string }): Promise<string> {
+  /** Tests exactly one saved candidate of an official provider (its first by default) or a gateway; nothing else is tried. */
+  public async testProviderConnection(provider: LlmProvider | { gatewayId: string }, model?: string): Promise<string> {
     let target: ModelTarget;
     if (typeof provider === 'object') {
       const gateway = this.gateways?.[provider.gatewayId];
       if (!gateway) throw new Error('This gateway no longer exists.');
       target = gatewayTarget(gateway);
-    } else target = { ...(this.providerConfigurations ?? LLM_PRESETS)[provider] };
+    } else {
+      const config = (this.providerConfigurations ?? LLM_PRESETS)[provider];
+      const candidate = candidateConfiguration(config, model ?? config.model);
+      if (!candidate) throw new Error('This model is not a saved candidate. Save it before testing.');
+      // The test sends the provider default reasoning, never the primary or session level (S48 C3).
+      const { reasoning: _reasoning, imageSupportConfirmedFor: _image, ...rest } = candidate;
+      target = rest;
+    }
     const task = this.beginGenerationTask('compatibility', undefined, target);
     try {
       let text = '';
       // Explicit reasoning is part of the tested target; leave it room to finish visibly.
-      for await (const chunk of this.selectedGeneration('Hello', undefined, undefined, false, 'compatibility', task, undefined, target.reasoning ? 2048 : 64)) text += chunk;
+      // A model that may reason without a reasoning field needs room before visible text.
+      const thinks = target.reasoning || (target.provider !== 'gateway' && officialCapability(capabilityTarget(target))?.reasoning?.reasonsByDefault);
+      for await (const chunk of this.selectedGeneration('Hello', undefined, undefined, false, 'compatibility', task, undefined, thinks ? 2048 : 64)) text += chunk;
       return text;
     } finally { task.close(); }
   }

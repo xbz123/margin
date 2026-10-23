@@ -32,8 +32,9 @@ const request = (extra = {}) => ({ protocol: 'gemini', purpose: 'answer', model:
 const drain = async (events) => { const result = []; for await (const event of events) result.push(event); return result; };
 const helper = (client, policy = {}, extra = {}) => Object.assign(Object.create(LLMHelper.prototype), {
   client, getProviderScopePolicy: () => policy, personaPrompt: '', customNotes: '',
-  selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test', imageSupportConfirmedFor: JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', 'gemini-test']) },
-  currentModelId: 'gemini-test', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
+  // A listed model (S48): image sends need the capability table, not an older manual confirmation.
+  selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite' },
+  currentModelId: 'gemini-3.1-flash-lite', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
   groqFastTextMode: false, rateLimiters: { gemini: { acquire: async () => {} } },
   geminiPromptCache: new GeminiPromptCache(), withTimeout: value => value,
   injectLanguageInstruction: text => text, processResponse: text => text, logScopeFallback: () => {},

@@ -20,6 +20,8 @@ const generationPolicyModule = { exports: {} };
 vm.runInNewContext(compile(read('src/types/generationPolicy.ts')), { module: generationPolicyModule, exports: generationPolicyModule.exports });
 const codexModule = { exports: {} };
 vm.runInNewContext(compile(read('src/types/codexSource.ts')), { module: codexModule, exports: codexModule.exports });
+const capabilityModule = { exports: {} };
+vm.runInNewContext(compile(read('src/types/modelCapabilities.ts')), { module: capabilityModule, exports: capabilityModule.exports, URL });
 const quiet = { log() {}, warn() {}, error() {} };
 const failure = { ok: false, code: 'write_failed', message: 'Synthetic save failure' };
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -41,7 +43,9 @@ test('generation policy persists independent deadlines and rejects invalid or id
     assert.deepEqual(plain(manager.getGenerationPolicy()), policy);
   }
   assert.throws(() => manager.setDefaultModel(backup), /must differ/);
-  assert.throws(() => manager.setProviderConfiguration({ ...targets.openai, model: 'backup' }), /must differ/);
+  // S47: replacing the primary's model is a removal of a used candidate; it is refused rather than followed onto the backup.
+  const replaced = manager.setProviderConfiguration({ ...targets.openai, model: 'backup' });
+  assert.equal(replaced.ok, false); assert.match(replaced.message, /primary, backup or current answer model/);
   assert.equal(manager.getDefaultModel(), primary);
   assert.equal(disk.files.get(disk.filename).toString(), before);
 });
@@ -112,6 +116,8 @@ function storage() {
         if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
         if (id === '../../src/types/codexSource') return codexModule.exports;
         if (id === '../llm/llmTarget') return require('../../../dist-electron/electron/llm/llmTarget.js');
+        if (id === '../../src/types/modelCapabilities') return capabilityModule.exports;
+        if (id === '../llm/answerReasoning') return require('../../../dist-electron/electron/llm/answerReasoning.js');
         return require(id);
       },
     });
@@ -243,7 +249,7 @@ test('R3-1 real save handler refuses origin changes and failed atomic saves befo
   const before = plain(manager.getAllCredentials()), cipher = disk.files.get(disk.filename);
   const apply = () => effects.push('runtime');
   const appState = { getIntelligenceManager: () => ({ resetEngine: apply, initializeLLMs: apply }), sendModelChanged: apply };
-  answerOperations(manager, { configureProvider: apply, setGenerationPolicy: apply, getCurrentModelSelection: () => 'synthetic' }, appState);
+  answerOperations(manager, { configureProvider: apply, setSavedReasoning: apply, setGenerationPolicy: apply, getCurrentModelSelection: () => 'synthetic' }, appState);
   const invoke = handler('set-provider-configuration', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState });
   assert.equal((await invoke({}, { ...targets.openai, baseUrl: 'https://new.invalid/v1', apiKey: 'synthetic-new' })).ok, false, 'an official provider never takes a custom address');
   const config = { ...targets.openai, protocol: 'responses' };
@@ -254,7 +260,7 @@ test('R3-1 real save handler refuses origin changes and failed atomic saves befo
   assert.deepEqual(disk.files.get(disk.filename), cipher);
   disk.setFault(undefined);
   assert.equal((await invoke({}, { ...config, apiKey: 'synthetic-new' })).ok, true);
-  assert.equal(effects.length, 5);
+  assert.equal(effects.length, 6);
   assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-new');
 });
 
@@ -366,14 +372,14 @@ test('all credential setters commit only after persistence and can be read after
     setSonioxApiKey: 'sonioxApiKey',
     setDomesticStt: 'domesticStt',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
-    setGatewayConfiguration: 'gateways',
+    setGatewayConfiguration: 'gateways', setSavedReasoning: 'answerReasoning',
   };
-  assert.equal(names.length, 19);
+  assert.equal(names.length, 20);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', model: 'opaque', apiKey: 'synthetic-old' }] : name === 'setGatewayConfiguration' ? [{ protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
+    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', model: 'opaque', models: [{ model: 'gpt-5.4' }], apiKey: 'synthetic-old' }] : name === 'setGatewayConfiguration' ? [{ protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setSavedReasoning' ? [targetModule.exports.modelTargetId(manager.resolveSelection(manager.getDefaultModel())), 'high'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
     if (name === 'setDomesticStt') args.splice(0, args.length, 'aliyun', { key: 'synthetic-key', workspaceId: 'workspace', appId: '' });
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
@@ -456,7 +462,7 @@ function handler(channel, context) {
     && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'discardRemovedSttKey', context);
   return expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent)
     && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, {
-      persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId,
+      persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId, providerCandidates: targetModule.exports.providerCandidates,
       ANSWER_APPLY_WARNING: expression('electron/ipcHandlers.ts', node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent)
         && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {}),
       ANSWER_PROVIDERS: targetModule.exports.ANSWER_PROVIDERS, sanitizeErrorMessage: message => message,
@@ -472,9 +478,15 @@ test('AG31 complete configuration saves key, endpoint, protocol, model and match
   const applied = [];
   const broadcast = [];
   const appState = { sendModelChanged: value => broadcast.push(value), getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }) };
-  answerOperations(manager, { configureProvider: (...args) => applied.push(args), setGenerationPolicy() {},
+  answerOperations(manager, { configureProvider: (...args) => applied.push(args), setSavedReasoning() {}, setGenerationPolicy() {},
     getCurrentModelSelection: () => 'llm-target:openai:responses:opaque' }, appState);
   const invoke = handler('set-provider-configuration', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState });
+  // S47: dropping the default's model is refused with no storage, runtime or broadcast change.
+  const refused = await invoke({}, value);
+  assert.equal(refused.ok, false); assert.match(refused.message, /is used as the primary, backup or current answer model/);
+  assert.deepEqual(applied, []); assert.deepEqual(broadcast, []);
+  assert.deepEqual(disk.files.get(disk.filename), previous);
+  value.models = [{ model: 'gpt-5.4' }];
   disk.setFault('rename');
   assert.equal((await invoke({}, value)).ok, false);
   assert.deepEqual(applied, []);
@@ -486,11 +498,11 @@ test('AG31 complete configuration saves key, endpoint, protocol, model and match
   assert.deepEqual(broadcast, ['llm-target:openai:responses:opaque']);
   const restarted = disk.boot();
   const config = restarted.getProviderConfigurations().openai;
-  assert.deepEqual(plain(config), { provider: 'openai', protocol: 'responses', model: 'opaque' });
+  assert.deepEqual(plain(config), { provider: 'openai', protocol: 'responses', model: 'opaque', models: [{ model: 'gpt-5.4' }] });
   assert.equal(restarted.getProviderApiKey('openai'), 'synthetic-new');
-  assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:opaque');
+  assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:gpt-5.4', 'the kept default model moves with the protocol only');
   assert.equal(restarted.setProviderConfiguration({ ...targets.claude, model: 'other-slot' }).ok, true);
-  assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:opaque', 'another slot cannot change the selected default');
+  assert.equal(restarted.getDefaultModel(), 'llm-target:openai:responses:gpt-5.4', 'another slot cannot change the selected default');
   const configs = plain(restarted.getAllCredentials());
   configs.providerConfigurations.openai.provider = 'claude';
   disk.files.set(disk.filename, Buffer.from('cipher:' + JSON.stringify(configs)));
@@ -504,10 +516,11 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   const context = {
     require: () => ({ CredentialsManager: { getInstance: () => manager } }),
     appState: { processingHelper: { getLLMHelper: () => ({ setModel: () => {}, getCurrentModelSelection: () => current,
-      validateGenerationTargets() {}, getCodexCliConfig: () => codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG, getGroqFastTextMode: () => false }) },
+      validateGenerationTargets() {}, getCodexCliConfig: () => codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG, getGroqFastTextMode: () => false,
+      setSavedReasoning() {}, reconcileSessionReasoning: () => undefined }) },
       sendModelChanged: value => events.push(value), modelSelectorWindowHelper: { hideWindow: () => events.push('hide') } },
   };
-  assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: 'llm-target:gemini:gemini:gemini-3.1-flash-lite-preview' });
+  assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: 'llm-target:gemini:gemini:gemini-3.1-flash-lite' });
   assert.equal((await handler('set-model', context)({}, 'gpt-5.4')).success, true);
   assert.deepEqual(events.splice(0), [current, 'hide']);
   assert.equal((await handler('set-default-model', context)({}, 'gpt-5.4')).ok, true);
@@ -555,7 +568,7 @@ test('AG31 startup ignores environment keys: never-saved, saved, removed and unr
       configureProvider(config, key) { configured.push([config.provider, key, config]); }
       configureGateway(config, key) { configured.push(['gateway', key, config]); }
       initModelVersionManager() { return Promise.resolve(); }
-      setModel() {} setGenerationPolicy() {} setSttLanguage() {} setAiResponseLanguage() {}
+      setModel() {} setGenerationPolicy() {} setSavedReasoning() {} setSttLanguage() {} setAiResponseLanguage() {}
     }
     const ProcessingHelper = processingHelperClass(manager, Helper, { env: { ...ENV_KEYS } });
     new ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() {} }) }).loadStoredCredentials();
@@ -669,7 +682,7 @@ test('B answer save entries apply through the shared ProcessingHelper operations
   const disk = storage(), manager = disk.boot(), calls = [];
   const llm = { configureProvider: (config, key) => calls.push(['configureProvider', config.provider, key]),
     configureGateway: (config, key) => calls.push(['configureGateway', config.id, key]), removeGateway: id => calls.push(['removeGateway', id]),
-    setGenerationPolicy: () => calls.push(['setGenerationPolicy']), getCurrentModelSelection: () => 'synthetic-selection' };
+    setGenerationPolicy: () => calls.push(['setGenerationPolicy']), setSavedReasoning: saved => calls.push(['setSavedReasoning', saved]), getCurrentModelSelection: () => 'synthetic-selection' };
   const appState = { getIntelligenceManager: () => ({ resetEngine: () => calls.push(['resetEngine']), initializeLLMs: () => calls.push(['initializeLLMs']) }),
     sendModelChanged: value => calls.push(['sendModelChanged', value]) };
   answerOperations(manager, llm, appState, calls);
@@ -682,13 +695,13 @@ test('B answer save entries apply through the shared ProcessingHelper operations
     return { result, calls: plain(calls) };
   };
   assert.deepEqual((await run('set-provider-configuration', { ...targets.openai, apiKey: 'synthetic-openai' })).calls,
-    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', 'synthetic-openai'], ['setGenerationPolicy'], ...refresh]);
+    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', 'synthetic-openai'], ['setSavedReasoning', { choice: 'default' }], ['setGenerationPolicy'], ...refresh]);
   const created = await run('set-gateway-configuration', GATEWAY_SAVE), id = created.result.gatewayId;
   assert.deepEqual(created.calls, [['applyStoredGateway', id], ['configureGateway', id, 'synthetic-gateway'], ['setGenerationPolicy'], ...refresh]);
   assert.deepEqual((await run('set-provider-preferred-model', 'openai', 'gpt-5.5')).calls,
-    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', 'synthetic-openai'], ['sendModelChanged', 'synthetic-selection']]);
+    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', 'synthetic-openai'], ['setSavedReasoning', { choice: 'default' }], ['sendModelChanged', 'synthetic-selection']]);
   assert.deepEqual((await run('remove-provider-api-key', 'openai')).calls,
-    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', ''], ...refresh]);
+    [['applyStoredProvider', 'openai'], ['configureProvider', 'openai', ''], ['setSavedReasoning', { choice: 'default' }], ...refresh]);
   assert.deepEqual((await run('remove-gateway', id)).calls, [['removeGateway', id], ...refresh]);
   const restarted = disk.boot();
   assert.equal(restarted.getProviderApiKey('openai') || undefined, undefined);
@@ -792,12 +805,13 @@ test('a committed answer save that cannot be applied returns the new warning wit
 
 test('a session model follows each answer save by the selection rules and is never reset to the default', async () => {
   const defaultModel = 'llm-target:claude:messages:claude-sonnet-4-6', session = 'llm-target:openai:chat-completions:gpt-5.4';
-  for (const [change, operate, expected] of [
+  for (const [change, operate, expected, saved = true] of [
     ['another provider', context => handler('set-provider-configuration', context)({}, { ...targets.claude, apiKey: 'synthetic-claude-new' }), session],
     ['the current provider', context => handler('set-provider-configuration', context)({}, { ...targets.openai, protocol: 'responses', apiKey: 'synthetic-openai-new' }),
       'llm-target:openai:responses:gpt-5.4'],
     ['the current provider key removed', context => handler('remove-provider-api-key', context)({}, 'openai'), session],
-    ['the preferred model', context => handler('set-provider-preferred-model', context)({}, 'openai', 'gpt-5.5'), 'llm-target:openai:chat-completions:gpt-5.5'],
+    // S47: replacing the session's model is refused; the session stays on it.
+    ['the preferred model', context => handler('set-provider-preferred-model', context)({}, 'openai', 'gpt-5.5'), session, false],
   ]) {
     const runtime = realAnswerRuntime();
     try {
@@ -813,12 +827,224 @@ test('a session model follows each answer save by the selection rules and is nev
       assert.equal(live.getCurrentModelSelection(), session);
       const selections = [], setModel = live.setModel.bind(live);
       live.setModel = value => { selections.push(value); return setModel(value); };
+      const before = plain(manager.getAllCredentials());
       const result = plain(await operate(context));
-      assert.equal(result.ok, true, change); assert.equal('warning' in result, false, change);
+      assert.equal(result.ok, saved, change); assert.equal('warning' in result, false, change);
+      if (!saved) assert.deepEqual(plain(manager.getAllCredentials()), before, `${change}: nothing stored`);
       assert.equal(live.getCurrentModelSelection(), expected, change);
       assert.equal(selections.includes(defaultModel), false, `${change}: no setModel(default)`);
     } finally { runtime.cleanup(); }
   }
+});
+
+// S47: several saved candidates under one official key.
+const OPENAI_IMAGE = model => JSON.stringify(['openai', 'chat-completions', 'https://api.openai.com/v1', model]);
+// S48: candidates carry no reasoning or image setting of their own; both come from the answer model choice and the capability table.
+const TWO_CANDIDATES = { provider: 'openai', protocol: 'chat-completions', model: 'model-a', models: [{ model: 'model-b' }] };
+const sessionAppState = () => ({ getIntelligenceManager: () => ({ resetEngine() {}, initializeLLMs() {} }), sendModelChanged() {}, modelSelectorWindowHelper: { hideWindow() {} } });
+
+test('S47 a legacy single-model configuration reads unchanged as one candidate; S48 its older settings never reach the resolved target', () => {
+  const disk = storage();
+  const legacy = { provider: 'openai', protocol: 'chat-completions', model: 'legacy-model', reasoning: { effort: 'medium' }, imageSupportConfirmedFor: OPENAI_IMAGE('legacy-model') };
+  disk.files.set(disk.filename, Buffer.from('cipher:' + JSON.stringify({ openaiApiKey: 'synthetic-old', providerConfigurations: { openai: legacy }, defaultModel: 'llm-target:openai:chat-completions:legacy-model' })));
+  const manager = disk.boot();
+  assert.deepEqual(plain(manager.getProviderConfigurations().openai), legacy, 'no candidate list is invented');
+  assert.deepEqual(plain(targetModule.exports.providerCandidates(manager.getProviderConfigurations().openai)),
+    [{ model: 'legacy-model', reasoning: { effort: 'medium' }, imageSupportConfirmedFor: OPENAI_IMAGE('legacy-model') }]);
+  // The older reasoning becomes the pending saved default for this one target (S48 C4); the older image confirmation no longer counts.
+  assert.deepEqual(plain(manager.resolveSelection(manager.getDefaultModel())), { provider: 'openai', protocol: 'chat-completions', model: 'legacy-model' });
+  assert.deepEqual(plain(manager.getSavedReasoning()), { legacy: { effort: 'medium' }, target: 'llm-target:openai:chat-completions:legacy-model' });
+  assert.equal(manager.getProviderApiKey('openai'), 'synthetic-old');
+});
+
+test('S47 two candidates resolve to themselves through save, cold start and the wire; S48 they send no per-model reasoning', async () => {
+  const http = await import('node:http');
+  const os = await import('node:os');
+  const electronId = require.resolve('electron'), cached = require.cache[electronId];
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 's47-candidates-'));
+  const built = require.resolve('../../../dist-electron/electron/LLMHelper.js'), cachedHelper = require.cache[built];
+  delete require.cache[built];
+  // The development loopback hook reads app.isPackaged at request time, so the stub stays until the end.
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => userData, isPackaged: false } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require(built)); }
+  finally { if (cachedHelper) require.cache[built] = cachedHelper; else delete require.cache[built]; }
+  const bodies = [];
+  const server = http.createServer(async (req, res) => {
+    let body = ''; for await (const part of req) body += part;
+    const payload = JSON.parse(body); bodies.push(payload);
+    if (payload.stream) {
+      res.writeHead(200, { 'content-type': 'text/event-stream' });
+      for (const event of [{ choices: [{ delta: { content: 'ANSWER' } }] }, { choices: [{ delta: {}, finish_reason: 'stop' }] }]) res.write(`data: ${JSON.stringify(event)}\n\n`);
+      res.end(); return;
+    }
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ choices: [{ message: { content: 'ANSWER' }, finish_reason: 'stop' }] }));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const previousBase = process.env.MARGIN_DEV_OPENAI_BASE_URL;
+  const helpers = [];
+  try {
+    process.env.MARGIN_DEV_OPENAI_BASE_URL = `http://127.0.0.1:${server.address().port}/v1`;
+    const disk = storage(), manager = disk.boot();
+    const start = store => { const helper = new LLMHelper(); helpers.push(helper); helper.getProviderScopePolicy = () => ({});
+      helper.initModelVersionManager = async () => {};
+      const appState = sessionAppState(); answerOperations(store, helper, appState); appState.processingHelper.loadStoredCredentials(); return { helper, appState }; };
+    const { helper, appState } = start(manager);
+    const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+    assert.equal(plain(await handler('set-provider-configuration', context)({}, { ...TWO_CANDIDATES, apiKey: 'synthetic-openai' })).ok, true);
+    const a = 'llm-target:openai:chat-completions:model-a', b = 'llm-target:openai:chat-completions:model-b';
+    const expected = {
+      [a]: { provider: 'openai', protocol: 'chat-completions', model: 'model-a' },
+      [b]: { provider: 'openai', protocol: 'chat-completions', model: 'model-b' },
+    };
+    const cold = disk.boot();
+    assert.deepEqual(plain(cold.getProviderConfigurations().openai), TWO_CANDIDATES, 'stored exactly as saved');
+    for (const [id, target] of Object.entries(expected)) {
+      assert.deepEqual(plain(manager.resolveSelection(id)), target, `${id} immediately after save`);
+      assert.deepEqual(plain(cold.resolveSelection(id)), target, `${id} after cold start`);
+    }
+    assert.deepEqual(plain(manager.resolveSelection('llm-target:openai:chat-completions:model-c')), { provider: 'openai', protocol: 'chat-completions', model: 'model-c' });
+    const { helper: coldHelper } = start(cold);
+    for (const runtime of [helper, coldHelper]) {
+      for (const [id, target] of Object.entries(expected)) {
+        runtime.setModel(id);
+        assert.deepEqual(plain(runtime.selectedTarget), target);
+        const before = bodies.length;
+        assert.equal(await runtime.chat('QUESTION'), 'ANSWER');
+        assert.equal(bodies.length, before + 1, 'one send');
+        assert.equal(bodies.at(-1).model, target.model, 'wire model is the candidate itself');
+        // Unlisted models (and the development endpoint) only offer the provider default: no reasoning field at all.
+        assert.equal('reasoning_effort' in bodies.at(-1), false); assert.equal('thinking' in bodies.at(-1), false);
+      }
+      const before = bodies.length;
+      assert.equal(await runtime.testProviderConnection('openai', 'model-b'), 'ANSWER');
+      assert.equal(bodies.length, before + 1); assert.equal(bodies.at(-1).model, 'model-b'); assert.equal('reasoning_effort' in bodies.at(-1), false);
+      await assert.rejects(() => runtime.testProviderConnection('openai', 'model-c'), /not a saved candidate/);
+      assert.equal(bodies.length, before + 1, 'an unsaved model is never tested');
+    }
+  } finally {
+    for (const helper of helpers) helper.scrubKeys();
+    if (previousBase === undefined) delete process.env.MARGIN_DEV_OPENAI_BASE_URL; else process.env.MARGIN_DEV_OPENAI_BASE_URL = previousBase;
+    server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
+    if (cached) require.cache[electronId] = cached; else delete require.cache[electronId];
+    fs.rmSync(userData, { recursive: true, force: true });
+  }
+});
+
+test('S47 malformed, unknown-typed or repeated candidates are refused at the manager and IPC with nothing stored', async () => {
+  const disk = storage(), manager = disk.boot();
+  assert.equal(manager.setProviderConfiguration({ ...TWO_CANDIDATES, apiKey: 'synthetic-openai' }).ok, true);
+  const stored = disk.files.get(disk.filename), memory = plain(manager.getAllCredentials());
+  let applied = 0;
+  const appState = { processingHelper: { getLLMHelper: () => ({ getCurrentModelSelection: () => 'synthetic', setGenerationPolicy() {} }), applyStoredProvider: () => { applied++; }, refreshAnswerRuntime() {} } };
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+  for (const models of ['model-b', {}, [null], [['model-b']], [{}], [{ model: '' }], [{ model: 'bad\nid' }], [{ model: 7 }], [{ model: 'model-a' }],
+    [{ model: 'model-b' }, { model: 'model-b' }], [{ model: 'model-b', reasoning: { effort: 'turbo' } }], [{ model: 'model-b', reasoning: { budget: 1 } }],
+    [{ model: 'model-b', imageSupportConfirmedFor: true }]]) {
+    assert.throws(() => manager.setProviderConfiguration({ ...TWO_CANDIDATES, models }), undefined, JSON.stringify(models));
+    const result = plain(await handler('set-provider-configuration', context)({}, { ...TWO_CANDIDATES, models }));
+    assert.equal(result.ok, false, JSON.stringify(models));
+    assert.deepEqual(disk.files.get(disk.filename), stored); assert.deepEqual(plain(manager.getAllCredentials()), memory);
+  }
+  assert.equal(applied, 0, 'nothing reached the runtime');
+  // An image confirmation for another target is not kept for this candidate (same rule as the first model).
+  assert.equal(manager.setProviderConfiguration({ ...TWO_CANDIDATES, models: [{ model: 'model-b', imageSupportConfirmedFor: OPENAI_IMAGE('model-a') }] }).ok, true);
+  assert.deepEqual(plain(manager.getProviderConfigurations().openai.models), [{ model: 'model-b' }]);
+});
+
+test('S47 adding candidates never changes the primary, backup or session model; a used candidate is not removed until switched', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage(), manager = disk.boot();
+    const id = model => `llm-target:openai:chat-completions:${model}`;
+    const three = { ...TWO_CANDIDATES, models: [...TWO_CANDIDATES.models, { model: 'model-c' }] };
+    assert.equal(manager.setProviderConfiguration({ ...three, apiKey: 'synthetic-openai' }).ok, true);
+    assert.equal(manager.setDefaultModel(id('model-a')).ok, true);
+    assert.equal(manager.setGenerationPolicy({ ...manager.getGenerationPolicy(), backupModel: id('model-b') }).ok, true);
+    const appState = sessionAppState();
+    const live = startAnswerRuntime(manager, runtime.LLMHelper, appState);
+    const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+    const save = handler('set-provider-configuration', context);
+    assert.equal((await handler('set-model', context)({}, id('model-c'))).success, true);
+    const selections = [], setModel = live.setModel.bind(live);
+    live.setModel = value => { selections.push(value); return setModel(value); };
+    const state = () => ({ primary: manager.getDefaultModel(), backup: manager.getGenerationPolicy().backupModel, session: live.getCurrentModelSelection(),
+      runtimeBackup: live.getGenerationPolicy().backupModel });
+    const unchanged = { primary: id('model-a'), backup: id('model-b'), session: id('model-c'), runtimeBackup: id('model-b') };
+    assert.deepEqual(state(), unchanged);
+
+    const four = { ...three, models: [...three.models, { model: 'model-d' }] };
+    assert.equal(plain(await save({}, four)).ok, true);
+    assert.deepEqual(state(), unchanged, 'adding a candidate changes no selection');
+    assert.deepEqual(selections, [], 'no setModel at all');
+    assert.equal(manager.getProviderConfigurations().openai.models.length, 3);
+
+    for (const [used, list] of [['model-a', [{ model: 'model-b' }, { model: 'model-c' }, { model: 'model-d' }]],
+      ['model-b', [{ model: 'model-a' }, { model: 'model-c' }, { model: 'model-d' }]], ['model-c', [{ model: 'model-a' }, { model: 'model-b' }, { model: 'model-d' }]]]) {
+      const stored = disk.files.get(disk.filename), running = runtimeState(live);
+      const result = plain(await save({}, targetModule.exports.withCandidates(four, list)));
+      assert.equal(result.ok, false, used); assert.match(result.message, /removed from this provider is used as the primary, backup or current answer model/);
+      assert.deepEqual(disk.files.get(disk.filename), stored, `${used}: storage unchanged`);
+      assert.deepEqual(runtimeState(live), running, `${used}: runtime unchanged`);
+      assert.deepEqual(state(), unchanged);
+    }
+    // The old single-model replacement entry is guarded the same way.
+    assert.equal(plain(await handler('set-provider-preferred-model', context)({}, 'openai', 'model-z')).ok, false);
+    assert.deepEqual(state(), unchanged);
+
+    // After switching the session elsewhere the candidate can be removed; nothing else moves.
+    assert.equal((await handler('set-model', context)({}, id('model-d'))).success, true);
+    assert.equal(plain(await save({}, targetModule.exports.withCandidates(four, providerCandidatesOf(four).filter(item => item.model !== 'model-c')))).ok, true);
+    assert.deepEqual(state(), { ...unchanged, session: id('model-d') });
+    assert.deepEqual(plain(disk.boot().getProviderConfigurations().openai.models.map(item => item.model)), ['model-b', 'model-d']);
+
+    // A failed write changes neither storage nor runtime.
+    const stored = disk.files.get(disk.filename), running = runtimeState(live);
+    disk.setFault('rename');
+    assert.equal(plain(await save({}, { ...four, models: [...four.models.filter(item => item.model !== 'model-c'), { model: 'model-e' }] })).ok, false);
+    disk.setFault(undefined);
+    assert.deepEqual(disk.files.get(disk.filename), stored); assert.deepEqual(runtimeState(live), running);
+
+    // Removing the key keeps every candidate configuration and touches no other provider.
+    assert.equal(plain(await handler('remove-provider-api-key', context)({}, 'openai')).ok, true);
+    assert.deepEqual(plain(disk.boot().getProviderConfigurations().openai.models.map(item => item.model)), ['model-b', 'model-d']);
+    assert.equal(live.openaiClient, null);
+    assert.equal(selections.includes(manager.getDefaultModel()), false, 'never reset to the default');
+  } finally { runtime.cleanup(); }
+});
+
+const providerCandidatesOf = config => targetModule.exports.providerCandidates(config);
+
+test('S47 answer model options list every saved candidate once, keep provider identity and hide a provider without a usable key', () => {
+  const module = { exports: {} };
+  vm.runInNewContext(compile(read('src/utils/answerModelOptions.ts')), { module, exports: module.exports, URL, require: id => id === '../types/llmTarget' ? targetModule.exports : require(id) });
+  const { answerModelOptions } = module.exports;
+  const configurations = { ...targets, openai: { ...TWO_CANDIDATES, models: [...TWO_CANDIDATES.models, { model: 'shared' }, { model: 'shared' }] },
+    deepseek: { provider: 'deepseek', protocol: 'chat-completions', model: 'shared' } };
+  const ids = sources => plain(answerModelOptions({ providerConfigurations: configurations, gateways: [], ...sources }).map(option => option.id));
+  assert.deepEqual(ids({ hasOpenaiKey: true, hasDeepseekKey: true }), ['llm-target:openai:chat-completions:model-a', 'llm-target:openai:chat-completions:model-b',
+    'llm-target:openai:chat-completions:shared', 'llm-target:deepseek:chat-completions:shared']);
+  assert.deepEqual(ids({ hasOpenaiKey: false, hasDeepseekKey: true }), ['llm-target:deepseek:chat-completions:shared'], 'no key hides every candidate');
+  assert.deepEqual(ids({ hasOpenaiKey: true, providerAddressOverrides: { openai: 'OPENAI_BASE_URL' } }), [], 'a paused provider offers none');
+  assert.deepEqual(ids({ hasGroqKey: true }), [], 'Groq is never an answer option');
+});
+
+test('S47 Save and test sends one request to exactly the chosen saved candidate, never another or an unsaved one', async () => {
+  const disk = storage(), manager = disk.boot();
+  assert.equal(manager.setProviderConfiguration({ ...TWO_CANDIDATES, apiKey: 'synthetic-openai' }).ok, true);
+  const calls = [];
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }),
+    appState: { processingHelper: { getLLMHelper: () => ({ testProviderConnection: async (provider, model) => { calls.push([provider, model]); return 'ANSWER'; } }) } } };
+  const test = handler('test-llm-connection', context);
+  assert.deepEqual(plain(await test({}, 'openai', undefined, TWO_CANDIDATES, 'model-b')), { success: true });
+  assert.deepEqual(plain(await test({}, 'openai', undefined, TWO_CANDIDATES)), { success: true });
+  for (const [expected, model, error] of [[TWO_CANDIDATES, 'model-c', /candidate/], [TWO_CANDIDATES, 7, /candidate/],
+    [{ ...TWO_CANDIDATES, models: [{ model: 'model-b' }, { model: 'model-z' }] }, 'model-b', /changed/]]) {
+    const result = plain(await test({}, 'openai', undefined, expected, model));
+    assert.equal(result.success, false); assert.match(result.error, error);
+  }
+  assert.deepEqual(calls, [['openai', 'model-b'], ['openai', undefined]], 'exactly one test each, only for saved candidates');
 });
 
 test('AG24: all active STT key removals discard only after a successful save', async () => {
@@ -1155,7 +1381,7 @@ test('AG-41a: CredentialsManager.getSttProvider() returns none for all retired p
   }
 });
 
-test('S44 per-target reasoning saves through the real handler, survives restart, reaches the wire and is never silently stripped', async () => {
+test('S44 gateway reasoning saves through the real handler, survives restart, reaches the wire and is never silently stripped; S48 official targets take none per model', async () => {
   const http = await import('node:http');
   const os = await import('node:os');
   const electronId = require.resolve('electron'), cached = require.cache[electronId];
@@ -1205,8 +1431,10 @@ test('S44 per-target reasoning saves through the real handler, survives restart,
       assert.equal((await invoke({}, { ...gateway, reasoning })).ok, false);
       assert.deepEqual(disk.files.get(disk.filename), stored);
     }
-    // Known official target: only the documented values for this exact model.
-    assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', reasoning: { effort: 'minimal' }, apiKey: 'synthetic-only' }), /not available/);
+    // Official targets: reasoning is chosen with the answer model (S48), never saved with the provider configuration.
+    for (const reasoning of [{ effort: 'minimal' }, { effort: 'high' }]) {
+      assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', reasoning, apiKey: 'synthetic-only' }), /chosen with the answer model/);
+    }
     assert.throws(() => manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', contextWindowTokens: 1, apiKey: 'synthetic-only' }), /gateway/);
     assert.deepEqual(disk.files.get(disk.filename), stored);
     assert.equal(await helper.chat('AFTER REFUSAL'), 'ANSWER');
@@ -1259,4 +1487,201 @@ test('S45 gateway save and removal handlers apply only after a committed write a
   assert.deepEqual(effects.at(-1), ['remove', created.gatewayId]);
   assert.equal(effects.some(([kind]) => kind === 'official'), false);
   assert.equal(disk.boot().getProviderApiKey('openai'), 'synthetic-old');
+});
+
+// S48: one saved default reasoning beside the primary model, one session override in the running helper.
+const SONNET = 'llm-target:claude:messages:claude-sonnet-4-6', OPUS = 'llm-target:claude:messages:claude-opus-5-5', GPT = 'llm-target:openai:responses:gpt-5.4';
+const NOT_AVAILABLE = 'The selected reasoning level is not available for this model, so the provider default is used.';
+const reasoningContext = (manager, appState) => {
+  appState.broadcasts = 0; appState.broadcastAnswerReasoning = () => { appState.broadcasts++; };
+  appState.endSessionReasoning = () => { appState.processingHelper.getLLMHelper().clearSessionReasoning(); appState.broadcastAnswerReasoning(); };
+  return { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };
+};
+const primaryReasoning = helper => { const task = helper.beginGenerationTask('interview'); try { return plain(task.primary.target.reasoning ?? null); } finally { task.close(); } };
+const claudeAndOpenai = manager => {
+  assert.equal(manager.setProviderConfiguration({ provider: 'claude', protocol: 'messages', model: 'claude-sonnet-4-6', models: [{ model: 'claude-opus-5-5' }], apiKey: 'synthetic-claude' }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4', apiKey: 'synthetic-openai' }).ok, true);
+};
+
+test('S48 default reasoning saves through the real handler, reaches the running helper and a cold start; stale, illegal and failed writes change nothing', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage(), manager = disk.boot();
+    claudeAndOpenai(manager); assert.equal(manager.setDefaultModel(SONNET).ok, true);
+    const appState = sessionAppState(), live = startAnswerRuntime(manager, runtime.LLMHelper, appState), context = reasoningContext(manager, appState);
+    const save = handler('set-default-reasoning', context), session = handler('set-session-reasoning', context);
+    assert.equal(primaryReasoning(live), null, 'no saved choice: provider default');
+    // A session override set first is not overwritten by saving the default.
+    assert.deepEqual(plain(await session({}, SONNET, 'max')), { ok: true });
+    const storedBeforeSession = disk.files.get(disk.filename);
+    assert.deepEqual(plain(await save({}, SONNET, 'high')), { ok: true });
+    assert.notDeepEqual(disk.files.get(disk.filename), storedBeforeSession);
+    assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'high' });
+    assert.equal(live.getCurrentModelSelection(), SONNET, 'saving the level does not switch the model');
+    assert.deepEqual(primaryReasoning(live), { thinking: 'adaptive', effort: 'max' }, 'the session override still wins');
+    assert.equal(live.getSessionReasoningState().overridden, true);
+    live.clearSessionReasoning();
+    assert.deepEqual(primaryReasoning(live), { thinking: 'adaptive', effort: 'high' });
+    const cold = startAnswerRuntime(disk.boot(), runtime.LLMHelper, sessionAppState());
+    assert.deepEqual(primaryReasoning(cold), { thinking: 'adaptive', effort: 'high' }, 'cold start equals the running service');
+    assert.equal(cold.getSessionReasoningState().overridden, false, 'a restart starts without the session override');
+
+    const stored = disk.files.get(disk.filename), before = appState.broadcasts;
+    for (const [expected, value, message] of [[GPT, 'low', /primary model changed/], [SONNET, 'xhigh', /could not be saved/], [SONNET, 'turbo', /could not be saved/], [7, 'low', /could not be saved/]]) {
+      const result = plain(await save({}, expected, value));
+      assert.equal(result.ok, false, `${expected} ${value}`); assert.match(result.message, message);
+      assert.deepEqual(disk.files.get(disk.filename), stored); assert.deepEqual(primaryReasoning(live), { thinking: 'adaptive', effort: 'high' });
+    }
+    disk.setFault('rename');
+    assert.equal(plain(await save({}, SONNET, 'low')).ok, false);
+    disk.setFault(undefined);
+    assert.deepEqual(disk.files.get(disk.filename), stored); assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'high' });
+    assert.deepEqual(primaryReasoning(live), { thinking: 'adaptive', effort: 'high' }, 'a failed write leaves the runtime alone');
+    assert.equal(appState.broadcasts, before, 'nothing is broadcast for a refused write');
+    // Saved but not applied: the saved value and a warning, never a rollback claim.
+    const apply = live.setSavedReasoning; live.setSavedReasoning = () => { throw Error('synthetic apply failure'); };
+    assert.deepEqual(plain(await save({}, SONNET, 'off')), { ok: true, warning: ANSWER_APPLY_WARNING });
+    live.setSavedReasoning = apply;
+    assert.deepEqual(plain(disk.boot().getSavedReasoning()), { choice: 'off' });
+  } finally { runtime.cleanup(); }
+});
+
+test('S48 the session reasoning IPC validates the running target and never writes storage', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage(), manager = disk.boot();
+    claudeAndOpenai(manager); assert.equal(manager.setDefaultModel(SONNET).ok, true);
+    const appState = sessionAppState(), live = startAnswerRuntime(manager, runtime.LLMHelper, appState), context = reasoningContext(manager, appState);
+    const session = handler('set-session-reasoning', context), stored = disk.files.get(disk.filename);
+    for (const [expected, value, message] of [[OPUS, 'low', /changed/], [SONNET, 'xhigh', /not available/], [SONNET, 'turbo', /Invalid/], [undefined, 'low', /Invalid/]]) {
+      const result = plain(await session({}, expected, value));
+      assert.equal(result.ok, false); assert.match(result.message, message);
+    }
+    assert.equal(appState.broadcasts, 0); assert.equal(live.getSessionReasoningState().overridden, false);
+    assert.deepEqual(plain(await session({}, SONNET, 'default')), { ok: true });
+    assert.equal(appState.broadcasts, 1);
+    assert.deepEqual(plain(live.getSessionReasoningState()).value, 'default'); assert.equal(live.getSessionReasoningState().overridden, true);
+    assert.deepEqual(disk.files.get(disk.filename), stored, 'the session override is never stored');
+  } finally { runtime.cleanup(); }
+});
+
+test('S48 changing the primary keeps a level the new model takes, otherwise saves the provider default with a notice in the same write', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage(), manager = disk.boot();
+    claudeAndOpenai(manager); assert.equal(manager.setDefaultModel(SONNET).ok, true);
+    const appState = sessionAppState(), live = startAnswerRuntime(manager, runtime.LLMHelper, appState), context = reasoningContext(manager, appState);
+    const save = handler('set-default-reasoning', context), primary = handler('set-default-model', context);
+    assert.equal(plain(await save({}, SONNET, 'high')).ok, true);
+    assert.deepEqual(plain(await primary({}, GPT)), { ok: true }, 'gpt-5.4 takes high');
+    assert.deepEqual(plain(disk.boot().getSavedReasoning()), { choice: 'high' }); assert.deepEqual(primaryReasoning(live), { effort: 'high' });
+    assert.equal(plain(await save({}, GPT, 'xhigh')).ok, true);
+    const result = plain(await primary({}, SONNET));
+    assert.deepEqual(result, { ok: true, warning: NOT_AVAILABLE }, 'Sonnet 4.6 has no xhigh');
+    const cold = disk.boot();
+    assert.equal(cold.getDefaultModel(), SONNET); assert.deepEqual(plain(cold.getSavedReasoning()), { choice: 'default' });
+    assert.equal(primaryReasoning(live), null, 'nothing is silently mapped to a nearby level');
+    // A failed write keeps both the primary and its level.
+    const stored = disk.files.get(disk.filename);
+    disk.setFault('rename');
+    assert.equal(plain(await primary({}, OPUS)).ok, false);
+    disk.setFault(undefined);
+    assert.deepEqual(disk.files.get(disk.filename), stored); assert.equal(live.getCurrentModelSelection(), SONNET);
+    // A gateway or Codex primary sets reasoning in its own configuration.
+    const gateway = newGateway(manager); assert.equal(gateway.ok, true);
+    assert.equal(manager.setDefaultModel(`llm-gateway:${gateway.gatewayId}:chat-completions:primary`).ok, true);
+    assert.match(plain(await save({}, `llm-gateway:${gateway.gatewayId}:chat-completions:primary`, 'high')).message, /own configuration/);
+  } finally { runtime.cleanup(); }
+});
+
+test('S48 an older configuration: the saved primary model\'s own setting is the initial value, a lossy one stays pending, and a saved choice replaces it', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const disk = storage();
+    // Older S47 shape: per-candidate reasoning, no shared choice yet. The first candidate and the session model are not the source.
+    const claude = { provider: 'claude', protocol: 'messages', model: 'claude-sonnet-4-6', reasoning: { thinking: 'adaptive', effort: 'low' }, models: [{ model: 'claude-opus-5-5', reasoning: { effort: 'max' } }] };
+    disk.files.set(disk.filename, Buffer.from('cipher:' + JSON.stringify({ claudeApiKey: 'synthetic-claude', providerConfigurations: { claude }, defaultModel: OPUS })));
+    let manager = disk.boot();
+    assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'max' });
+    const appState = sessionAppState(), live = startAnswerRuntime(manager, runtime.LLMHelper, appState), context = reasoningContext(manager, appState);
+    assert.deepEqual(primaryReasoning(live), { effort: 'max' });
+    assert.equal((await handler('set-model', context)({}, SONNET)).success, true);
+    assert.deepEqual(primaryReasoning(live), { thinking: 'adaptive', effort: 'max' }, 'the shared choice, never this candidate\'s hidden low');
+    assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'max' }, 'switching the session model changes nothing saved');
+    // Saving the configuration unchanged (the older fields echoed back) is allowed; a new per-model value is not.
+    assert.equal(manager.setProviderConfiguration({ ...claude }).ok, true);
+    assert.throws(() => manager.setProviderConfiguration({ ...claude, reasoning: { thinking: 'adaptive', effort: 'high' } }), /chosen with the answer model/);
+    assert.equal(plain(await handler('set-default-reasoning', context)({}, OPUS, 'high')).ok, true);
+    manager = disk.boot();
+    assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'high' });
+    assert.deepEqual(plain(manager.getProviderConfigurations().claude), claude, 'older fields are kept, not migrated or cleared');
+
+    // Lossy: effort without adaptive thinking on Sonnet 4.6 is no choice; it stays pending for that target only.
+    const lossy = storage();
+    lossy.files.set(lossy.filename, Buffer.from('cipher:' + JSON.stringify({ claudeApiKey: 'synthetic-claude',
+      providerConfigurations: { claude: { ...claude, reasoning: { effort: 'high' } } }, defaultModel: SONNET })));
+    const pending = lossy.boot();
+    assert.deepEqual(plain(pending.getSavedReasoning()), { legacy: { effort: 'high' }, target: SONNET });
+    const pendingLive = startAnswerRuntime(pending, runtime.LLMHelper, sessionAppState());
+    assert.deepEqual(primaryReasoning(pendingLive), { effort: 'high' }, 'original behaviour until the user chooses');
+    assert.deepEqual(plain(pending.setDefaultModel(OPUS)), { ok: true, warning: NOT_AVAILABLE });
+    assert.deepEqual(plain(lossy.boot().getSavedReasoning()), { choice: 'default' });
+  } finally { runtime.cleanup(); }
+});
+
+test('S48 the session override ends only when the unsaved meeting is saved or discarded', async () => {
+  for (const channel of ['retry-unsaved-meeting', 'discard-unsaved-meeting']) for (const ok of [true, false]) {
+    let ends = 0;
+    const result = ok ? { ok: true } : { ok: false, code: 'write_failed', message: 'synthetic' };
+    const run = handler(channel, { appState: { endSessionReasoning: () => { ends++; },
+      getIntelligenceManager: () => ({ retryUnsavedMeeting: () => result, discardUnsavedMeeting: () => result }) } });
+    assert.deepEqual(plain(await run({}, 'meeting-1')), result);
+    assert.equal(ends, ok ? 1 : 0, `${channel} ${ok}`);
+  }
+});
+
+// S48 P2 (independent review): a pending older setting is re-derived from storage after every official save, as a cold start does.
+test('S48 P2 a pending legacy setting follows a provider protocol save exactly as a cold start; session override, in-flight task and failed saves are kept', async () => {
+  const runtime = realAnswerRuntime();
+  try {
+    const CHAT = 'llm-target:openai:chat-completions:legacy-unlisted', RESPONSES = 'llm-target:openai:responses:legacy-unlisted';
+    const config = { provider: 'openai', protocol: 'chat-completions', model: 'legacy-unlisted', reasoning: { effort: 'high' } };
+    const seeded = () => { const disk = storage(); disk.files.set(disk.filename, Buffer.from('cipher:' + JSON.stringify({ openaiApiKey: 'synthetic-only',
+      providerConfigurations: { openai: config }, defaultModel: CHAT }))); return disk; };
+    const control = helper => { const { target, value, pendingLegacy, overridden } = plain(helper.getSessionReasoningState()); return { target, value, pendingLegacy, overridden }; };
+
+    // Save → immediate runtime equals a cold start from the same file.
+    let disk = seeded(), manager = disk.boot(), appState = sessionAppState();
+    let live = startAnswerRuntime(manager, runtime.LLMHelper, appState), context = reasoningContext(manager, appState);
+    assert.deepEqual(primaryReasoning(live), { effort: 'high' });
+    const inFlight = live.beginGenerationTask('interview');
+    assert.deepEqual(plain(await handler('set-provider-configuration', context)({}, { ...config, protocol: 'responses' })), { ok: true });
+    assert.deepEqual(plain(manager.getSavedReasoning()), { legacy: { effort: 'high' }, target: RESPONSES });
+    const cold = startAnswerRuntime(disk.boot(), runtime.LLMHelper, sessionAppState());
+    assert.equal(live.getCurrentModelSelection(), RESPONSES);
+    assert.deepEqual(primaryReasoning(live), primaryReasoning(cold), 'saved runtime and cold start send the same reasoning');
+    assert.deepEqual(primaryReasoning(live), { effort: 'high' });
+    assert.deepEqual(control(live), control(cold));
+    assert.deepEqual(control(live), { target: RESPONSES, value: 'legacy', pendingLegacy: 'effort high', overridden: false });
+    try { assert.deepEqual(plain(inFlight.primary.target.reasoning), { effort: 'high' }); assert.equal(inFlight.primary.target.protocol, 'chat-completions', 'the in-flight task keeps its snapshot'); }
+    finally { inFlight.close(); }
+
+    // An explicit session override survives the save.
+    disk = seeded(); manager = disk.boot(); appState = sessionAppState();
+    live = startAnswerRuntime(manager, runtime.LLMHelper, appState); context = reasoningContext(manager, appState);
+    live.setSessionReasoning(CHAT, 'default');
+    assert.equal(plain(await handler('set-provider-configuration', context)({}, { ...config, protocol: 'responses' })).ok, true);
+    assert.equal(primaryReasoning(live), null); assert.equal(control(live).overridden, true, 'the session choice is not replaced by the saved setting');
+
+    // A failed save changes neither storage nor the running reasoning.
+    disk = seeded(); manager = disk.boot(); appState = sessionAppState();
+    live = startAnswerRuntime(manager, runtime.LLMHelper, appState); context = reasoningContext(manager, appState);
+    const stored = disk.files.get(disk.filename), before = control(live);
+    let applied = 0; const apply = live.setSavedReasoning.bind(live); live.setSavedReasoning = saved => { applied++; return apply(saved); };
+    disk.setFault('rename');
+    assert.equal(plain(await handler('set-provider-configuration', context)({}, { ...config, protocol: 'responses' })).ok, false);
+    disk.setFault(undefined);
+    assert.deepEqual(disk.files.get(disk.filename), stored); assert.equal(applied, 0);
+    assert.equal(live.getCurrentModelSelection(), CHAT); assert.deepEqual(control(live), before); assert.deepEqual(primaryReasoning(live), { effort: 'high' });
+  } finally { runtime.cleanup(); }
 });

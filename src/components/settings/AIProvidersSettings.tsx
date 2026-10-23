@@ -5,11 +5,14 @@ import { SiAnthropic, SiGooglegemini, SiOpenai } from 'react-icons/si';
 import { CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, prettifyModelId } from '../../utils/modelUtils';
 import { PROVIDER_NAMES, answerModelLabel, answerModelOptions } from '../../utils/answerModelOptions';
 import { ProviderCard } from './ProviderCard';
+import { ReasoningSelect } from '../ReasoningSelect';
+import type { AnswerReasoningState, ReasoningChoice } from '../../types/answerReasoning';
 import { GatewayPanel } from './GatewayPanel';
 import { useI18n } from '../../i18n';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { DEFAULT_GENERATION_POLICY, type GenerationPolicy } from '../../types/generationPolicy';
-import { imageSupportTarget, knownModelImageSupport } from '../../types/modelImageSupport';
+import { imageSupportTarget } from '../../types/modelImageSupport';
+import { officialCapability } from '../../types/modelCapabilities';
 import { CODEX_RISK_VERSION, DEFAULT_CODEX_SOURCE_CONFIG, codexImageTarget, codexSourceAvailable, type CodexSourceConfig, type CodexSourceUpdate } from '../../types/codexSource';
 
 const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
@@ -145,6 +148,8 @@ export const AIProvidersSettings: React.FC = () => {
     // --- Default Model ---
     const [defaultModel, setDefaultModel] = useState<string>('');
     const [defaultUnavailable, setDefaultUnavailable] = useState('');
+    const [answerReasoning, setAnswerReasoning] = useState<AnswerReasoningState | undefined>();
+    const refreshAnswerReasoning = async () => { const state = await window.electronAPI?.getAnswerReasoning?.(); if (state) setAnswerReasoning(state); };
     const [fastResponseMode, setFastResponseMode] = useState(false);
     const [credentialsLoaded, setCredentialsLoaded] = useState(false);
     // Fast mode now only switches the Codex login source to its configured fast model.
@@ -222,6 +227,12 @@ export const AIProvidersSettings: React.FC = () => {
 
     useEffect(() => {
         window.electronAPI?.getProviderDataScopes?.().then(setProviderDataScopes).catch(() => { });
+    }, []);
+
+    // The main process owns the saved and session reasoning; this view only shows and requests changes.
+    useEffect(() => {
+        refreshAnswerReasoning().catch(() => { });
+        return window.electronAPI?.onAnswerReasoningChanged?.(setAnswerReasoning);
     }, []);
 
     useEffect(() => {
@@ -324,9 +335,21 @@ export const AIProvidersSettings: React.FC = () => {
             setDefaultModel(model);
             setDefaultUnavailable('');
             setCredentialNotice(result.warning || '');
+            await refreshAnswerReasoning().catch(() => { });
         } catch {
             setCredentialNotice('The default model could not be saved.');
         }
+    };
+
+    const handleDefaultReasoningChange = async (value: ReasoningChoice) => {
+        const target = answerReasoning?.saved.target;
+        if (!target) return;
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI.setDefaultReasoning(target, value);
+            setCredentialNotice(result.ok ? result.warning || '' : result.message);
+        } catch { setCredentialNotice('The reasoning level could not be saved.'); }
+        await refreshAnswerReasoning().catch(() => { });
     };
 
     const cloudModelOptions: ModelOption[] = answerModelOptions({ providerConfigurations, gateways, providerAddressOverrides: addressOverrides,
@@ -347,10 +370,8 @@ export const AIProvidersSettings: React.FC = () => {
         if (backup.startsWith('codex-cli')) return { binding: codexImageTarget(backup.startsWith('codex-cli:') ? backup.slice(10) : codexCliConfig.model), codex: true };
         const parsed = parseModelSelection(backup);
         try {
-            if (parsed?.kind === 'official') {
-                const config = { ...providerConfigurations[parsed.provider], model: parsed.model };
-                return knownModelImageSupport(config) !== undefined ? undefined : { binding: imageSupportTarget(config), codex: false };
-            }
+            // Official backups follow the capability record; there is no manual confirmation for them.
+            if (parsed?.kind === 'official') return undefined;
             const gateway = parsed && gateways.find(item => item.id === parsed.gatewayId);
             return gateway ? { binding: imageSupportTarget(gatewayTarget(gateway, parsed!.model)), codex: false } : undefined;
         } catch { return undefined; }
@@ -403,6 +424,7 @@ export const AIProvidersSettings: React.FC = () => {
                         </select>
                     </label>
                     {defaultUnavailable && <p role="alert" className="text-[11px] text-amber-500">{t(defaultUnavailable)}</p>}
+                    <ReasoningSelect state={answerReasoning?.saved} label={t('Default reasoning')} onChange={handleDefaultReasoningChange} className={selectClass} />
                     {!cloudModelOptions.length && <p className="text-[11px] text-text-tertiary">{t('Save an official provider key or a gateway below to choose an answer model.')}</p>}
                     <label className="block text-xs text-text-secondary">{t('Backup model')}
                         <select aria-label={t('Backup model')} className={selectClass} value={generationPolicy.backupModel ?? ''}
@@ -416,6 +438,13 @@ export const AIProvidersSettings: React.FC = () => {
                         onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? backupBinding.binding : undefined })} /> {t(backupBinding.codex ? 'Backup Codex model supports images' : 'Backup model supports images')}
                         <span className="block text-[10px]">{t(backupBinding.codex ? 'Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.' : "Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.")}</span>
                     </label>}
+                    {(() => {
+                        const parsed = generationPolicy.backupModel ? parseModelSelection(generationPolicy.backupModel) : undefined;
+                        if (parsed?.kind !== 'official') return null;
+                        const images = officialCapability({ provider: parsed.provider, protocol: parsed.protocol, model: parsed.model })?.images;
+                        return <p className="text-[10px] text-text-secondary">{t(images === true ? 'Backup image input: supported according to the official model record.'
+                            : images === false ? 'Backup image input: not supported according to the official model record.' : 'Backup image input has not been verified for this model yet; image questions are not sent to it.')}</p>;
+                    })()}
                 </div>
                 <div className="border-t border-border-subtle pt-4">
                     <h4 className="text-xs font-medium text-text-primary mb-2">{t('Generation limits')}</h4>

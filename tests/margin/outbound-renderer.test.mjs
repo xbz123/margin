@@ -570,7 +570,7 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 
-test('S45 mounted settings preserve drafts, order save/test and pass gateway reasoning to the real protocol', async () => {
+test('S45 mounted settings preserve drafts, order save/test and pass gateway reasoning to the real protocol; S48 no official per-model reasoning', async () => {
   const require = createRequire(import.meta.url), electronId = require.resolve('electron'), previous = require.cache[electronId];
   require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => fs.mkdtempSync(path.join(os.tmpdir(), 's45-ui-')), isPackaged: true, getVersion: () => 'synthetic' } } };
   let LLMHelper;
@@ -620,8 +620,10 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
     const created = app.waitForEvent('window'); await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
     const page = await created; await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
     await page.getByRole('button', { name: /^OpenAI/ }).click();
-    const effort = page.getByRole('combobox', { name: 'OpenAI reasoning effort', exact: true });
-    await effort.waitFor();
+    // S48: the official card has no reasoning control; the protocol select is the draft field here.
+    const protocol = page.getByRole('combobox', { name: 'OpenAI protocol', exact: true });
+    await protocol.waitFor();
+    assert.equal(await page.getByRole('combobox', { name: 'OpenAI reasoning effort', exact: true }).count(), 0);
     const cloud = page.getByRole('tabpanel', { name: 'Cloud services', exact: true });
     const text = await page.locator('body').innerText();
     assert.ok(text.indexOf('Answer models') < text.indexOf('Backup model') && text.indexOf('Generation limits') < text.indexOf('Cloud services'));
@@ -631,25 +633,29 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
     assert.doesNotMatch(await page.getByRole('combobox', { name: 'Primary model', exact: true }).innerText(), /Groq|llama/i);
     assert.equal(await page.getByRole('button', { name: /^Groq/ }).count(), 0);
     assert.deepEqual(await page.evaluate(() => window.events), [], 'mount and expand are local only');
-    assert.deepEqual((await effort.locator('option').allTextContents()).slice(1), ['none', 'low', 'medium', 'high', 'xhigh']);
     const model = page.getByRole('combobox', { name: 'OpenAI model', exact: true });
-    assert.equal(await model.isDisabled(), true);
+    const toAdd = page.getByRole('combobox', { name: 'OpenAI model to add', exact: true });
+    assert.deepEqual(await model.locator('option').allTextContents(), ['gpt-5.4'], 'only saved candidates can be edited');
+    assert.equal(await toAdd.isDisabled(), true);
     await cloud.getByRole('button', { name: 'Fetch Models', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model"]').options.length === 2);
-    await model.selectOption('gpt-5.4-other'); await model.selectOption('gpt-5.4');
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model to add"]').options.length === 2);
+    await toAdd.selectOption('gpt-5.4-other'); await toAdd.selectOption('');
+    assert.deepEqual(await model.locator('option').allTextContents(), ['gpt-5.4'], 'a listed model is not added by choosing it');
     assert.deepEqual(await page.evaluate(() => window.events), ['fetch'], 'discovery never selects or saves automatically');
     await page.evaluate(() => { window.deferModels = true; });
     await cloud.getByRole('button', { name: 'Fetch Models', exact: true }).click();
-    await effort.selectOption('xhigh');
+    await protocol.selectOption('responses');
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model to add"]').options.length === 1);
     await page.evaluate(() => window.resolveModels({ success: true, models: [{ id: 'stale', label: 'Stale result' }] }));
-    assert.equal(await model.locator('option', { hasText: 'Stale result' }).count(), 0);
+    assert.equal(await toAdd.locator('option', { hasText: 'Stale result' }).count(), 0);
+    assert.equal(await toAdd.locator('option', { hasText: 'Other upstream model' }).count(), 0, 'S49 a changed protocol also clears the previously fetched catalogue');
     await page.getByRole('tab', { name: 'Cloud services', exact: true }).press('ArrowRight');
     assert.equal(await page.getByRole('tab', { name: 'Gateway', exact: true }).getAttribute('aria-selected'), 'true');
     await page.getByRole('tab', { name: 'Gateway', exact: true }).press('End');
     await page.getByRole('switch', { name: 'Allow Screenshots to cloud providers', exact: true }).click();
     assert.equal(await page.evaluate(() => window.scopes.screenshots), false);
     await page.getByRole('tab', { name: 'Privacy', exact: true }).press('Home');
-    assert.equal(await effort.inputValue(), 'xhigh', 'tab switch preserves the draft');
+    assert.equal(await protocol.inputValue(), 'responses', 'tab switch preserves the draft');
     await page.evaluate(() => { window.failSave = true; });
     await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
     await page.waitForFunction(() => document.body.innerText.includes('synthetic save failure'));
@@ -658,13 +664,14 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
     await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
     await page.waitForFunction(() => window.events.includes('test'));
     assert.deepEqual(await page.evaluate(() => window.events.slice(-2)), ['save', 'test']);
-    assert.equal(await page.evaluate(() => window.tested.reasoning.effort), 'xhigh');
+    assert.equal(await page.evaluate(() => window.tested.protocol), 'responses');
+    assert.equal(await page.evaluate(() => 'reasoning' in window.tested), false, 'an official save carries no per-model reasoning');
     await page.waitForFunction(() => document.body.innerText.includes('Connection test passed'));
     // A late test result cannot mark a newer draft connected.
     await page.evaluate(() => { window.deferTest = true; });
     await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
     await page.waitForFunction(() => !!window.resolveTest);
-    await effort.selectOption('low');
+    await protocol.selectOption('chat-completions');
     await page.evaluate(() => { window.resolveTest({ success: true }); window.deferTest = false; window.resolveTest = undefined; });
     assert.doesNotMatch(await cloud.innerText(), /Connection test passed/);
 
@@ -732,6 +739,471 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
   } finally { if (app) await app.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
+test('S49 mounted provider discards a late list after an external protocol update and can fetch again', async () => {
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React, { useState } from 'react'; import { createRoot } from 'react-dom/client';
+    import { ProviderCard } from './src/components/settings/ProviderCard';
+    window.fetchCalls = 0; window.resolved = false;
+    window.electronAPI = { fetchProviderModels: async () => {
+      window.fetchCalls++;
+      if (window.fetchCalls === 1) return new Promise(resolve => { window.resolveList = value => { window.resolved = true; resolve(value); }; });
+      return { success: true, models: [{ id: 'gpt-5.4-mini', label: 'Current protocol model' }] };
+    } };
+    function ExternalProtocolFixture() {
+      const [config, setConfig] = useState({ provider: 'openai', protocol: 'responses', model: 'gpt-5.4' });
+      window.replaceConfig = () => setConfig({ ...config, protocol: 'chat-completions' });
+      return <ProviderCard providerId="openai" providerName="OpenAI" icon={null} configuration={config}
+        hasStoredKey={true} keyPlaceholder="synthetic" keyUrl="https://example.invalid"
+        onSave={async () => ({ ok: true })} onRemoveKey={async () => {}} />;
+    }
+    createRoot(document.getElementById('root')).render(<ExternalProtocolFixture />);
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
+  const sandbox = makeSandbox('s49-external-protocol'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
+    const created = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
+    const page = await created; await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    await page.getByRole('button', { name: /^OpenAI/ }).click();
+    const fetch = page.getByRole('button', { name: 'Fetch Models', exact: true });
+    const list = page.getByRole('combobox', { name: 'OpenAI model to add', exact: true });
+    await fetch.click(); await page.waitForFunction(() => !!window.resolveList);
+    await page.evaluate(() => window.replaceConfig());
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI protocol"]').value === 'chat-completions');
+    await page.evaluate(() => window.resolveList({ success: true, models: [{ id: 'gpt-5.4-pro', label: 'Stale Responses-only model' }] }));
+    await page.waitForFunction(() => window.resolved);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    assert.equal(await list.locator('option', { hasText: 'Stale Responses-only model' }).count(), 0);
+    assert.equal(await fetch.isEnabled(), true, 'a superseded fetch cannot leave the card busy');
+    await fetch.click();
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model to add"]').options.length === 2);
+    assert.deepEqual(await list.locator('option').allTextContents(), ['Choose a model to add', 'Current protocol model']);
+    assert.equal(await page.getByRole('combobox', { name: 'OpenAI model', exact: true }).inputValue(), 'gpt-5.4');
+  } finally { await app?.close().catch(() => {}); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
+test('S47 mounted settings and session selector share saved candidates through the real manager, IPC callbacks and LLMHelper', async () => {
+  const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
+  const load = file => { const module = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/${file}`, 'utf8')), { module, exports: module.exports, URL }); return module.exports; };
+  const types = load('src/types/llmTarget.ts'), policyTypes = load('src/types/generationPolicy.ts'), codexTypes = load('src/types/codexSource.ts');
+  const targetApi = require(`${REPO}/dist-electron/electron/llm/llmTarget.js`);
+  // Synthetic encrypted store in memory; nothing touches a real profile or keychain.
+  const filename = '/synthetic/credentials.enc', files = new Map([[filename, Buffer.from('cipher:{}')]]), fault = { rename: false };
+  const fakeFs = { existsSync: file => files.has(file), readFileSync: file => files.get(file), unlinkSync: file => files.delete(file),
+    writeFileSync(file, bytes) { files.set(file, Buffer.from(bytes)); }, renameSync(from, to) { if (fault.rename) throw Error('synthetic rename'); files.set(to, files.get(from)); files.delete(from); } };
+  const boot = () => {
+    const module = { exports: {} };
+    vm.runInNewContext(compile(fs.readFileSync(`${REPO}/electron/services/CredentialsManager.ts`, 'utf8')), { module, exports: module.exports, Buffer, URL, console: { log() {}, warn() {}, error() {} },
+      require(id) {
+        if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage: { isEncryptionAvailable: () => true, encryptString: text => Buffer.from('cipher:' + text), decryptString: bytes => bytes.toString().slice(7) } };
+        if (id === 'fs') return fakeFs;
+        if (id === './outbound') return require(`${REPO}/dist-electron/electron/services/outbound.js`);
+        if (id === '../utils/validateSttBaseUrl') return require(`${REPO}/dist-electron/electron/utils/validateSttBaseUrl.js`);
+        if (id === '../../src/types/llmTarget') return types;
+        if (id === '../../src/types/generationPolicy') return policyTypes;
+        if (id === '../../src/types/codexSource') return codexTypes;
+        if (id === '../llm/llmTarget') return targetApi;
+        if (id === '../../src/types/modelCapabilities') return load('src/types/modelCapabilities.ts');
+        if (id === '../llm/answerReasoning') return require(`${REPO}/dist-electron/electron/llm/answerReasoning.js`);
+        return require(id);
+      } });
+    const instance = module.exports.CredentialsManager.getInstance(); instance.init(); return instance;
+  };
+  const manager = boot();
+  assert.equal(manager.setProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', apiKey: 'synthetic-openai' }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ provider: 'claude', protocol: 'messages', model: 'claude-sonnet-4-6', apiKey: 'synthetic-claude' }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ provider: 'deepseek', protocol: 'chat-completions', model: 'shared-model', apiKey: 'synthetic-deepseek' }).ok, true);
+  const primary = 'llm-target:claude:messages:claude-sonnet-4-6', id = model => `llm-target:openai:chat-completions:${model}`;
+  assert.equal(manager.setDefaultModel(primary).ok, true);
+
+  const electronId = require.resolve('electron'), previous = require.cache[electronId], userData = fs.mkdtempSync(path.join(os.tmpdir(), 's47-ui-'));
+  const built = require.resolve(`${REPO}/dist-electron/electron/LLMHelper.js`), cachedHelper = require.cache[built]; delete require.cache[built];
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => userData, isPackaged: true, getVersion: () => 'synthetic' } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require(built)); }
+  finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; if (cachedHelper) require.cache[built] = cachedHelper; else delete require.cache[built]; }
+  const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+  // The send itself is covered on the wire elsewhere; here every connection test is recorded and nothing leaves the machine.
+  const tests = []; let deferredTest;
+  helper.testProviderConnection = (provider, model) => { tests.push([provider, model]); return deferredTest ? deferredTest.promise : Promise.resolve('ANSWER'); };
+  const changed = [];
+  const processingHelper = { getLLMHelper: () => helper,
+    applyStoredProvider: provider => helper.configureProvider(manager.getProviderConfigurations()[provider], manager.getProviderApiKey(provider)),
+    refreshAnswerRuntime: () => changed.push(helper.getCurrentModelSelection()) };
+  for (const config of Object.values(manager.getProviderConfigurations())) processingHelper.applyStoredProvider(config.provider);
+  helper.setModel(manager.getDefaultModel()); helper.setGenerationPolicy(manager.getGenerationPolicy());
+  const appState = { processingHelper, sendModelChanged: value => changed.push(value), modelSelectorWindowHelper: { hideWindow() {} } };
+  const listed = [];
+  const arrow = (predicate, context) => {
+    const source = fs.readFileSync(`${REPO}/electron/ipcHandlers.ts`, 'utf8'), ast = ts.createSourceFile('ipcHandlers.ts', source, ts.ScriptTarget.Latest, true); let found;
+    const visit = node => { if (!found && predicate(node)) found = node.getText(ast); ts.forEachChild(node, visit); }; visit(ast); assert.ok(found);
+    const module = { exports: {} }; vm.runInNewContext(compile(`module.exports = (${found});`), { module, exports: module.exports, console: { log() {}, warn() {}, error() {} }, ...context }); return module.exports;
+  };
+  const named = name => node => ts.isArrowFunction(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === name;
+  const context = { ...targetApi, LLM_PRESETS: types.LLM_PRESETS, ANSWER_PROVIDERS: types.ANSWER_PROVIDERS, modelTargetId: types.modelTargetId, providerCandidates: types.providerCandidates, appState,
+    sanitizeErrorMessage: message => message,
+    require: module => module.includes('modelFetcher') ? { fetchProviderModels: async provider => { listed.push(provider); return [{ id: 'gpt-5.4', label: 'gpt-5.4' }, { id: 'model-b', label: 'model-b' }, { id: 'shared-model', label: 'shared-model' }]; } }
+      : { CredentialsManager: { getInstance: () => manager } } };
+  context.persistCredentials = arrow(named('persistCredentials'), {});
+  context.boundedProviderError = arrow(named('boundedProviderError'), { sanitizeErrorMessage: message => message });
+  context.ANSWER_APPLY_WARNING = arrow(node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {});
+  const handlers = {};
+  for (const channel of ['get-generation-policy', 'set-generation-policy', 'get-stored-credentials', 'get-default-model', 'set-default-model', 'fetch-provider-models',
+    'set-provider-configuration', 'test-llm-connection', 'remove-provider-api-key', 'set-model', 'get-current-llm-config']) {
+    handlers[channel] = arrow(node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent) && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, context);
+  }
+  const preload = {};
+  for (const name of ['getGenerationPolicy', 'setGenerationPolicy', 'getStoredCredentials', 'getDefaultModel', 'setDefaultModel', 'fetchProviderModels',
+    'setProviderConfiguration', 'testLlmConnection', 'removeProviderApiKey', 'setModel', 'getCurrentLlmConfig']) {
+    const source = fs.readFileSync(`${REPO}/electron/preload.ts`, 'utf8'), ast = ts.createSourceFile('preload.ts', source, ts.ScriptTarget.Latest, true); let found;
+    const visit = node => { if (!found && ts.isArrowFunction(node) && ts.isPropertyAssignment(node.parent) && node.parent.name.getText() === name) found = node.getText(ast); ts.forEachChild(node, visit); }; visit(ast); assert.ok(found, name);
+    const module = { exports: {} }; vm.runInNewContext(compile(`module.exports = (${found});`), { module, exports: module.exports, ipcRenderer: { invoke: (channel, ...args) => handlers[channel]({}, ...args) } });
+    preload[name] = module.exports;
+  }
+  // Values cross the page boundary as JSON, as structured clone would carry them.
+  const call = async (name, args) => JSON.parse(JSON.stringify((await preload[name](...args)) ?? null));
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
+    import { AIProvidersSettings as Settings } from './src/components/settings/AIProvidersSettings'; import Selector from './src/components/ModelSelectorWindow';
+    const memory = new Map(); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)), removeItem: key => memory.delete(key) } });
+    const bridge = name => (...args) => window.invokeMain(name, args);
+    window.electronAPI = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}), getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
+      onModelChanged: () => () => {}, onThemeChanged: () => () => {} };
+    for (const name of ${JSON.stringify(Object.keys(preload))}) window.electronAPI[name] = bridge(name);
+    let settings, selector;
+    window.mountSettings = () => { settings?.unmount(); const node = document.getElementById('settings'); settings = createRoot(node); flushSync(() => settings.render(React.createElement(Settings))); };
+    window.mountSelector = () => { selector?.unmount(); selector = createRoot(document.getElementById('selector')); flushSync(() => selector.render(React.createElement(Selector))); };
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
+  const sandbox = makeSandbox('s47-candidates'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
+    const created = app.waitForEvent('window'); await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="settings"></div><div id="selector"></div>'); });
+    const page = await created; page.on('dialog', dialog => dialog.accept());
+    await page.exposeFunction('invokeMain', (name, args) => call(name, args));
+    await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => { window.mountSettings(); window.mountSelector(); });
+    const settings = page.locator('#settings'), selector = page.locator('#selector');
+    const primarySelect = page.getByRole('combobox', { name: 'Primary model', exact: true }), backupSelect = page.getByRole('combobox', { name: 'Backup model', exact: true });
+    const optionValues = locator => locator.locator('option').evaluateAll(options => options.map(option => option.value));
+    await page.waitForFunction(id => [...document.querySelectorAll('[aria-label="Primary model"] option')].some(option => option.value === id), primary);
+    const state = () => ({ primary: manager.getDefaultModel(), backup: manager.getGenerationPolicy().backupModel, session: helper.getCurrentModelSelection() });
+    const until = async (condition, message) => { for (let i = 0; i < 100 && !condition(); i++) await new Promise(resolve => setTimeout(resolve, 20)); assert.ok(condition(), message); };
+    assert.deepEqual(state(), { primary, backup: undefined, session: primary });
+    const before = await optionValues(primarySelect);
+    assert.ok(before.includes(id('gpt-5.4')) && before.includes('llm-target:deepseek:chat-completions:shared-model'));
+
+    await page.getByRole('button', { name: /^OpenAI/ }).click();
+    const cloud = page.getByRole('tabpanel', { name: 'Cloud services', exact: true });
+    const editSelect = page.getByRole('combobox', { name: 'OpenAI model', exact: true }), addSelect = page.getByRole('combobox', { name: 'OpenAI model to add', exact: true });
+    await cloud.getByRole('button', { name: 'Fetch Models', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('[aria-label="OpenAI model to add"]').options.length === 3);
+    assert.deepEqual(listed, ['openai']); assert.deepEqual(await optionValues(editSelect), ['gpt-5.4'], 'fetching adds nothing');
+    for (const model of ['model-b', 'shared-model']) { await addSelect.selectOption(model); await cloud.getByRole('button', { name: 'Add model', exact: true }).click(); }
+    assert.deepEqual(await optionValues(editSelect), ['gpt-5.4', 'model-b', 'shared-model']);
+    // S48: an official card has no per-candidate reasoning, thinking or image confirmation controls.
+    for (const candidate of ['model-b', 'gpt-5.4']) {
+      await editSelect.selectOption(candidate);
+      assert.equal(await cloud.getByRole('combobox', { name: /^(OpenAI|Gemini|Claude|DeepSeek) (thinking|reasoning effort)$/ }).count(), 0, candidate);
+      assert.equal(await cloud.getByRole('checkbox', { name: /^(OpenAI|Gemini|Claude|DeepSeek) model supports images$/ }).count(), 0, candidate);
+    }
+    assert.equal((await optionValues(primarySelect)).includes(id('model-b')), false, 'an unsaved draft is not offered');
+    assert.deepEqual(state(), { primary, backup: undefined, session: primary });
+
+    await cloud.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.waitForFunction(() => document.body.innerText.includes('Saved. The connection has not been tested.'));
+    assert.deepEqual(tests, [], 'Save sends nothing');
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getProviderConfigurations().openai)), { provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4',
+      models: [{ model: 'model-b' }, { model: 'shared-model' }] });
+    assert.deepEqual(state(), { primary, backup: undefined, session: primary }, 'adding candidates changes no selection');
+    const offered = await optionValues(primarySelect);
+    for (const model of ['gpt-5.4', 'model-b', 'shared-model']) assert.ok(offered.includes(id(model)), model);
+    assert.ok(offered.includes('llm-target:deepseek:chat-completions:shared-model'), 'the same model name of another provider keeps its own identity');
+
+    await backupSelect.selectOption(id('model-b'));
+    await page.getByRole('button', { name: 'Save backup and time limits', exact: true }).click();
+    await until(() => manager.getGenerationPolicy().backupModel === id('model-b'), 'backup saved');
+    assert.equal(manager.getDefaultModel(), primary); assert.equal(await primarySelect.inputValue(), primary);
+
+    await page.evaluate(() => window.mountSelector());
+    const row = name => selector.getByRole('button', { name, exact: true });
+    await row('shared-model (OpenAI)').waitFor();
+    assert.deepEqual(await selector.getByRole('button').allTextContents(), ['gpt-5.4 (OpenAI)', 'model-b (OpenAI)', 'shared-model (OpenAI)', 'claude-sonnet-4-6 (Claude)', 'shared-model (DeepSeek)']);
+    await row('shared-model (OpenAI)').click();
+    await until(() => helper.getCurrentModelSelection() === id('shared-model'), 'session switched');
+    assert.deepEqual(state(), { primary, backup: id('model-b'), session: id('shared-model') }, 'the session switch changes only the session');
+
+    // Save and test checks only the edited candidate; a late result cannot mark another candidate tested.
+    await editSelect.selectOption('model-b');
+    let release; deferredTest = { promise: new Promise(resolve => { release = resolve; }) };
+    await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await until(() => tests.length === 1, 'test started');
+    await editSelect.selectOption('gpt-5.4'); release('ANSWER'); deferredTest = undefined;
+    await new Promise(resolve => setTimeout(resolve, 100));
+    assert.doesNotMatch(await cloud.innerText(), /Connection test passed|Test passed/);
+    await editSelect.selectOption('model-b');
+    await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
+    await page.waitForFunction(() => document.body.innerText.includes('Test passed: model-b'));
+    assert.deepEqual(tests, [['openai', 'model-b'], ['openai', 'model-b']], 'one test per click, only the edited candidate');
+
+    // Removing a used candidate is refused by the main process; switching the session first allows it.
+    const stored = files.get(filename);
+    await editSelect.selectOption('shared-model'); await cloud.getByRole('button', { name: 'Remove model', exact: true }).click();
+    assert.deepEqual(await optionValues(editSelect), ['gpt-5.4', 'model-b']);
+    await cloud.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.waitForFunction(() => document.body.innerText.includes('is used as the primary, backup or current answer model'));
+    assert.deepEqual(files.get(filename), stored); assert.deepEqual(state(), { primary, backup: id('model-b'), session: id('shared-model') });
+    await row('gpt-5.4 (OpenAI)').click();
+    await until(() => helper.getCurrentModelSelection() === id('gpt-5.4'), 'session switched again');
+    await cloud.getByRole('button', { name: 'Save', exact: true }).click();
+    await until(() => manager.getProviderConfigurations().openai.models?.length === 1, 'used candidate removed after the switch');
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getProviderConfigurations().openai.models)), [{ model: 'model-b' }]);
+    assert.deepEqual(state(), { primary, backup: id('model-b'), session: id('gpt-5.4') });
+
+    // Reopened settings and a cold manager keep the saved candidates.
+    await page.evaluate(() => window.mountSettings());
+    await page.waitForFunction(id => [...document.querySelectorAll('[aria-label="Primary model"] option')].some(option => option.value === id), id('model-b'));
+    await page.getByRole('button', { name: /^OpenAI/ }).click();
+    assert.deepEqual(await optionValues(page.getByRole('combobox', { name: 'OpenAI model', exact: true })), ['gpt-5.4', 'model-b']);
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().resolveSelection(id('model-b')))), { provider: 'openai', protocol: 'chat-completions', model: 'model-b' });
+
+    // Removing the key hides every OpenAI candidate and keeps their configuration.
+    await page.getByRole('tabpanel', { name: 'Cloud services', exact: true }).getByRole('button', { name: 'Remove API Key', exact: true }).click();
+    await page.waitForFunction(() => ![...document.querySelectorAll('[aria-label="Primary model"] option')].some(option => option.value.startsWith('llm-target:openai:') && !option.textContent.includes('unavailable')));
+    await page.evaluate(() => window.mountSelector());
+    // The selector first shows its cached list, then the fresh one.
+    await page.waitForFunction(() => !document.getElementById('selector').innerText.includes('(OpenAI)'));
+    assert.deepEqual(await selector.getByRole('button').allTextContents(), ['claude-sonnet-4-6 (Claude)', 'shared-model (DeepSeek)']);
+    assert.equal(boot().getProviderApiKey('openai') || undefined, undefined, 'no usable OpenAI key remains');
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getProviderConfigurations().openai.models)), [{ model: 'model-b' }]);
+    await page.close();
+  } finally { if (app) await app.close(); helper.scrubKeys(); fs.rmSync(userData, { recursive: true, force: true }); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
+test('S48 mounted settings and overlay show each model\'s own levels from the main process; default, session override and A→B→A stay honest', async () => {
+  const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
+  const load = file => { const module = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/${file}`, 'utf8')), { module, exports: module.exports, URL }); return module.exports; };
+  const types = load('src/types/llmTarget.ts'), policyTypes = load('src/types/generationPolicy.ts'), codexTypes = load('src/types/codexSource.ts'), capTypes = load('src/types/modelCapabilities.ts');
+  const targetApi = require(`${REPO}/dist-electron/electron/llm/llmTarget.js`), reasoningApi = require(`${REPO}/dist-electron/electron/llm/answerReasoning.js`);
+  // Synthetic encrypted store in memory; nothing touches a real profile or keychain.
+  const filename = '/synthetic/credentials.enc', files = new Map([[filename, Buffer.from('cipher:{}')]]);
+  const fakeFs = { existsSync: file => files.has(file), readFileSync: file => files.get(file), unlinkSync: file => files.delete(file),
+    writeFileSync(file, bytes) { files.set(file, Buffer.from(bytes)); }, renameSync(from, to) { files.set(to, files.get(from)); files.delete(from); } };
+  const boot = () => {
+    const module = { exports: {} };
+    vm.runInNewContext(compile(fs.readFileSync(`${REPO}/electron/services/CredentialsManager.ts`, 'utf8')), { module, exports: module.exports, Buffer, URL, console: { log() {}, warn() {}, error() {} },
+      require(id) {
+        if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage: { isEncryptionAvailable: () => true, encryptString: text => Buffer.from('cipher:' + text), decryptString: bytes => bytes.toString().slice(7) } };
+        if (id === 'fs') return fakeFs;
+        if (id === './outbound') return require(`${REPO}/dist-electron/electron/services/outbound.js`);
+        if (id === '../utils/validateSttBaseUrl') return require(`${REPO}/dist-electron/electron/utils/validateSttBaseUrl.js`);
+        if (id === '../../src/types/llmTarget') return types;
+        if (id === '../../src/types/generationPolicy') return policyTypes;
+        if (id === '../../src/types/codexSource') return codexTypes;
+        if (id === '../../src/types/modelCapabilities') return capTypes;
+        if (id === '../llm/llmTarget') return targetApi;
+        if (id === '../llm/answerReasoning') return reasoningApi;
+        return require(id);
+      } });
+    const instance = module.exports.CredentialsManager.getInstance(); instance.init(); return instance;
+  };
+  const manager = boot();
+  assert.equal(manager.setProviderConfiguration({ provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite',
+    models: [{ model: 'gemini-3.1-pro-preview' }, { model: 'gemini-3.1-flash-lite-preview' }, { model: 'gemini-unlisted' }], apiKey: 'synthetic-gemini' }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ provider: 'claude', protocol: 'messages', model: 'claude-sonnet-4-6', models: [{ model: 'claude-opus-5-5' }], apiKey: 'synthetic-claude' }).ok, true);
+  assert.equal(manager.setProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', apiKey: 'synthetic-openai' }).ok, true);
+  const gateway = manager.setGatewayConfiguration({ protocol: 'chat-completions', baseUrl: 'https://gateway.invalid/v1', model: 'gw-model', apiKey: 'synthetic-gateway' });
+  assert.equal(gateway.ok, true);
+  const SONNET = 'llm-target:claude:messages:claude-sonnet-4-6', OPUS = 'llm-target:claude:messages:claude-opus-5-5', GPT = 'llm-target:openai:chat-completions:gpt-5.4';
+  const LITE = 'llm-target:gemini:gemini:gemini-3.1-flash-lite', PRO = 'llm-target:gemini:gemini:gemini-3.1-pro-preview', GATEWAY = `llm-gateway:${gateway.gatewayId}:chat-completions:gw-model`;
+  assert.equal(manager.setDefaultModel(SONNET).ok, true);
+
+  const electronId = require.resolve('electron'), previous = require.cache[electronId], userData = fs.mkdtempSync(path.join(os.tmpdir(), 's48-ui-'));
+  const built = require.resolve(`${REPO}/dist-electron/electron/LLMHelper.js`), cachedHelper = require.cache[built]; delete require.cache[built];
+  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => userData, isPackaged: true, getVersion: () => 'synthetic' } } };
+  let LLMHelper;
+  try { ({ LLMHelper } = require(built)); }
+  finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; if (cachedHelper) require.cache[built] = cachedHelper; else delete require.cache[built]; }
+  const helper = new LLMHelper(); helper.getProviderScopePolicy = () => ({});
+  helper.testProviderConnection = async () => 'ANSWER';
+  const processingHelper = { getLLMHelper: () => helper,
+    applyStoredProvider: provider => helper.configureProvider(manager.getProviderConfigurations()[provider], manager.getProviderApiKey(provider)),
+    applyStoredGateway: id => helper.configureGateway(manager.getGateways()[id], manager.getGatewayApiKey(id)), refreshAnswerRuntime() {} };
+  for (const config of Object.values(manager.getProviderConfigurations())) processingHelper.applyStoredProvider(config.provider);
+  processingHelper.applyStoredGateway(gateway.gatewayId);
+  helper.setModel(manager.getDefaultModel()); helper.setGenerationPolicy(manager.getGenerationPolicy()); helper.setSavedReasoning(manager.getSavedReasoning());
+  let page;
+  const broadcasts = [];
+  const appState = { processingHelper, modelSelectorWindowHelper: { hideWindow() {} },
+    getAnswerReasoningState: notice => reasoningApi.answerReasoningState(manager, helper.getSessionReasoningState(), notice),
+    broadcastAnswerReasoning: notice => { const state = JSON.parse(JSON.stringify(appState.getAnswerReasoningState(notice))); broadcasts.push(state); page?.evaluate(value => window.emitReasoning(value), state).catch(() => {}); },
+    sendModelChanged: (_value, notice) => appState.broadcastAnswerReasoning(notice) };
+  const arrow = (predicate, context) => {
+    const source = fs.readFileSync(`${REPO}/electron/ipcHandlers.ts`, 'utf8'), ast = ts.createSourceFile('ipcHandlers.ts', source, ts.ScriptTarget.Latest, true); let found;
+    const visit = node => { if (!found && predicate(node)) found = node.getText(ast); ts.forEachChild(node, visit); }; visit(ast); assert.ok(found);
+    const module = { exports: {} }; vm.runInNewContext(compile(`module.exports = (${found});`), { module, exports: module.exports, console: { log() {}, warn() {}, error() {} }, ...context }); return module.exports;
+  };
+  const named = name => node => ts.isArrowFunction(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === name;
+  const context = { ...targetApi, LLM_PRESETS: types.LLM_PRESETS, ANSWER_PROVIDERS: types.ANSWER_PROVIDERS, modelTargetId: types.modelTargetId, providerCandidates: types.providerCandidates, appState,
+    sanitizeErrorMessage: message => message, require: () => ({ CredentialsManager: { getInstance: () => manager } }) };
+  context.persistCredentials = arrow(named('persistCredentials'), {});
+  context.boundedProviderError = arrow(named('boundedProviderError'), { sanitizeErrorMessage: message => message });
+  context.ANSWER_APPLY_WARNING = arrow(node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {});
+  const handlers = {};
+  const channels = { getGenerationPolicy: 'get-generation-policy', setGenerationPolicy: 'set-generation-policy', getStoredCredentials: 'get-stored-credentials', getDefaultModel: 'get-default-model',
+    setDefaultModel: 'set-default-model', setProviderConfiguration: 'set-provider-configuration', testLlmConnection: 'test-llm-connection', setModel: 'set-model', getCurrentLlmConfig: 'get-current-llm-config',
+    getAnswerReasoning: 'get-answer-reasoning', setDefaultReasoning: 'set-default-reasoning', setSessionReasoning: 'set-session-reasoning' };
+  for (const channel of Object.values(channels)) {
+    handlers[channel] = arrow(node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent) && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, context);
+  }
+  const preload = {};
+  for (const name of Object.keys(channels)) {
+    const source = fs.readFileSync(`${REPO}/electron/preload.ts`, 'utf8'), ast = ts.createSourceFile('preload.ts', source, ts.ScriptTarget.Latest, true); let found;
+    const visit = node => { if (!found && ts.isArrowFunction(node) && ts.isPropertyAssignment(node.parent) && node.parent.name.getText() === name) found = node.getText(ast); ts.forEachChild(node, visit); }; visit(ast); assert.ok(found, name);
+    const module = { exports: {} }; vm.runInNewContext(compile(`module.exports = (${found});`), { module, exports: module.exports, ipcRenderer: { invoke: (channel, ...args) => handlers[channel]({}, ...args) } });
+    preload[name] = module.exports;
+  }
+  const call = async (name, args) => JSON.parse(JSON.stringify((await preload[name](...args)) ?? null));
+  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
+    import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
+    import { AIProvidersSettings as Settings } from './src/components/settings/AIProvidersSettings'; import NativelyInterface from './src/components/NativelyInterface';
+    import { setUiLanguage } from './src/i18n';
+    const memory = new Map(); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)), removeItem: key => memory.delete(key) } });
+    const reasoning = new Set(); window.emitReasoning = state => { for (const listener of reasoning) listener(state); };
+    window.reasoningWrites = [];
+    const api = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}), getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
+      onAnswerReasoningChanged: listener => { reasoning.add(listener); return () => reasoning.delete(listener); }, getMeetingActive: async () => true };
+    for (const name of ${JSON.stringify(Object.keys(preload))}) api[name] = (...args) => { if (/Reasoning$/.test(name) && name.startsWith('set')) window.reasoningWrites.push([name, ...args]); return window.invokeMain(name, args); };
+    window.electronAPI = new Proxy(api, { get(target, name) { if (name in target) return target[name]; if (String(name).startsWith('on')) return () => () => {}; return async () => undefined; } });
+    window.language = setUiLanguage;
+    createRoot(document.getElementById('settings')).render(React.createElement(Settings));
+    createRoot(document.getElementById('overlay')).render(React.createElement(NativelyInterface));
+  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  const sandbox = makeSandbox('s48-reasoning'); let app;
+  try {
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
+    const created = app.waitForEvent('window');
+    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, width: 900, height: 1400, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
+      await win.loadURL('data:text/html,<div id="settings"></div><div id="overlay"></div>'); });
+    page = await created; const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message)); page.on('dialog', dialog => dialog.accept());
+    const assets = path.join(REPO, 'dist/assets');
+    for (const css of fs.readdirSync(assets).filter(name => name.endsWith('.css'))) await page.addStyleTag({ path: path.join(assets, css) });
+    await page.exposeFunction('invokeMain', (name, args) => call(name, args));
+    await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    const settings = page.locator('#settings'), overlay = page.locator('#overlay');
+    const defaultControl = settings.getByRole('combobox', { name: 'Default reasoning', exact: true }), sessionControl = overlay.getByRole('combobox', { name: 'Reasoning for this meeting', exact: true });
+    const primarySelect = settings.getByRole('combobox', { name: 'Primary model', exact: true });
+    const values = locator => locator.locator('option').evaluateAll(options => options.map(option => option.value));
+    const shows = async (locator, value, options) => {
+      await page.waitForFunction(({ selector, value, options }) => { const node = document.querySelector(selector); return node && !node.disabled && node.value === value && JSON.stringify([...node.options].map(option => option.value)) === JSON.stringify(options); },
+        { selector: await locator.evaluate(node => `#${node.closest('[id]').id} select[aria-label="${node.getAttribute('aria-label')}"]`), value, options });
+    };
+    const sent = () => { const task = helper.beginGenerationTask('interview'); try { return JSON.parse(JSON.stringify(task.primary.target.reasoning ?? null)); } finally { task.close(); } };
+    const SONNET_LEVELS = ['default', 'off', 'low', 'medium', 'high', 'max'], OPUS_LEVELS = ['default', 'low', 'medium', 'high', 'xhigh', 'max'];
+    const GPT_LEVELS = ['default', 'none', 'low', 'medium', 'high', 'xhigh'], LITE_LEVELS = ['default', 'minimal', 'low', 'medium', 'high'], PRO_LEVELS = ['default', 'low', 'medium', 'high'];
+    await shows(defaultControl, 'default', SONNET_LEVELS); await shows(sessionControl, 'default', SONNET_LEVELS);
+    assert.equal(await settings.locator('select[aria-label="Default reasoning"] option[value="off"]').textContent(), 'Reasoning off');
+    assert.equal(await settings.locator('select[aria-label="Default reasoning"] option[value="default"]').textContent(), 'Provider default');
+
+    // Saving the default reaches the saved file, the next request and the overlay; it switches no model.
+    await defaultControl.selectOption('max');
+    await shows(sessionControl, 'max', SONNET_LEVELS);
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getSavedReasoning())), { choice: 'max' });
+    assert.equal(helper.getCurrentModelSelection(), SONNET); assert.deepEqual(sent(), { thinking: 'adaptive', effort: 'max' });
+
+    // A → B → A: options follow the exact model; an unavailable level becomes the provider default with a notice.
+    await primarySelect.selectOption(OPUS);
+    await shows(defaultControl, 'max', OPUS_LEVELS); await shows(sessionControl, 'max', OPUS_LEVELS);
+    assert.deepEqual(sent(), { effort: 'max' }, 'Opus never receives a thinking field');
+    await primarySelect.selectOption(GPT);
+    await shows(defaultControl, 'default', GPT_LEVELS); await shows(sessionControl, 'default', GPT_LEVELS);
+    await settings.getByText('The selected reasoning level is not available for this model, so the provider default is used.').first().waitFor();
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getSavedReasoning())), { choice: 'default' }); assert.equal(sent(), null);
+    await primarySelect.selectOption(SONNET);
+    await shows(defaultControl, 'default', SONNET_LEVELS); await shows(sessionControl, 'default', SONNET_LEVELS);
+    assert.equal(sent(), null, 'returning to A restores no hidden per-model level');
+    for (const [model, levels] of [[LITE, LITE_LEVELS], [PRO, PRO_LEVELS]]) { await primarySelect.selectOption(model); await shows(defaultControl, 'default', levels); }
+
+    // The session override lives in the main process; the saved default is untouched.
+    await primarySelect.selectOption(SONNET); await shows(sessionControl, 'default', SONNET_LEVELS);
+    await defaultControl.selectOption('high'); await shows(sessionControl, 'high', SONNET_LEVELS);
+    const stored = files.get(filename);
+    await sessionControl.selectOption('low');
+    await page.waitForFunction(() => window.reasoningWrites.some(write => write[0] === 'setSessionReasoning' && write[2] === 'low'));
+    await shows(sessionControl, 'low', SONNET_LEVELS); await shows(defaultControl, 'high', SONNET_LEVELS);
+    assert.deepEqual(sent(), { thinking: 'adaptive', effort: 'low' }); assert.deepEqual(files.get(filename), stored, 'the session override is not saved');
+    assert.deepEqual(JSON.parse(JSON.stringify(helper.getSessionReasoningState())).overridden, true);
+    // A late write from a window that still shows the old model is refused; the overlay re-reads the main state.
+    helper.setModel(OPUS);
+    await sessionControl.selectOption('high');
+    await shows(sessionControl, 'low', OPUS_LEVELS);
+    assert.deepEqual(sent(), { effort: 'low' }, 'the refused write changed nothing');
+    assert.deepEqual(await page.evaluate(() => window.reasoningWrites.at(-1)), ['setSessionReasoning', SONNET, 'high'], 'the overlay named the model it showed');
+    helper.setModel(SONNET); helper.clearSessionReasoning(); appState.broadcastAnswerReasoning();
+    await shows(sessionControl, 'high', SONNET_LEVELS);
+
+    // Gateways set reasoning in their own configuration: the shared control is disabled and explains why.
+    await primarySelect.selectOption(GATEWAY);
+    await page.waitForFunction(() => { const node = document.querySelector('#settings select[aria-label="Default reasoning"]'); return node.disabled && node.options[0].textContent === 'Set in the gateway or Codex configuration'; });
+    assert.equal(await sessionControl.isDisabled(), true);
+    // A gateway does not take the shared level, so it is neither applied nor reset; back on Sonnet it applies again.
+    assert.deepEqual(JSON.parse(JSON.stringify(boot().getSavedReasoning())), { choice: 'high' });
+    await primarySelect.selectOption(SONNET); await shows(defaultControl, 'high', SONNET_LEVELS);
+
+    // Provider cards: no per-model reasoning or image confirmation; capability text from the record.
+    await page.getByRole('button', { name: /^Gemini/ }).click();
+    const cloud = page.getByRole('tabpanel', { name: 'Cloud services', exact: true }), edit = cloud.getByRole('combobox', { name: 'Gemini model', exact: true });
+    assert.equal(await cloud.getByRole('combobox', { name: /^(OpenAI|Gemini|Claude|DeepSeek) (thinking|reasoning effort)$/ }).count(), 0);
+    const officialImageBox = cloud.getByRole('checkbox', { name: /^(OpenAI|Gemini|Claude|DeepSeek) model supports images$/ });
+    assert.equal(await officialImageBox.count(), 0, 'no image confirmation checkbox');
+    // Each card shows its own lines; read the Gemini card body that holds the edited model.
+    const card = () => edit.evaluate(node => node.closest('[id]').innerText);
+    const retired = 'Google shut down Gemini 3.1 Flash-Lite Preview on 2026-05-25. Choose gemini-3.1-flash-lite instead.';
+    assert.match(await card(), /Image input: supported according to the official model record\./); assert.doesNotMatch(await card(), /shut down/);
+    await edit.selectOption('gemini-3.1-flash-lite-preview');
+    await page.waitForFunction(text => document.querySelector('select[aria-label="Gemini model"]').closest('[id]').querySelector('[role="note"]')?.textContent === text, retired);
+    assert.match(await card(), /Image input: supported according to the official model record\./);
+    await edit.selectOption('gemini-unlisted');
+    await page.waitForFunction(() => document.querySelector('select[aria-label="Gemini model"]').closest('[id]').innerText.includes('Image input has not been verified for this model yet. Image questions are refused before sending; text works.'));
+    assert.doesNotMatch(await card(), /shut down/);
+    assert.equal(await officialImageBox.count(), 0);
+    assert.deepEqual(await values(primarySelect).then(list => list.filter(value => value.includes('flash-lite-preview'))), ['llm-target:gemini:gemini:gemini-3.1-flash-lite-preview'], 'the retired preview stays selectable, never replaced');
+
+    // The overlay shell has a fixed width (600px collapsed, the narrowest real window; 780px expanded) and the window follows it.
+    // Inside the shell the bottom row keeps the model button, the reasoning control and send apart, and the control never covers Answer/Stop.
+    const measure = () => page.evaluate(async () => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const select = document.querySelector('#overlay select[aria-label="Reasoning for this meeting"], #overlay select[aria-label="本次会议推理强度"]');
+      const shell = select.closest('.overlay-shell-surface'), outer = shell.getBoundingClientRect();
+      const box = node => { const r = node?.getBoundingClientRect(); return r && r.width > 0 ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom } : null; };
+      const answer = [...shell.querySelectorAll('button')].find(node => /^(Answer|Stop|回答|停止)$/.test(node.textContent.trim()));
+      const row = select.closest('.justify-between');
+      return { shell: { left: outer.left, right: outer.right, width: outer.width }, model: box(shell.querySelector('[data-model-selector-toggle]')), reasoning: box(select), answer: box(answer), send: box(row?.lastElementChild) };
+    });
+    const apart = (a, b) => a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+    const layoutHolds = boxes => {
+      assert.equal(Math.round(boxes.shell.width), 600, 'collapsed shell width');
+      for (const name of ['model', 'reasoning', 'answer', 'send']) {
+        assert.ok(boxes[name], `${name} is rendered`);
+        assert.ok(boxes[name].left >= boxes.shell.left - 1 && boxes[name].right <= boxes.shell.right + 1, `${name} stays inside the shell ${JSON.stringify(boxes)}`);
+      }
+      for (const [a, b] of [['model', 'reasoning'], ['reasoning', 'send'], ['model', 'send'], ['reasoning', 'answer']]) assert.ok(apart(boxes[a], boxes[b]), `${a} and ${b} do not overlap`);
+    };
+    layoutHolds(await measure());
+
+    // Chinese accessible names and option texts.
+    await page.evaluate(() => window.language('zh-CN'));
+    await page.locator('#settings').getByRole('combobox', { name: '默认推理强度', exact: true }).waitFor();
+    await overlay.getByRole('combobox', { name: '本次会议推理强度', exact: true }).waitFor();
+    assert.equal(await settings.locator('select[aria-label="默认推理强度"] option[value="default"]').textContent(), '服务商默认');
+    assert.equal(await settings.locator('select[aria-label="默认推理强度"] option[value="off"]').textContent(), '关闭推理');
+    layoutHolds(await measure());
+    assert.deepEqual(pageErrors, []);
+    await page.close();
+  } finally { if (app) await app.close(); helper.scrubKeys(); fs.rmSync(userData, { recursive: true, force: true }); }
+  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
+});
+
 test('S42-01 mounted domestic STT settings save, reload and test the chosen workspace and resource without returning keys', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-s42-stt-')), storage = { fail: false };

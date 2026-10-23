@@ -10,13 +10,16 @@ import { randomUUID } from 'crypto';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
 import { openAiSttEndpoint } from './outbound';
 import { validateSttBaseUrl } from '../utils/validateSttBaseUrl';
-import { LLM_PRESETS, modelTargetId, parseModelSelection, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave, type GatewaySummary, type ModelTarget } from '../../src/types/llmTarget';
-import { validateProviderConfiguration, validateGatewayConfiguration, resolveModelTarget, followSelection, GROQ_ANSWERS_RETIRED } from '../llm/llmTarget';
+import { LLM_PRESETS, candidateConfiguration, modelTargetId, parseModelSelection, providerCandidates, withCandidates, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave, type GatewaySummary, type ModelTarget } from '../../src/types/llmTarget';
+import { validateProviderConfiguration, validateGatewayConfiguration, resolveModelTarget, followSelection, removedCandidatesInUse, GROQ_ANSWERS_RETIRED } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
 import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
 import type { DomesticSttSettings, DoubaoResourceId } from '../../src/types/domesticStt';
+import { isReasoningChoice, type ReasoningChoice } from '../../src/types/modelCapabilities';
+import { NOT_AVAILABLE_NOTICE, reasoningApplies, savedFromLegacy, type SavedReasoning } from '../llm/answerReasoning';
 
 const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.enc');
+const CANDIDATE_IN_USE = 'A model removed from this provider is used as the primary, backup or current answer model. Choose another model there first; nothing was saved.';
 
 export interface StoredCredentials {
     geminiApiKey?: string;
@@ -25,6 +28,8 @@ export interface StoredCredentials {
     claudeApiKey?: string;
     deepseekApiKey?: string;
     defaultModel?: string;
+    /** Shared default reasoning of the answer model (S48); absent until saved under that rule. */
+    answerReasoning?: ReasoningChoice;
     providerConfigurations?: Partial<Record<LlmProvider, ProviderConfiguration>>;
     /** Gateway configuration by stable ID; their keys are kept apart in gatewayKeys. */
     gateways?: Record<string, GatewayConfiguration>;
@@ -181,7 +186,7 @@ export class CredentialsManager {
         return this.credentials.aiResponseLanguage || 'auto';
     }
     public getDefaultModel(): string {
-        return this.credentials.defaultModel || 'gemini-3.1-flash-lite-preview';
+        return this.credentials.defaultModel || LLM_PRESETS.gemini.model;
     }
 
     public getAllCredentials(): StoredCredentials {
@@ -226,9 +231,8 @@ export class CredentialsManager {
         try {
             const backup = this.resolveSelection(policy.backupModel!, configs, gateways);
             const confirmed = { ...backup, imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor };
-            return backup.provider === 'gateway'
-                ? !!validateGatewayConfiguration({ ...confirmed, id: backup.gatewayId!, baseUrl: backup.baseUrl! }).imageSupportConfirmedFor
-                : !!validateProviderConfiguration(confirmed as ProviderConfiguration).imageSupportConfirmedFor;
+            // Official backups follow the capability record; only a gateway keeps a manual confirmation.
+            return backup.provider === 'gateway' && !!validateGatewayConfiguration({ ...confirmed, id: backup.gatewayId!, baseUrl: backup.baseUrl! }).imageSupportConfirmedFor;
         } catch { return false; }
     }
 
@@ -290,12 +294,25 @@ export class CredentialsManager {
         return this.saveCredentials({ generationPolicy: policy });
     }
 
-    public setProviderConfiguration(value: ProviderConfigurationSave): CredentialSaveResult {
+    /**
+     * Saves one official provider's key and complete candidate list atomically. `running` names the
+     * selections in use outside storage (the session model); a candidate used by them, the primary or
+     * the backup is never removed or silently replaced: the save is refused and nothing changes.
+     */
+    public setProviderConfiguration(value: ProviderConfigurationSave, running: string[] = []): CredentialSaveResult {
         if (value?.provider === 'groq') throw new Error(GROQ_ANSWERS_RETIRED);
         const config = validateProviderConfiguration(value);
         if (value.apiKey !== undefined && typeof value.apiKey !== 'string') throw new Error('Invalid API key');
         const configs = this.getProviderConfigurations(), gateways = this.getGateways();
         const previous = configs[config.provider];
+        // Per-model reasoning is retired (S48): an older stored value may only be carried along unchanged.
+        const stored = new Map(providerCandidates(previous).map(candidate => [candidate.model, JSON.stringify(candidate.reasoning ?? null)]));
+        if (providerCandidates(config).some(candidate => candidate.reasoning && stored.get(candidate.model) !== JSON.stringify(candidate.reasoning))) {
+            throw new Error('Reasoning is chosen with the answer model, not saved per model.');
+        }
+        const inUse = removedCandidatesInUse(previous, config, [this.getDefaultModel(), this.getGenerationPolicy().backupModel ?? '', ...running].filter(Boolean)
+            .filter(selection => !isCodexSelection(selection)), selection => this.comparableSelection(selection, configs, gateways));
+        if (inUse.length) return { ok: false, code: 'write_failed', message: CANDIDATE_IN_USE };
         const nextConfigurations = { ...configs, [config.provider]: config };
         const followed = this.followSavedTarget(this.getDefaultModel(), previous, config);
         const defaultModel = followed !== this.getDefaultModel() ? followed : this.credentials.defaultModel;
@@ -439,12 +456,50 @@ export class CredentialsManager {
     public setAiResponseLanguage(language: string): CredentialSaveResult {
         return this.saveCredentials({ aiResponseLanguage: language });
     }
+    /**
+     * Saves the primary model and its default reasoning together. A shared choice the new model still
+     * offers is kept; otherwise the provider default is saved and the result says so. An older pending
+     * per-model setting stays only while the primary model is unchanged.
+     */
     public setDefaultModel(model: string, codexConfig = DEFAULT_CODEX_SOURCE_CONFIG, fast = false): CredentialSaveResult {
         const backup = this.getGenerationPolicy().backupModel;
         if (backup && this.generationSelectionId(backup, codexConfig) === this.generationSelectionId(model, codexConfig, fast && isCodexSelection(model))) throw new Error('Primary and backup model must differ. Change the backup first.');
         if (isCodexSelection(model) && model.startsWith('codex-cli:')) validateCodexModel(model.slice(10));
-        if (!isCodexSelection(model)) this.resolveSelection(model);
-        return this.saveCredentials({ defaultModel: model });
+        const target = isCodexSelection(model) ? undefined : this.resolveSelection(model);
+        const saved = this.getSavedReasoning();
+        let answerReasoning: ReasoningChoice | undefined, warning: string | undefined;
+        if ('legacy' in saved) {
+            if (!target || !reasoningApplies(target, saved)) { answerReasoning = 'default'; warning = NOT_AVAILABLE_NOTICE; }
+        } else {
+            answerReasoning = target && target.provider !== 'gateway' && !reasoningApplies(target, saved.choice) ? 'default' : saved.choice;
+            if (answerReasoning !== saved.choice) warning = NOT_AVAILABLE_NOTICE;
+        }
+        const result = this.saveCredentials({ defaultModel: model, ...(answerReasoning ? { answerReasoning } : {}) });
+        return result.ok && warning ? { ...result, warning } : result;
+    }
+
+    /** The saved default reasoning; before one is saved, the saved primary model's older setting (S48 C4). */
+    public getSavedReasoning(): SavedReasoning {
+        const stored = this.credentials.answerReasoning;
+        if (stored !== undefined) return { choice: isReasoningChoice(stored) ? stored : 'default' };
+        const selection = this.getDefaultModel();
+        if (isCodexSelection(selection)) return { choice: 'default' };
+        let target: ModelTarget;
+        try { target = this.resolveSelection(selection); } catch { return { choice: 'default' }; }
+        if (target.provider === 'gateway') return { choice: 'default' };
+        return savedFromLegacy(target, candidateConfiguration(this.getProviderConfigurations()[target.provider], target.model)?.reasoning);
+    }
+
+    /** Saves the default reasoning for `expected`, which must still be the saved primary model. */
+    public setSavedReasoning(expected: unknown, choice: unknown): CredentialSaveResult {
+        if (typeof expected !== 'string' || !isReasoningChoice(choice)) throw new Error('Invalid reasoning setting');
+        const selection = this.getDefaultModel();
+        const current = this.comparableSelection(selection, this.getProviderConfigurations(), this.getGateways());
+        if (expected !== current) return { ok: false, code: 'write_failed', message: 'The primary model changed. Choose the reasoning level again.' };
+        const target = isCodexSelection(selection) ? undefined : this.resolveSelection(selection);
+        if (!target || target.provider === 'gateway') return { ok: false, code: 'write_failed', message: 'This answer model sets reasoning in its own configuration.' };
+        if (!reasoningApplies(target, choice)) throw new Error('This reasoning level is not available for the selected model.');
+        return this.saveCredentials({ answerReasoning: choice });
     }
 
     public getPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek'): string | undefined {
@@ -452,8 +507,12 @@ export class CredentialsManager {
         return this.credentials[key] as string | undefined;
     }
 
-    public setPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string): CredentialSaveResult {
-        return this.setProviderConfiguration({ ...this.getProviderConfigurations()[provider], model: modelId });
+    /** Replaces the provider's first candidate; a model that is already a candidate keeps its own settings, others start with none. */
+    public setPreferredModel(provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string, running: string[] = []): CredentialSaveResult {
+        const config = this.getProviderConfigurations()[provider];
+        const candidates = providerCandidates(config);
+        const chosen = candidates.find(candidate => candidate.model === modelId) ?? { model: modelId };
+        return this.setProviderConfiguration(withCandidates(config, [chosen, ...candidates.slice(1).filter(candidate => candidate.model !== modelId)]), running);
     }
 
     public getLoadStatus(): CredentialLoadStatus {
