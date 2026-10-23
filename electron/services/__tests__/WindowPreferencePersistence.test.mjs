@@ -7,6 +7,8 @@ import ts from 'typescript';
 
 const root = path.resolve(import.meta.dirname, '../../..');
 const plain = value => JSON.parse(JSON.stringify(value));
+// SettingsManager joins its file name with the same path module the fixture injects.
+const SETTINGS_FILE = path.join('/synthetic', 'settings.json');
 function load(relative, imports, globals = {}) {
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, relative), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText,
@@ -41,15 +43,15 @@ function keysFixture(storage = disk()) {
 
 for (const failure of ['write', 'rename']) test(`AG61: ${failure} failure preserves protection/disguise memory and disk across restart`, () => {
   const initial = JSON.stringify({ isUndetectable: false, disguiseMode: 'terminal', verboseLogging: true });
-  const storage = disk({ '/synthetic/settings.json': initial }); const manager = settingsFixture(storage);
+  const storage = disk({ [SETTINGS_FILE]: initial }); const manager = settingsFixture(storage);
   storage.fail(failure);
   assert.throws(() => manager.saveWindowPreference('isUndetectable', true));
   assert.throws(() => manager.saveWindowPreference('disguiseMode', 'activity'));
   assert.equal(manager.get('isUndetectable'), false); assert.equal(manager.get('disguiseMode'), 'terminal');
-  assert.equal(storage.files.get('/synthetic/settings.json'), initial); assert.equal(storage.files.size, 1);
+  assert.equal(storage.files.get(SETTINGS_FILE), initial); assert.equal(storage.files.size, 1);
   const restarted = settingsFixture(storage); assert.equal(restarted.get('disguiseMode'), 'terminal');
   storage.fail(undefined); manager.saveWindowPreference('disguiseMode', 'activity');
-  assert.deepEqual(JSON.parse(storage.files.get('/synthetic/settings.json')), { isUndetectable: false, disguiseMode: 'activity', verboseLogging: true });
+  assert.deepEqual(JSON.parse(storage.files.get(SETTINGS_FILE)), { isUndetectable: false, disguiseMode: 'activity', verboseLogging: true });
   assert.equal(settingsFixture(storage).get('disguiseMode'), 'activity');
   assert.equal(storage.writes.find(write => write[0] === 'write')[1].flag, 'wx');
 });

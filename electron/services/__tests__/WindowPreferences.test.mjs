@@ -8,6 +8,8 @@ import ts from 'typescript';
 const root = path.resolve(import.meta.dirname, '../../..');
 const quiet = { log() {}, warn() {}, error() {} };
 const plain = value => JSON.parse(JSON.stringify(value));
+// Disguise icons are joined with the path module the fixture injects, under the app path.
+const fakeIcon = (...parts) => path.join('/synthetic', 'assets', 'fakeicon', ...parts);
 export function evaluate(source, globals = {}, imports = {}) {
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText,
@@ -170,7 +172,7 @@ test('AG61: disguise apply failure retains the saved preference and advertises a
   assert.equal(result.code, 'apply_failed'); assert.equal(result.value, 'terminal'); assert.equal(f.state.getDisguise(), 'terminal');
   f.app.setName = () => {};
   assert.equal(f.state.setDisguise('terminal').success, true);
-  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value.endsWith('/assets/fakeicon/mac/terminal.png')));
+  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value === fakeIcon('mac', 'terminal.png')));
 });
 
 test('AG61: protected cold startup keeps disguise saved and disabling protection restores its app name and icon', async () => {
@@ -179,7 +181,7 @@ test('AG61: protected cold startup keeps disguise saved and disabling protection
   assert.equal(f.identities.some(([kind]) => kind === 'name' || kind === 'dock.icon'), false);
   const pending = f.state.setUndetectable(false); await f.flush(); assert.equal((await pending).success, true);
   assert.ok(f.identities.some(([kind, value]) => kind === 'name' && value === 'System Settings '));
-  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value.endsWith('/assets/fakeicon/mac/settings.png')));
+  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value === fakeIcon('mac', 'settings.png')));
 });
 
 test('AG61: Windows disguise applies title and existing icon to each current window kind', () => {
@@ -190,7 +192,7 @@ test('AG61: Windows disguise applies title and existing icon to each current win
   f.helper.getSettingsWindow = () => windows[2]; f.helper.getWindow = () => windows[3]; f.state.cropperWindowHelper.getWindow = () => windows[4];
   assert.equal(f.state.setDisguise('activity').success, true);
   for (const name of ['launcher', 'overlay', 'settings', 'selector', 'cropper']) {
-    assert.ok(identities.some(([kind, action, value]) => kind === name && action === 'icon' && value.endsWith('/assets/fakeicon/win/activity.png')));
+    assert.ok(identities.some(([kind, action, value]) => kind === name && action === 'icon' && value === fakeIcon('win', 'activity.png')));
     assert.ok(identities.some(([kind, action, value]) => kind === name && action === 'title' && value === 'Task Manager'));
   }
 });

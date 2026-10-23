@@ -596,6 +596,7 @@
     {"line":"win.showInactive();","reason":"AG-72 (2026-10-23): WindowHelper.showLauncherForSettings, written for this branch; keeps the previous inactive show of the settings:open-tab handler. Generic Electron BrowserWindow call."},
     {"line":"systemPreferences: { getMediaAccessStatus: () => 'granted' },","reason":"AG-72 (2026-10-23): ScreenshotDisplayCapture.test.mjs, written for this branch; stub of the Electron systemPreferences call that ScreenshotHelper's permission check makes. Generic test stub."},
     {"line":"desktopCapturer: {","reason":"AG-72 (2026-10-23): ScreenshotDisplayCapture.test.mjs, written for this branch; opens the stubbed Electron desktopCapturer module. Generic object key."},
-    {"line":"return resolved;","reason":"AG-72 (2026-10-23): validateImagePath.test.mjs fake NTFS realpath, written for this branch; returns the junction-resolved path. Generic return statement."}
+    {"line":"return resolved;","reason":"AG-72 (2026-10-23): validateImagePath.test.mjs fake NTFS realpath, written for this branch; returns the junction-resolved path. Generic return statement."},
+    {"line":"const w = path.win32;","reason":"AG-72 Mac CI 40028031348 (2026-10-23): validateImagePath.test.mjs:94, first line of the fake NTFS host windowsHost() written for this branch (uncommitted AG-72, public f02abb05); short alias for Node's path.win32 namespace. Not in the local 664426-key pool; flagged only by the CI pool of 679512 keys."}
   ]
 }
