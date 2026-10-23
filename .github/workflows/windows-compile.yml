@@ -4,8 +4,12 @@
 # uses no private-repository minutes. It checks that the
 # platform-branch code still builds on Windows x64 (type checks, renderer, Electron
 # main process) and that the native module compiles with MSVC through the WASAPI
-# branch. It runs no tests, packages nothing, uses no secrets
-# and uploads only its logs and build record.
+# branch. Since AG-71 it also runs the checks that need no audio device on that
+# runner: the WASAPI loopback helper's unit tests, loading the built native module in
+# Node, and the audio lifecycle and Windows isolation tests under the isolation guard
+# (native audio is replaced by the guard's device double). It packages nothing, uses
+# no secrets and uploads only its logs and build record. Passing here is not a
+# Windows 10/11 device test: nothing captures real audio.
 name: Windows compile
 
 on:
@@ -56,6 +60,30 @@ jobs:
         run: |
           set -o pipefail
           node scripts/build-native.js 2>&1 | tee "$RUNNER_TEMP/windows-compile/build-native.log"
+
+      - name: Native unit tests that need no device (WASAPI loopback helper, capture tail order)
+        run: |
+          set -o pipefail
+          cd native-module
+          for src in src/speaker/loopback.rs src/capture_tail.rs; do
+            name=$(basename "$src" .rs)
+            rustc --edition 2021 --test -D warnings "$src" -o "$RUNNER_TEMP/windows-compile/$name-tests.exe" 2>&1 | tee "$RUNNER_TEMP/windows-compile/$name-tests.log"
+            "$RUNNER_TEMP/windows-compile/$name-tests.exe" 2>&1 | tee -a "$RUNNER_TEMP/windows-compile/$name-tests.log"
+          done
+
+      # Loads index.win32-x64-msvc.node in Node and runs the mock lifecycle tests. The
+      # guard redirects USERPROFILE/APPDATA/TEMP into a sandbox and wraps the audio
+      # module so no device is enumerated or opened. Loading the module is recorded as
+      # a device stand-in, so that one file runs with --allow-blocked, as in the
+      # guard-selftest gate step; every other test runs with any block failing it.
+      - name: Native load, audio lifecycle and isolation tests
+        run: |
+          set -o pipefail
+          node scripts/margin/isolation/run-node.mjs --allow-blocked --test \
+            scripts/margin/isolation/__tests__/native-exports.node.test.mjs 2>&1 | tee "$RUNNER_TEMP/windows-compile/native-load.log"
+          node scripts/margin/isolation/run-node.mjs --test \
+            scripts/margin/isolation/__tests__/windows-isolation.node.test.mjs \
+            'electron/audio/__tests__/*.test.mjs' 2>&1 | tee "$RUNNER_TEMP/windows-compile/node-tests.log"
 
       - name: Record the build
         if: always()

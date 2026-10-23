@@ -87,7 +87,12 @@ export class SystemAudioCapture extends EventEmitter {
                 // napi v3 ThreadsafeFunction passes (err, arg) format
                 if (err) {
                     console.error('[SystemAudioCapture] Callback error:', err);
-                    this.isRecording = false; // Allow recovery via restart
+                    // The native capture has failed (WASAPI endpoint lost, init
+                    // failure). Release it through the normal deferred teardown:
+                    // only flipping isRecording would turn the caller's later
+                    // stop()/destroy() into a no-op and leave the native thread
+                    // alive until GC. A restart then lazily builds a fresh monitor.
+                    void this.stop();
                     this.emit('error', err);
                     return;
                 }

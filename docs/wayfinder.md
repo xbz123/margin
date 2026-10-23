@@ -6,9 +6,11 @@
 
 **Current answer:** 截至 2026-10-23，S47–S49 多模型候选、统一推理控件及官方能力/列表范围已独立验收，公开 CI 39935532703 通过；同源 Natively Local `9247cc19` 已安装，含此前 S46/UI/清理。包/安装各 12/12、隔离启动 10/10，用户数据及旧 Margin 保留；[交付与安装记录](margin/evidence/S49/README.md)。Agent 未用真实配置启动新版，实机签收未完成。
 
-**Current focus:** 用户先验证模型列表、多候选切换、默认/会中推理及图片输入，再继续 S46 截图解题和阶段 6 实机复测：确定测试组合（D2），按[清单](margin/STAGE6-CHECKLIST.md)验证真实服务/设备和共享；安装不代替实机签收。正式 Margin 名称及权限列表显示、最终图标在发布前核查，Windows 后置。
+**Current focus:** 本分支执行用户新授权的 Windows 10/11 x64 对等开发，Claude 实施、Codex 独立验收，从 AG-71 开始逐票推进；Mac 在原工作树继续阶段 6 用户实测。正式身份、图标、签名和发布分别等待，开发完成不等于实机或发布验收。
 
 ## Waiting
+
+- **Windows AG-71** — 两项P2独立复验关闭，本地整改/门禁通过；等待目标平台CI与实机安排，双平台新原生编译仍缺证据，未放行AG-72/73；resume：[独立复验](margin/evidence/AG-71/independent-review.md)、[开发计划](margin/WINDOWS-DEVELOPMENT.md)。
 
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
@@ -19,7 +21,7 @@
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标参考旧 Margin、简洁，具体图形及真实服务预算待定；D2 与发布仍按授权范围；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受，README 只录实测。
-- **阶段 7** — Windows（AG-71–73）后置；AG-74 先 Mac，等 AG-62。D7 已定 Mac M 系列/Windows x64；D6 未购买、后续处理，见 [Spec](product.md#open-questions)。
+- **Windows AG-72/73 与发布** — 等 AG-71 独立验收；Win10 最低版本/运行证据、Win11 实测组合待补，AG-74/75 另行授权；见 [Windows 计划](margin/WINDOWS-DEVELOPMENT.md)。
 
 ## Watching
 

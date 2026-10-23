@@ -1421,6 +1421,8 @@ node scripts/margin/isolation/run-node.mjs --test --test-timeout=15000 electron/
 
 ### 阶段 7：Windows 与双平台发布（概要，S30）
 
+**2026-10-23 执行更新（覆盖 S33/S41 的开发后置，不改变发布授权）**：用户允许 Windows 在 Mac 实机验收期间提前开发，确认 Windows 10/11 x64、已有 Win11 实机，并允许新建分支。现用 `codex/windows-parity` 独立工作树，从 `db992097` 起，Claude 串行实施、Codex 独立验收；入口 [Windows 开发计划](WINDOWS-DEVELOPMENT.md)。AG-71 当前放行，AG-72/73 逐票等待验收；下表“推迟”为历史状态，执行状态以新计划为准。正式发布仍先 Mac 后 Windows，AG-74/75 未在本轮放行。
+
 | ID | 内容 | 依赖 |
 | --- | --- | --- |
 | AG-70 | Windows 编译检查：手动触发的 `windows-compile.yml`，在 Windows x64 上跑类型检查、Electron 主进程和 renderer 构建，用 MSVC 编译原生模块，只上传日志和 BUILD-INFO。首次运行 38087756944 通过；S31 起在推送迁移分支时自动运行（只在公开仓库），作为每票门禁的一部分；S33 起改回只手动触发，不再是门禁 | 无（S30 第 5 条） |

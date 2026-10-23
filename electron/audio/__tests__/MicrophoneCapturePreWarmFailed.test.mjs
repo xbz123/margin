@@ -21,12 +21,15 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import Module from 'node:module';
+import Module, { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distRoot = path.resolve(__dirname, '../../../dist-electron/electron/audio');
+// require() takes a plain file path on every platform; ESM import() would need a
+// file: URL, since a Windows drive letter reads as a URL scheme.
+const loadDist = (file) => createRequire(import.meta.url)(path.join(distRoot, file));
 
 // Per-test bookkeeping. The MicrophoneCapture native constructor consults this
 // counter and throws on call #2.
@@ -90,7 +93,7 @@ Module._load = function patchedLoad(request, parent, isMain) {
     return origLoad.apply(this, arguments);
 };
 
-const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));
+const { MicrophoneCapture } = loadDist('MicrophoneCapture.js');
 
 // stop()'s deferred work runs inside `setImmediate`. We flush by awaiting one
 // setImmediate of our own — Node's immediate queue is FIFO so ours runs after
