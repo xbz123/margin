@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Check } from 'lucide-react';
 import { useI18n } from '../../i18n';
+import { eventToKeys } from '../../utils/keyboardUtils';
 
 interface KeyRecorderProps {
     currentKeys: string[];
@@ -12,6 +13,7 @@ export const KeyRecorder: React.FC<KeyRecorderProps> = ({ currentKeys, onSave, c
     const { t } = useI18n();
     const [isRecording, setIsRecording] = useState(false);
     const [recordedKeys, setRecordedKeys] = useState<string[]>([]);
+    const [notice, setNotice] = useState('');
     const inputRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -25,45 +27,25 @@ export const KeyRecorder: React.FC<KeyRecorderProps> = ({ currentKeys, onSave, c
         e.preventDefault();
         e.stopPropagation();
 
-        const key = e.key;
-        const code = e.code;
-        const meta = e.metaKey;
-        const ctrl = e.ctrlKey;
-        const alt = e.altKey;
-        const shift = e.shiftKey;
-
-        // Ignore modifier key presses alone if possible, but we need to show them
-        const modifiers = [];
-        if (meta) modifiers.push('⌘');
-        if (ctrl) modifiers.push('⌃');
-        if (alt) modifiers.push('⌥');
-        if (shift) modifiers.push('⇧');
-
-        let mainKey = '';
-        if (key !== 'Meta' && key !== 'Control' && key !== 'Alt' && key !== 'Shift') {
-            if (code.startsWith('Key')) mainKey = key.toUpperCase();
-            else if (code.startsWith('Digit')) mainKey = key;
-            else if (code === 'Space') mainKey = 'Space';
-            else if (key === 'Enter') mainKey = 'Enter';
-            else if (key === 'Backspace') mainKey = 'Backspace';
-            else if (key.startsWith('Arrow')) mainKey = key;
-            else mainKey = key.toUpperCase();
-        }
-
-        if (mainKey) {
-            setRecordedKeys([...modifiers, mainKey]);
+        const recorded = eventToKeys(e);
+        if ('rejected' in recorded) {
+            setRecordedKeys([]);
             setIsRecording(false);
-            onSave([...modifiers, mainKey]);
+            setNotice(t('Windows key shortcuts are reserved by Windows'));
+        } else if (recorded.complete) {
+            setRecordedKeys(recorded.keys);
+            setIsRecording(false);
+            onSave(recorded.keys);
         } else {
             // Just modifiers pressed so far
-            setRecordedKeys([...modifiers]);
+            setRecordedKeys(recorded.keys);
         }
     };
 
     return (
         <div
             className={`relative flex items-center gap-1.5 group ${className || ''}`}
-            onClick={() => setIsRecording(true)}
+            onClick={() => { setNotice(''); setIsRecording(true); }}
         >
             {isRecording ? (
                 <div
@@ -90,6 +72,7 @@ export const KeyRecorder: React.FC<KeyRecorderProps> = ({ currentKeys, onSave, c
                             </span>
                         );
                     })}
+                    {notice && <span role="status" className="text-xs text-text-tertiary">{notice}</span>}
                 </div>
             )}
         </div>

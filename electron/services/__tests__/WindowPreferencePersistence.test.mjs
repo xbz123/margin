@@ -114,3 +114,23 @@ test('AG61: healthy OS registrations do not clear a failed menu or update applic
     assert.equal(f.manager.setKeybind('general:toggle-visibility', 'Control+Y').success, true);
   }
 });
+
+test('AG72: the recorder rejects the Windows key on Windows and keeps macOS and Linux recordings unchanged', () => {
+  const recorder = (isMac, isWindows) => load('src/utils/keyboardUtils.ts', { './platformUtils': { isMac, isWindows, getModifierSymbol: key => key } });
+  const press = (key, code, mods = {}) => ({ key, code, metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, ...mods });
+  const windows = recorder(false, true), mac = recorder(true, false), linux = recorder(false, false);
+  for (const event of [press('k', 'KeyK', { metaKey: true, shiftKey: true }), press('k', 'KeyK', { metaKey: true, ctrlKey: true }), press('Meta', 'MetaLeft', { metaKey: true })]) {
+    assert.deepEqual(plain(windows.eventToKeys(event)), { rejected: 'windows-key' });
+  }
+  assert.deepEqual(plain(windows.eventToKeys(press('k', 'KeyK', { ctrlKey: true, shiftKey: true }))), { keys: ['⌃', '⇧', 'K'], complete: true });
+  assert.equal(windows.keysToAccelerator(['⌃', '⇧', 'K']), 'CommandOrControl+Shift+K');
+  assert.deepEqual(plain(windows.eventToKeys(press('Control', 'ControlLeft', { ctrlKey: true }))), { keys: ['⌃'], complete: false });
+  assert.deepEqual(plain(mac.eventToKeys(press('k', 'KeyK', { metaKey: true, shiftKey: true }))), { keys: ['⌘', '⇧', 'K'], complete: true });
+  assert.equal(mac.keysToAccelerator(['⌘', '⇧', 'K']), 'CommandOrControl+Shift+K');
+  assert.deepEqual(plain(mac.eventToKeys(press('ArrowUp', 'ArrowUp', { metaKey: true, ctrlKey: true, altKey: true }))), { keys: ['⌘', '⌃', '⌥', 'ArrowUp'], complete: true });
+  assert.deepEqual(plain(mac.eventToKeys(press(' ', 'Space', { metaKey: true }))), { keys: ['⌘', 'Space'], complete: true });
+  assert.deepEqual(plain(mac.eventToKeys(press('1', 'Digit1', { metaKey: true }))), { keys: ['⌘', '1'], complete: true });
+  assert.deepEqual(plain(mac.eventToKeys(press('?', 'Slash', { metaKey: true, shiftKey: true }))), { keys: ['⌘', '⇧', '?'], complete: true });
+  // Linux keeps its previous recording of the Super key (outside AG-72).
+  assert.deepEqual(plain(linux.eventToKeys(press('k', 'KeyK', { metaKey: true }))), { keys: ['⌘', 'K'], complete: true });
+});

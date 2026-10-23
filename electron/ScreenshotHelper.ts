@@ -422,9 +422,13 @@ export class ScreenshotHelper {
     
     const { scaleFactor } = targetDisplay;
     const displayBounds = targetDisplay.bounds;
-    
+    // Electron does not guarantee the thumbnail size ("the actual size depends on
+    // the scale of the screen"). On Windows, asking for the DIP bounds can lose
+    // resolution at 125%/150% and a scaleFactor crop would then miss the selection.
+    const windows = process.platform === 'win32';
+
     console.log(`[ScreenshotHelper] Target display bounds: ${JSON.stringify(displayBounds)}, scale: ${scaleFactor}`);
-    
+
     let sources: Electron.DesktopCapturerSource[];
 
     try {
@@ -434,10 +438,10 @@ export class ScreenshotHelper {
       // decode a 2×–3× larger texture (e.g. 5120×3200 on a Retina 2× display)
       // in a blocking main-thread call, adding 50–200ms of latency with zero
       // image-quality benefit since we immediately write the result to PNG.
-      const thumbnailSize = {
-        width: displayBounds.width,
-        height: displayBounds.height
-      };
+      // Windows requests the native size, as the multi-display path does.
+      const thumbnailSize = windows
+        ? { width: Math.round(displayBounds.width * scaleFactor), height: Math.round(displayBounds.height * scaleFactor) }
+        : { width: displayBounds.width, height: displayBounds.height };
 
       sources = await desktopCapturer.getSources({
         types: ['screen'],
@@ -502,14 +506,19 @@ export class ScreenshotHelper {
       // Crop rect: area is in absolute screen coordinates. The returned thumbnail
       // is in native device pixels (Electron scales it up internally), so we
       // must apply scaleFactor to map from logical screen coords to pixel coords.
-      const cropX = Math.round((area.x - displayBounds.x) * scaleFactor);
-      const cropY = Math.round((area.y - displayBounds.y) * scaleFactor);
+      // On Windows the thumbnail size is not guaranteed, so map through the
+      // measured thumbnail/bounds ratio instead, as the multi-display path does.
+      const { width: thumbWidth, height: thumbHeight } = image.getSize();
+      const ratioX = windows && displayBounds.width > 0 ? thumbWidth / displayBounds.width : scaleFactor;
+      const ratioY = windows && displayBounds.height > 0 ? thumbHeight / displayBounds.height : scaleFactor;
+      const cropX = Math.round((area.x - displayBounds.x) * ratioX);
+      const cropY = Math.round((area.y - displayBounds.y) * ratioY);
 
       const croppedArea = {
         x: Math.max(0, cropX),
         y: Math.max(0, cropY),
-        width: Math.round(area.width * scaleFactor),
-        height: Math.round(area.height * scaleFactor)
+        width: Math.round(area.width * ratioX),
+        height: Math.round(area.height * ratioY)
       };
       
       console.log(`[ScreenshotHelper] Cropping relative to display: ${JSON.stringify(croppedArea)}`);
@@ -586,7 +595,7 @@ export class ScreenshotHelper {
     if (process.platform === 'darwin') {
       await this.captureWithDesktopCapturer(screenshotPath, undefined, preferredDisplay);
     } else if (process.platform === 'win32') {
-      await this.captureWithDesktopCapturer(screenshotPath);
+      await this.captureWithDesktopCapturer(screenshotPath, undefined, preferredDisplay);
     } else {
       await shellExecAsync(this.getScreenshotCommand(screenshotPath, false))
     }
