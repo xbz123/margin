@@ -145,16 +145,26 @@ const SAFE_BINARIES = new Set(['node', path.basename(process.execPath), 'echo', 
 const LOCAL_TOOLS = new Set(['defaults', 'lsof']);
 const SYSTEM_DIRS = new Set(['/bin', '/usr/bin']);
 // A command that cannot be found would fail with ENOENT anyway; letting it through
-// keeps tests that expect that failure honest without running anything.
-function resolvable(file) {
-  if (file.includes('/')) return fs.existsSync(path.resolve(file));
-  return (process.env.PATH || '').split(path.delimiter).some((d) => d && fs.existsSync(path.join(d, file)));
+// keeps tests that expect that failure honest without running anything. Windows
+// finds `curl` as curl.exe (libuv tries .com/.exe, a shell any PATHEXT entry), so a
+// bare name is resolvable there if any such file exists; backslash also separates.
+function hasDir(file, platform = process.platform) {
+  return file.includes('/') || (platform === 'win32' && file.includes('\\'));
+}
+function resolvable(file, { platform = process.platform, env = process.env, exists = fs.existsSync } = {}) {
+  const p = platform === 'win32' ? path.win32 : path;
+  const exts = platform === 'win32'
+    ? ['', '.com', '.exe', ...String(env.PATHEXT || '').split(';').map((e) => e.toLowerCase()).filter(Boolean)]
+    : [''];
+  const candidates = (base) => [...new Set(exts)].some((ext) => exists(base + ext));
+  if (hasDir(file, platform)) return candidates(p.resolve(file));
+  return String(env.PATH || env.Path || '').split(p.delimiter).some((d) => d && candidates(p.join(d, file)));
 }
 function allowedCommand(cmd) {
   const file = String(cmd || '');
   if (!resolvable(file)) return true;
   if (ALLOW_EXEC.has(path.basename(file))) return true;
-  if (file.includes('/')) {
+  if (hasDir(file)) {
     const abs = path.resolve(file);
     if (abs === process.execPath) return true;
     if (SAFE_BINARIES.has(path.basename(abs)) && SYSTEM_DIRS.has(path.dirname(abs))) return true;
@@ -336,7 +346,7 @@ function installChromiumGuard(electron) {
   // Electron's own net module uses Chromium sessions, so it is covered above.
 }
 
-module.exports = { installChromiumGuard };
+module.exports = { installChromiumGuard, resolvable };
 
 process.env.MARGIN_ISOLATION_ACTIVE = '1';
 

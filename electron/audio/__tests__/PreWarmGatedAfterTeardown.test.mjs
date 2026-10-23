@@ -33,12 +33,15 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import Module from 'node:module';
+import Module, { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distRoot = path.resolve(__dirname, '../../../dist-electron/electron/audio');
+// require() takes a plain file path on every platform; ESM import() would need a
+// file: URL, since a Windows drive letter reads as a URL scheme.
+const loadDist = (file) => createRequire(import.meta.url)(path.join(distRoot, file));
 
 let micConstructorCalls = 0;
 function makeFakeMic() {
@@ -78,7 +81,7 @@ Module._load = function patched(request, _parent, _isMain) {
     return origLoad.apply(this, arguments);
 };
 
-const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));
+const { MicrophoneCapture } = loadDist('MicrophoneCapture.js');
 
 // Helper: wait for a microtask + setImmediate cycle so the
 // teardownPromise.then() chained pre-warm gets a chance to run.

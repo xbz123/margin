@@ -15,6 +15,10 @@ pub use macos::SpeakerStream;
 #[cfg(target_os = "macos")]
 pub use sck::default_output_device_uid;
 
+// Built for tests on every host; only the WASAPI backend uses it outside tests.
+#[cfg(any(target_os = "windows", test))]
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+mod loopback;
 #[cfg(target_os = "windows")]
 pub mod windows;
 #[cfg(target_os = "windows")]
@@ -25,6 +29,18 @@ pub use windows::SpeakerInput;
 pub use windows::SpeakerStream;
 #[cfg(target_os = "windows")]
 pub use windows::default_output_device_uid;
+
+/// The failure a platform capture thread published after it stopped and dropped its
+/// ring producer (WASAPI loopback only); see capture_tail.rs. Other backends report
+/// errors through their own paths.
+#[cfg(target_os = "windows")]
+pub fn take_producer_error(stream: &SpeakerStream) -> Option<String> {
+    stream.take_error()
+}
+#[cfg(not(target_os = "windows"))]
+pub fn take_producer_error(_stream: &SpeakerStream) -> Option<String> {
+    None
+}
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 pub mod fallback {

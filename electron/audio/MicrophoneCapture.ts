@@ -98,7 +98,14 @@ export class MicrophoneCapture extends EventEmitter {
                 // napi v3 ThreadsafeFunction passes (err, arg) format
                 if (err) {
                     console.error('[MicrophoneCapture] Callback error:', err);
-                    this.isRecording = false; // Allow recovery via restart
+                    // The device reported an error (unplugged, reset, exclusive-mode
+                    // steal). Release the native stream through the normal deferred
+                    // teardown — only flipping isRecording would turn the caller's
+                    // later stop()/destroy() into a no-op and leave the DSP thread
+                    // running. Do not pre-warm the failed device: the pipeline
+                    // replaces this wrapper, and a restart builds a fresh monitor.
+                    this.preWarmEnabled = false;
+                    void this.stop();
                     this.emit('error', err);
                     return;
                 }

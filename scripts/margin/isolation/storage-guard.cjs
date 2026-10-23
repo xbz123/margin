@@ -15,6 +15,9 @@ function installStorageGuard(identity, sandboxHome, blockedError) {
     for (const name of names) {
       if (synthetic && name.toLowerCase() === identity.name.toLowerCase()) continue;
       roots.push(path.join(home, 'Library/Application Support', name), path.join(home, 'Library/Logs', name));
+      // Electron's Windows appData/userData. Not AppData\Local: its Temp holds the
+      // sandbox itself, and "temp" is one of the protected legacy names.
+      if (process.platform === 'win32') roots.push(path.join(home, 'AppData', 'Roaming', name));
     }
     for (const id of ['io.github.xbz123.margin', 'io.github.xbz123.temp', 'local.natively.desktop', 'com.electron.meeting-notes']) {
       if (synthetic && id === identity.appId) continue;

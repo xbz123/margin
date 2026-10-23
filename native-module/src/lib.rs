@@ -13,6 +13,7 @@ use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 use ringbuf::traits::Consumer;
 
 pub mod audio_config;
+mod capture_tail;
 pub mod microphone;
 pub mod silence_suppression;
 pub mod speaker;
@@ -245,10 +246,18 @@ impl SystemAudioCapture {
                     break;
                 }
 
-                // Drain ALL available samples from ring buffer (lock-free)
-                while let Some(sample) = consumer.try_pop() {
-                    raw_batch.push(sample);
-                }
+                // Drain ALL available samples from ring buffer (lock-free). A failed
+                // WASAPI capture thread's error is read BEFORE the drain, so this
+                // drain holds everything it pushed (capture_tail.rs).
+                let producer_failed = capture_tail::failure_then_drain(
+                    || speaker::take_producer_error(&stream),
+                    |batch| {
+                        while let Some(sample) = consumer.try_pop() {
+                            batch.push(sample);
+                        }
+                    },
+                    &mut raw_batch,
+                );
 
                 // Convert f32 -> i16 at native sample rate
                 if !raw_batch.is_empty() {
@@ -291,6 +300,21 @@ impl SystemAudioCapture {
                             se_tsfn.call(Ok(true), ThreadsafeFunctionCallMode::NonBlocking);
                         }
                     }
+                }
+
+                // A WASAPI capture thread that lost its endpoint has stopped. Every
+                // sample it pushed went through the gate above; flush the batch, then
+                // report once and end, so JS rebuilds the capture instead of waiting on
+                // a stream that will never resume. As on stop, a trailing partial frame
+                // (under 20 ms, not yet gated) is dropped, not padded.
+                if let Some(e) = producer_failed {
+                    emitter.flush(&tsfn);
+                    eprintln!("[SystemAudioCapture] WASAPI capture stopped");
+                    tsfn.call(
+                        Err(napi::Error::from_reason(format!("[SystemAudioCapture] {}", e))),
+                        ThreadsafeFunctionCallMode::NonBlocking,
+                    );
+                    break;
                 }
 
                 // Flush partial batch on timeout so trailing speech in light
