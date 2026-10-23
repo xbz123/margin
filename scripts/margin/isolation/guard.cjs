@@ -152,7 +152,9 @@ function hasDir(file, platform = process.platform) {
   return file.includes('/') || (platform === 'win32' && file.includes('\\'));
 }
 function resolvable(file, { platform = process.platform, env = process.env, exists = fs.existsSync } = {}) {
-  const p = platform === 'win32' ? path.win32 : path;
+  // Use the requested platform's path rules, not the host's: on a Windows host the
+  // default `path` is path.win32 and would misjoin an injected POSIX lookup.
+  const p = platform === 'win32' ? path.win32 : path.posix;
   const exts = platform === 'win32'
     ? ['', '.com', '.exe', ...String(env.PATHEXT || '').split(';').map((e) => e.toLowerCase()).filter(Boolean)]
     : [''];
