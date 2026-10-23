@@ -442,7 +442,7 @@ test('S45 gateway error bodies never escape the generation boundary after retry 
   assert.equal(observed.length, 4, 'authentication errors are not retried');
 });
 
-test('S44 a backup uses its own target settings, and official endpoints accept only documented values', async () => {
+test('S44 a backup uses its own target settings; S48 official reasoning is not taken per model', async () => {
   const observed = [];
   await serve(async (req, res) => {
     let body = ''; for await (const part of req) body += part;
@@ -459,22 +459,15 @@ test('S44 a backup uses its own target settings, and official endpoints accept o
     assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
     assert.deepEqual(observed.map(row => [row.body.model, row.body.reasoning_effort, row.body.output_config?.effort]), [['primary', 'high', undefined], ['backup', undefined, 'low']]);
   });
+  // S48: an official configuration's older reasoning is read for compatibility only; it is never applied or offered per model.
   const official = (provider, protocol, model, reasoning) => targetApi.validateProviderConfiguration({ provider, protocol, model, reasoning });
-  assert.deepEqual(official('openai', 'responses', 'gpt-5.4', { effort: 'none' }).reasoning, { effort: 'none' });
-  assert.throws(() => official('openai', 'responses', 'gpt-5.4', { effort: 'max' }), /not available/);
-  assert.throws(() => official('claude', 'messages', 'claude-sonnet-4-6', { effort: 'xhigh' }), /not available/);
-  assert.deepEqual(official('claude', 'messages', 'claude-sonnet-4-6', { thinking: 'disabled', effort: 'low' }).reasoning, { thinking: 'disabled', effort: 'low' });
-  assert.throws(() => official('groq', 'chat-completions', 'llama-3.3-70b-versatile', { effort: 'low' }), /not available/);
-  assert.deepEqual(official('groq', 'chat-completions', 'openai/gpt-oss-120b', { effort: 'high' }).reasoning, { effort: 'high' });
-  assert.deepEqual(official('deepseek', 'chat-completions', 'deepseek-v4-flash', { thinking: 'disabled' }).reasoning, { thinking: 'disabled' });
-  assert.throws(() => official('deepseek', 'chat-completions', 'deepseek-v4-flash', { thinking: 'disabled', effort: 'high' }), /thinking enabled/);
-  assert.throws(() => official('deepseek', 'chat-completions', 'deepseek-v4-flash', { effort: 'medium' }), /not available/);
-  assert.throws(() => official('gemini', 'gemini', 'gemini-3.1-pro-preview', { effort: 'minimal' }), /not available/);
+  assert.deepEqual(official('openai', 'responses', 'gpt-5.4', { effort: 'max' }).reasoning, { effort: 'max' });
+  for (const reasoning of [{ effort: 7 }, { budget: 1024 }, 'high', []]) assert.throws(() => official('openai', 'responses', 'gpt-5.4', reasoning), /Invalid reasoning/);
+  assert.equal('reasoning' in targetApi.resolveModelTarget('llm-target:openai:responses:gpt-5.4', { openai: { provider: 'openai', protocol: 'responses', model: 'gpt-5.4', reasoning: { effort: 'max' } } }), false);
   // A compatible gateway is limited to the protocol's own fields; vendor extensions are not assumed.
   assert.throws(() => targetApi.validateGatewayConfiguration(gatewayOf('gw-x', 'chat-completions', 'https://gateway.invalid/v1', { model: 'deepseek-v4-flash', reasoning: { thinking: 'enabled' } })), /not available/);
   assert.deepEqual(targetApi.validateGatewayConfiguration(gatewayOf('gw-x', 'chat-completions', 'https://gateway.invalid/v1', { model: 'gpt-5.4', reasoning: { effort: 'max' } })).reasoning, { effort: 'max' });
   // An official-looking gateway address is still a gateway: protocol values, unknown image support.
   const lookalike = gatewayOf('gw-lookalike', 'responses', 'https://api.openai.com/v1', { model: 'gpt-5.4', reasoning: { effort: 'minimal' } });
   assert.deepEqual(targetApi.validateGatewayConfiguration(lookalike).reasoning, { effort: 'minimal' });
-  assert.throws(() => official('openai', 'responses', 'gpt-5.4', { effort: 'minimal' }), /not available/);
 });

@@ -9,6 +9,12 @@ export interface ReasoningSetting {
   effort?: string;
   thinking?: 'adaptive' | 'enabled' | 'disabled';
 }
+/** One saved answer model of an official provider, with settings that apply to it alone. */
+export interface ModelSettings {
+  model: string;
+  reasoning?: ReasoningSetting;
+  imageSupportConfirmedFor?: string;
+}
 /** An official provider always uses its built-in address; custom addresses are gateways. */
 export interface ProviderConfiguration {
   provider: LlmProvider;
@@ -21,6 +27,8 @@ export interface ProviderConfiguration {
   reasoning?: ReasoningSetting;
   /** Gateways only. Informational; requests are never refused or trimmed by it. */
   contextWindowTokens?: number;
+  /** Further saved answer candidates under the same key and protocol; the top-level model is the first. Omitted when there are none. */
+  models?: ModelSettings[];
 }
 /** A compatible gateway with its own identity and key; it never borrows an official provider slot. */
 export interface GatewayConfiguration {
@@ -44,12 +52,34 @@ export interface GatewayConfigurationSave extends Omit<GatewayConfiguration, 'id
 export interface GatewaySummary extends GatewayConfiguration { hasKey: boolean }
 
 export const LLM_PRESETS: Record<LlmProvider, ProviderConfiguration> = {
-  gemini: { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite-preview' },
+  gemini: { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite' },
   groq: { provider: 'groq', protocol: 'chat-completions', model: 'llama-3.3-70b-versatile' },
   openai: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4' },
   claude: { provider: 'claude', protocol: 'messages', model: 'claude-sonnet-4-6' },
   deepseek: { provider: 'deepseek', protocol: 'chat-completions', model: 'deepseek-v4-flash' },
 };
+
+/** Every saved candidate of an official provider, the top-level model first. */
+export function providerCandidates(config: ProviderConfiguration): ModelSettings[] {
+  const first: ModelSettings = { model: config.model, ...(config.reasoning ? { reasoning: config.reasoning } : {}),
+    ...(config.imageSupportConfirmedFor !== undefined ? { imageSupportConfirmedFor: config.imageSupportConfirmedFor } : {}) };
+  return [first, ...(config.models ?? [])];
+}
+
+/** One candidate as a single-model configuration carrying only its own settings; undefined when it is not saved. */
+export function candidateConfiguration(config: ProviderConfiguration, model: string): ProviderConfiguration | undefined {
+  const candidate = providerCandidates(config).find(item => item.model === model);
+  if (!candidate) return undefined;
+  const { models: _models, reasoning: _reasoning, imageSupportConfirmedFor: _image, model: _model, ...rest } = config;
+  return { ...rest, ...candidate };
+}
+
+/** The provider configuration holding exactly these candidates; the first becomes the top-level model. */
+export function withCandidates(config: ProviderConfiguration, candidates: ModelSettings[]): ProviderConfiguration {
+  const [first, ...others] = candidates;
+  const { models: _models, reasoning: _reasoning, imageSupportConfirmedFor: _image, model: _model, ...rest } = config;
+  return { ...rest, ...first, ...(others.length ? { models: others } : {}) };
+}
 
 export const GATEWAY_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 

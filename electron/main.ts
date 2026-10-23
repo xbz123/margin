@@ -301,6 +301,8 @@ interface ScreenshotCaptureSession {
 }
 
 import { CredentialsManager } from "./services/CredentialsManager"
+import { answerReasoningState } from "./llm/answerReasoning"
+import type { AnswerReasoningState } from "../src/types/answerReasoning"
 import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { SettingsManager } from "./services/SettingsManager"
 import { mainText } from "./services/mainStrings"
@@ -692,7 +694,7 @@ export class AppState {
 
   // 'model-changed' listeners: the overlay (NativelyInterface) and the model
   // selector window. Other windows do not show the active model.
-  public sendModelChanged(modelId: string): void {
+  public sendModelChanged(modelId: string, reasoningNotice?: string): void {
     const sent = new Set<number>();
     const sendOnce = (win: BrowserWindow | null | undefined) => {
       if (!win || sent.has(win.id)) return;
@@ -700,6 +702,26 @@ export class AppState {
     };
     sendOnce(this.windowHelper.getOverlayWindow());
     sendOnce(this.modelSelectorWindowHelper.getWindow());
+    // A model change can change which reasoning levels apply.
+    this.broadcastAnswerReasoning(reasoningNotice);
+  }
+
+  /** Saved default and session reasoning as the main process applies them (S48). */
+  public getAnswerReasoningState(notice?: string): AnswerReasoningState {
+    return answerReasoningState(CredentialsManager.getInstance(), this.processingHelper.getLLMHelper().getSessionReasoningState(), notice);
+  }
+
+  /** Every window that shows a reasoning control reads this; there is no renderer-side copy of the truth. */
+  public broadcastAnswerReasoning(notice?: string): void {
+    let state: AnswerReasoningState;
+    try { state = this.getAnswerReasoningState(notice); } catch (error) { console.warn('[Main] Reasoning state unavailable:', error); return; }
+    this.broadcast('answer-reasoning-changed', state);
+  }
+
+  /** The session reasoning override ends with the meeting; the saved default applies again. */
+  public endSessionReasoning(): void {
+    this.processingHelper.getLLMHelper().clearSessionReasoning();
+    this.broadcastAnswerReasoning();
   }
 
   private sendSttStatus(payload: any): void {
@@ -1608,6 +1630,7 @@ export class AppState {
         catch (error) { captureError = error; }
         if (this.activeAudioSession === null) {
           await this.meetingStt.cancel();
+          this.endSessionReasoning();
           if (captureError) throw captureError;
           return;
         }
@@ -1615,7 +1638,9 @@ export class AppState {
         if (result.timedOut || result.failedChannels.length) {
           this.sendAudioCaptureFailed({ channel: 'audio', message: 'Transcription tail could not be completely drained', terminal: true });
         }
-        await this.intelligenceManager.stopMeeting();
+        const stopped = await this.intelligenceManager.stopMeeting();
+        // An unsaved meeting is still pending; its session override stays until it is saved or discarded.
+        if (stopped?.status !== 'failed') this.processingHelper.getLLMHelper().clearSessionReasoning();
         try {
           let defaultModel = CredentialsManager.getInstance().getDefaultModel();
           console.log('[Main] Reverting model to default');

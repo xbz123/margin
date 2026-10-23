@@ -1036,7 +1036,7 @@ export const HelpSettings: React.FC = () => {
                                         </span>
                                         <button data-external-url="https://aistudio.google.com/app/apikey" onClick={() => { (window as any).electronAPI?.openExternal('https://aistudio.google.com/app/apikey') }} className="text-accent-primary hover:underline text-[10px] flex items-center gap-1"><ExternalLink size={10} /> {t('Get Key')}</button>
                                     </h5>
-                                    <p className="text-[11px] opacity-80 mb-2">{withParts(t('Immense contextual window. Default model: {model}.'), { model: <strong>gemini-3.1-flash-lite-preview</strong> })}</p>
+                                    <p className="text-[11px] opacity-80 mb-2">{withParts(t('Immense contextual window. Default model: {model}.'), { model: <strong>gemini-3.1-flash-lite</strong> })}</p>
                                     <span className={kbdClass}>AIzaSy...</span>
                                 </div>
                             </div>

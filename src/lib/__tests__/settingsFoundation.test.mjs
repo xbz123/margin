@@ -304,8 +304,9 @@ test('AG60 settings keep every section and old tab names open the moved sections
 test('S44 reasoning validation messages and option values are bounded and have Chinese entries', () => {
   const { chinese } = sourceModule('src/i18n.zh.ts');
   const transpile = file => ts.transpileModule(fs.readFileSync(`${REPO}/${file}`, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
-  const images = { exports: {} }; vm.runInNewContext(transpile('src/types/modelImageSupport.ts'), { module: images, exports: images.exports, URL });
-  const api = { exports: {} }; vm.runInNewContext(transpile('src/types/modelReasoning.ts'), { module: api, exports: api.exports, URL, require: () => images.exports });
+  // Both read the one capability table (S48).
+  const caps = { exports: {} }; vm.runInNewContext(transpile('src/types/modelCapabilities.ts'), { module: caps, exports: caps.exports, URL });
+  const api = { exports: {} }; vm.runInNewContext(transpile('src/types/modelReasoning.ts'), { module: api, exports: api.exports, URL, require: id => { assert.equal(id, './modelCapabilities'); return caps.exports; } });
   const { validateReasoning, reasoningOptions } = api.exports;
   const targets = [{ provider: 'openai', protocol: 'responses', model: 'gpt-5.4' }, { provider: 'claude', protocol: 'messages', model: 'unlisted-<script>' },
     { provider: 'deepseek', protocol: 'chat-completions', model: 'deepseek-v4-flash' }, { provider: 'gemini', protocol: 'gemini', model: 'x', baseUrl: 'https://gateway.invalid' }];

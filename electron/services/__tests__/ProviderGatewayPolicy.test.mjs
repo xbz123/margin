@@ -49,7 +49,7 @@ const expired = () => Object.assign(Error('explicit cache expired'), { status: 4
 const invoke = async value => { if (!value?.[Symbol.asyncIterator]) return await value; let text = ''; for await (const chunk of value) text += chunk; return text; };
 function helper(provider = 'gemini', onSend = () => complete(), policy = {}) {
   const LLMHelper = loadHelper();
-  const model = { gemini: 'gemini-test', groq: 'llama-3.3-70b-versatile', openai: 'gpt-5.4', claude: 'claude-sonnet-4-6', deepseek: 'deepseek-v4-flash' }[provider];
+  const model = { gemini: 'gemini-3.1-flash-lite', groq: 'llama-3.3-70b-versatile', openai: 'gpt-5.4', claude: 'claude-sonnet-4-6', deepseek: 'deepseek-v4-flash' }[provider];
   const protocol = provider === 'gemini' ? 'gemini' : provider === 'claude' ? 'messages' : 'chat-completions';
   const send = async body => {
     const result = await onSend(body);
@@ -59,7 +59,8 @@ function helper(provider = 'gemini', onSend = () => complete(), policy = {}) {
       : { choices: [{ message: { content: 'allowed' }, finish_reason: 'stop' }] };
   };
   const self = Object.assign(Object.create(LLMHelper.prototype), {
-    selectedTarget: { provider, protocol, model, ...(provider === 'gemini' ? { imageSupportConfirmedFor: JSON.stringify([provider, protocol, 'https://generativelanguage.googleapis.com', model]) } : {}) }, currentModelId: model, aiResponseLanguage: 'auto',
+    // Listed models (S48): image sends follow the capability table, not an older manual confirmation.
+    selectedTarget: { provider, protocol, model }, currentModelId: model, aiResponseLanguage: 'auto',
     personaPrompt: '', customNotes: '', codexCliConfig: { enabled: false },
     getProviderScopePolicy: () => policy, logScopeFallback: () => {}, processResponse: text => text,
     rateLimiters: { [provider]: { acquire: async () => {} } },
@@ -187,7 +188,7 @@ test('structured generation: limiter, same-model retry and explicit backup all r
     const run = () => self.generateContentStructured('synthetic');
     if (revoke) await assert.rejects(run, { name: 'ProviderScopeError' }); else assert.equal(await run(), 'allowed');
     assert.equal(sends.length, stage === 'limiter' ? revoke ? 0 : 1 : revoke ? 1 : 2);
-    if (!revoke && stage === 'backup') assert.deepEqual(sends, ['gemini-test', 'backup']);
+    if (!revoke && stage === 'backup') assert.deepEqual(sends, ['gemini-3.1-flash-lite', 'backup']);
   }
 });
 test('selected Groq stream: limiter and explicit Gemini backup preserve current permissions', async () => {

@@ -1,7 +1,7 @@
 // ipcHandlers.ts
 
 import * as crypto from 'crypto';
-import { LLM_PRESETS, ANSWER_PROVIDERS, modelTargetId, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave } from '../src/types/llmTarget';
+import { LLM_PRESETS, ANSWER_PROVIDERS, modelTargetId, providerCandidates, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave } from '../src/types/llmTarget';
 import { resolveModelTarget, blockedEnvironmentOverride, validateGatewayConfiguration, validateProviderConfiguration, GROQ_ANSWERS_RETIRED } from './llm/llmTarget';
 import type { GenerationTask } from './llm/generateTask';
 import { app, BrowserWindow, dialog, ipcMain, shell, systemPreferences } from 'electron';
@@ -1067,7 +1067,8 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-provider-configuration', async (_, value: ProviderConfigurationSave) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     const manager = CredentialsManager.getInstance();
-    return persistCredentials(() => manager.setProviderConfiguration(value), () => {
+    // The running (session) selection is passed in so a candidate it uses is never removed.
+    return persistCredentials(() => manager.setProviderConfiguration(value, [appState.processingHelper.getLLMHelper().getCurrentModelSelection()]), () => {
       appState.processingHelper.applyStoredProvider(value.provider);
       appState.processingHelper.getLLMHelper().setGenerationPolicy(manager.getGenerationPolicy());
       appState.processingHelper.refreshAnswerRuntime();
@@ -1240,7 +1241,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', modelId: string) => {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const manager = CredentialsManager.getInstance();
-      return persistCredentials(() => manager.setPreferredModel(provider, modelId), () => {
+      return persistCredentials(() => manager.setPreferredModel(provider, modelId, [appState.processingHelper.getLLMHelper().getCurrentModelSelection()]), () => {
         appState.processingHelper.applyStoredProvider(provider);
         appState.sendModelChanged(appState.processingHelper.getLLMHelper().getCurrentModelSelection());
       }, ANSWER_APPLY_WARNING);
@@ -1487,10 +1488,17 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle(
     'test-llm-connection',
-    async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration) => {
+    async (_, provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration, model?: string) => {
       console.log(`[IPC] Received test-llm-connection request for provider: ${provider}`);
       try {
         if (!(ANSWER_PROVIDERS as readonly string[]).includes(provider)) return { success: false, error: provider === 'groq' ? GROQ_ANSWERS_RETIRED : 'Unknown provider' };
+        // Exactly one saved candidate is tested; an unsaved or unknown model is refused before any request.
+        if (model !== undefined) {
+          const { CredentialsManager } = require('./services/CredentialsManager');
+          if (typeof model !== 'string' || !providerCandidates(CredentialsManager.getInstance().getProviderConfigurations()[provider]).some(candidate => candidate.model === model)) {
+            return { success: false, error: 'Save this model as a candidate before testing.' };
+          }
+        }
         const blocked = blockedEnvironmentOverride(provider);
         if (blocked) return { success: false, error: `${blocked} is set, so this official provider is paused.` };
         // Save and test checks that it tests exactly what was just saved, never an older configuration.
@@ -1520,7 +1528,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             return { success: false, error: 'Save the complete provider configuration before testing.' };
           }
         }
-        const text = await appState.processingHelper.getLLMHelper().testProviderConnection(provider);
+        const text = await appState.processingHelper.getLLMHelper().testProviderConnection(provider, model);
         return { success: !!text.trim(), ...(text.trim() ? {} : { error: 'The provider returned an empty response.' }) };
 
       } catch (error: any) {
@@ -1636,8 +1644,9 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       const llmHelper = appState.processingHelper.getLLMHelper();
       llmHelper.setModel(modelId);
+      const notice = llmHelper.reconcileSessionReasoning();
       modelId = llmHelper.getCurrentModelSelection();
-      appState.sendModelChanged(modelId);
+      appState.sendModelChanged(modelId, notice);
 
       // Close the selector window if open
       appState.modelSelectorWindowHelper.hideWindow();
@@ -1657,11 +1666,32 @@ export function initializeIpcHandlers(appState: AppState): void {
       return CredentialsManager.getInstance().setDefaultModel(modelId, helper.getCodexCliConfig(), helper.getGroqFastTextMode());
     }, () => {
       const helper = appState.processingHelper.getLLMHelper();
+      helper.setSavedReasoning(CredentialsManager.getInstance().getSavedReasoning());
       helper.setModel(modelId);
+      const notice = helper.reconcileSessionReasoning();
       modelId = helper.getCurrentModelSelection();
-      appState.sendModelChanged(modelId);
+      appState.sendModelChanged(modelId, notice);
       appState.modelSelectorWindowHelper.hideWindow();
     });
+  });
+
+  // S48: one saved default reasoning and one session override; every window reads them from here.
+  safeHandle('get-answer-reasoning', async () => appState.getAnswerReasoningState());
+
+  safeHandle('set-default-reasoning', async (_, expected: unknown, value: unknown) => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    const manager = CredentialsManager.getInstance();
+    return persistCredentials(() => manager.setSavedReasoning(expected, value), () => {
+      appState.processingHelper.getLLMHelper().setSavedReasoning(manager.getSavedReasoning());
+      appState.broadcastAnswerReasoning();
+    }, ANSWER_APPLY_WARNING);
+  });
+
+  safeHandle('set-session-reasoning', async (_, expected: unknown, value: unknown) => {
+    try { appState.processingHelper.getLLMHelper().setSessionReasoning(expected, value); }
+    catch (error) { const message = (error as { message?: unknown } | null)?.message; return { ok: false, message: typeof message === 'string' ? message : 'The reasoning level could not be changed.' }; }
+    appState.broadcastAnswerReasoning();
+    return { ok: true };
   });
 
   // Read the persisted default model
@@ -1753,9 +1783,18 @@ export function initializeIpcHandlers(appState: AppState): void {
   // The one meeting whose save failed: metadata only, never its transcript.
   safeHandle('get-unsaved-meeting', async () => appState.getIntelligenceManager().getUnsavedMeeting());
 
-  safeHandle('retry-unsaved-meeting', async (_, id: unknown) => appState.getIntelligenceManager().retryUnsavedMeeting(id));
+  // The session reasoning override ends with the meeting: once its record is saved or discarded.
+  safeHandle('retry-unsaved-meeting', async (_, id: unknown) => {
+    const result = appState.getIntelligenceManager().retryUnsavedMeeting(id);
+    if (result.ok) appState.endSessionReasoning();
+    return result;
+  });
 
-  safeHandle('discard-unsaved-meeting', async (_, id: unknown) => appState.getIntelligenceManager().discardUnsavedMeeting(id));
+  safeHandle('discard-unsaved-meeting', async (_, id: unknown) => {
+    const result = appState.getIntelligenceManager().discardUnsavedMeeting(id);
+    if (result.ok) appState.endSessionReasoning();
+    return result;
+  });
 
   safeHandle('end-meeting', async () => {
     appState.processingHelper.getLLMHelper().clearPreparedInput();

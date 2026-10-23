@@ -150,7 +150,7 @@ test('Gemini explicit backup recovers a transient failure, while cancellation te
   }));
   self.setGenerationPolicy({ ...self.getGenerationPolicy(), backupModel: 'llm-target:gemini:gemini:backup' });
   assert.equal(await collect(self.streamChat('QUESTION')), 'BACKUP_RESULT');
-  assert.deepEqual(attempted, ['gemini-test', 'backup']);
+  assert.deepEqual(attempted, ['gemini-3.1-flash-lite', 'backup']);
   const controller = new AbortController(); controller.abort();
   await assert.rejects(() => collect(self.streamChat('QUESTION', undefined, undefined, undefined, false, false, [], controller.signal)), { name: 'AbortError' });
   assert.equal(attempted.length, 2);
@@ -279,14 +279,12 @@ async function sendWith(policy, makeClient, call) {
   }
 }
 
-const chosen = (provider, protocol, model) => ({ currentModelId: model, selectedTarget: { provider, protocol, model,
-  ...(provider === 'gemini' ? { imageSupportConfirmedFor: JSON.stringify([provider, protocol, 'https://generativelanguage.googleapis.com', model]) } : {}),
-} });
+// Image sends need a model the capability table lists (S48); an older manual confirmation no longer counts for official targets.
+const chosen = (provider, protocol, model) => ({ currentModelId: model, selectedTarget: { provider, protocol, model } });
 const claudeClient = send => ({ ...chosen('claude', 'messages', 'claude-sonnet-4-6'), claudeClient: { messages: { create: send } } });
-const groqClient = send => ({ ...chosen('groq', 'chat-completions', 'synthetic-image-model'), selectedTarget: { provider: 'groq', protocol: 'chat-completions', model: 'synthetic-image-model', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'synthetic-image-model']) }, groqClient: { chat: { completions: { create: send } } } });
-const geminiClient = send => ({ ...chosen('gemini', 'gemini', 'gemini-test'), client: { models: { generateContent: send, generateContentStream: async body => [await send(body)] } } });
+const geminiClient = send => ({ ...chosen('gemini', 'gemini', 'gemini-3.1-flash-lite'), client: { models: { generateContent: send, generateContentStream: async body => [await send(body)] } } });
 const NO_IMAGE = ['/margin-test/screenshot-synthetic.png'];
-const directSends = [['Claude', claudeClient], ['Groq images', groqClient], ['Gemini images', geminiClient]];
+const directSends = [['Claude', claudeClient], ['OpenAI images', send => openaiClient(send)], ['Gemini images', geminiClient]];
 for (const [name, makeClient] of directSends) test(`${name} sends nothing when a declared transcript or screenshot scope is denied`, async () => {
   const call = self => drain(self.streamChat('TRANSCRIPT_SENTINEL said hello', NO_IMAGE, undefined, undefined, true, true, ['screenshots']));
   const allowed = await sendWith({}, makeClient, call);

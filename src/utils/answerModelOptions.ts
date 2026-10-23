@@ -1,4 +1,4 @@
-import { ANSWER_PROVIDERS, LLM_PRESETS, gatewayTarget, modelTargetId, parseModelSelection, type AnswerProvider, type GatewaySummary, type LlmProtocol, type LlmProvider, type ProviderConfiguration } from '../types/llmTarget';
+import { ANSWER_PROVIDERS, LLM_PRESETS, gatewayTarget, modelTargetId, parseModelSelection, providerCandidates, type AnswerProvider, type GatewaySummary, type LlmProtocol, type LlmProvider, type ProviderConfiguration } from '../types/llmTarget';
 
 export const PROVIDER_NAMES: Record<LlmProvider, string> = { gemini: 'Gemini', groq: 'Groq', openai: 'OpenAI', claude: 'Claude', deepseek: 'DeepSeek' };
 export const PROTOCOL_NAMES: Record<LlmProtocol, string> = { 'chat-completions': 'OpenAI Chat Completions', responses: 'OpenAI Responses', messages: 'Anthropic Messages', gemini: 'Gemini' };
@@ -20,16 +20,23 @@ export interface AnswerSources {
     [key: string]: unknown;
 }
 
-/** Usable answer targets only: official providers with a saved key, and gateways with their own key. Groq is not offered. */
+/**
+ * Usable answer targets only: every saved candidate of an official provider with a saved key, and gateways with
+ * their own key. Groq is not offered. Settings, the primary/backup selects and the session selector share this list.
+ */
 export function answerModelOptions(sources: AnswerSources | undefined): AnswerModelOption[] {
     const options: AnswerModelOption[] = [];
+    const seen = new Set<string>();
+    const add = (option: AnswerModelOption) => { if (!seen.has(option.id)) { seen.add(option.id); options.push(option); } };
     for (const provider of ANSWER_PROVIDERS) {
         if (sources?.[KEY_FIELDS[provider]] !== true || sources.providerAddressOverrides?.[provider]) continue;
-        const target = sources.providerConfigurations?.[provider] ?? LLM_PRESETS[provider];
-        options.push({ id: modelTargetId(target), name: `${target.model} (${PROVIDER_NAMES[provider]})`, source: provider });
+        const config = sources.providerConfigurations?.[provider] ?? LLM_PRESETS[provider];
+        for (const { model } of providerCandidates(config)) {
+            add({ id: modelTargetId({ provider, protocol: config.protocol, model }), name: `${model} (${PROVIDER_NAMES[provider]})`, source: provider });
+        }
     }
     for (const gateway of sources?.gateways ?? []) {
-        if (gateway.hasKey) options.push({ id: modelTargetId(gatewayTarget(gateway)), name: `${gateway.model} (${gatewayLabel(gateway)})`, source: 'gateway' });
+        if (gateway.hasKey) add({ id: modelTargetId(gatewayTarget(gateway)), name: `${gateway.model} (${gatewayLabel(gateway)})`, source: 'gateway' });
     }
     return options;
 }

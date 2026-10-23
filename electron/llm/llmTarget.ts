@@ -1,8 +1,8 @@
-import { LLM_PRESETS, LLM_PROTOCOLS, GATEWAY_ID_PATTERN, gatewayTarget, modelTargetId, parseModelSelection, type LlmProvider, type ProviderConfiguration, type ModelTarget, type GatewayConfiguration } from '../../src/types/llmTarget';
+import { LLM_PRESETS, LLM_PROTOCOLS, GATEWAY_ID_PATTERN, gatewayTarget, modelTargetId, parseModelSelection, providerCandidates, type LlmProvider, type ProviderConfiguration, type ModelSettings, type ModelTarget, type GatewayConfiguration } from '../../src/types/llmTarget';
 import { validateHttpEndpoint } from '../services/outbound';
 import { devOpenAIBaseUrl } from '../margin/devOverrides';
 import { imageSupportTarget } from '../../src/types/modelImageSupport';
-import { validateReasoning } from '../../src/types/modelReasoning';
+import { reasoningShape, validateReasoning } from '../../src/types/modelReasoning';
 
 export const PROVIDER_BASE_URLS: Record<LlmProvider, string> = {
   gemini: 'https://generativelanguage.googleapis.com', groq: 'https://api.groq.com/openai/v1',
@@ -42,10 +42,30 @@ export function validateProviderConfiguration(value: ProviderConfiguration): Pro
   // Writing the official address itself is accepted and stored as "no address".
   if (value.baseUrl && normalizedBase(value.baseUrl, value.protocol) !== PROVIDER_BASE_URLS[value.provider]) throw new Error(OFFICIAL_ADDRESS_ONLY);
   if (value.imageSupportConfirmedFor !== undefined && typeof value.imageSupportConfirmedFor !== 'string') throw new Error('Invalid image support confirmation');
-  const reasoning = validateReasoning(config, value.reasoning);
+  // Kept only as the older per-model value (S48 C4); requests take reasoning from the answer reasoning control.
+  const reasoning = reasoningShape(value.reasoning);
   if (value.contextWindowTokens !== undefined) throw new Error('A context window can only be noted for a gateway.');
+  const models = validateCandidates(config, value.models);
   return { ...config, ...(value.imageSupportConfirmedFor === imageSupportTarget(config) ? { imageSupportConfirmedFor: value.imageSupportConfirmedFor } : {}),
-    ...(reasoning ? { reasoning } : {}) };
+    ...(reasoning ? { reasoning } : {}), ...(models.length ? { models } : {}) };
+}
+
+/** Each further candidate keeps only its own valid settings; a malformed or repeated candidate is refused, never dropped. */
+function validateCandidates(first: Pick<ProviderConfiguration, 'provider' | 'protocol' | 'model'>, value: unknown): ModelSettings[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error('Invalid model candidates');
+  const seen = new Set([first.model]);
+  return value.map((item: unknown) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('Invalid model candidate');
+    const entry = item as ModelSettings;
+    const target = { provider: first.provider, protocol: first.protocol, model: validModel(entry.model) };
+    if (seen.has(target.model)) throw new Error('This model is already a saved candidate.');
+    seen.add(target.model);
+    if (entry.imageSupportConfirmedFor !== undefined && typeof entry.imageSupportConfirmedFor !== 'string') throw new Error('Invalid image support confirmation');
+    const reasoning = reasoningShape(entry.reasoning);
+    return { model: target.model, ...(entry.imageSupportConfirmedFor === imageSupportTarget(target) ? { imageSupportConfirmedFor: entry.imageSupportConfirmedFor } : {}),
+      ...(reasoning ? { reasoning } : {}) };
+  });
 }
 
 export function validateGatewayConfiguration(value: GatewayConfiguration): GatewayConfiguration {
@@ -86,10 +106,12 @@ export function effectiveProviderConfiguration(config: ProviderConfiguration): P
   return { ...validated, baseUrl, custom: baseUrl !== PROVIDER_BASE_URLS[config.provider] };
 }
 
-/** Another model of the same provider never inherits the configured model's settings. */
+/**
+ * An official target never carries a per-model reasoning value or image confirmation (S48): reasoning
+ * comes from the answer reasoning control and image input from the capability record.
+ */
 function forModel(config: ProviderConfiguration, model: string): ProviderConfiguration {
-  if (model === config.model) return config;
-  const { reasoning: _reasoning, contextWindowTokens: _window, imageSupportConfirmedFor: _image, ...rest } = config;
+  const { reasoning: _reasoning, contextWindowTokens: _window, imageSupportConfirmedFor: _image, models: _models, ...rest } = config;
   return { ...rest, model };
 }
 
@@ -106,12 +128,13 @@ export function resolveModelTarget(id: string, configs: Record<LlmProvider, Prov
     if (parsed.provider === 'groq') throw new Error(GROQ_ANSWERS_RETIRED);
     const config = configs[parsed.provider];
     if (parsed.protocol !== config.protocol) throw new Error('Model target protocol changed. Select the model again.');
-    return validateProviderConfiguration(forModel(config, parsed.model));
+    return forModel(validateProviderConfiguration(config), validModel(parsed.model));
   }
   const aliases: Record<string, string> = { gemini: LLM_PRESETS.gemini.model, 'gemini-pro': 'gemini-3.1-pro-preview', claude: LLM_PRESETS.claude.model, llama: LLM_PRESETS.groq.model, deepseek: LLM_PRESETS.deepseek.model };
   const model = aliases[id] ?? id;
-  const configured = Object.values(configs).filter(c => c.model === model);
-  const known: Record<string, LlmProvider> = { 'gemini-3.1-pro-preview': 'gemini', 'deepseek-v4-pro': 'deepseek' };
+  const configured = Object.values(configs).filter(c => providerCandidates(c).some(candidate => candidate.model === model));
+  // Earlier presets stay resolvable; a saved choice is never replaced silently.
+  const known: Record<string, LlmProvider> = { 'gemini-3.1-pro-preview': 'gemini', 'gemini-3.1-flash-lite-preview': 'gemini', 'deepseek-v4-pro': 'deepseek' };
   for (const preset of Object.values(LLM_PRESETS)) known[preset.model] = preset.provider;
   if (configured.length > 1) throw new Error('Model ID is ambiguous. Select its provider explicitly.');
   const config = configured[0] ?? (known[model] ? configs[known[model]] : undefined);
@@ -122,14 +145,32 @@ export function resolveModelTarget(id: string, configs: Record<LlmProvider, Prov
 
 /**
  * Where a canonical selection points after one target was explicitly saved: a selection of that
- * target's configured model follows it; one of another model on its old protocol keeps the model
- * on the new protocol. Everything else is returned unchanged.
+ * target's configured model follows it unless the model is still a saved candidate; any other model
+ * on its old protocol keeps the model on the new protocol. Everything else is returned unchanged.
  */
 export function followSelection(selection: string, previous: ModelTarget, next: ModelTarget): string {
   const parsed = parseModelSelection(selection);
   const same = parsed && (previous.provider === 'gateway' ? parsed.kind === 'gateway' && parsed.gatewayId === previous.gatewayId
     : parsed.kind === 'official' && parsed.provider === previous.provider);
   if (!parsed || !same || parsed.protocol !== previous.protocol) return selection;
-  if (parsed.model === previous.model) return modelTargetId(next);
+  const kept = next.model === parsed.model || (next.models ?? []).some(candidate => candidate.model === parsed.model);
+  if (parsed.model === previous.model && !kept) return modelTargetId(next);
   return previous.protocol !== next.protocol ? modelTargetId({ ...next, model: parsed.model }) : selection;
+}
+
+/**
+ * Candidates this save would remove that a selection still uses: the saved primary, the backup or
+ * a running (session) selection. Selections are compared in canonical form against the previous
+ * configuration; a protocol change moves candidates and removes none.
+ */
+export function removedCandidatesInUse(previous: ProviderConfiguration, next: ProviderConfiguration, selections: string[],
+  canonical: (selection: string) => string): string[] {
+  const kept = new Set(providerCandidates(next).map(candidate => candidate.model));
+  const removed = new Set(providerCandidates(previous).map(candidate => candidate.model).filter(model => !kept.has(model)));
+  const used = new Set<string>();
+  for (const selection of selections) {
+    const parsed = parseModelSelection(canonical(selection));
+    if (parsed?.kind === 'official' && parsed.provider === previous.provider && parsed.protocol === previous.protocol && removed.has(parsed.model)) used.add(parsed.model);
+  }
+  return [...used];
 }

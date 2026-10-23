@@ -19,7 +19,7 @@ const source = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8'
 const tree = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
 const app = tree.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
 const names = ['startMeeting', 'endMeeting', 'handleSttTranscript', 'suspendAudio', 'restartCapturesAfterResume',
-  'reconfigureAudio', 'reconfigureSttProvider', 'discardSttProviders', 'shutdownAudio', 'setQuitting', 'collectSpeech', 'markDictation', 'setupIntelligenceEvents'];
+  'reconfigureAudio', 'reconfigureSttProvider', 'discardSttProviders', 'shutdownAudio', 'setQuitting', 'collectSpeech', 'markDictation', 'setupIntelligenceEvents', 'endSessionReasoning'];
 const methods = names.map(name => {
   const method = app.members.find(node => ts.isMethodDeclaration(node) && node.name.getText(tree) === name);
   if (!method) throw new Error('Missing production method ' + name);
@@ -31,6 +31,7 @@ const js = ts.transpileModule('class AppState {' + methods.join('\n') + '}\nretu
 
 export function mainFixture(options = {}) {
   const order = [], transcripts = [], providers = [];
+  let reasoningClears = 0;
   const Class = new Function('ensureMacMicrophoneAccess', 'formatPermissionMessage', 'crypto', 'CredentialsManager', 'console', js)(
     options.microphonePermission ?? (async () => true), () => 'permission denied',
     { randomUUID: () => 'meeting-' + providers.length + '-' + order.length },
@@ -71,7 +72,7 @@ export function mainFixture(options = {}) {
     windowHelper: { resetOverlayPosition() {}, setWindowMode() {} },
     processingHelper: {
       cancelOngoingRequests: () => order.push('processing-cancel'),
-      getLLMHelper: () => ({ setModel() {}, getCurrentModelSelection: () => 'synthetic-model' }),
+      getLLMHelper: () => ({ setModel() {}, getCurrentModelSelection: () => 'synthetic-model', clearSessionReasoning: () => { reasoningClears++; } }),
     },
     intelligenceManager: {
       reset() {}, setMeetingMetadata() {}, resetEngine: () => order.push('answers-cancel'), getUnsavedMeeting: () => null,
@@ -79,12 +80,12 @@ export function mainFixture(options = {}) {
       stopMeeting: async () => { order.push('archive-save'); },
     },
     stopAudioTest: async () => { order.push('audio-test-stop'); },
-    sendToMeetingSurfaces() {}, broadcastMeetingState() {}, sendModelChanged() {},
+    sendToMeetingSurfaces() {}, broadcastMeetingState() {}, sendModelChanged() {}, broadcastAnswerReasoning() {},
     broadcast() {}, sendAudioCaptureFailed: () => order.push('audio-error'),
   });
   const clear = state.transcriptDisplay.clear.bind(state.transcriptDisplay);
   state.transcriptDisplay.clear = () => { order.push('display-clear'); clear(); };
-  return { state, audio, session, providers, order, transcripts,
+  return { state, audio, session, providers, order, transcripts, get reasoningClears() { return reasoningClears; },
     start: async metadata => {
       await state.startMeeting(metadata);
       const init = audio.pipeline._audioInitPromise;

@@ -92,6 +92,8 @@ import RollingTranscript from './ui/RollingTranscript';
 import TopPill from './ui/TopPill';
 import { GROUNDED_ANSWER_RULES, INTERVIEW_ANSWER_SHAPE } from '../types/answerGuidance';
 import { hasVisibleAnswer } from '../lib/visibleGeneration';
+import { ReasoningSelect } from './ReasoningSelect';
+import type { AnswerReasoningState, ReasoningChoice } from '../types/answerReasoning';
 
 // PERF: hoisted plugin arrays. ReactMarkdown receives `remarkPlugins` and
 // `rehypePlugins` as new array literals if defined inline at the call site —
@@ -837,6 +839,21 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     window.electronAPI
       .setModel(modelId)
       .catch((err: any) => console.error('Failed to set model:', err));
+  };
+
+  // Session reasoning comes from the main process, which also tells every window about changes (S48).
+  const [answerReasoning, setAnswerReasoning] = useState<AnswerReasoningState | undefined>();
+  useEffect(() => {
+    window.electronAPI?.getAnswerReasoning?.().then(setAnswerReasoning).catch(() => {});
+    return window.electronAPI?.onAnswerReasoningChanged?.(setAnswerReasoning);
+  }, []);
+  const handleSessionReasoning = (value: ReasoningChoice) => {
+    const target = answerReasoning?.session.target;
+    if (!target) return;
+    // A refused write (the model changed meanwhile) leaves the main process value, which is fetched again.
+    window.electronAPI.setSessionReasoning(target, value)
+      .then(result => { if (!result.ok) return window.electronAPI.getAnswerReasoning().then(setAnswerReasoning); })
+      .catch(() => {});
   };
 
   // Listen for default model changes from Settings
@@ -4653,8 +4670,8 @@ Provide only the answer, nothing else.`;
                 </div>
 
                 {/* Bottom Row */}
-                <div className="flex items-center justify-between mt-3 px-0.5">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-2 mt-3 px-0.5">
+                  <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                     <button
                       data-model-selector-toggle="true"
                       onClick={(e) => {
@@ -4685,6 +4702,7 @@ Provide only the answer, nothing else.`;
                           if (targetName) return targetName;
                           const codexCliName = getCodexCliModelDisplayName(m);
                           if (codexCliName) return codexCliName;
+                          if (m === 'gemini-3.1-flash-lite') return 'Gemini 3.1 Flash-Lite';
                           if (m === 'gemini-3.1-flash-lite-preview') return 'Gemini 3.1 Flash';
                           if (m === 'gemini-3.1-pro-preview') return 'Gemini 3.1 Pro';
                           if (m === 'llama-3.3-70b-versatile') return 'Groq Llama 3.3';
@@ -4695,6 +4713,9 @@ Provide only the answer, nothing else.`;
                       </span>
                       <ChevronDown size={14} className="shrink-0 transition-transform" />
                     </button>
+
+                    <ReasoningSelect compact state={answerReasoning?.session} label={t('Reasoning for this meeting')} onChange={handleSessionReasoning}
+                      className={`h-[30px] w-[96px] min-w-[64px] shrink px-2 border rounded-lg text-xs ${controlSurfaceClass}`} style={appearance.controlStyle} />
 
                     <div className="w-px h-3 mx-1" style={appearance.dividerStyle} />
 
@@ -4765,7 +4786,7 @@ Provide only the answer, nothing else.`;
                     onClick={handleManualSubmit}
                     disabled={!inputValue.trim()}
                     className={`
-                                    w-7 h-7 rounded-full flex items-center justify-center
+                                    w-7 h-7 shrink-0 rounded-full flex items-center justify-center
                                     interaction-base interaction-press
                                     ${
                                       inputValue.trim()

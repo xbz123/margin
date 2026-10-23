@@ -26,9 +26,9 @@ try {
 const packet = (text = 'answer', finishReason = 'STOP') => ({ text, candidates: [{ content: { parts: [{ text }] }, ...(finishReason ? { finishReason } : {}) }] });
 const collect = async source => { let text = ''; for await (const chunk of source) text += chunk; return text; };
 const deferred = () => { let resolve; const promise = new Promise(r => resolve = r); return { promise, resolve }; };
-const target = (model = 'gemini-a') => ({ provider: 'gemini', protocol: 'gemini', model,
-  imageSupportConfirmedFor: JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', model]) });
-const policy = backupModel => ({ backupModel, ...(backupModel ? { backupImageSupportConfirmedFor: target(decodeURIComponent(backupModel.split(':').at(-1))).imageSupportConfirmedFor } : {}), interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 });
+// Primary and backup are listed image models (S48); an older manual confirmation no longer counts for official targets.
+const target = (model = 'gemini-3.1-flash-lite') => ({ provider: 'gemini', protocol: 'gemini', model });
+const policy = backupModel => ({ backupModel, interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 });
 const selector = model => `llm-target:gemini:gemini:${model}`;
 
 test('AG42 manual preparation waits for mic tail and includes current session in one streamed answer', async () => {
@@ -254,7 +254,7 @@ function helper(onSend, scopes = {}) {
     },
   }, caches: { create: async () => ({ name: 'cachedContents/explicit' }) } };
   const self = Object.assign(Object.create(LLMHelper.prototype), {
-    client, selectedTarget: target(), currentModelId: 'gemini-a', geminiModel: 'gemini-a',
+    client, selectedTarget: target(), currentModelId: 'gemini-3.1-flash-lite', geminiModel: 'gemini-3.1-flash-lite',
     generationPolicy: policy(), personaPrompt: '', customNotes: '', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
     rateLimiters: { gemini: { acquire: async () => {} } }, getProviderScopePolicy: () => scopes,
     injectLanguageInstruction: value => value, processResponse: value => value, logScopeFallback: () => {},
@@ -266,9 +266,9 @@ function helper(onSend, scopes = {}) {
 
 for (const entry of ['chatWithGemini', 'generateContentStructured', 'streamChat']) test(`${entry}: transient failure uses only explicit backup and at most two sends`, async () => {
   const { self, requests } = helper((args, number) => { if (number === 1) throw Object.assign(Error('unavailable'), { status: 503 }); return packet('backup'); });
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   const answer = entry === 'streamChat' ? await collect(self[entry]('QUESTION')) : await self[entry]('QUESTION');
-  assert.equal(answer, 'backup'); assert.deepEqual(requests.map(r => r.model), ['gemini-a', 'gemini-b']);
+  assert.equal(answer, 'backup'); assert.deepEqual(requests.map(r => r.model), ['gemini-3.1-flash-lite', 'gemini-3.1-pro-preview']);
 });
 
 for (const state of ['SAFETY', 'MAX_TOKENS', 'EMPTY', 'AUTH', 'CONFIG', 'PARTIAL']) test(`real answer interface: ${state} terminates without backup`, async () => {
@@ -278,7 +278,7 @@ for (const state of ['SAFETY', 'MAX_TOKENS', 'EMPTY', 'AUTH', 'CONFIG', 'PARTIAL
     if (state === 'PARTIAL') return (async function* () { yield packet('partial', null); throw Object.assign(Error('network'), { code: 'ECONNRESET' }); })();
     return packet(state === 'EMPTY' ? '' : 'partial', state === 'EMPTY' ? 'STOP' : state);
   });
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   const output = [];
   await assert.rejects(async () => { for await (const chunk of new WhatToAnswerLLM(self).generateStream('QUESTION')) output.push(chunk); });
   assert.equal(requests.length, 1); if (state === 'PARTIAL') assert.equal(output.join(''), 'partial');
@@ -295,18 +295,18 @@ test('WhatToSay actual prompt entry sends every original image directly, with no
 
 test('snapshot survives hot client/model/backup changes during image preparation', async () => {
   const { self, requests } = helper((_, n) => { if (n === 1) throw { status: 503 }; return packet('old backup'); });
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   const ready = deferred(); self.processImage = async () => { await ready.promise; return { mimeType: 'image/png', data: 'AAAA' }; };
   const stream = self.streamChat('QUESTION', ['image']); const pending = collect(stream);
   self.client = { models: { generateContentStream: () => { throw Error('hot client must not run'); } } };
   self.selectedTarget = target('gemini-hot'); self.generationPolicy = policy(selector('gemini-hot-backup'));
   ready.resolve(); assert.equal(await pending, 'old backup');
-  assert.deepEqual(requests.map(r => r.model), ['gemini-a', 'gemini-b']);
+  assert.deepEqual(requests.map(r => r.model), ['gemini-3.1-flash-lite', 'gemini-3.1-pro-preview']);
 });
 
 for (const waiting of ['limiter', 'image', 'cache', 'retry-after']) test(`permission revoked during ${waiting} stops all later sends`, async () => {
   const { self, requests, scopes } = helper((_, n) => { if (waiting === 'retry-after' && n === 1) { scopes.transcript = false; throw { status: 429, headers: { 'retry-after': '0' } }; } return packet(); });
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   if (waiting === 'limiter') self.rateLimiters.gemini.acquire = async () => { scopes.transcript = false; };
   if (waiting === 'image') self.processImage = async () => { scopes.screenshots = false; return { mimeType: 'image/png', data: 'AAAA' }; };
   if (waiting === 'cache') self.geminiPromptCache.getOrCreate = async () => { scopes.transcript = false; return 'cachedContents/test'; };
@@ -317,10 +317,10 @@ for (const waiting of ['limiter', 'image', 'cache', 'retry-after']) test(`permis
 for (const second of ['valid', 'invalid']) test(`explicit cache recovery ${second}: same model, full original content, only two sends`, async () => {
   const { self, requests } = helper((args, n) => { if (n === 1 || second === 'invalid') throw expired(); return packet(); });
   self.geminiPromptCache.getOrCreate = async () => 'cachedContents/explicit';
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   const run = () => collect(self.streamChat('QUESTION', ['original-image'], undefined, 'ORIGINAL SYSTEM'));
   if (second === 'valid') assert.equal(await run(), 'answer'); else await assert.rejects(run);
-  assert.deepEqual(requests.map(r => r.model), ['gemini-a', 'gemini-a']);
+  assert.deepEqual(requests.map(r => r.model), ['gemini-3.1-flash-lite', 'gemini-3.1-flash-lite']);
   assert.equal(requests[0].config.cachedContent, 'cachedContents/explicit');
   assert.equal(requests[1].config.cachedContent, undefined);
   assert.deepEqual(requests[1].contents, requests[0].contents);
@@ -347,8 +347,8 @@ test('reselecting the same canonical target through qualified or raw model id ke
   self.providerConfigurations = { gemini: target() };
   const answer = collect(self.streamChat('QUESTION'));
   await entered.promise;
-  self.setModel(selector('gemini-a'));
-  self.setModel('gemini-a');
+  self.setModel(selector('gemini-3.1-flash-lite'));
+  self.setModel('gemini-3.1-flash-lite');
   assert.equal(transportSignal.aborted, false, 'renderer default-model restatement must not cancel generation');
   late.resolve(packet('kept'));
   assert.equal(await answer, 'kept');
@@ -382,9 +382,9 @@ test('real OpenAI SDK loopback dropped socket is transient, with SDK retries dis
 });
 
 test('model switch cannot select configured backup and preserves previous primary/task state', () => {
-  const { self } = helper(); self.setGenerationPolicy(policy(selector('gemini-b')));
+  const { self } = helper(); self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   const task = self.beginGenerationTask();
-  try { assert.throws(() => self.setModel(selector('gemini-b')), /must differ/); assert.equal(self.currentModelId, 'gemini-a'); assert.equal(task.signal.aborted, false); }
+  try { assert.throws(() => self.setModel(selector('gemini-3.1-pro-preview')), /must differ/); assert.equal(self.currentModelId, 'gemini-3.1-flash-lite'); assert.equal(task.signal.aborted, false); }
   finally { task.close(); }
 });
 
@@ -395,24 +395,25 @@ test('Groq fast mode preserves the explicitly selected model for both text and i
   assert.equal(await self.chatWithGemini('QUESTION'), 'fast');
   assert.equal(requests[0].model, 'groq-other');
   assert.equal(requests[0].max_tokens, 8192); assert.equal(requests[0].temperature, 0.4);
-  assert.equal(await self.chatWithGemini('QUESTION', ['image']), 'fast');
-  assert.equal(requests[1].model, 'groq-other');
+  // S48: an unlisted official model sends no images, even with an older manual confirmation.
+  await assert.rejects(() => self.chatWithGemini('QUESTION', ['image']), /not been verified yet.*attachments were kept/);
+  assert.equal(requests.length, 1);
 });
 
 test('saved provider connection test ignores the answer backup and sends its own failed target only once', async () => {
   const { self, requests } = helper(() => { throw Object.assign(Error('overloaded'), { status: 503 }); });
   self.providerConfigurations = { gemini: target() };
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   await assert.rejects(() => self.testProviderConnection('gemini'));
-  assert.deepEqual(requests.map(request => request.model), ['gemini-a']);
+  assert.deepEqual(requests.map(request => request.model), ['gemini-3.1-flash-lite']);
 });
 
 test('the configured answer backup can itself be connection-tested once without a primary/backup conflict', async () => {
   const { self, requests } = helper();
-  self.setGenerationPolicy(policy(selector('gemini-b')));
-  self.providerConfigurations = { gemini: target('gemini-b') };
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
+  self.providerConfigurations = { gemini: target('gemini-3.1-pro-preview') };
   assert.equal(await self.testProviderConnection('gemini'), 'answer');
-  assert.deepEqual(requests.map(request => request.model), ['gemini-b']); assert.equal(self.selectedTarget.model, 'gemini-a');
+  assert.deepEqual(requests.map(request => request.model), ['gemini-3.1-pro-preview']); assert.equal(self.selectedTarget.model, 'gemini-3.1-flash-lite');
 });
 
 test('actual separately bundled Engine and LLMHelper share the supplied logical task and reset aborts its transport', async () => {
@@ -465,7 +466,7 @@ test('AG33 actual ProcessingHelper late cancellation cannot clear the newer cont
   await old;
   assert.equal(processing.currentProcessingAbortController, controller);
   assert.equal(controller.signal.aborted, false);
-  assert.equal(usage[0][3].status, 'cancelled'); assert.equal(usage[0][3].model, 'gemini-a');
+  assert.equal(usage[0][3].status, 'cancelled'); assert.equal(usage[0][3].model, 'gemini-3.1-flash-lite');
   first.resolve(packet(JSON.stringify({ code: 'OLD' })));
   second.resolve(packet(JSON.stringify({ code: 'FRESH' })));
   await fresh;
@@ -480,7 +481,7 @@ for (const status of ['empty', 'refused', 'incomplete']) test(`AG33 actual Engin
   const session = new SessionTracker(), engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
   await engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true }).catch(() => {});
   const entry = session.getFullUsage().at(-1);
-  assert.equal(entry.status, status); assert.equal(entry.model, 'gemini-a'); assert.equal(entry.partial, false);
+  assert.equal(entry.status, status); assert.equal(entry.model, 'gemini-3.1-flash-lite'); assert.equal(entry.partial, false);
 });
 
 for (const visible of [false, true]) test(`actual Engine TTFT clears only at displayed body, not a held sentinel prefix: visible ${visible}`, async t => {
@@ -490,7 +491,7 @@ for (const visible of [false, true]) test(`actual Engine TTFT clears only at dis
     yield packet(visible ? 'Actual answer body ' : 'Nothing ', null);
     waiting.resolve(); await release.promise; yield packet('late', 'STOP');
   })());
-  self.setGenerationPolicy(policy(selector('gemini-b')));
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview')));
   const session = new SessionTracker(); session.addTranscript({ speaker: 'interviewer', text: 'QUESTION', timestamp: Date.now(), final: true });
   const engine = new IntelligenceEngine(self, session); const tokens = []; engine.on('error', () => {});
   engine.on('suggested_answer_token', token => tokens.push(token));
@@ -566,7 +567,7 @@ test('actual prompt entry snapshots language and prompt tier before assembly sta
   self.aiResponseLanguage = 'Swedish'; self.currentModelId = 'qwen3.5:4b';
   self.selectedTarget = target('gemini-hot');
   assert.equal(await collect(stream), 'answer');
-  assert.equal(requests[0].model, 'gemini-a');
+  assert.equal(requests[0].model, 'gemini-3.1-flash-lite');
   const system = JSON.stringify(requests[0].config.systemInstruction);
   assert.doesNotMatch(system, /Swedish/);
   const { UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/llm/prompts.js'));
@@ -589,16 +590,16 @@ test('image metadata reflects actual send and screenshot omission, not the valid
 
 test('backup updates and selected provider reconfiguration reject identical targets without changing active state', () => {
   const { self } = helper();
-  assert.throws(() => self.setGenerationPolicy(policy(selector('gemini-a'))), /must differ/);
-  self.setGenerationPolicy(policy(selector('gemini-b'))); const client = self.client;
+  assert.throws(() => self.setGenerationPolicy(policy(selector('gemini-3.1-flash-lite'))), /must differ/);
+  self.setGenerationPolicy(policy(selector('gemini-3.1-pro-preview'))); const client = self.client;
   self.geminiPromptCache = { clear() {} };
   // The selection follows a save only when it named the saved configured model.
-  self.providerConfigurations = { ...self.providerConfigurations, gemini: target('gemini-a') };
-  assert.throws(() => self.configureProvider(target('gemini-b'), 'synthetic-not-used'), /must differ/);
-  assert.equal(self.client, client); assert.equal(self.selectedTarget.model, 'gemini-a');
+  self.providerConfigurations = { ...self.providerConfigurations, gemini: target('gemini-3.1-flash-lite') };
+  assert.throws(() => self.configureProvider(target('gemini-3.1-pro-preview'), 'synthetic-not-used'), /must differ/);
+  assert.equal(self.client, client); assert.equal(self.selectedTarget.model, 'gemini-3.1-flash-lite');
   self.providerConfigurations = { ...self.providerConfigurations, gemini: target('gemini-c') };
-  self.configureProvider(target('gemini-b'), 'synthetic-not-used');
-  assert.equal(self.selectedTarget.model, 'gemini-a', 'another configured model never changes the running selection');
+  self.configureProvider(target('gemini-3.1-pro-preview'), 'synthetic-not-used');
+  assert.equal(self.selectedTarget.model, 'gemini-3.1-flash-lite', 'another configured model never changes the running selection');
 });
 
 test('explicit Codex selector clears stale API selection and snapshots its configured fast model', () => {
@@ -638,18 +639,21 @@ test('AG33 shared written task records a second-step failure rather than first-s
   assert.equal(task.terminalStatus, 'failed');
 });
 
-test('AG33 unknown image capability needs exact target confirmation; primary confirmation does not authorize same-provider backup', async () => {
+test('S48 an unlisted official model sends no images, an older confirmation cannot bypass it, and the backup is checked on its own', async () => {
   const { self, requests } = helper((_, n) => { if (n === 1) throw { status: 503 }; return packet('not allowed'); });
-  delete self.selectedTarget.imageSupportConfirmedFor;
-  await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), /unconfirmed/);
+  const legacyConfirmation = model => JSON.stringify(['gemini', 'gemini', 'https://generativelanguage.googleapis.com', model]);
+  for (const model of ['gemini-unlisted', 'gemini-3.1-flash-lite-latest', 'GEMINI-3.1-FLASH-LITE']) {
+    self.selectedTarget = { ...target(model), imageSupportConfirmedFor: legacyConfirmation(model) }; self.currentModelId = model;
+    await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), /not been verified yet.*attachments were kept/);
+  }
   assert.equal(requests.length, 0);
-  self.selectedTarget = target();
-  self.setGenerationPolicy({ ...policy(selector('gemini-b')), backupImageSupportConfirmedFor: undefined });
+  self.selectedTarget = target(); self.currentModelId = 'gemini-3.1-flash-lite';
+  self.setGenerationPolicy({ ...policy(selector('gemini-unlisted-backup')), backupImageSupportConfirmedFor: legacyConfirmation('gemini-unlisted-backup') });
   const task = self.beginGenerationTask();
-  await assert.rejects(() => collect(self.runGenerationStream(() => self.streamChat('QUESTION', ['image']), 'interview', undefined, task)), /unconfirmed/);
+  await assert.rejects(() => collect(self.runGenerationStream(() => self.streamChat('QUESTION', ['image']), 'interview', undefined, task)), /not been verified yet/);
   assert.equal(requests.length, 1);
-  assert.equal(requests[0].model, 'gemini-a');
-  assert.equal(self.getTaskMetadata(task).model, 'gemini-a', 'a preflight-rejected backup was never physically sent');
+  assert.equal(requests[0].model, 'gemini-3.1-flash-lite');
+  assert.equal(self.getTaskMetadata(task).model, 'gemini-3.1-flash-lite', 'a preflight-rejected backup was never physically sent');
   assert.equal(self.getTaskMetadata(task).attempts, 1);
 });
 
@@ -663,7 +667,7 @@ test('AG33 custom endpoint with a vendor model ID remains unknown; known text-on
     const { self, requests } = helper(); self.selectedTarget = config; self.currentModelId = config.model;
     self.gatewayClients = new Map([['gw-vendor-id', self.client]]);
     self.groqClient = { chat: { completions: { create: () => { throw Error('must not send'); } } } };
-    await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), /unconfirmed|does not support/);
+    await assert.rejects(() => collect(self.streamChat('QUESTION', ['image'])), config.provider === 'gateway' ? /unconfirmed/ : config.provider === 'groq' ? /does not support/ : /not been verified yet/);
     assert.equal(requests.length, 0);
   }
 });
@@ -691,7 +695,7 @@ test('AG33 non-image data disguised as PNG fails real image decoding and never u
 test('AG33 CodeHint delegates images to the target-aware transport rather than answering with a model-name capability warning', async () => {
   const { CodeHintLLM } = require('../../../dist-electron/electron/llm/CodeHintLLM.js');
   const { self, requests } = helper();
-  self.selectedTarget = target('opaque-model'); self.currentModelId = 'opaque-model';
+  self.selectedTarget = target('gemini-3.1-pro-preview'); self.currentModelId = 'gemini-3.1-pro-preview';
   assert.equal(await collect(new CodeHintLLM(self).generateStream(['image'], 'QUESTION')), 'answer');
   assert.equal(requests.length, 1);
   assert.ok(requests[0].contents.some(part => part.inlineData));
@@ -706,6 +710,6 @@ test('AG33 partial cancellation records exact target and cancelled status in exi
   await entered.promise; engine.reset(); await assert.rejects(pending, { name: 'AbortError' }); late.resolve();
   const usage = session.getFullUsage().at(-1);
   assert.equal(usage.answer, 'partial answer'); assert.equal(usage.status, 'cancelled');
-  assert.equal(usage.model, 'gemini-a'); assert.equal(usage.provider, 'gemini'); assert.equal(usage.partial, true);
+  assert.equal(usage.model, 'gemini-3.1-flash-lite'); assert.equal(usage.provider, 'gemini'); assert.equal(usage.partial, true);
   assert.equal(session.getFullTranscript().at(-1).generation.requestId, usage.requestId);
 });

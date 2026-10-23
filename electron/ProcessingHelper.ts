@@ -33,6 +33,8 @@ export class ProcessingHelper {
   public applyStoredProvider(provider: LlmProvider): void {
     const credManager = CredentialsManager.getInstance();
     this.llmHelper.configureProvider(credManager.getProviderConfigurations()[provider], credManager.getProviderApiKey(provider));
+    // A pending older setting is derived from the saved configuration (S48 C4); re-read it as a cold start would.
+    this.llmHelper.setSavedReasoning(credManager.getSavedReasoning());
   }
 
   /** Applies one stored gateway with its own key. */
@@ -84,6 +86,7 @@ export class ProcessingHelper {
       catch (error) { this.llmHelper.selectUnavailable(defaultModel, error instanceof Error ? error.message : 'The saved answer model is unavailable.'); }
     }
     this.llmHelper.setGenerationPolicy(credManager.getGenerationPolicy());
+    this.llmHelper.setSavedReasoning(credManager.getSavedReasoning());
 
     // Load Languages
     const sttLanguage = credManager.getSttLanguage();

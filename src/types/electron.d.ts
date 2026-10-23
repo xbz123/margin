@@ -1,3 +1,4 @@
+import type { AnswerReasoningState, ReasoningChoice } from './answerReasoning';
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from './llmTarget';
 import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
@@ -100,7 +101,7 @@ export interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "gateway" | "codex-cli" | "unavailable"; model: string }>
-  testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration) => Promise<{ success: boolean; error?: string }>
+  testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration, model?: string) => Promise<{ success: boolean; error?: string }>
   testGatewayConnection: (id: string, expected?: GatewayConfiguration) => Promise<{ success: boolean; error?: string }>
 
   // API Key Management
@@ -247,6 +248,13 @@ export interface ElectronAPI {
   getDefaultModel: () => Promise<{ model: string; unavailable?: string }>;
   setModel: (modelId: string) => Promise<{ success: boolean; error?: string }>;
   setDefaultModel: (modelId: string) => Promise<CredentialSaveResult>;
+  /** S48: saved default and session reasoning, computed by the main process for the exact models. */
+  getAnswerReasoning: () => Promise<AnswerReasoningState>;
+  /** `expected` is the state's saved target; a write for an older primary model is refused. */
+  setDefaultReasoning: (expected: string, value: ReasoningChoice) => Promise<CredentialSaveResult>;
+  /** `expected` is the state's session target; a write for an older running model is refused. */
+  setSessionReasoning: (expected: string, value: ReasoningChoice) => Promise<{ ok: true } | { ok: false; message: string }>;
+  onAnswerReasoningChanged: (callback: (state: AnswerReasoningState) => void) => () => void;
   toggleModelSelector: (coords: { x: number; y: number; activate?: boolean }) => Promise<void>;
   modelSelectorCloseIfOpen: () => Promise<void>;
 

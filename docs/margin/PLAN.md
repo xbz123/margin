@@ -1485,6 +1485,66 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### S48 官方能力表与统一推理控件（2026-10-23，本地实现完成，独立验收通过）
+
+Ticket/Spec：[S48](S48-model-capabilities-and-reasoning.md)（S48-01 能力表与自动图片判定 → S48-02 统一默认/会中推理与请求快照）；产品条款见 [Spec S48](../product.md#s48)，取代 S44/S47 的卡片内逐模型推理和官方图片手动确认。Claude 为唯一写入者，串行实施；不提交、不推送、不远端 CI、不安装、不调用真实服务，交当前 Codex 独立验收。基线 `94824398` + 未提交 S47。
+
+**最终数据/IPC 契约**
+
+- 能力表 `src/types/modelCapabilities.ts`：`officialCapability(target)` 仅在官方地址 + 列出的协议 + 准确 ID 时返回记录（images、原生 levels、withThinking、off、reasonsByDefault、capacity、retired、sources，核实日 2026-10-22）；`reasoningChoices`、`reasoningForChoice`（非法则抛错）、`choiceForSetting`（旧设置无损识别）。`modelImageSupport`、`modelReasoning` 改为读取同一张表。
+- 图片守卫 `assertModelImageSupport`：true 放行；false 拒绝；官方未知一律拒绝（`imageSupportConfirmedFor` 对官方目标不再生效）；网关保持原确认。官方备用图片确认入口删除，`backupConfirmationValid` 只接受网关。
+- 存储：`StoredCredentials.answerReasoning?: ReasoningChoice`（共享默认，一个值）。`getSavedReasoning(): { choice } | { legacy, target }`；无新字段时按已保存主模型自己的旧设置推导。`setSavedReasoning(expected, choice)` 校验 expected 为当前主模型的规范 ID，网关/Codex 返回 write_failed，非法档位抛错。`setDefaultModel` 在同一次原子保存中把不再适用的值改为 `default` 并带 `warning`。官方配置上新的逐模型 reasoning 被拒（只允许原样回写旧值）；解析目标不再带 reasoning/图片确认。
+- 运行时（`LLMHelper`）：`setSavedReasoning`、`setSessionReasoning(expected, choice)`（陈旧、网关/Codex、非法均抛错）、`clearSessionReasoning`、`reconcileSessionReasoning`（只处理明确的会中覆盖）、`getSessionReasoningState`。`beginGenerationTask` 快照：被选中的主模型取会中值或保存值；官方备用和显式目标（连接测试）无 reasoning；网关保留自身设置。
+- IPC/preload：`get-answer-reasoning` → `AnswerReasoningState { saved, session }`（`ReasoningControlState { target, mode: official|source|unavailable, options, value, pendingLegacy?, notice? }`，session 另含 `overridden`）；`set-default-reasoning(expected, value)` → `CredentialSaveResult`（经 `persistCredentials`，apply 失败为 saved + warning）；`set-session-reasoning(expected, value)` → `{ ok: true } | { ok: false, message }`；广播 `answer-reasoning-changed`（每次 `sendModelChanged` 也广播）。状态拼装为共享的 `answerReasoningState()`（`electron/llm/answerReasoning.ts`）。
+- 会议生命周期：`stopMeeting()` 状态不是 failed，或无音频提前结束时清除会中覆盖；未保存会议的 retry/discard 成功时清除；保存失败时保留。
+- UI：共享 `ReasoningSelect`；设置页主模型下方“默认推理强度”，会中模型按钮旁“本次会议推理强度”（紧凑）。官方 ProviderCard 删除推理/thinking 下拉和图片确认框，改为能力文字（支持/不支持/未核实）及 Preview 停用提示。新 Gemini 预设为 `gemini-3.1-flash-lite`。
+
+**本地结果**：两票均按上述范围完成，无停止项。首次执行因额度中断，恢复后定位的两处窄测失败均为测试适配/测试编写错误，另修正一个会中继承设计问题。新增 S48 单元 18 个、挂载 1 个，4 个变异均被识别。首轮完整门禁 14/16（来源 1 处命中、单元 3 失败，均已修正，见证据），次轮：16/16 通过（单元 1239/1239，回答 21/21，存储 3/3，启动 2/2，挂载界面 16/16，来源 0 命中，`git diff --check` 通过；MeetingPersistence 时钟波动未复现）。未提交、未推送、未安装，无真实请求；Windows 仅静态审查。待决：网关/Codex 主模型期间保留共享默认值（见 Spec 实施结果）。证据：[S48](evidence/S48/README.md)。
+
+**独立验收（2026-10-23）**：当前 Codex 首次审阅复现 1 个 P2（旧设置待确认时保存官方配置后，运行态与冷启动的推理不一致）；Claude 在 `ProcessingHelper.applyStoredProvider` 中保存后重新读取并应用保存的推理状态，修复后完整本地门禁 16/16（单元 1240/1240）。当前 Codex 独立复跑原反例 1/1、关键套件 191/191，结论：P2 关闭，S47/S48 本地代码验收通过，复验代码摘要 `e6d3a926…`。真实服务、Windows 运行和安装后的用户操作未验证；[独立报告](evidence/S48/independent-review.md)。
+
+### S47 官方回答服务多模型候选（2026-10-22，本地实现完成；部分条款已被 S48 取代，与 S48 合并后独立验收通过）
+
+用户要求 Gemini、OpenAI、Claude、DeepSeek 每家一个 Key、可明确加入多个持久候选，顶部主/备模型和会中选择器都能选。产品要求见 [Spec S47](../product.md#s47)。Claude 为唯一写入者，按 01→02→03 串行；不提交、不推送、不远端 CI、不安装、不调用真实服务，交当前 Codex 独立验收。基线 `94824398`。
+
+**最终数据契约（S47-01 定，02/03 共用）**
+
+- 形状：`ProviderConfiguration` 原有 `model`/`reasoning`/`imageSupportConfirmedFor` 即第一个候选；新增可选 `models?: ModelSettings[]`（`{ model, reasoning?, imageSupportConfirmedFor? }`）为其余候选。候选全集 = 顶层 + `models`，顺序保留。没有其余候选时不写 `models`，因此旧单模型配置原样读取即为一项候选，不迁移文件、不复制 Key 槽位、不新增并行存储。`protocol` 仍是整家的唯一字段，OpenAI 协议切换语义不变。
+- 共用函数（`src/types/llmTarget.ts`）：`providerCandidates(config)` 列出候选；`candidateConfiguration(config, model)` 返回只带该候选自身推理/图像确认的单模型配置（不带 `models`）；`withCandidates(config, list)` 把列表写回形状。
+- Producer：设置卡片草稿 → `set-provider-configuration`（Key 与完整候选一次原子保存）→ `CredentialsManager.setProviderConfiguration` → `validateProviderConfiguration`。Consumers：`getProviderConfigurations`、`resolveModelTarget`（候选得到自身参数；非候选的同家模型仍按原规则无参数解析）、`followSelection`、`LLMHelper.configureProvider/testProviderConnection/beginGenerationTask`、`fetch-provider-models`、`test-llm-connection` 的 expected 比较、`get-default-model`、`answerModelOptions`（顶部主/备与会中选择器共用）、设置卡片、备用图像绑定。
+- 稳定 ID：沿用 `llm-target:<provider>:<protocol>:<encodeURIComponent(model)>`；跨服务同名模型因 provider 不同而不同。
+- 校验（信任边界）：`models` 不是数组、项不是对象、`model` 非法、推理不被该候选的协议/模型接受时拒绝；同一家内候选重复（含与顶层同名）拒绝；图像确认只保留与该候选完整目标一致的值（沿用顶层规则）。不新增固定条数上限：现有模型列表与网关都没有条数边界，候选只能逐个明确加入、且受去重和单项长度校验约束；如需上限另行决定。
+- 选择跟随：一次保存后，仍是候选的模型选择不变，协议变化时随协议迁移（原行为）；已不再是候选的模型才沿用原“已配置模型跟随”规则（只剩网关和未被使用的情况）。
+- 移除保护：保存会去掉某候选、且该候选被默认主模型（含未写入时的内置默认）、备用模型或主进程当前运行（会中临时）选择使用时，`setProviderConfiguration`/`setPreferredModel` 返回 `write_failed` 和“先切换再移除”的提示，存储和 runtime 不变；运行选择由 IPC 从 `LLMHelper.getCurrentModelSelection()` 传入。旧 `set-provider-preferred-model` 替换正在使用的模型同样被拒，不再自动跟随到新模型。
+- 错误行为：校验失败抛错，经 `persistCredentials` 返回原有保存失败；写/rename 失败语义和 `ANSWER_APPLY_WARNING` 不变。
+
+**S47-01 多模型配置与兼容保存** — 状态：本地完成，见下方本地结果。
+
+- Outcome：每家一个 Key、多个候选及各自设置；保存→立即解析→冷启动一致；旧单模型无损为一项候选。
+- Scope：`src/types/llmTarget.ts`、`electron/llm/llmTarget.ts`、`CredentialsManager.ts`、`LLMHelper.ts`（配置、测试目标）、`ipcHandlers.ts`（传入运行选择、按候选测试）、`preload.ts`/`electron.d.ts` 的测试参数。`ProcessingHelper` 共用应用操作不改。网关、多协议管理、加密/事务机制、环境 Key 均不动。
+- Steps：形状与校验 → 解析/跟随 → 移除保护与原子保存 → 按候选测试 → 测试。
+- Validation：旧单项冷启动；两个合成候选不同推理/图像设置的保存→解析→`disk.boot` 冷启动一致，mock 请求 wire model 正确；保存失败零 runtime 变化；应用失败保留 saved+warning；默认/备用/会中临时模型不被新增候选改动；重复/非法候选拒绝。
+- Stop：必须破坏旧配置、扩大到网关/多协议管理或迁移用户文件时停。
+
+**S47-02 官方卡片多候选管理与三个选择入口**（依赖 S47-01 契约）
+
+- Outcome：获取列表后明确加入多个候选，查看/编辑各自设置、移除未使用项；顶部主/备与会中选择器看到同一份已保存候选。
+- Scope：`ProviderCard.tsx`、`AIProvidersSettings.tsx`、`answerModelOptions.ts`（`ModelSelectorWindow` 经它取得列表）、中英文文本。复用现有 select/按钮样式，不加依赖、不重构页面。
+- Steps：获取结果只进入本地“加入”下拉，不替换候选；“编辑候选”下拉只决定编辑与测试哪一项，不改变运行模型；加入/移除只改草稿，随 Key 一起按完整配置原子保存；协议切换重置全部候选的推理/图像确认（与原单模型一致）；移除被使用项由主进程拒绝并显示提示，草稿保留。
+- Test operation：“保存并测试”只测当前编辑候选，一条已有兼容请求，不遍历、不借备用；成功状态绑定该候选的 provider/protocol/model/推理/图像，任何保存、Key 变化或目标变化都清除；迟到的获取/测试结果按操作序号丢弃；不把测试结果持久化。
+- Validation：挂载 UI 中同一家两个候选进入主/备/会中列表；切换只改被操作选择；重开/冷启动保留；草稿与失败/迟到结果不污染；按当前候选只发一次测试；跨服务同名不同 ID；移除使用中被拒、切换后可移除；删除 Key 隐藏该家所有候选。
+- Stop：需要新策略区分临时选择、或需要大页面重构时停。
+
+**S47-03 集成验收与交接**（依赖 01、02）
+
+- 沿用 credentials 事务、ProviderGatewayPolicy、generationInterfaces/multiProtocolGeneration、设置挂载与选择器测试，只加最少反例；旧测因单模型假设需改时保留安全断言。隔离入口与合成凭据；真实 `LLMHelper` 启动测试 stub 后台模型发现。
+- 顺序：窄测试 → 构建/类型检查 → 完整本地 gates 16/16 → `git diff --check`。来源命中逐条审查后精确登记。macOS 隔离验证，Windows 静态审查；未取得的截图/层次明确列为未验证。
+- 不关闭阶段 6；真实服务权限、模型效果和用户体验另行验收。证据：[S47](evidence/S47/README.md)。
+
+**后续状态（2026-10-23）**：当前 Codex 独立复查未通过——第二候选的推理下拉显示第一候选的值（已复现）。按 S48 删除该控件并用新统一控件的真实 A→B→A 挂载测试闭环；S47 的候选保存、使用中移除保护和按已保存候选测试保留。下方 16/16 只属于 S47 当时的工作树，不作为 S48 验收。S47 与 S48 合并后的工作树已通过独立验收，见上方 S48。
+
+**本地结果**：01、02、03 均按上述范围完成，无暂停项。新增 6 个单元用例（旧单模型冷启动、两候选保存→解析→冷启动→回环 wire、非法/重复候选拒绝、新增不改选择与使用中移除拒绝、按候选测试、选择列表）和 1 个挂载用例（真实 manager、IPC 回调、preload 形状、LLMHelper 与设置页/会中选择器）；5 个变异均被识别。旧测试 4 处“替换后跟随”期望按移除保护改为“拒绝且不变”，其余安全断言保留。完整本地门禁 16/16（单元 1221/1221，回答 21/21，存储 3/3，启动 2/2，挂载界面 15/15），来源检查 0 命中，`git diff --check` 通过。未提交、未推送、未安装、无真实请求；截图未取得，Windows 仅静态审查。待决：内置默认主模型（未写入时为 Gemini 预设）同样受移除保护，首次替换 Gemini 预设模型需先改选主模型；不新增候选条数上限。
+
 ### S46 笔试回答契约与笔试消息样式（2026-10-22，已交付安装，待用户实测）
 
 用户 2026-10-22 确认两张小票，产品要求见 [Spec U8](../product.md#u8) 与[截图、文字与回答显示](../product.md#截图文字与回答显示)。Claude 为唯一写入者，按 A→B 顺序实施；不提交、不推送、不安装、不调用真实服务，交当前 Codex 独立验收。基线 `d6bc80ce`。

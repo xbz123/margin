@@ -35,8 +35,8 @@ function chain() {
   } finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
   const sent = [], policy = { current: {} };
   const helper = Object.assign(Object.create(modules.LLMHelper.prototype), {
-    selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o', imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', 'https://api.openai.com/v1', 'gpt-4o']) },
-    currentModelId: 'gpt-4o', aiResponseLanguage: 'auto', personaPrompt: '', customNotes: '',
+    selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4' },
+    currentModelId: 'gpt-5.4', aiResponseLanguage: 'auto', personaPrompt: '', customNotes: '',
     getProviderScopePolicy: () => policy.current,
     openaiClient: { chat: { completions: { create: async body => {
       sent.push(body);
@@ -110,7 +110,7 @@ test('S42-04 real retry sends the exact original input with a new model/client/t
   c.intelligence.addAssistantMessage('LATER assistant context');
   c.interviewer.emit('transcript', { segmentId: 'new', text: 'LATER conversation unrelated to the original', isFinal: true });
   let newClientCalls = 0;
-  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o-mini', imageSupportConfirmedFor: JSON.stringify(['openai', 'chat-completions', 'https://api.openai.com/v1', 'gpt-4o-mini']) };
+  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-6-luna' };
   c.helper.openaiClient = { chat: { completions: { create: async body => {
     newClientCalls++; c.sent.push(body);
     return [{ choices: [{ delta: { content: 'RETRY ANSWER' }, finish_reason: 'stop' }] }];
@@ -118,7 +118,7 @@ test('S42-04 real retry sends the exact original input with a new model/client/t
   const result = await c.invoke('generation:retry', failure.requestId, Date.now());
   assert.equal(result.answer, 'RETRY ANSWER', result.error); assert.equal(result.retryable, false);
   assert.equal(newClientCalls, 1); assert.equal(decodes, 1);
-  assert.equal(c.sent[1].model, 'gpt-4o-mini');
+  assert.equal(c.sent[1].model, 'gpt-6-luna');
   assert.deepEqual(c.sent[1].messages, original.messages);
   assert.doesNotMatch(JSON.stringify(c.sent[1]), /FIRST PARTIAL|LATER/);
   assert.notEqual(result.requestId, failure.requestId);
@@ -302,19 +302,19 @@ test('S44 a smaller retry model receives the full original input with no local c
   assert.equal(c.sent.length, 2, 'the smaller model was asked once, with no hidden retry');
   assert.deepEqual(c.sent[1].messages, c.sent[0].messages, 'nothing was trimmed');
   assert.equal(smaller.answer, null); assert.equal(smaller.retryable, true);
-  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' };
+  c.helper.selectedTarget = { provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4' };
   c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'LARGER MODEL ANSWER' }, finish_reason: 'stop' }] }]; };
   assert.equal((await c.invoke('generation:retry', smaller.requestId, Date.now())).answer, 'LARGER MODEL ANSWER');
   assert.deepEqual(c.sent[2].messages, c.sent[0].messages);
 });
 
-test('S44 manual retry sends the original input with the reasoning setting saved since the failure', async () => {
+test('S48 manual retry sends the original input with the reasoning saved since the failure', async () => {
   const c = chain();
   c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw new Error('synthetic failure'); };
   await c.invoke('gemini-chat-stream', 'original question');
   const failure = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')[3];
   assert.equal(Object.hasOwn(c.sent[0], 'reasoning_effort'), false);
-  c.helper.selectedTarget = { ...c.helper.selectedTarget, reasoning: { effort: 'low' } };
+  c.helper.setSavedReasoning({ choice: 'low' });
   c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'RETRIED' }, finish_reason: 'stop' }] }]; };
   assert.equal((await c.invoke('generation:retry', failure.requestId, Date.now())).answer, 'RETRIED');
   assert.equal(c.sent[1].reasoning_effort, 'low');
@@ -488,7 +488,7 @@ for (const kind of [...Object.keys(shortcuts), 'answer']) {
       if (revokeAt === 'queue') c.policy.current.profile_history = false;
     } } };
     if (revokeAt === 'retry') {
-      c.helper.setGenerationPolicy({ ...c.helper.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:gpt-4o-mini' });
+      c.helper.setGenerationPolicy({ ...c.helper.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:gpt-6-luna' });
       c.helper.openaiClient.chat.completions.create = async body => {
         c.sent.push(body);
         c.policy.current.profile_history = false;
@@ -530,7 +530,7 @@ for (const revisions of [1, 2]) test(`S42-03 delayed begin after the tail cannot
 
 for (const kind of ['clarify', 'answer']) test(`S42-03 ${kind}: allowed history survives an actual automatic backup send`, async () => {
   const c = chain();
-  c.helper.setGenerationPolicy({ ...c.helper.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:gpt-4o-mini' });
+  c.helper.setGenerationPolicy({ ...c.helper.getGenerationPolicy(), backupModel: 'llm-target:openai:chat-completions:gpt-6-luna' });
   const create = c.helper.openaiClient.chat.completions.create;
   c.helper.openaiClient.chat.completions.create = async body => {
     if (c.sent.length === 0) {
@@ -541,7 +541,7 @@ for (const kind of ['clarify', 'answer']) test(`S42-03 ${kind}: allowed history 
   };
   await (await historyAction(c, kind))();
   assert.equal(c.sent.length, 2, 'the same retry path can send when permission remains granted');
-  assert.deepEqual(c.sent.map(body => body.model), ['gpt-4o', 'gpt-4o-mini']);
+  assert.deepEqual(c.sent.map(body => body.model), ['gpt-5.4', 'gpt-6-luna']);
   for (const body of c.sent) assert.match(JSON.stringify(body), /PRIVATE HISTORY/i);
 });
 

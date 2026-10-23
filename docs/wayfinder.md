@@ -10,6 +10,7 @@
 
 ## Waiting
 
+- **S47/S48 模型配置** — P2 已修复，独立本地代码验收通过，已提交并推私有 origin；公开推送/CI/安装待授权，实机未验；resume：[审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。
 - **真实参数验证** — 单次 Gemini 连接成功不代表全部服务或质量验收；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
