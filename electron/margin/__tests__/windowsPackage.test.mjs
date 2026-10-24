@@ -115,6 +115,27 @@ function sourceTree(t) {
 
 const IDENTITY = { variant: 'temp', name: 'temp', appId: 'io.github.xbz123.temp' };
 
+// @electron/asar 3.4.1 createPackage returns once it calls out.end(), without waiting
+// for the stream to finish (lib/disk.js writeFileListToStream), and its reader fills
+// bytes not yet on disk with zeros. On a slow disk (Windows CI 40049343934) the packed
+// package.json then read as NULs, so wait until the archive holds every packed file
+// its header lists.
+async function writeArchive(input, archive) {
+  await asar.createPackage(input, archive);
+  const { header, headerSize } = asar.getRawHeader(archive);
+  let end = 8 + headerSize;
+  (function visit(node) {
+    for (const entry of Object.values(node.files ?? {})) {
+      if (entry.files) visit(entry);
+      else if (!entry.unpacked && entry.offset !== undefined) end = Math.max(end, 8 + headerSize + Number(entry.offset) + entry.size);
+    }
+  })(header);
+  for (const deadline = Date.now() + 30_000; fs.statSync(archive).size < end;) {
+    if (Date.now() > deadline) throw new Error(`app.asar still shorter than ${end} bytes`);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
+
 // A win-unpacked tree that passes every Windows check; `change` edits the staged
 // tree before app.asar is written.
 async function winApp(t, sourceRoot, change = () => {}) {
@@ -135,7 +156,7 @@ async function winApp(t, sourceRoot, change = () => {}) {
   write(resources, 'licenses/electron/LICENSES.chromium.html', NOTICES.win);
   change({ app, resources, archive });
   if (fs.existsSync(archive)) {
-    await asar.createPackage(archive, path.join(resources, 'app.asar'));
+    await writeArchive(archive, path.join(resources, 'app.asar'));
     fs.rmSync(archive, { recursive: true, force: true });
   }
   return app;
@@ -221,6 +242,8 @@ test('missing natives, wrong PE architecture, foreign binaries, notices and reso
     ['empty keytar binding', ({ resources }) => write(resources, keytar, Buffer.alloc(0)), ['required-native-x64']],
     ['text keytar binding', ({ resources }) => write(resources, keytar, 'not a PE library'), ['required-native-x64']],
     ['damaged PE signature in the native module', ({ resources }) => { const bytes = peFile('x64'); bytes.write('XX', 0x40, 'latin1'); write(resources, nativeModule, bytes); }, ['required-native-x64']],
+    // No exception for electron-builder's 32-bit helper: it must not be packed at all.
+    ['ia32 elevate.exe helper', ({ resources }) => write(resources, 'elevate.exe', peFile('ia32')), ['native-x64']],
     ['ia32 executable', ({ app }) => write(app, 'temp.exe', peFile('ia32', { ProductName: 'temp', FileDescription: 'temp', InternalName: 'temp' })), ['native-x64']],
     ['macOS module in the package', ({ resources }) => write(resources, 'app.asar.unpacked/native-module/index.darwin-arm64.node', Buffer.from('cffaedfe0c000001', 'hex')), ['native-x64']],
     ['missing Chromium notice', ({ resources }) => fs.rmSync(path.join(resources, 'licenses/electron/LICENSES.chromium.html')), ['license-files']],
@@ -271,6 +294,21 @@ test('the Windows target is NSIS x64 per user, keeps app data and derives its up
   assert.equal(nsis.perMachine, false);
   assert.equal(nsis.deleteAppDataOnUninstall, false);
   for (const key of ['guid', 'include', 'script', 'installerHeader']) assert.equal(Object.hasOwn(nsis, key), false, key);
+  // resources/elevate.exe is a 32-bit helper electron-builder copies only for
+  // electron-updater per-machine updates (nsisOptions packElevateHelper); this app has
+  // no updater and the installer elevates through its UAC plugin, so it is not packed
+  // and native-x64 needs no exception (Windows CI 40049343934 found it as ia32).
+  assert.equal(nsis.packElevateHelper, false);
+  const nsisUtil = fs.readFileSync(path.join(REPO, 'node_modules/app-builder-lib/out/targets/nsis/nsisUtil.js'), 'utf8');
+  assert.match(nsisUtil, /if \(isPackElevateHelper === false && target\.options\.perMachine === true\) \{\n\s+isPackElevateHelper = true;/);
+  assert.match(nsisUtil, /if \(isPackElevateHelper === false\) \{\n\s+return Promise\.resolve\(\);\n\s+\}/);
+  assert.match(nsisUtil, /const outFile = path\.join\(appOutDir, "resources", "elevate\.exe"\);/);
+  for (const dir of ['templates/nsis', 'templates/nsis/include']) {
+    for (const file of fs.readdirSync(path.join(REPO, 'node_modules/app-builder-lib', dir)).filter((name) => /\.(nsh|nsi)$/.test(name))) {
+      assert.equal(fs.readFileSync(path.join(REPO, 'node_modules/app-builder-lib', dir, file), 'utf8').includes('elevate.exe'), false, file);
+    }
+  }
+  assert.equal(Object.hasOwn(pkg.dependencies ?? {}, 'electron-updater'), false);
   for (const key of ['certificateFile', 'certificateSubjectName', 'signtoolOptions', 'azureSignOptions']) assert.equal(Object.hasOwn(pkg.build.win, key), false, key);
   // electron-builder names the uninstall/upgrade registry key with a UUID v5 of the
   // appId unless nsis.guid is set (app-builder-lib NsisTarget). Each identity, and the

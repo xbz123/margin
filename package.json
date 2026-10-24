@@ -135,6 +135,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
+      "packElevateHelper": false,
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "publish": null
