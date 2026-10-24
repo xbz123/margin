@@ -7,13 +7,26 @@
 # branch. Since AG-71 it also runs the checks that need no audio device on that
 # runner: the WASAPI loopback helper's unit tests, loading the built native module in
 # Node, and the audio lifecycle and Windows isolation tests under the isolation guard
-# (native audio is replaced by the guard's device double). It packages nothing, uses
-# no secrets and uploads only its logs and build record. Passing here is not a
-# Windows 10/11 device test: nothing captures real audio.
+# (native audio is replaced by the guard's device double). Without package_apps it
+# packages nothing; it uses no secrets and uploads only its logs and build record.
+# Passing here is not a Windows 10/11 device test: nothing captures real audio.
+#
+# AG-73 package_apps (manual input): builds the unsigned x64 NSIS installer for the
+# temp and release identities with scripts/build-local.cjs, checks each win-unpacked
+# app (PE x64 natives, version strings, required files, notices), launches it in a
+# throwaway profile and makes the corresponding-source bundle. Only reports,
+# BUILD-INFO (with the installer's sha256) and the source bundle are uploaded; no
+# installer is, since the Windows test identity is not decided. Nothing is signed,
+# installed or uninstalled.
 name: Windows compile
 
 on:
   workflow_dispatch:
+    inputs:
+      package_apps:
+        description: AG-73 temp and release x64 installers built and checked on the runner (reports only), their launch checks and the source bundle
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,7 +35,7 @@ jobs:
   windows-compile:
     if: github.repository == 'xbz123/margin'
     runs-on: windows-2025
-    timeout-minutes: 60
+    timeout-minutes: ${{ inputs.package_apps && 120 || 60 }}
     defaults:
       run:
         shell: bash
@@ -89,7 +102,62 @@ jobs:
             electron/services/__tests__/ScreenshotDisplayCapture.test.mjs \
             electron/services/__tests__/WindowPreferences.test.mjs \
             electron/services/__tests__/WindowPreferencePersistence.test.mjs \
+            electron/margin/__tests__/windowsPackage.test.mjs \
             2>&1 | tee "$RUNNER_TEMP/windows-compile/node-tests.log"
+
+      # AG-73. setup:native installs the Electron binary (node_modules/electron/install.js)
+      # and rebuilds better-sqlite3 and keytar for Electron, as on macOS; its Info.plist
+      # step finds no macOS Electron and does nothing.
+      - name: Native setup for packaging
+        if: ${{ !cancelled() && inputs.package_apps }}
+        run: |
+          set -o pipefail
+          npm run setup:native 2>&1 | tee "$RUNNER_TEMP/windows-compile/setup-native.log"
+
+      # The packaging steps run independently of each other's result (not after a
+      # cancel) so one run reports every failing check; the job still fails.
+      - name: Package the temp app (AG-73; reports only)
+        if: ${{ !cancelled() && inputs.package_apps }}
+        run: MARGIN_APP_VARIANT=temp node scripts/build-local.cjs
+
+      - name: Package the release app (AG-73; reports only)
+        if: ${{ !cancelled() && inputs.package_apps }}
+        run: MARGIN_APP_VARIANT=release node scripts/build-local.cjs
+
+      - name: Launch the packaged temp app in a throwaway profile (CI only)
+        if: ${{ !cancelled() && inputs.package_apps }}
+        run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/temp/builder/win-unpacked" temp io.github.xbz123.temp "$RUNNER_TEMP/margin-package/temp/launch.json"
+
+      - name: Launch the packaged release app in a throwaway profile (CI only)
+        if: ${{ !cancelled() && inputs.package_apps }}
+        run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/release/builder/win-unpacked" Margin io.github.xbz123.margin "$RUNNER_TEMP/margin-package/release/launch.json"
+
+      - name: Corresponding source bundle (S19-C, Windows x64 crates; workflow artifact)
+        if: ${{ !cancelled() && inputs.package_apps }}
+        run: node scripts/margin/source-bundle.mjs "$RUNNER_TEMP/margin-source"
+
+      - name: Upload the package reports (no installer)
+        if: ${{ always() && inputs.package_apps }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: margin-windows-package-reports-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/margin-package/*/*.json
+            ${{ runner.temp }}/margin-package/*/*.log
+            ${{ runner.temp }}/margin-package/*/BUILD-INFO.txt
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload the source bundle
+        if: ${{ !cancelled() && inputs.package_apps }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: margin-windows-source-${{ github.sha }}
+          path: ${{ runner.temp }}/margin-source/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Record the build
         if: always()

@@ -216,6 +216,33 @@ export function inventorySummary(manifest) {
   ].join('\n');
 }
 
+// AG-73: a package copies these notices from its own target's Electron distribution
+// (package.json extraResources), and LICENSES.chromium.html differs by target. Targets
+// other than the collection host are pinned from the official release zip, whose
+// sha256 matched the release's SHASUMS256.txt.
+const electronTargetNotices = {
+  '43.1.0': {
+    'win32-x64': {
+      zip: 'https://github.com/electron/electron/releases/download/v43.1.0/electron-v43.1.0-win32-x64.zip',
+      zipSHA256: 'a07dc1e3d5e589593d37e3b19d1b373e02bb58270e2eb0d6633eee0198ad09f0',
+      'LICENSE': '5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d',
+      'LICENSES.chromium.html': 'b911161e6594ec76b872498b423c54406168f2974e0d407a847f7de1e5ff94dd',
+    },
+  },
+};
+
+export function electronNotices(root, version, host = `${process.platform}-${process.arch}`) {
+  const pinned = electronTargetNotices[version] ?? {};
+  return ['LICENSE', 'LICENSES.chromium.html'].map((file) => {
+    const sourcePath = `node_modules/electron/dist/${file}`;
+    const digest = sha256(fs.readFileSync(path.join(root, sourcePath)));
+    if (pinned[host] && pinned[host][file] !== digest) throw new Error(`installed Electron ${file} differs from the pinned ${host} release`);
+    const targets = { [host]: digest };
+    for (const [target, notices] of Object.entries(pinned)) targets[target] = notices[file];
+    return { sourcePath, file: `electron/${file}`, sha256: digest, targets, origin: `Electron ${version} installed distribution`, sourceURL: `https://github.com/electron/electron/releases/tag/v${version}` };
+  });
+}
+
 function refreshInventorySummaries(root, manifest) {
   const start = '<!-- margin-license-inventory:start -->';
   const end = '<!-- margin-license-inventory:end -->';
@@ -352,10 +379,7 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
     } else unresolved.push({ id: component.id, reason: 'no local full notice; retrieve an immutable official license source' });
   }
   const electron = readJSON(path.join(root, 'node_modules/electron/package.json'));
-  const deferred = ['LICENSE', 'LICENSES.chromium.html'].map((file) => {
-    const sourcePath = `node_modules/electron/dist/${file}`;
-    return { sourcePath, file: `electron/${file}`, sha256: sha256(fs.readFileSync(path.join(root, sourcePath))), origin: `Electron ${electron.version} installed distribution`, sourceURL: `https://github.com/electron/electron/releases/tag/v${electron.version}` };
-  });
+  const deferred = electronNotices(root, electron.version);
   const manifest = { schemaVersion: 1, scope: 'Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.', packageLockSHA256: sha256(fs.readFileSync(path.join(root, 'package-lock.json'))), cargoLockSHA256: sha256(fs.readFileSync(path.join(root, 'native-module/Cargo.lock'))), sourceConfigSHA256: fs.existsSync(sourcesFile) ? sha256(fs.readFileSync(sourcesFile)) : null, electronVersion: electron.version, components, attachments, excluded, unresolved, deferred };
   fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   refreshInventorySummaries(root, manifest);

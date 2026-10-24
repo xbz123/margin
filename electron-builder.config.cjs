@@ -5,6 +5,11 @@ module.exports = {
   ...require('./package.json').build,
   appId: identity.appId,
   productName: identity.name,
+  // AG-73: on Windows the NSIS uninstaller's --delete-app-data also removes
+  // %APPDATA%\<package name>, and the installer caches itself under
+  // %LOCALAPPDATA%\<package name>-updater. The repository name "natively" is the old
+  // Natively directory there, so a Windows package carries the identity's own name.
+  ...(process.platform === 'win32' ? { extraMetadata: { name: identity.name } } : {}),
   mac: {
     ...require('./package.json').build.mac,
     extendInfo: {

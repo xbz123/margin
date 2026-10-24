@@ -5,30 +5,41 @@
 // permission. Neither is acceptable on the user's machine (S9, S15); a CI runner
 // has no real data. Isolation here: throwaway HOME/CFFIXED_USER_HOME and TMPDIR,
 // mock keychain and the Chromium resolver block from the guard's switch list.
+// AG-73 Windows x64: <app> is win-unpacked. USERPROFILE/APPDATA/LOCALAPPDATA/TEMP
+// point into the throwaway home, but Electron resolves appData through the Windows
+// shell, so the checks use the appData Electron reports and require that launching
+// created only the app's own directory there.
 //   node scripts/margin/packaged-launch.mjs <app> <name> <appId> <report.json>
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { CHROMIUM_SWITCHES } from './isolation/env.mjs';
+import { CHROMIUM_SWITCHES, windowsProfileEnv } from './isolation/env.mjs';
 
 const require = createRequire(import.meta.url);
 const { _electron } = require('playwright');
 
 if (process.env.CI !== 'true' || process.env.GITHUB_ACTIONS !== 'true') throw new Error('Packaged launch runs only on GitHub Actions');
 const [app, name, appId, reportFile] = process.argv.slice(2);
+const windows = process.platform === 'win32';
 const home = fs.realpathSync(fs.mkdtempSync(path.join(process.env.RUNNER_TEMP || os.tmpdir(), `margin-launch-${name}-`)));
 fs.mkdirSync(path.join(home, 'tmp'));
 const env = {
   PATH: process.env.PATH, HOME: home, CFFIXED_USER_HOME: home, TMPDIR: path.join(home, 'tmp') + path.sep,
   CI: 'true', GITHUB_ACTIONS: 'true', NO_PROXY: '*', ELECTRON_NO_ATTACH_CONSOLE: '1',
+  ...(windows ? windowsProfileEnv({ home, tmp: path.join(home, 'tmp') }) : {}),
 };
+if (windows) for (const dir of [env.APPDATA, env.LOCALAPPDATA]) fs.mkdirSync(dir, { recursive: true });
+const listing = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir) : []);
+// Both places Electron may resolve appData to on Windows, listed before launch.
+const before = windows ? new Map([env.APPDATA, process.env.APPDATA].filter(Boolean).map((dir) => [path.resolve(dir).toLowerCase(), listing(dir)])) : null;
+const executable = windows ? path.join(app, `${name}.exe`) : path.join(app, 'Contents/MacOS', name);
 const report = { app: path.basename(app), expected: { name, appId }, home: '<throwaway>', checks: [] };
 const add = (id, passed, detail) => report.checks.push({ id, passed: !!passed, detail });
 let electronApp;
 const output = [];
 try {
-  electronApp = await _electron.launch({ executablePath: path.join(app, 'Contents/MacOS', name), args: CHROMIUM_SWITCHES, env, timeout: 90_000 });
+  electronApp = await _electron.launch({ executablePath: executable, args: CHROMIUM_SWITCHES, env, timeout: 90_000 });
   electronApp.process().stdout.on('data', (d) => output.push(String(d)));
   electronApp.process().stderr.on('data', (d) => output.push(String(d)));
   const deadline = Date.now() + 60_000;
@@ -47,13 +58,17 @@ try {
   const state = await electronApp.evaluate(({ app: a }) => ({
     packaged: a.isPackaged, name: a.getName(), userData: a.getPath('userData'), logs: a.getPath('logs'), appData: a.getPath('appData'),
   }));
-  const own = path.join(home, 'Library/Application Support', name);
+  const support = windows ? state.appData : path.join(home, 'Library/Application Support');
+  const own = path.join(support, name);
+  const shown = (value) => value.split(home).join('<home>').split(process.env.APPDATA || home).join('<runner APPDATA>');
   add('packaged', state.packaged === true, state.packaged);
   add('app-name', state.name === name, state.name);
-  add('user-data', state.userData === own, { userData: state.userData.split(home).join('<home>') });
-  add('logs', state.logs === own, { logs: state.logs.split(home).join('<home>') });
-  const support = path.join(home, 'Library/Application Support');
-  const created = fs.existsSync(support) ? fs.readdirSync(support) : [];
+  // On Windows appData must be one of the two directories listed before launch.
+  const listed = windows ? before.get(path.resolve(support).toLowerCase()) : [];
+  if (windows) add('app-data', !!listed, { appData: shown(support), throwawayProfile: path.resolve(support).toLowerCase() === path.resolve(env.APPDATA).toLowerCase() });
+  const created = listing(support).filter((entry) => !(listed ?? []).includes(entry));
+  add('user-data', state.userData === own, { userData: shown(state.userData) });
+  add('logs', state.logs === own, { logs: shown(state.logs) });
   add('only-own-directory', created.length === 1 && created[0] === name, created);
 } catch (error) {
   add('launch', false, error.message.split(home).join('<home>'));

@@ -5,8 +5,8 @@
 //                            scripts, lockfiles and notice inputs)
 //   npm/                     published tarballs of every npm package in the
 //                            notice inventory, checked against package-lock integrity
-//   cargo/                   .crate files for the macOS arm64 native build, checked
-//                            against Cargo.lock checksums
+//   cargo/                   .crate files for this runner's native build (macOS arm64,
+//                            or Windows x64 since AG-73), checked against Cargo.lock checksums
 //   electron/                ffmpeg (LGPL) at the revision Chromium pins for this
 //                            Electron, plus Electron's ffmpeg patch
 //   MANIFEST.json            every file with sha256
@@ -31,6 +31,9 @@ const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding:
 const status = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: ROOT, encoding: 'utf8' }).split('\n').filter(Boolean);
 const trackedChanges = status.filter((line) => !line.startsWith('??'));
 const json = (file) => JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8'));
+// The native build of this runner: its Rust target and the name of Electron's ffmpeg library.
+const host = { 'darwin-arm64': { rust: 'aarch64-apple-darwin', ffmpeg: 'libffmpeg.dylib' }, 'win32-x64': { rust: 'x86_64-pc-windows-msvc', ffmpeg: 'ffmpeg.dll' } }[`${process.platform}-${process.arch}`];
+if (!host) throw new Error(`no corresponding-source target for ${process.platform}-${process.arch}`);
 const sha = (algorithm, bytes, encoding = 'hex') => crypto.createHash(algorithm).update(bytes).digest(encoding);
 
 async function download(url) {
@@ -55,7 +58,7 @@ async function pool(items, limit, task) {
   return results;
 }
 
-const manifest = { schemaVersion: 1, commit, run: `${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`,
+const manifest = { schemaVersion: 1, commit, target: host.rust, run: `${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`,
   cleanTree: trackedChanges.length === 0, trackedChanges, untracked: status.filter((line) => line.startsWith('??')).map((line) => line.slice(3)), scope: 'CI workflow corresponding-source artifact for this commit; not a lasting source offer or legal verdict.', files: [] };
 const record = (relative, extra = {}) => {
   const bytes = fs.readFileSync(path.join(out, relative));
@@ -88,15 +91,15 @@ await pool(npm, 8, async (component) => {
   record(file, { kind: 'npm', package: `${component.name}@${component.version}`, resolved: entry.resolved, integrity: entry.integrity });
 });
 
-// 3. Crates of the macOS arm64 native build, from the registry cache setup:native filled.
-const metadata = JSON.parse(execFileSync('cargo', ['metadata', '--offline', '--locked', '--format-version', '1', '--filter-platform', 'aarch64-apple-darwin'],
+// 3. Crates of this runner's native build, from the registry cache setup:native filled.
+const metadata = JSON.parse(execFileSync('cargo', ['metadata', '--offline', '--locked', '--format-version', '1', '--filter-platform', host.rust],
   { cwd: path.join(ROOT, 'native-module'), encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }));
 const checksums = new Map();
 for (const block of fs.readFileSync(path.join(ROOT, 'native-module/Cargo.lock'), 'utf8').split('[[package]]')) {
   const field = (name) => block.match(new RegExp(`^${name} = "([^"]+)"`, 'm'))?.[1];
   if (field('checksum')) checksums.set(`${field('name')}@${field('version')}`, field('checksum'));
 }
-const cacheRoot = path.join(os.homedir(), '.cargo/registry/cache');
+const cacheRoot = path.join(process.env.CARGO_HOME || path.join(os.homedir(), '.cargo'), 'registry', 'cache');
 const caches = fs.readdirSync(cacheRoot).map((dir) => path.join(cacheRoot, dir));
 const resolved = new Set(metadata.resolve.nodes.map((node) => node.id));
 for (const pkg of metadata.packages.filter((item) => resolved.has(item.id) && item.source?.startsWith('registry+'))) {
@@ -126,7 +129,7 @@ for (const name of patchList) {
 manifest.electron = {
   version: electronVersion, source: `https://github.com/electron/electron/tree/v${electronVersion}`, chromium,
   chromiumSource: `https://chromium.googlesource.com/chromium/src/+/refs/tags/${chromium}`, ffmpegRevision: ffmpeg,
-  note: 'Electron is shipped unmodified from its release; its full source and Chromium build system are at the URLs above. ffmpeg is the LGPL library inside it (libffmpeg.dylib) and is included here with Electron\'s patch.',
+  note: `Electron is shipped unmodified from its release; its full source and Chromium build system are at the URLs above. ffmpeg is the LGPL library inside it (${host.ffmpeg}) and is included here with Electron's patch.`,
 };
 manifest.counts = Object.fromEntries(['app', 'npm', 'cargo', 'electron-ffmpeg', 'electron-ffmpeg-patch'].map((kind) => [kind, manifest.files.filter((item) => item.kind === kind).length]));
 manifest.files.sort((a, b) => a.path.localeCompare(b.path));
