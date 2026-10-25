@@ -4,12 +4,13 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-23，S47–S49 多模型候选、统一推理控件及官方能力/列表范围已独立验收，公开 CI 39935532703 通过；同源 Natively Local `9247cc19` 已安装，含此前 S46/UI/清理。包/安装各 12/12、隔离启动 10/10，用户数据及旧 Margin 保留；[交付与安装记录](margin/evidence/S49/README.md)。Agent 未用真实配置启动新版，实机签收未完成。
+**Current answer:** 截至 2026-10-26，S47–S49 已独立验收、公开 CI 通过并安装为 Natively Local `9247cc19`；[安装记录](margin/evidence/S49/README.md)。用户实测暴露的系统静音权限误报已本地修复、完整门禁通过，尚未更新安装包；[修复记录](margin/evidence/system-silence/README.md)。阶段 6 实机签收仍未完成。
 
 **Current focus:** 用户先验证模型列表、多候选切换、默认/会中推理及图片输入，再继续 S46 截图解题和阶段 6 实机复测：确定测试组合（D2），按[清单](margin/STAGE6-CHECKLIST.md)验证真实服务/设备和共享；安装不代替实机签收。正式 Margin 名称及权限列表显示、最终图标在发布前核查，Windows 后置。
 
 ## Waiting
 
+- **系统静音误报交付** — 本地修复通过，待推送/远端 CI/新版安装授权；安装后复测静音及恢复声音；resume：[记录](margin/evidence/system-silence/README.md)。
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。

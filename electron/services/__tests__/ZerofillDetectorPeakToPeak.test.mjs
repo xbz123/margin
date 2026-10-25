@@ -1,4 +1,4 @@
-// Regression test for fix B10: zero-fill detector in main.ts switched from
+// Regression test for fix B10: microphone zero-fill detector in main.ts switched from
 // abs-peak (`Math.abs(sample) > 8`) to peak-to-peak (`(maxS - minS) > 100`).
 //
 // Pre-fix bug: abs-peak detection false-latched on DC-biased muted mics
@@ -11,8 +11,9 @@
 // while rejecting muted-but-biased mics.
 //
 // Regression we're guarding against: a future contributor reverts to
-// abs-peak detection in either wireSystemCapture or wireMicCapture, or
+// abs-peak detection in wireMicCapture, or
 // reduces the threshold back to the old `> 8` value.
+// System silence is normal; its behavior is covered by StuckWatchdogDisarmOnEndAndAbort.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -73,7 +74,6 @@ function extractMethodBody(source, methodName) {
   throw new Error(`could not find body-close '}' of ${methodName}`);
 }
 
-const systemBody = extractMethodBody(main, 'wireSystemCapture');
 const micBody = extractMethodBody(main, 'wireMicCapture');
 
 /**
@@ -104,7 +104,6 @@ function extractZerofillBlock(body) {
   throw new Error('could not close zerofill block');
 }
 
-const systemZerofill = extractZerofillBlock(systemBody);
 const micZerofill = extractZerofillBlock(micBody);
 
 /**
@@ -124,50 +123,11 @@ function stripComments(src) {
     .join('\n');
 }
 
-const systemZerofillCode = stripComments(systemZerofill);
 const micZerofillCode = stripComments(micZerofill);
 const mainCode = stripComments(main);
 
 // ---------------------------------------------------------------------------
-// 1. wireSystemCapture: no Math.abs in the zero-fill detection block.
-// ---------------------------------------------------------------------------
-test('B10: wireSystemCapture zero-fill block contains no Math.abs', () => {
-  assert.ok(
-    !/Math\.abs\s*\(/.test(systemZerofillCode),
-    'wireSystemCapture zero-fill detector must not use Math.abs (peak-to-peak is DC-invariant)'
-  );
-});
-
-// ---------------------------------------------------------------------------
-// 2. wireSystemCapture: peakToPeak computation present.
-// ---------------------------------------------------------------------------
-test('B10: wireSystemCapture computes peakToPeak as maxS - minS', () => {
-  assert.match(
-    systemZerofill,
-    /peakToPeak/,
-    'wireSystemCapture must declare a peakToPeak variable'
-  );
-  // Allow both spaced and tight forms.
-  assert.match(
-    systemZerofill,
-    /maxS\s*-\s*minS/,
-    'wireSystemCapture must compute (maxS - minS) for peak-to-peak'
-  );
-});
-
-// ---------------------------------------------------------------------------
-// 3. wireSystemCapture: threshold is > 100.
-// ---------------------------------------------------------------------------
-test('B10: wireSystemCapture uses peakToPeak > 100 threshold', () => {
-  assert.match(
-    systemZerofill,
-    /peakToPeak\s*>\s*100/,
-    'wireSystemCapture must latch on peakToPeak > 100 (not the legacy > 8)'
-  );
-});
-
-// ---------------------------------------------------------------------------
-// 4. wireMicCapture: same three properties.
+// wireMicCapture: DC-invariant peak-to-peak detection.
 // ---------------------------------------------------------------------------
 test('B10: wireMicCapture zero-fill block contains no Math.abs', () => {
   assert.ok(
@@ -194,20 +154,8 @@ test('B10: wireMicCapture uses peakToPeak > 100 threshold', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5. Both detector blocks initialize minS to 32767 and maxS to -32768.
+// The microphone detector initializes minS to 32767 and maxS to -32768.
 // ---------------------------------------------------------------------------
-test('B10: wireSystemCapture initializes minS=32767 and maxS=-32768 (int16 extremes)', () => {
-  assert.match(
-    systemZerofill,
-    /minS\s*=\s*32767/,
-    'minS must start at int16 max so the first sample updates it'
-  );
-  assert.match(
-    systemZerofill,
-    /maxS\s*=\s*-32768/,
-    'maxS must start at int16 min so the first sample updates it'
-  );
-});
 
 test('B10: wireMicCapture initializes minS=32767 and maxS=-32768 (int16 extremes)', () => {
   assert.match(micZerofill, /minS\s*=\s*32767/);
@@ -243,26 +191,9 @@ test('B10: legacy `> 8` zero-fill threshold no longer appears near zerofillLatch
 });
 
 // ---------------------------------------------------------------------------
-// 7. Both detector blocks still emit sendAudioCaptureFailed with the
+// The microphone detector still emits sendAudioCaptureFailed with the
 //    correct channel and the unchanged message keys.
 // ---------------------------------------------------------------------------
-test('B10: wireSystemCapture zero-fill emits sendAudioCaptureFailed with channel="system" and mac-screen-recording-revoked-rebuild', () => {
-  assert.match(
-    systemZerofill,
-    /this\.sendAudioCaptureFailed\s*\(/,
-    'system zero-fill branch must still call sendAudioCaptureFailed'
-  );
-  assert.match(
-    systemZerofill,
-    /channel:\s*['"]system['"]/,
-    'system zero-fill payload must set channel:"system"'
-  );
-  assert.match(
-    systemZerofill,
-    /mac-screen-recording-revoked-rebuild/,
-    'system zero-fill message key must remain "mac-screen-recording-revoked-rebuild"'
-  );
-});
 
 test('B10: wireMicCapture zero-fill emits sendAudioCaptureFailed with channel="mic" and mic-zero-fill', () => {
   assert.match(
