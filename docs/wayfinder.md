@@ -4,15 +4,13 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至2026-10-26，保存/输入修复及S50会中模式、持久自动捕获已本地完成并通过门禁，尚未推送/安装；[模式验收](margin/evidence/S50-mode-controls/README.md)、[保存修复](margin/evidence/meeting-save-draft/README.md)。当前安装仍有数据库依赖缺失，阶段6未签收。
+**Current answer:** 截至2026-10-26，保存/输入修复及S50模式、持久自动捕获已通过门禁并合并安装`b7f57addf`，包内存储验证通过，用户配置未改；[安装回执](margin/evidence/S50-mode-controls/README.md)。未推送/远端CI，阶段6未签收。
 
-**Current focus:** 先处理当前内存中的未保存会议，再安排合并修复版交付与用户复测；需重新打包含模式修订的候选。之后继续[阶段6](margin/STAGE6-CHECKLIST.md)。正式身份、图标和Windows后置。
+**Current focus:** 用户启动新版，先复测会议保存、发送清空和模式/自动捕获，再继续[阶段6](margin/STAGE6-CHECKLIST.md)。安装不能代替实机签收；正式身份、图标和Windows后置。
 
 ## Waiting
 
-- **保存/输入与模式修订交付** — 本地验证通过，待重新打包、交付授权及未保存内容处理；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
-
-- **S50 用户测试** — 初版已装，新模式修订未装；待交付后验证模式、截图、格式及费用；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
+- **保存/输入及S50用户测试** — 合并新版已安装；待验证保存、草稿、模式、截图、格式及费用；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
 
 - **系统静音复测** — 修复已安装；待用户验证静音不误报、恢复声音后采集正常；resume：[记录](margin/evidence/system-silence/README.md)。
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
