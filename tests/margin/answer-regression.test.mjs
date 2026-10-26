@@ -549,6 +549,65 @@ test('a complete compatible target saved through preload drives a real typed UI 
   }
 });
 
+test('manual send clears the draft before completion and preserves the next identical draft', async () => {
+  const input = overlay.locator('input[type="text"]').last();
+  const question = '  Synthetic immediate-clear question  ';
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  mock.setScript({ errorStatus: 0, chunks: ['Immediate-clear partial', ' finished.'], delayMs: 0,
+    afterChunk: entry => entry.chunksSent === 1 ? gate : undefined });
+  try {
+    await overlay.evaluate(() => {
+      window.__draftFinished = false;
+      const off = window.electronAPI.onGeminiStreamDone(() => { window.__draftFinished = true; off(); });
+    });
+    await input.fill(question);
+    await input.press('Enter');
+    await overlay.waitForFunction(() => document.body.innerText.includes('Immediate-clear partial'));
+    assert.equal(await input.inputValue(), '', 'sent text clears while the answer is still running');
+    await input.fill(question);
+    release();
+    await overlay.waitForFunction(() => document.body.innerText.includes('Immediate-clear partial finished.'));
+    await overlay.waitForFunction(() => window.__draftFinished);
+    assert.equal(await input.inputValue(), question, 'completion cannot delete a new draft, even with identical text');
+  } finally {
+    release();
+    await overlay.evaluate(() => window.electronAPI.cancelChatStream('natively'));
+    await input.fill('');
+  }
+});
+
+test('manual send failure restores only an empty draft without overwriting new input', async () => {
+  const input = overlay.locator('input[type="text"]').last();
+  for (const nextDraft of ['', 'My next question']) {
+    const question = `  Synthetic failed draft ${nextDraft ? 'with new input' : 'empty'}  `;
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    let started;
+    const firstChunk = new Promise(resolve => { started = resolve; });
+    mock.setScript({ errorStatus: 0, chunks: ['Draft failure partial'], delayMs: 0,
+      disconnectAfterChunks: 1, afterChunk: () => { started(); return gate; } });
+    try {
+      await overlay.evaluate(() => {
+        window.__draftFailed = false;
+        const off = window.electronAPI.onGeminiStreamError(() => { window.__draftFailed = true; off(); });
+      });
+      await input.fill(question);
+      await input.press('Enter');
+      await firstChunk;
+      await overlay.waitForFunction(() => [...document.querySelectorAll('input[type="text"]')].at(-1)?.value === '');
+      await input.fill(nextDraft);
+      release();
+      await overlay.waitForFunction(() => window.__draftFailed);
+      assert.equal(await input.inputValue(), nextDraft || question);
+    } finally {
+      release();
+      await overlay.evaluate(() => window.electronAPI.cancelChatStream('natively'));
+      await input.fill('');
+    }
+  }
+});
+
 test('AG33 unknown image capability preserves the real renderer input and attachment; explicit confirmation enables retry', async () => {
   const original = (await overlay.evaluate(() => window.electronAPI.getStoredCredentials())).gateways.find(item => item.id === answerGateway);
   const unconfirmed = { ...original }; delete unconfirmed.imageSupportConfirmedFor;

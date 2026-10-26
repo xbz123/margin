@@ -15,6 +15,10 @@ const { checkPackage } = require('./margin/package-check.cjs');
 const ROOT = path.resolve(__dirname, '..');
 const identity = selectIdentity();
 const local = identity.variant === 'local';
+// npm's dependency collector can omit transitive packages behind a linked node_modules.
+if (fs.lstatSync(path.join(ROOT, 'node_modules')).isSymbolicLink()) {
+  throw new Error('Packaging requires a real node_modules directory in this checkout, not a symlink');
+}
 if ((!local && (process.env.CI !== 'true' || process.env.GITHUB_ACTIONS !== 'true')) || process.platform !== 'darwin' || process.arch !== 'arm64') {
   throw new Error('Packaging requires GitHub Actions or the local test identity on macOS arm64');
 }

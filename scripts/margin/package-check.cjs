@@ -67,6 +67,9 @@ function checkPackage(app, identity, { sourceRoot } = {}) {
   const asar = require('@electron/asar');
   const archive = path.join(resources, 'app.asar');
   const asarPaths = asar.listPackage(archive).map((entry) => entry.replace(/^\//, ''));
+  const sqliteRuntime = ['better-sqlite3/lib/database.js', 'bindings/bindings.js', 'file-uri-to-path/index.js'];
+  add('sqlite-runtime-dependencies', sqliteRuntime.every(file => asarPaths.includes(`node_modules/${file}`)),
+    { missing: sqliteRuntime.filter(file => !asarPaths.includes(`node_modules/${file}`)) });
   const packaged = JSON.parse(asar.extractFile(archive, 'package.json').toString('utf8'));
   add('publish-null', packaged.build === undefined || packaged.build.publish === null || packaged.build.publish === undefined,
     { packagedBuildPublish: packaged.build?.publish ?? 'absent' });

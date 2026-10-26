@@ -38,6 +38,15 @@ try {
   add('app-path', state.appPath === asar, state.appPath.split(asar).join('<asar>'));
   add('app-name', state.name === identity.name, state.name);
   add('user-data-in-sandbox', state.userData.startsWith(sandbox.root), state.userData.split(sandbox.root).join('<sandbox>'));
+  const stored = await app.evaluate(async ({ app: a }) => {
+    const { DatabaseManager } = process.mainModule.require(a.getAppPath() + '/dist-electron/electron/db/DatabaseManager.js');
+    const db = DatabaseManager.getInstance();
+    db.saveMeeting({ id: 'package-storage-probe', title: 'Synthetic package storage', date: '2026-10-26T00:00:00Z', duration: '0:02', summary: '',
+      transcript: [{ speaker: 'user', text: 'Synthetic transcript', timestamp: 1000 }],
+      usage: [{ type: 'chat', timestamp: 1500, question: 'Synthetic question', answer: 'Synthetic answer' }], isProcessed: true }, 1000, 2000);
+    return db.getMeetingDetails('package-storage-probe');
+  });
+  add('packaged-meeting-save', stored?.transcript?.[0]?.text === 'Synthetic transcript' && stored?.usage?.[0]?.answer === 'Synthetic answer', 'synthetic meeting written with packaged DatabaseManager');
   // Native code mapped into the main process: the package's own modules, none from the repository.
   const mapped = execFileSync('/usr/sbin/lsof', ['-p', String(pid), '-Fn'], { encoding: 'utf8' }).split('\n')
     .filter((line) => line.startsWith('n') && /\.(node|dylib)$/.test(line)).map((line) => line.slice(1));
@@ -51,6 +60,20 @@ try {
   add('launch', false, error.message);
 } finally {
   await app.close().catch(() => {});
+}
+if (report.checks.some(check => check.id === 'packaged-meeting-save' && check.passed)) {
+  let reopened;
+  try {
+    reopened = await launchApp(sandbox, { NODE_ENV: 'production' }, { appPath: asar });
+    await windowWithQuery(reopened.app, 'window=launcher', 30_000);
+    const saved = await reopened.app.evaluate(({ app: a }) => {
+      const { DatabaseManager } = process.mainModule.require(a.getAppPath() + '/dist-electron/electron/db/DatabaseManager.js');
+      return DatabaseManager.getInstance().getMeetingDetails('package-storage-probe');
+    });
+    add('packaged-meeting-restart', saved?.transcript?.[0]?.text === 'Synthetic transcript' && saved?.usage?.[0]?.answer === 'Synthetic answer', 'synthetic meeting survived a new Electron process');
+    add('restart-no-main-errors', readMainErrors(reopened.mainErrorsLog, reopened.app.process().pid).length === 0, 'restart exception recorder');
+  } catch (error) { add('packaged-meeting-restart', false, error.message); }
+  finally { await reopened?.app.close().catch(() => {}); }
 }
 const errors = readMainErrors(mainErrorsLog, pid);
 add('no-main-errors', errors.length === 0, errors.slice(0, 5));

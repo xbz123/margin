@@ -2391,7 +2391,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         const submitted = submittedChatRef.current;
         if (submitted) {
           setAttachedContext(prev => prev.filter(item => !submitted.paths.includes(item.path)));
-          setInputValue(prev => prev === submitted.text ? '' : prev);
           submittedChatRef.current = undefined;
         }
 
@@ -2426,6 +2425,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Stream Error
     cleanups.push(
       window.electronAPI.onGeminiStreamError((error, generation) => {
+        const submitted = submittedChatRef.current;
+        if (submitted) {
+          setInputValue(prev => prev || submitted.text);
+          submittedChatRef.current = undefined;
+        }
         setRetryGeneration(generation?.retryable ? generation : undefined);
         manualSubmitInFlightRef.current = false;
         lastManualSubmitRef.current = null;
@@ -2687,7 +2691,7 @@ Provide only the answer, nothing else.`;
     const currentAttachments = automatic ? [automatic] : pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
       ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
 
-    submittedChatRef.current = automatic ? undefined : { text: userText, paths: currentAttachments.map(item => item.path) };
+    submittedChatRef.current = undefined;
     // Main sends a question without a kind as written, so Auto is recorded as written.
     const generationKind = automatic ? 'written' : questionMode === 'auto' ? undefined : questionMode;
 
@@ -2757,14 +2761,24 @@ Provide only the answer, nothing else.`;
     try {
       // Pass imagePath if attached, AND conversation context
       requestStartTimeRef.current = Date.now();
-      await window.electronAPI.streamGeminiChat(
+      const request = window.electronAPI.streamGeminiChat(
         userText || 'Analyze this screenshot',
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         automatic ? undefined : conversationContext, // Automatic frames are independent practice questions.
         { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation },
       );
+      if (!automatic) {
+        submittedChatRef.current = { text: inputValue, paths: currentAttachments.map(item => item.path) };
+        setInputValue('');
+      }
+      await request;
     } catch (err) {
       if (generationEpochRef.current !== epoch) return;
+      const submitted = submittedChatRef.current;
+      if (submitted) {
+        setInputValue(prev => prev || submitted.text);
+        submittedChatRef.current = undefined;
+      }
       setIsProcessing(false);
       lastManualSubmitRef.current = null;
       setMessages((prev) => {
