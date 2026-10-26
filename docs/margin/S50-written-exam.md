@@ -1,6 +1,6 @@
 # S50 完整笔试设置与定时截图解答
 
-2026-10-26；按用户授权实现完成，本地完整门禁16/16通过，未推送或安装。开发基线 `1f0ff318`。用户指定参考分支 `codex/ai-assistant-refactor`，远端核对为 `36af1111db5b608b2ec3eff0f276a7eed97e92c1`。不切换开发工作树、不合并旧分支历史。[验收记录](evidence/S50/README.md)。
+2026-10-26；按用户授权实现、公开代码交付和安装完成。最终CI `40294534327`门禁16/16通过，已安装公开提交 `e7a4a383c` 的Natively Local，待实测。开发基线 `1f0ff318`；参考分支 `codex/ai-assistant-refactor` 的 `36af1111db5b608b2ec3eff0f276a7eed97e92c1`，未合并旧分支历史。[验收与安装记录](evidence/S50/README.md)。
 
 ## 需求与复用依据
 

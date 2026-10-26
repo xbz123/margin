@@ -4,15 +4,15 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-26，已装应用仍为 S47–S49 的 Natively Local `9247cc19`；[安装记录](margin/evidence/S49/README.md)。系统静音误报修复与 [S50完整笔试页/自动截图](margin/evidence/S50/README.md)均已本地门禁通过，尚未推送、安装；阶段6实机签收仍未完成。
+**Current answer:** 截至2026-10-26，S50完整笔试页/自动截图与系统静音误报修复已公开交付，CI `40294534327`通过；已安装公开 `e7a4a383c` 的Natively Local，用户数据未改。[安装回执](margin/evidence/S50/README.md)。阶段6实机签收仍未完成。
 
-**Current focus:** 等待S50与静音修复的交付授权；随后确定测试组合（D2），按[清单](margin/STAGE6-CHECKLIST.md)验证模型、笔试截图、真实采集和共享。安装不代替实机签收；正式Margin身份/权限列表名称、最终图标在发布前核查，Windows后置。
+**Current focus:** 用户实测新版笔试完整流程、系统静音及声音恢复，再按[阶段6清单](margin/STAGE6-CHECKLIST.md)验证模型、设备和共享。安装不代替签收；正式Margin身份/权限列表名称、最终图标仍在发布前核查，Windows后置。
 
 ## Waiting
 
-- **S50 交付** — 本地实现/验收完成；待推送、远端CI及安装授权，再实测截图与费用；resume：[记录](margin/evidence/S50/README.md)。
+- **S50 用户测试** — 公开CI通过、新版已安装；待验证截图隐藏/恢复、间隔与暂停、代码格式、解题及费用；resume：[记录](margin/evidence/S50/README.md)。
 
-- **系统静音误报交付** — 本地修复通过，待推送/远端 CI/新版安装授权；安装后复测静音及恢复声音；resume：[记录](margin/evidence/system-silence/README.md)。
+- **系统静音复测** — 修复已安装；待用户验证静音不误报、恢复声音后采集正常；resume：[记录](margin/evidence/system-silence/README.md)。
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。
