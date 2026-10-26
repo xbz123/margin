@@ -19,10 +19,10 @@ export function WrittenExamSettings() {
         control={<SettingsSwitch label={t('Hide sent screenshots')} checked={status?.hideScreenshots ?? true} disabled={!status || busy} onChange={hideScreenshots => void save({ hideScreenshots })} />} />
     </SettingsGroup>
     <SettingsGroup title={t('Automatic capture')}>
-      <SettingsRow icon={Timer} title={t('Capture interval')} description={t('Default 20 seconds, from 5 to 300. Saving pauses capture. The first capture waits one full interval.')}
+      <SettingsRow icon={Timer} title={t('Capture interval')} description={t('Default 20 seconds, from 5 to 300. Saving restarts the interval without changing your capture preference.')}
         control={<><input aria-label={t('Automatic capture interval (seconds)')} inputMode="numeric" value={interval} onChange={event => setInterval(event.target.value)} disabled={!status || busy} className="w-20 rounded-lg border border-border-subtle bg-bg-input p-2 text-text-primary text-center" /><span>{t('seconds')}</span><button className={settingsButtonClass} disabled={!status || busy || !valid || Number(interval) === status.intervalSeconds} onClick={() => void save({ intervalSeconds: Number(interval) })}>{t('Save')}</button></>} />
-      <SettingsRow icon={Play} title={t(status?.running ? 'Automatic capture running' : 'Automatic capture paused')} description={t('Skips while answering or when the image is identical. Clocks and animation count as changes. Restarting stays paused.')}
-        control={<button className={settingsButtonClass} disabled={!status?.enabled || busy} onClick={() => void setRunning(!status?.running)}>{t(status?.running ? 'Pause automatic capture' : 'Start automatic capture')}</button>} />
+      <SettingsRow icon={Play} title={t('Automatic capture')} description={t('Skips while answering or when the image is identical. Clocks and animation count as changes.')}
+        control={<button className={`${settingsButtonClass} ${status?.captureEnabled ? '!bg-emerald-700 !text-white !border-emerald-800' : ''}`} aria-pressed={status?.captureEnabled ?? false} disabled={!status || busy} onClick={() => void setRunning(!status?.captureEnabled)}>{t(status?.captureEnabled ? 'Pause automatic capture' : 'Start automatic capture')}</button>} />
       <p className="p-4 text-xs text-text-secondary">{t('Automatic capture sends the selected display to your model and may incur API costs. Pause also cancels this automatic answer. Written screenshots exclude Local Context; ordinary questions keep it.')}</p>
     </SettingsGroup>
     <SettingsGroup title={t('Code output')}>

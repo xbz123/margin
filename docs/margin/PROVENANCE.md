@@ -55,6 +55,14 @@ is also registered, not the fixture or the production persistence implementation
 
 ### S50 written practice settings and timed capture (2026-10-26)
 
+The approved same-day mode revision is independently implemented against the current
+meeting queue, audio pipeline and written timer. Two exact generic scanner hits were
+reviewed: `return candidate;` returns the validated settings in AppState (the restricted
+AnswerPlanner also returns a local variable with that name); `private paused = false;`
+is a boolean initialization (also present in restricted transcriptionPause). Only these
+statements are registered, not either upstream function or class. No additional upstream
+implementation was imported for live mode switching or capture preference persistence.
+
 The user explicitly identified the written-exam features as independently added
 Margin work and authorized reuse from `codex/ai-assistant-refactor` (reference
 `36af1111db5b608b2ec3eff0f276a7eed97e92c1`). No branch history was merged.

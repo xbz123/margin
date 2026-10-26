@@ -502,6 +502,7 @@ interface ElectronAPI {
   skipWrittenExamCapture: (generation: number) => Promise<void>;
   saveWrittenExam: (settings: Partial<WrittenExamSettings>) => Promise<WrittenExamStatus>;
   setWrittenExamRunning: (running: boolean) => Promise<WrittenExamStatus>;
+  setInterviewMode: (enabled: boolean) => Promise<WrittenExamStatus>;
   onWrittenExamStatus: (callback: (status: WrittenExamStatus) => void) => () => void;
   onWrittenExamCapture: (callback: (capture: WrittenExamCapture) => void) => () => void;
   getUiLanguage: () => Promise<UiLanguage>;
@@ -1576,6 +1577,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   skipWrittenExamCapture: (generation: number) => ipcRenderer.invoke('written-exam:skip', generation),
   saveWrittenExam: (settings: Partial<WrittenExamSettings>) => ipcRenderer.invoke('written-exam:save', settings),
   setWrittenExamRunning: (running: boolean) => ipcRenderer.invoke('written-exam:running', running),
+  setInterviewMode: (enabled: boolean) => ipcRenderer.invoke('written-exam:interview', enabled),
   onWrittenExamStatus: (callback: (status: WrittenExamStatus) => void) => {
     const listener = (_: unknown, status: WrittenExamStatus) => callback(status);
     ipcRenderer.on('written-exam-status', listener);

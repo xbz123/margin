@@ -176,7 +176,7 @@ test('S46-02 manual submit records the scene it actually sends, and only written
     })();
     return { user: messages.find(message => message.role === 'user'), options: sent[0] };
   };
-  for (const [mode, kind, scene] of [['auto', undefined, 'written'], ['written', 'written', 'written'], ['interview', 'interview', 'interview']]) {
+  for (const [mode, kind, scene] of [['written', 'written', 'written'], ['interview', 'interview', 'interview']]) {
     const { user, options } = await submit(mode);
     assert.equal(options.generationKind, kind, mode);
     assert.equal(user.scene, scene, mode);

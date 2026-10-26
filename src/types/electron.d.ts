@@ -211,6 +211,7 @@ export interface ElectronAPI {
   skipWrittenExamCapture: (generation: number) => Promise<void>;
   saveWrittenExam: (settings: Partial<WrittenExamSettings>) => Promise<WrittenExamStatus>;
   setWrittenExamRunning: (running: boolean) => Promise<WrittenExamStatus>;
+  setInterviewMode: (enabled: boolean) => Promise<WrittenExamStatus>;
   onWrittenExamStatus: (callback: (status: WrittenExamStatus) => void) => () => void;
   onWrittenExamCapture: (callback: (capture: WrittenExamCapture) => void) => () => void;
   getUiLanguage: () => Promise<UiLanguage>

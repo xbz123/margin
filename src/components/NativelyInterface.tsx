@@ -597,16 +597,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
   // Model Selection State
   const [currentModel, setCurrentModel] = useState<string>('gemini-3-flash-preview');
-  const [questionMode, setQuestionMode] = useState<'auto' | 'interview' | 'written'>('auto');
   const exam = useWrittenExam();
+  const questionMode = exam.status?.enabled ? 'written' : 'interview';
   const automaticSubmit = useRef(false);
-  const pendingQuestionMode = useRef<'auto' | 'interview' | 'written' | undefined>(undefined);
-  useEffect(() => {
-    if (exam.status) {
-      setQuestionMode(previous => exam.status!.enabled ? 'written' : pendingQuestionMode.current ?? (previous === 'written' ? 'auto' : previous));
-      pendingQuestionMode.current = undefined;
-    }
-  }, [exam.status?.enabled]);
 
   // Dynamic Action Button Mode (Recap vs Brainstorm)
   const [actionButtonMode, setActionButtonMode] = useState<'recap' | 'brainstorm'>('recap');
@@ -2692,8 +2685,7 @@ Provide only the answer, nothing else.`;
       ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
 
     submittedChatRef.current = undefined;
-    // Main sends a question without a kind as written, so Auto is recorded as written.
-    const generationKind = automatic ? 'written' : questionMode === 'auto' ? undefined : questionMode;
+    const generationKind = automatic ? 'written' : questionMode;
 
     // Seal any in-flight streaming rows from a previous turn before we
     // append the new user message + placeholder. Without this, the rAF
@@ -4661,18 +4653,6 @@ Provide only the answer, nothing else.`;
                                     tap and break inputs in Settings/Model
                                     Selector windows. */}
                 {(exam.error || exam.status?.error) && <p role="alert" className="text-xs text-red-500 mb-2">{t(exam.error || exam.status!.error)}</p>}
-                <label className="flex items-center gap-2 text-xs overlay-text-muted mb-2" data-stealth-ignore="true">
-                  {t('Question mode')}
-                  <select aria-label={t('Question mode')} value={questionMode} disabled={exam.busy} onChange={event => {
-                    const mode = event.target.value as 'auto' | 'interview' | 'written';
-                    if (exam.status && exam.status.enabled !== (mode === 'written')) { pendingQuestionMode.current = mode; void exam.save({ enabled: mode === 'written' }); }
-                    else setQuestionMode(mode);
-                  }} className="bg-transparent border rounded px-2 py-1">
-                    <option value="auto">{t('Automatic (by entry)')}</option>
-                    <option value="interview">{t('Interview')}</option>
-                    <option value="written">{t('Written')}</option>
-                  </select>
-                </label>
                 <div className="relative group" data-stealth-engage="true">
                   <input
                     ref={textInputRef}

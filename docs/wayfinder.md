@@ -4,15 +4,15 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至2026-10-26，已安装S50包实机发现SQLite依赖缺失、会议无法保存。打包与输入框即时清空修复已通过本地门禁和候选包存储验证，尚未推送/安装；[修复证据](margin/evidence/meeting-save-draft/README.md)。阶段6未签收。
+**Current answer:** 截至2026-10-26，保存/输入修复及S50会中模式、持久自动捕获已本地完成并通过门禁，尚未推送/安装；[模式验收](margin/evidence/S50-mode-controls/README.md)、[保存修复](margin/evidence/meeting-save-draft/README.md)。当前安装仍有数据库依赖缺失，阶段6未签收。
 
-**Current focus:** 先处理当前内存中的未保存会议，再安排修复版交付及用户复测；模式切换需求尚未实施。之后继续[阶段6](margin/STAGE6-CHECKLIST.md)。正式Margin身份、图标和Windows仍后置。
+**Current focus:** 先处理当前内存中的未保存会议，再安排合并修复版交付与用户复测；需重新打包含模式修订的候选。之后继续[阶段6](margin/STAGE6-CHECKLIST.md)。正式身份、图标和Windows后置。
 
 ## Waiting
 
-- **保存/输入修复交付** — 本地及候选包验证通过；待处理当前未保存内容并授权后续安装；resume：[记录](margin/evidence/meeting-save-draft/README.md)。
+- **保存/输入与模式修订交付** — 本地验证通过，待重新打包、交付授权及未保存内容处理；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
 
-- **S50 用户测试** — 公开CI通过、新版已安装；待验证截图隐藏/恢复、间隔与暂停、代码格式、解题及费用；resume：[记录](margin/evidence/S50/README.md)。
+- **S50 用户测试** — 初版已装，新模式修订未装；待交付后验证模式、截图、格式及费用；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
 
 - **系统静音复测** — 修复已安装；待用户验证静音不误报、恢复声音后采集正常；resume：[记录](margin/evidence/system-silence/README.md)。
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。

@@ -163,7 +163,22 @@ const SettingsPopup = () => {
                 <div className="relative z-[1] flex flex-col">
 
                 {/* Undetectability */}
-                {exam.status?.running && <button className="px-2.5 py-2 text-xs text-left" disabled={exam.busy} onClick={() => void exam.setRunning(false)}>{t('Pause automatic capture')}</button>}
+                <div className={`flex items-center justify-between px-2.5 py-2 text-xs ${glassRowClass}`}>
+                    <span>{t('Automatic capture')} · {exam.status?.intervalSeconds ?? 20}s</span>
+                    <button role="switch" aria-label={t('Automatic capture')} aria-checked={exam.status?.captureEnabled ?? false}
+                        disabled={!exam.status || exam.busy} onClick={() => void exam.setRunning(!exam.status?.captureEnabled)}
+                        className={`w-8 h-5 rounded-full p-0.5 ${exam.status?.captureEnabled ? 'bg-emerald-600' : defaultToggleTrackClass}`}>
+                        <span className={`block w-4 h-4 rounded-full bg-white ${exam.status?.captureEnabled ? 'translate-x-3' : ''}`} />
+                    </button>
+                </div>
+                <div className={`flex items-center justify-between px-2.5 py-2 text-xs ${glassRowClass}`}>
+                    <span>{t('Interview mode')}</span>
+                    <button role="switch" aria-label={t('Interview mode')} aria-checked={!!exam.status && !exam.status.enabled}
+                        disabled={!exam.status || exam.busy} onClick={() => void exam.setInterview(!!exam.status?.enabled)}
+                        className={`w-8 h-5 rounded-full p-0.5 ${exam.status && !exam.status.enabled ? 'bg-emerald-600' : defaultToggleTrackClass}`}>
+                        <span className={`block w-4 h-4 rounded-full bg-white ${exam.status && !exam.status.enabled ? 'translate-x-3' : ''}`} />
+                    </button>
+                </div>
                 {exam.error && <p role="alert" className="px-2.5 text-xs text-red-400">{t(exam.error)}</p>}
                 {preferenceErrors.protection && <p role="alert" className="px-2.5 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                 <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-200 group cursor-default ${itemHoverClass} ${glassRowClass}`}>

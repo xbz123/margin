@@ -131,7 +131,9 @@ export class SettingsManager {
     }
 
     public getWrittenExamSettings(): WrittenExamSettings {
-        return { ...(validExamSettings(this.settings.writtenExam) ? this.settings.writtenExam : DEFAULT_WRITTEN_EXAM) };
+        const saved = this.settings.writtenExam;
+        const migrated = saved && typeof saved === 'object' ? { autoCaptureEnabled: false, ...saved } : saved;
+        return { ...(validExamSettings(migrated) ? migrated : DEFAULT_WRITTEN_EXAM) };
     }
 
     public saveWrittenExamSettings(value: unknown): WrittenExamSettings {

@@ -11,6 +11,8 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "return candidate;", "reason": "S50 mode revision: independently returns the validated saved settings object; generic local-variable return, not AnswerPlanner or another upstream function body." },
+    { "line": "private paused = false;", "reason": "S50 mode revision: independently authored in-memory manual-capture pause flag; generic boolean field, not the upstream transcriptionPause implementation." },
     { "line": "getSessionStartTime: () => startedAt,", "reason": "S50 CI repair: independently changed the synthetic session getter to return its fixed start instant; generic constant getter, verified with an advancing-clock red/green test." },
     { "line": "private queuedBytes = 0;", "reason": "CI 40291929062: generic byte-counter initialization in the independently authored 759a64849 STT queue; already present before S50." },
     { "line": "this.queuedBytes = 0;", "reason": "CI 40291929062: generic byte-counter reset in 759a64849 stop; exact assignment, no upstream queue body approved." },

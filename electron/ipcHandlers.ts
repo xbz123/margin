@@ -517,33 +517,39 @@ export function initializeIpcHandlers(appState: AppState): void {
     return exam!;
   };
   appState.pauseWrittenExam = () => exam?.stop();
+  appState.syncWrittenExam = (active: boolean, manual?: boolean) => {
+    if (!active) examSession().setActive(false);
+    if (active) {
+      const owner = appState.getWindowHelper().getOverlayWindow()?.webContents;
+      if (!owner || owner.isDestroyed()) throw new Error('Answer window unavailable');
+      if (owner !== examOwner) {
+        examSession().setActive(false); examOwner = owner;
+        const stop = () => { if (examOwner === owner) exam?.setActive(false); };
+        owner.once('destroyed', stop);
+        owner.on('render-process-gone', stop);
+        owner.on('did-start-loading', stop);
+        BrowserWindow.fromWebContents(owner)?.on('close', stop);
+      }
+    }
+    examSession().configure(SettingsManager.getInstance().getWrittenExamSettings(), manual);
+    examSession().setActive(active);
+  };
   safeHandle('written-exam:get', () => examSession().status());
   safeHandle('written-exam:skip', (event, generation: unknown) => {
     if (event.sender === examOwner && typeof generation === 'number') exam?.skip(generation);
   });
-  safeHandle('written-exam:save', (_, value: unknown) => {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid written exam settings.');
-    const manager = SettingsManager.getInstance();
-    const saved = manager.saveWrittenExamSettings({ ...manager.getWrittenExamSettings(), ...value });
-    appState.processingHelper.getLLMHelper().setCodeOutputFormat(saved.codeOutputFormat);
-    examSession().configure(saved);
+  safeHandle('written-exam:save', async (_, value: unknown) => {
+    await appState.updateWrittenExamSettings(value);
     return examSession().status();
   });
-  safeHandle('written-exam:running', (_, running: unknown) => {
+  safeHandle('written-exam:running', async (_, running: unknown) => {
     if (typeof running !== 'boolean') throw new Error('Invalid automatic capture state.');
-    if (!running) { examSession().stop(); return examSession().status(); }
-    const owner = appState.getWindowHelper().getOverlayWindow()?.webContents;
-    if (!owner || owner.isDestroyed()) throw new Error('Open the answer window before starting automatic capture.');
-    if (owner !== examOwner) {
-      exam?.stop(); examOwner = owner;
-      const stop = () => { if (examOwner === owner) exam?.stop(); };
-      owner.once('destroyed', stop);
-      owner.on('render-process-gone', stop);
-      owner.on('did-start-loading', stop);
-      BrowserWindow.fromWebContents(owner)?.on('close', stop);
-    }
-    examSession().start();
-    appState.getWindowHelper().setWindowMode('overlay', true);
+    await appState.updateWrittenExamSettings({ autoCaptureEnabled: running, ...(running ? { enabled: true } : {}) }, false);
+    return examSession().status();
+  });
+  safeHandle('written-exam:interview', async (_, enabled: unknown) => {
+    if (typeof enabled !== 'boolean') throw new Error('Invalid interview mode.');
+    await appState.updateWrittenExamSettings({ enabled: !enabled }, !enabled);
     return examSession().status();
   });
 

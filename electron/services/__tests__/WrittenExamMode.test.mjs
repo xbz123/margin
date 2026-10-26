@@ -8,15 +8,16 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { WrittenExamSession } = require('../../../dist-electron/electron/services/WrittenExamMode.js');
 const { scenarioPrompt, writtenOutputPrompt, writtenOutputFormat, appendPromptGuidance } = require('../../../dist-electron/electron/llm/scenarioPrompts.js');
-const defaults = { enabled: false, intervalSeconds: 20, hideScreenshots: true, codeOutputFormat: 'plain' };
+const defaults = { enabled: false, autoCaptureEnabled: false, intervalSeconds: 20, hideScreenshots: true, codeOutputFormat: 'plain' };
 function fixture(io = {}) {
   const frames = [], discarded = [];
   let captures = 0, cancelled = 0, now = 1;
-  const session = new WrittenExamSession({ ...defaults, enabled: true }, {
+  const session = new WrittenExamSession({ ...defaults, enabled: true, autoCaptureEnabled: true }, {
     capture: async () => { captures++; return 'screen'; }, fingerprint: frame => frame,
     deliver: (frame, generation) => frames.push({ frame, generation }), busy: () => false,
     changed() {}, cancel: () => cancelled++, discard: frame => discarded.push(frame), now: () => now, ...io,
   });
+  session.setActive(true);
   return { session, frames, discarded, get captures() { return captures; }, get cancelled() { return cancelled; }, advance: ms => now += ms };
 }
 
@@ -95,7 +96,7 @@ test('S50 saved settings validate strictly, preserve other fields, survive resta
   for (const bad of [null, [], 2, {}, { ...defaults, extra: true }, ...[4, 301, 20.5, '20', NaN].map(intervalSeconds => ({ ...defaults, intervalSeconds }))]) {
     assert.throws(() => manager.saveWrittenExamSettings(bad), /Invalid/);
   }
-  for (const intervalSeconds of [5, 20, 300]) manager.saveWrittenExamSettings({ ...defaults, enabled: true, hideScreenshots: false, codeOutputFormat: 'markdown', intervalSeconds });
+  for (const intervalSeconds of [5, 20, 300]) manager.saveWrittenExamSettings({ ...defaults, enabled: true, autoCaptureEnabled: true, hideScreenshots: false, codeOutputFormat: 'markdown', intervalSeconds });
   const saved = plain(manager.getWrittenExamSettings());
   const restarted = settings(); assert.deepEqual(plain(restarted.getWrittenExamSettings()), saved); assert.equal(restarted.getUiLanguage(), 'zh-CN');
   const before = fs.readFileSync(path.join(root, 'settings.json'), 'utf8');
@@ -103,7 +104,7 @@ test('S50 saved settings validate strictly, preserve other fields, survive resta
   assert.throws(() => failing.saveWrittenExamSettings(defaults), /could not be saved/);
   assert.deepEqual(plain(failing.getWrittenExamSettings()), saved); assert.equal(fs.readFileSync(path.join(root, 'settings.json'), 'utf8'), before);
   assert.deepEqual(fs.readdirSync(root), ['settings.json']);
-  const f = fixture(); f.session.start(); f.session.configure(saved); assert.equal(f.session.status().running, false);
+  const f = fixture(); f.session.start(); f.session.configure(saved); assert.equal(f.session.status().running, true); f.session.stop();
   assert.equal(new WrittenExamSession(saved, {}).status().running, false);
 });
 test('S50 format and opt-in complete-code keep S46 rules and do not enable themselves', () => {
@@ -121,4 +122,41 @@ test('S50 format and opt-in complete-code keep S46 rules and do not enable thems
   assert.match(appendPromptGuidance('base', 'written', cfg), /selected editor language/);
   cfg.scenes.written.skillId = null;
   assert.equal(appendPromptGuidance('base', 'written', cfg), 'base');
+});
+
+test('persistent auto preference only captures in active written sessions; manual override and interval changes are explicit', async t => {
+  t.mock.timers.enable({ apis: ['setInterval'] });
+  let captures = 0;
+  const config = { ...defaults, enabled: true, autoCaptureEnabled: true };
+  const io = { capture: async () => { captures++; return 'frame'; }, fingerprint: x => x,
+    deliver() {}, busy: () => false, changed() {}, cancel() {} };
+  const session = new WrittenExamSession(config, io);
+  session.start(); t.mock.timers.tick(60000); assert.equal(captures, 0);
+  assert.equal(session.status().captureEnabled, true); assert.equal(session.status().running, false);
+  session.setActive(true); t.mock.timers.tick(19999); assert.equal(captures, 0);
+  t.mock.timers.tick(1); await Promise.resolve(); assert.equal(captures, 1);
+  session.configure({ ...config, intervalSeconds: 5 });
+  t.mock.timers.tick(4999); assert.equal(captures, 1);
+  t.mock.timers.tick(1); await Promise.resolve(); assert.equal(captures, 2);
+  session.configure({ ...config, enabled: false });
+  assert.equal(session.status().autoCaptureEnabled, true); assert.equal(session.status().captureEnabled, false);
+  session.configure(config, true);
+  assert.equal(session.status().captureEnabled, false, 'interview off enters manual written mode');
+  session.configure({ ...config, hideScreenshots: false });
+  assert.equal(session.status().captureEnabled, false, 'display-only changes do not resume capture');
+  session.configure({ ...config, intervalSeconds: 30 });
+  assert.equal(session.status().captureEnabled, false, 'interval changes preserve a paused switch');
+  session.setActive(false); session.setActive(true);
+  assert.equal(session.status().running, true, 'next written session follows the saved preference');
+  session.setActive(false);
+  const restarted = new WrittenExamSession(config, io);
+  assert.equal(restarted.status().captureEnabled, true); assert.equal(restarted.status().running, false);
+});
+
+test('legacy saved written settings retain their values without silently enabling auto capture', () => {
+  fs.writeFileSync(path.join(root, 'settings.json'), JSON.stringify({ writtenExam: {
+    enabled: true, intervalSeconds: 30, hideScreenshots: false, codeOutputFormat: 'markdown',
+  } }));
+  assert.deepEqual(plain(settings().getWrittenExamSettings()), { enabled: true, autoCaptureEnabled: false,
+    intervalSeconds: 30, hideScreenshots: false, codeOutputFormat: 'markdown' });
 });

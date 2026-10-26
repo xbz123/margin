@@ -32,5 +32,6 @@ export function useWrittenExam() {
     } finally { busyRef.current = false; setBusy(false); }
   }
   const save = (update: Partial<WrittenExamSettings>) => status && run(() => window.electronAPI.saveWrittenExam(update));
-  return { status, error, busy, save, setRunning: (running: boolean) => run(() => window.electronAPI.setWrittenExamRunning(running)) };
+  return { status, error, busy, save, setRunning: (running: boolean) => run(() => window.electronAPI.setWrittenExamRunning(running)),
+    setInterview: (enabled: boolean) => run(() => window.electronAPI.setInterviewMode(enabled)) };
 }

@@ -5,6 +5,8 @@ import { DEFAULT_WRITTEN_EXAM, validExamSettings, type WrittenExamSettings, type
 export class WrittenExamSession<T> {
   private settings: WrittenExamSettings;
   private running = false;
+  private active = false;
+  private paused = false;
   private generation = 0;
   private error = '';
   private timer?: ReturnType<typeof setInterval>;
@@ -23,16 +25,38 @@ export class WrittenExamSession<T> {
     discard?: (frame: T) => void | Promise<void>;
     now?: () => number;
   }) { this.settings = validExamSettings(settings) ? { ...settings } : { ...DEFAULT_WRITTEN_EXAM }; }
-  status(): WrittenExamStatus { return { ...this.settings, hideScreenshots: this.settings.hideScreenshots ?? true, running: this.running, generation: this.generation, error: this.error }; }
-  configure(settings: WrittenExamSettings) { if (!validExamSettings(settings)) throw new Error('Invalid written exam settings'); this.stop(); this.settings = { ...settings, hideScreenshots: settings.hideScreenshots ?? this.settings.hideScreenshots ?? true }; this.io.changed(this.status()); }
+  status(): WrittenExamStatus { return { ...this.settings, captureEnabled: this.settings.enabled && this.settings.autoCaptureEnabled && !this.paused, running: this.running, generation: this.generation, error: this.error }; }
+  configure(settings: WrittenExamSettings, manual?: boolean) {
+    if (!validExamSettings(settings)) throw new Error('Invalid written exam settings');
+    const choiceChanged = settings.enabled !== this.settings.enabled || settings.autoCaptureEnabled !== this.settings.autoCaptureEnabled;
+    const restart = choiceChanged || settings.intervalSeconds !== this.settings.intervalSeconds || manual !== undefined;
+    if (restart) this.halt();
+    this.settings = { ...settings };
+    if (manual !== undefined) this.paused = manual;
+    else if (choiceChanged) this.paused = false;
+    if (this.active && this.status().captureEnabled) this.start();
+    this.io.changed(this.status());
+  }
+  setActive(active: boolean) {
+    if (this.active === active) return;
+    this.halt(); this.active = active; this.paused = false;
+    if (active && this.status().captureEnabled) this.start();
+    this.io.changed(this.status());
+  }
   start() {
     if (!this.settings.enabled) throw new Error('Enable written exam mode first.');
+    if (!this.active || !this.settings.autoCaptureEnabled) return;
+    this.paused = false;
     if (this.running) return;
     this.running = true; this.error = ''; this.generation++; this.lastFingerprint = '';
     this.timer = setInterval(() => void this.tick(), this.settings.intervalSeconds * 1000);
     this.timer.unref?.(); this.io.changed(this.status());
   }
   stop(error = '') {
+    this.paused = true;
+    this.halt(error);
+  }
+  private halt(error = '') {
     if (this.timer) clearInterval(this.timer);
     this.timer = undefined; this.running = false; this.generation++; this.pendingGeneration = undefined;
     const pendingFrame = this.pendingFrame;

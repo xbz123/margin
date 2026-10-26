@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
+import { mainFixture } from '../../audio/__tests__/mainMeetingFixture.mjs';
 
 // S42-03 on the real IPC -> IntelligenceManager -> LLMHelper chain with a mocked provider client:
 // actions cut speech at the click, read only their frozen view, and stale references never send.
@@ -79,6 +80,13 @@ function chain() {
     getMainWindow: () => null,
     getScreenshotQueue: () => [], collectSpeech: options => meeting.collect(options), markDictation: at => meeting.markDictation(at),
     endMeeting: async () => {}, deleteScreenshot: async () => ({ success: true }) };
+  state.updateWrittenExamSettings = async (update, manual) => {
+    const manager = modules.SettingsManager.getInstance();
+    const saved = manager.saveWrittenExamSettings({ ...manager.getWrittenExamSettings(), ...update });
+    helper.setCodeOutputFormat(saved.codeOutputFormat);
+    state.syncWrittenExam(!!state.active, manual);
+    return saved;
+  };
   module.exports.initializeIpcHandlers(state);
   const sender = new Sender(7);
   const invoke = (channel, ...args) => handlers.get(channel)({ sender }, ...args);
@@ -884,6 +892,27 @@ test('cross-entry: a typed stream with partial output replaced by a shortcut is 
   assert.equal(answers.filter(answer => answer === 'NEW ANSWER').length, 1, 'the shortcut answer is recorded once');
 });
 
+test('mode changes and session end cancel independent typed streams and discard late output', async () => {
+  for (const action of ['written', 'interview', 'end']) {
+    const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c, 'OLD FIRST ');
+    const f = mainFixture({ examSettings: { enabled: action === 'interview' } });
+    f.state.processingHelper.getLLMHelper = () => c.helper;
+    f.state.intelligenceManager.resetEngine = () => c.intelligence.resetEngine();
+    await f.start();
+    const old = startTyped(c);
+    try {
+      await provider.started; await provider.shown; await tick();
+      if (action === 'end') await f.state.endMeeting();
+      else await f.state.updateWrittenExamSettings({ enabled: action === 'written' });
+      assert.equal(tasks[0].signal.aborted, true, action);
+      provider.release(); await old.catch(() => {}); await tick();
+      assert.doesNotMatch(oldRecords(c, tasks[0].requestId).text, /LATE OLD/);
+      assert.equal(c.sender.sent.some(([name, token]) => name === 'gemini-stream-token' && token === 'LATE OLD'), false);
+      assert.equal(tasks[0].terminalStatus, 'cancelled');
+    } finally { provider.release(); await old.catch(() => {}); await f.state.endMeeting(); }
+  }
+});
+
 test('S50 saved configuration -> timed synthetic screenshot -> real IPC/model; owned cancellation, retries and Local Context isolation', async t => {
   t.mock.timers.enable({ apis: ['setInterval'] });
   const c = chain(), removed = [];
@@ -900,6 +929,7 @@ test('S50 saved configuration -> timed synthetic screenshot -> real IPC/model; o
   c.state.getMainWindow = () => ({ webContents: c.sender });
   c.state.getWindowHelper = () => ({ getOverlayWindow: () => ({ webContents: c.sender }), setWindowMode() {} });
   c.state.showMainWindow = () => {};
+  c.state.active = true;
   let image = 0;
   c.state.takeScreenshot = async () => {
     const file = path.join(root, `s50-${++image}.png`); fs.writeFileSync(file, `synthetic ${image}`); return file;
