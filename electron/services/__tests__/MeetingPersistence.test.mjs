@@ -53,6 +53,8 @@ function load({ retention = 'forever', settingsThrow = false, saveFails = null, 
 }
 
 function session({ startedMsAgo = 5_000, metadata = null } = {}) {
+  // A session starts once; reading it must not move the start past the sampled end.
+  const startedAt = Date.now() - startedMsAgo;
   const calls = [];
   let transcript = [
     { speaker: 'interviewer', text: 'TRANSCRIPT_SENTINEL', timestamp: 1 },
@@ -62,7 +64,7 @@ function session({ startedMsAgo = 5_000, metadata = null } = {}) {
   return {
     calls,
     flushInterimTranscript: () => calls.push('flush'),
-    getSessionStartTime: () => Date.now() - startedMsAgo,
+    getSessionStartTime: () => startedAt,
     getFullTranscript: () => transcript,
     getFullUsage: () => usage,
     getMeetingMetadata: () => metadata,
@@ -72,7 +74,9 @@ function session({ startedMsAgo = 5_000, metadata = null } = {}) {
 
 const plain = value => JSON.parse(JSON.stringify(value));
 
-test('stopMeeting saves the finished transcript and usage once, without generating anything', async () => {
+test('stopMeeting saves the finished transcript and usage once, without generating anything', async t => {
+  let now = 1_700_000_000_000;
+  t.mock.method(Date, 'now', () => now++);
   const { MeetingPersistence, saved, sent } = load();
   const tracker = session({ metadata: { title: 'Weekly sync' } });
   const persistence = new MeetingPersistence(tracker);

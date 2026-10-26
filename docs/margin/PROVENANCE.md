@@ -21,6 +21,38 @@ Notes:
 
 ## Ledger
 
+### S50 delivery: refreshed restricted pool (CI 40291929062)
+
+The clean remote run refreshed upstream refs and reported 14 occurrences of 12
+exact statements. Every occurrence is already present in public parent `d4b21ef9`;
+none was introduced by S50 or the silent-audio fix. Existing implementation
+provenance and each surrounding function were reviewed, not just the age of the
+line. Only the exact generic forms below are registered; no source pool or file
+exclusion was changed.
+
+| Statement | Original local commit and reviewed use |
+| --- | --- |
+| `private queuedBytes = 0;` | `759a64849`: STT queue byte-counter declaration |
+| `this.queuedBytes = 0;` | `759a64849`: stop resets the counter |
+| `this.ready = true;` | `759a64849`: acceptAudio marks readiness |
+| `this.socket = ws;` | `759a64849`: connect records socket ownership |
+| `if (this.socket !== ws) return;` | `759a64849`: three separate open/message/unexpected-response stale-socket guards |
+| `ws.on('unexpected-response', (_request, response) => {` | `759a64849`: standard ws event signature, no handler-body exemption |
+| `this.ready = false;` | `759a64849`: release resets readiness |
+| `stt.setAudioChannelCount(2);` | `759a64849`: synthetic stereo conversion test |
+| `for (let i = 0; i < sizes.length; i++) {` | `0f289314`: ICO header test indexed loop |
+| `left: number;` | `68593ebe`: nativeImage stitching coordinate interface |
+| `title={t('Meeting Interface Style')}` | `16c565a7`: current SettingsKit translated row label |
+| `const box = document.createElement('div');` | `cdb16ef9`: navigation-policy test DOM container |
+
+The accompanying MeetingPersistence test correction freezes its synthetic start
+instant. An incrementing mocked Date.now reproduces the previous 4999ms failure;
+the same unchanged >=5000ms assertion passes after the fixture fix. Production
+meeting persistence and application behavior are unchanged.
+The local scan then flags the new generic fixture getter
+`getSessionStartTime: () => startedAt,`; this single independently written return
+is also registered, not the fixture or the production persistence implementation.
+
 ### S50 written practice settings and timed capture (2026-10-26)
 
 The user explicitly identified the written-exam features as independently added
