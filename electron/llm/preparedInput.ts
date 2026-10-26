@@ -35,7 +35,7 @@ export interface PresentationOwner {
 
 interface HeldInput {
     task?: GenerationTask<any>;
-    failure?: Pick<GenerationTask<any>, 'requestId' | 'questionId' | 'kind' | 'entryPoint'>;
+    failure?: Pick<GenerationTask<any>, 'requestId' | 'questionId' | 'kind' | 'entryPoint' | 'codeOutputFormat'>;
     owner: PresentationOwner;
     input?: PreparedInput;
     pending?: InputDependencies;
@@ -62,7 +62,7 @@ export class PreparedInputs {
         if (!entry || !task || task.requestId !== requestId) return;
         if (!entry.input || !this.failed(task)) this.clear(ownerId);
         else {
-            entry.failure = { requestId, questionId: task.questionId, kind: task.kind, entryPoint: task.entryPoint };
+            entry.failure = { requestId, questionId: task.questionId, kind: task.kind, entryPoint: task.entryPoint, codeOutputFormat: task.codeOutputFormat };
             entry.task = undefined;
         }
     }

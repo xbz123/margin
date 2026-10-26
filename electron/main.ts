@@ -197,7 +197,6 @@ async function resolveMacScreenCaptureCapability(context: string): Promise<MacSc
 type PermissionReason =
   | 'screen-recording-denied'
   | 'mac-screen-recording-restricted'
-  | 'mac-screen-recording-revoked-rebuild'
   | 'mic-denied'
   | 'mic-zero-fill'
   | 'mac-same-device-input-output'
@@ -212,13 +211,6 @@ function formatPermissionMessage(reason: PermissionReason, extra?: { device?: st
     case 'mac-screen-recording-restricted':
       if (!isMac) return formatPermissionMessage('system-audio-stuck');
       return `Screen Recording is restricted by device policy. Interviewer audio will not be captured. Contact your administrator to allow screen capture for ${APP_IDENTITY.name}.`;
-    case 'mac-screen-recording-revoked-rebuild':
-      // Defense-in-depth: even though all call sites must be darwin-gated
-      // (the `mac-` prefix marks this constraint), if a future contributor
-      // calls this from a cross-platform path we degrade gracefully rather
-      // than leak macOS UI strings to Windows users.
-      if (!isMac) return formatPermissionMessage('system-audio-stuck');
-      return `System audio is being captured but every sample is silent. This usually means macOS Screen Recording permission needs to be re-granted to this build of ${APP_IDENTITY.name}. Open System Settings → Privacy & Security → Screen Recording, toggle ${APP_IDENTITY.name} off and back on, then restart the app. (If you recently rebuilt or updated, the previous grant may not apply.)`;
     case 'mic-denied':
       return isMac
         ? `Microphone access denied. Please allow microphone access in System Settings → Privacy & Security → Microphone, then restart ${APP_IDENTITY.name}.`
@@ -228,7 +220,7 @@ function formatPermissionMessage(reason: PermissionReason, extra?: { device?: st
         ? `Microphone is producing silent audio. Check that the device is unmuted and that macOS Microphone permission is granted to ${APP_IDENTITY.name} in System Settings → Privacy & Security → Microphone.`
         : `Microphone is producing silent audio. Check that the device is unmuted and that ${APP_IDENTITY.name} has microphone access in Settings → Privacy → Microphone.`;
     case 'mac-same-device-input-output':
-      // Defense-in-depth: see comment on `mac-screen-recording-revoked-rebuild`.
+      // Keep macOS-only device advice off other platforms.
       // The CoreAudio Process Tap same-device limitation is macOS-specific;
       // on Windows WASAPI loopback works fine on the same device as the mic.
       if (!isMac) return formatPermissionMessage('system-audio-stuck');
@@ -312,6 +304,7 @@ import { isDisguiseMode, type WindowPreferenceKind, type WindowPreferenceResult 
 
 export class AppState {
   public prepareCaptureAction?: (owner: Electron.WebContents) => { speechActionId: string };
+  public pauseWrittenExam?: () => void;
   public cancelCaptureAction?: (owner: Electron.WebContents, speechActionId: string) => void;
   public isCaptureActionPending?: (owner: Electron.WebContents, speechActionId: string) => boolean;
   private static instance: AppState | null = null
@@ -754,6 +747,7 @@ export class AppState {
   }
 
   public setQuitting(value: boolean): void {
+    if (value) this.pauseWrittenExam?.();
     this._isQuitting = value;
   }
 
@@ -1023,25 +1017,7 @@ export class AppState {
       }, STUCK_WATCHDOG_MS);
     };
 
-    // TCC zero-fill detector. Apple's CoreAudio Process Tap returns zero-filled
-    // buffers (instead of an OSStatus error) when the launched binary's
-    // Screen Recording / audio-capture grant doesn't apply — typically after a
-    // dev rebuild changes the bundle signature, or when the user revokes the
-    // grant mid-session. Symptom: the IO proc fires at the correct cadence and
-    // chunks flow normally, but every f32 sample is 0.0. Without a dedicated
-    // detector, the no-chunks watchdog above never fires and the user just sees
-    // an empty interviewer transcript with no idea why.
-    //
-    // Strategy: track the absolute peak of every chunk (cheap — 960 i16s per
-    // 20ms chunk). After we've seen ZEROFILL_OBSERVATION_MS of nothing but
-    // peak==0 chunks, broadcast a TCC-specific banner. Latch off the detector
-    // permanently as soon as we see a single non-zero peak so a quiet meeting
-    // doesn't trigger the warning later. The latency budget intentionally
-    // exceeds the no-chunks watchdog (8s) so the two banners don't race.
-    const ZEROFILL_OBSERVATION_MS = 12000;
-    let firstChunkAt = 0;
-    let zerofillLatched = false;       // true once a non-zero peak has been observed (detector off)
-    let zerofillTriggered = false;     // true once we've already broadcast — prevent repeats
+    // Silent keepalives are normal; permission failures are handled by the capture preflight.
     // Synchronous disarm closure returned to the audio pipeline so endMeeting()
     // and abortStaleAudioInit() can cancel the stuck watchdog BEFORE stop()/destroy()
     // — without relying on the on('stop') event firing synchronously. Otherwise a
@@ -1078,48 +1054,6 @@ export class AppState {
       }
       if (chunkCount <= 3 || chunkCount % 500 === 0) {
         console.log(`${prefix}SystemAudio->STT: chunk #${chunkCount}, ${chunk.length}B, googleSTT=${this.googleSTT ? 'active' : 'NULL'}`);
-      }
-
-      // TCC zero-fill check. macOS-specific: WASAPI loopback on Windows does
-      // not produce sustained zero-fill on permission revocation, so the
-      // detector has no diagnostic value off Darwin and the suggested fix
-      // (System Settings → Screen Recording) doesn't apply.
-      if (process.platform === 'darwin' && !zerofillLatched && !zerofillTriggered) {
-        if (firstChunkAt === 0) firstChunkAt = Date.now();
-        // B10: peak-to-peak (max - min) detection instead of abs-peak. Pre-fix
-        // used `Math.abs(sample) > 8` which false-latched on a muted-but-biased
-        // mic with sustained DC offset (hardware bias of ±10..±50 is common on
-        // certain USB and Bluetooth devices). A latched-true detector is
-        // permanently disabled, so the user got NO banner even when audio
-        // was actually dead. Peak-to-peak cancels out DC bias by construction:
-        // pure DC has range 0; quantization noise has range ~2-4; thermal mic
-        // noise has range ~20-100; quiet conversation has range >500. A
-        // threshold of 100 reliably detects real (or even noise-floor-live)
-        // mic activity while rejecting DC bias from a dead mic.
-        let minS = 32767;
-        let maxS = -32768;
-        const stride = Math.max(2, (chunk.length >> 5) & ~1); // even byte offset
-        for (let i = 0; i + 1 < chunk.length; i += stride) {
-          const s = chunk.readInt16LE(i);
-          if (s < minS) minS = s;
-          if (s > maxS) maxS = s;
-        }
-        const peakToPeak = maxS - minS;
-        if (peakToPeak > 100) {
-          // Real audio (or live noise floor) observed — disable the detector for the rest of the session.
-          zerofillLatched = true;
-        } else if (Date.now() - firstChunkAt >= ZEROFILL_OBSERVATION_MS) {
-          zerofillTriggered = true;
-          console.warn(`${prefix}SystemAudio chunks all zero-filled (peak-to-peak < 100) for ${ZEROFILL_OBSERVATION_MS / 1000}s — TCC denial suspected (Screen Recording grant may not apply to this binary).`);
-          this.sendAudioCaptureFailed( {
-            channel: 'system',
-            message: formatPermissionMessage('mac-screen-recording-revoked-rebuild'),
-            attempt: 0,
-            maxAttempts: 3,
-            terminal: false,
-            stuck: true,
-          });
-        }
       }
     });
     return disarmStuckWatchdog;
@@ -1171,7 +1105,7 @@ export class AppState {
     //   - the OS muted the input via the menu bar mic indicator,
     //   - the hardware mic is physically muted (some Jabra/Bose headsets),
     //   - exclusive-mode contention with a meeting app (Zoom/Teams) on Windows.
-    // Same shape as the system tap zero-fill: chunks arrive on cadence but every
+    // Chunks arrive on cadence but every
     // sample is 0. Without this, the user just sees an empty user transcript
     // and assumes the meeting itself is broken.
     const ZEROFILL_OBSERVATION_MS = 12000;
@@ -1615,6 +1549,7 @@ export class AppState {
 
 
   public async endMeeting(): Promise<void> {
+    this.pauseWrittenExam?.();
     this.processingHelper.cancelOngoingRequests();
     this.intelligenceManager.resetEngine();
     return this.meetingLifecycle.stop(async () => {
@@ -2598,6 +2533,7 @@ async function initializeApp() {
 
   // Explicitly load credentials into helpers
   appState.processingHelper.loadStoredCredentials();
+  appState.processingHelper.getLLMHelper().setCodeOutputFormat(SettingsManager.getInstance().getWrittenExamSettings().codeOutputFormat);
 
   // Initialize IPC handlers before window creation
   initializeIpcHandlers(appState)

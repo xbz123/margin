@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { deferred, fixture } from './meetingAudioFixture.mjs';
 
 // Compiles the production health monitors and the monitorCapture callback that forwards them.
-function productionHealth(timers, owner) {
+function productionHealth(timers, owner, now = Date.now) {
   const text = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8');
   const tree = ts.createSourceFile('main.ts', text, ts.ScriptTarget.Latest, true);
   const state = tree.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
@@ -17,14 +17,69 @@ function productionHealth(timers, owner) {
     else ts.forEachChild(node, find);
   };
   find(member('meetingAudio'));
-  const Class = new Function('setTimeout', 'clearTimeout', 'console', 'formatPermissionMessage',
+  const Class = new Function('setTimeout', 'clearTimeout', 'console', 'formatPermissionMessage', 'Date',
     ts.transpileModule('class Health {\nmonitorCapture = ' + monitor + ';\n' + methods.join('\n') + '}\nreturn Health;', {
       compilerOptions: { target: ts.ScriptTarget.ES2022 },
     }).outputText)(
       callback => { const timer = { callback, cancelled: false, owner: owner() }; timers.push(timer); return timer; },
-      timer => { timer.cancelled = true; }, { log() {}, warn() {} }, () => 'synthetic permission warning');
+      timer => { timer.cancelled = true; }, { log() {}, warn() {} }, reason => reason, { now });
   return new Class();
 }
+
+test('allowed system capture forwards silent keepalives and resumed audio without permission warnings', async () => {
+  for (const amplitude of [0, 20]) {
+    let now = 1000, permissionChecks = 0;
+    const timers = [], errors = [];
+    const health = productionHealth(timers, () => null, () => now);
+    Object.assign(health, { isMeetingActive: true, sendAudioCaptureFailed: e => errors.push(e) });
+    const f = fixture({
+      capability: async () => { permissionChecks++; return { effectiveDenied: false }; },
+      monitorCapture: (capture, channel) => channel === 'interviewer' ? health.wireSystemCapture(capture) : () => {},
+    });
+    Object.defineProperty(health, 'systemAudioCapture', { get: () => f.pipeline.systemAudioCapture });
+    await f.begin();
+    try {
+      assert.equal(permissionChecks, 1);
+      const capture = f.pipeline.systemAudioCapture;
+      const quiet = Buffer.alloc(1920);
+      for (let i = 0; i < quiet.length; i += 2) quiet.writeInt16LE(i < 960 ? amplitude : -amplitude, i);
+      // Native silence suppression emits zero-filled keepalives about every 100ms.
+      for (let elapsed = 0; elapsed <= 20000; elapsed += 100) {
+        now = 1000 + elapsed;
+        capture.emit('data', quiet);
+      }
+      assert.deepEqual(errors, [], 'silence after an allowed preflight is not evidence of denied permission');
+      assert.ok(timers.every(timer => timer.cancelled), 'a received keepalive disarms the no-data watchdog');
+      const speech = Buffer.alloc(1920);
+      for (let i = 0; i < speech.length; i += 2) speech.writeInt16LE(i < 960 ? 2000 : -2000, i);
+      capture.emit('data', speech);
+      assert.equal(f.providers.interviewer.writes.length, 202);
+      assert.strictEqual(f.providers.interviewer.writes.at(-1), speech);
+      assert.deepEqual(errors, []);
+    } finally { await f.pipeline.detachAndDestroy(); }
+  }
+});
+
+test('system no-data watchdog and denied preflight remain distinct from silent keepalives', async () => {
+  const timers = [], errors = [];
+  const health = productionHealth(timers, () => null);
+  Object.assign(health, { isMeetingActive: true, detectSameInputOutputDevice: () => null, sendAudioCaptureFailed: e => errors.push(e) });
+  const f = fixture({ monitorCapture: (capture, channel) => channel === 'interviewer' ? health.wireSystemCapture(capture) : () => {} });
+  Object.defineProperty(health, 'systemAudioCapture', { get: () => f.pipeline.systemAudioCapture });
+  await f.begin();
+  try {
+    for (const timer of timers.filter(timer => !timer.cancelled)) timer.callback();
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].message, 'system-audio-stuck');
+    assert.equal(errors[0].channel, 'system');
+  } finally { await f.pipeline.detachAndDestroy(); }
+  const denied = fixture({ capability: async () => ({ effectiveDenied: true, message: 'synthetic denial' }) });
+  await denied.begin();
+  try {
+    assert.equal(denied.pipeline.systemAudioCapture, null);
+    assert.equal(denied.events.filter(([kind]) => kind === 'permission-denied').length, 1);
+  } finally { await denied.pipeline.detachAndDestroy(); }
+});
 
 test('production health watchdogs are disarmed before native destroy on stop, replacement and abort', async () => {
   const timers = [], errors = [], order = [], forwarded = [];

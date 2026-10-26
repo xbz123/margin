@@ -4,6 +4,8 @@ import * as crypto from 'crypto';
 import { LLM_PRESETS, ANSWER_PROVIDERS, modelTargetId, providerCandidates, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave } from '../src/types/llmTarget';
 import { resolveModelTarget, blockedEnvironmentOverride, validateGatewayConfiguration, validateProviderConfiguration, GROQ_ANSWERS_RETIRED } from './llm/llmTarget';
 import type { GenerationTask } from './llm/generateTask';
+import type { WrittenExamSession } from './services/WrittenExamMode';
+import type { WrittenExamCapture } from '../src/types/writtenExam';
 import { app, BrowserWindow, dialog, ipcMain, shell, systemPreferences } from 'electron';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -476,6 +478,74 @@ export function initializeIpcHandlers(appState: AppState): void {
   let _chatStreamId = 0;
   // Keep IDs globally unique; supersession is per sender.
   const _chatStreamsBySender = new Map<number, { streamId: number; controller: AbortController }>();
+  let exam: WrittenExamSession<{ path: string; preview: string }> | undefined;
+  let examOwner: Electron.WebContents | undefined;
+  let examFrame: WrittenExamCapture | undefined;
+  let examController: AbortController | undefined;
+  const discardExamFile = async (file: string) => {
+    const result = await appState.deleteScreenshot(file);
+    if (!result.success && fs.existsSync(file)) throw new Error('Temporary screenshot cleanup failed. Automatic capture paused.');
+  };
+  const examSession = () => {
+    if (!exam) {
+      const { WrittenExamSession } = require('./services/WrittenExamMode');
+      exam = new WrittenExamSession(SettingsManager.getInstance().getWrittenExamSettings(), {
+        capture: async () => {
+          const file = await appState.takeScreenshot(false);
+          try { return { path: file, preview: await appState.getImagePreview(file) }; }
+          catch (error) { await discardExamFile(file); throw error; }
+        },
+        fingerprint: (frame: { path: string }) => crypto.createHash('sha256').update(fs.readFileSync(frame.path)).digest('hex'),
+        deliver: (frame: { path: string; preview: string }, generation: number) => {
+          if (!examOwner || examOwner.isDestroyed() || appState.getWindowHelper().getOverlayWindow()?.webContents !== examOwner) throw new Error('Answer window unavailable');
+          examFrame = { ...frame, generation };
+          examOwner.send('written-exam-capture', examFrame);
+        },
+        busy: () => !!examController || appState.processingHelper.getLLMHelper().isGenerationBusy(),
+        changed: (status: unknown) => {
+          for (const win of BrowserWindow.getAllWindows()) {
+            if (!win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send('written-exam-status', status);
+          }
+        },
+        cancel: () => { examFrame = undefined; examController?.abort(); },
+        discard: async (frame: { path: string }) => {
+          if (examFrame?.path === frame.path) examFrame = undefined;
+          await discardExamFile(frame.path);
+        },
+      });
+    }
+    return exam!;
+  };
+  appState.pauseWrittenExam = () => exam?.stop();
+  safeHandle('written-exam:get', () => examSession().status());
+  safeHandle('written-exam:skip', (event, generation: unknown) => {
+    if (event.sender === examOwner && typeof generation === 'number') exam?.skip(generation);
+  });
+  safeHandle('written-exam:save', (_, value: unknown) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid written exam settings.');
+    const manager = SettingsManager.getInstance();
+    const saved = manager.saveWrittenExamSettings({ ...manager.getWrittenExamSettings(), ...value });
+    appState.processingHelper.getLLMHelper().setCodeOutputFormat(saved.codeOutputFormat);
+    examSession().configure(saved);
+    return examSession().status();
+  });
+  safeHandle('written-exam:running', (_, running: unknown) => {
+    if (typeof running !== 'boolean') throw new Error('Invalid automatic capture state.');
+    if (!running) { examSession().stop(); return examSession().status(); }
+    const owner = appState.getWindowHelper().getOverlayWindow()?.webContents;
+    if (!owner || owner.isDestroyed()) throw new Error('Open the answer window before starting automatic capture.');
+    if (owner !== examOwner) {
+      exam?.stop(); examOwner = owner;
+      const stop = () => { if (examOwner === owner) exam?.stop(); };
+      owner.once('destroyed', stop);
+      owner.on('render-process-gone', stop);
+      owner.on('did-start-loading', stop);
+      BrowserWindow.fromWebContents(owner)?.on('close', stop);
+    }
+    examSession().start();
+    appState.getWindowHelper().setWindowMode('overlay', true);
+    return examSession().status();
+  });
 
   // Matches narrow identity/meta probes only. Kept tight so coding/normal asks don't trip it.
   // Prevents the small fast-mode model from over-firing the "I'm Margin" canned reply
@@ -490,19 +560,33 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string; examGeneration?: number },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
+      let automaticPath: string | undefined;
       // The preload's id for this request, sent back with every event so the window
       // can drop events of a cancelled or superseded stream (PLAN.md AG-17 review).
       const clientStreamId = options?.clientStreamId;
       try {
         console.log('[IPC] gemini-chat-stream started using LLMHelper.streamChat');
+        if (options?.examGeneration === undefined && examFrame) exam?.skip(examFrame.generation);
+        if (options?.generationKind === 'interview') exam?.stop();
+        if (options?.examGeneration !== undefined) {
+          if (event.sender !== examOwner || !examFrame || options.examGeneration !== examFrame.generation
+            || imagePaths?.length !== 1 || imagePaths[0] !== examFrame.path || options.generationKind !== 'written'
+            || options.speechActionId !== undefined || options.skipSystemPrompt || options.ignoreKnowledgeMode
+            || appState.processingHelper.getLLMHelper().isGenerationBusy() || !exam?.accept(options.examGeneration)) {
+            throw new Error('Automatic capture is no longer available.');
+          }
+          automaticPath = examFrame.path;
+          examFrame = undefined;
+        }
         appState.processingHelper.getLLMHelper().clearPreparedInput(event.sender.id);
         imagePaths = validateImages(imagePaths);
         const llmHelper = appState.processingHelper.getLLMHelper();
         myController = new AbortController();
+        if (automaticPath) examController = myController;
         if (options?.owner !== undefined && !['natively', 'global', 'meeting'].includes(options.owner)) throw new Error('Invalid question owner.');
         if (options?.generationKind !== undefined && !['interview', 'written'].includes(options.generationKind)) throw new Error('Invalid question mode');
         // Stop sends the question main froze for its action and reuses that action's interview task.
@@ -578,7 +662,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           const view = await frozenView(speechAction, scope => declaredScopes.push(scope), new Set(frozen.dictationKeys));
           const transcript = formatTranscriptItems(view.getContext(100));
           if (transcript.trim()) context = context ? `${context}\n\nRecent conversation:\n${transcript}` : transcript;
-        } else if (!context) {
+        } else if (!context && !automaticPath) {
           try {
             const snap = intelligenceManager.getFormattedContext(100);
             if (snap && snap.trim().length > 0) autoContextSnapshot = snap;
@@ -654,6 +738,10 @@ export function initializeIpcHandlers(appState: AppState): void {
           }
         } catch (streamError: any) {
           console.error('[IPC] Streaming error:', streamError);
+          if (automaticPath && chatTask.terminalStatus !== 'cancelled') {
+            const status = Number(streamError?.status ?? streamError?.statusCode);
+            exam?.stop(`${manualAnswerError(streamError)}${Number.isInteger(status) && status >= 400 && status <= 599 ? ` (HTTP ${status})` : ''}`);
+          }
           if (chatTask) {
             if (fullResponse.trim()) intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
             intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
@@ -671,8 +759,15 @@ export function initializeIpcHandlers(appState: AppState): void {
         return null; // Return null as data is sent via events
       } catch (error: any) {
         console.error('[IPC] Error in gemini-chat-stream setup:', error);
+        if (automaticPath && !myController?.signal.aborted) exam?.stop(manualAnswerError(error));
         throw error;
       } finally {
+        if (automaticPath) {
+          if (examController === myController) examController = undefined;
+          if (exam?.status().running && chatTask && chatTask.terminalStatus !== 'completed' && chatTask.terminalStatus !== 'cancelled') exam.stop(manualAnswerError(undefined));
+          // Prepared retries own decoded input; this file belongs only to the automatic capture.
+          void discardExamFile(automaticPath).catch(() => exam?.stop('Temporary screenshot cleanup failed. Automatic capture paused.'));
+        }
         chatTask?.close();
         if (myController) {
           const current = _chatStreamsBySender.get(event.sender.id);
@@ -734,6 +829,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('window-close', async () => {
+    appState.pauseWrittenExam?.();
     appState.getWindowHelper().closeWindow();
   });
 

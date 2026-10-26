@@ -4,11 +4,13 @@ import path from 'path';
 import { randomUUID } from 'node:crypto';
 import { CODEX_RISK_VERSION, DEFAULT_CODEX_SOURCE_CONFIG, validateCodexSourceConfig, type CodexSourceConfig, type CodexSourceUpdate } from '../../src/types/codexSource';
 import type { UiLanguage } from '../../src/types/uiLanguage';
+import { DEFAULT_WRITTEN_EXAM, validExamSettings, type WrittenExamSettings } from '../../src/types/writtenExam';
 
 // Kept local so test harnesses that compile this file alone need no extra module.
 const isUiLanguage = (value: unknown): value is UiLanguage => value === 'en' || value === 'zh-CN';
 
 export interface AppSettings {
+    writtenExam?: WrittenExamSettings;
     // Only boot-critical or non-encrypted settings should live here.
     // In the future, other non-secret data like 'language' or 'theme'
     // can be moved here from CredentialsManager to allow early boot access.
@@ -126,6 +128,26 @@ export class SettingsManager {
 
     public getUiLanguage(): UiLanguage {
         return isUiLanguage(this.settings.uiLanguage) ? this.settings.uiLanguage : 'en';
+    }
+
+    public getWrittenExamSettings(): WrittenExamSettings {
+        return { ...(validExamSettings(this.settings.writtenExam) ? this.settings.writtenExam : DEFAULT_WRITTEN_EXAM) };
+    }
+
+    public saveWrittenExamSettings(value: unknown): WrittenExamSettings {
+        if (!validExamSettings(value)) throw new Error('Invalid written exam settings. Use a whole number from 5 to 300 seconds.');
+        const writtenExam = { ...value };
+        const candidate = { ...this.settings, writtenExam };
+        const temp = this.settingsPath + `.exam.${randomUUID()}.tmp`;
+        try {
+            fs.writeFileSync(temp, JSON.stringify(candidate, null, 2), { flag: 'wx', mode: 0o600 });
+            fs.renameSync(temp, this.settingsPath);
+        } catch (error: any) {
+            if (error?.code !== 'EEXIST') { try { fs.unlinkSync(temp); } catch {} }
+            throw new Error('Written exam settings could not be saved. Previous settings were kept.');
+        }
+        this.settings = candidate;
+        return { ...writtenExam };
     }
 
     // Unlike set(), a failed write throws and leaves the previous language in memory and on disk.

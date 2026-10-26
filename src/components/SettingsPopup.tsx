@@ -5,9 +5,11 @@ import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { getModifierSymbol } from '../utils/platformUtils';
 import { useI18n } from '../i18n';
 import { useWindowPreferences } from '../hooks/useWindowPreferences';
+import { useWrittenExam } from '../hooks/useWrittenExam';
 
 const SettingsPopup = () => {
     const { t } = useI18n();
+    const exam = useWrittenExam();
     const { shortcuts } = useShortcuts();
     const isLightTheme = useResolvedTheme() === 'light';
     const { isUndetectable, setProtection, preferenceErrors } = useWindowPreferences();
@@ -161,6 +163,8 @@ const SettingsPopup = () => {
                 <div className="relative z-[1] flex flex-col">
 
                 {/* Undetectability */}
+                {exam.status?.running && <button className="px-2.5 py-2 text-xs text-left" disabled={exam.busy} onClick={() => void exam.setRunning(false)}>{t('Pause automatic capture')}</button>}
+                {exam.error && <p role="alert" className="px-2.5 text-xs text-red-400">{t(exam.error)}</p>}
                 {preferenceErrors.protection && <p role="alert" className="px-2.5 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                 <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-200 group cursor-default ${itemHoverClass} ${glassRowClass}`}>
                     <div className="flex items-center gap-2.5">

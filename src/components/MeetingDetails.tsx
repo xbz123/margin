@@ -287,7 +287,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                                 <div>
                                                     <div className="text-[11px] text-text-tertiary mb-1.5 font-medium">{formatTime(interaction.timestamp)}</div>
                                                     <div className="text-text-secondary text-[15px] leading-relaxed max-w-none">
-                                                        <ReactMarkdown
+                                                        {interaction.generation?.codeOutputFormat === 'plain' ? <div className="whitespace-pre-wrap break-words font-mono" data-code-output-format="plain">{interaction.answer}</div> : <ReactMarkdown
                                                             remarkPlugins={[remarkGfm]}
                                                             components={{
                                                                 h1: ({ node, ...props }) => <p className="text-[15px] text-text-secondary font-normal leading-relaxed mb-2 whitespace-pre-wrap" {...props} />,
@@ -343,7 +343,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                                             }}
                                                         >
                                                             {cleanMarkdown(interaction.answer || '')}
-                                                        </ReactMarkdown>
+                                                        </ReactMarkdown>}
                                                     </div>
                                                 </div>
                                             </div>

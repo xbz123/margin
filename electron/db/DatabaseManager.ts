@@ -474,6 +474,7 @@ export class DatabaseManager {
 
                     const generation = usage.requestId ? {
                         requestId: usage.requestId, provider: usage.provider, model: usage.model, status: usage.status, attempts: usage.attempts, partial: usage.partial, timeout: usage.timeout,
+                        codeOutputFormat: usage.codeOutputFormat,
                     } : usage.generation;
                     if (generation?.requestId) metadata = JSON.stringify({
                         generation,

@@ -375,7 +375,7 @@ test('a screenshot question sends the fixture image to the model', async () => {
   mock.setScript({ chunks: ['Screenshot ', 'seen.'], delayMs: 50 });
   await pressScreenshotShortcut();
   // The attached screenshot shows as a preview image in the input area.
-  await overlay.waitForFunction(() => [...document.images].some((i) => i.src.startsWith('data:image')), null, { timeout: 15_000 });
+  await overlay.getByRole('img', { name: /^Screenshot \d+$/ }).first().waitFor({ timeout: 15_000 });
   const before = mock.chatRequests().length;
   await ask('What is on the screen?');
   await overlay.waitForFunction(() => document.body.innerText.includes('Screenshot seen.'), null, { timeout: 20_000 });
@@ -616,7 +616,7 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
 });
 
 test('AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire', async () => {
-  const { scenarioPrompt } = require('../../dist-electron/electron/llm/scenarioPrompts.js');
+  const { scenarioPrompt, writtenOutputPrompt } = require('../../dist-electron/electron/llm/scenarioPrompts.js');
   // S46-02: the sent question's row keeps the scene of its request, not the current selection.
   const questionRow = question => overlay.evaluate(text => {
     const row = [...document.querySelectorAll('[data-message-scene]')].find(node => node.textContent.includes(text));
@@ -631,7 +631,7 @@ test('AG51 Question mode uses automatic written prompts and explicit interview p
       await ask(`AG51 synthetic ${selection} question`);
       await overlay.getByText(answer, { exact: true }).waitFor();
       const system = mock.chatRequests().at(-1).body.messages.find(message => message.role === 'system').content;
-      assert.ok(system.startsWith(scenarioPrompt(scene)));
+      assert.ok(system.startsWith(scene === 'written' ? writtenOutputPrompt(scenarioPrompt(scene), 'plain') : scenarioPrompt(scene)));
       assert.equal(system.includes('submittable code first'), scene === 'written');
     }
     for (const [selection, scene] of modes) {
@@ -659,7 +659,7 @@ test('AG33 real Natively renderer ignores automatic intelligence while manual ch
 
 test('AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items', async () => {
   const databasePath = path.resolve(import.meta.dirname, '../../dist-electron/electron/db/DatabaseManager.js');
-  const metadata = { requestId: 'AG33-sqlite-synthetic', provider: 'openai', model: 'actual-backup', status: 'failed', timeout: 'total', attempts: 2, partial: true };
+  const metadata = { requestId: 'AG33-sqlite-synthetic', provider: 'openai', model: 'actual-backup', status: 'failed', timeout: 'total', attempts: 2, partial: true, codeOutputFormat: 'plain' };
   const result = await app.evaluate(({}, { filename, generation }) => {
     const { DatabaseManager } = process.mainModule.require(filename);
     const db = DatabaseManager.getInstance();
@@ -707,4 +707,71 @@ test('AG33 real Natively late action invoke cannot change the newer manual answe
     assert.doesNotMatch(text, /LATE-ACTION-INVOKE/); assert.ok(text.includes('Old action partial preserved.'));
     assert.ok(text.includes('AG33 prior retained record.'), 'cancellation preserves prior UI records');
   } finally { release(); }
+});
+
+test('S50 real settings buttons drive timed fixture capture, hiding, output format and pause without real desktop capture', async () => {
+  const launcher = await windowWithQuery(app, 'window=launcher');
+  // Same isolated first-run dismissal as the existing mounted settings tests; no OS permission changes.
+  await launcher.evaluate(() => { localStorage.setItem('natively_seen_startup_v1', 'true'); localStorage.setItem('natively_perms_shown_v1', '1'); });
+  await launcher.reload();
+  const previous = await launcher.evaluate(() => window.electronAPI.getWrittenExam());
+  const restore = { enabled: previous.enabled, intervalSeconds: previous.intervalSeconds, hideScreenshots: previous.hideScreenshots, codeOutputFormat: previous.codeOutputFormat };
+  await overlay.locator('input[type="text"]').last().fill('');
+  await overlay.evaluate(() => window.electronAPI.cancelChatStream('natively'));
+  try {
+    await launcher.getByRole('button', { name: 'Settings', exact: true }).click({ timeout: 5000 });
+    await launcher.getByRole('button', { name: 'Written exam mode', exact: true }).click({ timeout: 5000 });
+    const enable = launcher.getByRole('switch', { name: 'Enable written exam mode', exact: true });
+    await enable.waitFor();
+    if (await enable.getAttribute('aria-checked') !== 'true') await enable.click();
+    await overlay.waitForFunction(() => document.querySelector('select[aria-label="Question mode"]').value === 'written');
+    const interval = launcher.getByLabel('Automatic capture interval (seconds)', { exact: true });
+    await interval.fill('4'); assert.equal(await launcher.getByRole('button', { name: 'Save', exact: true }).isDisabled(), true);
+    await interval.fill('5'); await launcher.getByRole('button', { name: 'Save', exact: true }).click();
+    await launcher.getByRole('radio', { name: 'Plain text', exact: true }).click();
+    mock.setScript({ errorStatus: 0, chunks: ['S50 raw code\n', '    print(1)'], delayMs: 20 });
+    const before = mock.chatRequests().length;
+    await launcher.getByRole('button', { name: 'Start automatic capture', exact: true }).click();
+    assert.equal(mock.chatRequests().length, before, 'start waits a complete interval');
+    await overlay.getByText('S50 raw code\n    print(1)', { exact: true }).waitFor({ timeout: 20000 });
+    assert.equal(mock.chatRequests().length, before + 1);
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body), /data:image/);
+    await overlay.evaluate(() => window.electronAPI.openSettingsTab('written-exam'));
+    const question = overlay.locator('[data-message-scene="written"]').filter({ hasText: 'Analyze this screenshot' }).last();
+    assert.equal(await question.locator('img').count(), 0);
+    const hide = launcher.getByRole('switch', { name: 'Hide sent screenshots', exact: true });
+    await hide.click();
+    await question.locator('img').waitFor();
+    assert.equal(await launcher.evaluate(() => window.electronAPI.getWrittenExam()).then(state => state.running), false, 'successful save pauses');
+    await hide.click(); await question.locator('img').waitFor({ state: 'detached' });
+    const raw = overlay.getByText('S50 raw code\n    print(1)', { exact: true });
+    assert.equal(await raw.evaluate(node => getComputedStyle(node).whiteSpace), 'pre-wrap');
+    await launcher.getByRole('radio', { name: 'Markdown', exact: true }).click();
+    assert.equal(await raw.evaluate(node => getComputedStyle(node).whiteSpace), 'pre-wrap', 'new setting never restyles old answer');
+    mock.setScript({ errorStatus: 0, chunks: ['```python\nprint("S50_MARKDOWN")\n```'], delayMs: 20 });
+    await ask('Write code for S50 next answer');
+    await overlay.getByText('S50_MARKDOWN', { exact: false }).last().waitFor();
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body), /Preferred code format: Markdown/);
+    await overlay.evaluate(() => window.electronAPI.openSettingsTab('written-exam'));
+    await launcher.getByRole('button', { name: 'Start automatic capture', exact: true }).click();
+    await overlay.evaluate(() => window.electronAPI.openSettingsTab('written-exam'));
+    await launcher.getByRole('button', { name: 'Pause automatic capture', exact: true }).click();
+    assert.equal(await launcher.evaluate(() => window.electronAPI.getWrittenExam()).then(state => state.running), false);
+    for (const [language, theme] of [['en', 'light'], ['en', 'dark'], ['zh-CN', 'light'], ['zh-CN', 'dark']]) {
+      await launcher.evaluate(async ([language, theme]) => { await window.electronAPI.setUiLanguage(language); await window.electronAPI.setThemeMode(theme); }, [language, theme]);
+      await launcher.waitForFunction(value => document.documentElement.getAttribute('data-theme') === value, theme);
+      await launcher.getByRole('heading', { name: language === 'en' ? 'Written exam mode' : '笔试模式', exact: true }).scrollIntoViewIfNeeded();
+      await launcher.screenshot({ path: path.join(sandbox.root, `s50-settings-${language}-${theme}.png`) });
+      await launcher.getByRole('radio', { name: 'Markdown', exact: true }).scrollIntoViewIfNeeded();
+      await launcher.screenshot({ path: path.join(sandbox.root, `s50-format-${language}-${theme}.png`) });
+    }
+    console.log(`[S50 settings screenshots] ${sandbox.root}`);
+  } catch (error) {
+    console.log('[S50 settings failure]', (await launcher.locator('body').innerText()).slice(0, 6000));
+    await launcher.screenshot({ path: path.join(sandbox.root, 's50-settings-failure.png') });
+    throw error;
+  } finally {
+    await launcher.evaluate(async config => { await window.electronAPI.setWrittenExamRunning(false); await window.electronAPI.saveWrittenExam(config); await window.electronAPI.setUiLanguage('en'); }, restore);
+    await launcher.getByRole('button', { name: 'Close', exact: true }).click({ timeout: 2000 }).catch(() => {});
+  }
 });

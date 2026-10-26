@@ -330,6 +330,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
 
                 {/* Center: Spotlight-style Search Pill */}
                 <TopSearchPill
+                    disabled={settingsOpen}
                     meetings={meetings}
                     onAIQuery={(query) => {
                         setSubmittedGlobalQuery(query);

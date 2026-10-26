@@ -12,7 +12,7 @@ const initialize = ast.statements.find(node => ts.isFunctionDeclaration(node) &&
 // Execute the real initializer; window construction is not a first-paint signal.
 for (const protectedStartup of [true, false]) test(`AG61: ${protectedStartup ? 'protected' : 'normal'} startup applies identity before construction and first paint without changing Dock policy`, async () => {
   const calls = [], paints = [];
-  const state = { processingHelper: { loadStoredCredentials() {} }, prewarmSttProviders() {},
+  const state = { processingHelper: { loadStoredCredentials() {}, getLLMHelper: () => ({ setCodeOutputFormat: value => calls.push('format:' + value) }) }, prewarmSttProviders() {},
     applyInitialDisguise() { calls.push('identity'); }, getUndetectable: () => protectedStartup,
     createWindow() { calls.push('construct'); paints.push(() => calls.push('first-paint')); }, showTray() { calls.push('tray.show'); },
     settingsWindowHelper: { preloadWindow() {} }, modelSelectorWindowHelper: { preloadWindow() {} } };
@@ -21,13 +21,15 @@ for (const protectedStartup of [true, false]) test(`AG61: ${protectedStartup ? '
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(`${initialize.getText(ast)}\nexports.initializeApp = initializeApp;`, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
     { module, exports: module.exports, app, process: { platform: 'darwin' }, console: { log() {}, warn() {}, error() {} },
-      AppState: { getInstance: () => state }, SettingsManager: { getInstance: () => ({ get: () => protectedStartup }) },
+      AppState: { getInstance: () => state }, SettingsManager: { getInstance: () => ({ get: () => protectedStartup, getWrittenExamSettings: () => ({ codeOutputFormat: 'markdown' }) }) },
       KeybindManager: { getInstance: () => ({ registerGlobalShortcuts() {} }) }, initializeIpcHandlers() {}, logAppEvent() {}, screen: {},
       registerOsEventSubscriptions: () => () => {}, setTimeout() {},
       require(id) { if (id === './services/CredentialsManager') return { CredentialsManager: { getInstance: () => ({ init: () => ({ ok: true }) }) } }; if (id === 'electron') return { powerMonitor: {} }; throw Error(`Unexpected import: ${id}`); } });
   await module.exports.initializeApp();
   assert.equal(calls.includes('first-paint'), false);
   assert.ok(calls.indexOf('ready') < calls.indexOf('identity'));
+  assert.ok(calls.indexOf('ready') < calls.indexOf('format:markdown'));
+  assert.ok(calls.indexOf('format:markdown') < calls.indexOf('construct'));
   assert.ok(calls.indexOf('identity') < calls.indexOf('construct'));
   paints.forEach(paint => paint());
   assert.ok(calls.indexOf('identity') < calls.indexOf('first-paint'));

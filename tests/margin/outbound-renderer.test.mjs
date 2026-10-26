@@ -501,6 +501,7 @@ test('AG60 mounted help, meeting history and a visible error fallback switch lan
 test('AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const shared = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/src/types/codexSource.ts`, 'utf8')), { module: shared, exports: shared.exports });
+  const written = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/src/types/writtenExam.ts`, 'utf8')), { module: written, exports: written.exports });
   const files = new Map([['/synthetic/settings.json', JSON.stringify({ codexCliEnabled: true })]]), fault = { active: false };
   const boot = () => {
     const module = { exports: {} };
@@ -508,6 +509,7 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
       require(id) {
         if (id === 'electron') return { app: { isReady: () => true, getPath: () => '/synthetic' } };
         if (id === '../../src/types/codexSource') return shared.exports;
+        if (id === '../../src/types/writtenExam') return written.exports;
         if (id === 'fs') return { existsSync: p => files.has(p), readFileSync: p => files.get(p),
           writeFileSync(p, value) { if (fault.active) throw Error('synthetic save failure'); files.set(p, value); }, renameSync(a, b) { files.set(b, files.get(a)); files.delete(a); }, unlinkSync: p => files.delete(p) };
         return require(id);

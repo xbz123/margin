@@ -57,7 +57,7 @@ function validate(settings: PromptSettings): void {
     }
     for (const scene of ['interview', 'written'] as const) {
         const selection = settings.scenes[scene];
-        if (!selection || (selection.skillId !== null && !ids.has(selection.skillId))) throw new PromptSettingsError('Choose an installed prompt skill.');
+        if (!selection || (selection.skillId !== null && selection.skillId !== 'complete-code' && !ids.has(selection.skillId))) throw new PromptSettingsError('Choose an installed prompt skill.');
         text(selection.additional, ADDITIONAL_INSTRUCTIONS_LIMIT);
     }
 }

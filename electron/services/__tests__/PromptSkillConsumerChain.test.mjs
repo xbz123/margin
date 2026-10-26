@@ -12,7 +12,7 @@ const require = createRequire(import.meta.url);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ag51-'));
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
 const { PromptSettingsStore, parsePromptSkill } = require('../../../dist-electron/electron/services/PromptSettingsStore.js');
-const { scenarioPrompt } = require('../../../dist-electron/electron/llm/scenarioPrompts.js');
+const { scenarioPrompt, writtenOutputPrompt } = require('../../../dist-electron/electron/llm/scenarioPrompts.js');
 const prompts = require('../../../dist-electron/electron/llm/prompts.js');
 const tinyPrompts = require('../../../dist-electron/electron/llm/tinyPrompts.js');
 const markdown = '---\nname: concise\ndescription: Short answers\n---\nUse SKILL_MARKER.';
@@ -196,7 +196,7 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     assert.doesNotMatch(system, FORCED_OPENERS);
     await invoke('gemini-chat-stream', 'WRITTEN');
     const written = sent.at(-1).messages.find(message => message.role === 'system').content;
-    assert.ok(written.startsWith(scenarioPrompt('written')));
+    assert.ok(written.startsWith(writtenOutputPrompt(scenarioPrompt('written'), 'plain')));
     assert.match(written, /complete, submittable code first/);
     assert.match(written, /Defaulting to Python 3 does not mean defaulting to ACM-style/);
     assert.doesNotMatch(system, /ACM-style|submittable code first/, 'interview request keeps its own contract');
@@ -209,7 +209,7 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     assert.equal((await invoke('prompt-settings:save', { scene: 'written', skillId: 'concise', additional: 'WRITTEN_ADD_MARKER' })).ok, true);
     await invoke('gemini-chat-stream', 'WRITTEN WITH SKILL');
     const writtenSkill = sent.at(-1).messages.find(message => message.role === 'system').content;
-    assert.ok(writtenSkill.startsWith(scenarioPrompt('written')));
+    assert.ok(writtenSkill.startsWith(writtenOutputPrompt(scenarioPrompt('written'), 'plain').split('\nFor visible multiple-choice')[0]));
     assert.equal((writtenSkill.match(/<user_guidance>/g) ?? []).length, 1);
     assert.ok(writtenSkill.indexOf('</coding>') < writtenSkill.indexOf('<user_guidance>'));
     assert.match(writtenSkill.slice(writtenSkill.indexOf('<user_guidance>')), /SKILL_MARKER[^\n]*WRITTEN_ADD_MARKER/);
