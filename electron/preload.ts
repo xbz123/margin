@@ -1,4 +1,5 @@
 import type { AnswerReasoningState, ReasoningChoice } from '../src/types/answerReasoning';
+import type { WrittenExamSettings, WrittenExamStatus, WrittenExamCapture } from '../src/types/writtenExam';
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from '../src/types/llmTarget';
 import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
@@ -360,7 +361,7 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; examGeneration?: number },
   ) => Promise<void>;
   onGeminiStreamToken: (callback: (token: string, metadata?: GenerationMetadata) => void, owner?: string) => () => void;
   enableGenerationPresentation: () => Promise<void>;
@@ -497,6 +498,12 @@ interface ElectronAPI {
   onMeetingInterfaceThemeChanged: (callback: (theme: string) => void) => () => void;
 
   // Application interface language, saved by main and broadcast to every window.
+  getWrittenExam: () => Promise<WrittenExamStatus>;
+  skipWrittenExamCapture: (generation: number) => Promise<void>;
+  saveWrittenExam: (settings: Partial<WrittenExamSettings>) => Promise<WrittenExamStatus>;
+  setWrittenExamRunning: (running: boolean) => Promise<WrittenExamStatus>;
+  onWrittenExamStatus: (callback: (status: WrittenExamStatus) => void) => () => void;
+  onWrittenExamCapture: (callback: (capture: WrittenExamCapture) => void) => () => void;
   getUiLanguage: () => Promise<UiLanguage>;
   setUiLanguage: (language: UiLanguage) => Promise<UiLanguageResult>;
   onUiLanguageChanged: (callback: (language: UiLanguage) => void) => () => void;
@@ -1242,7 +1249,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; examGeneration?: number },
   ) => {
     const clickedAt = options?.clickedAt ?? Date.now();
     const clientStreamId = ++chatStreamSeq;
@@ -1565,6 +1572,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   getUiLanguage: () => ipcRenderer.invoke('ui-language:get'),
+  getWrittenExam: () => ipcRenderer.invoke('written-exam:get'),
+  skipWrittenExamCapture: (generation: number) => ipcRenderer.invoke('written-exam:skip', generation),
+  saveWrittenExam: (settings: Partial<WrittenExamSettings>) => ipcRenderer.invoke('written-exam:save', settings),
+  setWrittenExamRunning: (running: boolean) => ipcRenderer.invoke('written-exam:running', running),
+  onWrittenExamStatus: (callback: (status: WrittenExamStatus) => void) => {
+    const listener = (_: unknown, status: WrittenExamStatus) => callback(status);
+    ipcRenderer.on('written-exam-status', listener);
+    return () => { ipcRenderer.removeListener('written-exam-status', listener); };
+  },
+  onWrittenExamCapture: (callback: (capture: WrittenExamCapture) => void) => {
+    const listener = (_: unknown, capture: WrittenExamCapture) => callback(capture);
+    ipcRenderer.on('written-exam-capture', listener);
+    return () => { ipcRenderer.removeListener('written-exam-capture', listener); };
+  },
   setUiLanguage: (language: UiLanguage) => ipcRenderer.invoke('ui-language:set', language),
   onUiLanguageChanged: (callback: (language: UiLanguage) => void) => {
     const handler = (_evt: unknown, language: UiLanguage) => callback(language);

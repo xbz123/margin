@@ -36,6 +36,7 @@ import { KeyRecorder } from './ui/KeyRecorder';
 import icon from './icon.png';
 import { requestUiLanguage, useI18n, type UiLanguage } from '../i18n';
 import { resolveSettingsTab, SETTINGS_TABS, type SettingsTab } from './settings/settingsTabs';
+import { WrittenExamSettings } from './settings/WrittenExamSettings';
 import { SettingsGroup, SettingsHeading, SettingsRow, SettingsSwitch, settingsButtonClass } from './settings/SettingsKit';
 
 // ---------------------------------------------------------------------------
@@ -379,6 +380,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         general: { label: 'General', icon: Monitor },
         'ai-providers': { label: 'AI Providers', icon: FlaskConical },
         audio: { label: 'Speech & Audio', icon: Mic },
+        'written-exam': { label: 'Written exam mode', icon: Keyboard },
         context: { label: 'Context & Skills', icon: Sparkles },
         'meeting-records': { label: 'Meeting records', icon: Archive },
         privacy: { label: 'Window & privacy', icon: Eye },
@@ -1327,6 +1329,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             <CredentialLoadBanner />
                             {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{t(credentialNotice)}</p>}
 
+                            {activeTab === 'written-exam' && <WrittenExamSettings />}
                             {activeTab === 'general' && (
                                 <div className="space-y-6 animated fadeIn">
                                     <SettingsHeading title={t('General settings')} description={t('Customize how {name} works for you', { name: APP_NAME })} />

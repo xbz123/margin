@@ -163,7 +163,8 @@ test('S46-02 manual submit records the scene it actually sends, and only written
   const ref = current => ({ current });
   const submit = async questionMode => {
     const messages = [], sent = [];
-    await handler('handleManualSubmit', {
+    await handler('submitQuestion', {
+      automaticSubmit: ref(false),
       questionMode, inputValue: 'Synthetic question', attachedContext: [], pendingCaptureRef: ref(null),
       manualSubmitInFlightRef: ref(false), lastManualSubmitRef: ref(null), shouldDedupeManualSubmit: () => false,
       generationEpochRef: ref(0), submittedChatRef: ref(), flushToken() {}, tokenBufRef: ref({ intent: '', text: '', raf: null }),

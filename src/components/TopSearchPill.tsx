@@ -27,6 +27,7 @@ interface SearchResult {
 }
 
 interface TopSearchPillProps {
+    disabled?: boolean;
     meetings: Meeting[];
     onAIQuery: (query: string) => void;
     onLiteralSearch: (query: string) => void;
@@ -89,6 +90,7 @@ function searchMeetings(meetings: Meeting[], query: string, locale: string): Sea
 // ============================================
 
 const TopSearchPill: React.FC<TopSearchPillProps> = ({
+    disabled = false,
     meetings,
     onAIQuery,
     onLiteralSearch,
@@ -133,6 +135,8 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
         }, 150);
         inputRef.current?.blur();
     }, []);
+    // A restored launcher must not focus search above its still-open Settings modal.
+    useEffect(() => { if (disabled) close(); }, [disabled, close]);
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -169,6 +173,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
     // Keyboard handling
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (disabled) return;
             // ⌘K to open
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
@@ -206,7 +211,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [state, open, close, selectedIndex, totalItems, handleSelect]);
+    }, [state, open, close, selectedIndex, totalItems, handleSelect, disabled]);
 
     // Click outside to close
     useEffect(() => {
@@ -283,7 +288,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
                                 {/* Input Row */}
                                 <div
                                     className="relative flex items-center"
-                                    onClick={() => state === 'idle' && open()}
+                                    onClick={() => !disabled && state === 'idle' && open()}
                                 >
                                     <div className="absolute left-3 flex items-center pointer-events-none">
                                         <Search size={14} className="text-text-tertiary" />
@@ -291,6 +296,7 @@ const TopSearchPill: React.FC<TopSearchPillProps> = ({
                                     <input
                                         ref={inputRef}
                                         type="text"
+                                        disabled={disabled}
                                         value={query}
                                         onChange={handleInputChange}
                                         onFocus={() => state === 'idle' && setState('focused')}

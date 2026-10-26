@@ -1,4 +1,5 @@
 export interface GenerationMetadata {
+  codeOutputFormat?: 'plain' | 'markdown';
   requestId: string;
   questionId?: string;
   retryOf?: string;

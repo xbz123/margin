@@ -25,6 +25,7 @@ function disk(initial = {}) {
 }
 function settingsFixture(storage) {
   return load('electron/services/SettingsManager.ts', { electron: { app: { isReady: () => true, getPath: () => '/synthetic' } }, fs: storage.boundary, path,
+    '../../src/types/writtenExam': load('src/types/writtenExam.ts', {}),
     'node:crypto': { randomUUID: () => 'unique' }, '../../src/types/codexSource': { DEFAULT_CODEX_SOURCE_CONFIG: {}, validateCodexSourceConfig: value => value } }).SettingsManager.getInstance();
 }
 function keysFixture(storage = disk()) {

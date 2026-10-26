@@ -304,6 +304,7 @@ import { isDisguiseMode, type WindowPreferenceKind, type WindowPreferenceResult 
 
 export class AppState {
   public prepareCaptureAction?: (owner: Electron.WebContents) => { speechActionId: string };
+  public pauseWrittenExam?: () => void;
   public cancelCaptureAction?: (owner: Electron.WebContents, speechActionId: string) => void;
   public isCaptureActionPending?: (owner: Electron.WebContents, speechActionId: string) => boolean;
   private static instance: AppState | null = null
@@ -746,6 +747,7 @@ export class AppState {
   }
 
   public setQuitting(value: boolean): void {
+    if (value) this.pauseWrittenExam?.();
     this._isQuitting = value;
   }
 
@@ -1547,6 +1549,7 @@ export class AppState {
 
 
   public async endMeeting(): Promise<void> {
+    this.pauseWrittenExam?.();
     this.processingHelper.cancelOngoingRequests();
     this.intelligenceManager.resetEngine();
     return this.meetingLifecycle.stop(async () => {
@@ -2530,6 +2533,7 @@ async function initializeApp() {
 
   // Explicitly load credentials into helpers
   appState.processingHelper.loadStoredCredentials();
+  appState.processingHelper.getLLMHelper().setCodeOutputFormat(SettingsManager.getInstance().getWrittenExamSettings().codeOutputFormat);
 
   // Initialize IPC handlers before window creation
   initializeIpcHandlers(appState)

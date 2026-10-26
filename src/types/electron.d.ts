@@ -1,4 +1,5 @@
 import type { AnswerReasoningState, ReasoningChoice } from './answerReasoning';
+import type { WrittenExamSettings, WrittenExamStatus, WrittenExamCapture } from './writtenExam';
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from './llmTarget';
 import type { GenerationPolicy } from './generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
@@ -206,6 +207,12 @@ export interface ElectronAPI {
   setWindowMode: (mode: 'launcher' | 'overlay', inactive?: boolean) => Promise<void>
   setMeetingInterfaceTheme: (theme: string) => void
   onMeetingInterfaceThemeChanged: (callback: (theme: string) => void) => () => void
+  getWrittenExam: () => Promise<WrittenExamStatus>;
+  skipWrittenExamCapture: (generation: number) => Promise<void>;
+  saveWrittenExam: (settings: Partial<WrittenExamSettings>) => Promise<WrittenExamStatus>;
+  setWrittenExamRunning: (running: boolean) => Promise<WrittenExamStatus>;
+  onWrittenExamStatus: (callback: (status: WrittenExamStatus) => void) => () => void;
+  onWrittenExamCapture: (callback: (capture: WrittenExamCapture) => void) => () => void;
   getUiLanguage: () => Promise<UiLanguage>
   setUiLanguage: (language: UiLanguage) => Promise<UiLanguageResult>
   onUiLanguageChanged: (callback: (language: UiLanguage) => void) => () => void
@@ -232,7 +239,7 @@ export interface ElectronAPI {
   onSessionReset: (callback: () => void) => () => void;
 
   // Streaming listeners
-  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string, clickedAt?: number }) => Promise<void>
+  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string, clickedAt?: number; examGeneration?: number }) => Promise<void>
   onGeminiStreamToken: (callback: (token: string, metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void
   enableGenerationPresentation: () => Promise<void>;
   reportFirstVisible: (requestId: string) => void;

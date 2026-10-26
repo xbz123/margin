@@ -21,6 +21,37 @@ Notes:
 
 ## Ledger
 
+### S50 written practice settings and timed capture (2026-10-26)
+
+The user explicitly identified the written-exam features as independently added
+Margin work and authorized reuse from `codex/ai-assistant-refactor` (reference
+`36af1111db5b608b2ec3eff0f276a7eed97e92c1`). No branch history was merged.
+`electron/services/WrittenExamMode.ts` (blob
+`0bc40bd237d44ecb2f55403714a8606db977195c`, introduced at `fcfbb02a`, ownership
+cleanup updated at `9501b83b`) supplies the timer, busy/deduplication, receipt and
+discard structure. The path does not exist in restricted upstream `f326de04`;
+the full restricted-pool scan found only the exact generic lines registered below.
+This user's source confirmation supplements the older S35 snapshot classification;
+it does not authorize unrelated snapshot or later-upstream code.
+
+The two old settings pages (blobs `00762fc90d1f4ad37b665ee9fd817cb5576293f0`
+and `942def43353e5d7273079f6c75a40dce85d4ddb0`) supplied the requested control
+layout and semantics, not CSS or wholesale page code. The new page uses this
+branch's `SettingsKit`, translation and theme tokens. The complete-code guidance
+was written against S46, removing the old rule that ignored the screenshot's
+selected language. No Direct Assist/Judge, old IPC/store implementation or old
+global styles were imported.
+
+Main/preload integration, atomic settings, partial-field saves, unique per-frame
+receipts, lifecycle cancellation, retry-format snapshots, Local Context omission,
+renderer consumers and synthetic tests were adapted/written for this branch.
+The actual settings test exposed a search focus overlay above Settings; its small
+disabled-while-modal guard is new local code. Nine distinct scanner hits were
+checked individually: three timer declarations/guards from the reviewed source,
+the new per-frame increment, a numeric contract field, mock-clock advancement,
+a catch clause and two disabled-prop idioms. Only these exact lines are allowed;
+no file, directory, upstream ref or implementation body was exempted.
+
 ### Settings restyle after the old Margin layout (2026-10-21)
 
 Written for this branch (PLAN §8). The old Margin settings (`b8ade3f7`) were

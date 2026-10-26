@@ -242,8 +242,8 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
     const { DatabaseManager } = process.mainModule.require(filename);
     const db = DatabaseManager.getInstance();
     const saved = db.getMeetingDetails(id);
-    saved.usage.push({ type: 'chat', timestamp: 1, question: 'synthetic history question', answer: 'retained partial answer',
-      requestId: 'HISTORY', provider: 'openai', model: 'HISTORY-model', status: 'failed', attempts: 2, partial: true, timeout: 'total' });
+    saved.usage.push({ type: 'chat', timestamp: 1, question: 'synthetic history question', answer: '# retained plain answer\n    print(1)',
+      requestId: 'HISTORY', provider: 'openai', model: 'HISTORY-model', status: 'failed', attempts: 2, partial: true, timeout: 'total', codeOutputFormat: 'plain' });
     db.saveMeeting(saved, Date.parse(saved.date), 1500);
   }, { filename: path.join(REPO, 'dist-electron/electron/db/DatabaseManager.js'), id: meeting.id });
   assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: meeting.id, t: TITLE }), true);
@@ -263,6 +263,9 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
   const failed = launcher.locator('[data-generation-status="failed"]').filter({ hasText: 'HISTORY-model' });
   await failed.waitFor({ state: 'visible' });
   assert.ok((await failed.innerText()).includes('Incomplete · timeout:total'));
+  const plainAnswer = launcher.locator('[data-code-output-format="plain"]');
+  assert.equal(await plainAnswer.textContent(), '# retained plain answer\n    print(1)');
+  assert.equal(await plainAnswer.evaluate(node => getComputedStyle(node).whiteSpace), 'pre-wrap');
   assert.equal(await launcher.getByRole('button', { name: 'Summary', exact: true }).count(), 0, 'no summary tab (AG-52)');
 
   const title = launcher.locator('h1[contenteditable]').first();
