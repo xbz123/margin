@@ -1,0 +1,240 @@
+{
+  "project": "margin-windows",
+  "source_commit": "fd989b3fb468910eb3df89a1407da549c0a3da2e",
+  "source_branch": "codex/windows-parity",
+  "repository": "xbz123/Assessment-Assistant",
+  "snapshot_branch": "codex/windows-transfer-20261029-margin-windows",
+  "files": [
+    {
+      "path": ".github/workflows/windows-compile.yml",
+      "state": "copied",
+      "sha256": "0ae6613fd8b9c28ca76e70e704338d7fd7cabb878670b83818fdf87bee03d2d1",
+      "bytes": 9065
+    },
+    {
+      "path": "docs/margin/PLAN.md",
+      "state": "copied",
+      "sha256": "59def66ad4decb317dc02a380d1d0229d0ed235936e644a2eefdf8ff2c0ea5ce",
+      "bytes": 557849
+    },
+    {
+      "path": "docs/margin/PROVENANCE.md",
+      "state": "copied",
+      "sha256": "825e02346c18eef04deeb72b4e3c1589a00f389e1f4aaf59546dad14c6048ce1",
+      "bytes": 143313
+    },
+    {
+      "path": "docs/margin/WINDOWS-DEVELOPMENT.md",
+      "state": "copied",
+      "sha256": "6e8e37201037e4b37794443769ce2a49b6865fa78a023e495dfeab10ea32ea6b",
+      "bytes": 12088
+    },
+    {
+      "path": "docs/margin/evidence/AG-72/README.md",
+      "state": "copied",
+      "sha256": "bc768d043c305398a26e9689f81fbf047d96d7b22391d800bf020fb29b8710b1",
+      "bytes": 8634
+    },
+    {
+      "path": "docs/margin/evidence/AG-72/delivery.md",
+      "state": "copied",
+      "sha256": "f7efa0c66dc918fbf739835532bb7782e085d9a621dea8facd2f6713bf41ee94",
+      "bytes": 5463
+    },
+    {
+      "path": "docs/margin/evidence/AG-72/independent-review.md",
+      "state": "copied",
+      "sha256": "ca2c827f3b5bf21d4041e2ca698383aa51770de774833f46e549c0b6e66b8af9",
+      "bytes": 3241
+    },
+    {
+      "path": "docs/margin/evidence/AG-73/README.md",
+      "state": "copied",
+      "sha256": "f489e0b45faeaa6bfc01a4758b6df93f7fc9869344019ccc2600cec1fc0ebd9b",
+      "bytes": 8018
+    },
+    {
+      "path": "docs/margin/evidence/AG-73/delivery.md",
+      "state": "copied",
+      "sha256": "d3e3be297c1dcfc7ecc9e541f02f855ecf0eba61b6b947eea88ff15fc0f257d4",
+      "bytes": 7402
+    },
+    {
+      "path": "docs/margin/evidence/AG-73/independent-review.md",
+      "state": "copied",
+      "sha256": "cfdc25bbeb10d453366d4d1cc3310dcc72fc9ce938a24d9359baa8869be06a9c",
+      "bytes": 5666
+    },
+    {
+      "path": "docs/margin/provenance-config.json",
+      "state": "copied",
+      "sha256": "ba345ac5470a2c58cddcde965e0aec503db13474aaf79f44e5b810a862e8e80c",
+      "bytes": 148815
+    },
+    {
+      "path": "docs/product.md",
+      "state": "copied",
+      "sha256": "84c177975e32b6bb0c5436a8ea646a3c754e759ae83b278139ff43a39c490c78",
+      "bytes": 40979
+    },
+    {
+      "path": "docs/wayfinder.md",
+      "state": "copied",
+      "sha256": "1dd48fcbe23352b7d084c67794fb6a7383c7583099b649da9428d9b8e673d84e",
+      "bytes": 9430
+    },
+    {
+      "path": "electron-builder.config.cjs",
+      "state": "copied",
+      "sha256": "9b0d01a6f6d666032c2dabbae7d8af65900ab6c8a68b3d5c589930f6439e79ce",
+      "bytes": 1167
+    },
+    {
+      "path": "electron/ScreenshotHelper.ts",
+      "state": "copied",
+      "sha256": "9afab21189162fd5818d161930f3a459907a9e1afea5c9bd203745cff9c1ae26",
+      "bytes": 33337
+    },
+    {
+      "path": "electron/WindowHelper.ts",
+      "state": "copied",
+      "sha256": "9fc2043a35daa9f2df53d01b8ae41876151c485b51b60f90899a200d263e09b2",
+      "bytes": 39568
+    },
+    {
+      "path": "electron/audio/__tests__/WindowProtectionLifecycle.test.mjs",
+      "state": "copied",
+      "sha256": "5a768dfe61c3c57ce1f5967e1f593ebd018d8ff4790be2a371974e6ecd87f68d",
+      "bytes": 13986
+    },
+    {
+      "path": "electron/ipcHandlers.ts",
+      "state": "copied",
+      "sha256": "7d81fd0d2479b8611703ddef986b063ad44d0c0b19bd613665c857ffe24cb2ca",
+      "bytes": 101509
+    },
+    {
+      "path": "electron/main.ts",
+      "state": "copied",
+      "sha256": "75997d92ad569f17aebe05ffe7b452fe5277e6c9e334bfb0ee219567dd1a886c",
+      "bytes": 128362
+    },
+    {
+      "path": "electron/margin/__tests__/licenseInventory.test.mjs",
+      "state": "copied",
+      "sha256": "867f847fcff5acfb0edb3ef09c8670e394a9ccc0a08ce39e3e28a80a76815119",
+      "bytes": 25745
+    },
+    {
+      "path": "electron/margin/__tests__/windowsPackage.test.mjs",
+      "state": "copied",
+      "sha256": "772d074a6da758b81da64dec09dba34caaac61a6b71feffd521339b559f0cec1",
+      "bytes": 26077
+    },
+    {
+      "path": "electron/services/__tests__/ScreenshotDisplayCapture.test.mjs",
+      "state": "copied",
+      "sha256": "c9f6dcc64a1a76ce7e14a95ee23628a9d3e5fef0b748d8c4fade5b3e0811a2dd",
+      "bytes": 5879
+    },
+    {
+      "path": "electron/services/__tests__/WindowPreferencePersistence.test.mjs",
+      "state": "copied",
+      "sha256": "b68ceb84d0c14e2346841068728507f1534b77048ef8f416c9fd2fbf9843bc68",
+      "bytes": 10609
+    },
+    {
+      "path": "electron/services/__tests__/WindowPreferences.test.mjs",
+      "state": "copied",
+      "sha256": "bfb75e1625eb1c276ba89211c2ba8266304fe05f6c383397c16e8749f4db4a5d",
+      "bytes": 16579
+    },
+    {
+      "path": "electron/utils/__tests__/validateImagePath.test.mjs",
+      "state": "copied",
+      "sha256": "d83af5b43cec58ccb6151806372c9deb8fa4c5864f7f911be30c0c856c9599e8",
+      "bytes": 10001
+    },
+    {
+      "path": "electron/utils/imagePathValidation.ts",
+      "state": "copied",
+      "sha256": "95c0975ea28868c67bb150b1db974c3a7f857f38dd81938a78e2f55b672fa8e4",
+      "bytes": 4514
+    },
+    {
+      "path": "licenses/manifest.json",
+      "state": "copied",
+      "sha256": "c8bbd529392835b60a42a58aaf3ee6ffb386f2ce7d875e3f685f3d8be8702d7b",
+      "bytes": 662580
+    },
+    {
+      "path": "package.json",
+      "state": "copied",
+      "sha256": "4f900c8c9363322948a8df5dd8e7a9158408b5cb761cb45916a5a1aa9d53f131",
+      "bytes": 6936
+    },
+    {
+      "path": "scripts/build-local.cjs",
+      "state": "copied",
+      "sha256": "5f051eb9490ff26436f0765008ed05f45a920cd8abe886774332b77e726697a7",
+      "bytes": 5387
+    },
+    {
+      "path": "scripts/margin/collect-licenses.mjs",
+      "state": "copied",
+      "sha256": "5359f912ca5bafd35d0f8c68a1b9b4eaa4a534f38646b227f33a1ce938859168",
+      "bytes": 27591
+    },
+    {
+      "path": "scripts/margin/isolation/guard.cjs",
+      "state": "copied",
+      "sha256": "986fd411c893fb078230c6c7e1471cbce7f8f3a2ac4d1237e46862e74be6ba29",
+      "bytes": 17846
+    },
+    {
+      "path": "scripts/margin/license-bundle.cjs",
+      "state": "copied",
+      "sha256": "6c738d36b5d409454b299db5280410ec6b0407f45517d281cef5e846997e094d",
+      "bytes": 4677
+    },
+    {
+      "path": "scripts/margin/package-check.cjs",
+      "state": "copied",
+      "sha256": "908a4b1c6d02cc25d142e69f3355498e69c7f057d597f66f6a7f58d43f97c554",
+      "bytes": 15465
+    },
+    {
+      "path": "scripts/margin/packaged-launch.mjs",
+      "state": "copied",
+      "sha256": "a6c3e33bdb133b07710511c863ed26adb731608ff58922f260a0ec174eb24d24",
+      "bytes": 5481
+    },
+    {
+      "path": "scripts/margin/source-bundle.mjs",
+      "state": "copied",
+      "sha256": "f0bbd97267e00f8d910b6435f7c7b8dd47aa10e70aecba30095602d4fe044df4",
+      "bytes": 10095
+    },
+    {
+      "path": "src/components/ui/KeyRecorder.tsx",
+      "state": "copied",
+      "sha256": "2eef413a0c9ec412258cf273284470b50d34afd2187213f5da605d538ad1bc8d",
+      "bytes": 3261
+    },
+    {
+      "path": "src/i18n.zh.ts",
+      "state": "copied",
+      "sha256": "0a89ee906fa62e571896b93dfe987c624d0a73bb695a51068b6ebee944c3a807",
+      "bytes": 83704
+    },
+    {
+      "path": "src/utils/keyboardUtils.ts",
+      "state": "copied",
+      "sha256": "4d924727cc0d15c80e455a04bd51abe778139a941d789d17982fa1315590b9f7",
+      "bytes": 5094
+    }
+  ],
+  "omitted_untracked_or_changed_paths": [],
+  "ignored_files_included": false,
+  "status": "work_in_progress_not_runtime_acceptance"
+}

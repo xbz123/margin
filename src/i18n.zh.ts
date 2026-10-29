@@ -630,6 +630,7 @@ export const chinese: Readonly<Record<string, string>> = {
     'Reconnecting...': '正在重连…',
     'via {provider}': '通过 {provider}',
     'Press keys...': '请按键…',
+    'Windows key shortcuts are reserved by Windows': 'Windows 键快捷键由 Windows 保留',
     'Audio Diagnostics': '音频诊断',
     'Collapse error details': '收起错误详情',
     'Copy Report': '复制报告',

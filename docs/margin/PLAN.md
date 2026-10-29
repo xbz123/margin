@@ -1487,6 +1487,14 @@ X1 → G2（AG-10 起每张 ticket 都要过）
 
 ## 8. 执行与恢复记录
 
+### Windows AG-71 / AG-72（2026-10-23，AG-71 双平台 CI 通过；AG-72 单屏范围本地验收通过，Windows 运行待验）
+
+执行入口与范围见 [Windows 开发计划](WINDOWS-DEVELOPMENT.md)。分支 `codex/windows-parity`，Claude 唯一写入，Codex 独立验收，均未合并、未安装。
+
+- **AG-71**：原生音频与 Windows 验证基础已本地独立验收。远端 Windows CI 的 POSIX 路径注入测试失败已最小修正。来源命中逐行登记（撤回了一次为避开命中而做的改名）。仅代码的修正 `fe47126e` 通过 Windows CI 39976108670 和 Mac CI 39976113129（16/16，来源 0 命中）。证据：[AG-71](evidence/AG-71/README.md)。
+- **AG-72**：窗口、输入与截图的 7 项已证实缺口及首轮 P2 计时器问题已修复，通过 [Codex 独立复验](evidence/AG-72/independent-review.md)：关键82/82、原失败场景1/1，同源完整门禁16/16、单元1276/1276。用户随后确认本阶段只要求单屏截图及输出，跨屏拼接移出范围，不再阻塞本地软件验收；本次只更新文档，未改变代码或重跑测试。只在 macOS 上验证了 Windows 分支 mock，Windows runner/实机仍待验。未进入 AG-73、未提交推送合并安装。
+- Win10 最低 build、Win10 测试来源、Win11 共享组合、最终图标及音频“通信”角色仍待用户决定。实机均未验证。
+
 ### S49 官方回答模型覆盖与列表范围（2026-10-23，公开 CI 通过并已安装，待实测）
 
 用户确认：Gemini 3.1 起、GPT-5.4 起、Claude 4.5 起（Opus/Sonnet/Haiku 等）、DeepSeek V4/V4.1 Flash 与 V4 Pro；获取模型列表同时过滤，保留网关手动图片确认和已保存旧配置。当前 Codex 实现、Claude 独立验收；初始不推送/安装，后获用户明确授权在公开 CI 通过后安装，不使用真实凭据/服务。

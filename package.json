@@ -105,13 +105,6 @@
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
             "x64"
           ]
         }
@@ -142,6 +135,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
+      "packElevateHelper": false,
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "publish": null

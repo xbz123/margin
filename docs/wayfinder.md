@@ -4,13 +4,15 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至 2026-10-23，S47–S49 多模型候选、统一推理控件及官方能力/列表范围已独立验收，公开 CI 39935532703 通过；同源 Natively Local `9247cc19` 已安装，含此前 S46/UI/清理。包/安装各 12/12、隔离启动 10/10，用户数据及旧 Margin 保留；[交付与安装记录](margin/evidence/S49/README.md)。Agent 未用真实配置启动新版，实机签收未完成。
+**Current answer:** 截至2026-10-24，AG-73公开`4ed00ae5`双平台CI通过，未合并安装；用户取消源码下载/哈希验收，Windows实机单独进行；[交付](margin/evidence/AG-73/delivery.md)。Mac S49已装待实测；[记录](margin/evidence/S49/README.md)。
 
-**Current focus:** 本分支执行用户新授权的 Windows 10/11 x64 对等开发，Claude 实施、Codex 独立验收，从 AG-71 开始逐票推进；Mac 在原工作树继续阶段 6 用户实测。正式身份、图标、签名和发布分别等待，开发完成不等于实机或发布验收。
+**Current focus:** 远端核验只取报告已完成；等待Windows实测安排，不下载源码、不做哈希核对、不合并安装，Mac阶段6独立继续。
 
 ## Waiting
 
-- **Windows AG-71** — 两项P2独立复验关闭，本地整改/门禁通过；等待目标平台CI与实机安排，双平台新原生编译仍缺证据，未放行AG-72/73；resume：[独立复验](margin/evidence/AG-71/independent-review.md)、[开发计划](margin/WINDOWS-DEVELOPMENT.md)。
+- **Windows AG-73 后续交付** — 双平台CI报告已核对，实机待用户；resume：[交付](margin/evidence/AG-73/delivery.md)。
+
+- **Windows 实机验证** — AG-71/72 软件和双平台 CI 已验，待测试包及 Win10/11 实机组合；resume：[交付与边界](margin/evidence/AG-72/delivery.md)。
 
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
@@ -21,7 +23,6 @@
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标参考旧 Margin、简洁，具体图形及真实服务预算待定；D2 与发布仍按授权范围；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受，README 只录实测。
-- **Windows AG-72/73 与发布** — 等 AG-71 独立验收；Win10 最低版本/运行证据、Win11 实测组合待补，AG-74/75 另行授权；见 [Windows 计划](margin/WINDOWS-DEVELOPMENT.md)。
 
 ## Watching
 

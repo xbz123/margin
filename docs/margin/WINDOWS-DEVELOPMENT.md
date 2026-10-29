@@ -1,6 +1,6 @@
 # Windows 10/11 对等功能开发
 
-**最新恢复结论（2026-10-23，Codex）**：AG-71 review1 两项P2独立复验关闭，本地整改与完整门禁通过；仍等待Windows runner、双平台新原生构建及Win10/Win11实机证据，不进入AG-72/73。见[独立复验](evidence/AG-71/independent-review.md)。下方实现者交回记录中“等再次复验”已由本结论更新；定时复验检查已结束。
+**最新恢复结论（2026-10-24）**：AG-71/72 单屏软件范围独立验收通过，公开代码 `39a36d1e` 双平台 CI 原始证据已核验，见 [交付](evidence/AG-72/delivery.md)。AG-73 软件前置满足，等待用户批准开发；未进入、未合并安装，Win10/11 实机仍未验。跨屏拼接不在本阶段范围。
 
 2026-10-23 用户授权 Claude 开发、Codex 独立验收；支持 Windows 10/11 x64，已有 Win11 实机。采用独立分支，Mac 实测不阻塞 Windows 开发；正式发布仍先 Mac 后 Windows。
 
@@ -22,7 +22,7 @@
 - `electron/utils/imagePathValidation.ts` 当前拒绝所有盘符路径。后续修复保持 realpath 后目录归属、文件类型及穿越校验，不能仅删正则放行任意文件。
 - `electron-builder.config.cjs`、`package.json`、`scripts/margin/{package-check.cjs,package.config.cjs,source-bundle.mjs,license-bundle.cjs}`：检查目前 Mac 专用假设；遗留 ia32 目标不代表已授权支持32位。
 
-## AG-71：原生音频及 Windows 验证基础（复验第 1 轮的修复已交回，待 Codex 再次复验）
+## AG-71：原生音频及 Windows 验证基础（本地独立验收通过，双平台 CI 通过；实机未验）
 
 **Outcome**：Windows x64 原生构建/加载和双路采集生命周期有明确验证路径，受控模拟下开始、停止、切换/失败及尾段排空满足共用契约。
 
@@ -34,17 +34,29 @@
 
 **Stop**：需改变默认设备路由语义、削弱取消/数据保护、排除 Win10、加入驱动/管理员服务或改全局工具链时报告具体选择，仅暂停依赖项。AG-71 本地实施结束写结果并停止，等待 Codex 验收，暂不改 AG-72/73。
 
-## AG-72：窗口、输入与截图（待 AG-71 验收）
+## AG-72：窗口、输入与单屏截图（独立验收及双平台 CI 通过，实机待验）
+
+Codex 复验已关闭 P2，关键82/82、原失败场景1/1，同源门禁16/16；见 [独立复验](evidence/AG-72/independent-review.md)。双平台 CI 已核验；用户排除跨屏拼接，AG-73 软件前置满足但尚未授权启动。
 
 **Outcome**：Win10/11 窗口保护、穿透、快捷键、输入与截图提问符合现有产品行为。
 
 **Scope / Steps**：窗口 helper/IPC、必要 Windows 原生接口、截图路径及现有测试。核对焦点、中文 IME、快捷键冲突/恢复、保护/伪装互不干扰及后建窗口继承；不把 Mac Dock 行为变成新增 Windows 进程隐藏。
 
-**Validation**：界面→IPC→平台替身链验证失败反馈、重试、旧回复不覆盖；合法应用图片通过，盘符/大小写/UNC/设备路径/符号链接或 junction 逃逸按真实平台语义处理，越界零外发。截图保持原生像素，不恢复 sharp/OCR。共享接收端看不见窗口且无黑框，本机仍能操作；须分别记录实际 OS/共享软件/方式，setContentProtection 成功不等于保护实测通过。
+**Validation**：界面→IPC→平台替身链验证失败反馈、重试、旧回复不覆盖；合法应用图片通过，盘符/大小写/UNC/设备路径/符号链接或 junction 逃逸按真实平台语义处理，越界零外发。单屏全屏/选区截图保持原生像素，不恢复 sharp/OCR；跨屏拼接及混合 DPI 画布不在本阶段开发和验收范围。共享接收端看不见窗口且无黑框，本机仍能操作；须分别记录实际 OS/共享软件/方式，setContentProtection 成功不等于保护实测通过。
 
 **Stop**：Windows 10 最低 build、最终图标及实测组合未定时暂停相应兼容承诺/资产/实测，不阻塞独立软件实现。开发用已审资产临时占位，不称最终图标。
 
-## AG-73：x64 安装包与许可（待 AG-72 软件验收）
+## AG-73：x64 安装包与许可（2026-10-24 已授权开发，独立验收待完成）
+
+**最新交付（2026-10-24）**：用户批准仅代码推送与CI，公开`be029b94`已推，Windows真实打包检查及Mac回归正在运行；见 [交付](evidence/AG-73/delivery.md)。本地独立验收已过，远端产物未签收；不合并安装。下文先前“等待远端授权”是历史状态。
+
+**当前独立结论（2026-10-24）**：Codex 已关闭 P1/P2，本地软件范围通过；同源16/16、1286单测已核对，独立负例2/2及受影响回归已复验。Windows实际包/启动/源码包与实机仍待，AG-73整票未完成。等待用户身份/版本决定及本票公开推送、远端打包CI授权，详见 [独立记录](evidence/AG-73/independent-review.md)。
+
+**远端第 1 轮（Claude 自报）**：公开 `be029b94` 首轮 CI 暴露的三处问题已做最小修正，待 Codex 独立验收：合成 ASAR 写入竞态、`elevate.exe` 改为不打包、2+1 行来源登记。见 `result-AG73-remote1.txt`。修正后的 Windows 和 Mac CI 尚未运行。
+
+**实施状态（Claude 自报，非验收）**：不依赖未决身份/版本的部分已本地实现并做隔离验证，见 [AG-73 证据](evidence/AG-73/README.md)、`result-AG73.txt`。打包 workflow 已定义（`windows-compile.yml` 的 `package_apps` 输入），未触发，Windows 包的构建、检查和启动均未在 Windows 上执行。测试包身份、Win10 最低 build 和 Win11 组合仍待用户决定；未产出供安装的包。
+
+用户已批准原 Claude 会话继续实施，完成后当前 Codex 独立验收，每5分钟检查。任务 `/private/tmp/margin-windows-wchdTl/task-AG73.txt`，新报告 `result-AG73.txt`，原始 `checks-AG73/`、`gates-AG73/`；先实施不依赖未决身份/版本的部分。测试包身份与 Win10 最低 build 仍须用户确认；本轮不提交推送、远端 CI、合并、安装或发布。此前“未获启动授权”描述为历史状态，以本节最新授权为准。
 
 **Outcome**：可检查的 Windows x64 测试产物，身份/数据隔离与 Mac 一致，非正式发布。
 
@@ -64,7 +76,9 @@
 
 ## 恢复点与待确认
 
-- AG-71 由 Claude 会话 `68357856-1194-4334-b15d-76528cc6501e` 实施，本地实现与检查已交回，等 Codex 独立验收；任务、原始日志与报告在 `/private/tmp/margin-windows-wchdTl/`（task-AG71.txt、result-AG71.txt、checks-AG71/、gates-AG71/），仓库摘要见 [AG-71 证据](evidence/AG-71/README.md)。Codex 第 1 轮复验暂不通过（Windows 路径 ESM 加载；producer 失败时尾部样本可能丢失）；修复与本地完整门禁记录在 `result-AG71-review1.txt`、`checks-AG71-review1/`、`gates-AG71-review1/`，等 Codex 再次复验。AG-70 Windows runner 已加入非设备检查，尚未运行；Win10/Win11 实机未验证。AG-72/73 排队。
+- AG-71 由 Claude 会话 `68357856-1194-4334-b15d-76528cc6501e` 实施，本地实现与检查已交回，等 Codex 独立验收；任务、原始日志与报告在 `/private/tmp/margin-windows-wchdTl/`（task-AG71.txt、result-AG71.txt、checks-AG71/、gates-AG71/），仓库摘要见 [AG-71 证据](evidence/AG-71/README.md)。Codex 第 1 轮复验的两项 P2 已修复并独立复验关闭。远端 Windows CI 的 POSIX 路径注入失败已最小修正，来源命中逐行登记（撤回了一次为避开命中而做的改名），见 `result-AG71-remote1.txt`、`checks-AG71-provenance/`。修正后双平台 CI 通过。Win10/Win11 实机未验证。
+- AG-72 由同一会话实施；报告 `result-AG72.txt`、`result-AG72-review1.txt`、`result-AG72-remote1.txt`。独立复验及双平台 CI 已核验，详见 [交付](evidence/AG-72/delivery.md)。用户只要求单屏；Win10/11 实机待验，AG-73 软件前置满足、未获启动授权。
+- AG-73 由同一会话实施（2026-10-24 授权）；报告 `result-AG73.txt`，原始 `checks-AG73/`、`gates-AG73/`，仓库摘要 [AG-73 证据](evidence/AG-73/README.md)。等待 Codex 独立验收；Windows runner 打包检查由 root 决定何时触发。
 - 已定：Win10/Win11、x64、已有 Win11 实机。不再询问 ARM/32 位或签名是否本轮实现。
 - 待确认：Win10 最低版本（AG-71 建议见 [证据](evidence/AG-71/README.md#windows-10-下限建议)：技术下限 1703，承诺与测试以 22H2/19045 为准，待用户定）；Win11 build、共享软件/接收端；Win10 实机或 VM 的验证来源；系统音频是否需要跟随“通信”默认设备（当前只跟随多媒体/控制台默认设备）。上述不阻塞 AG-71 独立部分。
 - 后续才需决定：最终 Windows 图标、测试包身份、真实服务组合/费用；不要求用户选择代码组织或测试框架。

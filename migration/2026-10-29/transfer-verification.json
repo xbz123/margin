@@ -1,0 +1,25 @@
+{
+  "project": "margin-windows",
+  "source_hashes_match": true,
+  "syntax_files": [
+    "docs/margin/provenance-config.json",
+    "electron/audio/__tests__/WindowProtectionLifecycle.test.mjs",
+    "electron/margin/__tests__/licenseInventory.test.mjs",
+    "electron/margin/__tests__/windowsPackage.test.mjs",
+    "electron/services/__tests__/ScreenshotDisplayCapture.test.mjs",
+    "electron/services/__tests__/WindowPreferencePersistence.test.mjs",
+    "electron/services/__tests__/WindowPreferences.test.mjs",
+    "electron/utils/__tests__/validateImagePath.test.mjs",
+    "licenses/manifest.json",
+    "package.json",
+    "scripts/margin/collect-licenses.mjs",
+    "scripts/margin/packaged-launch.mjs",
+    "scripts/margin/source-bundle.mjs"
+  ],
+  "syntax_failures": [],
+  "diff_check_exit": 0,
+  "preexisting_whitespace_diagnostics": "",
+  "runtime_tests_run": false,
+  "windows_verified": false,
+  "note": "Byte-preserving WIP migration; original whitespace is not changed."
+}

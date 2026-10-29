@@ -14680,6 +14680,10 @@
       "sourcePath": "node_modules/electron/dist/LICENSE",
       "file": "electron/LICENSE",
       "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+      "targets": {
+        "darwin-arm64": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+        "win32-x64": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d"
+      },
       "origin": "Electron 43.1.0 installed distribution",
       "sourceURL": "https://github.com/electron/electron/releases/tag/v43.1.0"
     },
@@ -14687,6 +14691,10 @@
       "sourcePath": "node_modules/electron/dist/LICENSES.chromium.html",
       "file": "electron/LICENSES.chromium.html",
       "sha256": "4fc0507a046b9ecd0738b2dd64119b5ec8bc29ac0221b63edb693fd5fd497c87",
+      "targets": {
+        "darwin-arm64": "4fc0507a046b9ecd0738b2dd64119b5ec8bc29ac0221b63edb693fd5fd497c87",
+        "win32-x64": "b911161e6594ec76b872498b423c54406168f2974e0d407a847f7de1e5ff94dd"
+      },
       "origin": "Electron 43.1.0 installed distribution",
       "sourceURL": "https://github.com/electron/electron/releases/tag/v43.1.0"
     }

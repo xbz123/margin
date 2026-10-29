@@ -751,12 +751,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     const launcherWin = appState.getWindowHelper().getLauncherWindow();
     if (launcherWin && !launcherWin.isDestroyed()) {
       launcherWin.webContents.send('settings:open-tab', tab);
-      if (appState.getUndetectable()) {
-        launcherWin.showInactive();
-      } else {
-        launcherWin.show();
-        launcherWin.focus();
-      }
+      appState.getWindowHelper().showLauncherForSettings(appState.getUndetectable());
     }
   });
 

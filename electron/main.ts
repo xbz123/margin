@@ -2154,6 +2154,9 @@ export class AppState {
 
     // Helper to format accelerator for display (e.g. CommandOrControl+H -> Cmd+H)
     const formatAccel = (accel: string) => {
+      // CommandOrControl is Ctrl off macOS; Command/Cmd stay as written there,
+      // since Electron maps them to the Windows key, not Ctrl.
+      if (process.platform !== 'darwin') return accel.replace(/CommandOrControl|CmdOrCtrl/gi, 'Ctrl').replace(/\bControl\b/g, 'Ctrl');
       return accel
         .replace('CommandOrControl', 'Cmd')
         .replace('Command', 'Cmd')
@@ -2286,6 +2289,8 @@ export class AppState {
         this.settingsWindowHelper.syncActivationPolicy();
         this.modelSelectorWindowHelper.syncActivationPolicy();
       } catch { failed = true; }
+      // Same rule as startup: a protected app shows no tray, an unprotected one does.
+      try { if (state) this.hideTray(); else this.showTray(); } catch { failed = true; }
     }
     if (state) {
       for (const timer of this._disguiseTimers) clearTimeout(timer);

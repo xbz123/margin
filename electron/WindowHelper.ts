@@ -33,6 +33,9 @@ export class WindowHelper {
   private appState: AppState;
   private contentProtection: boolean = false;
   private opacityTimeout: NodeJS.Timeout | null = null;
+  // The settings reveal leaves the overlay shown, so it keeps its own timer rather
+  // than replacing a pending overlay reveal in opacityTimeout.
+  private settingsRevealTimeout: NodeJS.Timeout | null = null;
 
   // Constants
   private static readonly OVERLAY_DEFAULT_WIDTH = 780;
@@ -85,6 +88,7 @@ export class WindowHelper {
     });
     if (this.protectionFailed) {
       if (this.opacityTimeout) { clearTimeout(this.opacityTimeout); this.opacityTimeout = null; }
+      if (this.settingsRevealTimeout) { clearTimeout(this.settingsRevealTimeout); this.settingsRevealTimeout = null; }
       this.reportProtectionFailure();
       throw new Error('Window protection could not be applied.');
     }
@@ -794,6 +798,38 @@ export class WindowHelper {
     // Hide Launcher SECOND
     if (this.launcherWindow && !this.launcherWindow.isDestroyed()) {
       this.launcherWindow.hide();
+    }
+  }
+
+  // Show the launcher for settings:open-tab without leaving the current mode. On
+  // Windows it may still be at opacity 0 from hideMainWindow, so restore it, behind
+  // the same opacity shield as switchToLauncher while protection is on.
+  public showLauncherForSettings(inactive: boolean): void {
+    const win = this.launcherWindow;
+    if (!win || win.isDestroyed()) return;
+    if (process.platform === 'win32' && this.contentProtection) {
+      win.setOpacity(0);
+      if (inactive) win.showInactive();
+      else win.show();
+      this.applyContentProtection(true);
+
+      if (this.settingsRevealTimeout) clearTimeout(this.settingsRevealTimeout);
+      this.settingsRevealTimeout = setTimeout(() => {
+        this.settingsRevealTimeout = null;
+        // Hidden or closed in the meantime: leave it for the next show to restore.
+        if (!win.isDestroyed() && win.isVisible()) {
+          win.setOpacity(1);
+          if (!inactive) win.focus();
+        }
+      }, 60);
+      return;
+    }
+    if (process.platform === 'win32') win.setOpacity(1);
+    if (inactive) {
+      win.showInactive();
+    } else {
+      win.show();
+      win.focus();
     }
   }
 

@@ -17,7 +17,9 @@ function checkedFile(root, relative) {
   return fs.readFileSync(file);
 }
 
-function verifyBundle(resources, sourceRoot) {
+// target: the platform-arch the package was built for. The Electron notices are copied
+// from that target's Electron distribution, and LICENSES.chromium.html differs by target.
+function verifyBundle(resources, sourceRoot, target = `${process.platform}-${process.arch}`) {
   const manifestBytes = checkedFile(resources, 'licenses/manifest.json');
   const source = fs.readFileSync(path.join(sourceRoot, 'licenses/manifest.json'));
   if (hash(manifestBytes) !== hash(source)) throw new Error('packaged notice inventory differs from source');
@@ -38,18 +40,21 @@ function verifyBundle(resources, sourceRoot) {
   if (manifest.deferred.map((item) => item.file).sort().join(',') !== 'electron/LICENSE,electron/LICENSES.chromium.html') throw new Error('missing full fixed Electron/Chromium notices');
   for (const notice of notices) {
     if (!/^(texts\/[0-9a-f]{64}\.txt|electron\/(LICENSE|LICENSES\.chromium\.html))$/.test(notice.file)) throw new Error('invalid notice destination');
-    if (!/^[0-9a-f]{64}$/.test(notice.sha256) || hash(checkedFile(resources, `licenses/${notice.file}`)) !== notice.sha256) throw new Error(`missing/changed notice: ${notice.file}`);
+    const expected = notice.targets ? notice.targets[target] : notice.sha256;
+    if (notice.targets && !expected) throw new Error(`no ${target} digest for notice: ${notice.file}`);
+    if (!/^[0-9a-f]{64}$/.test(expected) || hash(checkedFile(resources, `licenses/${notice.file}`)) !== expected) throw new Error(`missing/changed notice: ${notice.file}`);
   }
   // The conservative candidate list may contain non-shipped entries. Resolve or
   // explicitly exclude them with artifact evidence; never hide them at packaging.
   if (manifest.unresolved.length) throw new Error(`unresolved notice candidates: ${manifest.unresolved.length}; inspect the package before distribution`);
-  return { checkedNotices: notices.length, candidateInventoryOnly: true };
+  return { checkedNotices: notices.length, target, candidateInventoryOnly: true };
 }
 
 module.exports.verifyBundle = verifyBundle;
 module.exports.default = async (context) => {
   const root = context.packager.info.projectDir;
   const resources = context.packager.getResourcesDir(context.appOutDir);
-  console.log('[License notices]', JSON.stringify(verifyBundle(resources, root)));
+  const target = `${context.electronPlatformName}-${require('builder-util').Arch[context.arch]}`;
+  console.log('[License notices]', JSON.stringify(verifyBundle(resources, root, target)));
   await require('../ad-hoc-sign.js').default(context);
 };

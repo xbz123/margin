@@ -21,6 +21,118 @@ Notes:
 
 ## Ledger
 
+### AG-73 Windows x64 package, notices and source bundle (2026-10-24)
+
+Written for this branch from the AG-73 ticket, electron-builder 26.8.1 as
+installed (`app-builder-lib` `winPackager.js` rcedit strings, `NsisTarget.js`
+GUID and the NSIS uninstaller template), the Microsoft PE/COFF and
+`VS_VERSIONINFO` formats, and the official Electron 43.1.0 win32-x64 release zip
+(sha256 `a07dc1e3…09f0`, matching its `SHASUMS256.txt`). The PE parser was run
+on that zip's binaries as data; nothing from it is copied. The pinned Windows
+`LICENSES.chromium.html` digest `b911161e…94dd` comes from the same zip. No
+restricted upstream content was read; the restricted check lists file names
+only, one ref at a time. The local check flagged three added lines, each
+registered exactly as written, with no renaming and no paths or pools excluded:
+
+- `t.after(() => fs.rmSync(dir, { recursive: true, force: true }));` (two
+  places in the new `windowsPackage.test.mjs`). This is the project's own
+  node:test cleanup idiom (`licenseInventory.test.mjs:19` uses it with `root`).
+  The same line is in four restricted test files.
+- `const b = fs.readFileSync(file);` in the new `package-check.cjs`
+  `versionStrings()`. A generic read of the PE file it parses. One restricted
+  test file has the same line.
+
+Mac CI 40049346596 on public `be029b94` then failed only on provenance (1286
+unit tests and the four Electron steps passed). The CI fetch (680175 restricted
+keys) flagged two more lines of `versionStrings()`, both written for AG-73 in
+this session: `const optional = pe + 24;` (the PE optional header follows the
+4-byte signature and the 20-byte COFF file header, per the PE/COFF format) and
+`for (let i = 0; i < sectionCount; i++) {` (the section-table walk). None of the
+140 local restricted tips contains either line (664426-key pool), so the hits
+come only from the larger CI pool. That is a coverage difference, not a
+clearance. Both are registered exactly as written, with no renaming and no paths
+or pools excluded.
+
+The remote-1 fixture fix added `await new Promise((resolve) => setTimeout(resolve, 10));`
+in `writeArchive()` of `windowsPackage.test.mjs`, flagged by the local check. It
+is the project's own sleep idiom (`packaged-launch.mjs`, `source-bundle.mjs` and
+`asar-smoke.mjs` use it with other delays); two restricted test files have the
+same line. Registered exactly as written.
+
+### AG-72 Windows window, input and screenshot parity (2026-10-23)
+
+Written for this branch from the AG-72 gaps and the Electron and Microsoft API
+documentation (`desktopCapturer`, `Display`, accelerators, `RegisterHotKey`,
+file naming). No restricted upstream content was read; the restricted check
+lists file names only, one ref at a time. The local check flagged six added
+lines, each verified in context and registered exactly as written, with no
+paths or pools excluded:
+
+- `win.setOpacity(0);`, `win.setOpacity(1);` and `win.showInactive();` in the
+  new `WindowHelper.showLauncherForSettings`. These are generic Electron
+  window calls following this file's baseline `switchToLauncher` shield, on a
+  local `win`. The same calls appear in later upstream `WindowHelper.ts` and
+  `notesWindowPolicy.ts`.
+- `systemPreferences: { getMediaAccessStatus: () => 'granted' },` and
+  `desktopCapturer: {` in the new `ScreenshotDisplayCapture.test.mjs`. These
+  are stubs of the two Electron modules that `ScreenshotHelper` calls. They also
+  appear in many later upstream tests, none of which were read.
+- `return resolved;` in the fake NTFS realpath of `validateImagePath.test.mjs`.
+
+Mac CI 40028031348 on public `f02abb05` then failed only on provenance. Native
+build and all tests passed. The CI fetch (679512 restricted keys) flagged one
+line: `const w = path.win32;` at `validateImagePath.test.mjs:94`. It is the
+first line of the fake NTFS host `windowsHost()`, written for AG-72 in this
+session and still uncommitted on this branch. It is a short alias for Node's
+`path.win32` namespace. None of the 140 local restricted tips contains it
+(664426-key pool), so the hit comes only from the larger CI pool. That is a
+coverage difference, not a clearance. It is registered exactly as written, with
+no renaming and no paths or pools excluded.
+
+### AG-71 Windows audio and isolation: CI provenance hits (2026-10-23)
+
+Written for this branch in `fd989b3f` (AG-71, Windows audio and isolated
+platform checks) from the behavior requirements and the Microsoft WASAPI and
+Node `path` documentation. No restricted upstream content was read in that
+work. The restricted checks below list file names only.
+
+- Windows CI 39971789278 failed one isolation test: on a Windows host the
+  default `path` is `path.win32`, so the injected POSIX lookup in
+  `guard.cjs resolvable()` was misjoined. The fix selects `path.posix` for
+  non-Windows platforms in the existing statement. The rewritten statement
+  `const p = platform === 'win32' ? path.win32 : path.posix;` matches the local
+  restricted pool: the same line appears in later upstream
+  `electron/services/extensions/PermissionBroker.ts` and
+  `electron/services/outputs/exportFiles.ts`. It is a generic Node idiom for
+  choosing path rules per platform, and the variable `p` and the line around it
+  are this branch's own. It is registered exactly as written.
+- Mac CI 39971794433 flagged two lines in `native-module/src/speaker/windows.rs`:
+  `fn enter() -> Self {` (line 29, the `ComScope` constructor around
+  `wasapi::initialize_mta()`) and `if frames == 0 {` (line 296, the empty-queue
+  check on `get_next_nbr_frames()` in the packet drain). Neither line exists in
+  baseline `db992097`. Neither line is in any of the 140 local restricted tips:
+  the local pool has 664426 keys and the CI fetch has 679372. That is a
+  coverage difference, not a clearance. Both lines are a generic
+  constructor signature and a generic zero-count guard. They are registered
+  exactly as written.
+- The code-only correction `fe47126e` passed Windows CI 39976108670 and Mac
+  CI 39976113129. Mac ran 16/16 gates with 0 provenance hits against the
+  679372-key pool. Root verified both results independently.
+
+No paths or pools are excluded. A first local fix renamed `p` to clear the
+first hit; that rename is withdrawn because renaming does not resolve
+provenance (see Source rules).
+
+Earlier rewordings in `fd989b3f` were also shaped by local scanner hits:
+`Vec::with_capacity(4)` and `assert_eq!(out.len(), 0, …)` in the `loopback.rs`
+tests, `return Err(read_error);` in `windows.rs`, the `produce` thread helper in
+`capture_tail.rs`, the `track`/`fakeApp` fixture in
+`CaptureNativeErrorReleasesHandle.test.mjs`, and the createRequire `loadDist`
+loader in six audio tests. Root reviewed each in full (2026-10-23). They are
+generic mechanisms written for this branch, with no substantive imported
+algorithm, so they are kept on their own merits. They are not cleared by having
+avoided a match. This is not a clean-room claim or a legal clearance.
+
 ### Settings restyle after the old Margin layout (2026-10-21)
 
 Written for this branch (PLAN §8). The old Margin settings (`b8ade3f7`) were
