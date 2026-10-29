@@ -11,9 +11,8 @@ const intentClassifierPath = path.resolve(__dirname, '../IntentClassifier.ts');
 const intentClassifierSource = fs.readFileSync(intentClassifierPath, 'utf8');
 
 const distWhatToAnswerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js');
-const distPromptsPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/prompts.js');
 const require = createRequire(import.meta.url);
-const { DEFAULT_ANSWER_PROMPT_SUFFIX, HARD_SYSTEM_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(distPromptsPath);
+const { scenarioPrompt } = require(path.resolve(__dirname, '../../../dist-electron/electron/llm/scenarioPrompts.js'));
 
 // Replaces a baseline case that asserted call shapes the baseline code never had
 // (it failed at a786910e; resolved in PLAN.md AG-17). This one runs the built
@@ -52,7 +51,7 @@ function suggestionHarness({ codexEnabled }) {
 
 test('generateSuggestion sends custom notes and the transcript as user content, not in the system prompt', async () => {
   const LLMHelper = loadBuiltLLMHelper();
-  const basePrompt = `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
+  const basePrompt = scenarioPrompt('interview');
 
   const cloud = suggestionHarness({ codexEnabled: false });
   assert.equal(await LLMHelper.prototype.generateSuggestion.call(cloud.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
@@ -64,7 +63,7 @@ test('generateSuggestion sends custom notes and the transcript as user content, 
   assert.match(context, /CONTEXT_SENTINEL/);
   assert.equal(systemPrompt, basePrompt);
   assert.equal(ignoreKnowledgeMode, true);
-  assert.equal(skipModeInjection, true, 'the prompt already carries the default answer suffix');
+  assert.equal(skipModeInjection, true, 'the interview prompt already carries the full answer contract');
 
   const codex = suggestionHarness({ codexEnabled: true });
   assert.equal(await LLMHelper.prototype.generateSuggestion.call(codex.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
@@ -117,7 +116,7 @@ test('WhatToAnswerLLM sends the default answer prompt as system prompt and the t
   assert.equal(skipModeInjection, true);
   assert.match(message, /CURRENT_TRANSCRIPT_SENTINEL/);
   assert.match(message, /<transcript trust_level="untrusted">/);
-  assert.equal(systemPromptOverride, `${UNIVERSAL_WHAT_TO_ANSWER_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`);
+  assert.equal(systemPromptOverride, scenarioPrompt('interview'));
   assert.doesNotMatch(systemPromptOverride, /CURRENT_TRANSCRIPT_SENTINEL/);
   assert.deepEqual(scopes, []);
 });

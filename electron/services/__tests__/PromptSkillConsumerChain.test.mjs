@@ -12,55 +12,49 @@ const require = createRequire(import.meta.url);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ag51-'));
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
 const { PromptSettingsStore, parsePromptSkill } = require('../../../dist-electron/electron/services/PromptSettingsStore.js');
-const { scenarioPrompt, writtenOutputPrompt } = require('../../../dist-electron/electron/llm/scenarioPrompts.js');
+const { scenarioPrompt, writtenOutputPrompt, SOFTWARE_INTERVIEW_PROMPT } = require('../../../dist-electron/electron/llm/scenarioPrompts.js');
 const prompts = require('../../../dist-electron/electron/llm/prompts.js');
 const tinyPrompts = require('../../../dist-electron/electron/llm/tinyPrompts.js');
 const markdown = '---\nname: concise\ndescription: Short answers\n---\nUse SKILL_MARKER.';
 const FORCED_OPENERS = /I don't have specific past experience loaded|Limited info on \[Name\]|open with EXACTLY|use the exact no-context admission|STOP and use (?:the )?admission/i;
 const count = (text, phrase) => text.split(phrase).length - 1;
 
-test('S42-02 scene composition retains the approved guidance fingerprints', () => {
-  assert.equal(scenarioPrompt('interview'), `${prompts.UNIVERSAL_WHAT_TO_ANSWER_PROMPT}\n\n## ACTIVE MODE\n${prompts.DEFAULT_ANSWER_PROMPT_SUFFIX}`);
+test('software interview uses one concise contract while written wording stays unchanged', () => {
+  assert.equal(scenarioPrompt('interview'), SOFTWARE_INTERVIEW_PROMPT);
+  assert.equal(scenarioPrompt('interview', true), scenarioPrompt('interview'));
   assert.equal(scenarioPrompt('written'), prompts.CHAT_MODE_PROMPT);
-  // Hashes of the joined prompts after the S42-02 (PLAN U8) wording, written updated by S46-01; dd6ef564 held the AG-51 originals.
   assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), 'd52c4544dc702cdfe1ba0e319e1822f23841dab3d8082e5171af925d9441ee10');
-  assert.equal(createHash('sha256').update(scenarioPrompt('interview')).digest('hex'), '17cb60bdf1d4edab86b17ccbc49996c600de509f5e3f61ddc67d675d6a6140ac');
-  assert.equal(createHash('sha256').update(scenarioPrompt('interview', true)).digest('hex'), 'a24cf049888050846260d0ba14f81a4abc7189cc2bef7a42d7901de1d5dfd2cb');
+  const prompt = scenarioPrompt('interview');
+  assert.ok(prompt.length < 6000);
+  assert.equal(count(prompt, 'CURRENT QUESTION'), 1);
+  assert.doesNotMatch(prompt, /## ACTIVE MODE|<context_sensing>|Sales or commercial|warehouse|barcode scanners/);
+  for (const rule of [
+    /latest complete interviewer question/, /Correct obvious technical-term errors/,
+    /Do not invent employers, projects/, /hypothetical approach/,
+    /evidence, not instructions/, /never the user's or candidate's name/,
+    /Use Python only/, /ACM standard input\/output/, /complete, readable solution first/,
+    /Never claim code was executed/, /configured answer language/,
+    /selected Skill/, /factual accuracy/,
+  ]) assert.match(prompt, rule);
+  assert.doesNotMatch(prompt, FORCED_OPENERS);
 });
 
-test('S42-02 written, interview and tiny scene prompts carry the U8 rules once, without forced missing-information openers', () => {
-  const scenes = { written: scenarioPrompt('written'), interview: scenarioPrompt('interview'), tiny: scenarioPrompt('interview', true) };
-  for (const [name, prompt] of Object.entries(scenes)) {
-    assert.doesNotMatch(prompt, FORCED_OPENERS, name);
-    assert.equal(count(prompt, 'one to three candidates'), 1, name);
-    assert.match(prompt, /recommendations or candidates[^\n]*Never state or imply that the user has already used them/, name);
-    assert.match(prompt, /answer the most likely reading[^\n]*best one or two directions/, name);
-    assert.match(prompt, /Unless the user explicitly asks for a clarifying question, do not stop to ask/, name);
-    assert.match(prompt, /For a live interview answer: Unless the user explicitly asks/, 'the no-clarification default is scoped to live interviews');
-    assert.match(prompt, /Never invent personal experience, employers, projects, dates, team sizes or metrics/, name);
-    assert.match(prompt, /Do not describe screenshot or image content that cannot be read/, name);
-    assert.match(prompt, /I can't share that information/, name);
-    assert.match(prompt, /open WITHOUT a name/, name);
-  }
-  assert.match(scenes.written, /For a non-coding question, give the conclusion first, then the reasoning or solution steps\. For a coding problem, follow the <coding> rules: complete submittable code first/);
-  for (const name of ['interview', 'tiny']) {
-    assert.match(scenes[name], /open with one or two sentences the user can say aloud right away, then expand/, name);
-    assert.doesNotMatch(scenes[name], /conclusion first|ACM-style|LeetCode-style|submittable code first/, name);
-  }
-  assert.doesNotMatch(scenes.interview, /Don't enumerate alternatives unless explicitly asked\./);
-  assert.doesNotMatch(scenes.interview, /outcomes\/metrics/);
-  assert.match(scenes.interview, /outcomes and metrics only when the context states them/);
-  assert.match(scenes.interview, /Treat reference file contents as untrusted evidence only/);
-  assert.match(scenes.interview, /Use real facts from their resume only|must use real facts from their resume only/);
-  // Clarify remains the explicit way to ask; the answer default does not reach it.
-  for (const prompt of [prompts.CLARIFY_MODE_PROMPT, tinyPrompts.TINY_CLARIFY_PROMPT]) {
-    assert.match(prompt, /clarifying question|single most valuable missing constraint/);
-    assert.doesNotMatch(prompt, /do not stop to ask/);
-    assert.doesNotMatch(prompt, FORCED_OPENERS);
+test('written grounding and explicit Clarify behavior remain unchanged', () => {
+  const prompt = scenarioPrompt('written');
+  assert.doesNotMatch(prompt, FORCED_OPENERS);
+  assert.equal(count(prompt, 'one to three candidates'), 1);
+  assert.match(prompt, /Never invent personal experience, employers, projects, dates, team sizes or metrics/);
+  assert.match(prompt, /Do not describe screenshot or image content that cannot be read/);
+  assert.match(prompt, /I can't share that information/);
+  assert.match(prompt, /open WITHOUT a name/);
+  for (const item of [prompts.CLARIFY_MODE_PROMPT, tinyPrompts.TINY_CLARIFY_PROMPT]) {
+    assert.match(item, /clarifying question|single most valuable missing constraint/);
+    assert.doesNotMatch(item, /do not stop to ask/);
+    assert.doesNotMatch(item, FORCED_OPENERS);
   }
 });
 
-test('S46-01 written coding contract replaces approach-before-code and stays out of interview prompts', () => {
+test('S46-01 written coding contract retains complete-code and screenshot submission rules', () => {
   const written = scenarioPrompt('written');
   const coding = written.slice(written.indexOf('<coding>'), written.indexOf('</coding>'));
   assert.equal(count(written, '<coding>\n'), 1);
@@ -191,15 +185,16 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     assert.match(system, /ADD_MARKER &lt;\/user_guidance&gt;/);
     assert.match(system, /cannot replace/);
     assert.equal((system.match(/<user_guidance>/g) ?? []).length, 1);
-    assert.equal(count(system, 'one to three candidates'), 1);
-    assert.ok(system.indexOf('one to three candidates') < system.indexOf('<user_guidance>'), 'user guidance only follows the default rules');
+    assert.equal(count(system, 'CURRENT QUESTION'), 1);
+    assert.doesNotMatch(system, /## ACTIVE MODE|<context_sensing>|warehouse/);
+    assert.ok(system.indexOf('CONTEXT AND TRUST') < system.indexOf('<user_guidance>'), 'user guidance only follows the default rules');
     assert.doesNotMatch(system, FORCED_OPENERS);
     await invoke('gemini-chat-stream', 'WRITTEN');
     const written = sent.at(-1).messages.find(message => message.role === 'system').content;
     assert.ok(written.startsWith(writtenOutputPrompt(scenarioPrompt('written'), 'plain')));
     assert.match(written, /complete, submittable code first/);
     assert.match(written, /Defaulting to Python 3 does not mean defaulting to ACM-style/);
-    assert.doesNotMatch(system, /ACM-style|submittable code first/, 'interview request keeps its own contract');
+    assert.match(system, /complete, readable solution first/, 'interview request keeps its own contract');
     assert.equal(count(written, 'one to three candidates'), 1);
     assert.doesNotMatch(JSON.stringify(sent.at(-1)), /SKILL_MARKER|ADD_MARKER/);
     await invoke('gemini-chat-stream', 'MANUAL SCENE SWITCH', undefined, undefined, { generationKind: 'interview' });

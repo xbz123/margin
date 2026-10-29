@@ -85,10 +85,7 @@ ANSWER SHAPE: ${intentResult.answerShape}
             + assemblerBudget;
         const workingTranscript = this.llmHelper.fitContextForCurrentModel(cleanedTranscript, reservedForFit);
 
-        // ── Step 3: Resolve the system prompt (base + default answer suffix) ─
-        // UNIVERSAL_WHAT_TO_ANSWER_PROMPT carries CORE_IDENTITY + EXECUTION_CONTRACT
-        // + CONTEXT_INTELLIGENCE_LAYER + SHARED_CODING_RULES. The default answer
-        // suffix (formerly the active General mode, PLAN.md AG-13) is layered on top.
+        // The interview scene owns its complete contract; do not append the legacy meeting suffix.
         if (MEASURE) tMode = performance.now();
 
         const finalPromptOverride = scenarioPrompt('interview', this.llmHelper.getPromptTier() === 'tiny');

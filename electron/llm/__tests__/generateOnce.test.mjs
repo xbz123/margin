@@ -12,7 +12,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 const { generateOnce } = require(path.join(root, 'dist-electron/electron/llm/generateOnce.js'));
 const { GenerationResultError } = require(path.join(root, 'dist-electron/electron/llm/generateContract.js'));
 const { GeminiPromptCache } = require(path.join(root, 'dist-electron/electron/llm/GeminiPromptCache.js'));
-const { HARD_SYSTEM_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX } = require(path.join(root, 'dist-electron/electron/llm/prompts.js'));
 const built = path.join(root, 'dist-electron/electron/LLMHelper.js');
 const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
 const previousElectron = require.cache[electronId];
@@ -210,9 +209,9 @@ test('suggestion and screenshot wrappers reach the physical Gemini entry with se
   assert.match(requests[0].contents[0].text, /NOTES/);
   assert.match(requests[0].contents[0].text, /TRANSCRIPT/);
   assert.doesNotMatch(JSON.stringify(requests[0].config), /NOTES|TRANSCRIPT/);
-  // The default answer suffix is sent once (AG-33 prompt decision).
+  // The concise interview contract is sent without the legacy meeting suffix.
   assert.equal(requests[0].config.systemInstruction.parts[0].text,
-    `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`);
+    require(path.join(root, 'dist-electron/electron/llm/scenarioPrompts.js')).scenarioPrompt('interview'));
   await drain(self.streamChat('QUESTION', [import.meta.filename], undefined, 'SYSTEM', true, true));
   assert.equal(requests[1].contents[1].inlineData.data, 'AAAA');
 });

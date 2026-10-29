@@ -4,9 +4,9 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至2026-10-26，保存/输入修复及S50模式、持久自动捕获已通过门禁并合并安装`b7f57addf`，包内存储验证通过，用户配置未改；[安装回执](margin/evidence/S50-mode-controls/README.md)。未推送/远端CI，阶段6未签收。
+**Current answer:** 截至2026-10-26，已安装保存/输入及S50修复`b7f57addf`，见[回执](margin/evidence/S50-mode-controls/README.md)。精简英文面试提示及重复菜单修正本地门禁通过、未安装；[真实对照](margin/evidence/software-interview-prompt/README.md)仍有失败和质量限制。未推送/远端CI，阶段6未签收。
 
-**Current focus:** 用户启动新版，先复测会议保存、发送清空和模式/自动捕获，再继续[阶段6](margin/STAGE6-CHECKLIST.md)。安装不能代替实机签收；正式身份、图标和Windows后置。
+**Current focus:** 交付面试提示测试结果和README用途说明，不把精简等同于质量或完整链路延迟验收。已安装版继续按[阶段6](margin/STAGE6-CHECKLIST.md)复测；正式身份、图标和Windows后置。
 
 ## Waiting
 

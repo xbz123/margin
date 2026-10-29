@@ -1,0 +1,23 @@
+{
+  "project": "margin-mac",
+  "source_hashes_match": true,
+  "syntax_files": [
+    "docs/margin/evidence/AG-51/gates/summary.json",
+    "docs/margin/evidence/AG-51/gates/tests.files.json",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/summary.json",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/tests.files.json",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/harness/run.py",
+    "docs/margin/evidence/software-interview-prompt/claude-portable/analysis-summary.json",
+    "electron/llm/__tests__/generateOnce.test.mjs",
+    "electron/llm/__tests__/generationInterfaces.test.mjs",
+    "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+    "electron/services/__tests__/PromptSkillConsumerChain.test.mjs",
+    "tests/margin/outbound-renderer.test.mjs"
+  ],
+  "syntax_failures": [],
+  "diff_check_exit": 0,
+  "preexisting_whitespace_diagnostics": "",
+  "runtime_tests_run": false,
+  "windows_verified": false,
+  "note": "Byte-preserving WIP migration; original whitespace is not changed."
+}

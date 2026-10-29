@@ -1,0 +1,10 @@
+M0-control	exit=0	[mutation] applied  of 0	all ok
+M1-monitor-user-no-return	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort
+M2-monitor-system-no-return	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort
+M3-wireSystem-no-return	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort
+M4-wireMic-no-return	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort
+M5-destroy-skips-cleanup	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort; not ok 2 - a throwing monitor cleanup still destroys the native capture and reports the failure
+M6-wire-drops-cleanup	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort; not ok 2 - a throwing monitor cleanup still destroys the native capture and reports the failure
+M7-single-slot-not-per-instance	exit=1	[mutation] applied 0,1 of 2	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort
+M8-cleanup-after-destroy	exit=1	[mutation] applied 0 of 1	not ok 1 - production health watchdogs are disarmed before native destroy on stop, replacement and abort; not ok 2 - a throwing monitor cleanup still destroys the native capture and reports the failure
+M9-no-finally-on-throw	exit=1	[mutation] applied 0 of 1	not ok 2 - a throwing monitor cleanup still destroys the native capture and reports the failure

@@ -560,7 +560,7 @@ test('compression starts an independent background task inside an interview cont
   assert.equal(outer.signal.aborted, true);
 });
 
-test('actual prompt entry snapshots language and prompt tier before assembly starts', async () => {
+test('actual prompt entry snapshots language and model and uses the concise interview contract', async () => {
   const { self, requests } = helper(); delete self.injectLanguageInstruction;
   self.aiResponseLanguage = 'English';
   const stream = new WhatToAnswerLLM(self).generateStream('QUESTION');
@@ -570,8 +570,9 @@ test('actual prompt entry snapshots language and prompt tier before assembly sta
   assert.equal(requests[0].model, 'gemini-3.1-flash-lite');
   const system = JSON.stringify(requests[0].config.systemInstruction);
   assert.doesNotMatch(system, /Swedish/);
-  const { UNIVERSAL_WHAT_TO_ANSWER_PROMPT } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/llm/prompts.js'));
-  assert.ok(system.includes(JSON.stringify(UNIVERSAL_WHAT_TO_ANSWER_PROMPT).slice(1, -1)));
+  const { SOFTWARE_INTERVIEW_PROMPT } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/llm/scenarioPrompts.js'));
+  assert.ok(system.includes(JSON.stringify(SOFTWARE_INTERVIEW_PROMPT).slice(1, -1)));
+  assert.doesNotMatch(system, /## ACTIVE MODE|<context_sensing>/);
 });
 
 test('image metadata reflects actual send and screenshot omission, not the validated input list', async () => {

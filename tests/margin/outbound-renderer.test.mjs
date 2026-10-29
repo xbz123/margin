@@ -423,6 +423,11 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
     await restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN');
     await restarted.getByRole('button', { name: '设置', exact: true }).first().waitFor();
     assert.ok((await menuLabels(app)).includes('视图'));
+    await restarted.evaluate(() => window.electronAPI.toggleSettingsWindow());
+    const popup = await windowWithQuery(app, 'window=settings');
+    await popup.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    assert.equal(await popup.getByText('面试模式', { exact: true }).count(), 1, 'the menu has exactly one interview-mode label');
+    assert.equal(await popup.getByRole('switch', { name: '面试模式', exact: true }).count(), 1);
   } finally {
     if (userDataPath) fs.chmodSync(userDataPath, 0o700);
     if (app) await app.close();

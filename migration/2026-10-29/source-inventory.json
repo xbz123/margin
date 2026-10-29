@@ -1,0 +1,313 @@
+{
+  "project": "margin-mac",
+  "source_commit": "37bc81d96bf243450ac5883db7468888ffe17e57",
+  "source_branch": "codex/margin-agpl-migration",
+  "repository": "xbz123/Assessment-Assistant",
+  "snapshot_branch": "codex/windows-transfer-20261029-margin-mac",
+  "files": [
+    {
+      "path": "README.md",
+      "state": "copied",
+      "sha256": "90cbc85d7f80999aa39eb2bde1edd6d48fdecacf633e35faa28bd02800dd22ae",
+      "bytes": 10143
+    },
+    {
+      "path": "docs/margin/PLAN.md",
+      "state": "copied",
+      "sha256": "d951125197c186d32e1863d6093d252669c0431d40beb742c0676a8f9bc9fbf6",
+      "bytes": 558502
+    },
+    {
+      "path": "docs/margin/PROVENANCE.md",
+      "state": "copied",
+      "sha256": "498ec7c3195806f14792839f95df810dfb6d05eb3a8c7455b6827dce505bb5bc",
+      "bytes": 141861
+    },
+    {
+      "path": "docs/margin/STAGE6-CHECKLIST.md",
+      "state": "copied",
+      "sha256": "a9f36469adf9a11d3f12093e0e29f7569fcd62a6a485897977f0bddbca3e862b",
+      "bytes": 9423
+    },
+    {
+      "path": "docs/margin/STAGE6-TEST-REPORT.md",
+      "state": "copied",
+      "sha256": "08b64fe1ef383b594ef0c2cfc2bda8a59299d01cbb3b69eb1503e94412760ab4",
+      "bytes": 12775
+    },
+    {
+      "path": "docs/margin/evidence/AG-51/gates/ipc-channels.gaps.txt",
+      "state": "copied",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/margin/evidence/AG-51/gates/preload-contract.gaps.txt",
+      "state": "copied",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/margin/evidence/AG-51/gates/summary.json",
+      "state": "copied",
+      "sha256": "2da58e0520ae59a00a5ea3893976f9afd41b374b3602414ac0a7cd8d644164f2",
+      "bytes": 6860
+    },
+    {
+      "path": "docs/margin/evidence/AG-51/gates/test-failures.txt",
+      "state": "copied",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/margin/evidence/AG-51/gates/tests.files.json",
+      "state": "copied",
+      "sha256": "920d7372871bb871b7866d76b98010c86a09bdc6ba9e3b406e7cef6513273821",
+      "bytes": 36771
+    },
+    {
+      "path": "docs/margin/evidence/AG-51/gates/tsc-electron.diagnostics.txt",
+      "state": "copied",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "docs/margin/evidence/S50-mode-controls/README.md",
+      "state": "copied",
+      "sha256": "086117e11ccabebfa74834adb89dc4dfdf2442c0db6642b4681f812e51e5d207",
+      "bytes": 9223
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/gates/ipc-channels.gaps.txt",
+      "state": "copied",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/gates/preload-contract.gaps.txt",
+      "state": "copied",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/gates/summary.json",
+      "state": "copied",
+      "sha256": "fb7108a0e1c1ddbfa0052e68f9fa1b29bbf10eb88a08eb0434c15ee91572d642",
+      "bytes": 8002
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/gates/test-failures.txt",
+      "state": "copied",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/gates/tests.files.json",
+      "state": "copied",
+      "sha256": "874c2dd3b646e9107946e4b73452e716635ff6f9ddce49ab11d670e7ef7c94e3",
+      "bytes": 39404
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/gates/tsc-electron.diagnostics.txt",
+      "state": "copied",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bytes": 1
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/mutations/harness/preload.cjs",
+      "state": "copied",
+      "sha256": "f47edb4b622b5ec22ec491cb674cf004299f6f63ea44e84efb559844ea4f4feb",
+      "bytes": 1060
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/mutations/harness/run.py",
+      "state": "copied",
+      "sha256": "76cd27ef3e9475f922a5e53757d9539a4996d42eed3cb6b52936f85fcce1a171",
+      "bytes": 3128
+    },
+    {
+      "path": "docs/margin/evidence/audio-monitor-cleanup/mutations/summary.txt",
+      "state": "copied",
+      "sha256": "4102c0524d2e44194dfffc01d064956f3caa29e9546ac18cb36c08aeb247a746",
+      "bytes": 1802
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/README.md",
+      "state": "copied",
+      "sha256": "f6a982537b46ef44f6c74cf3cda61330ad360c68f7e1c9cb432be68a1974d5ad",
+      "bytes": 17165
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/README.md",
+      "state": "copied",
+      "sha256": "711fb37c675964c1caf4e43e254e46640e28c0a12b58bc67f4e6e313e745880f",
+      "bytes": 12837
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/analysis-summary.json",
+      "state": "copied",
+      "sha256": "738048c837e124249c114a727c45112d5979c0d35606057c5caacf54d87fb68d",
+      "bytes": 71789
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/candidate-prompt.txt",
+      "state": "copied",
+      "sha256": "5fb81ccde98c59d5024db50e53f7ceb49768c5b500c12c097c34ea65e21b6f7e",
+      "bytes": 6969
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/change-notes.md",
+      "state": "copied",
+      "sha256": "43a47bdbc51bda3dc06da41a14e58cfb189cbbf52879a30897365e71b8b92ee7",
+      "bytes": 3532
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/evidence.sha256",
+      "state": "copied",
+      "sha256": "10366c9769ca2e358cb4aad7a11a963b763d18405426bdd3a302e08f7bf804f2",
+      "bytes": 824
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/frozen.sha256",
+      "state": "copied",
+      "sha256": "cb532cb14b4fab5fc35dcab54a6066a1071f24525a5f96f8a4a188815399af98",
+      "bytes": 631
+    },
+    {
+      "path": "docs/margin/evidence/software-interview-prompt/claude-portable/scores-files.sha256",
+      "state": "copied",
+      "sha256": "f3af232ae8b694620e7cc897dc64a307cd5019f2a92922a89d0f659fc69ff86a",
+      "bytes": 68
+    },
+    {
+      "path": "docs/product.md",
+      "state": "copied",
+      "sha256": "21488ffba4d38a76c31d67112c61a312df3977a2dac9e460985af9e38076d3e0",
+      "bytes": 44049
+    },
+    {
+      "path": "docs/wayfinder.md",
+      "state": "copied",
+      "sha256": "d67cfcb9e5c66b02f145da35eea89fda8b91e9f6454eb4fdd861084fa6199d55",
+      "bytes": 9822
+    },
+    {
+      "path": "electron/LLMHelper.ts",
+      "state": "copied",
+      "sha256": "f86d919ee2045f4a341b426c59f8cf37f4ee786e0847babcd693bcbcdad0a721",
+      "bytes": 76038
+    },
+    {
+      "path": "electron/llm/WhatToAnswerLLM.ts",
+      "state": "copied",
+      "sha256": "0a22609d3536070796f623b497dd884230906579cc6a2ada11321e80baa89e80",
+      "bytes": 9127
+    },
+    {
+      "path": "electron/llm/__tests__/generateOnce.test.mjs",
+      "state": "copied",
+      "sha256": "c0646db64b36247d94958ffab74064722bcbba7b3c1778b6c8292250cf1964f1",
+      "bytes": 16033
+    },
+    {
+      "path": "electron/llm/__tests__/generationInterfaces.test.mjs",
+      "state": "copied",
+      "sha256": "8edc540337df5843b9d438c7f713c13c698ca659497e5ba53068699f1d357912",
+      "bytes": 52534
+    },
+    {
+      "path": "electron/llm/__tests__/suggestionPromptAssembly.test.mjs",
+      "state": "copied",
+      "sha256": "9ab72b07a8198137ccd442792171b6f50c4826338821ab75bf066758f220788a",
+      "bytes": 9957
+    },
+    {
+      "path": "electron/llm/scenarioPrompts.ts",
+      "state": "copied",
+      "sha256": "a7e59610ef681eafed1eea020b244213b18b2fae9c28fbdf3ccfc39c6f901654",
+      "bytes": 7406
+    },
+    {
+      "path": "electron/services/__tests__/PromptSkillConsumerChain.test.mjs",
+      "state": "copied",
+      "sha256": "d19ce67f7f6606218bd3fe25ced1d667bca989d153d20c1e90b34b00e6b73e25",
+      "bytes": 16403
+    },
+    {
+      "path": "src/components/SettingsPopup.tsx",
+      "state": "copied",
+      "sha256": "2755786136c8928f55332d2760c3854c1518cd77902b2502661f0682378fd99f",
+      "bytes": 16901
+    },
+    {
+      "path": "src/components/settings/HelpSettings.tsx",
+      "state": "copied",
+      "sha256": "56067f3e83e569d2ef04384cac8125c3a244909f6bd688e031771e6c408ce0ac",
+      "bytes": 96183
+    },
+    {
+      "path": "src/i18n.zh.ts",
+      "state": "copied",
+      "sha256": "9b73d9d8cb1343ad0fa6a07d7a9d3c22ed1f2dc06e16b0aa1b6547463187489c",
+      "bytes": 87544
+    },
+    {
+      "path": "tests/margin/outbound-renderer.test.mjs",
+      "state": "copied",
+      "sha256": "4fc948a2bd0b01d15755e50741eec6c5ab3e2f20e3e71f0d7594fe1cd5c5c22d",
+      "bytes": 161482
+    }
+  ],
+  "omitted_untracked_or_changed_paths": [
+    "docs/margin/evidence/AG-51/gates/build-electron.log",
+    "docs/margin/evidence/AG-51/gates/clean-dist.log",
+    "docs/margin/evidence/AG-51/gates/diff-check.log",
+    "docs/margin/evidence/AG-51/gates/guard-selftest.log",
+    "docs/margin/evidence/AG-51/gates/ipc-channels.log",
+    "docs/margin/evidence/AG-51/gates/outbound-renderer.log",
+    "docs/margin/evidence/AG-51/gates/preload-contract.log",
+    "docs/margin/evidence/AG-51/gates/provenance.log",
+    "docs/margin/evidence/AG-51/gates/regression.log",
+    "docs/margin/evidence/AG-51/gates/retired.log",
+    "docs/margin/evidence/AG-51/gates/startup.log",
+    "docs/margin/evidence/AG-51/gates/storage.log",
+    "docs/margin/evidence/AG-51/gates/tests.log",
+    "docs/margin/evidence/AG-51/gates/tests.tap",
+    "docs/margin/evidence/AG-51/gates/tsc-electron.log",
+    "docs/margin/evidence/AG-51/gates/tsc-renderer.log",
+    "docs/margin/evidence/AG-51/gates/vite-build.log",
+    "docs/margin/evidence/audio-monitor-cleanup/checks/diff-check-after-docs.log",
+    "docs/margin/evidence/audio-monitor-cleanup/checks/provenance-after-docs.log",
+    "docs/margin/evidence/audio-monitor-cleanup/checks/related-tests.log",
+    "docs/margin/evidence/audio-monitor-cleanup/checks/tsc-electron.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/build-electron.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/clean-dist.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/diff-check.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/guard-selftest.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/ipc-channels.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/outbound-renderer.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/preload-contract.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/provenance.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/regression.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/retired.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/startup.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/storage.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/tests.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/tests.tap",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/tsc-electron.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/tsc-renderer.log",
+    "docs/margin/evidence/audio-monitor-cleanup/gates/vite-build.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M0-control.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M1-monitor-user-no-return.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M2-monitor-system-no-return.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M3-wireSystem-no-return.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M4-wireMic-no-return.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M5-destroy-skips-cleanup.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M6-wire-drops-cleanup.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M7-single-slot-not-per-instance.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M8-cleanup-after-destroy.log",
+    "docs/margin/evidence/audio-monitor-cleanup/mutations/M9-no-finally-on-throw.log"
+  ],
+  "ignored_files_included": false,
+  "status": "work_in_progress_not_runtime_acceptance"
+}

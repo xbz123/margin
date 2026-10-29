@@ -21,6 +21,18 @@ Notes:
 
 ## Ledger
 
+### Concise software-interview prompt (2026-10-26)
+
+The English contract in `electron/llm/scenarioPrompts.ts` is the independently
+written prompt reviewed in the user conversation. It replaces the interview
+scene composition, not the written-practice prompt or unrelated action prompts.
+The user explicitly approved its software-engineering-only scope, transcription
+error handling, grounded experience, readable complete code and response-language
+rules. No wording or code was imported from third-party interview products.
+Public product documentation and the noncommercial Shiping templates were read
+for comparison only; their text is not copied or adapted here. Wiring, consumer
+checks and README scope documentation are written for this branch.
+
 ### S50 delivery: refreshed restricted pool (CI 40291929062)
 
 The clean remote run refreshed upstream refs and reported 14 occurrences of 12

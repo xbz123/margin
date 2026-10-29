@@ -974,7 +974,7 @@ CRITICAL RULES:
       const customNotesBlock = notes?.trim()
         ? `<user_context>\n${notes.trim()}\n</user_context>\nUse this context naturally if relevant. Never quote it verbatim.` : '';
       const suggestionContext = [customNotesBlock, context].filter(Boolean).join('\n\n');
-      const basePrompt = `${HARD_SYSTEM_PROMPT}\n\n## ACTIVE MODE\n${DEFAULT_ANSWER_PROMPT_SUFFIX}`;
+      const basePrompt = scenarioPrompt('interview');
       const promptMessage = `LATEST QUESTION:
 ${lastQuestion}
 
@@ -1212,6 +1212,7 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     // interviewer turn out of recency.
     // ============================================================
     const isUniversalOverride = !!systemPromptOverride && (
+      systemPromptOverride === scenarioPrompt('interview') ||
       systemPromptOverride === UNIVERSAL_SYSTEM_PROMPT ||
       systemPromptOverride === UNIVERSAL_ANSWER_PROMPT ||
       systemPromptOverride === UNIVERSAL_WHAT_TO_ANSWER_PROMPT ||

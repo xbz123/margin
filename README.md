@@ -18,6 +18,22 @@ next steps before real-device acceptance and release.
 
 ## Current implementation
 
+### Intended interview scope
+
+Interview mode is intended only for **software engineering interviews**:
+technical fundamentals, project and behavioral questions, system design,
+coding and debugging. Its concise English system instructions do not require
+English answers; the configured answer language and explicit user requests
+still apply. It does not add sales, negotiation or general-meeting guidance.
+Written-question practice remains a separate mode. Use interview assistance
+only where the interview's rules permit it.
+
+面试模式仅用于软件开发工程师面试，包括基础知识、项目与行为问题、系统设计、
+编程和调试。英文系统提示词不限制回答语言；不附加销售、谈判或通用会议规则。
+笔试练习仍是独立模式，请仅在面试规则允许使用辅助工具时使用。
+
+### Features
+
 - Written-question practice and manual real-time meeting assistance, using text,
   screenshots, microphone speech and system-audio transcription.
 - Separate **What to answer**, **Answer / Stop** and text-send entry points;
