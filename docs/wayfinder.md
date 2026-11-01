@@ -6,7 +6,7 @@
 
 **Current answer:** 截至2026-10-26，已安装保存/输入及S50修复`b7f57addf`，见[回执](margin/evidence/S50-mode-controls/README.md)。精简英文面试提示及重复菜单修正本地门禁通过、未安装；[真实对照](margin/evidence/software-interview-prompt/README.md)仍有失败和质量限制。未推送/远端CI，阶段6未签收。
 
-**Current focus:** 交付面试提示测试结果和README用途说明，不把精简等同于质量或完整链路延迟验收。已安装版继续按[阶段6](margin/STAGE6-CHECKLIST.md)复测；正式身份、图标和Windows后置。
+**Current focus:** 交付面试提示测试结果和README用途说明，不把精简等同于质量或完整链路延迟验收。已安装版按2026-11-01精简后的[阶段6清单](margin/STAGE6-CHECKLIST.md)复测（只测核心场景，不再做SHA256核对）；正式身份、图标和Windows后置。
 
 ## Waiting
 
@@ -18,7 +18,7 @@
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。
 - **真实参数验证** — 单次 Gemini 连接成功不代表全部服务或质量验收；[授权边界](margin/evidence/S44/README.md)。不重复重置权限、不绕过钥匙串。
 
-- **阶段 6 实机复测与用户签收** — 用户报告系统权限已授予，实际采集、设备切换及共享接收端仍待对应实测，执行前确定测试组合；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
+- **阶段 6 实机复测与用户签收** — 2026-11-01 清单已按用户同意精简，[已删除项](margin/STAGE6-CHECKLIST.md#已删除项)不再测试；用户报告系统权限已授予，实际采集及 Zoom/腾讯会议共享接收端仍待实测；resume：[签收标准](margin/PLAN.md#阶段-6-验收标准与当前结果)、[出口回执](margin/evidence/CI-38492031013/README.md)。
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标参考旧 Margin、简洁，具体图形及真实服务预算待定；D2 与发布仍按授权范围；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受，README 只录实测。
