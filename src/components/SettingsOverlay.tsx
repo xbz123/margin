@@ -1,6 +1,7 @@
 import { APP_NAME } from '../appIdentity';
 import { SpeechProviderSettings } from './settings/SpeechProviderSettings';
 import type { CredentialSaveResult } from '../types/credentialSave';
+import { STT_TERM_PROMPT_MAX_WEIGHT, sttTermPromptWeight } from '../types/sttTermPrompt';
 import React, { useState, useEffect, useMemo } from 'react';
 import packageJson from '../../package.json';
 import {
@@ -860,6 +861,8 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         soniox: 'https://console.soniox.com'
     } as Record<string, string | undefined>)[sttProvider];
     const [groqSttModel, setGroqSttModel] = useState('whisper-large-v3-turbo');
+    const [sttTermPrompt, setSttTermPrompt] = useState('');
+    const [sttTermPromptSaved, setSttTermPromptSaved] = useState(false);
     const [sttGroqKey, setSttGroqKey] = useState('');
     const [sttOpenaiKey, setSttOpenaiKey] = useState('');
     const [sttOpenaiBaseUrl, setSttOpenaiBaseUrl] = useState('');
@@ -896,6 +899,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                 if (creds) {
                     setSttProvider(creds.sttProvider || 'none');
                     if (creds.groqSttModel) setGroqSttModel(creds.groqSttModel);
+                    setSttTermPrompt(creds.sttTermPrompt || '');
                     setHasStoredSttGroqKey(creds.hasSttGroqKey);
                     setHasStoredSttOpenaiKey(creds.hasSttOpenaiKey);
                     setHasStoredSonioxKey(creds.hasSonioxKey || false);
@@ -1055,6 +1059,23 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             setCredentialNotice(result.warning || '');
         } catch {
             setCredentialNotice('The STT model could not be saved.');
+        }
+    };
+
+    const handleSttTermPromptSave = async () => {
+        setSttTermPromptSaved(false);
+        setCredentialNotice('');
+        try {
+            const result = await window.electronAPI?.setSttTermPrompt(sttTermPrompt);
+            if (!result?.ok) {
+                setCredentialNotice(result?.message || 'Term hints could not be saved.');
+                return;
+            }
+            setSttTermPrompt(sttTermPrompt.trim());
+            setSttTermPromptSaved(true);
+            setCredentialNotice(result.warning || '');
+        } catch {
+            setCredentialNotice('Term hints could not be saved.');
         }
     };
 
@@ -1796,6 +1817,24 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                             <span className={`text-[11px] ${groqSttModel === m.id ? 'text-accent-primary' : 'text-text-tertiary'}`}>{t(m.desc)}</span>
                                                         </button>
                                                     ))}
+                                                </div>
+                                                <label htmlFor="stt-term-prompt" className="text-xs font-medium text-text-secondary mt-4 mb-1.5 block">{t('Term hints')}</label>
+                                                <p className="text-[10px] text-text-tertiary mb-1.5">
+                                                    {t('Words you expect to say, such as Redis, Kubernetes, hash table. They are sent to Groq with every transcription request so these terms are spelled as written. Applies right after saving.')}
+                                                </p>
+                                                <textarea
+                                                    id="stt-term-prompt"
+                                                    value={sttTermPrompt}
+                                                    onChange={(e) => { setSttTermPrompt(e.target.value); setSttTermPromptSaved(false); }}
+                                                    rows={3}
+                                                    placeholder={t('e.g. Redis, Kubernetes, gRPC, hash table, dynamic programming')}
+                                                    className="block w-full bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent-primary transition-colors"
+                                                />
+                                                <div className="flex items-center justify-between mt-1.5">
+                                                    <span className={`text-[10px] ${sttTermPromptWeight(sttTermPrompt.trim()) > STT_TERM_PROMPT_MAX_WEIGHT ? 'text-amber-500' : 'text-text-tertiary'}`}>
+                                                        {sttTermPromptWeight(sttTermPrompt.trim())}/{STT_TERM_PROMPT_MAX_WEIGHT}{sttTermPromptSaved ? ` · ${t('Saved')}` : ''}
+                                                    </span>
+                                                    <button type="button" onClick={handleSttTermPromptSave} disabled={sttTermPromptWeight(sttTermPrompt.trim()) > STT_TERM_PROMPT_MAX_WEIGHT} className={settingsButtonClass}>{t('Save')}</button>
                                                 </div>
                                             </div>
                                         )}

@@ -158,6 +158,11 @@ and reject query strings. Aliyun's workspace identifier is validated before sock
 | Aliyun Bailian | Validated workspace hostname above | Task-started ACK, bounded PCM queue, capped reconnect |
 | Doubao | Fixed openspeech.bytedance.com endpoint above | Binary gzip frames, bounded PCM queue, capped reconnect |
 
+Groq uploads also carry the user's saved term hints as the Whisper `prompt` field
+(2026-11-01): text typed in Settings, stored with the encrypted credentials, at most
+about 224 tokens, never derived from transcripts, Local Context or other data. An
+empty hint sends no field.
+
 RestSTT implements Groq and the OpenAI-compatible REST fallback. New domestic
 adapters share a task transport; `ws` does not follow redirects. Their settings
 IPC never returns the stored key to the renderer. Provider bodies and transport

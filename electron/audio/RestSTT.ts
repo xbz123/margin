@@ -90,6 +90,7 @@ export class RestSTT extends EventEmitter {
     private isUploading = false;
     private flushPending = false;  // Bug #2 fix: queue flush when upload in progress
     private readonly batches = new RestBatches('rest');
+    private termPrompt = '';
     private uploadEpoch = 0;
 
     // Audio config (must match SystemAudioCapture output)
@@ -142,6 +143,14 @@ export class RestSTT extends EventEmitter {
     public setRecognitionLanguage(key: string): void {
         console.log(`[RestSTT] Updating recognition language to: ${key}`);
         this.config = PROVIDER_CONFIGS[this.provider](this.apiKey, this.region, key);
+    }
+
+    /**
+     * Technical terms sent as the Whisper `prompt` so they are spelled as written
+     * instead of as similar-sounding everyday words. Empty sends no prompt.
+     */
+    public setTermPrompt(prompt: string): void {
+        this.termPrompt = prompt.trim();
     }
 
     /**
@@ -315,7 +324,8 @@ export class RestSTT extends EventEmitter {
             const transcript = await this.uploadAudio(wavBuffer);
             if (!this.isActive || this.uploadEpoch !== epoch) return;
 
-            if (transcript && transcript.trim().length > 0) {
+            // Whisper sometimes returns its prompt verbatim for near-silent audio.
+            if (transcript && transcript.trim().length > 0 && !this.echoesTermPrompt(transcript)) {
                 console.log(`[RestSTT] Transcript received`, { length: transcript.trim().length });
                 this.emit('transcript', {
                     text: transcript.trim(),
@@ -356,6 +366,8 @@ export class RestSTT extends EventEmitter {
 
         form.append('model', this.config.model);
 
+        if (this.termPrompt) form.append('prompt', this.termPrompt);
+
         if (this.config.extraFormFields) {
             for (const [key, value] of Object.entries(this.config.extraFormFields)) {
                 form.append(key, value);
@@ -371,6 +383,12 @@ export class RestSTT extends EventEmitter {
         });
 
         return this.config.extractTranscript(response.data);
+    }
+
+    private echoesTermPrompt(transcript: string): boolean {
+        if (!this.termPrompt) return false;
+        const normalize = (text: string) => text.toLowerCase().replace(/[\s\p{P}]+/gu, '');
+        return normalize(transcript) === normalize(this.termPrompt);
     }
 
     /**

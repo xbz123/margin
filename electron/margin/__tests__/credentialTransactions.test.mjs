@@ -368,13 +368,13 @@ test('all credential setters commit only after persistence and can be read after
     setGeminiApiKey: 'geminiApiKey', setGroqApiKey: 'groqApiKey', setOpenaiApiKey: 'openaiApiKey',
     setClaudeApiKey: 'claudeApiKey', setDeepseekApiKey: 'deepseekApiKey',
     setSttProvider: 'sttProvider', setGroqSttApiKey: 'groqSttApiKey',
-    setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel',
+    setOpenAiSttApiKey: 'openAiSttApiKey', setOpenAiSttBaseUrl: 'openAiSttBaseUrl', setGroqSttModel: 'groqSttModel', setSttTermPrompt: 'sttTermPrompt',
     setSonioxApiKey: 'sonioxApiKey',
     setDomesticStt: 'domesticStt',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
     setGatewayConfiguration: 'gateways', setSavedReasoning: 'answerReasoning',
   };
-  assert.equal(names.length, 20);
+  assert.equal(names.length, 21);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
@@ -392,6 +392,25 @@ test('all credential setters commit only after persistence and can be read after
     else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
     assert.deepEqual(plain(disk.boot().getAllCredentials()), plain(manager.getAllCredentials()), name);
   }
+});
+
+test('an over-long term hint is refused before anything is written', () => {
+  const disk = storage();
+  const manager = disk.boot();
+  const before = disk.files.get(disk.filename);
+  for (const over of ['术'.repeat(101), 'a'.repeat(301)]) {
+    const result = manager.setSttTermPrompt(over);
+    assert.equal(result.ok, false);
+    assert.match(result.message, /too long/);
+    assert.deepEqual(disk.files.get(disk.filename), before);
+  }
+  // Same limit as the renderer counter (src/types/sttTermPrompt.ts): 300 ASCII or 100 CJK.
+  assert.equal(manager.setSttTermPrompt('术'.repeat(100)).ok, true);
+  assert.equal(manager.setSttTermPrompt('a'.repeat(300)).ok, true);
+  assert.equal(manager.setSttTermPrompt('  Redis, 哈希表  ').ok, true);
+  assert.equal(manager.getSttTermPrompt(), 'Redis, 哈希表');
+  assert.equal(manager.setSttTermPrompt('   ').ok, true);
+  assert.equal(manager.getSttTermPrompt(), '');
 });
 
 test('an exclusive-create collision never deletes the pre-existing temporary file', () => {
@@ -440,7 +459,7 @@ test('a warm instance clears old memory and stays locked until a successful relo
 const channels = [
   'set-ai-response-language', 'remove-provider-api-key', 'set-provider-preferred-model',
   'set-stt-provider', 'set-groq-stt-api-key', 'set-openai-stt-api-key', 'set-openai-stt-base-url',
-  'set-groq-stt-model', 'set-soniox-api-key',
+  'set-groq-stt-model', 'set-stt-term-prompt', 'set-soniox-api-key',
   'set-default-model', 'set-recognition-language', 'set-provider-configuration',
 ];
 
@@ -1154,6 +1173,7 @@ const apiChannels = {
   setGroqSttApiKey: 'set-groq-stt-api-key', setOpenAiSttApiKey: 'set-openai-stt-api-key',
   setOpenAiSttBaseUrl: 'set-openai-stt-base-url',
   setGroqSttModel: 'set-groq-stt-model',
+  setSttTermPrompt: 'set-stt-term-prompt',
   setSonioxApiKey: 'set-soniox-api-key',
   setDefaultModel: 'set-default-model', setRecognitionLanguage: 'set-recognition-language',
 };
@@ -1207,6 +1227,7 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
     [overlay, 'handleAiLanguageChange', ['english'], ['setAiResponseLanguage']],
     [overlay, 'handleSttProviderChange', ['groq'], ['setSttProvider']],
     [overlay, 'handleGroqSttModelChange', ['synthetic-model'], ['setGroqSttModel']],
+    [overlay, 'handleSttTermPromptSave', [], ['setSttTermPrompt']],
     [overlay, 'handleOpenAiSttBaseUrlSave', [], []],
   ]) {
     const subject = ui(file, name, failure, { providerId: 'openai', onPreferredModelChange: () => assert.fail('selection committed') });

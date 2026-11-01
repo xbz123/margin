@@ -40,6 +40,8 @@ export interface StoredCredentials {
     domesticStt?: Partial<Record<'aliyun' | 'doubao', { key: string; workspaceId: string; appId: string; resourceId?: DoubaoResourceId }>>;
     groqSttApiKey?: string;
     groqSttModel?: string;
+    /** Whisper prompt with technical terms, sent with every Groq transcription request. */
+    sttTermPrompt?: string;
     openAiSttApiKey?: string;
     /** Custom OpenAI-compatible STT base URL (e.g. self-hosted Speaches).
      *  Empty / unset → use https://api.openai.com. */
@@ -164,6 +166,10 @@ export class CredentialsManager {
 
     public getGroqSttModel(): string {
         return this.credentials.groqSttModel || 'whisper-large-v3-turbo';
+    }
+
+    public getSttTermPrompt(): string {
+        return this.credentials.sttTermPrompt || '';
     }
 
     public getOpenAiSttApiKey(): string | undefined {
@@ -443,6 +449,19 @@ export class CredentialsManager {
 
     public setGroqSttModel(model: string): CredentialSaveResult {
         return this.saveCredentials({ groqSttModel: model });
+    }
+
+    // Whisper reads at most 224 prompt tokens. Non-ASCII text (Chinese) costs about three
+    // times as much per character, so the weighted length keeps the prompt under that limit.
+    // Same rule as the renderer counter in src/types/sttTermPrompt.ts.
+    public setSttTermPrompt(prompt: string): CredentialSaveResult {
+        const trimmed = String(prompt ?? '').trim();
+        let weight = 0;
+        for (const char of trimmed) weight += char.charCodeAt(0) < 128 ? 1 : 3;
+        if (weight > 300) {
+            return { ok: false, code: 'write_failed', message: 'Term hints are too long: up to about 300 English characters or 100 Chinese characters.' };
+        }
+        return this.saveCredentials({ sttTermPrompt: trimmed || undefined });
     }
 
     public setSonioxApiKey(key: string): CredentialSaveResult {

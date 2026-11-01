@@ -151,6 +151,7 @@ interface ElectronAPI {
   setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   setOpenAiSttBaseUrl: (url: string) => Promise<CredentialSaveResult>;
   setGroqSttModel: (model: string) => Promise<CredentialSaveResult>;
+  setSttTermPrompt: (prompt: string) => Promise<CredentialSaveResult>;
   setSonioxApiKey: (apiKey: string) => Promise<CredentialSaveResult>;
   testSttConnection: (
     provider: 'groq' | 'openai' | 'soniox',
@@ -859,6 +860,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setOpenAiSttApiKey: (apiKey: string) => ipcRenderer.invoke('set-openai-stt-api-key', apiKey),
   setOpenAiSttBaseUrl: (url: string) => ipcRenderer.invoke('set-openai-stt-base-url', url),
   setGroqSttModel: (model: string) => ipcRenderer.invoke('set-groq-stt-model', model),
+  setSttTermPrompt: (prompt: string) => ipcRenderer.invoke('set-stt-term-prompt', prompt),
   setSonioxApiKey: (apiKey: string) => ipcRenderer.invoke('set-soniox-api-key', apiKey),
   testSttConnection: (
     provider: 'groq' | 'openai' | 'soniox',

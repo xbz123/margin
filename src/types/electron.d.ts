@@ -114,7 +114,7 @@ export interface ElectronAPI {
   removeProviderApiKey: (provider: AnswerProvider) => Promise<CredentialSaveResult>
   getCredentialLoadStatus: () => Promise<CredentialLoadStatus>
   discardUnreadableCredentials: () => Promise<CredentialDiscardResult>
-  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; gateways?: GatewaySummary[]; providerAddressOverrides?: Partial<Record<LlmProvider, string>>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
+  getStoredCredentials: () => Promise<{ providerConfigurations: Record<LlmProvider, ProviderConfiguration>; gateways?: GatewaySummary[]; providerAddressOverrides?: Partial<Record<LlmProvider, string>>; hasGeminiKey: boolean; hasGroqKey: boolean; hasOpenaiKey: boolean; hasClaudeKey: boolean; hasDeepseekKey: boolean; sttProvider: 'none' | 'groq' | 'openai' | 'soniox' | 'aliyun' | 'doubao'; hasSttGroqKey: boolean; hasSttOpenaiKey: boolean; groqSttModel?: string; sttTermPrompt?: string; hasSonioxKey?: boolean; geminiPreferredModel?: string; groqPreferredModel?: string; openaiPreferredModel?: string; claudePreferredModel?: string; deepseekPreferredModel?: string; sttGroqKey?: string; sttOpenaiKey?: string; sttSonioxKey?: string; openAiSttBaseUrl?: string }>
   // Permissions
   checkPermissions:     () => Promise<{ microphone: 'granted'|'denied'|'not-determined'|'restricted'; screen: 'granted'|'denied'|'not-determined'|'restricted'; platform: string }>
   requestMicPermission: () => Promise<boolean>
@@ -126,6 +126,7 @@ export interface ElectronAPI {
   setOpenAiSttApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   setOpenAiSttBaseUrl: (url: string) => Promise<CredentialSaveResult>
   setGroqSttModel: (model: string) => Promise<CredentialSaveResult>
+  setSttTermPrompt: (prompt: string) => Promise<CredentialSaveResult>
   setSonioxApiKey: (apiKey: string) => Promise<CredentialSaveResult>
   testSttConnection: (provider: 'groq' | 'openai' | 'soniox', apiKey: string) => Promise<{ success: boolean; error?: string }>
 

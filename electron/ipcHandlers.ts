@@ -1256,6 +1256,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasDeepseekKey: hasKey(creds.deepseekApiKey),
         sttProvider: CredentialsManager.getInstance().getSttProvider(),
         groqSttModel: creds.groqSttModel || 'whisper-large-v3-turbo',
+        sttTermPrompt: creds.sttTermPrompt || '',
         hasSttGroqKey: hasKey(creds.groqSttApiKey),
         hasSttOpenaiKey: hasKey(creds.openAiSttApiKey),
         hasSonioxKey: hasKey(creds.sonioxApiKey),
@@ -1283,6 +1284,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         hasDeepseekKey: false,
         sttProvider: 'none',
         groqSttModel: 'whisper-large-v3-turbo',
+        sttTermPrompt: '',
         hasSttGroqKey: false,
         hasSttOpenaiKey: false,
         hasSonioxKey: false,
@@ -1416,6 +1418,13 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-groq-stt-model', async (_, model: string) => {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setGroqSttModel(model), async () => {
+      await appState.reconfigureSttProvider();
+    });
+  });
+
+  safeHandle('set-stt-term-prompt', async (_, prompt: string) => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    return persistCredentials(() => CredentialsManager.getInstance().setSttTermPrompt(prompt), async () => {
       await appState.reconfigureSttProvider();
     });
   });

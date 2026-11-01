@@ -823,7 +823,9 @@ export class AppState {
 
       if (apiKey?.trim()) {
         console.log(`[Main] Using RestSTT (${sttProvider}) for ${speaker}`);
-        stt = new RestSTT(sttProvider, apiKey, modelOverride);
+        const rest = new RestSTT(sttProvider, apiKey, modelOverride);
+        rest.setTermPrompt(CredentialsManager.getInstance().getSttTermPrompt());
+        stt = rest;
       } else {
         console.warn(`[Main] No API key for ${sttProvider} STT; transcription disabled`);
         return null;
