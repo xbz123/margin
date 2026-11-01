@@ -42,8 +42,7 @@ let userDataPath;
 
 // Launches the app and keeps the recorder file and main pid for the after hook.
 async function launch() {
-  ({ app, mainErrorsLog, userDataPath } = await launchApp(sandbox, env));
-  mainPid = app.process().pid;
+  ({ app, mainErrorsLog, mainPid, userDataPath } = await launchApp(sandbox, env));
 }
 
 async function launcherWindow() {
@@ -288,7 +287,7 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
   const rename = async (text) => {
     await title.dispatchEvent('click');
     await waitFor(() => title.evaluate((e) => document.activeElement === e), 'focus on the title', 5_000);
-    await launcher.keyboard.press('Meta+A');
+    await launcher.keyboard.press('ControlOrMeta+A');
     await launcher.keyboard.type(text);
     await launcher.keyboard.press('Enter');
   };

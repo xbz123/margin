@@ -162,10 +162,26 @@ function resolvable(file, { platform = process.platform, env = process.env, exis
   if (hasDir(file, platform)) return candidates(p.resolve(file));
   return String(env.PATH || env.Path || '').split(p.delimiter).some((d) => d && candidates(p.join(d, file)));
 }
+// Windows runs an allowed program such as `Electron` as electron.exe and ignores case.
+function allowedName(file, allow = ALLOW_EXEC, platform = process.platform) {
+  const base = (platform === 'win32' ? path.win32 : path.posix).basename(String(file));
+  if (platform !== 'win32') return allow.has(base);
+  const bare = base.replace(/\.exe$/i, '').toLowerCase();
+  return [...allow].some((name) => name.toLowerCase() === bare);
+}
+// Playwright starts Electron on Windows as one shell line (cmd.exe /d /s /c): every
+// argument double-quoted and joined by single spaces. Only that exact form is accepted,
+// and only when no argument can leave its quotes or expand a variable (no `"`, `%`, `!`
+// or line break), so cmd runs the first argument, which still passes allowedCommand.
+function quotedWindowsCommand(line, platform = process.platform) {
+  if (platform !== 'win32') return null;
+  const match = /^"([^"%!\r\n]*)"(?: "[^"%!\r\n]*")*$/.exec(String(line));
+  return match ? match[1] : null;
+}
 function allowedCommand(cmd) {
   const file = String(cmd || '');
   if (!resolvable(file)) return true;
-  if (ALLOW_EXEC.has(path.basename(file))) return true;
+  if (allowedName(file)) return true;
   if (hasDir(file)) {
     const abs = path.resolve(file);
     if (abs === process.execPath) return true;
@@ -188,7 +204,11 @@ function guardExec(name, orig) {
       cmd = args[0];
     }
     const opts = args.find((a) => a && typeof a === 'object' && !Array.isArray(a));
-    if (opts && opts.shell && !shellLine) throw blockedError('exec', `${name} with shell:true ${String(cmd)}`);
+    if (opts && opts.shell && !shellLine) {
+      const quoted = quotedWindowsCommand(cmd);
+      if (quoted === null || (Array.isArray(args[1]) && args[1].length > 0)) throw blockedError('exec', `${name} with shell:true ${String(cmd)}`);
+      cmd = quoted;
+    }
     if (!allowedCommand(cmd)) {
       // Local read-only system tools are still refused (tests must not read the real
       // system state) but are recorded as local stand-ins, not as egress attempts.
@@ -348,7 +368,7 @@ function installChromiumGuard(electron) {
   // Electron's own net module uses Chromium sessions, so it is covered above.
 }
 
-module.exports = { installChromiumGuard, resolvable };
+module.exports = { installChromiumGuard, resolvable, allowedName, quotedWindowsCommand };
 
 process.env.MARGIN_ISOLATION_ACTIVE = '1';
 

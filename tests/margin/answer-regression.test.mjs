@@ -110,12 +110,11 @@ test.before(async () => {
   const fixture = path.join(sandbox.tmp, 'fixture-screen.png');
   await sharp({ create: { width: 64, height: 48, channels: 3, background: '#2050a0' } }).png().toFile(fixture);
 
-  ({ app, mainErrorsLog } = await launchApp(sandbox, {
+  ({ app, mainErrorsLog, mainPid } = await launchApp(sandbox, {
     NODE_ENV: 'production',
     MARGIN_DEV_OPENAI_BASE_URL: mock.baseURL,
     MARGIN_DEV_SCREENSHOT_FIXTURE: fixture,
   }));
-  mainPid = app.process().pid;
   const launcher = await windowWithQuery(app, 'window=launcher');
   await launcher.waitForLoadState('domcontentloaded');
   const keyResult = await launcher.evaluate((apiKey) => window.electronAPI.setProviderConfiguration({ provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4', apiKey }), FAKE_KEY);

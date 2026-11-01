@@ -406,11 +406,14 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
 
     // A failed write reports an error and leaves every window and the saved file unchanged.
     const saved = fs.readFileSync(path.join(userDataPath, 'settings.json'), 'utf8');
-    fs.chmodSync(userDataPath, 0o500);
+    // Windows ignores directory modes; there a read-only settings.json makes the atomic rename fail.
+    const locked = process.platform === 'win32' ? path.join(userDataPath, 'settings.json') : userDataPath;
+    const unlock = () => fs.chmodSync(locked, process.platform === 'win32' ? 0o600 : 0o700);
+    fs.chmodSync(locked, process.platform === 'win32' ? 0o444 : 0o500);
     try {
       await launcher.getByRole('radio', { name: 'English', exact: true }).click();
       await launcher.getByRole('alert').filter({ hasText: '无法保存界面语言' }).waitFor();
-    } finally { fs.chmodSync(userDataPath, 0o700); }
+    } finally { unlock(); }
     assert.equal(await lang(launcher), 'zh-CN');
     assert.equal(await lang(overlay), 'zh-CN');
     assert.equal(await launcher.getByRole('radio', { name: '简体中文', exact: true }).getAttribute('aria-checked'), 'true');
@@ -424,7 +427,10 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
     await restarted.getByRole('button', { name: '设置', exact: true }).first().waitFor();
     assert.ok((await menuLabels(app)).includes('视图'));
   } finally {
-    if (userDataPath) fs.chmodSync(userDataPath, 0o700);
+    if (userDataPath) {
+      fs.chmodSync(userDataPath, 0o700);
+      if (process.platform === 'win32' && fs.existsSync(path.join(userDataPath, 'settings.json'))) fs.chmodSync(path.join(userDataPath, 'settings.json'), 0o600);
+    }
     if (app) await app.close();
   }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);

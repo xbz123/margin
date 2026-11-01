@@ -66,6 +66,37 @@ test('child processes are blocked unless allowed', () => {
   assert.throws(() => childProcess.execFileSync('defaults', ['read']), isBlocked);
 });
 
+test('Windows names allowed programs without .exe and in any case; other platforms match exactly', () => {
+  const { allowedName } = require('../guard.cjs');
+  const allow = new Set(['Electron', 'esbuild']);
+  assert.equal(allowedName('C:\\app\\node_modules\\electron\\dist\\electron.exe', allow, 'win32'), true);
+  assert.equal(allowedName('C:\\app\\node_modules\\@esbuild\\win32-x64\\esbuild.exe', allow, 'win32'), true);
+  assert.equal(allowedName('C:\\tools\\curl.exe', allow, 'win32'), false);
+  assert.equal(allowedName('C:\\tools\\electron.exe.bat', allow, 'win32'), false);
+  assert.equal(allowedName('/Applications/Electron.app/Contents/MacOS/Electron', allow, 'darwin'), true);
+  assert.equal(allowedName('/usr/local/bin/electron', allow, 'darwin'), false);
+});
+
+test('a shell line is accepted only as fully double-quoted Windows arguments', () => {
+  const { quotedWindowsCommand } = require('../guard.cjs');
+  const exe = 'C:\\app\\electron.exe';
+  assert.equal(quotedWindowsCommand(`"${exe}" "--inspect=0" "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost"`, 'win32'), exe);
+  assert.equal(quotedWindowsCommand(`"${exe}"`, 'win32'), exe);
+  for (const line of [
+    `"${exe}" "a" & curl https://example.com`, `"${exe}" "a" "b"& curl`, `${exe} "a"`,
+    `"${exe}" "%COMSPEC%"`, `"${exe}" "!X!"`, `"${exe}" "a\\" & curl "`, `"${exe}" "a\nb"`, `"${exe}"  "a"`, '',
+  ]) assert.equal(quotedWindowsCommand(line, 'win32'), null, line);
+  assert.equal(quotedWindowsCommand(`"${exe}"`, 'darwin'), null);
+});
+
+test('Windows: a quoted shell line runs only an allowed program with no separate arguments', { skip: process.platform !== 'win32' }, () => {
+  const line = (...parts) => parts.map((part) => `"${part}"`).join(' ');
+  assert.equal(childProcess.spawnSync(line(process.execPath, '-e', 'process.stdout.write(String(1+1))'), [], { shell: true }).stdout.toString(), '2');
+  assert.throws(() => childProcess.spawnSync(line(process.execPath, '-e', '1'), ['extra'], { shell: true }), isBlocked);
+  assert.throws(() => childProcess.spawnSync(`${line(process.execPath, '-e', '1')} & whoami`, [], { shell: true }), isBlocked);
+  assert.throws(() => childProcess.spawnSync(line('C:\\Windows\\System32\\curl.exe', 'https://example.com'), [], { shell: true }), isBlocked);
+});
+
 test('node, simple utilities and sandbox-local test doubles may run', () => {
   assert.equal(childProcess.execFileSync(process.execPath, ['-e', 'process.stdout.write("ok")']).toString(), 'ok');
   assert.equal(childProcess.execSync('echo ok').toString().trim(), 'ok');

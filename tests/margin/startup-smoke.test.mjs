@@ -81,9 +81,8 @@ test('macOS native termination exits after asynchronous cleanup', { skip: proces
 test('the app starts, opens the launcher and settings, stays up, and quits cleanly', async (t) => {
   const sandbox = makeSandbox('startup-smoke');
   const started = Date.now();
-  const { app, output, mainErrorsLog } = await launchApp(sandbox, { NODE_ENV: 'production' });
+  const { app, output, mainErrorsLog, mainPid } = await launchApp(sandbox, { NODE_ENV: 'production' });
   const mainProcess = app.process();
-  const mainPid = mainProcess.pid;
   const exited = new Promise((resolve) => mainProcess.once('exit', (code, signal) => resolve({ code, signal })));
 
   try {
