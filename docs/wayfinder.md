@@ -6,13 +6,13 @@
 
 **Current answer:** 截至2026-10-24，AG-73公开`4ed00ae5`双平台CI通过，未合并安装；用户取消源码下载/哈希验收，Windows实机单独进行；[交付](margin/evidence/AG-73/delivery.md)。Mac S49已装待实测；[记录](margin/evidence/S49/README.md)。
 
-**Current focus:** 远端核验只取报告已完成；等待Windows实测安排，不下载源码、不做哈希核对、不合并安装，Mac阶段6独立继续。
+**Current focus:** 2026-11-01 本机Win11开发环境已就绪（构建通过，无设备测试265/274，9项为符号链接权限限制）；按[Windows实机最小清单](margin/WINDOWS-TEST-CHECKLIST.md)实测，测试包身份未定前用开发模式启动；不做哈希核对、不合并安装，Mac阶段6独立继续。
 
 ## Waiting
 
 - **Windows AG-73 后续交付** — 双平台CI报告已核对，实机待用户；resume：[交付](margin/evidence/AG-73/delivery.md)。
 
-- **Windows 实机验证** — AG-71/72 软件和双平台 CI 已验，待测试包及 Win10/11 实机组合；resume：[交付与边界](margin/evidence/AG-72/delivery.md)。
+- **Windows 实机验证** — AG-71/72 软件和双平台 CI 已验；Win11 本机环境就绪，按[最小清单](margin/WINDOWS-TEST-CHECKLIST.md)测试，安装项待测试包身份决定，Win10 待定；resume：[交付与边界](margin/evidence/AG-72/delivery.md)。
 
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
