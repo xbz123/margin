@@ -25,7 +25,14 @@
 - 已完成 `npm ci`、`npm run setup:native`（Electron、better-sqlite3、keytar）；两套类型检查、Electron 主进程、Vite 渲染层、MSVC 原生模块构建均通过。构建会重新生成 `native-module/index.js`、`index.d.ts`，与 CI 相同，不提交。
 - 与 Windows CI 相同的无设备检查：Rust loopback 10/10、capture_tail 2/2，原生加载 1/1，Node 265/274。9 个失败都在测试准备阶段创建文件符号链接时被拒（EPERM，非管理员且未开开发人员模式），未进入产品代码；CI runner 上为 274/274。
 - 本机打包被 `scripts/margin/package-check.cjs` 守卫拒绝：Windows 只允许 GitHub Actions 用 temp/release 身份打包。不伪造 CI 环境绕过。
-- 开发模式启动：`npm run app:dev`。默认 temp 身份，数据在其独立目录，不读取正式身份或旧 Natively 数据。
+- 开发模式启动：`npm run app:dev`。默认 temp 身份，数据在其独立目录（`%APPDATA%\temp`），不读取正式身份或旧 Natively 数据。首次启动时 Vite 要现场编译，启动器 15 秒以上才出现，属于开发模式现象，不代表安装包的冷启动时间。
+- 四组 Electron 门禁（regression、storage、startup、outbound-renderer）在 Windows 上没能运行：Playwright 在 Windows 上用 `shell:true` 启动 Electron，隔离守卫一律拒绝；守卫的 esbuild 放行规则也不认 `esbuild.exe`。这是测试入口在 Windows 上的缺口，不是产品失败；修复需要改隔离守卫，待用户决定，不在无守卫的情况下运行。
+
+## 本机自动检查记录（2026-11-01，开发模式，未调用真实服务）
+
+- 窗口保护：开启后，可见窗口的显示亲和性从 `0x0` 变为 `0x11`（WDA_EXCLUDEFROMCAPTURE），关闭后恢复 `0x0`。同一窗口层级下的本机 GDI 截屏对照：关闭时启动器可见，开启时启动器完全不出现、没有黑框。这只是本机代理检查，不能代替第 6 节的接收端实测。
+- 设置页嵌在启动器窗口内，随启动器受保护；会中悬浮窗在会议开始后才显示，它的保护标志需要在开始会议后复查。
+- 退出：通过“退出”按钮的接口退出，15 秒内所有 Electron 进程结束，没有残留。当时没有会议进行；第 7 节的“会议进行中退出”仍待实测。
 
 ## 1. 安装（测试包身份确定后）
 
@@ -35,7 +42,7 @@
 ## 2. 启动与配置
 
 - [ ] 冷启动到启动器出现，不卡；麦克风权限提示正常
-- [ ] 没有配置语音转写时开始会议，会被拒绝并提示去配置
+- [x] 没有配置语音转写时开始会议，会被拒绝并提示去配置（2026-11-01 开发模式、全新 temp 配置：返回中英双语提示，窗口停在启动器，没有打开音频设备）
 - [ ] Groq 填 Key、保存，测试连接成功
 - [ ] Gemini 填 Key，从列表选模型，"保存并测试"成功；主模型、备用模型重启后保持
 
