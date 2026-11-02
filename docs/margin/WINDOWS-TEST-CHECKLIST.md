@@ -27,9 +27,9 @@
 - 本机打包被 `scripts/margin/package-check.cjs` 守卫拒绝：Windows 只允许 GitHub Actions 用 temp/release 身份打包。不伪造 CI 环境绕过。
 - 开发模式启动：`npm run app:dev`。默认 temp 身份，数据在其独立目录（`%APPDATA%\temp`），不读取正式身份或旧 Natively 数据。首次启动时 Vite 要现场编译，启动器 15 秒以上才出现，属于开发模式现象，不代表安装包的冷启动时间。
 - 四组 Electron 门禁（2026-11-01 用户批准修隔离守卫后）：守卫在 Windows 上按名称放行时去掉 `.exe`、不区分大小写；`shell:true` 只接受 Playwright 那种“每个参数都用双引号包住、单空格分隔、参数里没有 `"`、`%`、`!` 或换行”的整行命令，且第一个参数仍须在放行名单内，其他 shell 调用照旧拒绝。测试入口改用主进程自报的 pid（Windows 上 Playwright 拿到的是 cmd.exe 的 pid）；会议标题全选改用 `ControlOrMeta+A`；界面语言保存失败在 Windows 上改为把 `settings.json` 设为只读来注入（Windows 忽略目录权限）。Mac 和 Linux 的行为不变。
-- 门禁结果：startup 1/1（另 1 项 macOS 专用跳过）、storage 3/3、outbound-renderer 16/17、regression 20/21。守卫自测 13/15，2 项失败与改动前相同（测试用 `/bin/sh`、`/bin/echo`，Windows 上不存在）。
+- 门禁结果（守卫修复后首轮）：startup 1/1（另 1 项 macOS 专用跳过）、storage 3/3、outbound-renderer 16/17、regression 20/21。守卫自测 13/15，2 项失败与改动前相同（测试用 `/bin/sh`、`/bin/echo`，Windows 上不存在）。
 - 偶发：S42-04、AG34 各有一次 Playwright “Execution context was destroyed”，另一轮都通过，属于测试工具的偶发问题。
-- **发现的产品问题（待用户决定处理方式）**：笔试模式下，上一条回答的“完成”事件到达之前提交的新问题（包括截图提问快捷键）会被静默丢弃，没有任何提示。regression 的 AG33 在本机稳定复现；在截图前多等 2 秒即通过，已确认是这个时序窗口。面试模式会先取消旧回答再发新问题，没有这个问题。
+- 笔试模式提交被静默丢弃（已修复，2026-11-02 用户选择“取消旧的发新的”）：上一条回答的“完成”事件到达之前提交的新问题（包括截图提问快捷键）原先会被丢弃，没有提示；输入框里尚未清空的上一题文字还会被当成新问题，触发“5 秒内同一问题去重”。现在与面试模式一致：新问题先取消进行中的回答（旧回答保留并标为已取消），只把旧回答之后新加的文字和截图当作新问题，旧题目从输入框移除；什么都没新加时不发送。新增回归测试“回答流式输出中截图提问”，旧代码上失败、修复后通过。修复后 regression 22/22、outbound-renderer 17/17、渲染层单元测试 71/71，来源检查没有新增命中。
 
 ## 本机自动检查记录（2026-11-01，开发模式，未调用真实服务）
 

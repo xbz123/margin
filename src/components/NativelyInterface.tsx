@@ -2636,9 +2636,20 @@ Provide only the answer, nothing else.`;
   const handleManualSubmit = async () => {
     if (!inputValue.trim() && attachedContext.length === 0 && !pendingCaptureRef.current) return;
 
-    const userText = inputValue.trim();
+    let userText = inputValue.trim();
+    const pendingCapture = pendingCaptureRef.current;
+    let currentAttachments = pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
+      ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
+    // A new question supersedes the one still in flight, as in interview mode. That
+    // question and its screenshots stay in the input until it completes, so only what
+    // was added since is the new question; resubmitting nothing new does nothing.
+    const superseded = manualSubmitInFlightRef.current ? submittedChatRef.current : undefined;
+    if (superseded) {
+      if (userText === superseded.text) userText = '';
+      currentAttachments = currentAttachments.filter(item => !superseded.paths.includes(item.path));
+      if (!userText && currentAttachments.length === 0) return;
+    }
     const nowMs = Date.now();
-    if (manualSubmitInFlightRef.current) return;
     const last = lastManualSubmitRef.current;
     if (
       shouldDedupeManualSubmit({
@@ -2650,15 +2661,18 @@ Provide only the answer, nothing else.`;
     ) {
       return;
     }
+    // Cancel before the refs below are rewired: the cancel's synchronous error event
+    // then seals the old row as cancelled instead of landing on the new placeholder.
+    if (manualSubmitInFlightRef.current) window.electronAPI.cancelChatStream('natively');
+    if (superseded) {
+      setInputValue(prev => prev.trim() === superseded.text ? '' : prev);
+      setAttachedContext(prev => prev.filter(item => !superseded.paths.includes(item.path)));
+    }
     manualSubmitInFlightRef.current = true;
     setRetryGeneration(undefined);
     window.electronAPI.cancelIntelligenceGeneration().catch(err => console.error('[NativelyInterface] Cancel generation failed:', err));
     const epoch = ++generationEpochRef.current;
     lastManualSubmitRef.current = { text: userText, atMs: nowMs };
-
-    const pendingCapture = pendingCaptureRef.current;
-    const currentAttachments = pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
-      ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
 
     submittedChatRef.current = { text: userText, paths: currentAttachments.map(item => item.path) };
     // Main sends a question without a kind as written, so Auto is recorded as written.

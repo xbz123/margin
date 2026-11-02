@@ -614,6 +614,29 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
   }
 });
 
+test('AG33 real Written: a new captured question while an answer streams cancels that answer and is answered', async () => {
+  const input = overlay.locator('input[type="text"]').last();
+  try {
+    await overlay.getByLabel('Question mode').selectOption('written');
+    const cancelledBefore = await overlay.locator('[data-generation-status="cancelled"]').count();
+    mock.setScript({ errorStatus: 0, chunks: ['Superseded ', 'written ', 'SUPERSEDED-TAIL'], delayMs: 1_500 });
+    await ask('Synthetic superseded written question');
+    await overlay.waitForFunction(() => document.body.innerText.includes('Superseded written'));
+    const before = mock.chatRequests().length;
+    mock.setScript({ errorStatus: 0, chunks: ['Superseding captured answer.'], delayMs: 20 });
+    const screenshot = await overlay.evaluate(() => window.electronAPI.takeScreenshot());
+    await sendOverlayStreamEvent('capture-and-process', screenshot);
+    await overlay.waitForFunction(() => document.body.innerText.includes('Superseding captured answer.'), null, { timeout: 20_000 });
+    assert.equal(mock.chatRequests().length, before + 1);
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
+    assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), cancelledBefore + 1);
+    assert.ok(!(await overlayText()).includes('SUPERSEDED-TAIL'));
+    assert.equal(await input.inputValue(), '', 'the superseded question leaves the input');
+  } finally {
+    await overlay.getByLabel('Question mode').selectOption('auto');
+  }
+});
+
 test('AG51 Question mode uses automatic written prompts and explicit interview prompts on the wire', async () => {
   const { scenarioPrompt } = require('../../dist-electron/electron/llm/scenarioPrompts.js');
   // S46-02: the sent question's row keeps the scene of its request, not the current selection.
