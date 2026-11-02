@@ -355,10 +355,12 @@ test('while an answer streams, a typed question is held back and a new stream re
 
   // UI contract: the overlay does not accept a second typed question mid-stream.
   const input = overlay.locator('input[type="text"]').last();
+  const requestsBefore = mock.chatRequests().length;
   await input.fill('Typed during stream');
   await input.press('Enter');
   await new Promise((r) => setTimeout(r, 300));
   assert.equal(await input.inputValue(), 'Typed during stream', 'typed question should be held back while streaming');
+  assert.equal(mock.chatRequests().length, requestsBefore, 'the held-back question is not sent');
   await input.fill('');
 
   // Main-process contract: a new gemini-chat-stream from the same window aborts the old one.
@@ -669,6 +671,29 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
     await overlay.waitForFunction(() => document.body.innerText.includes('Written captured image answer.'), null, { timeout: 20_000 });
     assert.equal(mock.chatRequests().length, beforeCapture + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
+  } finally {
+    await overlay.evaluate(() => window.electronAPI.saveWrittenExam({ enabled: false }));
+  }
+});
+
+test('AG33 real Written: a new captured question while an answer streams cancels that answer and is answered', async () => {
+  const input = overlay.locator('input[type="text"]').last();
+  try {
+    await overlay.evaluate(() => window.electronAPI.saveWrittenExam({ enabled: true }));
+    const cancelledBefore = await overlay.locator('[data-generation-status="cancelled"]').count();
+    mock.setScript({ errorStatus: 0, chunks: ['Superseded ', 'written ', 'SUPERSEDED-TAIL'], delayMs: 1_500 });
+    await ask('Synthetic superseded written question');
+    await overlay.waitForFunction(() => document.body.innerText.includes('Superseded written'));
+    const before = mock.chatRequests().length;
+    mock.setScript({ errorStatus: 0, chunks: ['Superseding captured answer.'], delayMs: 20 });
+    const screenshot = await overlay.evaluate(() => window.electronAPI.takeScreenshot());
+    await sendOverlayStreamEvent('capture-and-process', screenshot);
+    await overlay.waitForFunction(() => document.body.innerText.includes('Superseding captured answer.'), null, { timeout: 20_000 });
+    assert.equal(mock.chatRequests().length, before + 1);
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
+    assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), cancelledBefore + 1);
+    assert.ok(!(await overlayText()).includes('SUPERSEDED-TAIL'));
+    assert.equal(await input.inputValue(), '', 'the superseded question does not return to the input');
   } finally {
     await overlay.evaluate(() => window.electronAPI.saveWrittenExam({ enabled: false }));
   }
