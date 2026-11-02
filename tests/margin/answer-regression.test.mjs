@@ -354,10 +354,12 @@ test('while an answer streams, a typed question is held back and a new stream re
 
   // UI contract: the overlay does not accept a second typed question mid-stream.
   const input = overlay.locator('input[type="text"]').last();
+  const requestsBefore = mock.chatRequests().length;
   await input.fill('Typed during stream');
   await input.press('Enter');
   await new Promise((r) => setTimeout(r, 300));
   assert.equal(await input.inputValue(), 'Typed during stream', 'typed question should be held back while streaming');
+  assert.equal(mock.chatRequests().length, requestsBefore, 'the held-back question is not sent');
   await input.fill('');
 
   // Main-process contract: a new gemini-chat-stream from the same window aborts the old one.

@@ -2640,9 +2640,11 @@ Provide only the answer, nothing else.`;
     const pendingCapture = pendingCaptureRef.current;
     let currentAttachments = pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
       ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
-    // A new question supersedes the one still in flight, as in interview mode. That
-    // question and its screenshots stay in the input until it completes, so only what
-    // was added since is the new question; resubmitting nothing new does nothing.
+    // Outside Written a typed question waits while an answer streams. In Written a new
+    // question supersedes the one still in flight, as What to Answer does. That question
+    // and its screenshots stay in the input until it completes, so only what was added
+    // since is the new question; resubmitting nothing new does nothing.
+    if (manualSubmitInFlightRef.current && questionMode !== 'written') return;
     const superseded = manualSubmitInFlightRef.current ? submittedChatRef.current : undefined;
     if (superseded) {
       if (userText === superseded.text) userText = '';
