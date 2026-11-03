@@ -1,0 +1,105 @@
+# Test release (user request 2026-11-03): pushing a test tag builds the unsigned temp
+# identity app on GitHub Actions and attaches it, with its BUILD-INFO, to that tag's
+# prerelease in the private xbz123/Assessment-Assistant, for download onto the user's
+# own test devices.
+#   margin-v*-windows  tag a Windows-line commit: x64 NSIS installer
+#   margin-v*-macos    tag a Mac-line commit: Apple Silicon zip
+# The temp identity has its own name, app id and data directory, so it never reads the
+# release identity's or old Natively data. Nothing is signed or notarized. The gates are
+# not rerun here; they run in the public xbz123/margin CI. Only the private repository
+# runs this workflow, so the public one never publishes an app (S25). The tagged commit
+# is the corresponding source and stays in the private repository.
+name: Margin test release
+
+on:
+  push:
+    tags: ['margin-v*-windows', 'margin-v*-macos']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    if: github.repository == 'xbz123/Assessment-Assistant' && endsWith(github.ref_name, '-windows')
+    runs-on: windows-2025
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26.0.0
+
+      - name: Toolchain versions
+        run: |
+          node -v; npm -v
+          cd native-module && rustup toolchain install && rustc -V && cargo -V
+
+      - run: npm ci
+
+      # Same order as Windows compile: the native module with MSVC, then the Electron
+      # binary and the Electron rebuilds of better-sqlite3 and keytar.
+      - name: Build the native module and set up native dependencies
+        run: |
+          node scripts/build-native.js
+          npm run setup:native
+
+      - name: Package the temp app
+        run: MARGIN_APP_VARIANT=temp node scripts/build-local.cjs
+
+      - name: Launch the packaged temp app in a throwaway profile
+        run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/temp/builder/win-unpacked" temp io.github.xbz123.temp "$RUNNER_TEMP/margin-package/temp/launch.json"
+
+      - name: Publish to the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pkg="$RUNNER_TEMP/margin-package/temp"
+          cp "$pkg/builder/temp-Setup-$(node -p "require('./package.json').version").exe" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-x64-setup.exe"
+          cp "$pkg/BUILD-INFO.txt" "$RUNNER_TEMP/BUILD-INFO-windows.txt"
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease --title "Margin test $GITHUB_REF_NAME" \
+              --notes "Unsigned temp-identity test build of $GITHUB_SHA for Windows x64. Windows SmartScreen will warn before the first launch."
+          gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-x64-setup.exe" "$RUNNER_TEMP/BUILD-INFO-windows.txt" --clobber
+
+  macos:
+    if: github.repository == 'xbz123/Assessment-Assistant' && endsWith(github.ref_name, '-macos')
+    runs-on: macos-15
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26.0.0
+
+      - name: Toolchain versions
+        run: |
+          node -v; npm -v; xcodebuild -version
+          cd native-module && rustup toolchain install && rustc -V && cargo -V
+
+      - run: npm ci
+
+      - name: Native setup
+        run: npm run setup:native
+
+      - name: Package the temp app
+        run: MARGIN_APP_VARIANT=temp node scripts/build-local.cjs
+
+      - name: Launch the packaged temp app in a throwaway home
+        run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/temp/builder/mac-arm64/temp.app" temp io.github.xbz123.temp "$RUNNER_TEMP/margin-package/temp/launch.json"
+
+      - name: Publish to the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pkg="$RUNNER_TEMP/margin-package/temp"
+          cp "$pkg/temp-temp-arm64.zip" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.zip"
+          cp "$pkg/BUILD-INFO.txt" "$RUNNER_TEMP/BUILD-INFO-macos.txt"
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease --title "Margin test $GITHUB_REF_NAME" \
+              --notes "Unsigned, ad hoc signed temp-identity test build of $GITHUB_SHA for Apple Silicon Macs. Open it with right-click > Open the first time."
+          gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.zip" "$RUNNER_TEMP/BUILD-INFO-macos.txt" --clobber
