@@ -621,6 +621,7 @@
     {"line":"const node = process.execPath;","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; setup-native.mjs: the running Node binary used to start helper steps. Generic Node idiom."},
     {"line":"title={t('Meeting Interface Style')}","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; SettingsOverlay.tsx: the standard t() wrapper around the approved Meeting Interface Style label, already registered in its h3 form (AG-60); used as a title in the 2026-10-21 Settings restyle."},
     {"line":"await new Promise((r) => server.close(r));","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; mock-openai.mjs, the project's own test server: waits for close. Generic Node idiom."},
-    {"line":"const box = document.createElement('div');","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; outbound-renderer.test.mjs: creates a probe element in the real renderer. Generic DOM call."}
+    {"line":"const box = document.createElement('div');","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; outbound-renderer.test.mjs: creates a probe element in the real renderer. Generic DOM call."},
+    {"line":"GH_TOKEN: ${{ github.token }}","reason":"Test release workflow (2026-11-03), written for this branch: hands the job's own token to the gh CLI, the form GitHub's Actions documentation gives for using gh in a workflow. Generic workflow idiom."}
   ]
 }
