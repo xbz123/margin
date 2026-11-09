@@ -16,8 +16,8 @@ function boot(files, fail = false) {
     module, exports: module.exports, console: { log() {}, error() {}, warn() {} },
     require(id) {
       if (id === 'electron') return { app: { isReady: () => true, getPath: () => '/synthetic' } };
-      if (id === '../../src/types/codexSource') {
-        const shared = { exports: {} }; vm.runInNewContext(compile('src/types/codexSource.ts'), { module: shared, exports: shared.exports }); return shared.exports;
+      if (id === '../../src/types/codexSource' || id === '../../src/types/writtenExam') {
+        const shared = { exports: {} }; vm.runInNewContext(compile(id.slice(6) + '.ts'), { module: shared, exports: shared.exports }); return shared.exports;
       }
       if (id === 'fs') return { existsSync: p => files.has(p), readFileSync: p => files.get(p),
         writeFileSync(p, value) { if (fail === true || fail?.active) throw Error('synthetic disk failure'); files.set(p, value); },
