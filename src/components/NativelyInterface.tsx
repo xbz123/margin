@@ -1134,18 +1134,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       return;
     }
 
-    const codeEls = container.querySelectorAll('[data-code-msg]');
-    let visible = false;
-    if (codeEls.length > 0) {
-      const cRect = container.getBoundingClientRect();
-      for (const el of codeEls) {
-        const r = el.getBoundingClientRect();
-        if (r.bottom > cRect.top && r.top < cRect.bottom) {
-          visible = true;
-          break;
-        }
-      }
-    }
+    // A visible code block no longer widens the shell (user request 2026-11-09): the
+    // window keeps its collapsed size, so it never grows and shrinks as code scrolls.
+    const visible = false;
 
     // Already in the correct state — clear any pending change so a
     // mid-flight tween isn't interrupted by a stale timer firing.
