@@ -3,7 +3,8 @@
 # prerelease in the private xbz123/Assessment-Assistant, for download onto the user's
 # own test devices.
 #   margin-v*-windows  tag a Windows-line commit: x64 NSIS installer
-#   margin-v*-macos    tag a Mac-line commit: Apple Silicon zip
+#   margin-v*-macos    tag a Mac-line commit: Apple Silicon zip and dmg (dmg added at the
+#                      user's request 2026-11-09; both hold the same checked app)
 # The temp identity has its own name, app id and data directory, so it never reads the
 # release identity's or old Natively data. Nothing is signed or notarized. The gates are
 # not rerun here; they run in the public xbz123/margin CI. Only the private repository
@@ -92,6 +93,17 @@ jobs:
       - name: Launch the packaged temp app in a throwaway home
         run: node scripts/margin/packaged-launch.mjs "$RUNNER_TEMP/margin-package/temp/builder/mac-arm64/temp.app" temp io.github.xbz123.temp "$RUNNER_TEMP/margin-package/temp/launch.json"
 
+      # The dmg opens to the checked app beside an Applications link for drag-to-install.
+      # ditto keeps the ad hoc signature; the image is verified before upload.
+      - name: Make the dmg from the checked app
+        run: |
+          stage="$RUNNER_TEMP/dmg-stage"
+          mkdir "$stage"
+          ditto "$RUNNER_TEMP/margin-package/temp/builder/mac-arm64/temp.app" "$stage/temp.app"
+          ln -s /Applications "$stage/Applications"
+          hdiutil create -volname "Margin temp" -srcfolder "$stage" -fs HFS+ -format UDZO "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.dmg"
+          hdiutil verify "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.dmg"
+
       - name: Publish to the prerelease
         env:
           GH_TOKEN: ${{ github.token }}
@@ -102,4 +114,4 @@ jobs:
           gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
             || gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease --title "Margin test $GITHUB_REF_NAME" \
               --notes "Unsigned, ad hoc signed temp-identity test build of $GITHUB_SHA for Apple Silicon Macs. Open it with right-click > Open the first time."
-          gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.zip" "$RUNNER_TEMP/BUILD-INFO-macos.txt" --clobber
+          gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.zip" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-arm64.dmg" "$RUNNER_TEMP/BUILD-INFO-macos.txt" --clobber
