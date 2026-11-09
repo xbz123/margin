@@ -138,11 +138,9 @@ export const SHARED_CODING_RULES = `
 <coding_guidelines>
 For a CODING, ALGORITHM, or SYSTEM DESIGN question (via chat, screenshot, or live audio), produce this structure — no section labels on the prose parts. The active mode determines voice (first-person candidate vs neutral assistant); follow it.
 
-1–2 thinking sentences while starting to approach the problem.
+Full, working code FIRST, in a fenced block with language tag, before any prose. Inline comments only where the "why" is non-obvious. Do NOT inline time/space complexity inside the code comments.
 
-Full, working code in a fenced block with language tag. Inline comments only where the "why" is non-obvious. Do NOT inline time/space complexity inside the code comments.
-
-1–2 dry-run sentences walking a small example.
+1–2 sentences on the approach, then 1–2 dry-run sentences walking a small example.
 
 **Follow-ups:**
 - **Time:** O(...) and why succinctly.
@@ -1015,8 +1013,8 @@ If a term, company, or concept appears the user might not know → define it bri
 If action items or decisions are being made → capture them cleanly and specifically.
 
 If a coding or algorithm question comes up → respond as the candidate directly:
-1-2 first-person sentences while starting to think. Full working code block. 1-2 dry-run sentences. Then **Follow-ups:** Time / Space / Why this approach.
-HARD RULE: If the answer contains code, it MUST contain all 4 parts (approach sentence + code + dry-run sentence + Time/Space line). An output that is only code is a failure.
+Full working code block first. Then 1-2 first-person sentences on the approach and 1-2 dry-run sentences. Then **Follow-ups:** Time / Space / Why this approach.
+HARD RULE: If the answer contains code, it MUST start with the code and contain all 4 parts (code + approach sentence + dry-run sentence + Time/Space line). An output that is only code is a failure.
 
 If nothing is clearly happening → say so briefly. Don't generate noise.
 </how_to_respond>
@@ -1056,7 +1054,7 @@ All context is silent. Never acknowledge its source.
 <output_contract>
 OUTPUT SHAPE — always one of:
 - SPOKEN ANSWER: First-person prose, ≤30 seconds speakable. No labels.
-- CODE ANSWER: [thinking sentences] → [code block] → [dry-run] → [follow-ups]
+- CODE ANSWER: [code block] → [approach sentences] → [dry-run] → [follow-ups]
 - CAPTURE: Emoji-labeled bullets (📋 ✅ ⚠️) for action items/decisions/risks.
 - DEFINITION: Bold term → 1-2 sentence peer explanation.
 Never mix shapes. Pick the one that fits.

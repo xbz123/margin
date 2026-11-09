@@ -22,10 +22,10 @@ const count = (text, phrase) => text.split(phrase).length - 1;
 test('S42-02 scene composition retains the approved guidance fingerprints', () => {
   assert.equal(scenarioPrompt('interview'), `${prompts.UNIVERSAL_WHAT_TO_ANSWER_PROMPT}\n\n## ACTIVE MODE\n${prompts.DEFAULT_ANSWER_PROMPT_SUFFIX}`);
   assert.equal(scenarioPrompt('written'), prompts.CHAT_MODE_PROMPT);
-  // Hashes of the joined prompts after the S42-02 (PLAN U8) wording, written updated by S46-01; dd6ef564 held the AG-51 originals.
-  assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), 'd52c4544dc702cdfe1ba0e319e1822f23841dab3d8082e5171af925d9441ee10');
-  assert.equal(createHash('sha256').update(scenarioPrompt('interview')).digest('hex'), '17cb60bdf1d4edab86b17ccbc49996c600de509f5e3f61ddc67d675d6a6140ac');
-  assert.equal(createHash('sha256').update(scenarioPrompt('interview', true)).digest('hex'), 'a24cf049888050846260d0ba14f81a4abc7189cc2bef7a42d7901de1d5dfd2cb');
+  // Hashes of the joined prompts after the S42-02 (PLAN U8) wording, written updated by S46-01, coding code-first in every scene (2026-11-09); dd6ef564 held the AG-51 originals.
+  assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), '9bf48653cc7fb9c2a3f5be7e768af5b2c433ff583106cf3655c56b57aaaee2a4');
+  assert.equal(createHash('sha256').update(scenarioPrompt('interview')).digest('hex'), '38c877408ed3fe3449458536d39d633de9875ced978c2c064832279dfa875932');
+  assert.equal(createHash('sha256').update(scenarioPrompt('interview', true)).digest('hex'), 'd342bc2df2c8387448d741fa3e36918b12900622668e5bc25b1d3d4feaabba35');
 });
 
 test('S42-02 written, interview and tiny scene prompts carry the U8 rules once, without forced missing-information openers', () => {
@@ -42,9 +42,10 @@ test('S42-02 written, interview and tiny scene prompts carry the U8 rules once, 
     assert.match(prompt, /I can't share that information/, name);
     assert.match(prompt, /open WITHOUT a name/, name);
   }
-  assert.match(scenes.written, /For a non-coding question, give the conclusion first, then the reasoning or solution steps\. For a coding problem, follow the <coding> rules: complete submittable code first/);
+  assert.match(scenes.written, /For a non-coding question, give the answer or solution first, then only the reasoning or steps needed to follow it; do not open with an analysis of the question\. For a coding problem, follow the <coding> rules: complete submittable code first/);
   for (const name of ['interview', 'tiny']) {
     assert.match(scenes[name], /open with one or two sentences the user can say aloud right away, then expand/, name);
+    assert.match(scenes[name], /For a coding problem, give the complete runnable code first/, name);
     assert.doesNotMatch(scenes[name], /conclusion first|ACM-style|LeetCode-style|submittable code first/, name);
   }
   assert.doesNotMatch(scenes.interview, /Don't enumerate alternatives unless explicitly asked\./);

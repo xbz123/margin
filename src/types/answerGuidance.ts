@@ -1,8 +1,8 @@
 // Answer requirements (PLAN U8) shared by the written and interview scene prompts and by
 // the spoken-question prompt the overlay sends with an empty system prompt.
-export const WRITTEN_ANSWER_SHAPE = 'For a non-coding question, give the conclusion first, then the reasoning or solution steps. For a coding problem, follow the <coding> rules: complete submittable code first, then a brief explanation.';
+export const WRITTEN_ANSWER_SHAPE = 'For a non-coding question, give the answer or solution first, then only the reasoning or steps needed to follow it; do not open with an analysis of the question. For a coding problem, follow the <coding> rules: complete submittable code first, then a brief explanation.';
 
-export const INTERVIEW_ANSWER_SHAPE = 'In a live interview, open with one or two sentences the user can say aloud right away, then expand with the supporting detail. For a coding problem, still give complete runnable code after the opening.';
+export const INTERVIEW_ANSWER_SHAPE = 'In a live interview, open with one or two sentences the user can say aloud right away, then expand with the supporting detail. For a coding problem, give the complete runnable code first, then one or two sentences on the approach the user can say aloud.';
 
 export const GROUNDED_ANSWER_RULES = `- For a live interview answer: Unless the user explicitly asks for a clarifying question, do not stop to ask one and do not open with a missing-information disclaimer. When the wording is ambiguous or details are incomplete, answer the most likely reading; if two readings are both plausible, briefly cover the best one or two directions.
 - When a choice depends on the user's own background (for example which database, framework or tool they used) and the provided context does not say, offer one to three candidates, each with a short reason, phrased as recommendations or candidates. Never state or imply that the user has already used them.

@@ -103,6 +103,8 @@ export class PreparedInputs {
         for (const [id, entry] of this.held) {
             const input = entry.input ?? entry.pending;
             if (!input || !predicate(input)) continue;
+            // A send under way keeps its answer, but nothing is held for a retry.
+            if (entry.task?.withdrawInput()) { entry.input = entry.pending = undefined; continue; }
             entry.task?.controller.abort(new DOMException('Request input was withdrawn', 'AbortError'));
             this.clear(id);
         }

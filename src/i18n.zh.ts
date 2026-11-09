@@ -209,6 +209,7 @@ export const chinese: Readonly<Record<string, string>> = {
     'Answer': '回答',
     'Answer:': '回答：',
     'Ask a question or click Answer': '输入问题或点击“回答”',
+    'Solve the question in this screenshot directly': '直接解答截图中的题目',
     'Ask anything on screen or conversation, or': '询问屏幕或对话中的任何内容，或按',
     'Attached screenshots will be sent to the vision provider when you send this turn': '发送本轮时，附加的截图会发送给视觉模型服务商',
     'Audio Capture Issue': '音频采集问题',
