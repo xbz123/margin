@@ -38,6 +38,7 @@ import icon from './icon.png';
 import { requestUiLanguage, useI18n, type UiLanguage } from '../i18n';
 import { resolveSettingsTab, SETTINGS_TABS, type SettingsTab } from './settings/settingsTabs';
 import { WrittenExamSettings } from './settings/WrittenExamSettings';
+import { SentScreenshotsSetting } from './settings/SentScreenshotsSetting';
 import { SettingsGroup, SettingsHeading, SettingsRow, SettingsSwitch, settingsButtonClass } from './settings/SettingsKit';
 
 // ---------------------------------------------------------------------------
@@ -1416,6 +1417,9 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             }
                                         />
                                     </SettingsGroup>
+
+                                    <SentScreenshotsSetting />
+
 
                                     <SettingsGroup title={t('Appearance')}>
                                         <SettingsRow

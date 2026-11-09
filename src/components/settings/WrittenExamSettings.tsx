@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Camera, EyeOff, Timer, Play, Code } from 'lucide-react';
+import { Camera, Timer, Play, Code } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { useWrittenExam } from '../../hooks/useWrittenExam';
 import { SettingsHeading, SettingsGroup, SettingsRow, SettingsSwitch, settingsButtonClass } from './SettingsKit';
@@ -15,8 +15,6 @@ export function WrittenExamSettings() {
     <SettingsGroup>
       <SettingsRow icon={Camera} title={t('Enable written exam mode')} description={t('Use manual screenshots or explicitly start timed capture and answers.')}
         control={<SettingsSwitch label={t('Enable written exam mode')} checked={status?.enabled ?? false} disabled={!status || busy} onChange={enabled => void save({ enabled })} />} />
-      <SettingsRow icon={EyeOff} title={t('Hide sent screenshots')} description={t('Only hides sent written-question previews. Images are still sent to the model; turn off to show them again.')}
-        control={<SettingsSwitch label={t('Hide sent screenshots')} checked={status?.hideScreenshots ?? true} disabled={!status || busy} onChange={hideScreenshots => void save({ hideScreenshots })} />} />
     </SettingsGroup>
     <SettingsGroup title={t('Automatic capture')}>
       <SettingsRow icon={Timer} title={t('Capture interval')} description={t('Default 20 seconds, from 5 to 300. Saving restarts the interval without changing your capture preference.')}

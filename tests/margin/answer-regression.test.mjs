@@ -847,7 +847,7 @@ test('S50 real settings buttons drive timed fixture capture, hiding, output form
     await overlay.getByText('S50 raw code\n    print(1)', { exact: true }).waitFor({ timeout: 20000 });
     assert.equal(mock.chatRequests().length, before + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body), /data:image/);
-    await overlay.evaluate(() => window.electronAPI.openSettingsTab('written-exam'));
+    await overlay.evaluate(() => window.electronAPI.openSettingsTab('general'));
     const question = overlay.locator('[data-message-scene="written"]').filter({ hasText: 'Solve the question in this screenshot directly' }).last();
     assert.equal(await question.locator('img').count(), 0);
     const hide = launcher.getByRole('switch', { name: 'Hide sent screenshots', exact: true });
@@ -855,6 +855,7 @@ test('S50 real settings buttons drive timed fixture capture, hiding, output form
     await question.locator('img').waitFor();
     assert.equal(await launcher.evaluate(() => window.electronAPI.getWrittenExam()).then(state => state.running), true, 'preview changes do not pause capture');
     await hide.click(); await question.locator('img').waitFor({ state: 'detached' });
+    await overlay.evaluate(() => window.electronAPI.openSettingsTab('written-exam'));
     const raw = overlay.getByText('S50 raw code\n    print(1)', { exact: true });
     assert.equal(await raw.evaluate(node => getComputedStyle(node).whiteSpace), 'pre-wrap');
     await launcher.getByRole('radio', { name: 'Markdown', exact: true }).click();

@@ -6,7 +6,7 @@ export const chinese: Readonly<Record<string, string>> = {
     "Enable written exam mode": "开启笔试模式",
     "Use manual screenshots or explicitly start timed capture and answers.": "开启后可手动截图，或主动开始定时截图并解答。",
     "Hide sent screenshots": "隐藏已发送消息的截图",
-    "Only hides sent written-question previews. Images are still sent to the model; turn off to show them again.": "仅隐藏已发送的笔试截图预览；截图仍正常发送给模型，关闭后恢复显示。",
+    "Hides screenshot previews on sent messages. Images are still sent to the model; turn off to show them again.": "隐藏所有已发送消息中的截图预览；截图仍正常发送给模型，关闭后恢复显示。",
     "Automatic capture": "自动捕获",
     "Capture interval": "捕获间隔",
     "Default 20 seconds, from 5 to 300. Saving restarts the interval without changing your capture preference.": "默认 20 秒，可设 5–300 秒。保存后按新间隔重新计时，不改变自动捕获开关。",
