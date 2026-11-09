@@ -58,6 +58,7 @@ export function PromptSettings() {
                 <label className="block text-sm">{t('Selected prompt Skill')}
                     <select aria-label={t('Selected prompt Skill')} disabled={busy} value={skillId ?? ''} onChange={event => setSkillId(event.target.value || null)} className="bg-bg-input rounded border p-2 ml-2">
                         <option value="">{t('None')}</option>
+                        {!settings.skills.some(skill => skill.id === 'complete-code') && <option value="complete-code">complete-code</option>}
                         {settings.skills.map(skill => <option key={skill.id} value={skill.id}>{skill.name}</option>)}
                     </select>
                 </label>

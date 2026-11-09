@@ -1,6 +1,6 @@
 // Settings sections in sidebar order. Tab names sent by other windows keep working through aliases.
 export const SETTINGS_TABS = [
-    'general', 'ai-providers', 'audio', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about',
+    'general', 'ai-providers', 'audio', 'written-exam', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about',
 ] as const;
 
 export type SettingsTab = typeof SETTINGS_TABS[number];

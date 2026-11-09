@@ -1,5 +1,7 @@
 import { APP_NAME } from '../appIdentity';
 import { useI18n } from '../i18n';
+import { useWrittenExam } from '../hooks/useWrittenExam';
+import type { WrittenExamCapture } from '../types/writtenExam';
 import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion';
 import {
   ArrowRight,
@@ -228,6 +230,7 @@ const HighlightedCode = React.memo(
 //   - appearance: useMemo'd in parent on [overlayOpacity, isLightTheme].
 //   - onCopy / renderMessageText: useCallback'd in parent.
 interface MessageRowProps {
+  hideScreenshots: boolean;
   msg: Message;
   isLightTheme: boolean;
   appearance: any;
@@ -303,6 +306,7 @@ const MessageRow = React.memo(
     appearance,
     onCopy,
     renderMessageText,
+    hideScreenshots,
   }: MessageRowProps) {
     const { t } = useI18n();
     const isCodeMsg = msg.role === 'system' && (msg.isCode || msg.text.includes('```'));
@@ -356,6 +360,9 @@ const MessageRow = React.memo(
                 <span>{t('Screenshot attached')}</span>
               </div>
             )}
+            {msg.role === 'user' && msg.screenshotPreview && !hideScreenshots && (
+              <img src={msg.screenshotPreview} alt={t('Screenshot attached')} className="max-w-full max-h-40 rounded-lg mb-2 object-contain" />
+            )}
             {msg.role === 'system' && !msg.isStreaming && (
               <button
                 onClick={() => onCopy(msg.text)}
@@ -383,6 +390,7 @@ const MessageRow = React.memo(
   },
   (prev, next) =>
     prev.msg === next.msg &&
+    prev.hideScreenshots === next.hideScreenshots &&
     prev.isLightTheme === next.isLightTheme &&
     prev.appearance === next.appearance &&
     prev.renderMessageText === next.renderMessageText &&
@@ -592,7 +600,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
   // Model Selection State
   const [currentModel, setCurrentModel] = useState<string>('gemini-3-flash-preview');
-  const [questionMode, setQuestionMode] = useState<'auto' | 'interview' | 'written'>('auto');
+  const exam = useWrittenExam();
+  const questionMode = exam.status?.enabled ? 'written' : 'interview';
+  const automaticSubmit = useRef(false);
 
   // Dynamic Action Button Mode (Recap vs Brainstorm)
   const [actionButtonMode, setActionButtonMode] = useState<'recap' | 'brainstorm'>('recap');
@@ -1432,6 +1442,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       streamingRafRef.current = null;
       const node = streamingNodeRef.current;
       if (!node || !streamingTextRef.current) return;
+      if (generationMetadataRef.current?.codeOutputFormat === 'plain') {
+        node.textContent = streamingTextRef.current;
+        reportVisible(node);
+        return;
+      }
       // marked.parse is sync and fast (<1ms for typical LLM chunks).
       // DOMPurify strips any script/event-handler injection.
       const rawHtml = marked.parse(streamingTextRef.current, { async: false }) as string;
@@ -2363,7 +2378,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         const submitted = submittedChatRef.current;
         if (submitted) {
           setAttachedContext(prev => prev.filter(item => !submitted.paths.includes(item.path)));
-          setInputValue(prev => prev === submitted.text ? '' : prev);
           submittedChatRef.current = undefined;
         }
 
@@ -2398,6 +2412,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Stream Error
     cleanups.push(
       window.electronAPI.onGeminiStreamError((error, generation) => {
+        const submitted = submittedChatRef.current;
+        if (submitted) {
+          setInputValue(prev => prev || submitted.text);
+          submittedChatRef.current = undefined;
+        }
         setRetryGeneration(generation?.retryable ? generation : undefined);
         manualSubmitInFlightRef.current = false;
         lastManualSubmitRef.current = null;
@@ -2627,28 +2646,29 @@ Provide only the answer, nothing else.`;
     }
   };
 
-  const handleManualSubmit = async () => {
-    if (!inputValue.trim() && attachedContext.length === 0 && !pendingCaptureRef.current) return;
-
-    let userText = inputValue.trim();
-    const pendingCapture = pendingCaptureRef.current;
-    let currentAttachments = pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
-      ? [...attachedContext, pendingCapture].slice(-5) : attachedContext;
-    // Outside Written a typed question waits while an answer streams. In Written a new
-    // question supersedes the one still in flight, as What to Answer does. That question
-    // and its screenshots stay in the input until it completes, so only what was added
-    // since is the new question; resubmitting nothing new does nothing.
-    if (manualSubmitInFlightRef.current && questionMode !== 'written') return;
-    const superseded = manualSubmitInFlightRef.current ? submittedChatRef.current : undefined;
-    if (superseded) {
-      if (userText === superseded.text) userText = '';
-      currentAttachments = currentAttachments.filter(item => !superseded.paths.includes(item.path));
-      if (!userText && currentAttachments.length === 0) return;
+  const submitQuestion = async (automatic?: WrittenExamCapture) => {
+    if (automatic && (!exam.status?.running || automatic.generation < exam.status.generation || isProcessing || manualSubmitInFlightRef.current || inputValue.trim() || attachedContext.length)) {
+      await window.electronAPI.skipWrittenExamCapture(automatic.generation);
+      return;
     }
+    if (!automatic && !inputValue.trim() && attachedContext.length === 0 && !pendingCaptureRef.current) return;
+
+    const userText = automatic ? '' : inputValue.trim();
     const nowMs = Date.now();
+    // In interview mode a typed question waits while an answer streams. In written mode
+    // a new question supersedes the one still in flight, as What to Answer does. That
+    // question's screenshots stay attached until it completes, so only screenshots
+    // added since are sent; a submit with nothing new does nothing.
+    if (manualSubmitInFlightRef.current && !automaticSubmit.current && questionMode !== 'written') return;
+    const superseded = manualSubmitInFlightRef.current ? submittedChatRef.current : undefined;
+    const pendingCapture = pendingCaptureRef.current;
+    const manualAttachments = (pendingCapture && !attachedContext.some(item => item.path === pendingCapture.path)
+      ? [...attachedContext, pendingCapture].slice(-5) : attachedContext).filter(item => !superseded?.paths.includes(item.path));
+    const currentAttachments = automatic ? [automatic] : manualAttachments;
+    if (superseded && !userText && currentAttachments.length === 0) return;
     const last = lastManualSubmitRef.current;
     if (
-      shouldDedupeManualSubmit({
+      !automatic && shouldDedupeManualSubmit({
         text: userText,
         lastText: last?.text ?? null,
         lastAtMs: last?.atMs ?? null,
@@ -2660,19 +2680,16 @@ Provide only the answer, nothing else.`;
     // Cancel before the refs below are rewired: the cancel's synchronous error event
     // then seals the old row as cancelled instead of landing on the new placeholder.
     if (manualSubmitInFlightRef.current) window.electronAPI.cancelChatStream('natively');
-    if (superseded) {
-      setInputValue(prev => prev.trim() === superseded.text ? '' : prev);
-      setAttachedContext(prev => prev.filter(item => !superseded.paths.includes(item.path)));
-    }
+    if (superseded) setAttachedContext(prev => prev.filter(item => !superseded.paths.includes(item.path)));
     manualSubmitInFlightRef.current = true;
+    automaticSubmit.current = !!automatic;
     setRetryGeneration(undefined);
-    window.electronAPI.cancelIntelligenceGeneration().catch(err => console.error('[NativelyInterface] Cancel generation failed:', err));
+    if (!automatic) window.electronAPI.cancelIntelligenceGeneration().catch(err => console.error('[NativelyInterface] Cancel generation failed:', err));
     const epoch = ++generationEpochRef.current;
-    lastManualSubmitRef.current = { text: userText, atMs: nowMs };
+    if (!automatic) lastManualSubmitRef.current = { text: userText, atMs: nowMs };
 
-    submittedChatRef.current = { text: userText, paths: currentAttachments.map(item => item.path) };
-    // Main sends a question without a kind as written, so Auto is recorded as written.
-    const generationKind = questionMode === 'auto' ? undefined : questionMode;
+    submittedChatRef.current = undefined;
+    const generationKind = automatic ? 'written' : questionMode;
 
     // Seal any in-flight streaming rows from a previous turn before we
     // append the new user message + placeholder. Without this, the rAF
@@ -2740,14 +2757,24 @@ Provide only the answer, nothing else.`;
     try {
       // Pass imagePath if attached, AND conversation context
       requestStartTimeRef.current = Date.now();
-      await window.electronAPI.streamGeminiChat(
+      const request = window.electronAPI.streamGeminiChat(
         userText || SCREENSHOT_QUESTION,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
-        conversationContext, // Pass context so "answer this" works
-        { generationKind, clickedAt: nowMs },
+        automatic ? undefined : conversationContext, // Automatic frames are independent practice questions.
+        { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation },
       );
+      if (!automatic) {
+        submittedChatRef.current = { text: inputValue, paths: currentAttachments.map(item => item.path) };
+        setInputValue('');
+      }
+      await request;
     } catch (err) {
       if (generationEpochRef.current !== epoch) return;
+      const submitted = submittedChatRef.current;
+      if (submitted) {
+        setInputValue(prev => prev || submitted.text);
+        submittedChatRef.current = undefined;
+      }
       setIsProcessing(false);
       lastManualSubmitRef.current = null;
       setMessages((prev) => {
@@ -2777,7 +2804,13 @@ Provide only the answer, nothing else.`;
   // Refresh the latest-handler ref on every render so the captured-key
   // listener (mounted with [] deps) calls the CURRENT closure, not a
   // stale snapshot from first render.
+  const handleManualSubmit = () => submitQuestion();
   handleManualSubmitRef.current = handleManualSubmit;
+  const automaticCaptureRef = useRef(submitQuestion);
+  automaticCaptureRef.current = submitQuestion;
+  useEffect(() => window.electronAPI.onWrittenExamCapture?.(capture => {
+    void automaticCaptureRef.current(capture).catch(() => {});
+  }), []);
 
   const clearChat = () => {
     setMessages([]);
@@ -2871,6 +2904,9 @@ Provide only the answer, nothing else.`;
       // ────────────────────────────────────────────────────────────────────
 
       // Code-containing messages get special styling
+      if (msg.role === 'system' && msg.generation?.codeOutputFormat === 'plain') {
+        return <div className="whitespace-pre-wrap break-words font-mono text-[13px]">{msg.text}</div>;
+      }
       // We split by code blocks to keep the "Code Solution" UI intact for the code parts
       // But use ReactMarkdown for the text parts around it
       if (msg.isCode || (msg.role === 'system' && msg.text.includes('```'))) {
@@ -4340,6 +4376,7 @@ Provide only the answer, nothing else.`;
                     <MessageRow
                       key={msg.id}
                       msg={msg}
+                      hideScreenshots={exam.status?.hideScreenshots ?? true}
                       isLightTheme={isLightTheme}
                       appearance={appearance}
                       onCopy={handleCopy}
@@ -4619,14 +4656,7 @@ Provide only the answer, nothing else.`;
                                     overlay no longer accidentally engage the
                                     tap and break inputs in Settings/Model
                                     Selector windows. */}
-                <label className="flex items-center gap-2 text-xs overlay-text-muted mb-2" data-stealth-ignore="true">
-                  {t('Question mode')}
-                  <select aria-label={t('Question mode')} value={questionMode} onChange={event => setQuestionMode(event.target.value as 'auto' | 'interview' | 'written')} className="bg-transparent border rounded px-2 py-1">
-                    <option value="auto">{t('Automatic (by entry)')}</option>
-                    <option value="interview">{t('Interview')}</option>
-                    <option value="written">{t('Written')}</option>
-                  </select>
-                </label>
+                {(exam.error || exam.status?.error) && <p role="alert" className="text-xs text-red-500 mb-2">{t(exam.error || exam.status!.error)}</p>}
                 <div className="relative group" data-stealth-engage="true">
                   <input
                     ref={textInputRef}

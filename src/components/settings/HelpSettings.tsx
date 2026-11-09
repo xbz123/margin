@@ -1071,11 +1071,11 @@ export const HelpSettings: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                             {([
                                 { Icon: Pencil, color: 'blue', title: 'What to Answer?', badge: null, bc: '', kbd: ['⌘', '1'], desc: 'Reads the active transcript and screen, then streams a precise response to read aloud.' },
-                                { Icon: Lightbulb, color: 'violet', title: 'Brainstorm', badge: 'Interview ON', bc: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', kbd: ['⌘', '3'], desc: 'Recap becomes Brainstorm when Interview Mode is ON — deep multi-step strategies.' },
+                                { Icon: Lightbulb, color: 'violet', title: 'Brainstorm', badge: null, bc: '', kbd: ['⌘', '3'], desc: 'Develops ideas and multi-step strategies from the current context.' },
                                 { Icon: HelpCircle, color: 'teal', title: 'Follow Up', badge: null, bc: '', kbd: ['⌘', '4'], desc: 'Suggests the next logical question to keep conversation flowing gracefully.' },
                                 { Icon: Zap, color: 'emerald', title: 'Answer Now', badge: null, bc: '', kbd: ['⌘', '5'], desc: 'Records your mic + screen context and fires an immediate AI query.' },
                                 { Icon: MessageSquare, color: 'indigo', title: 'Clarify', badge: null, bc: '', kbd: ['⌘', '2'], desc: 'Generates sharp probing questions from latent audio when a topic is unclear.' },
-                                { Icon: RefreshCw, color: 'amber', title: 'Recap', badge: 'Interview OFF', bc: 'bg-red-500/10 text-red-400 border-red-500/30', kbd: ['⌘', '3'], desc: 'Condenses the last 5 minutes into bullet points when you lose the thread.' },
+                                { Icon: RefreshCw, color: 'amber', title: 'Recap', badge: null, bc: '', kbd: ['⌘', '3'], desc: 'Condenses the last 5 minutes into bullet points when you lose the thread.' },
                                 { Icon: Sparkles, color: 'sky', title: 'Code Hint', badge: null, bc: '', kbd: ['⌘', '6'], desc: 'Reads your screen and nudges you toward the correct code implementation.' },
                                 { Icon: Monitor, color: 'rose', title: 'Screenshot & Ask', badge: null, bc: '', kbd: ['⌘', '⇧', '↵'], desc: 'Forces a full-screen capture and immediately processes it through the LLM.' },
                                 { Icon: EyeOff, color: 'slate', title: 'Stealth Execute', badge: null, bc: '', kbd: ['⌘', '↵'], desc: 'Processes context in the background without ever revealing the interface.' },

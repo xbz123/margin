@@ -31,6 +31,7 @@ function deadlineTimer(deadline: number, expire: () => void): () => void {
 }
 
 export class GenerationTask<T = unknown> {
+    codeOutputFormat?: 'plain' | 'markdown';
     readonly requestId = randomUUID();
     questionId = this.requestId;
     retryOf?: string;

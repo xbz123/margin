@@ -5,9 +5,11 @@ import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { getModifierSymbol } from '../utils/platformUtils';
 import { useI18n } from '../i18n';
 import { useWindowPreferences } from '../hooks/useWindowPreferences';
+import { useWrittenExam } from '../hooks/useWrittenExam';
 
 const SettingsPopup = () => {
     const { t } = useI18n();
+    const exam = useWrittenExam();
     const { shortcuts } = useShortcuts();
     const isLightTheme = useResolvedTheme() === 'light';
     const { isUndetectable, setProtection, preferenceErrors } = useWindowPreferences();
@@ -83,8 +85,6 @@ const SettingsPopup = () => {
         }
     }, [useGroqFastText]);
 
-    const [actionButtonMode, setActionButtonModeState] = useState<'recap' | 'brainstorm'>('recap');
-
     const [showTranscript, setShowTranscript] = useState(() => {
         const stored = localStorage.getItem('natively_interviewer_transcript');
         return stored !== 'false'; // Default to true if not set
@@ -98,21 +98,6 @@ const SettingsPopup = () => {
 
         window.addEventListener('storage', handleStorage);
         return () => window.removeEventListener('storage', handleStorage);
-    }, []);
-
-    // Load action button mode and subscribe to changes from other windows
-    useEffect(() => {
-        // @ts-ignore
-        window.electronAPI?.getActionButtonMode?.()?.then((mode: 'recap' | 'brainstorm') => {
-            setActionButtonModeState(mode ?? 'recap');
-        }).catch(() => {});
-        // @ts-ignore
-        if (!window.electronAPI?.onActionButtonModeChanged) return;
-        // @ts-ignore
-        const unsubscribe = window.electronAPI.onActionButtonModeChanged((mode: 'recap' | 'brainstorm') => {
-            setActionButtonModeState(mode);
-        });
-        return () => unsubscribe();
     }, []);
 
     const contentRef = useRef<HTMLDivElement>(null);
@@ -161,6 +146,23 @@ const SettingsPopup = () => {
                 <div className="relative z-[1] flex flex-col">
 
                 {/* Undetectability */}
+                <div className={`flex items-center justify-between px-2.5 py-2 text-xs ${glassRowClass}`}>
+                    <span>{t('Automatic capture')} · {exam.status?.intervalSeconds ?? 20}s</span>
+                    <button role="switch" aria-label={t('Automatic capture')} aria-checked={exam.status?.captureEnabled ?? false}
+                        disabled={!exam.status || exam.busy} onClick={() => void exam.setRunning(!exam.status?.captureEnabled)}
+                        className={`w-8 h-5 rounded-full p-0.5 ${exam.status?.captureEnabled ? 'bg-emerald-600' : defaultToggleTrackClass}`}>
+                        <span className={`block w-4 h-4 rounded-full bg-white ${exam.status?.captureEnabled ? 'translate-x-3' : ''}`} />
+                    </button>
+                </div>
+                <div className={`flex items-center justify-between px-2.5 py-2 text-xs ${glassRowClass}`}>
+                    <span>{t('Interview mode')}</span>
+                    <button role="switch" aria-label={t('Interview mode')} aria-checked={!!exam.status && !exam.status.enabled}
+                        disabled={!exam.status || exam.busy} onClick={() => void exam.setInterview(!!exam.status?.enabled)}
+                        className={`w-8 h-5 rounded-full p-0.5 ${exam.status && !exam.status.enabled ? 'bg-emerald-600' : defaultToggleTrackClass}`}>
+                        <span className={`block w-4 h-4 rounded-full bg-white ${exam.status && !exam.status.enabled ? 'translate-x-3' : ''}`} />
+                    </button>
+                </div>
+                {exam.error && <p role="alert" className="px-2.5 text-xs text-red-400">{t(exam.error)}</p>}
                 {preferenceErrors.protection && <p role="alert" className="px-2.5 text-xs text-red-400">{t(preferenceErrors.protection)}</p>}
                 <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-200 group cursor-default ${itemHoverClass} ${glassRowClass}`}>
                     <div className="flex items-center gap-2.5">
@@ -228,41 +230,6 @@ const SettingsPopup = () => {
                         className={`w-[30px] h-[18px] rounded-full p-[1.5px] transition-all duration-300 ease-spring active:scale-[0.92] ${showTranscript ? 'bg-emerald-500 shadow-[0_2px_10px_rgba(16,185,129,0.3)]' : defaultToggleTrackClass}`}
                     >
                         <div className={`w-[15px] h-[15px] rounded-full transition-transform duration-300 ease-spring ${toggleKnobClass} ${showTranscript ? 'translate-x-[12px]' : 'translate-x-0'}`} />
-                    </button>
-                </div>
-
-                {/* Interview Mode (Brainstorm) Toggle */}
-                <div className={`flex items-center justify-between px-2.5 py-1.5 rounded-md transition-colors duration-200 group cursor-default ${itemHoverClass} ${glassRowClass}`}>
-                    <div className="flex items-center gap-2.5">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className={`w-3.5 h-3.5 transition-colors ${actionButtonMode === 'brainstorm' ? 'text-violet-400' : iconInactiveClass}`}
-                        >
-                            <line x1="6" y1="3" x2="6" y2="15" />
-                            <circle cx="18" cy="6" r="3" />
-                            <circle cx="6" cy="18" r="3" />
-                            <path d="M18 9a9 9 0 0 1-9 9" />
-                        </svg>
-                        <span className={`text-[12px] font-medium transition-colors ${actionButtonMode === 'brainstorm' ? (isLightTheme ? 'text-slate-950' : 'text-white') : labelInactiveClass}`}>{t('Interview Mode')}</span>
-                    </div>
-                    <button
-                        onClick={async () => {
-                            const newMode: 'recap' | 'brainstorm' = actionButtonMode === 'brainstorm' ? 'recap' : 'brainstorm';
-                            setActionButtonModeState(newMode);
-                            try {
-                                // @ts-ignore
-                                await window.electronAPI?.setActionButtonMode?.(newMode);
-                            } catch (e) { console.error(e); }
-                        }}
-                        className={`w-[30px] h-[18px] rounded-full p-[1.5px] transition-all duration-300 ease-spring active:scale-[0.92] ${actionButtonMode === 'brainstorm' ? 'bg-violet-500 shadow-[0_2px_10px_rgba(139,92,246,0.3)]' : defaultToggleTrackClass}`}
-                    >
-                        <div className={`w-[15px] h-[15px] rounded-full transition-transform duration-300 ease-spring ${toggleKnobClass} ${actionButtonMode === 'brainstorm' ? 'translate-x-[12px]' : 'translate-x-0'}`} />
                     </button>
                 </div>
 

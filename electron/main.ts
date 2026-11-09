@@ -255,6 +255,7 @@ import { AudioDevices } from "./audio/AudioDevices"
 import { MeetingAudioPipeline } from './audio/MeetingAudioPipeline';
 import { MeetingSttSession, type CollectOptions, type DictationMark, type SessionTranscript, type SpeechCollector } from './audio/MeetingSttSession';
 import { MeetingLifecycleQueue } from './audio/meetingLifecycleQueue';
+import { validExamSettings, type WrittenExamSettings } from '../src/types/writtenExam';
 import { TranscriptDisplayThrottle } from './audio/TranscriptDisplayThrottle';
 import { registerOsEventSubscriptions } from './osEventSubscriptions';
 import { loadNativeModule } from "./audio/nativeModuleLoader"
@@ -312,6 +313,11 @@ import { isDisguiseMode, type WindowPreferenceKind, type WindowPreferenceResult 
 
 export class AppState {
   public prepareCaptureAction?: (owner: Electron.WebContents) => { speechActionId: string };
+  public pauseWrittenExam?: () => void;
+  public syncWrittenExam?: (active: boolean, manual?: boolean) => void;
+  private writtenMeeting = false;
+  private endingMeeting = false;
+  private meetingAudioOptions?: { inputDeviceId?: string | null; outputDeviceId?: string | null };
   public cancelCaptureAction?: (owner: Electron.WebContents, speechActionId: string) => void;
   public isCaptureActionPending?: (owner: Electron.WebContents, speechActionId: string) => boolean;
   private static instance: AppState | null = null
@@ -358,7 +364,7 @@ export class AppState {
     onTranscript: event => this.handleSttTranscript(event),
   });
   private readonly meetingAudio = new MeetingAudioPipeline(this.meetingStt,
-    () => ({ active: this.isMeetingActive && !this.audioSuspended, quitting: this._isQuitting, verbose: this._verboseLogging }), {
+    () => ({ active: this.isMeetingActive && !this.audioSuspended && !this.writtenMeeting, quitting: this._isQuitting, verbose: this._verboseLogging }), {
       captureFailed: payload => this.sendAudioCaptureFailed(payload),
       systemPermissionDenied: message => this.sendSystemAudioPermissionDenied(message),
       deviceSelection: payload => this.broadcastDeviceSelection(payload),
@@ -754,6 +760,7 @@ export class AppState {
   }
 
   public setQuitting(value: boolean): void {
+    if (value) this.pauseWrittenExam?.();
     this._isQuitting = value;
   }
 
@@ -1242,6 +1249,7 @@ export class AppState {
    * Existing session providers are reused without opening another connection.
    */
   public prewarmSttProviders(): void {
+    if (SettingsManager.getInstance().getWrittenExamSettings().enabled) return;
     if (this.googleSTT && this.googleSTT_User) return;
     try {
       if (!this.googleSTT) {
@@ -1361,6 +1369,7 @@ export class AppState {
 
 
   private async reconfigureAudio(inputDeviceId?: string | null, outputDeviceId?: string | null): Promise<void> {
+    this.meetingAudioOptions = { inputDeviceId, outputDeviceId };
     await this.meetingAudio.reconfigureAudio(inputDeviceId, outputDeviceId);
   }
 
@@ -1595,32 +1604,93 @@ export class AppState {
         throw Object.assign(new Error('Save or discard the unsaved meeting before starting a new one.'), { code: 'pending-unsaved-meeting' });
       }
       if (this._isQuitting) throw new Error('Application is quitting');
-      CredentialsManager.getInstance().requireSttConfigured();
+      const written = SettingsManager.getInstance().getWrittenExamSettings().enabled;
+      if (!written) CredentialsManager.getInstance().requireSttConfigured();
       await this.meetingAudio.waitForRelease();
-      if (!(await ensureMacMicrophoneAccess('meeting start'))) throw new Error(formatPermissionMessage('mic-denied'));
+      if (!written && !(await ensureMacMicrophoneAccess('meeting start'))) throw new Error(formatPermissionMessage('mic-denied'));
       if (this._isQuitting) throw new Error('Application is quitting');
       await this.stopAudioTest();
+      if (written) await this.meetingStt.stopChannels();
       this.windowHelper.resetOverlayPosition();
       this.windowHelper.setWindowMode('overlay');
       this.intelligenceManager.reset();
       if (metadata) this.intelligenceManager.setMeetingMetadata(metadata);
       this.activeAudioSession = crypto.randomUUID();
       this.meetingStt.begin(this.activeAudioSession);
+      this.writtenMeeting = written;
+      this.meetingAudioOptions = metadata?.audio;
+      this.endingMeeting = false;
       this.isMeetingActive = true;
       this.broadcastMeetingState();
       this.sendToMeetingSurfaces('session-reset');
-      this.meetingAudio.begin({ audio: metadata?.audio });
+      if (!written) this.meetingAudio.begin({ audio: metadata?.audio });
+      this.syncWrittenExam?.(true);
+    });
+  }
+
+  public updateWrittenExamSettings(update: unknown, manual?: boolean): Promise<WrittenExamSettings> {
+    return this.meetingLifecycle.change(async () => {
+      if (!update || typeof update !== 'object' || Array.isArray(update)) throw new Error('Invalid written exam settings.');
+      if (this._isQuitting || this.endingMeeting) throw new Error('Wait until the session has ended.');
+      const manager = SettingsManager.getInstance();
+      const candidate = { ...manager.getWrittenExamSettings(), ...update };
+      if (!validExamSettings(candidate)) throw new Error('Invalid written exam settings. Use a whole number from 5 to 300 seconds.');
+      const toInterview = this.isMeetingActive && this.writtenMeeting && !candidate.enabled;
+      if (toInterview) {
+        this.pauseWrittenExam?.();
+        try {
+          CredentialsManager.getInstance().requireSttConfigured();
+          if (!(await ensureMacMicrophoneAccess('interview mode'))) throw new Error(formatPermissionMessage('mic-denied'));
+          await this.stopAudioTest();
+          await this.meetingAudio.waitForRelease();
+          if (this.endingMeeting || this._isQuitting) throw new Error('Wait until the session has ended.');
+          this.writtenMeeting = false;
+          await this.meetingAudio.startChecked(this.meetingAudioOptions);
+          if (this.endingMeeting || this._isQuitting) throw new Error('Wait until the session has ended.');
+          manager.saveWrittenExamSettings(candidate);
+          this.processingHelper.getLLMHelper().cancelGenerationTasks('Session mode changed');
+          this.processingHelper.cancelOngoingRequests();
+          this.intelligenceManager.resetEngine();
+        } catch (error) {
+          this.writtenMeeting = true;
+          await this.meetingAudio.abortInit();
+          await this.meetingAudio.detachAndDestroy();
+          await this.meetingStt.stopChannels();
+          this.syncWrittenExam?.(this.isMeetingActive && !this.endingMeeting && !this._isQuitting, true);
+          throw error;
+        }
+      } else {
+        manager.saveWrittenExamSettings(candidate);
+        if (this.isMeetingActive && candidate.enabled && !this.writtenMeeting) {
+          this.writtenMeeting = true;
+          this.processingHelper.getLLMHelper().cancelGenerationTasks('Session mode changed');
+          this.processingHelper.cancelOngoingRequests();
+          this.intelligenceManager.resetEngine();
+          await this.meetingAudio.abortInit();
+          await this.meetingAudio.detachAndDestroy();
+          await this.meetingStt.stopChannels();
+          this.transcriptDisplay.clear();
+        }
+      }
+      this.processingHelper.getLLMHelper().setCodeOutputFormat(candidate.codeOutputFormat);
+      this.syncWrittenExam?.(this.isMeetingActive && !this.endingMeeting && !this._isQuitting, manual);
+      return candidate;
     });
   }
 
 
   public async endMeeting(): Promise<void> {
+    this.endingMeeting = true;
+    if (this.syncWrittenExam) this.syncWrittenExam(false);
+    else this.pauseWrittenExam?.();
+    this.processingHelper.getLLMHelper().cancelGenerationTasks('Session ended');
     this.processingHelper.cancelOngoingRequests();
     this.intelligenceManager.resetEngine();
     return this.meetingLifecycle.stop(async () => {
       if (this.overlayMousePassthrough) this.setOverlayMousePassthrough(false);
       this.windowHelper.setWindowMode('launcher');
       this.isMeetingActive = false;
+      this.syncWrittenExam?.(false);
       this._isDraining = true;
       this.broadcastMeetingState();
       let captureError: unknown;
@@ -1651,10 +1721,11 @@ export class AppState {
         if (captureError) throw captureError;
       } finally {
         this.activeAudioSession = null;
+        this.endingMeeting = false;
         this._isDraining = false;
         this.transcriptDisplay.clear();
       }
-    });
+    }).finally(() => { this.endingMeeting = false; });
   }
 
   private setupIntelligenceEvents(): void {
@@ -2603,6 +2674,7 @@ async function initializeApp() {
 
   // Explicitly load credentials into helpers
   appState.processingHelper.loadStoredCredentials();
+  appState.processingHelper.getLLMHelper().setCodeOutputFormat(SettingsManager.getInstance().getWrittenExamSettings().codeOutputFormat);
 
   // Initialize IPC handlers before window creation
   initializeIpcHandlers(appState)

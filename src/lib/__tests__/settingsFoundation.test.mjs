@@ -290,7 +290,7 @@ test('AG60 requesting a language never applies it unless main saved it', async (
 
 test('AG60 settings keep every section and old tab names open the moved sections', () => {
   const { resolveSettingsTab, SETTINGS_TABS } = sourceModule('src/components/settings/settingsTabs.ts');
-  const tabs = ['general', 'ai-providers', 'audio', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about'];
+  const tabs = ['general', 'ai-providers', 'audio', 'written-exam', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about'];
   assert.deepEqual([...SETTINGS_TABS], tabs);
   for (const tab of tabs) assert.equal(resolveSettingsTab(tab), tab);
   assert.equal(resolveSettingsTab('skills'), 'context');

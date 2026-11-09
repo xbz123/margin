@@ -27,7 +27,7 @@ import { app } from 'electron';
 import { join } from 'node:path';
 import { LocalContextStore } from './services/LocalContextStore';
 import { PromptSettingsStore } from './services/PromptSettingsStore';
-import { scenarioPrompt, appendPromptGuidance } from './llm/scenarioPrompts';
+import { scenarioPrompt, appendPromptGuidance, writtenOutputFormat, writtenOutputPrompt } from './llm/scenarioPrompts';
 import { attachLocalContext } from './llm/localContextRequest';
 import { GenerationResultError, rethrowTerminalGenerationError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
 import { assertProviderDataScopes, getDeniedDataScopes, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
@@ -83,6 +83,8 @@ const MAX_OUTPUT_TOKENS = 65536
 const IMAGE_ANALYSIS_PROMPT = `Analyze concisely. Be direct. No markdown formatting. Return plain text only.`
 
 export class LLMHelper {
+  private codeOutputFormat: 'plain' | 'markdown' = 'plain';
+  public setCodeOutputFormat(value: 'plain' | 'markdown'): void { this.codeOutputFormat = value; }
   private preparedInputs?: PreparedInputs;
   private inputs(): PreparedInputs { return this.preparedInputs ??= new PreparedInputs(); }
 
@@ -109,6 +111,7 @@ export class LLMHelper {
     const { input, prior } = this.inputs().take(owner, requestId);
     const task = this.beginGenerationTask(prior.kind, undefined, undefined, startedAt);
     task.rendererOwner = owner; task.entryPoint = prior.entryPoint;
+    task.codeOutputFormat = prior.codeOutputFormat;
     task.questionId = prior.questionId; task.retryOf = prior.requestId;
     task.requireVisibleReceipt = receipt;
     this.inputs().begin(owner, task, input);
@@ -136,9 +139,10 @@ export class LLMHelper {
 
   public getGenerationPolicy(): GenerationPolicy { return { ...(this.generationPolicy ?? DEFAULT_GENERATION_POLICY) }; }
   public getCurrentGenerationTask(): GenerationTask<GenerationTargetSnapshot> | undefined { return generationTasks.getStore(); }
+  public isGenerationBusy(): boolean { return !!this.activeGenerationTasks?.size; }
 
   public getTaskMetadata(task: GenerationTask<GenerationTargetSnapshot>) {
-    return { requestId: task.requestId, questionId: task.questionId, retryOf: task.retryOf, retryable: this.inputs().retryable(task), entryPoint: task.entryPoint,
+    return { requestId: task.requestId, questionId: task.questionId, retryOf: task.retryOf, retryable: this.inputs().retryable(task), entryPoint: task.entryPoint, codeOutputFormat: task.codeOutputFormat,
       timing: { speechMs: Math.max(0, (task.speechEndedAt ?? task.startedAt) - task.startedAt),
         preparationMs: task.firstSendAt === undefined ? undefined : Math.max(0, task.firstSendAt - (task.speechEndedAt ?? task.startedAt)),
         modelToVisibleMs: task.firstVisibleAt === undefined || task.firstSendAt === undefined ? undefined : Math.max(0, task.firstVisibleAt - task.firstSendAt),
@@ -194,6 +198,9 @@ export class LLMHelper {
     if (backup && backup.kind === selected.kind && backup.target.provider === selected.target.provider && (backup.target as ModelTarget).gatewayId === (selected.target as ModelTarget).gatewayId
       && backup.target.model === selected.target.model) throw new Error('Primary and backup model must differ.');
     const task = new GenerationTask(selected, backup, policy, kind, signal, startedAt);
+    if (kind === 'written') {
+      task.codeOutputFormat = this.codeOutputFormat ?? 'plain';
+    }
     this.activeGenerationTasks ??= new Set();
     if (!task.signal.aborted) this.activeGenerationTasks.add(task);
     task.signal.addEventListener('abort', () => this.activeGenerationTasks.delete(task), { once: true });
@@ -216,7 +223,7 @@ export class LLMHelper {
         contents.push({ inlineData: image });
       }
       const dataScopes = replay?.dataScopes ?? self.scopesForPayload(userContent, /"inlineData"/.test(JSON.stringify(contents)) ? ['inline-image'] : imagePaths);
-      const localContext = replay?.localContext ?? (purpose === 'compatibility' ? [] : new LocalContextStore(join(app.getPath('userData'), 'local-context.json')).list());
+      const localContext = replay?.localContext ?? (purpose === 'compatibility' || task.kind === 'written' && (imagePaths?.length || /"inlineData"/.test(JSON.stringify(contents))) ? [] : new LocalContextStore(join(app.getPath('userData'), 'local-context.json')).list());
       const ownedInput = replay ?? (task.rendererOwner ? copyPreparedInput({ userContent, systemInstruction, contents, dataScopes, localContext,
           promptDependency: systemInstruction ? JSON.stringify(new PromptSettingsStore(join(app.getPath('userData'), 'prompt-settings.json')).read()) : undefined,
           imagePaths: imagePaths ?? [], stream, purpose, outputLimit }) : undefined);
@@ -1248,8 +1255,13 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     const baseSystemPrompt = systemPromptOverride ?? HARD_SYSTEM_PROMPT;
     const scene = baseSystemPrompt === scenarioPrompt('written') ? 'written'
       : baseSystemPrompt.startsWith(scenarioPrompt('interview')) || baseSystemPrompt.startsWith(scenarioPrompt('interview', true)) ? 'interview' : undefined;
-    const supplemented = scene ? appendPromptGuidance(baseSystemPrompt, scene,
+    let supplemented = scene ? appendPromptGuidance(baseSystemPrompt, scene,
       new PromptSettingsStore(join(app.getPath('userData'), 'prompt-settings.json')).read()) : baseSystemPrompt;
+    const task = generationTasks.getStore();
+    if (scene === 'written' && task?.codeOutputFormat) {
+      task.codeOutputFormat = writtenOutputFormat(message, task.codeOutputFormat);
+      supplemented = writtenOutputPrompt(supplemented, task.codeOutputFormat);
+    }
     const finalSystemPrompt = supplemented === '' ? '' : this.injectLanguageInstruction(supplemented);
     const cloudCombinedContext = context;
 

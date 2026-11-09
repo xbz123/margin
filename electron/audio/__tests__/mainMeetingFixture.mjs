@@ -2,6 +2,11 @@ import fs from 'node:fs';
 import ts from 'typescript';
 import { EventEmitter } from 'node:events';
 import { fixture } from './meetingAudioFixture.mjs';
+const examTypes = {};
+new Function('exports', ts.transpileModule(fs.readFileSync(new URL('../../../src/types/writtenExam.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText)(examTypes);
+const { DEFAULT_WRITTEN_EXAM, validExamSettings } = examTypes;
 
 export function loadAudioModule(name) {
   const source = fs.readFileSync(new URL('../' + name + '.ts', import.meta.url), 'utf8');
@@ -19,7 +24,7 @@ const source = fs.readFileSync(new URL('../../main.ts', import.meta.url), 'utf8'
 const tree = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
 const app = tree.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
 const names = ['startMeeting', 'endMeeting', 'handleSttTranscript', 'suspendAudio', 'restartCapturesAfterResume',
-  'reconfigureAudio', 'reconfigureSttProvider', 'discardSttProviders', 'shutdownAudio', 'setQuitting', 'collectSpeech', 'markDictation', 'setupIntelligenceEvents', 'endSessionReasoning'];
+  'reconfigureAudio', 'reconfigureSttProvider', 'discardSttProviders', 'shutdownAudio', 'setQuitting', 'collectSpeech', 'markDictation', 'setupIntelligenceEvents', 'endSessionReasoning', 'updateWrittenExamSettings'];
 const methods = names.map(name => {
   const method = app.members.find(node => ts.isMethodDeclaration(node) && node.name.getText(tree) === name);
   if (!method) throw new Error('Missing production method ' + name);
@@ -32,16 +37,21 @@ const js = ts.transpileModule('class AppState {' + methods.join('\n') + '}\nretu
 export function mainFixture(options = {}) {
   const order = [], transcripts = [], providers = [];
   let reasoningClears = 0;
-  const Class = new Function('ensureMacMicrophoneAccess', 'formatPermissionMessage', 'crypto', 'CredentialsManager', 'console', js)(
+  let examSettings = { ...DEFAULT_WRITTEN_EXAM, ...options.examSettings };
+  const settings = { getWrittenExamSettings: () => ({ ...examSettings }), saveWrittenExamSettings: value => {
+    options.saveExam?.(value); examSettings = { ...value }; return { ...value };
+  } };
+  const Class = new Function('ensureMacMicrophoneAccess', 'formatPermissionMessage', 'crypto', 'CredentialsManager', 'console', 'SettingsManager', 'validExamSettings', js)(
     options.microphonePermission ?? (async () => true), () => 'permission denied',
     { randomUUID: () => 'meeting-' + providers.length + '-' + order.length },
     { getInstance: () => ({ getDefaultModel: () => 'synthetic-model', getSttProvider: () => 'synthetic',
       requireSttConfigured: options.requireSttConfigured ?? (() => {}) }) },
     options.console ?? { log() {}, warn() {}, error() {} },
+    { getInstance: () => settings }, validExamSettings,
   );
   const state = new Class();
   const audio = fixture({ ...options, querySnapshot: () => ({
-    active: state.isMeetingActive && !state.audioSuspended, quitting: state._isQuitting, verbose: false,
+    active: state.isMeetingActive && !state.audioSuspended && !state.writtenMeeting, quitting: state._isQuitting, verbose: false,
   }) });
   const session = new MeetingSttSession({
     create: channel => {
@@ -72,7 +82,7 @@ export function mainFixture(options = {}) {
     windowHelper: { resetOverlayPosition() {}, setWindowMode() {} },
     processingHelper: {
       cancelOngoingRequests: () => order.push('processing-cancel'),
-      getLLMHelper: () => ({ setModel() {}, getCurrentModelSelection: () => 'synthetic-model', clearSessionReasoning: () => { reasoningClears++; } }),
+      getLLMHelper: () => ({ setModel() {}, setCodeOutputFormat() {}, cancelGenerationTasks() {}, getCurrentModelSelection: () => 'synthetic-model', clearSessionReasoning: () => { reasoningClears++; } }),
     },
     intelligenceManager: {
       reset() {}, setMeetingMetadata() {}, resetEngine: () => order.push('answers-cancel'), getUnsavedMeeting: () => null,
@@ -85,7 +95,7 @@ export function mainFixture(options = {}) {
   });
   const clear = state.transcriptDisplay.clear.bind(state.transcriptDisplay);
   state.transcriptDisplay.clear = () => { order.push('display-clear'); clear(); };
-  return { state, audio, session, providers, order, transcripts, get reasoningClears() { return reasoningClears; },
+  return { state, audio, session, providers, order, transcripts, settings, get reasoningClears() { return reasoningClears; },
     start: async metadata => {
       await state.startMeeting(metadata);
       const init = audio.pipeline._audioInitPromise;

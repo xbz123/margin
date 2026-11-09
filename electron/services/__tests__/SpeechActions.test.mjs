@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
+import { mainFixture } from '../../audio/__tests__/mainMeetingFixture.mjs';
 
 // S42-03 on the real IPC -> IntelligenceManager -> LLMHelper chain with a mocked provider client:
 // actions cut speech at the click, read only their frozen view, and stale references never send.
@@ -31,7 +32,7 @@ function chain() {
   require.cache[electronId] = { exports: { app: { getPath: () => root, isReady: () => true, isPackaged: false } } };
   let modules;
   try {
-    modules = { ...dist('LLMHelper'), ...dist('IntelligenceManager'), ...dist('audio/MeetingSttSession'), ...dist('services/SkillsManager') };
+    modules = { ...dist('LLMHelper'), ...dist('IntelligenceManager'), ...dist('audio/MeetingSttSession'), ...dist('services/SkillsManager'), ...dist('services/SettingsManager') };
   } finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
   const sent = [], policy = { current: {} };
   const helper = Object.assign(Object.create(modules.LLMHelper.prototype), {
@@ -65,6 +66,8 @@ function chain() {
     require(id) {
       if (id === 'electron') return electron;
       if (id === './services/SkillsManager') return { SkillsManager: modules.SkillsManager };
+      if (id === './services/SettingsManager') return { SettingsManager: modules.SettingsManager };
+      if (id === './services/WrittenExamMode') return dist('services/WrittenExamMode');
       if (['./llm/scenarioPrompts', './services/PromptSettingsStore', './direct-assist/errors', './utils/imagePathValidation', './ipc/speechActions', './SessionTracker'].includes(id)) return dist(id.substring(2));
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
@@ -77,6 +80,13 @@ function chain() {
     getMainWindow: () => null,
     getScreenshotQueue: () => [], collectSpeech: options => meeting.collect(options), markDictation: at => meeting.markDictation(at),
     endMeeting: async () => {}, deleteScreenshot: async () => ({ success: true }) };
+  state.updateWrittenExamSettings = async (update, manual) => {
+    const manager = modules.SettingsManager.getInstance();
+    const saved = manager.saveWrittenExamSettings({ ...manager.getWrittenExamSettings(), ...update });
+    helper.setCodeOutputFormat(saved.codeOutputFormat);
+    state.syncWrittenExam(!!state.active, manual);
+    return saved;
+  };
   module.exports.initializeIpcHandlers(state);
   const sender = new Sender(7);
   const invoke = (channel, ...args) => handlers.get(channel)({ sender }, ...args);
@@ -192,9 +202,10 @@ for (const revoke of ['image', 'context', 'skill']) test(`S42-04 explicit ${revo
   fs.writeFileSync(contextFile, JSON.stringify(entries)); fs.writeFileSync(promptFile, JSON.stringify(prompt));
   c.helper.processImage = async () => ({ mimeType: 'image/jpeg', data: 'T1JJR0lOQUw=' });
   try {
-    const failure = await failTyped(c, [imageFile]);
+    const failure = await failTyped(c, revoke === 'context' ? undefined : [imageFile]);
     assert.ok(c.sent[0], c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')?.[1]);
-    assert.match(JSON.stringify(c.sent[0]), /LOCAL ORIGINAL/);
+    if (revoke === 'context') assert.match(JSON.stringify(c.sent[0]), /LOCAL ORIGINAL/);
+    else assert.doesNotMatch(JSON.stringify(c.sent[0]), /LOCAL ORIGINAL/, 'S50 written screenshots omit Local Context');
     assert.match(JSON.stringify(c.sent[0]), /ORIGINAL SKILL TEXT/);
     let deletion, finishDeletion;
     if (revoke === 'image') {
@@ -879,4 +890,102 @@ test('cross-entry: a typed stream with partial output replaced by a shortcut is 
   assert.equal(usage.some(entry => entry.status === 'completed'), false);
   const answers = history.filter(item => item.role === 'assistant').map(item => item.text);
   assert.equal(answers.filter(answer => answer === 'NEW ANSWER').length, 1, 'the shortcut answer is recorded once');
+});
+
+test('mode changes and session end cancel independent typed streams and discard late output', async () => {
+  for (const action of ['written', 'interview', 'end']) {
+    const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c, 'OLD FIRST ');
+    const f = mainFixture({ examSettings: { enabled: action === 'interview' } });
+    f.state.processingHelper.getLLMHelper = () => c.helper;
+    f.state.intelligenceManager.resetEngine = () => c.intelligence.resetEngine();
+    await f.start();
+    const old = startTyped(c);
+    try {
+      await provider.started; await provider.shown; await tick();
+      if (action === 'end') await f.state.endMeeting();
+      else await f.state.updateWrittenExamSettings({ enabled: action === 'written' });
+      assert.equal(tasks[0].signal.aborted, true, action);
+      provider.release(); await old.catch(() => {}); await tick();
+      assert.doesNotMatch(oldRecords(c, tasks[0].requestId).text, /LATE OLD/);
+      assert.equal(c.sender.sent.some(([name, token]) => name === 'gemini-stream-token' && token === 'LATE OLD'), false);
+      assert.equal(tasks[0].terminalStatus, 'cancelled');
+    } finally { provider.release(); await old.catch(() => {}); await f.state.endMeeting(); }
+  }
+});
+
+test('S50 saved configuration -> timed synthetic screenshot -> real IPC/model; owned cancellation, retries and Local Context isolation', async t => {
+  t.mock.timers.enable({ apis: ['setInterval'] });
+  const c = chain(), removed = [];
+  const config = { enabled: true, intervalSeconds: 5, hideScreenshots: true, codeOutputFormat: 'plain' };
+  const { LocalContextStore } = dist('services/LocalContextStore');
+  const contextFile = path.join(root, 'local-context.json');
+  const priorContext = fs.existsSync(contextFile) ? fs.readFileSync(contextFile) : undefined;
+  // Use the existing store API and only synthetic data.
+  const contexts = new LocalContextStore(contextFile);
+  contexts.clear();
+  const contextSource = path.join(root, 's50-resume.md'); fs.writeFileSync(contextSource, 'S50_PRIVATE_CONTEXT');
+  contexts.addFiles([contextSource]);
+  c.helper.processImage = async () => ({ mimeType: 'image/png', data: 'U1lOVEhFVElD' });
+  c.state.getMainWindow = () => ({ webContents: c.sender });
+  c.state.getWindowHelper = () => ({ getOverlayWindow: () => ({ webContents: c.sender }), setWindowMode() {} });
+  c.state.showMainWindow = () => {};
+  c.state.active = true;
+  let image = 0;
+  c.state.takeScreenshot = async () => {
+    const file = path.join(root, `s50-${++image}.png`); fs.writeFileSync(file, `synthetic ${image}`); return file;
+  };
+  c.state.getImagePreview = async () => 'data:image/png;base64,U1lOVEhFVElD';
+  c.state.deleteScreenshot = async file => { removed.push(file); fs.rmSync(file, { force: true }); return { success: true }; };
+  const frame = async () => {
+    const before = c.sender.sent.length;
+    t.mock.timers.tick(5000);
+    for (let i = 0; i < 30 && !c.sender.sent.slice(before).some(([name]) => name === 'written-exam-capture'); i++) await tick();
+    const value = c.sender.sent.slice(before).find(([name]) => name === 'written-exam-capture')?.[1];
+    assert.ok(value, 'timer delivers a synthetic screenshot'); return value;
+  };
+  const submit = value => c.invoke('gemini-chat-stream', 'Solve this screenshot', [value.path], undefined, { generationKind: 'written', examGeneration: value.generation });
+  try {
+    await c.invoke('written-exam:save', config);
+    assert.equal((await c.invoke('written-exam:running', true)).running, true);
+    assert.equal(image, 0);
+    const first = await frame();
+    await assert.rejects(c.handlers.get('gemini-chat-stream')({ sender: new Sender(99) }, 'wrong owner', [first.path], undefined, { generationKind: 'written', examGeneration: first.generation }), /no longer available/);
+    await submit(first);
+    assert.equal(c.sent.length, 1); assert.doesNotMatch(JSON.stringify(c.sent[0]), /S50_PRIVATE_CONTEXT/);
+    assert.match(JSON.stringify(c.sent[0]), /image_url/); assert.match(JSON.stringify(c.sent[0]), /plain text/);
+    assert.ok(removed.includes(first.path));
+    await assert.rejects(submit(first), /no longer available/);
+
+    // Pausing before receipt deletes the frame and prevents any outbound request.
+    const pending = await frame(); await c.invoke('written-exam:running', false);
+    await assert.rejects(submit(pending), /no longer available/); assert.ok(removed.includes(pending.path));
+    const before = c.sent.length;
+    t.mock.timers.tick(15000); await tick(); assert.equal(c.sent.length, before);
+
+    // Manual screenshots omit Local Context too; ordinary text retains it.
+    const manual = path.join(root, 's50-manual.png'); fs.writeFileSync(manual, 'synthetic');
+    await c.invoke('gemini-chat-stream', 'manual screenshot', [manual]);
+    assert.doesNotMatch(JSON.stringify(c.sent.at(-1)), /S50_PRIVATE_CONTEXT/);
+    await c.invoke('gemini-chat-stream', 'ordinary text');
+    assert.match(JSON.stringify(c.sent.at(-1)), /S50_PRIVATE_CONTEXT/);
+
+    // In-flight format and its retry stay fixed even after a new preference is saved.
+    c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw Object.assign(Error('synthetic denied'), { status: 401 }); };
+    await c.invoke('gemini-chat-stream', 'failed screenshot', [manual]);
+    const failure = c.sender.sent.findLast(([name]) => name === 'gemini-stream-error')[3];
+    assert.equal(failure.retryable, true); assert.equal(failure.codeOutputFormat, 'plain');
+    await c.invoke('written-exam:save', { ...config, codeOutputFormat: 'markdown' });
+    c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); return [{ choices: [{ delta: { content: 'retry' }, finish_reason: 'stop' }] }]; };
+    const retry = await c.invoke('generation:retry', failure.requestId, Date.now());
+    assert.equal(retry.codeOutputFormat, 'plain'); assert.doesNotMatch(JSON.stringify(c.sent.at(-1)), /S50_PRIVATE_CONTEXT/);
+
+    // An automatic pause is not allowed to cancel an unrelated manual task.
+    const task = c.helper.beginGenerationTask('written');
+    await c.invoke('written-exam:running', false); assert.equal(task.signal.aborted, false); task.close();
+    await c.invoke('written-exam:running', true); c.sender.emit('did-start-loading');
+    assert.equal((await c.invoke('written-exam:get')).running, false);
+  } finally {
+    c.state.pauseWrittenExam(); c.helper.cancelGenerationTasks('test cleanup');
+    if (priorContext) fs.writeFileSync(contextFile, priorContext); else fs.rmSync(contextFile, { force: true });
+  }
 });

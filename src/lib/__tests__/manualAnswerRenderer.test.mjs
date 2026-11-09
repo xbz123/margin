@@ -163,19 +163,20 @@ test('S46-02 manual submit records the scene it actually sends, and only written
   const ref = current => ({ current });
   const submit = async questionMode => {
     const messages = [], sent = [];
-    await handler('handleManualSubmit', {
+    await handler('submitQuestion', {
+      automaticSubmit: ref(false),
       questionMode, inputValue: 'Synthetic question', attachedContext: [], pendingCaptureRef: ref(null),
       manualSubmitInFlightRef: ref(false), lastManualSubmitRef: ref(null), shouldDedupeManualSubmit: () => false,
       generationEpochRef: ref(0), submittedChatRef: ref(), flushToken() {}, tokenBufRef: ref({ intent: '', text: '', raf: null }),
       setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
       genMessageId: () => String(messages.length), setTimeout() {}, messagesEndRef: ref(),
       streamingMsgIdRef: ref(), streamingIntentRef: ref(), streamingTextRef: ref(''), streamingNodeRef: ref(null), streamingRafRef: ref(null),
-      setIsExpanded() {}, setIsProcessing() {}, pinAnswerPanel() {}, requestStartTimeRef: ref(null), conversationContext: '',
+      setIsExpanded() {}, setIsProcessing() {}, setInputValue(value) { assert.equal(value, ''); }, pinAnswerPanel() {}, requestStartTimeRef: ref(null), conversationContext: '',
       window: { electronAPI: { cancelIntelligenceGeneration: async () => {}, streamGeminiChat: async (...args) => { sent.push(args[3]); } } },
     })();
     return { user: messages.find(message => message.role === 'user'), options: sent[0] };
   };
-  for (const [mode, kind, scene] of [['auto', undefined, 'written'], ['written', 'written', 'written'], ['interview', 'interview', 'interview']]) {
+  for (const [mode, kind, scene] of [['written', 'written', 'written'], ['interview', 'interview', 'interview']]) {
     const { user, options } = await submit(mode);
     assert.equal(options.generationKind, kind, mode);
     assert.equal(user.scene, scene, mode);

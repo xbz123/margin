@@ -10,6 +10,12 @@ export class MeetingLifecycleQueue {
   getState(): MeetingLifecycleState { return this.state; }
   start(run: () => Promise<void>): Promise<void> { return this.request(true, run); }
   stop(run: () => Promise<void>): Promise<void> { return this.request(false, run); }
+  change<T>(run: () => Promise<T>): Promise<T> {
+    this.last = null;
+    const done = this.tail.then(run);
+    this.tail = done.then(() => {}, () => {});
+    return done;
+  }
 
   private request(active: boolean, run: () => Promise<void>): Promise<void> {
     if (this.last?.active === active) return this.last.done;

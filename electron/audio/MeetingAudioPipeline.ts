@@ -36,6 +36,8 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
   private micRecoveryAttempts = 0;
   private micRecovery: Promise<void> | null = null;
   private readonly monitorCleanups = new WeakMap<Capture, () => void>();
+  private checkedStart = false;
+  private checkedStartFailed = false;
 
   constructor(
     private readonly stt: MeetingAudioSttPort<P>,
@@ -45,6 +47,22 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
   ) {}
 
   hasMicCapture(): boolean { return this.microphoneCapture !== null; }
+  async startChecked(audio?: { inputDeviceId?: string | null; outputDeviceId?: string | null }): Promise<void> {
+    const epoch = ++this.epoch;
+    const revision = ++this.revision;
+    this.resetRecovery();
+    this.checkedStart = true; this.checkedStartFailed = false;
+    try {
+      await this.released;
+      await this.configure(audio?.inputDeviceId, audio?.outputDeviceId, epoch, revision, 'interview mode', true);
+      if (!this.live(epoch) || this.checkedStartFailed) throw new Error('Interview audio could not be started.');
+    } catch (error) {
+      await this.abortInit();
+      await this.detachAndDestroy();
+      await this.stt.stopChannels();
+      throw error;
+    } finally { this.checkedStart = false; }
+  }
   waitForRelease(): Promise<void> { return this.released; }
 
   resetRecovery(): void {
@@ -135,7 +153,7 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
     return task;
   }
 
-  private async configure(input: string | null | undefined, output: string | null | undefined, epoch: number, revision: number, reason: string): Promise<void> {
+  private async configure(input: string | null | undefined, output: string | null | undefined, epoch: number, revision: number, reason: string, strict = false): Promise<void> {
     const current = () => this.live(epoch) && revision === this.revision;
     if (!current()) return;
     await this.released;
@@ -172,31 +190,33 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
       await this.destroy(intervening);
       if (!current()) return;
     }
+    if (permission.effectiveDenied && strict) throw new Error('Screen recording permission is required for interview audio.');
     if (permission.effectiveDenied) this.events.systemPermissionDenied(permission.message ?? 'System audio permission is denied');
     else {
       try {
         this.systemAudioCapture = new SystemAudioCapture(systemId);
         this.wire(this.systemAudioCapture, 'interviewer');
-      } catch { this.report('system', 'System audio capture could not be opened'); }
+      } catch { if (strict) throw new Error('System audio capture could not be opened'); this.report('system', 'System audio capture could not be opened'); }
     }
     try {
       this.microphoneCapture = new MicrophoneCapture(micId);
       this.wire(this.microphoneCapture, 'user');
-    } catch { this.report('mic', 'Microphone capture could not be opened'); }
+    } catch { if (strict) throw new Error('Microphone capture could not be opened'); this.report('mic', 'Microphone capture could not be opened'); }
     if (!current()) return;
-    this.startChannel('user', this.microphoneCapture);
-    this.startChannel('interviewer', this.systemAudioCapture);
+    this.startChannel('user', this.microphoneCapture, strict);
+    this.startChannel('interviewer', this.systemAudioCapture, strict);
     if (current()) this.watchRoute();
   }
 
-  private startChannel(channel: SttChannel, capture: Capture | null): void {
+  private startChannel(channel: SttChannel, capture: Capture | null, strict = false): void {
     if (!capture) return;
     try {
       const provider = this.stt.ensure(channel);
+      if (!provider && strict) throw new Error('Speech provider is unavailable for this channel');
       capture.start();
       provider?.start?.();
       if (!provider) this.report(channel === 'user' ? 'mic' : 'system', 'Speech provider is unavailable for this channel');
-    } catch { this.report(channel === 'user' ? 'mic' : 'system', 'Audio channel failed to start'); }
+    } catch { if (strict) throw new Error('Audio channel failed to start'); this.report(channel === 'user' ? 'mic' : 'system', 'Audio channel failed to start'); }
   }
 
   reconfigureSttProvider(): Promise<void> {
@@ -283,6 +303,7 @@ export class MeetingAudioPipeline<P extends ManagedSttProvider = ManagedSttProvi
     capture.on('speech_ended', () => { if (owned() && this.live(epoch)) this.stt.get(channel)?.notifySpeechEnded?.(); });
     capture.on('error', () => {
       if (!owned() || !this.live(epoch)) return;
+      if (this.checkedStart) { this.checkedStartFailed = true; return; }
       if (channel === 'user') {
         if (this.micRecovery) return;
         if (this.micRecoveryAttempts++ >= 3) {
