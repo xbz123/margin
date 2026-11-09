@@ -617,6 +617,10 @@
     {"line":"## Suggested skills","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; migration/2026-10-29/HANDOFF.md, the Windows transfer handoff: a section heading. Generic Markdown heading."},
     {"line":"const node = process.execPath;","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; setup-native.mjs: the running Node binary used to start helper steps. Generic Node idiom."},
     {"line":"await new Promise((r) => server.close(r));","reason":"Public CI sync (2026-11-03): flagged after the upstream pool grew, not by a change on this branch; mock-openai.mjs, the project's own test server: waits for close. Generic Node idiom."},
-    {"line":"GH_TOKEN: ${{ github.token }}","reason":"Test release workflow (2026-11-03), written for this branch: hands the job's own token to the gh CLI, the form GitHub's Actions documentation gives for using gh in a workflow. Generic workflow idiom."}
+    {"line":"GH_TOKEN: ${{ github.token }}","reason":"Test release workflow (2026-11-03), written for this branch: hands the job's own token to the gh CLI, the form GitHub's Actions documentation gives for using gh in a workflow. Generic workflow idiom."},
+    {"line":"engine.on('error', () => {});","reason":"Public CI sync (2026-11-09): flagged after the upstream pool grew, not by a change on this branch; generationInterfaces.test.mjs: an empty error listener so an EventEmitter test does not throw. Generic Node idiom."},
+    {"line":"| { type: 'delta'; text: string }","reason":"Public CI sync (2026-11-09): flagged after the upstream pool grew, not by a change on this branch; generateContract.ts: one member of the generation event union. Generic TypeScript discriminated union."},
+    {"line":"align?: 'center' | 'start';","reason":"Public CI sync (2026-11-09): flagged after the upstream pool grew, not by a change on this branch; SettingsKit.tsx: an optional alignment prop. Generic React prop type."},
+    {"line":"src: url('./font/Inter-4.1/web/InterVariable.woff2') format('woff2');","reason":"Public CI sync (2026-11-09): flagged after the upstream pool grew, not by a change on this branch; index.css: the @font-face source for the bundled Inter font. Generic CSS font declaration."}
   ]
 }
