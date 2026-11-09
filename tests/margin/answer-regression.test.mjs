@@ -847,7 +847,7 @@ test('S50 real settings buttons drive timed fixture capture, hiding, output form
     await overlay.getByText('S50 raw code\n    print(1)', { exact: true }).waitFor({ timeout: 20000 });
     assert.equal(mock.chatRequests().length, before + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body), /data:image/);
-    await overlay.evaluate(() => window.electronAPI.openSettingsTab('general'));
+    await launcher.getByRole('button', { name: 'General', exact: true }).click();
     const question = overlay.locator('[data-message-scene="written"]').filter({ hasText: 'Solve the question in this screenshot directly' }).last();
     assert.equal(await question.locator('img').count(), 0);
     const hide = launcher.getByRole('switch', { name: 'Hide sent screenshots', exact: true });
