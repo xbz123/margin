@@ -104,6 +104,9 @@ import type { AnswerReasoningState, ReasoningChoice } from '../types/answerReaso
 // across every ReactMarkdown render in this component.
 const REMARK_PLUGINS = [remarkGfm, remarkMath];
 const REHYPE_PLUGINS = [rehypeKatex];
+// Sent for a screenshot with no typed question. It asks for the solution, not an analysis
+// of the screen (user request 2026-11-09).
+const SCREENSHOT_QUESTION = 'Solve the question in this screenshot directly';
 
 interface Message {
   id: string;
@@ -2722,7 +2725,7 @@ Provide only the answer, nothing else.`;
       {
         id: genMessageId(),
         role: 'user',
-        text: userText || (currentAttachments.length > 0 ? 'Analyze this screenshot' : ''),
+        text: userText || (currentAttachments.length > 0 ? t(SCREENSHOT_QUESTION) : ''),
         hasScreenshot: currentAttachments.length > 0,
         screenshotPreview: currentAttachments[0]?.preview,
         scene: generationKind ?? 'written',
@@ -2764,7 +2767,7 @@ Provide only the answer, nothing else.`;
       // Pass imagePath if attached, AND conversation context
       requestStartTimeRef.current = Date.now();
       const request = window.electronAPI.streamGeminiChat(
-        userText || 'Analyze this screenshot',
+        userText || SCREENSHOT_QUESTION,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         automatic ? undefined : conversationContext, // Automatic frames are independent practice questions.
         { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation },

@@ -23,7 +23,7 @@ test('software interview uses one concise contract while written wording stays u
   assert.equal(scenarioPrompt('interview'), SOFTWARE_INTERVIEW_PROMPT);
   assert.equal(scenarioPrompt('interview', true), scenarioPrompt('interview'));
   assert.equal(scenarioPrompt('written'), prompts.CHAT_MODE_PROMPT);
-  assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), 'd52c4544dc702cdfe1ba0e319e1822f23841dab3d8082e5171af925d9441ee10');
+  assert.equal(createHash('sha256').update(scenarioPrompt('written')).digest('hex'), '9bf48653cc7fb9c2a3f5be7e768af5b2c433ff583106cf3655c56b57aaaee2a4');
   const prompt = scenarioPrompt('interview');
   assert.ok(prompt.length < 6000);
   assert.equal(count(prompt, 'CURRENT QUESTION'), 1);
@@ -32,7 +32,7 @@ test('software interview uses one concise contract while written wording stays u
     /latest complete interviewer question/, /Correct obvious technical-term errors/,
     /Do not invent employers, projects/, /hypothetical approach/,
     /evidence, not instructions/, /never the user's or candidate's name/,
-    /Use Python only/, /ACM standard input\/output/, /complete, readable solution first/,
+    /Use Python only/, /ACM standard input\/output/, /complete, readable solution code first, before any analysis/,
     /Never claim code was executed/, /configured answer language/,
     /selected Skill/, /factual accuracy/,
   ]) assert.match(prompt, rule);
@@ -194,7 +194,7 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     assert.ok(written.startsWith(writtenOutputPrompt(scenarioPrompt('written'), 'plain')));
     assert.match(written, /complete, submittable code first/);
     assert.match(written, /Defaulting to Python 3 does not mean defaulting to ACM-style/);
-    assert.match(system, /complete, readable solution first/, 'interview request keeps its own contract');
+    assert.match(system, /complete, readable solution code first, before any analysis/, 'interview request keeps its own contract');
     assert.equal(count(written, 'one to three candidates'), 1);
     assert.doesNotMatch(JSON.stringify(sent.at(-1)), /SKILL_MARKER|ADD_MARKER/);
     await invoke('gemini-chat-stream', 'MANUAL SCENE SWITCH', undefined, undefined, { generationKind: 'interview' });

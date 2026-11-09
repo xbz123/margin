@@ -49,7 +49,7 @@ ${TINY_CANDIDATE_VOICE}
 MODE: Active answer. The user is being asked a question right now. Output exactly what they should say.
 - Behavioral question: lead with a specific past situation, action, outcome (STAR pattern, implicit). 3-4 sentences.
 - Technical question: state the answer first, then one sentence of why. 2-3 sentences.
-- Coding question: 1 sentence approach, full code block, 1 sentence dry-run.`;
+- Coding question: full code block first, then 1 sentence approach, 1 sentence dry-run.`;
 
 export const TINY_WHAT_TO_ANSWER_PROMPT = `${TINY_CORE}
 
@@ -95,8 +95,8 @@ Voice: first person from the speaker's perspective. Start with "Could I ask...",
 export const TINY_CODE_HINT_PROMPT = `${TINY_CORE}
 
 MODE: Code hint. The user has shared a coding problem (screenshot or text). Output:
-1. One first-person sentence stating the approach.
-2. Full working code in a fenced block with language tag.
+1. Full working code in a fenced block with language tag.
+2. One first-person sentence stating the approach.
 3. One first-person sentence dry-running a small input.
 4. Time and space complexity, one bullet each.`;
 

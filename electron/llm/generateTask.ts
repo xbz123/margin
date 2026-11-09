@@ -59,6 +59,8 @@ export class GenerationTask<T = unknown> {
     errorMessage?: string;
     actualTarget: T;
     terminalStatus?: GenerationMetadata['status'];
+    private sending = false;
+    private inputWithdrawn = false;
     private firstTimer?: () => void;
     private totalTimer?: () => void;
     private detach?: () => void;
@@ -92,9 +94,24 @@ export class GenerationTask<T = unknown> {
         this.signal.throwIfAborted();
     }
 
+    /** Withdraws the input. A send already under way has delivered it, so it keeps its
+     *  answer (user request 2026-11-09) and true is returned; any later send, such as a
+     *  retry or the backup model, is cancelled instead. */
+    withdrawInput(): boolean {
+        this.inputWithdrawn = true;
+        return this.sending;
+    }
+
+    /** The current send has ended. Once the input is withdrawn, no further attempt starts. */
+    endSend(): void {
+        this.sending = false;
+        if (this.inputWithdrawn) this.controller.abort(new DOMException('Request input was withdrawn', 'AbortError'));
+    }
+
     claimSend(target?: T): void {
         this.check();
         if (this.sends >= this.sendLimit) throw new Error('Generation send budget exhausted');
+        this.sending = true;
         this.sends++;
         this.firstSendAt ??= Date.now();
         if (target !== undefined) this.actualTarget = target;
@@ -241,6 +258,7 @@ export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T
                 else { task.terminalStatus = event.status; yield event; return; }
             } } finally { if (source.return) void Promise.resolve(source.return()).catch(() => {}); }
         } catch (error) { failure = error; }
+        task.endSend();
         failure ??= new GenerationResultError('incomplete', task.hasText);
         task.check(); rethrowProviderScopeError(failure);
         if (task.hasText && (failure as any)?.name !== 'GenerationResultError') failure = Object.assign(new GenerationResultError('failed', true), { cause: failure });

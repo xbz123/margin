@@ -275,6 +275,23 @@ test('S42-04 removing the attached screenshot through the actual UI revokes its 
   } finally { mock.setScript({ errorStatus: 0 }); }
 });
 
+test('closing the attached screenshot while its answer streams keeps that answer', async () => {
+  await pressScreenshotShortcut();
+  await overlay.getByAltText('Screenshot 1', { exact: true }).waitFor();
+  const cancelledBefore = await overlay.locator('[data-generation-status="cancelled"]').count();
+  mock.setScript({ errorStatus: 0, chunks: ['Kept ', 'screenshot ', 'answer complete.'], delayMs: 800 });
+  try {
+    await ask('Screenshot question to keep');
+    assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
+    await overlay.waitForFunction(() => document.body.innerText.includes('Kept'));
+    await overlay.getByRole('button', { name: 'Remove all', exact: true }).click();
+    await overlay.getByAltText('Screenshot 1', { exact: true }).waitFor({ state: 'hidden' });
+    await overlay.waitForFunction(() => document.body.innerText.includes('Kept screenshot answer complete.'), null, { timeout: 20_000 });
+    assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), cancelledBefore);
+    assert.ok(!(await overlayText()).includes('withdrawn'));
+  } finally { mock.setScript({ errorStatus: 0 }); }
+});
+
 test('after cancel, and after a new stream has started, events of the old stream are not shown', async () => {
   await installStreamIdSpy();
   await installDeliveryRecorder();

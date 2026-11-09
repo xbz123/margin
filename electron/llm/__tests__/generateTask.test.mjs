@@ -73,6 +73,22 @@ test('AG33 cancellation between attempts preserves status and does not open the 
   assert.equal(task.terminalStatus, 'cancelled'); assert.deepEqual(sent, ['A']); task.close();
 });
 
+test('withdrawn input keeps the send under way but never reaches a retry or the backup', async () => {
+  const done = new GenerationTask('A', 'B');
+  const events = await drain(generateTask(done, async function* () {
+    done.claimSend(); assert.equal(done.withdrawInput(), true);
+    yield { type: 'delta', text: 'kept' }; yield { type: 'done', status: 'completed' };
+  }));
+  assert.deepEqual(events.map(event => event.type), ['delta', 'done']); assert.equal(done.terminalStatus, 'completed'); done.close();
+  const failing = new GenerationTask('A', 'B'); const sent = [];
+  await assert.rejects(() => drain(generateTask(failing, async function* (target) {
+    failing.claimSend(); sent.push(target); failing.withdrawInput(); throw { status: 503 };
+  })), { name: 'AbortError', message: 'Request input was withdrawn' });
+  assert.deepEqual(sent, ['A']); assert.equal(failing.terminalStatus, 'cancelled'); failing.close();
+  const idle = new GenerationTask('A');
+  assert.equal(idle.withdrawInput(), false, 'before a send the caller cancels the task'); idle.close();
+});
+
 test('AG33 explicit server image rejection is terminal even with a transient HTTP status', async () => {
   const task = new GenerationTask('A', 'B'); const targets = [];
   const failure = { status: 503, error: { code: 'unsupported_image' } };
