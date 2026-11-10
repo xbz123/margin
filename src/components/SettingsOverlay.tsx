@@ -1104,7 +1104,12 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
             soniox: sttSonioxKey,
         };
         const keyToTest = keyMap[sttProvider] || '';
-        if (!keyToTest.trim()) {
+        const hasStoredKeyMap: Record<string, boolean> = {
+            groq: hasStoredSttGroqKey, openai: hasStoredSttOpenaiKey,
+            soniox: hasStoredSonioxKey,
+        };
+        // An empty box tests the saved key in the main process.
+        if (!keyToTest.trim() && !hasStoredKeyMap[sttProvider]) {
             setSttTestStatus('error');
             setSttTestError('Please enter an API key first');
             return;

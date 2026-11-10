@@ -28,6 +28,7 @@ import { outboundAxios as axios, openAiSttEndpoint } from './services/outbound';
 import { openExternalLink } from './services/navigationPolicy';
 import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
+import { sttKeyPreview, isSttKeyPreview, sttKeyToTest, sttPreviewSaveResult } from './utils/sttKeyPreview';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
 import { registerLocalContextHandlers } from './ipc/localContextHandlers';
 import { SpeechActions, SpeechActionError, type SpeechAction, type SpeechActionKind } from './ipc/speechActions';
@@ -83,6 +84,11 @@ export function initializeIpcHandlers(appState: AppState): void {
     if (!key.trim() && CredentialsManager.getInstance().getSttProvider() === provider) {
       appState.discardSttProviders();
     }
+  };
+  const savedSttKey = (provider: 'groq' | 'openai' | 'soniox'): string | undefined => {
+    const { CredentialsManager } = require('./services/CredentialsManager');
+    const cm = CredentialsManager.getInstance();
+    return provider === 'groq' ? cm.getGroqSttApiKey() : provider === 'openai' ? cm.getOpenAiSttApiKey() : cm.getSonioxApiKey();
   };
   const speechActions = new SpeechActions({
     beginTask: startedAt => appState.processingHelper.getLLMHelper().beginGenerationTask('interview', undefined, undefined, startedAt),
@@ -1258,9 +1264,9 @@ export function initializeIpcHandlers(appState: AppState): void {
         // STT key values — returned so the settings UI can pre-populate input fields.
         // SECURITY FIX (P0): Return masked keys only, never raw API keys.
         // The hasSttGroqKey boolean tells UI if key exists — no raw key needed.
-        sttGroqKey: creds.groqSttApiKey ? `sk-...${creds.groqSttApiKey.slice(-4)}` : '',
-        sttOpenaiKey: creds.openAiSttApiKey ? `sk-...${creds.openAiSttApiKey.slice(-4)}` : '',
-        sttSonioxKey: creds.sonioxApiKey ? `sk-...${creds.sonioxApiKey.slice(-4)}` : '',
+        sttGroqKey: sttKeyPreview(creds.groqSttApiKey),
+        sttOpenaiKey: sttKeyPreview(creds.openAiSttApiKey),
+        sttSonioxKey: sttKeyPreview(creds.sonioxApiKey),
         openAiSttBaseUrl: creds.openAiSttBaseUrl || '',
         // Dynamic Model Discovery - preferred models
         geminiPreferredModel: creds.geminiPreferredModel || undefined,
@@ -1381,6 +1387,8 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('set-groq-stt-api-key', async (_, apiKey: string) => {
+    // Saving the pre-filled preview keeps the saved key instead of storing the preview text.
+    if (isSttKeyPreview(apiKey)) return sttPreviewSaveResult(savedSttKey('groq'));
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setGroqSttApiKey(apiKey), async () => {
       discardRemovedSttKey('groq', apiKey);
@@ -1391,6 +1399,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('set-openai-stt-api-key', async (_, apiKey: string) => {
+    if (isSttKeyPreview(apiKey)) return sttPreviewSaveResult(savedSttKey('openai'));
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setOpenAiSttApiKey(apiKey), async () => {
       discardRemovedSttKey('openai', apiKey);
@@ -1425,6 +1434,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('set-soniox-api-key', async (_, apiKey: string) => {
+    if (isSttKeyPreview(apiKey)) return sttPreviewSaveResult(savedSttKey('soniox'));
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => CredentialsManager.getInstance().setSonioxApiKey(apiKey), async () => {
       discardRemovedSttKey('soniox', apiKey);
@@ -1456,6 +1466,9 @@ export function initializeIpcHandlers(appState: AppState): void {
       console.log(`[IPC] Received test - stt - connection request for provider: ${provider} `);
       try {
         if (!['groq', 'openai', 'soniox'].includes(provider)) return { success: false, error: 'Invalid STT provider' };
+        // The settings box holds only the saved key's preview; that preview or an empty box tests the saved key.
+        apiKey = sttKeyToTest(apiKey, savedSttKey(provider));
+        if (!apiKey) return { success: false, error: 'Please enter an API key first' };
 
         if (provider === 'soniox') {
           // Test Soniox via WebSocket connection.

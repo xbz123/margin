@@ -479,9 +479,11 @@ function handler(channel, context) {
     && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'persistCredentials', {});
   const discardRemovedSttKey = expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node)
     && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'discardRemovedSttKey', context);
+  const savedSttKey = expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node)
+    && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'savedSttKey', context);
   return expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isCallExpression(node.parent)
     && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel, {
-      persistCredentials, discardRemovedSttKey, LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId, providerCandidates: targetModule.exports.providerCandidates,
+      persistCredentials, discardRemovedSttKey, savedSttKey, ...require('../../../dist-electron/electron/utils/sttKeyPreview.js'), LLM_PRESETS: targets, modelTargetId: targetModule.exports.modelTargetId, providerCandidates: targetModule.exports.providerCandidates,
       ANSWER_APPLY_WARNING: expression('electron/ipcHandlers.ts', node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent)
         && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {}),
       ANSWER_PROVIDERS: targetModule.exports.ANSWER_PROVIDERS, sanitizeErrorMessage: message => message,
@@ -1081,6 +1083,74 @@ test('AG24: all active STT key removals discard only after a successful save', a
         assert.equal(discards, save.ok && active === provider ? 1 : 0, channel);
       }
     }
+  }
+});
+
+// Settings pre-fills the STT key box with sttKeyPreview(saved key) only; that preview must never be sent or saved as a key.
+const { sttKeyPreview } = require('../../../dist-electron/electron/utils/sttKeyPreview.js');
+const sttIpc = (manager, extra = {}) => ({
+  require: id => id === 'form-data' ? require('form-data') : { CredentialsManager: { getInstance: () => manager } },
+  appState: { discardSttProviders() {} }, BrowserWindow: { getAllWindows: () => [] }, Buffer, ...extra,
+});
+
+test('STT Test Connection with the pre-filled preview or an empty box sends the saved key; a typed key is sent as typed', async () => {
+  const disk = storage(), manager = disk.boot();
+  const sent = [], sockets = [];
+  const context = sttIpc(manager, { axios: { post: async (url, _form, options) => { sent.push([url, options.headers.Authorization]); return { data: {} }; } } });
+  const baseRequire = context.require;
+  context.require = id => id === 'ws' ? (sockets.push(id), class {}) : baseRequire(id);
+  assert.equal((await handler('set-groq-stt-api-key', context)({}, 'gsk_synthetic_saved_groq_7a1b')).ok, true);
+  const preview = sttKeyPreview(manager.getGroqSttApiKey());
+  assert.equal(preview, 'sk-...7a1b');
+  const groq = 'https://api.groq.com/openai/v1/audio/transcriptions';
+  const testStt = handler('test-stt-connection', context);
+  for (const [box, bearer] of [[preview, 'gsk_synthetic_saved_groq_7a1b'], [` ${preview} `, 'gsk_synthetic_saved_groq_7a1b'],
+    ['', 'gsk_synthetic_saved_groq_7a1b'], [' gsk_synthetic_typed_new_2c2c ', 'gsk_synthetic_typed_new_2c2c']]) {
+    assert.deepEqual(plain(await testStt({}, 'groq', box)), { success: true }, JSON.stringify(box));
+    assert.deepEqual(sent.pop(), [groq, `Bearer ${bearer}`], JSON.stringify(box));
+  }
+  // Nothing saved for OpenAI or Soniox: an empty box or a preview is refused before any request or socket.
+  for (const [provider, box] of [['openai', ''], ['openai', preview], ['soniox', ''], ['soniox', preview]]) {
+    assert.deepEqual(plain(await testStt({}, provider, box)), { success: false, error: 'Please enter an API key first' }, `${provider} ${box}`);
+  }
+  assert.deepEqual(sent, []);
+  assert.deepEqual(sockets, []);
+});
+
+test('saving the pre-filled STT preview keeps the saved key; with nothing saved it is refused without a write', async () => {
+  const disk = storage(), manager = disk.boot();
+  for (const [channel, getter, saved] of [['set-groq-stt-api-key', 'getGroqSttApiKey', 'gsk_synthetic_groq_7a1b'],
+    ['set-openai-stt-api-key', 'getOpenAiSttApiKey', 'sk-synthetic-openai-3d3d'], ['set-soniox-api-key', 'getSonioxApiKey', 'synthetic-soniox-5e5e']]) {
+    const save = handler(channel, sttIpc(manager));
+    const preview = sttKeyPreview(saved);
+    const empty = disk.files.get(disk.filename);
+    assert.deepEqual(plain(await save({}, preview)), { ok: false, code: 'write_failed', message: 'Please enter an API key first' }, channel);
+    assert.equal(manager[getter](), undefined, channel);
+    assert.deepEqual(disk.files.get(disk.filename), empty, channel);
+    assert.equal((await save({}, saved)).ok, true, channel);
+    const written = disk.files.get(disk.filename);
+    assert.deepEqual(plain(await save({}, ` ${preview} `)), { ok: true }, channel);
+    assert.equal(manager[getter](), saved, channel);
+    assert.deepEqual(disk.files.get(disk.filename), written, `${channel} writes nothing for the preview`);
+    assert.equal(disk.boot()[getter](), saved, `${channel} keeps the saved key across restart`);
+  }
+});
+
+test('settings Test Connection with an empty STT box reaches the main process only when a key is saved', async () => {
+  for (const [box, hasStored, expectedCalls, status] of [['', true, [['groq', '']], 'success'], ['', false, [], 'error'],
+    ['sk-...7a1b', true, [['groq', 'sk-...7a1b']], 'success']]) {
+    const calls = [], statuses = [], errors = [];
+    const run = expression('src/components/SettingsOverlay.tsx', node => ts.isArrowFunction(node)
+      && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'handleTestSttConnection', {
+      sttProvider: 'groq', sttGroqKey: box, sttOpenaiKey: '', sttSonioxKey: '',
+      hasStoredSttGroqKey: hasStored, hasStoredSttOpenaiKey: false, hasStoredSonioxKey: false,
+      setSttTestStatus: value => statuses.push(value), setSttTestError: value => errors.push(value), setTimeout: () => 0,
+      window: { electronAPI: { testSttConnection: async (...args) => { calls.push(args); return { success: true }; } } },
+    });
+    await run();
+    assert.deepEqual(calls, expectedCalls, `${JSON.stringify(box)} ${hasStored}`);
+    assert.equal(statuses.at(-1), status);
+    if (status === 'error') assert.deepEqual(errors, ['Please enter an API key first']);
   }
 });
 
