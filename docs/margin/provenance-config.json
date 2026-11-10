@@ -640,6 +640,8 @@
     {"line":"align?: 'center' | 'start';","reason":"Public CI sync (2026-11-09): flagged after the upstream pool grew, not by a change on this branch; SettingsKit.tsx: an optional alignment prop. Generic React prop type."},
     {"line":"src: url('./font/Inter-4.1/web/InterVariable.woff2') format('woff2');","reason":"Public CI sync (2026-11-09): flagged after the upstream pool grew, not by a change on this branch; index.css: the @font-face source for the bundled Inter font. Generic CSS font declaration."},
     {"line":"failed = true;","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; MeetingSttSession.ts: sets a local failure flag. Generic assignment."},
-    {"line":"const preload = fs.readFileSync(path.join(ROOT, 'electron/preload.ts'), 'utf8');","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; preload-contract-check.mjs: reads this repository's own preload source for the contract gate. Generic Node file read."}
+    {"line":"const preload = fs.readFileSync(path.join(ROOT, 'electron/preload.ts'), 'utf8');","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; preload-contract-check.mjs: reads this repository's own preload source for the contract gate. Generic Node file read."},
+    {"line":"import { sliceSafeHandleBlock } from './ipcTestUtils.mjs';","reason":"Added with the STT saved-key preview fix (2026-11-10); SttSavedKeyPreview.test.mjs: imports this repository's own IPC test helper, as the neighbouring STT tests do. Generic ES module import."},
+    {"line":"const root = path.resolve(dirname, '../../..');","reason":"Added with the STT saved-key preview fix (2026-11-10); SttSavedKeyPreview.test.mjs: resolves the repository root from the test directory. Generic Node path resolution."}
   ]
 }
