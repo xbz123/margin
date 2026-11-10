@@ -261,6 +261,184 @@ test('S42-03 dictation keeps the fragment open at its mark and excludes speech a
   assert.deepEqual(serialize(frozen.value.dictationKeys), ['user:1:open', 'user:1:next']);
 });
 
+// Stop at the current time and wait out the unknown-provider tail; `tail` speaks after the stop.
+async function stopDictation(session, advance, mark, tail = () => {}) {
+  const cut = Date.now();
+  const collector = session.collect({ cutoffAt: cut, deadline: cut + 10_000, signal: new AbortController().signal, dictation: mark });
+  collector.setStage1End(cut);
+  await advance(300);
+  tail();
+  await advance(3000);
+  return collector.frozen;
+}
+
+test('S42-03 an interim never revised after Answer stays out of this and every later dictation', async t => {
+  const { session, user, advance } = meeting(t);
+  // Doubao left this utterance open and never sent its definite result.
+  user.emit('transcript', { segmentId: '5120', epoch: 'req-1', text: '我上次说到一半的话', isFinal: false });
+  await advance(20_000);
+  let mark = session.markDictation(Date.now());
+  assert.deepEqual(serialize(mark.open), ['user:1:req-1:5120'], 'the lone interim is still the newest microphone fragment');
+  await advance(50);
+  user.emit('transcript', { segmentId: '26000', epoch: 'req-1', text: '第一个问题是什么', isFinal: true });
+  let frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '第一个问题是什么');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:26000']);
+
+  await advance(5000);
+  mark = session.markDictation(Date.now());
+  assert.deepEqual(serialize(mark.open), [], 'newer speech replaced the abandoned interim');
+  await advance(50);
+  user.emit('transcript', { segmentId: '36000', epoch: 'req-1', text: '第二个', isFinal: false });
+  await advance(400);
+  user.emit('transcript', { segmentId: '36000', epoch: 'req-1', text: '第二个问题', isFinal: true });
+  frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '第二个问题');
+});
+
+test('S42-03 an interim left by a closed connection is not dictated; the new connection final is', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: '800', epoch: 'req-dropped', text: 'words cut off by the reconnect', isFinal: false });
+  await advance(1000);
+  const mark = session.markDictation(Date.now());
+  await advance(50);
+  user.emit('transcript', { segmentId: '0', epoch: 'req-new', text: 'how does a B tree split', isFinal: false });
+  await advance(500);
+  user.emit('transcript', { segmentId: '0', epoch: 'req-new', text: 'how does a B tree split a node', isFinal: true });
+  const frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, 'how does a B tree split a node');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-new:0']);
+});
+
+test('S42-03 an interim replaced by a newer fragment is dropped while the open sentence crossing Answer joins whole', async t => {
+  const { session, user, advance } = meeting(t);
+  // The same sentence moved to a new start time; the first key is never revised again.
+  user.emit('transcript', { segmentId: '1000', epoch: 'req-1', text: 'what is', isFinal: false });
+  await advance(100);
+  user.emit('transcript', { segmentId: '1040', epoch: 'req-1', text: 'what is a', isFinal: false });
+  await advance(100);
+  const mark = session.markDictation(Date.now());
+  assert.deepEqual(serialize(mark.open), ['user:1:req-1:1040']);
+  await advance(50);
+  user.emit('transcript', { segmentId: '1040', epoch: 'req-1', text: 'what is a heap', isFinal: false });
+  await advance(300);
+  user.emit('transcript', { segmentId: '1040', epoch: 'req-1', text: 'what is a heap used for', isFinal: true });
+  await advance(300);
+  user.emit('transcript', { segmentId: '4000', epoch: 'req-1', text: 'give an example', isFinal: true });
+  const frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, 'what is a heap used for give an example');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:1040', 'user:1:req-1:4000']);
+});
+
+test('S42-03 a sentence open at Answer that is finalized only during the stop tail is kept', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'leftover', epoch: 'req-0', text: 'stale leftover', isFinal: false });
+  await advance(100);
+  user.emit('transcript', { segmentId: 'open', epoch: 'req-1', text: 'tell me', isFinal: false });
+  await advance(100);
+  const mark = session.markDictation(Date.now());
+  await advance(1500);
+  const frozen = await stopDictation(session, advance, mark,
+    () => user.emit('transcript', { segmentId: 'open', epoch: 'req-1', text: 'tell me about yourself', isFinal: true }));
+  assert.equal(frozen.dictation, 'tell me about yourself');
+});
+
+test('S42-03 a fragment open at Answer keeps joining after three minutes of other dictated speech', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'opening', text: 'so the first part', isFinal: false });
+  await advance(10);
+  const mark = session.markDictation(Date.now());
+  await advance(10);
+  user.emit('transcript', { segmentId: 'middle', text: 'and the long middle', isFinal: true });
+  await advance(200_000);
+  const frozen = await stopDictation(session, advance, mark,
+    () => user.emit('transcript', { segmentId: 'opening', text: 'so the first part is done', isFinal: true }));
+  assert.equal(frozen.dictation, 'so the first part is done and the long middle');
+});
+
+test('S42-03 an empty speech start before Answer does not displace the open fragment from the three-minute exemption', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { itemId: 'i1', text: 'so the first part', isFinal: false });
+  await advance(10);
+  user.emit('transcript', { itemId: 'i2', text: '', started: true });
+  await advance(10);
+  const mark = session.markDictation(Date.now());
+  assert.deepEqual(serialize(mark.open), ['user:1:i1'], 'a speech start without text replaces nothing');
+  await advance(10);
+  user.emit('transcript', { itemId: 'i2', text: 'and the long middle', isFinal: true });
+  await advance(200_000);
+  const frozen = await stopDictation(session, advance, mark,
+    () => user.emit('transcript', { itemId: 'i1', text: 'so the first part is done', isFinal: true }));
+  assert.equal(frozen.dictation, 'so the first part is done and the long middle');
+});
+
+test('S42-03 an interim said just before Answer and never updated is dictated alone', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'just-said', epoch: 'req-1', text: '红黑树和AVL树的区别', isFinal: false });
+  await advance(1200);
+  const mark = session.markDictation(Date.now());
+  const frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '红黑树和AVL树的区别');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:just-said']);
+});
+
+test('S42-03 an interim said just before Answer joins ahead of newer dictated speech', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'just-said', epoch: 'req-1', text: '红黑树和AVL树的区别', isFinal: false });
+  await advance(1200);
+  const mark = session.markDictation(Date.now());
+  await advance(300);
+  user.emit('transcript', { segmentId: 'next', epoch: 'req-1', text: '各自适合什么场景', isFinal: false });
+  await advance(400);
+  user.emit('transcript', { segmentId: 'next', epoch: 'req-1', text: '各自适合什么场景', isFinal: true });
+  const frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '红黑树和AVL树的区别 各自适合什么场景');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:just-said', 'user:1:req-1:next']);
+});
+
+test('S42-03 an interim twenty seconds before Answer and never updated is not dictated', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'stale', epoch: 'req-1', text: '很早之前的话', isFinal: false });
+  await advance(20_000);
+  const mark = session.markDictation(Date.now());
+  assert.deepEqual(serialize(mark.open), ['user:1:req-1:stale']);
+  const frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '');
+});
+
+test('S42-03 a just-said interim joins only the dictation it preceded, not the next one', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'just-said', epoch: 'req-1', text: '红黑树和AVL树的区别', isFinal: false });
+  await advance(1200);
+  let mark = session.markDictation(Date.now());
+  let frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '红黑树和AVL树的区别');
+
+  await advance(2000);
+  mark = session.markDictation(Date.now());
+  assert.ok(mark.at - 0 > 5000, 'the interim (updated at 0) is now more than five seconds older than the mark');
+  await advance(50);
+  user.emit('transcript', { segmentId: 'second', epoch: 'req-1', text: '第二个问题', isFinal: true });
+  frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '第二个问题');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:second']);
+});
+
+test('S42-03 a finals-only provider dictates the finals after Answer and not an old corrected final', async t => {
+  const { session, user, advance } = meeting(t);
+  user.emit('transcript', { segmentId: 'rest:b0', scope: 'rest:b0', text: 'said before answer', isFinal: true });
+  await advance(100);
+  const mark = session.markDictation(Date.now());
+  await advance(100);
+  user.emit('transcript', { segmentId: 'rest:b0', scope: 'rest:b0', text: 'said before answer, corrected', isFinal: true });
+  user.emit('transcript', { segmentId: 'rest:b1', scope: 'rest:b1', text: 'first batch', isFinal: true });
+  await advance(1000);
+  user.emit('transcript', { segmentId: 'rest:b2', scope: 'rest:b2', text: 'second batch', isFinal: true });
+  const frozen = await stopDictation(session, advance, mark,
+    () => user.emit('transcript', { segmentId: 'rest:b3', scope: 'rest:b3', text: 'after stop', isFinal: true }));
+  assert.equal(frozen.dictation, 'first batch second batch');
+});
+
 test('S42-03 manual collection never finishes provider tasks; cancellation, a new session and drain release the collector', async t => {
   const { session, user, interviewer, advance } = meeting(t);
   let finishes = 0;

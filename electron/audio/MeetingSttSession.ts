@@ -95,7 +95,11 @@ export interface FrozenSpeech {
 export interface DictationMark {
   sessionId: string | null;
   at: number;
-  /** Microphone fragments still open when the mark was made; they belong to the dictation. */
+  /**
+   * Microphone fragments still live (interim, not replaced) when the mark was made. One joins the
+   * dictation only if it is revised or finalized after the mark, or was last updated within a few
+   * seconds before it; otherwise it is left-over speech.
+   */
   open?: readonly string[];
 }
 export interface CollectOptions {
@@ -139,6 +143,8 @@ export const RECEIPT_WINDOW_MS = 750;
 export const PENDING_TAIL_MS = 3000;
 export const SETTLED_TAIL_MS = 1000;
 const SNAPSHOT_WINDOW_MS = 180_000;
+/** An interim live at the mark and updated at most this long before it is speech just said, dictated without a later update. */
+const DICTATION_FRESH_INTERIM_MS = 5000;
 const LEDGER_LIMIT = 2000;
 
 // Each binding owns its listeners and transcript revisions; replacing it invalidates queued callbacks.
@@ -277,7 +283,12 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
   }
 
   markDictation(at: number): DictationMark {
-    const open = [...this.ledger.values()].filter(record => record.channel === 'user' && record.state === 'interim').map(record => record.key);
+    const user = [...this.ledger.values()].filter(record => record.channel === 'user');
+    // An interim that stopped changing before later microphone speech began was replaced, not left open:
+    // a reconnect, a moved start time or a fallback key can leave one that is never revised again.
+    // Only speech with text counts: an empty speech-start record (speech_started, sentence_begin) replaces nothing yet.
+    const latestStart = Math.max(-Infinity, ...user.filter(record => record.text.trim()).map(record => record.firstSeenAt));
+    const open = user.filter(record => record.state === 'interim' && !(latestStart > record.updatedAt)).map(record => record.key);
     return Object.freeze({ sessionId: this.session, at, open: Object.freeze(open) });
   }
 
@@ -297,6 +308,18 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       throw Object.assign(new Error('Dictation is too long to collect completely'), { name: 'DictationOverflowError' });
     }
     const sessionId = this.session;
+    // Microphone speech of this dictation: first heard after the mark, a fragment still open at the
+    // mark that was revised or finalized after it, or one open at the mark whose last update came at
+    // most DICTATION_FRESH_INTERIM_MS before it (just said, its final may never arrive in time).
+    // Any other interim never touched again after the mark is left-over speech and stays out.
+    const openAtMark = new Set(mark?.sessionId === sessionId ? mark.open : undefined);
+    const revised = (record: SegmentRecord) => record.channel === 'user' && mark?.sessionId === sessionId
+      && record.updatedAt > mark.at && (record.finalAt ?? Infinity) > mark.at;
+    const fresh = (record: SegmentRecord) => record.channel === 'user' && mark?.sessionId === sessionId
+      && record.state === 'interim' && openAtMark.has(record.key) && mark.at - record.updatedAt <= DICTATION_FRESH_INTERIM_MS;
+    // A fresh interim whose connection was replaced (later speech from another epoch) was cut off, not just said.
+    const abandoned = (record: SegmentRecord, others: readonly SegmentRecord[]) => record.epoch !== undefined
+      && others.some(other => other.text.trim() && other.epoch !== undefined && other.epoch !== record.epoch && other.firstSeenAt > record.updatedAt);
     const cutoffAt = options.cutoffAt;
     let stage1End = cutoffAt + RECEIPT_WINDOW_MS;
     let receiptKnown = false;
@@ -352,12 +375,10 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     const snapshot = (): FrozenSpeech => {
       const channels = {} as FrozenSpeech['channels'];
       const spoken: SegmentRecord[] = [];
-      const mark = options.dictation;
       for (const lane of lanes) {
         const records = recordsAt(lane, ending(lane)).sort((a, b) => a.firstSeenAt - b.firstSeenAt);
-        if (lane.channel === 'user' && mark?.sessionId === sessionId) {
-          spoken.push(...records.filter(record => record.text.trim() && (record.firstSeenAt > mark.at || (record.finalAt ?? Infinity) > mark.at)));
-        }
+        spoken.push(...records.filter(record => record.text.trim()
+          && (revised(record) || (fresh(record) && !abandoned(record, records)))));
         const segments = records
           .map(record => Object.freeze({ key: record.key, channel: record.channel, text: record.text, final: record.final,
             revision: record.revision, firstSeenAt: record.firstSeenAt, epoch: record.epoch, media: record.media && Object.freeze({ ...record.media }) }));
@@ -375,9 +396,8 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       const ownedScope = record.scope !== undefined && lane.scopes.has(record.scope);
       if (!lane.history.has(record.key) && !(initial && record.firstSeenAt <= cutoffAt) && !ownedScope) return;
       if (record.identityReliable === false && !ownedScope && (!initial || record.updatedAt > cutoffAt)) return;
-      const mark = options.dictation;
-      const dictated = lane.channel === 'user' && mark?.sessionId === sessionId && (record.firstSeenAt > mark.at || (record.finalAt ?? Infinity) > mark.at);
-      if (!dictated && record.updatedAt < cutoffAt - SNAPSHOT_WINDOW_MS) return;
+      // A fragment open at the mark is kept past the window so a revision during the tail can still join it.
+      if (!revised(record) && !openAtMark.has(record.key) && record.updatedAt < cutoffAt - SNAPSHOT_WINDOW_MS) return;
       const versions = lane.history.get(record.key) ?? [];
       if (versions.at(-1)?.revision === record.revision) return;
       if (++revisionCount > 8192 || (revisionChars += record.text.length) > 2_097_152) {
