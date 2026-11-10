@@ -116,6 +116,17 @@ or successful API call is not proof of invisibility, and a black replacement
 rectangle is not an acceptable result. Verified combinations will be recorded
 here with OS version, application version, sharing mode and observed result.
 
+**Quitting on Windows while window protection is on.** Closing the launcher
+(the title-bar button or `Alt+F4`) only hides it; the app keeps running. With
+protection on there is no tray icon and, once the launcher is hidden, no taskbar
+button either, so the only in-app way to quit is **Settings → Quit**. To reach
+it, bring the window back with the show/hide shortcut (`Ctrl+B` by default) or
+by starting the app again, click the window once to focus it, then open
+Settings. During a meeting, end the meeting first to return to the launcher.
+With protection off, the tray menu also offers Quit. There is no quit shortcut,
+and Windows shutdown or sign-out is not handled: end the meeting before
+shutting down, or its record may be lost.
+
 Tests use synthetic data and loopback transports. Local/macOS CI checks do not
 establish real-device, real-provider, Windows/Linux, keychain or adversarial
 security acceptance. This branch has no local model downloads, managed API,
