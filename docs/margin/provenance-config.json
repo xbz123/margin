@@ -635,6 +635,8 @@
     {"line":"return candidate;","reason":"Ported with S50 from the Mac line (2026-11-09), same registration: S50 mode revision: independently returns the validated saved settings object; generic local-variable return, not AnswerPlanner or another upstream function body."},
     {"line":"t.mock.timers.tick(5000);","reason":"Ported with S50 from the Mac line (2026-11-09), same registration: S50: Node mock clock advanced by the documented minimum capture interval in a synthetic IPC test."},
     {"line":"} catch (cause) {","reason":"Ported with S50 from the Mac line (2026-11-09), same registration: S50: ordinary catch syntax in the new settings hook; no restricted error-handling body copied."},
-    {"line":"generation: number;","reason":"Ported with S50 from the Mac line (2026-11-09), same registration: S50: numeric per-frame receipt field in the independently adapted shared contract; exact declaration only."}
+    {"line":"generation: number;","reason":"Ported with S50 from the Mac line (2026-11-09), same registration: S50: numeric per-frame receipt field in the independently adapted shared contract; exact declaration only."},
+    {"line":"failed = true;","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; MeetingSttSession.ts: sets a local failure flag. Generic assignment."},
+    {"line":"const preload = fs.readFileSync(path.join(ROOT, 'electron/preload.ts'), 'utf8');","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; preload-contract-check.mjs: reads this repository's own preload source for the contract gate. Generic Node file read."}
   ]
 }
