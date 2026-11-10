@@ -39,7 +39,9 @@ export function readMainErrors(file, pid) {
 
 // Starts the app in `sandbox` (from makeSandbox) with `extraEnv`. Aborts unless the
 // guard is active in the main process. Returns { app, output, mainErrorsLog, userDataPath } where
-// `output` holds the main process's stdout and stderr so far and `mainErrorsLog` is
+// `output` holds the main process's stdout and stderr so far, `mainPid` is the Electron
+// main process's own pid (on Windows Playwright starts it through cmd.exe, so
+// app.process().pid is the shell's) and `mainErrorsLog` is
 // the file record-main-errors.cjs writes (read it with readMainErrors). `appPath`
 // defaults to the repository build; AG-25 passes a downloaded package's app.asar.
 export async function launchApp(sandbox, extraEnv = {}, { appPath = REPO } = {}) {
@@ -67,6 +69,7 @@ export async function launchApp(sandbox, extraEnv = {}, { appPath = REPO } = {})
     try {
       startup = await app.evaluate(({ app: electronApp }) => ({
         guardActive: process.env.MARGIN_ISOLATION_ACTIVE,
+        pid: process.pid,
         userDataPath: electronApp.getPath('userData'),
       }));
       break;
@@ -89,11 +92,11 @@ export async function launchApp(sandbox, extraEnv = {}, { appPath = REPO } = {})
   // Fails now, not at the end of the test, if the recorder is not running or the
   // guard wrote no load record from this main process.
   try {
-    readMainErrors(mainErrorsLog, app.process().pid);
-    readGuardLog(sandbox, { pid: app.process().pid });
+    readMainErrors(mainErrorsLog, startup.pid);
+    readGuardLog(sandbox, { pid: startup.pid });
   } catch (e) {
     await app.close().catch(() => {});
     throw e;
   }
-  return { app, output, mainErrorsLog, userDataPath: startup.userDataPath };
+  return { app, output, mainErrorsLog, mainPid: startup.pid, userDataPath: startup.userDataPath };
 }

@@ -14,6 +14,9 @@ export const GUARD = fileURLToPath(new URL('./guard.cjs', import.meta.url));
 export const REPO = path.resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 
 const PASS_THROUGH = ['PATH', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TERM', 'USER', 'LOGNAME', 'SHELL', '__CF_USER_TEXT_ENCODING'];
+// Windows needs these to start processes and load system DLLs; none names the user.
+const WINDOWS_PASS_THROUGH = ['SystemRoot', 'windir', 'ComSpec', 'PATHEXT', 'SystemDrive', 'NUMBER_OF_PROCESSORS', 'PROCESSOR_ARCHITECTURE', 'OS'];
+const LEGACY_NAMES = ['Natively', 'natively', 'natively-local', 'Natively Local', 'ai assistant', 'Margin', 'temp'];
 
 export function makeSandbox(label = 'run') {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), `margin-isolation-${label}-`));
@@ -22,17 +25,36 @@ export function makeSandbox(label = 'run') {
   const tmp = path.join(root, 'tmp');
   for (const d of [home, work, tmp]) fs.mkdirSync(d, { recursive: true });
   // Synthetic legacy data exists before the guarded process starts. No real data is read.
-  for (const name of ['Natively', 'natively', 'natively-local', 'Natively Local', 'ai assistant', 'Margin', 'temp']) {
-    const dir = path.join(home, 'Library/Application Support', name);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'identity-sentinel'), 'synthetic protected data\n');
+  const dataRoots = ['Library/Application Support', ...(process.platform === 'win32' ? ['AppData/Roaming'] : [])];
+  for (const root of dataRoots) {
+    for (const name of LEGACY_NAMES) {
+      const dir = path.join(home, root, name);
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, 'identity-sentinel'), 'synthetic protected data\n');
+    }
   }
   return { root, home, work, tmp, log: path.join(root, 'isolation.jsonl') };
+}
+
+// On Windows, Node and Electron find the profile, app data and temp directories
+// through USERPROFILE, APPDATA, LOCALAPPDATA and TEMP/TMP, not HOME/TMPDIR, so those
+// point into the sandbox as well.
+export function windowsProfileEnv(sandbox, source = process.env) {
+  const env = {};
+  for (const k of WINDOWS_PASS_THROUGH) if (source[k] !== undefined) env[k] = source[k];
+  return Object.assign(env, {
+    USERPROFILE: sandbox.home,
+    APPDATA: path.join(sandbox.home, 'AppData', 'Roaming'),
+    LOCALAPPDATA: path.join(sandbox.home, 'AppData', 'Local'),
+    TEMP: sandbox.tmp,
+    TMP: sandbox.tmp,
+  });
 }
 
 export function isolatedEnv(sandbox, extra = {}) {
   const env = {};
   for (const k of PASS_THROUGH) if (process.env[k] !== undefined) env[k] = process.env[k];
+  if (process.platform === 'win32') Object.assign(env, windowsProfileEnv(sandbox));
   Object.assign(env, {
     HOME: sandbox.home,
     MARGIN_ISOLATION_HOME: sandbox.home,

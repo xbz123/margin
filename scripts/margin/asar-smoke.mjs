@@ -23,8 +23,7 @@ if (!fs.existsSync(asar)) throw new Error(`no app.asar in ${appBundle}`);
 const sandbox = makeSandbox('asar-smoke');
 const report = { app: path.basename(appBundle), checks: [] };
 const add = (id, passed, detail) => report.checks.push({ id, passed: !!passed, detail });
-const { app, mainErrorsLog } = await launchApp(sandbox, { NODE_ENV: 'production' }, { appPath: asar });
-const pid = app.process().pid;
+const { app, mainErrorsLog, mainPid: pid } = await launchApp(sandbox, { NODE_ENV: 'production' }, { appPath: asar });
 try {
   const launcher = await windowWithQuery(app, 'window=launcher', 30_000);
   await launcher.waitForLoadState('domcontentloaded');

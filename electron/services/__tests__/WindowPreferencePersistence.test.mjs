@@ -7,6 +7,8 @@ import ts from 'typescript';
 
 const root = path.resolve(import.meta.dirname, '../../..');
 const plain = value => JSON.parse(JSON.stringify(value));
+// SettingsManager joins its file name with the same path module the fixture injects.
+const SETTINGS_FILE = path.join('/synthetic', 'settings.json');
 function load(relative, imports, globals = {}) {
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, relative), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText,
@@ -42,15 +44,15 @@ function keysFixture(storage = disk()) {
 
 for (const failure of ['write', 'rename']) test(`AG61: ${failure} failure preserves protection/disguise memory and disk across restart`, () => {
   const initial = JSON.stringify({ isUndetectable: false, disguiseMode: 'terminal', verboseLogging: true });
-  const storage = disk({ '/synthetic/settings.json': initial }); const manager = settingsFixture(storage);
+  const storage = disk({ [SETTINGS_FILE]: initial }); const manager = settingsFixture(storage);
   storage.fail(failure);
   assert.throws(() => manager.saveWindowPreference('isUndetectable', true));
   assert.throws(() => manager.saveWindowPreference('disguiseMode', 'activity'));
   assert.equal(manager.get('isUndetectable'), false); assert.equal(manager.get('disguiseMode'), 'terminal');
-  assert.equal(storage.files.get('/synthetic/settings.json'), initial); assert.equal(storage.files.size, 1);
+  assert.equal(storage.files.get(SETTINGS_FILE), initial); assert.equal(storage.files.size, 1);
   const restarted = settingsFixture(storage); assert.equal(restarted.get('disguiseMode'), 'terminal');
   storage.fail(undefined); manager.saveWindowPreference('disguiseMode', 'activity');
-  assert.deepEqual(JSON.parse(storage.files.get('/synthetic/settings.json')), { isUndetectable: false, disguiseMode: 'activity', verboseLogging: true });
+  assert.deepEqual(JSON.parse(storage.files.get(SETTINGS_FILE)), { isUndetectable: false, disguiseMode: 'activity', verboseLogging: true });
   assert.equal(settingsFixture(storage).get('disguiseMode'), 'activity');
   assert.equal(storage.writes.find(write => write[0] === 'write')[1].flag, 'wx');
 });
@@ -114,4 +116,24 @@ test('AG61: healthy OS registrations do not clear a failed menu or update applic
     fail = false;
     assert.equal(f.manager.setKeybind('general:toggle-visibility', 'Control+Y').success, true);
   }
+});
+
+test('AG72: the recorder rejects the Windows key on Windows and keeps macOS and Linux recordings unchanged', () => {
+  const recorder = (isMac, isWindows) => load('src/utils/keyboardUtils.ts', { './platformUtils': { isMac, isWindows, getModifierSymbol: key => key } });
+  const press = (key, code, mods = {}) => ({ key, code, metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, ...mods });
+  const windows = recorder(false, true), mac = recorder(true, false), linux = recorder(false, false);
+  for (const event of [press('k', 'KeyK', { metaKey: true, shiftKey: true }), press('k', 'KeyK', { metaKey: true, ctrlKey: true }), press('Meta', 'MetaLeft', { metaKey: true })]) {
+    assert.deepEqual(plain(windows.eventToKeys(event)), { rejected: 'windows-key' });
+  }
+  assert.deepEqual(plain(windows.eventToKeys(press('k', 'KeyK', { ctrlKey: true, shiftKey: true }))), { keys: ['⌃', '⇧', 'K'], complete: true });
+  assert.equal(windows.keysToAccelerator(['⌃', '⇧', 'K']), 'CommandOrControl+Shift+K');
+  assert.deepEqual(plain(windows.eventToKeys(press('Control', 'ControlLeft', { ctrlKey: true }))), { keys: ['⌃'], complete: false });
+  assert.deepEqual(plain(mac.eventToKeys(press('k', 'KeyK', { metaKey: true, shiftKey: true }))), { keys: ['⌘', '⇧', 'K'], complete: true });
+  assert.equal(mac.keysToAccelerator(['⌘', '⇧', 'K']), 'CommandOrControl+Shift+K');
+  assert.deepEqual(plain(mac.eventToKeys(press('ArrowUp', 'ArrowUp', { metaKey: true, ctrlKey: true, altKey: true }))), { keys: ['⌘', '⌃', '⌥', 'ArrowUp'], complete: true });
+  assert.deepEqual(plain(mac.eventToKeys(press(' ', 'Space', { metaKey: true }))), { keys: ['⌘', 'Space'], complete: true });
+  assert.deepEqual(plain(mac.eventToKeys(press('1', 'Digit1', { metaKey: true }))), { keys: ['⌘', '1'], complete: true });
+  assert.deepEqual(plain(mac.eventToKeys(press('?', 'Slash', { metaKey: true, shiftKey: true }))), { keys: ['⌘', '⇧', '?'], complete: true });
+  // Linux keeps its previous recording of the Super key (outside AG-72).
+  assert.deepEqual(plain(linux.eventToKeys(press('k', 'KeyK', { metaKey: true }))), { keys: ['⌘', 'K'], complete: true });
 });

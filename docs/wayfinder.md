@@ -4,15 +4,25 @@
 
 **Project outcome:** 在 AGPL 基线 `a786910e` 上交付符合 [产品 Spec](product.md) 的 Margin：先 macOS、后 Windows，核对共享代码和平台差异后统一分支，不引入后期上游内容。执行与发布门禁见 [PLAN](margin/PLAN.md) / AG-74。
 
-**Current answer:** 截至2026-10-26，已安装保存/输入及S50修复`b7f57addf`，见[回执](margin/evidence/S50-mode-controls/README.md)。精简英文面试提示及重复菜单修正本地门禁通过、未安装；[真实对照](margin/evidence/software-interview-prompt/README.md)仍有失败和质量限制。未推送/远端CI，阶段6未签收。
+**Current answer:** 截至2026-11-10，Mac 线与 Windows 线已合并到 `codex/margin-unified`（以 Mac 线为基底）；面试提示采用 Mac 线的精简版，打包检查与构建脚本取 Windows 线的双平台结构并保留 Mac 线新增的检查。合并结果待双平台 CI 与设备验证，两条旧分支保留作回退。
 
-**Current focus:** 交付面试提示测试结果和README用途说明，不把精简等同于质量或完整链路延迟验收。已安装版按2026-11-01精简后的[阶段6清单](margin/STAGE6-CHECKLIST.md)复测（只测核心场景，不再做SHA256核对）；正式身份、图标和Windows后置。
+**Current focus:** 在统一分支上跑 macOS 门禁和 Windows 编译，再各出一个测试包按两份精简清单验证核心场景。
+
+**Mac 线合并前状态：** 截至2026-10-26，已安装保存/输入及S50修复`b7f57addf`，见[回执](margin/evidence/S50-mode-controls/README.md)。精简英文面试提示及重复菜单修正本地门禁通过、未安装；[真实对照](margin/evidence/software-interview-prompt/README.md)仍有失败和质量限制。未推送/远端CI，阶段6未签收。
+
+**Mac 线合并前焦点：** 交付面试提示测试结果和README用途说明，不把精简等同于质量或完整链路延迟验收。已安装版按2026-11-01精简后的[阶段6清单](margin/STAGE6-CHECKLIST.md)复测（只测核心场景，不再做SHA256核对）；正式身份、图标和Windows后置。
+
+**Windows 线合并前状态：** 截至2026-10-24，AG-73公开`4ed00ae5`双平台CI通过，未合并安装；用户取消源码下载/哈希验收，Windows实机单独进行；[交付](margin/evidence/AG-73/delivery.md)。Mac S49已装待实测；[记录](margin/evidence/S49/README.md)。
+
+**Windows 线合并前焦点：** 2026-11-01 本机Win11开发环境已就绪（构建通过，无设备测试265/274，9项为符号链接权限限制）；按[Windows实机最小清单](margin/WINDOWS-TEST-CHECKLIST.md)实测，测试包身份未定前用开发模式启动；不做哈希核对、不合并安装，Mac阶段6独立继续。
 
 ## Waiting
 
 - **保存/输入及S50用户测试** — 合并新版已安装；待验证保存、草稿、模式、截图、格式及费用；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
 
 - **系统静音复测** — 修复已安装；待用户验证静音不误报、恢复声音后采集正常；resume：[记录](margin/evidence/system-silence/README.md)。
+- **Windows AG-73 后续交付** — 双平台CI报告已核对，实机待用户；resume：[交付](margin/evidence/AG-73/delivery.md)。
+- **Windows 实机验证** — AG-71/72 软件和双平台 CI 已验；Win11 本机环境就绪，按[最小清单](margin/WINDOWS-TEST-CHECKLIST.md)测试，安装项待测试包身份决定，Win10 待定；resume：[交付与边界](margin/evidence/AG-72/delivery.md)。
 - **S47–S49 用户测试** — 公开代码 CI 通过、新版已安装；待用户验证列表、多候选、推理和图片，GPT-5.5 Pro 非流式接入仍未做；resume：[交付回执](margin/evidence/S49/README.md)、[S48 审阅](margin/evidence/S48/independent-review.md)。
 - **S46 用户测试** — 新版已安装，待用户验证真实题目的语言/提交框架、代码先行与报错修复，以及消息框在实际主题下的效果；resume：[S46](margin/evidence/S46/README.md)。
 - **S45 用户测试** — 退出修复已安装，后续启动正常；实际服务/采集及共享仍待验证，见[安装记录](margin/evidence/S45/native-quit/installation/README.md)。未改用户数据。
@@ -22,7 +32,6 @@
 
 - **AG-62 正式 Margin 身份** — 本轮只批准 Natively Local 测试身份；正式 Margin 的 CI 外运行与发布仍待决定；resume：[本机授权](margin/PLAN.md#阶段-6-本机用户测试授权2026-10-14)。
 - **S42-06 保护与平台交付** — 图标参考旧 Margin、简洁，具体图形及真实服务预算待定；D2 与发布仍按授权范围；resume：[增量票](margin/PLAN.md#tickets-20261013)。黑框不可接受，README 只录实测。
-- **阶段 7** — Windows（AG-71–73）后置；AG-74 先 Mac，等 AG-62。D7 已定 Mac M 系列/Windows x64；D6 未购买、后续处理，见 [Spec](product.md#open-questions)。
 
 ## Watching
 

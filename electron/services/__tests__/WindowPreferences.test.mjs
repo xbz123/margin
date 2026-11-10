@@ -8,6 +8,8 @@ import ts from 'typescript';
 const root = path.resolve(import.meta.dirname, '../../..');
 const quiet = { log() {}, warn() {}, error() {} };
 const plain = value => JSON.parse(JSON.stringify(value));
+// Disguise icons are joined with the path module the fixture injects, under the app path.
+const fakeIcon = (...parts) => path.join('/synthetic', 'assets', 'fakeicon', ...parts);
 export function evaluate(source, globals = {}, imports = {}) {
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText,
@@ -15,7 +17,7 @@ export function evaluate(source, globals = {}, imports = {}) {
       require(id) { if (id in imports) return imports[id]; throw new Error(`Unexpected import ${id}`); } });
   return module.exports;
 }
-export function mainFixture({ failSave = false, failWindow = false, failDock = false, failDisguise = false, platform = 'darwin' } = {}) {
+export function mainFixture({ failSave = false, failWindow = false, failDock = false, failDisguise = false, platform = 'darwin', keybinds = {} } = {}) {
   const source = fs.readFileSync(path.join(root, 'electron/main.ts'), 'utf8');
   const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
   const cls = ast.statements.find(node => ts.isClassDeclaration(node) && node.name.text === 'AppState');
@@ -31,7 +33,8 @@ export function mainFixture({ failSave = false, failWindow = false, failDock = f
     setName(value) { identities.push(['name', value]); if (failDisguise) throw Error('native'); }, setAppUserModelId() {}, isPackaged: false, getAppPath: () => '/synthetic' };
   const settings = { set() { calls.push('save'); if (failSave) throw Error('disk'); }, saveWindowPreference() { calls.push('save'); if (failSave) throw Error('disk'); } };
   const loaded = evaluate(cls.getText(ast), { app, process: { platform, env: {} }, SettingsManager: { getInstance: () => settings },
-    KeybindManager: { getInstance: () => ({ revalidateShortcuts: () => [] }) }, APP_IDENTITY: { name: 'Synthetic', appId: 'test.synthetic' }, fs: { existsSync: () => true }, path, nativeImage: { createFromPath: value => value },
+    KeybindManager: { getInstance: () => ({ revalidateShortcuts: () => [], getKeybind: id => keybinds[id] }) },
+    Menu: { buildFromTemplate: template => template }, mainText: (english, values = {}) => english.replace(/\{(\w+)\}/g, (_, key) => values[key]), APP_IDENTITY: { name: 'Synthetic', appId: 'test.synthetic' }, fs: { existsSync: () => true }, path, nativeImage: { createFromPath: value => value },
     isDisguiseMode: value => ['none', 'terminal', 'settings', 'activity'].includes(value),
     decideToggle: (current, value) => ({ changed: current !== value }),
     setTimeout(fn) { timers.push(fn); return timers.length; }, clearTimeout() {} });
@@ -129,9 +132,9 @@ test('AG61: a later show failure is authoritative and the same preference retrie
   assert.equal(f.calls.includes('save'), false);
 });
 
-test('AG61: actual IPC propagates authoritative results from production setters, including invalid values and save failures', async () => {
-  const f = mainFixture({ failSave: true }); const callbacks = new Map();
-  Object.assign(f.state, { processingHelper: { getLLMHelper: () => ({}) }, getIntelligenceManager: () => ({}) });
+function ipcCallbacks(state) {
+  const callbacks = new Map();
+  Object.assign(state, { processingHelper: { getLLMHelper: () => ({}) }, getIntelligenceManager: () => ({}) });
   const module = { exports: {} };
   const source = fs.readFileSync(path.join(root, 'electron/ipcHandlers.ts'), 'utf8');
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText,
@@ -145,7 +148,12 @@ test('AG61: actual IPC propagates authoritative results from production setters,
         if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };
         return {};
       } });
-  module.exports.initializeIpcHandlers(f.state);
+  module.exports.initializeIpcHandlers(state);
+  return callbacks;
+}
+
+test('AG61: actual IPC propagates authoritative results from production setters, including invalid values and save failures', async () => {
+  const f = mainFixture({ failSave: true }); const callbacks = ipcCallbacks(f.state);
   assert.equal((await callbacks.get('set-undetectable')({}, 'true')).code, 'invalid_value');
   assert.equal((await callbacks.get('set-overlay-mouse-passthrough')({}, 1)).code, 'invalid_value');
   assert.equal((await callbacks.get('set-disguise')({}, 'browser')).code, 'invalid_value');
@@ -164,7 +172,7 @@ test('AG61: disguise apply failure retains the saved preference and advertises a
   assert.equal(result.code, 'apply_failed'); assert.equal(result.value, 'terminal'); assert.equal(f.state.getDisguise(), 'terminal');
   f.app.setName = () => {};
   assert.equal(f.state.setDisguise('terminal').success, true);
-  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value.endsWith('/assets/fakeicon/mac/terminal.png')));
+  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value === fakeIcon('mac', 'terminal.png')));
 });
 
 test('AG61: protected cold startup keeps disguise saved and disabling protection restores its app name and icon', async () => {
@@ -173,7 +181,7 @@ test('AG61: protected cold startup keeps disguise saved and disabling protection
   assert.equal(f.identities.some(([kind]) => kind === 'name' || kind === 'dock.icon'), false);
   const pending = f.state.setUndetectable(false); await f.flush(); assert.equal((await pending).success, true);
   assert.ok(f.identities.some(([kind, value]) => kind === 'name' && value === 'System Settings '));
-  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value.endsWith('/assets/fakeicon/mac/settings.png')));
+  assert.ok(f.identities.some(([kind, value]) => kind === 'dock.icon' && value === fakeIcon('mac', 'settings.png')));
 });
 
 test('AG61: Windows disguise applies title and existing icon to each current window kind', () => {
@@ -184,7 +192,51 @@ test('AG61: Windows disguise applies title and existing icon to each current win
   f.helper.getSettingsWindow = () => windows[2]; f.helper.getWindow = () => windows[3]; f.state.cropperWindowHelper.getWindow = () => windows[4];
   assert.equal(f.state.setDisguise('activity').success, true);
   for (const name of ['launcher', 'overlay', 'settings', 'selector', 'cropper']) {
-    assert.ok(identities.some(([kind, action, value]) => kind === name && action === 'icon' && value.endsWith('/assets/fakeicon/win/activity.png')));
+    assert.ok(identities.some(([kind, action, value]) => kind === name && action === 'icon' && value === fakeIcon('win', 'activity.png')));
     assert.ok(identities.some(([kind, action, value]) => kind === name && action === 'title' && value === 'Task Manager'));
+  }
+});
+
+const trayLabels = (platform, keybinds = {}) => {
+  const f = mainFixture({ platform, keybinds }); let menu;
+  f.state.tray = { setToolTip() {}, setContextMenu(value) { menu = value; } };
+  f.state.updateTrayMenu();
+  return plain(menu.filter(item => item.label).map(item => [item.label, item.accelerator ?? null]));
+};
+
+test('AG72: tray shortcut labels name Ctrl on Windows and stay Cmd on macOS', () => {
+  assert.deepEqual(trayLabels('win32').slice(1, 3), [['Toggle Window (Ctrl+B)', null], ['Take Screenshot (Ctrl+H)', 'CommandOrControl+H']]);
+  assert.deepEqual(trayLabels('darwin').slice(1, 3), [['Toggle Window (Cmd+B)', null], ['Take Screenshot (Cmd+H)', 'CommandOrControl+H']]);
+  const custom = { 'general:toggle-visibility': 'CmdOrCtrl+Shift+K', 'general:take-screenshot': 'Control+Alt+S' };
+  assert.deepEqual(trayLabels('win32', custom).slice(1, 3), [['Toggle Window (Ctrl+Shift+K)', null], ['Take Screenshot (Ctrl+Alt+S)', 'Control+Alt+S']]);
+  // Command alone is the Windows key in Electron, so it is not relabelled Ctrl.
+  assert.equal(trayLabels('win32', { 'general:toggle-visibility': 'Command+B' })[1][0], 'Toggle Window (Command+B)');
+});
+
+test('AG72: Windows protection changes hide and restore the tray as startup does', async () => {
+  const f = mainFixture({ platform: 'win32' });
+  assert.equal((await f.state.setUndetectable(true)).success, true);
+  assert.deepEqual(f.calls.filter(call => typeof call === 'string' && call.startsWith('tray.')), ['tray.hide']);
+  assert.equal((await f.state.setUndetectable(false)).success, true);
+  assert.deepEqual(f.calls.filter(call => typeof call === 'string' && call.startsWith('tray.')), ['tray.hide', 'tray.show']);
+  assert.equal(f.calls.some(call => typeof call === 'string' && call.startsWith('dock.')), false);
+});
+
+test('AG72: macOS tray changes still come only from the Dock task', async () => {
+  const f = mainFixture();
+  const pending = f.state.setUndetectable(true);
+  assert.equal(f.calls.some(call => call === 'tray.hide'), false);
+  await f.flush(); await pending;
+  assert.deepEqual(f.calls.filter(call => typeof call === 'string' && /^(tray|dock)\./.test(call)), ['dock.hide', 'tray.hide']);
+});
+
+test('AG72: settings:open-tab sends the tab and shows the launcher through WindowHelper', async () => {
+  for (const undetectable of [false, true]) {
+    const f = mainFixture(); const shown = [], sent = [];
+    f.win.webContents.send = (...args) => sent.push(args);
+    f.helper.showLauncherForSettings = inactive => shown.push(inactive);
+    f.state.isUndetectable = undetectable;
+    await ipcCallbacks(f.state).get('settings:open-tab')({}, 'keybinds');
+    assert.deepEqual(sent, [['settings:open-tab', 'keybinds']]); assert.deepEqual(shown, [undetectable]);
   }
 });

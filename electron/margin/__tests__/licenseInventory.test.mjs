@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
-import { ROOT, collect, cargoPackages, embeddedMIT, sha256, inventorySummary } from '../../../scripts/margin/collect-licenses.mjs';
+import { ROOT, collect, cargoPackages, embeddedMIT, sha256, inventorySummary, electronNotices } from '../../../scripts/margin/collect-licenses.mjs';
 
 const { verifyBundle } = createRequire(import.meta.url)('../../../scripts/margin/license-bundle.cjs');
 const json = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -113,6 +113,18 @@ test('missing or substituted Chromium notice cannot pass package checks', async 
   assert.throws(() => verifyBundle(resources, options.root), /ENOENT/);
   fs.writeFileSync(file, 'MIT placeholder');
   assert.throws(() => verifyBundle(resources, options.root), /missing\/changed notice/);
+});
+
+test('Electron notices record a digest for each packaged target (AG-73)', (t) => {
+  // The inventory is collected on macOS arm64 from the installed distribution; the
+  // Windows x64 digests are pinned from the official release zip.
+  const manifest = json(path.join(ROOT, 'licenses/manifest.json'));
+  assert.deepEqual(electronNotices(ROOT, manifest.electronVersion, 'darwin-arm64'), manifest.deferred);
+  const chromium = manifest.deferred.find((item) => item.file === 'electron/LICENSES.chromium.html');
+  assert.notEqual(chromium.targets['darwin-arm64'], chromium.targets['win32-x64']);
+  const options = fixture(t);
+  assert.deepEqual(electronNotices(options.root, '99.0.0', 'darwin-arm64').map((item) => Object.keys(item.targets)), [['darwin-arm64'], ['darwin-arm64']]);
+  assert.throws(() => electronNotices(options.root, '43.1.0', 'win32-x64'), /installed Electron LICENSE differs from the pinned win32-x64 release/);
 });
 
 test('known official repo mapping preserves a missing-repository crate cache offline', async (t) => {

@@ -26,12 +26,15 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import Module from 'node:module';
+import Module, { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distRoot = path.resolve(__dirname, '../../../dist-electron/electron/audio');
+// require() takes a plain file path on every platform; ESM import() would need a
+// file: URL, since a Windows drive letter reads as a URL scheme.
+const loadDist = (file) => createRequire(import.meta.url)(path.join(distRoot, file));
 
 // Bookkeeping across the whole test file. We track every native instance the
 // loader hands out so tests can assert against per-instance state.
@@ -124,8 +127,8 @@ Module._load = function patchedLoad(request, parent, isMain) {
 };
 
 // Now we can safely import the compiled wrappers.
-const { SystemAudioCapture } = await import(path.join(distRoot, 'SystemAudioCapture.js'));
-const { MicrophoneCapture } = await import(path.join(distRoot, 'MicrophoneCapture.js'));
+const { SystemAudioCapture } = loadDist('SystemAudioCapture.js');
+const { MicrophoneCapture } = loadDist('MicrophoneCapture.js');
 
 // setImmediate-flush helper. `stop()` defers `monitor.stop()` via setImmediate;
 // we wait one macrotask so the deferred teardown actually runs.

@@ -1,19 +1,42 @@
 // Ported logic
+use super::loopback::{append_f32_mono, drain_packets, SilenceClock, BYTES_PER_FRAME, IDLE_WAIT_MS};
 use crate::audio_config::RING_BUFFER_SAMPLES;
 use anyhow::Result;
 use ringbuf::{
     traits::{Producer, Split},
     HeapCons, HeapProd, HeapRb,
 };
-use std::collections::VecDeque;
 use std::sync::{mpsc, Arc, Condvar, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tracing::error;
 use wasapi::{get_default_device, DeviceCollection, Direction, SampleType, ShareMode, WaveFormat};
 
 struct WakerState {
     shutdown: bool,
+}
+
+/// COM must be initialized on every thread that touches MMDevice/WASAPI objects; the
+/// wasapi crate does not do it. RPC_E_CHANGED_MODE means the thread is already a
+/// single-threaded apartment (Electron's main thread, or cpal's STA setup), which
+/// WASAPI accepts, so that apartment stays in use. A successful call, S_FALSE
+/// included, is balanced on drop. Declare it before any COM object so it drops last.
+struct ComScope {
+    owned: bool,
+}
+
+impl ComScope {
+    fn enter() -> Self {
+        Self { owned: wasapi::initialize_mta().is_ok() }
+    }
+}
+
+impl Drop for ComScope {
+    fn drop(&mut self) {
+        if self.owned {
+            wasapi::deinitialize();
+        }
+    }
 }
 
 pub struct SpeakerInput {
@@ -26,6 +49,9 @@ pub struct SpeakerStream {
     capture_thread: Option<thread::JoinHandle<()>>,
     actual_sample_rate: u32,
     data_ready: Arc<(Mutex<bool>, Condvar)>,
+    /// Set by the capture thread when the running stream fails (endpoint unplugged,
+    /// disabled or reconfigured). The thread has stopped; the DSP loop reports it.
+    error: Arc<Mutex<Option<String>>>,
 }
 
 impl SpeakerStream {
@@ -40,6 +66,10 @@ impl SpeakerStream {
     pub fn data_ready_signal(&self) -> Arc<(Mutex<bool>, Condvar)> {
         self.data_ready.clone()
     }
+
+    pub fn take_error(&self) -> Option<String> {
+        self.error.lock().ok().and_then(|mut slot| slot.take())
+    }
 }
 
 // LIMITATION: We currently only capture from the eMultimedia/eConsole default
@@ -49,6 +79,7 @@ impl SpeakerStream {
 // nothing while the meeting plays through the comms-default device. Adding
 // eCommunications support requires raw windows-rs IMMDeviceEnumerator since
 // wasapi 0.13 has no Role API. Tracked for follow-up.
+// Callers hold a ComScope.
 fn find_device_by_id(direction: &Direction, device_id: &str) -> Option<wasapi::Device> {
     let collection = DeviceCollection::new(direction).ok()?;
     let count = collection.get_nbr_devices().ok()?;
@@ -66,6 +97,7 @@ fn find_device_by_id(direction: &Direction, device_id: &str) -> Option<wasapi::D
 }
 
 pub fn list_output_devices() -> Result<Vec<(String, String)>> {
+    let _com = ComScope::enter();
     let collection =
         DeviceCollection::new(&Direction::Render).map_err(|e| anyhow::anyhow!("{}", e))?;
     let count = collection
@@ -91,6 +123,7 @@ pub fn list_output_devices() -> Result<Vec<(String, String)>> {
 /// devices mid-meeting. Note: this still doesn't track the eCommunications
 /// role separately (a known limitation tracked in find_device_by_id).
 pub fn default_output_device_uid() -> String {
+    let _com = ComScope::enter();
     match get_default_device(&Direction::Render) {
         Ok(dev) => dev.get_id().unwrap_or_default(),
         Err(_) => String::new(),
@@ -113,14 +146,17 @@ impl SpeakerInput {
 
         let waker_state = Arc::new(Mutex::new(WakerState { shutdown: false }));
         let data_ready = Arc::new((Mutex::new(false), Condvar::new()));
+        let error_slot = Arc::new(Mutex::new(None));
         let (init_tx, init_rx) = mpsc::channel();
 
         let waker_clone = waker_state.clone();
         let data_ready_clone = data_ready.clone();
+        let error_clone = error_slot.clone();
         let device_id = self.device_id;
 
         let capture_thread = thread::spawn(move || {
-            if let Err(_e) = Self::capture_audio_loop(
+            let _com = ComScope::enter();
+            if let Err(e) = Self::capture_audio_loop(
                 producer,
                 waker_clone,
                 data_ready_clone,
@@ -128,6 +164,9 @@ impl SpeakerInput {
                 device_id,
             ) {
                 error!("Audio capture loop failed");
+                if let Ok(mut slot) = error_clone.lock() {
+                    *slot = Some(format!("{}", e));
+                }
             }
         });
 
@@ -160,6 +199,7 @@ impl SpeakerInput {
             capture_thread: Some(capture_thread),
             actual_sample_rate,
             data_ready,
+            error: error_slot,
         })
     }
 
@@ -214,68 +254,83 @@ impl SpeakerInput {
             let h_event = audio_client
                 .set_get_eventhandle()
                 .map_err(|e| anyhow::anyhow!("{}", e))?;
-            let render_client = audio_client
+            let capture_client = audio_client
                 .get_audiocaptureclient()
                 .map_err(|e| anyhow::anyhow!("{}", e))?;
             audio_client
                 .start_stream()
                 .map_err(|e| anyhow::anyhow!("{}", e))?;
 
-            Ok((h_event, render_client, actual_rate, audio_client))
+            Ok((h_event, capture_client, actual_rate, audio_client))
         })();
 
         match init_result {
-            Ok((h_event, render_client, sample_rate, audio_client)) => {
+            Ok((h_event, capture_client, sample_rate, audio_client)) => {
                 let _ = init_tx.send(Ok(sample_rate));
+                let mut packet = Vec::new();
+                let mut samples: Vec<f32> = Vec::new();
+                let mut clock = SilenceClock::new(sample_rate, Instant::now());
                 loop {
-                    {
-                        let state = waker_state.lock().unwrap();
-                        if state.shutdown {
-                            let _ = audio_client.stop_stream();
-                            break;
-                        }
+                    let shutdown = waker_state.lock().map(|s| s.shutdown).unwrap_or(true);
+                    if shutdown {
+                        let _ = audio_client.stop_stream();
+                        break;
                     }
 
-                    // Timeout is normal when no audio is playing — WASAPI loopback
-                    // doesn't fire events during silence. Just continue waiting.
-                    if h_event.wait_for_event(3000).is_err() {
-                        continue;
-                    }
+                    // A timeout is normal: loopback signals no events while nothing
+                    // renders. The short wait also bounds how long stop() waits here.
+                    let signalled = h_event.wait_for_event(IDLE_WAIT_MS).is_ok();
 
-                    let mut temp_queue = VecDeque::new();
-                    // bytes_per_frame for 32-bit float mono = 4 bytes
-                    let bytes_per_frame: usize = 4; // 32-bit float, 1 channel
-                    if let Err(_e) =
-                        render_client.read_from_device_to_deque(bytes_per_frame, &mut temp_queue)
-                    {
-                        error!("Failed to read audio data");
-                        continue;
-                    }
+                    // One event can cover several queued packets; drain them all so
+                    // the capture buffer does not fall behind. A failed read means the
+                    // stream is gone (AUDCLNT_E_DEVICE_INVALIDATED and the like): push
+                    // what was read before it, then end the thread and let the DSP loop
+                    // report it, rather than retrying or filling silence over a dead
+                    // endpoint.
+                    let (got_packets, failure) = drain_packets(
+                        |out: &mut Vec<f32>| -> Result<bool> {
+                            let frames = capture_client
+                                .get_next_nbr_frames()
+                                .map_err(|e| anyhow::anyhow!("WASAPI loopback stopped: {}", e))?
+                                .unwrap_or(0) as usize;
+                            if frames == 0 {
+                                return Ok(false);
+                            }
+                            packet.resize(frames * BYTES_PER_FRAME, 0);
+                            let (read, flags) = capture_client
+                                .read_from_device(BYTES_PER_FRAME, &mut packet)
+                                .map_err(|e| anyhow::anyhow!("WASAPI loopback stopped: {}", e))?;
+                            append_f32_mono(&packet, read as usize, flags.silent, out);
+                            Ok(true)
+                        },
+                        &mut samples,
+                    );
 
-                    if temp_queue.is_empty() {
-                        continue;
-                    }
-
-                    let mut samples = Vec::with_capacity(temp_queue.len() / 4);
-                    while temp_queue.len() >= 4 {
-                        let bytes = [
-                            temp_queue.pop_front().unwrap(),
-                            temp_queue.pop_front().unwrap(),
-                            temp_queue.pop_front().unwrap(),
-                            temp_queue.pop_front().unwrap(),
-                        ];
-                        let sample = f32::from_le_bytes(bytes);
-                        samples.push(sample);
+                    let now = Instant::now();
+                    if got_packets {
+                        clock.on_packets(now);
+                    } else if !signalled && failure.is_none() {
+                        let zeros = clock.idle_fill(now);
+                        samples.resize(samples.len() + zeros, 0.0);
                     }
 
                     if !samples.is_empty() {
                         let _ = producer.push_slice(&samples);
+                        samples.clear();
 
                         // Signal data ready
                         let (lock, cvar) = &*data_ready;
-                        let mut ready = lock.lock().unwrap();
-                        *ready = true;
-                        cvar.notify_all();
+                        if let Ok(mut ready) = lock.lock() {
+                            *ready = true;
+                            cvar.notify_all();
+                        }
+                    }
+
+                    // Every sample read is pushed; returning drops the producer before
+                    // the thread publishes the error (capture_tail.rs relies on this).
+                    if let Some(read_error) = failure {
+                        let _ = audio_client.stop_stream();
+                        return Err(read_error);
                     }
                 }
             }

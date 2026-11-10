@@ -1,4 +1,4 @@
-import { getModifierSymbol, isMac } from './platformUtils';
+import { getModifierSymbol, isMac, isWindows } from './platformUtils';
 
 /**
  * Converts an Electron Accelerator string to an array of platform-aware keys for the frontend.
@@ -42,6 +42,49 @@ export function acceleratorToKeys(accelerator: string): string[] {
                 return part.length === 1 ? part.toUpperCase() : part;
         }
     });
+}
+
+export interface RecorderKeyEvent {
+    key: string;
+    code: string;
+    metaKey: boolean;
+    ctrlKey: boolean;
+    altKey: boolean;
+    shiftKey: boolean;
+}
+
+export type RecordedKeys =
+    | { keys: string[]; complete: boolean }
+    | { rejected: 'windows-key' };
+
+/**
+ * Maps one recorder keydown to the keys shown and saved. On Windows, metaKey is the
+ * Windows key: Windows reserves those shortcuts, and '⌘' would otherwise be saved
+ * as CommandOrControl (Ctrl), so such a recording is rejected instead.
+ */
+export function eventToKeys(e: RecorderKeyEvent, windows: boolean = isWindows): RecordedKeys {
+    if (e.metaKey && windows) return { rejected: 'windows-key' };
+    const { key, code } = e;
+
+    // Ignore modifier key presses alone if possible, but we need to show them
+    const modifiers = [];
+    if (e.metaKey) modifiers.push('⌘');
+    if (e.ctrlKey) modifiers.push('⌃');
+    if (e.altKey) modifiers.push('⌥');
+    if (e.shiftKey) modifiers.push('⇧');
+
+    let mainKey = '';
+    if (key !== 'Meta' && key !== 'Control' && key !== 'Alt' && key !== 'Shift') {
+        if (code.startsWith('Key')) mainKey = key.toUpperCase();
+        else if (code.startsWith('Digit')) mainKey = key;
+        else if (code === 'Space') mainKey = 'Space';
+        else if (key === 'Enter') mainKey = 'Enter';
+        else if (key === 'Backspace') mainKey = 'Backspace';
+        else if (key.startsWith('Arrow')) mainKey = key;
+        else mainKey = key.toUpperCase();
+    }
+
+    return mainKey ? { keys: [...modifiers, mainKey], complete: true } : { keys: modifiers, complete: false };
 }
 
 /**
