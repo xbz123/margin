@@ -861,6 +861,8 @@ test('S47 mounted settings and session selector share saved candidates through t
   context.persistCredentials = arrow(named('persistCredentials'), {});
   context.boundedProviderError = arrow(named('boundedProviderError'), { sanitizeErrorMessage: message => message });
   context.ANSWER_APPLY_WARNING = arrow(node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {});
+  // get-stored-credentials builds the STT key previews through this helper.
+  context.sttKeyPreview = load('electron/utils/sttKeyPreview.ts').sttKeyPreview;
   const handlers = {};
   for (const channel of ['get-generation-policy', 'set-generation-policy', 'get-stored-credentials', 'get-default-model', 'set-default-model', 'fetch-provider-models',
     'set-provider-configuration', 'test-llm-connection', 'remove-provider-api-key', 'set-model', 'get-current-llm-config']) {
@@ -1062,6 +1064,8 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
   context.persistCredentials = arrow(named('persistCredentials'), {});
   context.boundedProviderError = arrow(named('boundedProviderError'), { sanitizeErrorMessage: message => message });
   context.ANSWER_APPLY_WARNING = arrow(node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {});
+  // get-stored-credentials builds the STT key previews through this helper.
+  context.sttKeyPreview = load('electron/utils/sttKeyPreview.ts').sttKeyPreview;
   const handlers = {};
   const channels = { getGenerationPolicy: 'get-generation-policy', setGenerationPolicy: 'set-generation-policy', getStoredCredentials: 'get-stored-credentials', getDefaultModel: 'get-default-model',
     setDefaultModel: 'set-default-model', setProviderConfiguration: 'set-provider-configuration', testLlmConnection: 'test-llm-connection', setModel: 'set-model', getCurrentLlmConfig: 'get-current-llm-config',
