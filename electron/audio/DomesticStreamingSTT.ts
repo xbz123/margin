@@ -318,7 +318,7 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
         const chunk = this.queue[0];
         this.audio(chunk);
         this.sentAudio = true;
-        this.queue.shift();
+        this.queue.splice(0, 1);
         this.queuedBytes -= chunk.length;
         if (sealing) sealing.unsent -= chunk.length;
       }
