@@ -96,9 +96,9 @@ export interface DictationMark {
   sessionId: string | null;
   at: number;
   /**
-   * Microphone fragments still live (interim, not replaced) when the mark was made. One joins the
-   * dictation only if it is revised or finalized after the mark, or was last updated within a few
-   * seconds before it; otherwise it is left-over speech.
+   * Microphone fragments still live (interim, not replaced) when the mark was made, outside the
+   * scopes an earlier action ended. One joins the dictation only if it is revised or finalized after
+   * the mark, or was last updated within a few seconds before it; otherwise it is left-over speech.
    */
   open?: readonly string[];
 }
@@ -119,8 +119,11 @@ export interface ManagedSttProvider extends EventEmitter {
   start?(): void;
   stop(flush?: boolean): Promise<void> | void;
   finalize?(): Promise<void> | void | boolean;
-  /** Non-terminating flush for a manual action; providers without one stay unknown. */
-  seal?(cutoffAt: number): SttSeal | undefined;
+  /**
+   * Non-terminating flush for a manual action; providers without one (or returning none for this
+   * channel) stay unknown. `channel` is the lane the provider serves.
+   */
+  seal?(cutoffAt: number, channel: SttChannel): SttSeal | undefined;
   write(chunk: Buffer): void;
   setSampleRate?(rate: number): void;
   setAudioChannelCount?(count: number): void;
@@ -146,6 +149,8 @@ const SNAPSHOT_WINDOW_MS = 180_000;
 /** An interim live at the mark and updated at most this long before it is speech just said, dictated without a later update. */
 const DICTATION_FRESH_INTERIM_MS = 5000;
 const LEDGER_LIMIT = 2000;
+/** Microphone seal scopes remembered with the cutoff of the action that ended them. */
+const ENDED_SCOPE_LIMIT = 256;
 
 // Each binding owns its listeners and transcript revisions; replacing it invalidates queued callbacks.
 export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider> {
@@ -159,6 +164,13 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
   // Latest time an evicted record could still belong to speech (its final, else its last update).
   private readonly evictedThrough: Record<SttChannel, number> = { user: -Infinity, interviewer: -Infinity };
   private readonly collectors = new Set<{ update(record: SegmentRecord): void; abort(reason: unknown): void }>();
+  /**
+   * Microphone result scopes a manual action sealed, with that action's cutoff. A seal scopes only
+   * audio received by its cutoff, so a scope ended by an earlier action holds speech from before any
+   * later dictation mark, however late its last results arrive (a Stop's request still ending when
+   * the next Answer is pressed).
+   */
+  private readonly endedScopes = new Map<string, number>();
 
   constructor(private readonly options: Options<P>) {}
 
@@ -193,6 +205,7 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     if (this.draining) throw new Error('Wait for the previous STT drain before starting');
     this.abortCollectors();
     this.ledger.clear();
+    this.endedScopes.clear();
     this.evictedThrough.user = this.evictedThrough.interviewer = -Infinity;
     this.session = id;
     ++this.generation;
@@ -282,13 +295,33 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     for (const collector of [...this.collectors]) collector.abort(new DOMException('STT session changed', 'AbortError'));
   }
 
+  // A microphone record whose scope an action before `at` sealed: speech from before `at`.
+  private endedBy(record: SegmentRecord, at: number): boolean {
+    const ended = record.channel === 'user' && record.scope !== undefined ? this.endedScopes.get(record.scope) : undefined;
+    return ended !== undefined && ended < at;
+  }
+
+  private rememberEnded(scopes: readonly string[], cutoffAt: number): void {
+    for (const scope of scopes) {
+      // The first action that sealed a scope dates it; a later seal reporting it again does not.
+      if (this.endedScopes.has(scope)) continue;
+      this.endedScopes.set(scope, cutoffAt);
+      if (this.endedScopes.size > ENDED_SCOPE_LIMIT) this.endedScopes.delete(this.endedScopes.keys().next().value!);
+    }
+  }
+
+  /**
+   * Marks where a dictation starts; providers are not touched, so the words being said at the mark
+   * keep their beginning and join the dictation whole once revised or finalized after it.
+   */
   markDictation(at: number): DictationMark {
     const user = [...this.ledger.values()].filter(record => record.channel === 'user');
     // An interim that stopped changing before later microphone speech began was replaced, not left open:
     // a reconnect, a moved start time or a fallback key can leave one that is never revised again.
     // Only speech with text counts: an empty speech-start record (speech_started, sentence_begin) replaces nothing yet.
     const latestStart = Math.max(-Infinity, ...user.filter(record => record.text.trim()).map(record => record.firstSeenAt));
-    const open = user.filter(record => record.state === 'interim' && !(latestStart > record.updatedAt)).map(record => record.key);
+    const open = user.filter(record => record.state === 'interim' && !(latestStart > record.updatedAt) && !this.endedBy(record, at))
+      .map(record => record.key);
     return Object.freeze({ sessionId: this.session, at, open: Object.freeze(open) });
   }
 
@@ -298,28 +331,44 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
    * are taken until the channel ends: pending or unknown channels wait at most 3 s and settled
    * finals 1 s after the receipt window, scoped completion ends a channel early, and the generation
    * deadline caps both. The result is copied once and never changes.
+   * Accepted trade-off: when a sealed request's last result takes 2.5 s or more and actions follow in
+   * quick succession, the seal chain can outlast this wait and the round's dictation can be empty.
    */
   collect(options: CollectOptions): SpeechCollector {
     options.signal.throwIfAborted();
+    const mark = options.dictation;
+    const marked = !!mark && mark.sessionId === this.session;
+    // A request an earlier action sealed holds only speech from before the mark, however late its results come.
+    const ended = (record: SegmentRecord) => marked && this.endedBy(record, mark.at);
+    const openAtMark = new Set(marked ? mark.open : undefined);
     // A dictation whose beginning left the bounded ledger cannot be returned whole; never truncate it silently.
     // That covers speech after the mark and fragments already open at the mark, even if never updated since.
-    const mark = options.dictation;
-    if (mark && mark.sessionId === this.session && (this.evictedThrough.user > mark.at || mark.open?.some(key => !this.ledger.has(key)))) {
+    if (marked && (this.evictedThrough.user > mark.at || mark.open?.some(key => !this.ledger.has(key)))) {
       throw Object.assign(new Error('Dictation is too long to collect completely'), { name: 'DictationOverflowError' });
     }
     const sessionId = this.session;
-    // Microphone speech of this dictation: first heard after the mark, a fragment still open at the
-    // mark that was revised or finalized after it, or one open at the mark whose last update came at
-    // most DICTATION_FRESH_INTERIM_MS before it (just said, its final may never arrive in time).
-    // Any other interim never touched again after the mark is left-over speech and stays out.
-    const openAtMark = new Set(mark?.sessionId === sessionId ? mark.open : undefined);
-    const revised = (record: SegmentRecord) => record.channel === 'user' && mark?.sessionId === sessionId
+    // Microphone speech of this dictation, the same rule for every provider: first heard after the
+    // mark; a fragment that existed at the mark, was not final by then and was revised or finalized
+    // after it (the words being said at the mark join whole); or one open at the mark whose last
+    // update came at most DICTATION_FRESH_INTERIM_MS before it (just said, its final may never arrive
+    // in time). Any other interim never touched again after the mark is left-over speech. Records of a
+    // scope an earlier action sealed (a Stop's request whose last result comes after this mark) are
+    // speech from before the mark and never join.
+    // Known boundary, as in the earlier renderer gate: words said between two actions and not yet
+    // final share a record with what follows when the provider appends new speech to it (Doubao does
+    // until it splits the sentence), so a dictation that continues that record includes all of it.
+    // Such a record finalized only by this action's own seal (its last result) is a revision too.
+    const revised = (record: SegmentRecord) => record.channel === 'user' && marked && !ended(record)
       && record.updatedAt > mark.at && (record.finalAt ?? Infinity) > mark.at;
-    const fresh = (record: SegmentRecord) => record.channel === 'user' && mark?.sessionId === sessionId
+    const fresh = (record: SegmentRecord) => record.channel === 'user' && marked && !ended(record)
       && record.state === 'interim' && openAtMark.has(record.key) && mark.at - record.updatedAt <= DICTATION_FRESH_INTERIM_MS;
     // A fresh interim whose connection was replaced (later speech from another epoch) was cut off, not just said.
+    // Requests an earlier action ended are not replacements: their late results are older speech.
     const abandoned = (record: SegmentRecord, others: readonly SegmentRecord[]) => record.epoch !== undefined
-      && others.some(other => other.text.trim() && other.epoch !== undefined && other.epoch !== record.epoch && other.firstSeenAt > record.updatedAt);
+      && others.some(other => other.text.trim() && other.epoch !== undefined && other.epoch !== record.epoch
+        && other.firstSeenAt > record.updatedAt && !ended(other));
+    const dictated = (record: SegmentRecord, others: readonly SegmentRecord[]) => !!record.text.trim()
+      && (revised(record) || (fresh(record) && !abandoned(record, others)));
     const cutoffAt = options.cutoffAt;
     let stage1End = cutoffAt + RECEIPT_WINDOW_MS;
     let receiptKnown = false;
@@ -341,10 +390,11 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       const provider = sessionId && !this.draining ? this.get(channel) : null;
       if (!provider) { lane.earlyAt = Math.min(Date.now(), maximumEnd); lane.earlyReason = 'absent'; return lane; }
       try {
-        const seal = provider.seal?.(cutoffAt);
+        const seal = provider.seal?.(cutoffAt, channel);
         if (seal) {
           lane.pending = seal.pending;
           for (const scope of seal.scopes) lane.scopes.add(scope);
+          if (channel === 'user') this.rememberEnded(seal.scopes, cutoffAt);
           seal.done.then(outcome => { if (!stopped) { lane.outcome = outcome; update(); } },
             () => { if (!stopped) { lane.outcome = 'failed'; update(); } });
         }
@@ -377,8 +427,7 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       const spoken: SegmentRecord[] = [];
       for (const lane of lanes) {
         const records = recordsAt(lane, ending(lane)).sort((a, b) => a.firstSeenAt - b.firstSeenAt);
-        spoken.push(...records.filter(record => record.text.trim()
-          && (revised(record) || (fresh(record) && !abandoned(record, records)))));
+        spoken.push(...records.filter(record => dictated(record, records)));
         const segments = records
           .map(record => Object.freeze({ key: record.key, channel: record.channel, text: record.text, final: record.final,
             revision: record.revision, firstSeenAt: record.firstSeenAt, epoch: record.epoch, media: record.media && Object.freeze({ ...record.media }) }));

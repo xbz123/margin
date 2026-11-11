@@ -1,16 +1,15 @@
-import { randomUUID } from 'node:crypto';
 import { DomesticStreamingSTT } from './DomesticStreamingSTT';
 
 export class AliyunStreamingSTT extends DomesticStreamingSTT {
   private task = '';
   private lastFinal = '';
   constructor(private readonly key: string, private readonly options: { workspaceId: string }) { super(); }
-  protected connection() {
+  protected connection(id: string) {
     const workspace = this.options.workspaceId;
     if (!this.key.trim() || typeof workspace !== 'string' || (workspace !== '' && !/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/.test(workspace))) {
       throw Error('Alibaba Cloud STT credentials are incomplete');
     }
-    this.task = randomUUID();
+    this.task = id;
     this.lastFinal = '';
     // Without a workspace the Beijing general endpoint; with one, its dedicated Beijing domain.
     return { url: workspace ? `wss://${workspace}.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference`
@@ -47,9 +46,9 @@ export class AliyunStreamingSTT extends DomesticStreamingSTT {
       const media = { basis: 'aliyun-task-audio', ...(Number.isFinite(sentence.begin_time) ? { startMs: sentence.begin_time } : {}),
         ...(Number.isFinite(sentence.end_time) ? { endMs: sentence.end_time } : {}) };
       if (!sentence.text) {
-        if (sentence.sentence_begin === true && identity !== undefined) this.emit('transcript', { text: '', started: true, segmentId, epoch: this.task, media });
+        if (sentence.sentence_begin === true && identity !== undefined) this.emit('transcript', { text: '', started: true, segmentId, epoch: this.task, scope: this.task, media });
       } else if (!final || signature !== this.lastFinal) {
-        this.emit('transcript', { text: sentence.text, isFinal: final, segmentId, epoch: this.task, media,
+        this.emit('transcript', { text: sentence.text, isFinal: final, segmentId, epoch: this.task, scope: this.task, media,
           identityReliable: identity !== undefined || Number.isFinite(sentence.begin_time) });
         if (final) { this.lastFinal = signature; this.emit('endpoint', { type: 'utterance_end' }); }
       }

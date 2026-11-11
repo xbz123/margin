@@ -330,6 +330,81 @@ test('S42-03 an interim replaced by a newer fragment is dropped while the open s
   assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:1040', 'user:1:req-1:4000']);
 });
 
+// A provider that ends its request at each manual action (DomesticStreamingSTT): every seal scopes
+// the current request; Answer itself seals nothing.
+function sealsPerAction(user) {
+  const calls = [];
+  let request = 1;
+  user.seal = at => { calls.push(at); return { scopes: ['req-' + request++], pending: true, done: new Promise(() => {}) }; };
+  return calls;
+}
+const said = (user, scope, segmentId, text, isFinal = false) => user.emit('transcript', { segmentId, epoch: scope, scope, text, isFinal });
+
+test('S42-03 Answer seals nothing; a request the previous Stop sealed stays out though its last result comes after the mark', async t => {
+  const { session, user, advance } = meeting(t);
+  const calls = sealsPerAction(user);
+  let mark = session.markDictation(Date.now());
+  said(user, 'req-1', '0', '第一个问题是什么');
+  await advance(800);
+  const first = watch(session.collect({ cutoffAt: Date.now(), deadline: Date.now() + 10_000, signal: new AbortController().signal, dictation: mark }).frozen);
+  await advance(400);
+  mark = session.markDictation(Date.now());
+  assert.equal(calls.length, 1, 'only Stop sealed');
+  assert.deepEqual(serialize(mark.open), [], 'the request the Stop ended is not open for the next dictation');
+  await advance(300);
+  // The last result of the first question arrives only after the second Answer, with a late split.
+  said(user, 'req-1', '0', '第一个问题是什么？', true);
+  said(user, 'req-1', '1', '还有', true);
+  said(user, 'req-2', '0', '第二个问题');
+  const frozen = await stopDictation(session, advance, mark, () => said(user, 'req-2', '0', '第二个问题？', true));
+  assert.equal(first.value.dictation, '第一个问题是什么？ 还有', 'the first Stop keeps its own late results');
+  assert.equal(frozen.dictation, '第二个问题？');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-2:0']);
+  assert.deepEqual(serialize(frozen.channels.user.segments.map(segment => segment.text)), ['第一个问题是什么？', '还有', '第二个问题？'],
+    'the first question stays in the background');
+});
+
+test('S42-03 the sentence being said at Answer joins whole; the Stop request splits a new key late and it joins too', async t => {
+  const { session, user, advance } = meeting(t);
+  sealsPerAction(user);
+  said(user, 'req-1', '0', '上一轮的回答。', true);
+  await advance(20_000);
+  said(user, 'req-1', '1', '我主要');
+  await advance(300);
+  said(user, 'req-1', '1', '我主要负责');
+  await advance(400);
+  const mark = session.markDictation(Date.now());
+  assert.deepEqual(serialize(mark.open), ['user:1:req-1:1']);
+  await advance(600);
+  said(user, 'req-1', '1', '我主要负责后端服务的');
+  // The Stop seals req-1; its last result finalizes the sentence and splits the rest off under a new key.
+  const frozen = await stopDictation(session, advance, mark, () => {
+    said(user, 'req-1', '1', '我主要负责后端服务。', true);
+    said(user, 'req-1', '2', '性能优化。', true);
+  });
+  assert.equal(frozen.dictation, '我主要负责后端服务。 性能优化。');
+  assert.deepEqual(serialize(frozen.dictationKeys), ['user:1:req-1:1', 'user:1:req-1:2']);
+});
+
+test('S42-03 a seal without scopes (Soniox shape) leaves the general rule as it was', async t => {
+  const { session, user, advance } = meeting(t);
+  let finalizes = 0;
+  user.seal = () => { finalizes++; return { scopes: [], pending: true, done: Promise.resolve('complete') }; };
+  user.emit('transcript', { segmentId: 'u0', epoch: '1', text: '第一个问题', isFinal: false });
+  await advance(500);
+  let mark = session.markDictation(Date.now());
+  assert.equal(finalizes, 0, 'Answer does not flush the provider');
+  let frozen = await stopDictation(session, advance, mark, () => user.emit('transcript', { segmentId: 'u0', epoch: '1', text: '第一个问题？', isFinal: true }));
+  assert.equal(finalizes, 1, 'Stop does');
+  assert.equal(frozen.dictation, '第一个问题？');
+  await advance(400);
+  user.emit('transcript', { segmentId: 'u1', epoch: '1', text: '红黑树和AVL树的区别', isFinal: false });
+  await advance(1200);
+  mark = session.markDictation(Date.now());
+  frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '红黑树和AVL树的区别', 'a just-said interim never updated again is still dictated');
+});
+
 test('S42-03 a sentence open at Answer that is finalized only during the stop tail is kept', async t => {
   const { session, user, advance } = meeting(t);
   user.emit('transcript', { segmentId: 'leftover', epoch: 'req-0', text: 'stale leftover', isFinal: false });
