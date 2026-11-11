@@ -43,6 +43,8 @@ export class WhatToAnswerLLM {
         intentResult?: IntentResult,
         imagePaths?: string[],
         screenContext?: ScreenContext,
+        /** The interviewer's latest words, sent as the explicit question. */
+        currentQuestion?: string,
     ): AsyncGenerator<string> {
         const MEASURE = process.env.MEASURE_LATENCY === 'true';
         let tStart = 0, tIntent = 0, tTemporal = 0, tMode = 0, tTrunc = 0, tPrompt = 0, tStream = 0;
@@ -79,6 +81,7 @@ ANSWER SHAPE: ${intentResult.answerShape}
         const assemblerBudget = 2000
             + estimateTokens(intentContext || '')
             + estimateTokens(screenContext?.ocrText || '')
+            + estimateTokens(currentQuestion || '')
             + estimateTokens((temporalContext?.previousResponses || []).join('\n'));
         const reservedForFit =
             (this.llmHelper.getCapabilities().outputBudgetTokens || 2000)
@@ -97,7 +100,7 @@ ANSWER SHAPE: ${intentResult.answerShape}
             && this.llmHelper.deniedDataScopes(['profile_history']).length === 0;
         const assembler = new PromptAssembler();
         const packet = assembler.assemble({
-            transcript: workingTranscript,
+            transcript: workingTranscript, currentQuestion, hasImages: hasAttachedImages,
             screenContext,
             priorResponses: includePriorResponses ? temporalContext!.previousResponses : undefined,
             intentContext,

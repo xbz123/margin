@@ -42,6 +42,10 @@ export class PromptAssembler {
      */
     assemble(params: {
         transcript: string;
+        /** Explicit interviewer question; the transcript stays as background. */
+        currentQuestion?: string;
+        /** Screenshots ride with the request; the current question then only frames them. */
+        hasImages?: boolean;
         screenContext?: ScreenContext;
         customContext?: string;
         meetingHistory?: string[];
@@ -85,6 +89,11 @@ export class PromptAssembler {
             params.screenContext?.ocrText
         ) {
             this.addBlock(packet, this.buildScreenContextBlock(params.screenContext));
+        }
+
+        // 3b. CURRENT QUESTION — untrusted speech, placed before the transcript so the budget keeps it.
+        if (params.currentQuestion?.trim()) {
+            this.addBlock(packet, this.buildCurrentQuestionBlock(params.currentQuestion.trim(), params.hasImages === true));
         }
 
         // 4. TRANSCRIPT — untrusted conversation
@@ -287,6 +296,22 @@ ${this.escapeUserContent(truncated)}
             content: `<transcript trust_level="untrusted">
 ${this.escapeUserContent(transcript)}
 </transcript>`,
+        };
+    }
+
+    private buildCurrentQuestionBlock(question: string, hasImages: boolean): ContextBlock {
+        const instruction = hasImages
+            ? "The interviewer's most recent words, only to understand what is being asked; the attached screenshot is the primary request."
+            : "The interviewer's most recent words; the last line is the newest and earlier lines are context. Answer the newest complete question in them; use the transcript below only as background.";
+        return {
+            type: 'current_question',
+            trustLevel: TrustLevel.UNTRUSTED_TRANSCRIPT,
+            source: 'interviewer_latest_turns',
+            tokenBudget: 2048,
+            content: `<current_question trust_level="untrusted" source="interviewer">
+${instruction}
+${this.escapeUserContent(question)}
+</current_question>`,
         };
     }
 

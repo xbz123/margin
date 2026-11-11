@@ -144,7 +144,7 @@ test('AG42 real answer row and feedback callback use shared translations and sho
         pendingCaptureRef: ref(null), attachedContext: [], setScreenContextStatus() {}, setLatestUsedImageInput() {},
         setLatestVisionProviderUsed() {}, setLatestVisionModelUsed() {}, setLatestVisionFailureReason() {},
         streamingTextRef: ref(''), streamingNodeRef: ref(null), streamingMsgIdRef: ref(null),
-        streamingIntentRef: ref(null), streamingRafRef: ref(null),
+        streamingIntentRef: ref(null), streamingRafRef: ref(null), whatToSayQuestionRef: ref(null),
         setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
         applyWhatToAnswerNullFeedbackMessages: (prev, feedback) => [...prev, { text: feedback }],
         pinAnswerPanel() {}, endOverlayAction() {}, genMessageId: () => 'error',

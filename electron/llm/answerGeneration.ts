@@ -9,6 +9,19 @@ export function isPendingAnswerSentinel(text: string): boolean {
 }
 
 /**
+ * What to Answer's explicit question: the interviewer's last few turns in the context the answer
+ * reads (an unfinished turn included), oldest first, keeping the newest text within the cap.
+ */
+export function latestInterviewerQuestion(items: readonly { role: string; text: string }[], turns = 4, maxChars = 8192): string | undefined {
+  let text = items.filter(item => item.role === 'interviewer' && item.text.trim())
+    .slice(-turns).map(item => item.text.trim()).join('\n').slice(-maxChars);
+  // The cut may land inside a surrogate pair; drop the orphaned low half it leaves.
+  if (/^[\uDC00-\uDFFF]/.test(text)) text = text.slice(1);
+  text = text.trim();
+  return text || undefined;
+}
+
+/**
  * Prepare the existing WhatToAnswer -> streamChat -> GenerateRequest path, not another transport.
  * `freeze` waits for the action's speech and returns the view the answer reads.
  */

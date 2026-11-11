@@ -138,3 +138,20 @@ export function applyWhatToAnswerNullFeedbackMessages(prev, feedback, idFactory 
     },
   ];
 }
+
+// Labels the main process sends on the suggested_answer events when no interviewer words were
+// named: What to Answer's placeholders, retry, and the Code Hint / Brainstorm streams.
+const UNNAMED_ANSWER_QUESTIONS = new Set(['inferred', 'What to Answer', 'retry', 'Code Hint', 'Brainstorming Approaches']);
+
+/**
+ * Show the interviewer's words a What to Answer press is answering, once, just above its answer row.
+ * Returns `prev` unchanged for an unnamed question or when the answer row is gone. The bubble is
+ * marked `whatToSayQuestion` so the typed-chat conversation context can leave it out.
+ */
+export function insertWhatToSayQuestionMessages(prev, answerId, question, id) {
+  const text = typeof question === 'string' ? question.trim() : '';
+  if (!Array.isArray(prev) || !text || UNNAMED_ANSWER_QUESTIONS.has(text)) return prev;
+  const index = prev.findIndex((m) => m.id === answerId);
+  if (index === -1) return prev;
+  return [...prev.slice(0, index), { id, role: 'interviewer', text, whatToSayQuestion: true }, ...prev.slice(index)];
+}

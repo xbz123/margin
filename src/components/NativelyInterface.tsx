@@ -54,6 +54,7 @@ import { shouldDedupeManualSubmit } from '../lib/overlaySubmitDedup.mjs';
 import {
   applyWhatToAnswerNullFeedbackMessages,
   finalizeStreamingByIntentMessages,
+  insertWhatToSayQuestionMessages,
   prepareIntelligenceStreamPlaceholderMessages,
 } from '../lib/overlayMessagePersistence.mjs';
 import {
@@ -114,6 +115,8 @@ interface Message {
   text: string;
   isStreaming?: boolean;
   hasScreenshot?: boolean;
+  // Interviewer bubble shown above a What to Answer row; display only, never conversation context.
+  whatToSayQuestion?: boolean;
   screenshotPreview?: string;
   isCode?: boolean;
   intent?: string;
@@ -1248,7 +1251,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   // Build conversation context from messages
   useEffect(() => {
     const context = messages
-      .filter((m) => m.role !== 'user' || !m.hasScreenshot)
+      .filter((m) => (m.role !== 'user' || !m.hasScreenshot) && !m.whatToSayQuestion)
       .map(
         (m) =>
           `${m.role === 'interviewer' ? 'Interviewer' : m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`,
@@ -1706,6 +1709,16 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   }, []);
   pinAnswerPanelRef.current = pinAnswerPanel;
 
+  // The What to Answer press whose answer row still waits for its interviewer question bubble.
+  const whatToSayQuestionRef = useRef<{ epoch: number; answerId: string } | null>(null);
+  const showWhatToSayQuestion = useCallback((question: unknown) => {
+    const pending = whatToSayQuestionRef.current;
+    if (!pending) return;
+    whatToSayQuestionRef.current = null;
+    const id = genMessageId();
+    setMessages((prev) => insertWhatToSayQuestionMessages(prev, pending.answerId, question, id));
+  }, []);
+
   const prepareIntelligenceStreamPlaceholder = useCallback(
     (intent: string) => {
       flushToken();
@@ -1898,6 +1911,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     cleanups.push(
       window.electronAPI.onIntelligenceSuggestedAnswerToken((data) => {
         pinAnswerPanel();
+        showWhatToSayQuestion(data.question);
         queueToken('what_to_answer', data.token);
       }),
     );
@@ -1906,6 +1920,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       window.electronAPI.onIntelligenceSuggestedAnswer((data) => {
         setIsProcessing(false);
         pinAnswerPanel();
+        showWhatToSayQuestion(data.question);
         finalizeStreamingByIntent('what_to_answer', data.answer);
       }),
     );
@@ -1922,6 +1937,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         if (!items || items.length === 0) return;
         if (kind === 'suggested_answer') {
           pinAnswerPanel();
+          showWhatToSayQuestion((items[0] as any).question);
           for (const it of items) queueToken('what_to_answer', (it as any).token);
         } else if (kind === 'refined_answer') {
           for (const it of items) queueToken((it as any).intent, (it as any).token);
@@ -2030,7 +2046,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       }
       cleanups.forEach((fn) => fn());
     };
-  }, [queueToken, flushToken, applyRollingPartialPreview, flushRollingPartialPreview, pinAnswerPanel, finalizeStreamingByIntent]);
+  }, [queueToken, flushToken, applyRollingPartialPreview, flushRollingPartialPreview, pinAnswerPanel, finalizeStreamingByIntent, showWhatToSayQuestion]);
 
   // Stable mount-only effect for screenshot listeners.
   // These MUST NOT be inside the [isExpanded] effect — when a screenshot is
@@ -2066,6 +2082,8 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
+    // Main sends the interviewer words it answers with the answer events; show them above this row.
+    whatToSayQuestionRef.current = streamingMsgIdRef.current ? { epoch, answerId: streamingMsgIdRef.current } : null;
 
     // Capture attached images; remove them only after a completed answer.
     // Also merge in any screenshot from the capture-and-process shortcut that
@@ -2150,6 +2168,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       ]);
       pinAnswerPanel();
     } finally {
+      if (whatToSayQuestionRef.current?.epoch === epoch) whatToSayQuestionRef.current = null;
       endOverlayAction('what_to_say');
       if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
@@ -2160,6 +2179,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     if (!tryBeginOverlayAction(actionKey)) return;
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder(intent);
@@ -2186,6 +2206,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     if (!tryBeginOverlayAction('recap')) return;
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('recap');
@@ -2212,6 +2233,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     if (!tryBeginOverlayAction('follow_up_questions')) return;
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('follow_up_questions');
@@ -2238,6 +2260,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     if (!tryBeginOverlayAction('clarify')) return;
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('clarify');
@@ -2263,6 +2286,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const handleCodeHint = async () => {
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     setIsExpanded(true);
     setIsProcessing(true);
     pinAnswerPanel();
@@ -2311,6 +2335,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     if (!tryBeginOverlayAction('brainstorm')) return;
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     setIsExpanded(true);
     setIsProcessing(true);
     prepareIntelligenceStreamPlaceholder('what_to_answer');
@@ -2463,6 +2488,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     setRetryGeneration(undefined);
     flushToken();
     const epoch = ++generationEpochRef.current;
+    whatToSayQuestionRef.current = null;
     const intent = failed.entryPoint === 'clarify' ? 'clarify' : failed.entryPoint === 'recap' ? 'recap'
       : failed.entryPoint === 'follow-up-questions' ? 'follow_up_questions' : failed.entryPoint === 'follow-up' ? 'retry' : 'what_to_answer';
     prepareIntelligenceStreamPlaceholder(intent);

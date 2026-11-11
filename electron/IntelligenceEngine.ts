@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
 import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import type { GenerationTask } from './llm/generateTask';
-import { prepareManualAnswer, isPendingAnswerSentinel } from './llm/answerGeneration';
+import { prepareManualAnswer, isPendingAnswerSentinel, latestInterviewerQuestion } from './llm/answerGeneration';
 import type { PreparedInput } from './llm/preparedInput';
 import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
 import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem, type TranscriptView } from './SessionTracker';
@@ -593,6 +593,12 @@ export class IntelligenceEngine extends EventEmitter {
                 }
             }
 
+            // A manual press without a question answers the interviewer's latest words from the
+            // same snapshot as the background; the renderer shows them through the answer events.
+            const interviewerQuestion = options?.manual && !question && !isSpeculative
+                ? latestInterviewerQuestion(contextItems) : undefined;
+            const shownQuestion = question || interviewerQuestion;
+
             const transcriptTurns = contextItems.map(item => ({
                 role: item.role,
                 text: item.text,
@@ -627,9 +633,16 @@ export class IntelligenceEngine extends EventEmitter {
             const generationId = ++this.currentGenerationId;
             let fullAnswer = "";
             let pendingDisplay = "";
+            // Only the first token event carries the interviewer's words; later ones keep the old label.
+            let questionSent = false;
+            const tokenQuestion = () => {
+                const firstEvent = !questionSent;
+                questionSent = true;
+                return (firstEvent ? shownQuestion : question) || 'inferred';
+            };
             // RC-03 fix: hold a reference to the generator so we can call .return()
             // to properly terminate the network request when a new generation starts.
-            const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext);
+            const stream = this.whatToAnswerLLM.generateStream(preparedTranscript, temporalContext, intentResult, imagePaths, screenContext, interviewerQuestion);
             let streamAborted = false;
 
             try { for await (const token of stream) {
@@ -647,14 +660,14 @@ export class IntelligenceEngine extends EventEmitter {
                     const possibleSentinel = isPendingAnswerSentinel(fullAnswer);
                     if (!possibleSentinel) {
                         task?.markVisible(pendingDisplay);
-                        this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
+                        this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
                         pendingDisplay = "";
                     }
                 }
             } } catch (error) {
                 if (pendingDisplay && !isSpeculative && !task?.signal.aborted && task === this.activeGenerationTask) {
                     task?.markVisible(pendingDisplay);
-                    this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
+                    this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
                 }
                 throw error;
             }
@@ -688,7 +701,7 @@ export class IntelligenceEngine extends EventEmitter {
 
             if (pendingDisplay && !isSpeculative) {
                 task?.markVisible(pendingDisplay);
-                this.emit('suggested_answer_token', pendingDisplay, question || 'inferred', confidence);
+                this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
             }
             if (isSpeculative) {
                 this.lastTriggerTime = Date.now();
@@ -706,7 +719,7 @@ export class IntelligenceEngine extends EventEmitter {
                 answer: fullAnswer
             });
 
-            this.emit('suggested_answer', fullAnswer, question || 'What to Answer', confidence);
+            this.emit('suggested_answer', fullAnswer, shownQuestion || 'What to Answer', confidence);
 
             this.setMode('idle');
             return fullAnswer;

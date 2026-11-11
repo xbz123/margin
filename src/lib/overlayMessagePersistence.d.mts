@@ -17,3 +17,10 @@ export function applyWhatToAnswerNullFeedbackMessages<T extends { id: string; ro
   feedback: string,
   idFactory?: () => string,
 ): T[];
+
+export function insertWhatToSayQuestionMessages<T extends { id: string; role: string; text: string; whatToSayQuestion?: boolean }>(
+  prev: T[],
+  answerId: string,
+  question: unknown,
+  id: string,
+): T[];
