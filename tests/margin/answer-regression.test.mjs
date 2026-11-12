@@ -164,6 +164,9 @@ test('a typed question streams the mock answer into the overlay', async () => {
   const before = mock.chatRequests().length;
   let pauseTimeout;
   try {
+    // The main process sends done only after the renderer's first-visible receipt;
+    // waiting for done keeps this answer's late receipt and done out of the next test's listeners (S42-04).
+    await overlay.evaluate(() => { window.__t151Done = 0; window.__t151Unsub = window.electronAPI.onGeminiStreamDone(() => { window.__t151Done += 1; }); });
     await ask('What is two plus two?');
     const req = await Promise.race([
       paused,
@@ -178,9 +181,11 @@ test('a typed question streams the mock answer into the overlay', async () => {
     assert.ok(!partial.includes('Margin regression answer one.'), 'first visible state should be partial');
     releaseTail();
     await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression answer one.'), null, { timeout: 15_000 });
+    await overlay.waitForFunction(() => window.__t151Done >= 1, null, { timeout: 15_000 });
   } finally {
     clearTimeout(pauseTimeout);
     releaseTail();
+    await overlay.evaluate(() => { window.__t151Unsub?.(); }).catch(() => {});
   }
 
   const req = mock.chatRequests().at(-1);
