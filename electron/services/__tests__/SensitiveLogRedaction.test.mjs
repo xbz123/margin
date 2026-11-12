@@ -76,11 +76,7 @@ test('LLMHelper actual chat and stream paths never log prompt, context, system o
 });
 
 test('STT providers log transcript metadata without transcript text', () => {
-  const files = [
-    'electron/audio/RestSTT.ts',
-    'electron/audio/OpenAIStreamingSTT.ts',
-    'electron/audio/SonioxStreamingSTT.ts',
-  ];
+  const files = ['RestSTT', 'OpenAIStreamingSTT', 'SonioxStreamingSTT'].map((provider) => 'electron/audio/' + provider + '.ts');
 
   for (const file of files) {
     const source = read(file);
