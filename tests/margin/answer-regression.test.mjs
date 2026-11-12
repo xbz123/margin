@@ -302,9 +302,14 @@ test('after cancel, and after a new stream has started, events of the old stream
 
   // Cancellation rebuilds the streaming DOM; use delivered tokens, not a UI snapshot,
   // to identify LATE chunks legitimately received before cancellation.
-  mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800 });
+  // The old stream pauses after two chunks until the test has seen the cancel close it, so a
+  // slow renderer cannot let it finish on its own first.
+  let releaseOld;
+  const oldGate = new Promise((resolve) => { releaseOld = resolve; });
+  mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800,
+    afterChunk: (entry) => (entry.chunksSent === 2 ? oldGate : undefined) });
   await ask('Please give a long answer.');
-  await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000 });
+  await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000, polling: 100 });
   const oldReq = mock.chatRequests().at(-1);
   const [oldId] = await streamIds();
   assert.ok(oldId !== undefined && oldId !== null, `main sent no stream id with the tokens: ${JSON.stringify(await streamIds())}`);
@@ -312,7 +317,8 @@ test('after cancel, and after a new stream has started, events of the old stream
   // Positive control: while the stream is live, an injected token with its id is shown,
   // so the injection path below really reaches the overlay.
   await sendOverlayStreamEvent('gemini-stream-token', 'LIVE-INJECTED ', oldId);
-  await overlay.waitForFunction(() => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000 });
+  await overlay.waitForFunction(() => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000, polling: 100 });
+  assert.equal(oldReq.closedEarly, false, 'the old HTTP stream must still be open before the cancel');
 
   const lateAtCancel = await overlay.evaluate(() => {
     const tokensBeforeCancel = [...window.__marginDelivered.tokens];
@@ -326,6 +332,9 @@ test('after cancel, and after a new stream has started, events of the old stream
   await sendOverlayStreamEvent('gemini-stream-token', 'GAP-INJECTED', oldId);
   await sendOverlayStreamEvent('gemini-stream-done', oldId);
   assert.deepEqual(await delivered(), { tokens: [], done: 0, errors: [] }, 'events after cancel were delivered');
+  for (let n = 0; n < 100 && !oldReq.closedEarly; n++) await new Promise((r) => setTimeout(r, 50));
+  assert.ok(oldReq.closedEarly, `the client should abort the old HTTP stream (chunks sent: ${oldReq.chunksSent})`);
+  releaseOld();
 
   // 2. A new stream starts right away; events of the old stream (which main may have
   // sent before it saw the stop) and events without an id must still be dropped.
@@ -365,7 +374,6 @@ test('after cancel, and after a new stream has started, events of the old stream
     assert.notEqual(index, -1, `${marker} appeared after cancel:\n${text.slice(-400)}`);
     remainingLate.splice(index, 1);
   }
-  assert.ok(oldReq.closedEarly || oldReq.chunksSent < 6, 'the client should abort the old HTTP stream');
 });
 
 test('while an answer streams, a typed question is held back and a new stream request supersedes it', async () => {
