@@ -259,7 +259,7 @@ interface ElectronAPI {
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>;
   /** Answer: marks where dictated speech starts. Stop freezes it in main and returns the question. */
   beginDictation: () => Promise<void>;
-  finishDictation: () => Promise<{ speechActionId: string; question: string }>;
+  finishDictation: () => Promise<{ speechActionId: string; question: string; interviewerHeard?: boolean }>;
 
   // Meeting Lifecycle
   startMeeting: (metadata?: any) => Promise<{ success: boolean; error?: string; code?: PendingUnsavedMeetingCode }>;

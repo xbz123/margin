@@ -815,3 +815,46 @@ test('S42-03 a dictation whose beginning left the bounded ledger fails explicitl
   assert.equal(frozen.value.dictation, 'fresh question');
   assert.equal(session.record('user:1:d0'), undefined, 'the live ledger stays bounded');
 });
+
+test('silent Stop: interviewer speech updated within 15 s before the mark, or interim during dictation, is heard; older or none is not', async t => {
+  const { session, interviewer, advance } = meeting(t);
+  // (c) The interviewer finished 20 s before Answer and said nothing since.
+  interviewer.emit('transcript', { segmentId: 'long-ago', text: 'What did you build last year?', isFinal: true });
+  await advance(20_000);
+  let mark = session.markDictation(Date.now());
+  await advance(2000);
+  let frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '');
+  assert.equal(frozen.interviewerHeard, false, 'speech older than 15 s before the mark is not this round');
+
+  // (a) Interviewer words 10 s before Answer belong to this round.
+  await advance(30_000);
+  interviewer.emit('transcript', { segmentId: 'recent', text: 'How do you size a thread pool?', isFinal: true });
+  await advance(10_000);
+  mark = session.markDictation(Date.now());
+  await advance(1500);
+  frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '');
+  assert.equal(frozen.interviewerHeard, true);
+
+  // An interviewer interim still open while recording counts as heard as well.
+  await advance(60_000);
+  mark = session.markDictation(Date.now());
+  await advance(500);
+  interviewer.emit('transcript', { segmentId: 'mid-sentence', text: 'and what about back', isFinal: false });
+  await advance(500);
+  frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.interviewerHeard, true, 'an unfinished interviewer sentence is heard');
+});
+
+test('silent Stop: no interviewer speech at all is not heard, and an action without a mark carries no flag', async t => {
+  const { session, advance } = meeting(t);
+  const mark = session.markDictation(Date.now());
+  await advance(1000);
+  const frozen = await stopDictation(session, advance, mark);
+  assert.equal(frozen.dictation, '');
+  assert.equal(frozen.interviewerHeard, false);
+  const plain = session.collect({ cutoffAt: Date.now(), deadline: Date.now() + 10_000, signal: new AbortController().signal });
+  await advance(4000);
+  assert.equal('interviewerHeard' in await plain.frozen, false);
+});

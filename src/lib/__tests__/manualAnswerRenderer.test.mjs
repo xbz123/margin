@@ -243,3 +243,66 @@ test('S46-02 manual submit records the scene it actually sends, and only written
     assert.doesNotMatch(reply, /border|bg-|message-text|data-message-scene/);
   }
 });
+
+test('silent Stop: recent interviewer speech goes to What to say with the Stop id; otherwise the existing paths stay', async () => {
+  const ref = current => ({ current });
+  const run = async (frozen, attachedContext = []) => {
+    const messages = [], sent = [], whatToSay = [];
+    await handler('handleAnswerNow', {
+      isManualRecording: true, generationEpochRef: ref(0), isRecordingRef: ref(true), voiceInputRef: ref(''), manualTranscriptRef: ref(''),
+      attachedContext, submittedChatRef: ref(), messagesEndRef: ref(), ...guidance, sttUserStatus: 'connected',
+      streamingMsgIdRef: ref(), streamingIntentRef: ref(), streamingTextRef: ref(''), streamingNodeRef: ref(null), streamingRafRef: ref(null),
+      requestStartTimeRef: ref(null), setIsManualRecording() {}, setManualTranscript() {}, setVoiceInput() {}, setIsProcessing() {},
+      setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
+      genMessageId: () => String(messages.length), setTimeout() {}, pinAnswerPanel() {}, t: english => i18n.translate('en', english),
+      handleWhatToSay: async (...args) => { whatToSay.push(args); },
+      window: { electronAPI: { finishDictation: async () => ({ speechActionId: 'action-1', ...frozen }), streamGeminiChat: async (...args) => sent.push(args) } },
+    })();
+    return { messages, sent, whatToSay, noSpeech: messages.some(message => /No speech detected/.test(message.text)) };
+  };
+  // (a) Nothing dictated, interviewer heard: the What to say path answers with this Stop's action.
+  let out = await run({ question: '', interviewerHeard: true });
+  assert.deepEqual(out.whatToSay, [['action-1']]);
+  assert.equal(out.sent.length, 0);
+  assert.equal(out.noSpeech, false);
+  assert.equal(out.messages.length, 0, 'the What to say path shows the question and answer itself');
+  // (b)/(c) Neither channel heard in the window: the existing warning.
+  out = await run({ question: '', interviewerHeard: false });
+  assert.equal(out.noSpeech, true);
+  assert.equal(out.whatToSay.length + out.sent.length, 0);
+  out = await run({ question: '' });
+  assert.equal(out.noSpeech, true, 'an older main without the flag keeps the warning');
+  // (d) Dictated words are the question, whatever the interviewer said.
+  out = await run({ question: 'Main frozen question', interviewerHeard: true });
+  assert.equal(out.whatToSay.length, 0);
+  assert.equal(out.sent[0][0], 'Main frozen question');
+  assert.deepEqual(out.messages.filter(message => message.role === 'user').map(message => message.text), ['Main frozen question']);
+  // An attachment with nothing dictated is sent as before.
+  out = await run({ question: '', interviewerHeard: true }, [{ path: '/synthetic/screen.png', preview: '' }]);
+  assert.equal(out.whatToSay.length, 0);
+  assert.deepEqual(out.sent[0][1], ['/synthetic/screen.png']);
+});
+
+test('What to say from a silent Stop sends that action without attachments or the click guard; a click is unchanged', async () => {
+  const ref = current => ({ current });
+  const run = async arg => {
+    const calls = [], guards = [];
+    await handler('handleWhatToSay', {
+      questionMode: 'interview', tryBeginOverlayAction: key => { guards.push(['begin', key]); return true; }, endOverlayAction: key => guards.push(['end', key]),
+      generationEpochRef: ref(0), setIsExpanded() {}, setIsProcessing() {}, prepareIntelligenceStreamPlaceholder() {},
+      pendingCaptureRef: ref({ path: '/synthetic/pending.png', preview: '', speechActionId: 'capture-1' }),
+      attachedContext: [{ path: '/synthetic/attached.png', preview: '' }], setAttachedContext() {}, setScreenContextStatus() {}, setLatestUsedImageInput() {},
+      setLatestVisionProviderUsed() {}, setLatestVisionModelUsed() {}, setLatestVisionFailureReason() {},
+      streamingTextRef: ref(''), streamingNodeRef: ref(null), streamingMsgIdRef: ref(null), streamingIntentRef: ref(null), streamingRafRef: ref(null),
+      whatToSayQuestionRef: ref(null), setMessages() {}, messagesEndRef: ref(), setTimeout() {}, genMessageId: () => 'id', t: english => english,
+      window: { electronAPI: { cancelChatStream() {}, generateWhatToSay: async (...args) => { calls.push(args); return { answer: 'ok' }; } } },
+    })(arg);
+    return { calls, guards };
+  };
+  let out = await run('stop-1');
+  assert.deepEqual(out.calls, [[undefined, undefined, 'stop-1']]);
+  assert.deepEqual(out.guards, []);
+  out = await run({ type: 'click' });
+  assert.deepEqual(JSON.parse(JSON.stringify(out.calls)), [[null, ['/synthetic/attached.png', '/synthetic/pending.png'], 'capture-1']]);
+  assert.deepEqual(out.guards, [['begin', 'what_to_say'], ['end', 'what_to_say']]);
+});

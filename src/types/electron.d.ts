@@ -184,7 +184,7 @@ export interface ElectronAPI {
   generateRecap: () => Promise<{ summary: string | null }>
   submitManualQuestion: (question: string) => Promise<{ answer: string | null; question: string }>
   beginDictation: () => Promise<void>
-  finishDictation: () => Promise<{ speechActionId: string; question: string }>
+  finishDictation: () => Promise<{ speechActionId: string; question: string; interviewerHeard?: boolean }>
   getIntelligenceContext: () => Promise<{ context: string; lastAssistantMessage: string | null; activeMode: string }>
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>
 

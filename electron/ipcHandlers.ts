@@ -409,7 +409,8 @@ export function initializeIpcHandlers(appState: AppState): void {
     const action = speechActions.take(event.sender, ref, 'answer', false);
     const frozen = await action.frozen;
     action.question ??= frozen.dictation ?? '';
-    return { speechActionId: action.id, question: action.question };
+    // A silent Stop with recent interviewer speech can be answered through generate-what-to-say with this id.
+    return { speechActionId: action.id, question: action.question, interviewerHeard: !!frozen.interviewerHeard };
   });
 
   // IPC handler for analyzing image from file path

@@ -117,7 +117,9 @@ export class SpeechActions {
   take(owner: SpeechActionOwner, ref: unknown, kind: SpeechActionKind, consume = true): SpeechAction {
     const { speechActionId, stage1EndAt } = (ref ?? {}) as Record<string, unknown>;
     const entry = typeof speechActionId === 'string' ? this.entries.get(speechActionId) : undefined;
-    if (!entry || entry.owner !== owner || entry.kind !== kind || entry.consumed) throw new SpeechActionError();
+    // A Stop frozen with no dictated words may instead be answered as What to say, from the same snapshot.
+    const silentStop = kind === 'what-to-say' && entry?.kind === 'answer' && entry.freezing && entry.action?.question === '';
+    if (!entry || entry.owner !== owner || (entry.kind !== kind && !silentStop) || entry.consumed) throw new SpeechActionError();
     if (!entry.action) { this.forget(speechActionId as string); throw entry.failure; }
     const action = entry.action;
     if (action.task.signal.aborted) { this.release(action.id); throw new SpeechActionError(); }

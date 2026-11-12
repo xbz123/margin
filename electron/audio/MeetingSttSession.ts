@@ -91,6 +91,8 @@ export interface FrozenSpeech {
   dictation?: string;
   /** Segments the dictation text was taken from. */
   dictationKeys?: readonly string[];
+  /** With a dictation mark: interviewer text in this snapshot was updated after mark.at - INTERVIEWER_LEAD_MS. */
+  interviewerHeard?: boolean;
 }
 export interface DictationMark {
   sessionId: string | null;
@@ -153,6 +155,8 @@ export const SETTLED_TAIL_MS = 1000;
 const SNAPSHOT_WINDOW_MS = 180_000;
 /** An interim live at the mark and updated at most this long before it is speech just said, dictated without a later update. */
 const DICTATION_FRESH_INTERIM_MS = 5000;
+/** Interviewer speech updated this long before a dictation mark, or later, counts as heard for that round. */
+export const INTERVIEWER_LEAD_MS = 15_000;
 const LEDGER_LIMIT = 2000;
 const NUMERAL_RUN = /[0-9零〇一二两三四五六七八九十百千万亿]+/gu;
 /** Text for comparison only: punctuation, spacing and case ignored, a numeral run (三 / 3) one token. */
@@ -440,9 +444,12 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     const snapshot = (): FrozenSpeech => {
       const channels = {} as FrozenSpeech['channels'];
       const spoken: SegmentRecord[] = [];
+      let interviewerHeard = false;
       for (const lane of lanes) {
         const records = recordsAt(lane, ending(lane)).sort((a, b) => a.firstSeenAt - b.firstSeenAt);
         spoken.push(...records.filter(record => dictated(record, records)));
+        // Interim revisions count too: the interviewer may still be mid-sentence at Stop.
+        if (mark && lane.channel === 'interviewer') interviewerHeard = records.some(record => !!record.text.trim() && record.updatedAt > mark.at - INTERVIEWER_LEAD_MS);
         const segments = records
           .map(record => Object.freeze({ key: record.key, channel: record.channel, text: record.text, final: record.final,
             revision: record.revision, firstSeenAt: record.firstSeenAt, epoch: record.epoch, media: record.media && Object.freeze({ ...record.media }) }));
@@ -450,7 +457,7 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
           reason: lane.earlyAt <= ending(lane) ? lane.earlyReason : 'deadline' });
       }
       return Object.freeze({ sessionId, cutoffAt, frozenAt: Math.max(...lanes.map(ending)), channels: Object.freeze(channels),
-        ...(mark ? { dictation: spoken.map(segment => segment.text.trim()).join(' '), dictationKeys: Object.freeze(spoken.map(segment => segment.key)) } : {}) });
+        ...(mark ? { dictation: spoken.map(segment => segment.text.trim()).join(' '), dictationKeys: Object.freeze(spoken.map(segment => segment.key)), interviewerHeard } : {}) });
     };
     // A provider can move words heard by the cutoff to a key first seen after it: Doubao appends the
     // next sentence to the open one, then sends the first one's definite (dropping those words from

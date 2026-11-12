@@ -2074,9 +2074,12 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Optional: Trigger a small toast or state change for visual feedback
   }, []);
 
-  const handleWhatToSay = async () => {
-    if (questionMode === 'written') { await handleManualSubmit(); return; }
-    if (!tryBeginOverlayAction('what_to_say')) return;
+  // `silentStopId`: a Stop that froze no dictated words but heard the interviewer is answered here,
+  // from that Stop's own frozen speech. Click and shortcut callers pass no string and keep their behavior.
+  const handleWhatToSay = async (silentStopId?: unknown) => {
+    const stopId = typeof silentStopId === 'string' ? silentStopId : undefined;
+    if (!stopId && questionMode === 'written') { await handleManualSubmit(); return; }
+    if (!stopId && !tryBeginOverlayAction('what_to_say')) return;
     window.electronAPI.cancelChatStream('natively');
     const epoch = ++generationEpochRef.current;
     setIsExpanded(true);
@@ -2088,8 +2091,8 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     // Capture attached images; remove them only after a completed answer.
     // Also merge in any screenshot from the capture-and-process shortcut that
     // arrived via pendingCaptureRef before the React state flush (React 18 fix).
-    const pending = pendingCaptureRef.current;
-    let currentAttachments = attachedContext;
+    const pending = stopId ? null : pendingCaptureRef.current;
+    let currentAttachments = stopId ? [] : attachedContext;
     if (pending && !currentAttachments.some((s) => s.path === pending.path)) {
       currentAttachments = [...currentAttachments, pending].slice(-5);
     }
@@ -2117,7 +2120,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       const result = await window.electronAPI.generateWhatToSay(
         undefined,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
-        pending?.speechActionId,
+        stopId ?? pending?.speechActionId,
       );
       if (generationEpochRef.current !== epoch) return;
       setScreenContextStatus(result.screenContextStatus || 'not_available');
@@ -2169,7 +2172,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       pinAnswerPanel();
     } finally {
       if (whatToSayQuestionRef.current?.epoch === epoch) whatToSayQuestionRef.current = null;
-      endOverlayAction('what_to_say');
+      if (!stopId) endOverlayAction('what_to_say');
       if (generationEpochRef.current === epoch) setIsProcessing(false);
     }
   };
@@ -2523,7 +2526,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         setManualTranscript('');
         manualTranscriptRef.current = '';
         const currentAttachments = attachedContext;
-        let frozen: { speechActionId: string; question: string };
+        let frozen: { speechActionId: string; question: string; interviewerHeard?: boolean };
         try {
           frozen = await window.electronAPI.finishDictation();
         } catch {
@@ -2539,6 +2542,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         const question = frozen.question;
         submittedChatRef.current = { text: '', paths: currentAttachments.map(item => item.path) };
 
+        if (!question && currentAttachments.length === 0 && frozen.interviewerHeard) {
+          // Nothing dictated, but the interviewer spoke: answer their latest words as What to say does.
+          await handleWhatToSay(frozen.speechActionId);
+          return;
+        }
         if (!question && currentAttachments.length === 0) {
           if (sttUserStatus === 'failed' && sttUserError) {
             setMessages((prev) => [

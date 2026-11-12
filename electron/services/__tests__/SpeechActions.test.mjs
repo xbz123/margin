@@ -1015,3 +1015,86 @@ test('S50 saved configuration -> timed synthetic screenshot -> real IPC/model; o
     if (priorContext) fs.writeFileSync(contextFile, priorContext); else fs.rmSync(contextFile, { force: true });
   }
 });
+
+// A Stop that froze no dictated words: freeze reports whether the interviewer was heard, and only then
+// may the same action be answered through What to say from the snapshot that freeze already took.
+async function silentStop(c, interviewerText) {
+  if (interviewerText) c.interviewer.emit('transcript', { segmentId: 'silent-stop-q', text: interviewerText, isFinal: true });
+  const { dictationId } = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  const ref = await c.begin('answer', { dictationId });
+  c.releaseSeals();
+  return { ref, frozen: await c.invoke('speech-action:freeze', ref) };
+}
+
+test('silent Stop with recent interviewer speech answers their words through What to say, once, without collecting again', async () => {
+  const c = chain(), tasks = trackTasks(c);
+  let collections = 0;
+  const collect = c.state.collectSpeech;
+  c.state.collectSpeech = options => { collections++; return collect(options); };
+  const shown = [];
+  c.intelligence.on('suggested_answer', (answer, question) => shown.push(question));
+  c.intelligence.on('suggested_answer_token', (token, question) => shown.push(question));
+  const { ref, frozen } = await silentStop(c, 'How would you design a rate limiter for an API gateway?');
+  assert.equal(frozen.question, '');
+  assert.equal(frozen.interviewerHeard, true);
+  const result = await c.invoke('generate-what-to-say', undefined, undefined, ref);
+  assert.equal(result.answer, 'MOCK ANSWER');
+  assert.equal(collections, 1, 'the fallback reuses the Stop snapshot');
+  assert.equal(c.sent.length, 1);
+  assert.match(JSON.stringify(c.sent[0]), /rate limiter for an API gateway/);
+  assert.equal(shown[0], 'How would you design a rate limiter for an API gateway?', 'the first answer event carries the interviewer words');
+  assert.equal(tasks.length, 1, 'the Stop task is the answer task');
+  assert.equal(tasks[0].terminalStatus, 'completed');
+  // Completed: the reference is spent, and neither path can reuse it.
+  assert.equal((await c.invoke('generate-what-to-say', undefined, undefined, ref)).error, 'Answer failed. Check the model configuration and try again.');
+  await assert.rejects(() => c.invoke('gemini-chat-stream', '', undefined, 'PROMPT', { skipSystemPrompt: true, speechActionId: ref.speechActionId }), { name: 'SpeechActionError' });
+  assert.equal(c.sent.length, 1);
+  assert.equal(c.sender.listenerCount('destroyed'), 0, 'the completed fallback leaves no entry listener');
+  await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  assert.equal(c.sender.listenerCount('destroyed'), 1, 'only the next round dictation mark listens');
+});
+
+test('only a frozen silent Stop can be answered as What to say; a dictated or unfrozen Stop cannot', async () => {
+  const c = chain();
+  c.interviewer.emit('transcript', { segmentId: 'iq', text: 'Tell me about consistent hashing', isFinal: true });
+  // Unfrozen: Stop has begun but freeze has not returned its question.
+  let { dictationId } = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() - 1 });
+  const unfrozen = await c.begin('answer', { dictationId });
+  assert.equal((await c.invoke('generate-what-to-say', undefined, undefined, unfrozen)).error, 'Answer failed. Check the model configuration and try again.');
+  // Dictated: the question is the microphone text, so only the chat request may take it.
+  ({ dictationId } = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() - 1 }));
+  c.user.emit('transcript', { segmentId: 'mine', text: 'how does it rebalance', isFinal: true });
+  const dictated = await c.begin('answer', { dictationId });
+  c.releaseSeals();
+  const frozen = await c.invoke('speech-action:freeze', dictated);
+  assert.equal(frozen.question, 'how does it rebalance');
+  assert.equal((await c.invoke('generate-what-to-say', undefined, undefined, dictated)).error, 'Answer failed. Check the model configuration and try again.');
+  assert.equal(c.sent.length, 0);
+  await c.invoke('gemini-chat-stream', frozen.question, undefined, 'PROMPT', { skipSystemPrompt: true, speechActionId: dictated.speechActionId });
+  assert.equal(c.sent.length, 1, 'the dictated Stop is still answered as before');
+});
+
+test('silent Stop with no interviewer speech is not heard', async () => {
+  const c = chain();
+  const { frozen } = await silentStop(c);
+  assert.deepEqual({ ...frozen, speechActionId: undefined }, { speechActionId: undefined, question: '', interviewerHeard: false });
+  assert.equal(c.sent.length, 0);
+});
+
+test('silent Stop fallback still running is cancelled and released when the next Answer replaces it', async () => {
+  const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c);
+  const { ref, frozen } = await silentStop(c, 'Explain how a hash table handles collisions');
+  assert.equal(frozen.interviewerHeard, true);
+  const old = c.invoke('generate-what-to-say', undefined, undefined, ref);
+  await provider.started;
+  await tick();
+  assert.equal(tasks[0].signal.aborted, false);
+  await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  assert.equal(tasks[0].signal.aborted, true, 'the next round cancels the fallback answer');
+  provider.release();
+  await old;
+  await tick();
+  assert.equal(tasks[0].terminalStatus, 'cancelled');
+  assert.equal(c.sender.listenerCount('destroyed'), 1, 'the replaced fallback entry is gone; only the new dictation mark listens');
+  assert.doesNotMatch(JSON.stringify(c.intelligence.getContext(Number.MAX_SAFE_INTEGER)), /LATE OLD/);
+});
