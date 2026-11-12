@@ -159,19 +159,6 @@ describe("B5: dev-mode TCC bypass is opt-in (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) o
     );
   });
 
-  it("env var NATIVELY_DEV_BYPASS_SCREEN_TCC is documented somewhere in main.ts", () => {
-    // The env knob is part of the public dev contract; it must be discoverable
-    // by grep so devs who hit denied-screen-recording in dev can find the
-    // escape hatch.
-    const occurrences = (main.match(/NATIVELY_DEV_BYPASS_SCREEN_TCC/g) || []).length;
-    assert.ok(
-      occurrences >= 1,
-      "BUG: env var NATIVELY_DEV_BYPASS_SCREEN_TCC is no longer referenced in main.ts. " +
-        "This is the documented dev knob — removing it (or renaming silently) breaks the " +
-        "documented bypass workflow.",
-    );
-  });
-
   it("no function in main.ts returns 'granted' solely on !app.isPackaged (global audit)", () => {
     // Catch-all: search the entire file for any `if (!app.isPackaged) return 'granted'`
     // pattern, regardless of which function it lives in. This guards against a

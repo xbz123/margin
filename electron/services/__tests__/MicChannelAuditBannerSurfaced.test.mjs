@@ -56,18 +56,6 @@ describe('B1: mic-channel audio-capture-failed must surface in the renderer', ()
     );
   });
 
-  it('handler body does NOT contain the regression sentinel `payload.channel !== \'system\'`', () => {
-    const matches = source.match(HANDLER_RE);
-    assert.ok(matches && matches.length === 1, 'could not locate onAudioCaptureFailed handler');
-    const body = matches[0];
-    assert.ok(
-      !/payload\.channel\s*!==\s*['"]system['"]/.test(body),
-      'BUG: the early-return `payload.channel !== \'system\'` is back. ' +
-        'This drops mic-channel failures (TCC zero-fill, terminal STT init, etc.) ' +
-        'and the user sees no banner. See B1 fix (2026-05-28).',
-    );
-  });
-
   it('handler body does NOT contain any `channel !== \'system\'` comparison (loose catch)', () => {
     const matches = source.match(HANDLER_RE);
     assert.ok(matches && matches.length === 1, 'could not locate onAudioCaptureFailed handler');

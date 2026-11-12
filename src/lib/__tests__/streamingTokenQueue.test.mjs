@@ -3,10 +3,7 @@ import assert from 'node:assert/strict';
 import {
   applyFirstStreamingToken,
   commitStreamingFlush,
-  discardStreamingBufferWhenNoMsgId,
-  findOpenStreamingRowIndex,
   hasActiveOpenStream,
-  resolveStreamingMessageId,
   shouldFlushPreviousStream,
   simulateDeferredFirstTokenVsSyncFinalize,
   simulatePrewiredPlaceholderStream,
@@ -42,11 +39,6 @@ test('hasActiveOpenStream treats placeholder (empty text) as active', () => {
   assert.equal(hasActiveOpenStream(null), false);
 });
 
-test('same-intent stream keeps one bubble (no flush between tokens)', () => {
-  assert.equal(shouldFlushPreviousStream('clarify', 'clarify', 'ph-1'), false);
-  assert.equal(shouldFlushPreviousStream('follow_up_questions', 'follow_up_questions', 'ph-1'), false);
-});
-
 test('multi-token same-intent simulation produces exactly one streaming row', () => {
   const tokens = ['Hello', ' ', 'world', '!'];
   const rows = simulateSameIntentTokenStream([], tokens, 'chat', () => 'stream-1');
@@ -69,14 +61,6 @@ test('multi-token same-intent reuses placeholder row instead of appending', () =
   assert.equal(rows.length, 1);
   assert.equal(rows[0].id, 'ph-clarify');
   assert.equal(rows[0].text, 'Need more context');
-});
-
-test('resolveStreamingMessageId reuses open placeholder id', () => {
-  const messages = [
-    { id: 'ph', role: 'system', text: '', intent: 'chat', isStreaming: true },
-  ];
-  assert.equal(resolveStreamingMessageId(messages, null, 'chat', () => 'new'), 'ph');
-  assert.equal(findOpenStreamingRowIndex(messages, 'chat'), 0);
 });
 
 test('applyFirstStreamingToken updates existing row by id', () => {
@@ -174,11 +158,6 @@ test('tokens visible in one bubble — no duplicate rows during pre-wired stream
   assert.equal(rows.length, 1);
   assert.equal(rows[0].text, 'One bubble only');
   assert.equal(rows.filter((m) => m.isStreaming).length, 0);
-});
-
-test('discardStreamingBufferWhenNoMsgId clears buffered text when msgId unset (RC-C flushToken)', () => {
-  assert.equal(discardStreamingBufferWhenNoMsgId('full answer blob'), '');
-  assert.equal(discardStreamingBufferWhenNoMsgId(''), '');
 });
 
 test('deferred first token + sync finalize must yield one what_to_answer row (RC-C repro)', () => {

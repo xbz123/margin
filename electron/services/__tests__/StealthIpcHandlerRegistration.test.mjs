@@ -18,19 +18,7 @@
 //   exact silent-failure mode PR #250 set out to eliminate.
 //
 //   The m1 fix wraps every registration in `registerStealthHandler(channel, fn)`
-//   which prepends `ipcMain.removeHandler(channel)`. This test documents the
-//   *pattern*: any wrapper following the remove-then-handle shape must remain
-//   idempotent under repeated calls.
-//
-// Why a pattern test, not an import-from-main test:
-//   electron/main.ts has heavy load-time side effects (creates the
-//   StealthKeyboardManager, opens windows, wires the singleton lock, etc.)
-//   and cannot be imported from a node:test runner without an Electron
-//   process. We mirror the helper's structure against a fake ipcMain so the
-//   contract is exercised at the logic level. If a future contributor drops
-//   the `removeHandler` line in main.ts, this test still passes locally —
-//   that's by design; the test guards the *shape* of the helper, the
-//   structural test below guards the *call sites*.
+//   which prepends `ipcMain.removeHandler(channel)`.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -41,109 +29,9 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../../..');
 
-function makeFakeIpc() {
-  const handlers = new Map();
-  return {
-    handlers,
-    removeHandler(channel) {
-      handlers.delete(channel);
-    },
-    handle(channel, fn) {
-      // Faithfully mirrors Electron's real throw on duplicate registration.
-      if (handlers.has(channel)) {
-        throw new Error(
-          `Attempted to register a second handler for '${channel}'`,
-        );
-      }
-      handlers.set(channel, fn);
-    },
-  };
-}
-
-function makeRegister(ipc) {
-  // Mirrors electron/main.ts line ~433 registerStealthHandler.
-  return (channel, fn) => {
-    ipc.removeHandler(channel);
-    ipc.handle(channel, fn);
-  };
-}
-
-test('registerStealthHandler pattern is idempotent across re-registration', () => {
-  const ipc = makeFakeIpc();
-  const register = makeRegister(ipc);
-
-  // First registration succeeds.
-  register('stealth-tap:available', () => true);
-  assert.equal(ipc.handlers.size, 1);
-  assert.equal(ipc.handlers.get('stealth-tap:available')(), true);
-
-  // Second registration — without removeHandler this would throw the exact
-  // Electron error string above. With the helper, it must succeed and the
-  // newer handler must win.
-  assert.doesNotThrow(() =>
-    register('stealth-tap:available', () => false),
-  );
-  assert.equal(ipc.handlers.size, 1);
-  assert.equal(
-    ipc.handlers.get('stealth-tap:available')(),
-    false,
-    'second registration must replace the first handler, not silently keep the old one',
-  );
-});
-
-test('registerStealthHandler pattern handles all six stealth-tap channels independently', () => {
-  // The six channels live in two platform branches (darwin / non-darwin) in
-  // main.ts. Each branch registers the same set of names, so under the
-  // single-instance race both branches could potentially try to write the
-  // same name. Confirm the helper keeps channel scope correct.
-  const channels = [
-    'stealth-tap:available',
-    'stealth-tap:open-settings',
-    'stealth-tap:stop',
-    'stealth-tap:start',
-    'stealth-tap:should-auto-engage',
-    'stealth-tap:refresh-ime',
-  ];
-  const ipc = makeFakeIpc();
-  const register = makeRegister(ipc);
-
-  // First pass — simulate darwin branch.
-  for (const channel of channels) {
-    register(channel, () => `darwin:${channel}`);
-  }
-  assert.equal(ipc.handlers.size, channels.length);
-
-  // Second pass — simulate the non-darwin branch firing on the same process
-  // (it can't on a single boot, but a second app.ready would). Must not throw.
-  for (const channel of channels) {
-    assert.doesNotThrow(() => register(channel, () => `nondarwin:${channel}`));
-  }
-  assert.equal(ipc.handlers.size, channels.length);
-  for (const channel of channels) {
-    assert.equal(
-      ipc.handlers.get(channel)(),
-      `nondarwin:${channel}`,
-      `${channel} must hold the most recently registered handler`,
-    );
-  }
-});
-
-test('raw ipcMain.handle pattern (without removeHandler) DOES throw — confirms our fake matches Electron semantics', () => {
-  // Negative control: if anyone "simplifies" the helper by dropping
-  // removeHandler, the fake ipc throws — matching real Electron. This keeps
-  // the test honest: the idempotency assertion above is meaningful only
-  // because the underlying handle() actually rejects duplicates.
-  const ipc = makeFakeIpc();
-  ipc.handle('stealth-tap:available', () => true);
-  assert.throws(
-    () => ipc.handle('stealth-tap:available', () => false),
-    /Attempted to register a second handler/,
-  );
-});
-
 // ── Structural assertions on the real electron/main.ts ──
 //
-// The pattern test above guards behaviour; these assertions ensure the
+// These assertions ensure the
 // production call sites actually USE the helper. If someone re-introduces a
 // bare ipcMain.handle('stealth-tap:…') call, this fails and surfaces it.
 

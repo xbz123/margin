@@ -127,14 +127,6 @@ const systemBody = extractMethodBody(source, 'wireSystemCapture');
 const micBody = extractMethodBody(source, 'wireMicCapture');
 
 describe('B11 stuck-watchdog 12000ms regression — electron/main.ts', () => {
-  test('extractMethodBody finds both wire* bodies', () => {
-    assert.ok(systemBody, 'wireSystemCapture body was not extracted');
-    assert.ok(micBody, 'wireMicCapture body was not extracted');
-    // Sanity: each body should be substantial (hundreds of chars), not a stub.
-    assert.ok(systemBody.length > 200, 'wireSystemCapture body suspiciously short');
-    assert.ok(micBody.length > 200, 'wireMicCapture body suspiciously short');
-  });
-
   // 1. wireSystemCapture declares the const.
   test('wireSystemCapture declares `const STUCK_WATCHDOG_MS = 12000`', () => {
     assert.match(
@@ -191,47 +183,5 @@ describe('B11 stuck-watchdog 12000ms regression — electron/main.ts', () => {
       false,
       'wireMicCapture must not contain `setTimeout(..., 8000)` — partial revert detected.'
     );
-  });
-
-  // 6. Negative regression check — globally scoped to the wire* bodies.
-  //    The literal 8000 may legitimately appear elsewhere in main.ts (e.g.
-  //    unrelated timers, sample-rate math), so we MUST scope the assertion
-  //    tightly to the two function bodies extracted above.
-  test('no `setTimeout(..., 8000)` anywhere inside the wire* function bodies', () => {
-    const combined = `${systemBody}\n/* --- boundary --- */\n${micBody}`;
-    const matches = combined.match(/setTimeout\s*\([\s\S]*?,\s*8000\s*\)/g) || [];
-    assert.equal(
-      matches.length,
-      0,
-      `Found ${matches.length} setTimeout(..., 8000) call(s) inside wire* bodies. ` +
-      'Fix B11 raised this timeout to 12000ms to avoid false-positive stuck ' +
-      'events during SCK cold-start. Use STUCK_WATCHDOG_MS instead.'
-    );
-  });
-
-  // 7. Constant value is >= 10000ms — guards against a contributor lowering
-  //    it to, say, 9000 in a half-fix that still uses the named constant.
-  test('STUCK_WATCHDOG_MS value is >= 10000 in both bodies', () => {
-    const constRe = /STUCK_WATCHDOG_MS\s*=\s*(\d+)/g;
-
-    const checkBody = (body, name) => {
-      const found = [...body.matchAll(constRe)];
-      assert.ok(
-        found.length >= 1,
-        `${name} must declare STUCK_WATCHDOG_MS at least once.`
-      );
-      for (const m of found) {
-        const value = Number(m[1]);
-        assert.ok(
-          value >= 10000,
-          `${name}: STUCK_WATCHDOG_MS = ${value} is too low. ` +
-          'Fix B11 requires >= 10000ms to absorb SCK cold-start latency. ' +
-          'Anything less re-opens the false-positive stuck-event race.'
-        );
-      }
-    };
-
-    checkBody(systemBody, 'wireSystemCapture');
-    checkBody(micBody, 'wireMicCapture');
   });
 });

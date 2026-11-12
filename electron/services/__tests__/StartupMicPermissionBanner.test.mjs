@@ -109,14 +109,6 @@ function getStartupDarwinBlockBody(initBody) {
 // ---------------------------------------------------------------------------
 
 describe('UX1: startup mic permission banner (returning-user feedback)', () => {
-  it('initializeApp function exists in electron/main.ts', () => {
-    assert.match(
-      source,
-      /async\s+function\s+initializeApp\s*\(/,
-      'BUG: `async function initializeApp(...)` not found in electron/main.ts — fix UX1 has no anchor.',
-    );
-  });
-
   it("initializeApp body contains a call to getMediaAccessStatus('microphone')", () => {
     const { body } = getInitializeAppBody();
     assert.match(

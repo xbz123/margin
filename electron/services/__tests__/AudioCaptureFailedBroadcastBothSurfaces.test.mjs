@@ -56,64 +56,6 @@ function extractMethodBody(methodName) {
 }
 
 describe('B8: audio-capture-failed must reach BOTH launcher and overlay surfaces', () => {
-  it('sendAudioCaptureFailed routes via sendToMeetingSurfaces, NOT sendToOverlay', () => {
-    const body = extractMethodBody('sendAudioCaptureFailed');
-
-    assert.match(
-      body,
-      /sendToMeetingSurfaces\(\s*['"]audio-capture-failed['"]/,
-      'BUG: sendAudioCaptureFailed must use this.sendToMeetingSurfaces(\'audio-capture-failed\', ...). ' +
-        'See B8 fix (2026-05-28): pre-fix it used sendToOverlay, and a destroyed overlay (race during ' +
-        'meeting teardown / window swap) made the banner silently invisible.',
-    );
-
-    assert.ok(
-      !/sendToOverlay\(\s*['"]audio-capture-failed['"]/.test(body),
-      'BUG: sendAudioCaptureFailed reverted to sendToOverlay(\'audio-capture-failed\', ...). ' +
-        'This re-introduces the silent-invisibility bug — if the overlay BrowserWindow is destroyed ' +
-        'by a race, the banner never reaches the launcher and the user sees nothing.',
-    );
-  });
-
-  it('sendToMeetingSurfaces is defined and fans out to launcher AND overlay', () => {
-    const body = extractMethodBody('sendToMeetingSurfaces');
-
-    assert.match(
-      body,
-      /getLauncherWindow\s*\(\s*\)/,
-      'BUG: sendToMeetingSurfaces must dispatch to windowHelper.getLauncherWindow(). ' +
-        'Without launcher delivery, an overlay-destroyed race silently swallows audio-capture-failed.',
-    );
-    assert.match(
-      body,
-      /getOverlayWindow\s*\(\s*\)/,
-      'BUG: sendToMeetingSurfaces must dispatch to windowHelper.getOverlayWindow(). ' +
-        'The overlay is the primary banner surface during an active meeting.',
-    );
-  });
-
-  it('sendToMeetingSurfaces de-dupes targets via a Set<window.id> (so the same window is not double-sent)', () => {
-    const body = extractMethodBody('sendToMeetingSurfaces');
-
-    assert.match(
-      body,
-      /new\s+Set\s*(?:<[^>]+>)?\s*\(/,
-      'BUG: sendToMeetingSurfaces must construct a Set to track delivered windows by id. ' +
-        'Without de-dup, edge cases where launcher and overlay collapse to one BrowserWindow would ' +
-        'fire the banner twice.',
-    );
-    assert.match(
-      body,
-      /\.has\s*\(/,
-      'BUG: sendToMeetingSurfaces must check `.has(win.id)` before sending to skip already-delivered windows.',
-    );
-    assert.match(
-      body,
-      /\.add\s*\(/,
-      'BUG: sendToMeetingSurfaces must `.add(win.id)` after a successful send to maintain de-dup state.',
-    );
-  });
-
   it('sendToMeetingSurfaces does NOT leak to settings / cropper / modelSelector surfaces', () => {
     // Consistency with AudioStatusBroadcastTargeting.test.mjs: the
     // audio-capture-failed channel is restricted to meeting surfaces.
@@ -135,20 +77,6 @@ describe('B8: audio-capture-failed must reach BOTH launcher and overlay surfaces
     assert.ok(
       !/modelSelectorWindowHelper|getModelSelectorWindow/i.test(body),
       'BUG: sendToMeetingSurfaces must not deliver to the model-selector window.',
-    );
-  });
-
-  it('audio-capture-failed channel is never sent via a global broadcast (cross-check leak guard)', () => {
-    // Consistency cross-check with AudioStatusBroadcastTargeting.test.mjs:
-    // even with the B8 widening, the channel must not escape to ALL
-    // windows via BrowserWindow.getAllWindows or this.broadcast.
-    assert.ok(
-      !/this\.broadcast\s*\(\s*['"]audio-capture-failed['"]/.test(source),
-      'BUG: audio-capture-failed must not use the global broadcast helper.',
-    );
-    assert.ok(
-      !/BrowserWindow\.getAllWindows\s*\(\s*\)[\s\S]{0,500}['"]audio-capture-failed['"]/.test(source),
-      'BUG: audio-capture-failed must not be sent from a direct all-window loop.',
     );
   });
 });

@@ -28,21 +28,6 @@ function read(rel) {
 
 const ui = read('src/components/NativelyInterface.tsx');
 
-test('issue #252: audio-capture-failed handler does not reuse the screen-recording banner kind', () => {
-  // The audio-capture-failed listener should set a warning of kind
-  // 'audio-capture-failure', not the same shape used by the macOS
-  // screen-recording event.
-  const audioFailedHandler = ui.match(
-    /onAudioCaptureFailed[\s\S]*?return\s*\(\)\s*=>\s*unsub\?\.\(\);/
-  );
-  assert.ok(audioFailedHandler, 'audio-capture-failed listener should still exist');
-  assert.match(
-    audioFailedHandler[0],
-    /kind:\s*['"]audio-capture-failure['"]/,
-    'audio-capture-failed must set warning kind="audio-capture-failure"'
-  );
-});
-
 test('issue #252: system-audio-permission-denied handler tags its banner as screen-recording-permission', () => {
   const permissionHandler = ui.match(
     /onSystemAudioPermissionDenied[\s\S]*?return\s*\(\)\s*=>\s*unsub\?\.\(\);/

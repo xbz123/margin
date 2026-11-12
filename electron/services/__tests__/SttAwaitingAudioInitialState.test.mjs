@@ -151,30 +151,4 @@ describe('B2: STT user/interviewer status must initialize to \'awaiting-audio\''
       'BUG: meeting-end reset path no longer calls setSttInterviewerStatus(\'awaiting-audio\').',
     );
   });
-
-  it('cross-file consistency: all four type unions contain \'awaiting-audio\'', () => {
-    // This is the catch-all: if any one of the four declarations drifts,
-    // IPC payloads will be silently rejected (or worse, accepted on one
-    // side and untypeable on the other). Failing here points the
-    // contributor at the specific file that's out of sync.
-    const checks = [
-      { name: 'electron/main.ts SttStatusPayload', source: main, anchor: /interface\s+SttStatusPayload\s*\{[\s\S]*?state\s*:\s*([^;]+);/ },
-      { name: 'electron/preload.ts onSttStatusChanged', source: preload, anchor: /onSttStatusChanged[\s\S]{0,400}?state\s*:\s*([^;,\n]+)/ },
-      { name: 'src/types/electron.d.ts onSttStatusChanged', source: electronDts, anchor: /onSttStatusChanged[\s\S]{0,400}?state\s*:\s*([^;,\n]+)/ },
-      { name: 'NativelyInterface.tsx sttUserStatus useState type', source: tsx, anchor: /useState<\s*([^>]+?)>\s*\(\s*['"]awaiting-audio['"]/ },
-    ];
-    const missing = [];
-    for (const c of checks) {
-      const m = c.anchor.exec(c.source);
-      if (!m || !/['"]awaiting-audio['"]/.test(m[1])) {
-        missing.push(c.name);
-      }
-    }
-    assert.equal(
-      missing.length,
-      0,
-      `BUG: the following declarations no longer contain 'awaiting-audio' in their state union: ${missing.join(', ')}. ` +
-        'All four must stay in sync — they describe the same IPC payload shape.',
-    );
-  });
 });

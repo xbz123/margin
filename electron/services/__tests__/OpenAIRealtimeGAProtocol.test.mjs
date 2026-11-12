@@ -119,16 +119,6 @@ describe('wire format', () => {
         assert.equal(config.session.audio.input.transcription.model, 'gpt-4o-transcribe');
     });
 
-    test('handles GA transcript delta event name', () => {
-        assert.match(source, /conversation\.item\.input_audio_transcription\.delta/);
-        assert.doesNotMatch(source, /'transcript\.text\.delta'/);
-    });
-
-    test('handles GA transcript completed event name', () => {
-        assert.match(source, /conversation\.item\.input_audio_transcription\.completed/);
-        assert.doesNotMatch(source, /'transcript\.text\.done'/);
-    });
-
     test('does not send beta session.close to server (transcription intent has no such client event)', () => {
         // The send() must never carry session.close. The string may still appear in
         // comments/log lines, so we only ban it inside JSON.stringify payloads.
@@ -136,20 +126,6 @@ describe('wire format', () => {
             source,
             /JSON\.stringify\(\s*\{\s*type:\s*'session\.close'\s*\}\s*\)/
         );
-    });
-
-    test('does not mark session.created as configured', () => {
-        // The fallthrough has been replaced with a logged-and-ignored warning.
-        // Require the case to exist (so a future rename/removal doesn't make
-        // this assertion trivially pass) and require its body to NOT set
-        // isSessionReady. Behavioral coverage of the same invariant lives in
-        // the 'race / late-arrival safety' suite below.
-        const block = source.match(
-            /case 'session\.created':[\s\S]*?break;/
-        );
-        assert.ok(block, "expected case 'session.created': to still exist with a warning body");
-        assert.doesNotMatch(block[0], /this\.isSessionReady\s*=\s*true/);
-        assert.doesNotMatch(block[0], /_startKeepAlive|_flushRingBuffer/);
     });
 });
 

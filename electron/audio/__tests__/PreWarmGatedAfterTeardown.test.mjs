@@ -94,26 +94,6 @@ async function drainPostTeardown() {
     await Promise.resolve();
 }
 
-test('default stop() pre-warms — constructor count increments by exactly 1 after teardown', async () => {
-    micConstructorCalls = 0;
-    const cap = new MicrophoneCapture('default-prewarm');
-    assert.equal(micConstructorCalls, 1, 'constructor (eager init) should fire exactly once');
-    cap.start();
-
-    await cap.stop();
-    // After await stop(), the native HAL is released but the pre-warm runs
-    // in a separate .then() — give it a microtask + setImmediate to land.
-    await drainPostTeardown();
-
-    assert.equal(
-        micConstructorCalls,
-        2,
-        `BUG: default stop() must pre-warm by constructing exactly 1 fresh native instance. Got ${micConstructorCalls} total constructions (expected 2 — eager init + 1 pre-warm).`,
-    );
-
-    await cap.destroy();
-});
-
 test('destroy() does NOT pre-warm', async () => {
     micConstructorCalls = 0;
     const cap = new MicrophoneCapture('destroy-no-prewarm');

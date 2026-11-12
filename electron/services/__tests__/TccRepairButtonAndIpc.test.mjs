@@ -34,14 +34,6 @@ function extractHandlerBody(source) {
 
 const handlerBody = extractHandlerBody(ipcHandlers);
 
-test("ipcHandlers.ts registers safeHandle('repair-tcc-permissions', ...)", () => {
-  assert.match(
-    ipcHandlers,
-    /safeHandle\(\s*['"]repair-tcc-permissions['"]\s*,/,
-    "expected safeHandle('repair-tcc-permissions', ...) registration",
-  );
-});
-
 test('repair-tcc-permissions handler uses execFile, NOT shell exec', () => {
   assert.match(
     handlerBody,

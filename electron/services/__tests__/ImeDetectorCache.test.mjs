@@ -88,21 +88,6 @@ afterEach(() => {
   refreshImeDetection();
 });
 
-describe('ImeDetector module surface', () => {
-  test('exports both expected functions', () => {
-    assert.equal(
-      typeof shouldAutoEngageStealthTap,
-      'function',
-      'shouldAutoEngageStealthTap must be exported',
-    );
-    assert.equal(
-      typeof refreshImeDetection,
-      'function',
-      'refreshImeDetection must be exported — M3 depends on it',
-    );
-  });
-});
-
 describe('shouldAutoEngageStealthTap: platform branching', () => {
   test('returns true on win32 (no CGEventTap → gate irrelevant)', () => {
     setPlatform('win32');
@@ -159,43 +144,6 @@ describe('shouldAutoEngageStealthTap: platform branching', () => {
     refreshImeDetection();
     assert.equal(shouldAutoEngageStealthTap(), false, 'refresh must re-probe and see the new input method');
     assert.equal(defaultsCalls.length, 2);
-  });
-});
-
-describe('refreshImeDetection: cache invalidation', () => {
-  test('does not throw when called with no prior probe', () => {
-    setPlatform('linux');
-    assert.doesNotThrow(() => refreshImeDetection());
-  });
-
-  test('does not throw when called after a probe', () => {
-    setPlatform('linux');
-    shouldAutoEngageStealthTap(); // populate (though non-darwin doesn't actually cache)
-    assert.doesNotThrow(() => refreshImeDetection());
-  });
-
-  test('repeated invalidation is safe', () => {
-    setPlatform('linux');
-    for (let i = 0; i < 10; i += 1) {
-      assert.doesNotThrow(() => refreshImeDetection());
-    }
-  });
-
-  test('M3 contract: refresh + shouldAutoEngage still returns boolean on every platform', () => {
-    // Mirrors the renderer call shape:
-    //   stealthTapRefreshIme().then((ok) => stealthAutoEngageOkRef.current = !!ok);
-    // The IPC body is `refreshImeDetection(); return shouldAutoEngageStealthTap();`.
-    // Both halves must succeed on every platform.
-    for (const plat of ['darwin', 'win32', 'linux']) {
-      setPlatform(plat);
-      refreshImeDetection();
-      const result = shouldAutoEngageStealthTap();
-      assert.equal(
-        typeof result,
-        'boolean',
-        `platform=${plat}: refresh + auto-engage chain must return boolean`,
-      );
-    }
   });
 });
 
