@@ -115,36 +115,6 @@ test('assertProviderDataScopes is a no-op when scopes are allowed or unset', asy
   assert.doesNotThrow(() => assertProviderDataScopes('openai', [], { transcript: false }));
 });
 
-test('routeLLMProviders marks all providers unavailable when scope is denied', async () => {
-  const { routeLLMProviders } = await loadRouter();
-
-  const attempts = routeLLMProviders({
-    capability: 'chat',
-    availability: { hasOpenAI: true, hasGroq: true, hasGemini: true },
-    dataScopes: ['transcript'],
-    scopePolicy: { transcript: false },
-  });
-
-  for (const attempt of attempts) {
-    assert.equal(attempt.status, 'unavailable', `${attempt.provider} should be unavailable`);
-    assert.equal(attempt.unavailableReason, 'disabled');
-  }
-});
-
-test('routeLLMProviders keeps providers available when scopes are allowed', async () => {
-  const { routeLLMProviders } = await loadRouter();
-
-  const attempts = routeLLMProviders({
-    capability: 'chat',
-    availability: { hasOpenAI: true, hasGroq: true, hasGemini: true },
-    dataScopes: ['transcript'],
-    scopePolicy: { transcript: true },
-  });
-
-  const available = attempts.filter(a => a.status === 'available');
-  assert.ok(available.length > 0, 'expected at least one provider to be available');
-});
-
 for (const provider of ['gemini', 'groq', 'openai', 'claude', 'deepseek']) for (const stream of [false, true]) {
   test(`selected ${provider} ${stream ? 'stream' : 'nonstream'}: final scope recheck after limiter wait`, async () => {
     for (const revoke of [false, true]) {

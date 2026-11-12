@@ -1,21 +1,3 @@
-// Regression test for B8 fix (2026-05-28): sendAudioCaptureFailed must
-// route 'audio-capture-failed' to BOTH the launcher and overlay windows
-// via sendToMeetingSurfaces.
-//
-// Pre-fix the helper used `this.sendToOverlay('audio-capture-failed', payload)`.
-// If the overlay BrowserWindow had been destroyed by a race (meeting
-// ended mid-recovery, window swap in-flight, transient teardown), the
-// IPC vanished into the void and the user saw NO banner at all —
-// "silent invisibility."
-//
-// Fix: route via sendToMeetingSurfaces, which fans out to launcher AND
-// overlay and de-dupes by BrowserWindow.id (so when both surfaces are
-// alive simultaneously the payload is delivered exactly once per win).
-//
-// Regression guarded: a contributor reverts to sendToOverlay (or
-// removes the meeting-surfaces broadcast) and silently re-introduces
-// the invisibility bug.
-//
 // Compatibility note: this test is intentionally consistent with
 // electron/audio/__tests__/AudioStatusBroadcastTargeting.test.mjs.
 // That test guards against GLOBAL-broadcast leaks (sendToAll /

@@ -173,12 +173,6 @@ export class MicrophoneCapture extends EventEmitter {
         //   1. `await capture.stop()` resolves the instant the OS-side
         //      handle is gone — callers waiting on teardown don't pay the
         //      pre-warm cost.
-        //   2. Pre-warm is gated on `this.preWarmEnabled`, which destroy()
-        //      flips to false. Without this gate, the
-        //      old in-body pre-warm would happily construct a fresh native
-        //      handle during app quit, device swap, or aborted meeting init
-        //      — wasted work in every case, and on `before-quit` an actual
-        //      bug (we'd grab the OS mic for a process about to die).
         const teardownPromise = new Promise<void>((resolve) => {
             setImmediate(() => {
                 try {

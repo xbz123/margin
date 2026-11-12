@@ -13,23 +13,6 @@ async function loadRouter() {
   return import(pathToFileURL(routerPath).href);
 }
 
-test('routeLLMProviders marks cloud providers unavailable when a scope is denied', async () => {
-  const { routeLLMProviders, routeWithScopeFallback } = await loadRouter();
-
-  const options = {
-    capability: 'chat',
-    availability: { hasOpenAI: true, hasGroq: true, hasGemini: true },
-    dataScopes: ['transcript'],
-    scopePolicy: { transcript: false },
-  };
-  const attempts = routeLLMProviders(options);
-
-  assert.equal(attempts.find(a => a.provider === 'openai')?.status, 'unavailable');
-  assert.equal(attempts.find(a => a.provider === 'openai')?.unavailableReason, 'disabled');
-  assert.equal(attempts.some(a => a.status === 'available'), false);
-  assert.deepEqual(routeWithScopeFallback(options), attempts);
-});
-
 // Loads the built LLMHelper with a stub electron module, for the behavior checks below.
 function loadBuiltLLMHelper() {
   const require = createRequire(import.meta.url);

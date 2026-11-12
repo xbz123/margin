@@ -32,13 +32,10 @@
 
      // User-uploaded reference files — may contain injected content
      UNTRUSTED_REFERENCE = 'untrusted_reference',
-
-     // Past meeting summaries — secondary evidence
-     UNTRUSTED_MEETING_HISTORY = 'untrusted_meeting_history',
  }
 
  export interface EvidenceRef {
-     source: 'transcript' | 'screen' | 'reference' | 'meeting_history';
+     source: 'transcript' | 'screen' | 'reference';
      text: string;
      timestamp?: number;
      speaker?: string;
@@ -67,7 +64,6 @@
      TrustLevel.UNTRUSTED_SCREEN,
      TrustLevel.UNTRUSTED_TRANSCRIPT,
      TrustLevel.UNTRUSTED_REFERENCE,
-     TrustLevel.UNTRUSTED_MEETING_HISTORY,
  ];
 
  /**

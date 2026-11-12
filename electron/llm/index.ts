@@ -28,10 +28,6 @@ export {
     getAnswerShapeGuidance
 } from "./IntentClassifier";
 export type { ConversationIntent, IntentResult } from "./IntentClassifier";
-export { planNextAssistantAction } from "./PlannerDecision";
-export type { PlannerDecision, PlannerDecisionKind, PlannerInput } from "./PlannerDecision";
-export { routeLLMProviders } from "./ProviderRouter";
-export type { LLMProviderId, ProviderAttempt, ProviderAttemptStatus, ProviderAvailabilityState, ProviderCapability, ProviderModelState, ProviderRouteOptions, ProviderUnavailableReason } from "./ProviderRouter";
 export { MODE_CONFIGS } from "./types";
 export type { GenerationConfig, GeminiContent } from "./types";
 export {
