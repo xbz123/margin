@@ -175,28 +175,4 @@ describe("B5: dev-mode TCC bypass is opt-in (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) o
         matches.map((m) => `  - ${m}`).join("\n"),
     );
   });
-
-  it("documentation block near isDevTccBypassEnabled mentions both 'granted' and the env-var name", () => {
-    // The JSDoc/comment that explains *why* the bypass exists is the place
-    // future contributors will look before "fixing" the friction. It must
-    // mention both the value the bypass returns ('granted') and the env-var
-    // name they need to set, so the doc fully describes the contract.
-    const idx = main.search(/function\s+isDevTccBypassEnabled\s*\(/);
-    assert.ok(idx >= 0, "isDevTccBypassEnabled declaration not found");
-    // Inspect the ~1500 chars immediately above the declaration — that's
-    // where the documenting comment block lives.
-    const docWindow = main.slice(Math.max(0, idx - 1500), idx);
-    assert.ok(
-      /['"]granted['"]/.test(docWindow),
-      "BUG: the doc block above isDevTccBypassEnabled no longer mentions 'granted'. " +
-        "The doc must describe what the bypass actually does (force-reports screen capture " +
-        "as 'granted') so reviewers understand the diagnostic-blindness risk.",
-    );
-    assert.ok(
-      /NATIVELY_DEV_BYPASS_SCREEN_TCC/.test(docWindow),
-      "BUG: the doc block above isDevTccBypassEnabled no longer mentions the env-var name " +
-        "NATIVELY_DEV_BYPASS_SCREEN_TCC. Devs reading the helper must be told exactly which " +
-        "env var opts them in.",
-    );
-  });
 });

@@ -21,15 +21,11 @@
 //   - A new `preWarmEnabled` instance flag gates the .then() body.
 //   - destroy() flips preWarmEnabled=false BEFORE calling stop() so the
 //     post-teardown pre-warm is skipped.
-//   - main.ts can also call `disablePreWarm()` directly on a capture in
-//     contexts where the wrapper will be reused but the next start is not
-//     imminent (aborted init, app quit).
 //
 // Strategy: same fake-native-module harness as CaptureStopAwaitable; count
 // the native constructor invocations across stop/destroy cycles and pin:
 //   - default stop() pre-warms (constructor count goes up by 1 after stop)
 //   - destroy() does NOT pre-warm (constructor count stays put)
-//   - disablePreWarm() before stop() suppresses the next pre-warm
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -108,25 +104,6 @@ test('destroy() does NOT pre-warm', async () => {
         1,
         `BUG: destroy() must suppress the post-teardown pre-warm. Got ${micConstructorCalls} constructions (expected 1 — only the eager init).`,
     );
-});
-
-test('disablePreWarm() before stop() suppresses the pre-warm', async () => {
-    micConstructorCalls = 0;
-    const cap = new MicrophoneCapture('disable-prewarm-test');
-    assert.equal(micConstructorCalls, 1);
-    cap.start();
-
-    cap.disablePreWarm();
-    await cap.stop();
-    await drainPostTeardown();
-
-    assert.equal(
-        micConstructorCalls,
-        1,
-        `BUG: disablePreWarm() must suppress the post-teardown pre-warm. Got ${micConstructorCalls} constructions (expected 1).`,
-    );
-
-    await cap.destroy();
 });
 
 test('pre-warm is queued, not run, during the synchronous portion of stop()', async () => {

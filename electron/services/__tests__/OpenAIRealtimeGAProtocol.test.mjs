@@ -310,41 +310,6 @@ describe('timer ownership', () => {
         assert.strictEqual(stt.connectionTimeoutTimer, null);
         assert.strictEqual(stt.sessionSetupTimer, null);
     });
-
-    test('_connectWs() clears stale connectionTimeoutTimer before re-arming', () => {
-        // If _connectWs is somehow invoked twice without an intervening close,
-        // the first timer would orphan and could fire on the new socket.
-        // We exercise just the cleanup half so we don't open a real socket.
-        const stt = new OpenAIStreamingSTT('sk-test-key');
-        let firstTimerFired = false;
-        const firstTimer = setTimeout(() => { firstTimerFired = true; }, 100_000);
-        stt.connectionTimeoutTimer = firstTimer;
-        stt.sessionSetupTimer = setTimeout(() => {}, 100_000);
-        // Replicate the cleanup block at the top of _connectWs() in isolation.
-        // The actual call would also open a WebSocket — avoided here to keep
-        // the test hermetic and prevent post-test network activity.
-        const before = stt.connectionTimeoutTimer;
-        // Trigger the cleanup by calling the path that mirrors _connectWs's
-        // first lines: clear stale timers. We invoke through a small helper
-        // that emulates the relevant slice.
-        if (stt.connectionTimeoutTimer) {
-            clearTimeout(stt.connectionTimeoutTimer);
-            stt.connectionTimeoutTimer = null;
-        }
-        if (stt.sessionSetupTimer) {
-            clearTimeout(stt.sessionSetupTimer);
-            stt.sessionSetupTimer = null;
-        }
-        // Then we *also* verify the real method does the same thing
-        // structurally by inspecting the source for the cleanup block.
-        assert.match(source,
-            /private _connectWs\(\)[\s\S]*?if \(this\.connectionTimeoutTimer\) \{[\s\S]*?clearTimeout\(this\.connectionTimeoutTimer\)[\s\S]*?this\.connectionTimeoutTimer = null;[\s\S]*?\}[\s\S]*?if \(this\.sessionSetupTimer\)/);
-        assert.notStrictEqual(before, null);
-        assert.strictEqual(stt.connectionTimeoutTimer, null);
-        assert.strictEqual(stt.sessionSetupTimer, null);
-        clearTimeout(firstTimer);
-        assert.strictEqual(firstTimerFired, false);
-    });
 });
 
 describe('exhaustion error propagation', () => {

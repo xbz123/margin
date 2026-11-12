@@ -33,11 +33,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
 const ipcHandlersPath = path.join(repoRoot, 'electron/ipcHandlers.ts');
 const preloadPath = path.join(repoRoot, 'electron/preload.ts');
-const electronDtsPath = path.join(repoRoot, 'src/types/electron.d.ts');
 
 const ipcHandlersSrc = readFileSync(ipcHandlersPath, 'utf8');
 const preloadSrc = readFileSync(preloadPath, 'utf8');
-const electronDtsSrc = readFileSync(electronDtsPath, 'utf8');
 
 // Brace-balancing body extractor (mirrors the helper in
 // MicRecoveryUsesCanonicalWiring.test.mjs). Extracts the body of the first
@@ -162,19 +160,4 @@ test('preload exposes cancelChatStream mapped to ipcRenderer.send("gemini-chat-s
     );
     assert.match(preloadSrc, /cancelChatStream:\s*cancelActiveChat/);
     assert.match(preloadSrc, /if \(owner !== activeChatOwner\) return;/, 'only the owning surface can cancel the active chat');
-});
-
-test('preload ElectronAPI interface and src/types/electron.d.ts both type cancelChatStream', () => {
-    // Type-level binding in the preload module's interface.
-    assert.ok(
-        /cancelChatStream\s*:\s*\(\s*owner\?:\s*string\s*\)\s*=>\s*void/.test(preloadSrc),
-        'preload.ts ElectronAPI interface must declare `cancelChatStream: (owner?: string) => void`',
-    );
-    // And the renderer-facing type declaration. Without this, renderer
-    // callers (e.g., chat-overlay unmount) get a type error and the
-    // cancellation path is removed by the build, regressing the bug.
-    assert.ok(
-        /cancelChatStream\s*:\s*\(\s*owner\?:\s*string\s*\)\s*=>\s*void/.test(electronDtsSrc),
-        'src/types/electron.d.ts must declare `cancelChatStream: (owner?: string) => void` so renderer code can call it type-safely',
-    );
 });

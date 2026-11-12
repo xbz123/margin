@@ -31,7 +31,6 @@ test('SessionTracker logs transcript and assistant message metadata without text
 test('IntelligenceEngine logs interim transcript metadata without text snippets', () => {
   const source = read('electron/IntelligenceEngine.ts');
 
-  assert.match(source, /Speculative inference fired on interim`, \{ length: text\.length, confidence \}/);
   assert.match(source, /Injecting interim transcript`, \{ length: lastInterim\.text\.length \}/);
   assert.doesNotMatch(source, /console\.log[\s\S]{0,120}substring\(/);
 });

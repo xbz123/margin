@@ -40,7 +40,6 @@ export function fixture({ capability, stopChannels, inputDevices, outputDevices,
     start() { this.started = true; log.push(`${this.kind}:start`); this.emit('start'); }
     stop() { this.stopped = true; log.push(`${this.kind}:stop`); this.emit('stop'); }
     destroy() { this.destroyed = true; log.push(`${this.kind}:destroy`); return Promise.resolve(); }
-    disablePreWarm() { log.push(`${this.kind}:disablePreWarm`); }
     getSampleRate() { return 48000; }
     getActiveBackend() { return 'coreaudio'; }
   }

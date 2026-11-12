@@ -21,11 +21,8 @@ export class MicrophoneCapture extends EventEmitter {
     private _teardownPromise: Promise<void> | null = null;
     // When false, the post-teardown pre-warm step (which constructs a fresh
     // RustMicCapture so the next meeting's start() doesn't pay the cpal init
-    // cost on the Electron main thread) is skipped. Disabled by:
-    //   - destroy() — permanent disposal, the wrapper will never be used again
-    //   - disablePreWarm() — called from main.ts during app quit, aborted
-    //     meeting init, and device-swap paths where the next start (if any)
-    //     will construct a brand-new MicrophoneCapture instance anyway.
+    // cost on the Electron main thread) is skipped. Disabled by destroy() —
+    // permanent disposal, the wrapper will never be used again.
     // Default true: the common case (Stop → next meeting on the same device)
     // benefits from pre-warm avoiding the ~50ms cpal cold-start cost.
     private preWarmEnabled: boolean = true;
@@ -177,7 +174,7 @@ export class MicrophoneCapture extends EventEmitter {
         //      handle is gone — callers waiting on teardown don't pay the
         //      pre-warm cost.
         //   2. Pre-warm is gated on `this.preWarmEnabled`, which destroy()
-        //      and disablePreWarm() flip to false. Without this gate, the
+        //      flips to false. Without this gate, the
         //      old in-body pre-warm would happily construct a fresh native
         //      handle during app quit, device swap, or aborted meeting init
         //      — wasted work in every case, and on `before-quit` an actual
@@ -227,26 +224,6 @@ export class MicrophoneCapture extends EventEmitter {
 
         this.emit('stop');
         return teardownPromise;
-    }
-
-    /**
-     * Permanently disable the post-teardown pre-warm step.
-     *
-     * Callers from main.ts use this in three situations:
-     *   - app `before-quit`: process is exiting; grabbing the OS mic now
-     *     leaks a native handle past V8 teardown.
-     *   - device swap (reconfigureAudio): the next start will construct a
-     *     brand-new MicrophoneCapture for the new device — pre-warming the
-     *     OLD device would build a handle that nothing ever uses.
-     *   - aborted meeting init: the user cancelled before any audio reached
-     *     the STT; there is no "next start" imminent enough to justify the
-     *     cpal cold-start work.
-     *
-     * destroy() flips this flag automatically before awaiting stop(), so
-     * callers using destroy() do not need a separate disablePreWarm() call.
-     */
-    public disablePreWarm(): void {
-        this.preWarmEnabled = false;
     }
 
     public async destroy(): Promise<void> {

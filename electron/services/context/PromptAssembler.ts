@@ -48,7 +48,6 @@ export class PromptAssembler {
         hasImages?: boolean;
         screenContext?: ScreenContext;
         customContext?: string;
-        meetingHistory?: string[];
         priorResponses?: string[];
         intentContext?: string;
         tokenBudget: number;
@@ -99,11 +98,6 @@ export class PromptAssembler {
         // 4. TRANSCRIPT — untrusted conversation
         if (params.transcript) {
             this.addBlock(packet, this.buildTranscriptBlock(params.transcript));
-        }
-
-        // 6. MEETING HISTORY — untrusted past meetings
-        if (params.meetingHistory && params.meetingHistory.length > 0) {
-            this.addBlock(packet, this.buildMeetingHistoryBlock(params.meetingHistory));
         }
 
         // 6. CUSTOM CONTEXT (user-provided extra context)
@@ -312,22 +306,6 @@ ${this.escapeUserContent(transcript)}
 ${instruction}
 ${this.escapeUserContent(question)}
 </current_question>`,
-        };
-    }
-
-    private buildMeetingHistoryBlock(meetings: string[]): ContextBlock {
-        const content = meetings
-            .map((m, i) => `<meeting index="${i + 1}">${this.escapeUserContent(m)}</meeting>`)
-            .join('\n');
-
-        return {
-            type: 'meeting_history',
-            trustLevel: TrustLevel.UNTRUSTED_MEETING_HISTORY,
-            source: 'past_meetings',
-            tokenBudget: 1000,
-            content: `<meeting_history trust_level="untrusted">
-${content}
-</meeting_history>`,
         };
     }
 

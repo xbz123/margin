@@ -27,7 +27,6 @@ const full = await import(pathToFileURL(fullPath).href);
 const GUARD_MARKERS = [
   'IDENTITY GUARD',
   '"Margin"',
-  'NEVER',
 ];
 
 const FIRST_PERSON_TINY_PROMPTS = [

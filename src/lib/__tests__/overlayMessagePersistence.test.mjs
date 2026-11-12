@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  applyWhatToAnswerNullFeedbackMessages,
   finalizeStreamingByIntentMessages,
   prepareIntelligenceStreamPlaceholderMessages,
 } from '../overlayMessagePersistence.mjs';
@@ -150,60 +149,6 @@ test('finalize without streamingMsgId appends new row when no open stream exists
   assert.equal(newRow.id, 'w2');
   assert.equal(newRow.text, 'second answer');
   assert.equal(newRow.isStreaming, false);
-});
-
-// Regression (Fix B — null-feedback flush ordering):
-// handleWhatToSay's null-answer path used to call setMessages(
-// applyWhatToAnswerNullFeedbackMessages) BEFORE clearing streamingMsgIdRef /
-// streamingTextRef / streamingIntentRef / streamingNodeRef.innerHTML. Because
-// flushToken() early-returns on an empty buffer, refs stayed wired — so a
-// stray late `suggested_answer_token` could re-enter applyFirstStreamingToken
-// with the SAME id and append text onto the just-committed feedback row.
-//
-// The fix flips ordering: refs are cleared FIRST, so when the late token
-// arrives it gets a NEW reservedId. This test pins the new-reservedId
-// invariant: applying a late token under a fresh id must NOT mutate the
-// feedback row — a separate streaming row must appear instead.
-test('applyWhatToAnswerNullFeedback ignores stray late token after refs cleared', async () => {
-  const { applyFirstStreamingToken } = await import('../streamingTokenQueue.mjs');
-
-  // Step 1: feedback gets committed onto the open wta placeholder.
-  const beforeFeedback = [
-    { id: 'u1', role: 'user', text: 'what should I say?' },
-    { id: 'ph-wta', role: 'system', text: '', intent: 'what_to_answer', isStreaming: true },
-  ];
-  const afterFeedback = applyWhatToAnswerNullFeedbackMessages(
-    beforeFeedback,
-    'No suggestion available right now.',
-  );
-  const feedbackRow = afterFeedback.find((m) => m.id === 'ph-wta');
-  assert.ok(feedbackRow, 'feedback row must exist');
-  assert.equal(feedbackRow.text, 'No suggestion available right now.');
-  assert.equal(feedbackRow.isStreaming, false, 'feedback row must be sealed');
-
-  // Step 2: a stray late suggested_answer_token fires. Because refs were
-  // cleared BEFORE setMessages in Fix B, queueToken cannot re-target ph-wta
-  // and instead reserves a brand-new id.
-  const lateReservedId = 'late-stream-1';
-  const afterLateToken = applyFirstStreamingToken(afterFeedback, {
-    id: lateReservedId,
-    token: 'stray late token',
-    intent: 'what_to_answer',
-  });
-
-  // Feedback row must be intact — neither text nor isStreaming changed.
-  const stillFeedback = afterLateToken.find((m) => m.id === 'ph-wta');
-  assert.ok(stillFeedback, 'feedback row must still exist');
-  assert.equal(stillFeedback.text, 'No suggestion available right now.', 'feedback text must not be appended to');
-  assert.equal(stillFeedback.isStreaming, false, 'feedback row must not be re-opened');
-
-  // A new streaming row must appear separately under the fresh reservedId.
-  const lateRow = afterLateToken.find((m) => m.id === lateReservedId);
-  assert.ok(lateRow, 'late token must land on a NEW row, not the feedback row');
-  assert.equal(lateRow.text, 'stray late token');
-  assert.equal(lateRow.intent, 'what_to_answer');
-  assert.equal(lateRow.isStreaming, true);
-  assert.equal(afterLateToken.length, 3, 'exactly three rows: user, feedback, new late stream');
 });
 
 // End-to-end race simulation: finalize fires before mount, then mount applies

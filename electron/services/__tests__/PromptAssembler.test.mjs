@@ -170,24 +170,6 @@ describe('PromptAssembler', () => {
     assert.ok(result, 'should return a valid packet with empty priorResponses');
   });
 
-  // ── Additional: Meeting history block ──────────────────────────────────────
-  test('meeting history block is included and marked untrusted', async () => {
-    const result = assembler.assemble({
-      ...defaultParams,
-      meetingHistory: [
-        'Previous meeting: discussed project timeline.',
-        'Earlier meeting: reviewed budget.',
-      ],
-    });
-
-    const blocks = result.blocks;
-    const historyBlock = blocks.find(b => b.type === 'meeting_history');
-    assert.ok(historyBlock, 'meeting_history block should exist');
-    assert.equal(historyBlock.trustLevel, TrustLevels.TrustLevel.UNTRUSTED_MEETING_HISTORY);
-    assert.match(historyBlock.content, /Previous meeting/);
-    assert.match(historyBlock.content, /meeting_history/);
-  });
-
   test('intent context is included as developer policy before untrusted transcript', async () => {
     const result = assembler.assemble({
       ...defaultParams,

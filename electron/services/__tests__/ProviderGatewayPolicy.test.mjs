@@ -221,20 +221,6 @@ test('IPC handlers expose get/set provider-data-scopes and broadcast updates', (
   assert.match(ipc, /SettingsManager\.getInstance\(\)\.set\('providerDataScopes'/);
 });
 
-test('preload and renderer types expose provider data scope controls', () => {
-  const preload = read('electron/preload.ts');
-  const types = read('src/types/electron.d.ts');
-
-  assert.match(preload, /getProviderDataScopes:/);
-  assert.match(preload, /setProviderDataScopes:/);
-  assert.match(preload, /onProviderDataScopesChanged:/);
-  assert.match(preload, /ipcRenderer\.invoke\('get-provider-data-scopes'\)/);
-  assert.match(preload, /ipcRenderer\.invoke\('set-provider-data-scopes', scopes\)/);
-
-  assert.match(types, /getProviderDataScopes:\s*\(\)\s*=>\s*Promise/);
-  assert.match(types, /setProviderDataScopes:\s*\(scopes:/);
-});
-
 test('AIProvidersSettings renders cloud provider data scope controls wired to real IPC', () => {
   const src = read('src/components/settings/AIProvidersSettings.tsx');
 

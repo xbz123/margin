@@ -16,7 +16,7 @@ import { MeetingPersistence } from './MeetingPersistence';
 import { ScreenContext } from './services/screen/ScreenContextService';
 
 // Re-export types for backward compatibility
-export type { TranscriptSegment, SuggestionTrigger, ContextItem } from './SessionTracker';
+export type { TranscriptSegment, ContextItem } from './SessionTracker';
 export type { IntelligenceMode, IntelligenceModeEvents } from './IntelligenceEngine';
 
 export const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite";
@@ -130,10 +130,6 @@ export class IntelligenceManager extends EventEmitter {
     handleTranscript(segment: import('./SessionTracker').TranscriptSegment): void {
         // S33: incoming speech updates context only; generation requires a manual action.
         this.session.handleTranscript(segment);
-    }
-
-    async handleSuggestionTrigger(trigger: import('./SessionTracker').SuggestionTrigger): Promise<void> {
-        return this.engine.handleSuggestionTrigger(trigger);
     }
 
     // ============================================

@@ -9,12 +9,12 @@ import type { GenerationTask } from './llm/generateTask';
 import { prepareManualAnswer, isPendingAnswerSentinel, latestInterviewerQuestion } from './llm/answerGeneration';
 import type { PreparedInput } from './llm/preparedInput';
 import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
-import { SessionTracker, TranscriptSegment, SuggestionTrigger, ContextItem, type TranscriptView } from './SessionTracker';
+import { SessionTracker, TranscriptSegment, ContextItem, type TranscriptView } from './SessionTracker';
 import {
     AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
     FollowUpQuestionsLLM, WhatToAnswerLLM,
     prepareTranscriptForWhatToAnswer, buildTemporalContext,
-    AssistantResponse as LLMAssistantResponse, classifyIntent, planNextAssistantAction, PlannerDecision
+    AssistantResponse as LLMAssistantResponse, classifyIntent
 } from './llm';
 import { ScreenContext } from './services/screen/ScreenContextService';
 import { buildPreparedTranscriptContext as assemblePreparedTranscriptContext } from './utils/preparedTranscriptContext';
@@ -189,16 +189,6 @@ export class IntelligenceEngine extends EventEmitter {
     private lastTriggerTime: number = 0;
     private readonly triggerCooldown: number = 3000; // 3 seconds
 
-    // Speculative inference: start LLM on high-confidence interviewer partials
-    private speculativeTimer: ReturnType<typeof setTimeout> | null = null;
-    private speculativeText: string | null = null;
-    // epoch ms after which speculativeText is stale; Infinity while stream is still running
-    private speculativeTextExpiry: number = Infinity;
-    private readonly SPECULATIVE_DEBOUNCE_MS = 350;
-    private readonly SPECULATIVE_MIN_WORDS = 7;
-    private readonly SPECULATIVE_MIN_CONFIDENCE = 0.75;
-    private readonly SPECULATIVE_SIMILARITY_THRESHOLD = 0.75;
-
     private static isNonAnswerSentinel(answer: string): boolean {
         const normalized = answer.trim().toLowerCase().replace(/[.!?]+$/g, '');
         return normalized === 'nothing actionable right now'
@@ -252,63 +242,6 @@ export class IntelligenceEngine extends EventEmitter {
     // Transcript Handling (delegates to SessionTracker)
     // ============================================
 
-    private static wordsOf(text: string): Set<string> {
-        return new Set(text.toLowerCase().match(/\b\w+\b/g) ?? []);
-    }
-
-    // Returns a score in [0,1] that accounts for partial-to-final comparisons.
-    // Pure Jaccard underestimates similarity when the speculative text is a prefix of the final
-    // transcript (e.g., "Can you walk me through" vs. "Can you walk me through your design process?").
-    // We blend Jaccard with a containment score (what fraction of speculative words appear in final).
-    private static jaccardSimilarity(a: string, b: string): number {
-        const setA = IntelligenceEngine.wordsOf(a);
-        const setB = IntelligenceEngine.wordsOf(b);
-        if (setA.size === 0 && setB.size === 0) return 1;
-        let intersection = 0;
-        setA.forEach(w => { if (setB.has(w)) intersection++; });
-        const jaccard = intersection / (setA.size + setB.size - intersection);
-        // Containment: fraction of setA (speculative/partial) covered by setB (final)
-        const containment = setA.size > 0 ? intersection / setA.size : 0;
-        return Math.max(jaccard, containment * 0.9); // weight containment slightly below pure Jaccard
-    }
-
-    private static hasQuestionSignal(text: string): boolean {
-        if (text.trimEnd().endsWith('?')) return true;
-        return /\b(what|how|why|where|when|which|who|can you|could you|tell me|explain|describe|walk me through|talk me through)\b/i.test(text);
-    }
-
-    // Fires speculative LLM inference on a stable high-confidence interviewer partial.
-    // Debounced so rapid word-by-word partials don't spawn multiple streams.
-    private maybeSpeculate(segment: TranscriptSegment): void {
-        if (this.activeMode !== 'idle' && this.activeMode !== 'assist') return;
-
-        // Snapshot values now — STT adapters may mutate the same segment object in place.
-        const text = segment.text;
-        const confidence = segment.confidence ?? 0;
-        const words = text.trim().split(/\s+/).filter(Boolean);
-        if (
-            confidence < this.SPECULATIVE_MIN_CONFIDENCE ||
-            words.length < this.SPECULATIVE_MIN_WORDS ||
-            !IntelligenceEngine.hasQuestionSignal(text)
-        ) return;
-
-        if (this.speculativeTimer !== null) {
-            clearTimeout(this.speculativeTimer);
-        }
-
-        this.speculativeTimer = setTimeout(() => {
-            this.speculativeTimer = null;
-            // Re-check mode: a high-priority mode may have started during the debounce window.
-            if (this.activeMode !== 'idle' && this.activeMode !== 'assist') return;
-            // Don't overwrite a speculative stream that is already in flight.
-            if (this.speculativeText !== null) return;
-            if (Date.now() - this.lastTriggerTime < this.triggerCooldown) return;
-            console.log(`[IntelligenceEngine] Speculative inference fired on interim`, { length: text.length, confidence });
-            this.runWhatShouldISay(text, confidence || 0.8, undefined, { speculative: true })
-                .catch(err => console.error('[IntelligenceEngine] Speculative run error:', err));
-        }, this.SPECULATIVE_DEBOUNCE_MS);
-    }
-
     /**
      * Process transcript from native audio, and trigger follow-up if appropriate
      */
@@ -316,116 +249,12 @@ export class IntelligenceEngine extends EventEmitter {
         const result = this.session.handleTranscript(segment);
         this.lastTranscriptTime = Date.now();
 
-        if (segment.speaker === 'interviewer') {
-            if (!segment.final) {
-                this.maybeSpeculate(segment);
-            } else if (this.speculativeTimer !== null) {
-                // Final arrived — cancel debounce; handleSuggestionTrigger will do Jaccard check
-                clearTimeout(this.speculativeTimer);
-                this.speculativeTimer = null;
-            }
-        }
-
         // Check for follow-up intent if user is speaking
         if (result && !skipRefinementCheck && result.role === 'user' && this.session.getLastAssistantMessage()) {
             const { isRefinement, intent } = detectRefinementIntent(segment.text.trim());
             if (isRefinement) {
                 this.runFollowUp(intent, segment.text.trim());
             }
-        }
-    }
-
-    /**
-     * Handle suggestion trigger from native audio service
-     * This is the primary auto-trigger path
-     */
-    async handleSuggestionTrigger(trigger: SuggestionTrigger): Promise<void> {
-        if (trigger.confidence < 0.5) return;
-
-        const plannerDecision = await this.planSuggestionTrigger(trigger);
-        if (plannerDecision.kind === 'silent') {
-            console.log('[IntelligenceEngine] Planner stayed silent', { reason: plannerDecision.reason, confidence: plannerDecision.confidence });
-            return;
-        }
-
-        if (plannerDecision.kind !== 'answer') {
-            await this.runPlannerDecision(plannerDecision, trigger.lastQuestion);
-            return;
-        }
-
-        // If a speculative stream answered (or is answering) this question, reuse it.
-        if (this.speculativeText !== null) {
-            const expired = Date.now() > this.speculativeTextExpiry;
-            const stale = expired || !trigger.lastQuestion; // empty question — reject conservatively
-            if (!stale) {
-                const similarity = IntelligenceEngine.jaccardSimilarity(this.speculativeText, trigger.lastQuestion);
-                this.speculativeText = null;
-                this.speculativeTextExpiry = Infinity;
-                if (similarity >= this.SPECULATIVE_SIMILARITY_THRESHOLD) {
-                    console.log(`[IntelligenceEngine] Speculative stream accepted (Jaccard=${similarity.toFixed(2)}) — continuing`);
-                    this.lastTriggerTime = Date.now();
-                    return;
-                }
-                console.log(`[IntelligenceEngine] Speculative stream rejected (Jaccard=${similarity.toFixed(2)}) — restarting`);
-            } else {
-                console.log(`[IntelligenceEngine] Speculative result discarded (expired=${expired}, noQuestion=${!trigger.lastQuestion})`);
-                this.speculativeText = null;
-                this.speculativeTextExpiry = Infinity;
-            }
-            // IMPORTANT: no await between this increment and runWhatShouldISay below —
-            // the increment must be synchronous with the new stream launch to preserve generation-id ordering.
-            ++this.currentGenerationId;
-        }
-
-        await this.runWhatShouldISay(trigger.lastQuestion, trigger.confidence);
-    }
-
-    private async planSuggestionTrigger(trigger: SuggestionTrigger): Promise<PlannerDecision> {
-        const contextItems = this.session.getContext(180);
-        const transcriptContext = contextItems.map(item => item.text).join('\n');
-        const preparedTranscript = prepareTranscriptForWhatToAnswer(contextItems.map(item => ({
-            role: item.role,
-            text: item.text,
-            timestamp: item.timestamp,
-        })), 12);
-        const lastInterviewerTurn = this.session.getLastInterviewerTurn();
-        const intentResult = await classifyIntent(
-            lastInterviewerTurn,
-            preparedTranscript,
-            this.session.getAssistantResponseHistory().length
-        );
-        const detectedCodingQuestion = this.session.getDetectedCodingQuestion();
-
-        return planNextAssistantAction({
-            triggerQuestion: trigger.lastQuestion,
-            confidence: trigger.confidence,
-            transcriptContext,
-            intentResult,
-            hasRecentAssistantResponse: this.session.getAssistantResponseHistory().length > 0,
-            hasDetectedCodingQuestion: Boolean(detectedCodingQuestion.question),
-            now: Date.now(),
-            lastTriggerTime: this.lastTriggerTime,
-            cooldownMs: this.triggerCooldown,
-        });
-    }
-
-    private async runPlannerDecision(decision: PlannerDecision, question?: string): Promise<void> {
-        switch (decision.kind) {
-            case 'clarify':
-                await this.runClarify();
-                return;
-            case 'recap':
-                await this.runRecap();
-                return;
-            case 'follow_up_questions':
-                await this.runFollowUpQuestions();
-                return;
-            case 'brainstorm':
-                await this.runBrainstorm(undefined, question);
-                return;
-            case 'answer':
-            case 'silent':
-                return;
         }
     }
 
@@ -515,18 +344,17 @@ export class IntelligenceEngine extends EventEmitter {
         });
     }
 
-    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<TranscriptView | void>; speculative?: boolean; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; view?: TranscriptView }): Promise<string | null> {
+    async runWhatShouldISayInner(question?: string, confidence: number = 0.8, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<TranscriptView | void>; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext; view?: TranscriptView }): Promise<string | null> {
         const task = this.llmHelper.getCurrentGenerationTask();
         if (task) task.deferVisibleText = true;
         // A manual action reads the transcript frozen for it; live history writes are unchanged.
         const view = options?.view ?? this.session;
         const now = Date.now();
-        const isSpeculative = options?.speculative === true;
         const skipCooldown = options?.manual === true || options?.skipCooldown === true;
 
-        // Cooldown bypass: explicit images (user intent), speculative pre-fetch, or test harness.
+        // Cooldown bypass: explicit images (user intent) or test harness.
         const hasImages = imagePaths && imagePaths.length > 0;
-        if (!hasImages && !isSpeculative && !skipCooldown && now - this.lastTriggerTime < this.triggerCooldown) {
+        if (!hasImages && !skipCooldown && now - this.lastTriggerTime < this.triggerCooldown) {
             return null;
         }
 
@@ -536,34 +364,16 @@ export class IntelligenceEngine extends EventEmitter {
         }
 
         this.setMode('what_to_say');
-        // Speculative runs don't stamp lastTriggerTime at start — the cooldown slot
-        // is reserved for the real trigger. We stamp it only on successful completion.
-        if (!isSpeculative) {
-            this.lastTriggerTime = now;
-        }
-        // Record the question text so handleSuggestionTrigger can do Jaccard comparison.
-        // Expiry stays at Infinity while the stream is running — set to a close window only on completion.
-        if (isSpeculative) {
-            this.speculativeText = question ?? null;
-            this.speculativeTextExpiry = Infinity;
-        }
+        this.lastTriggerTime = now;
 
         try {
             if (!this.whatToAnswerLLM) {
                 if (!this.answerLLM) {
-                    if (isSpeculative) { this.speculativeText = null; this.speculativeTextExpiry = Infinity; }
                     this.setMode('idle');
                     return "Please configure your API Keys in Settings to use this feature.";
                 }
                 const context = view.getFormattedContext(180);
                 const answer = await this.answerLLM.generate(question || '', context);
-                if (isSpeculative) {
-                    this.speculativeText = null;
-                    this.speculativeTextExpiry = Infinity;
-                    this.lastTriggerTime = Date.now();
-                    this.setMode('idle');
-                    return answer || "Could you repeat that? I want to make sure I address your question properly.";
-                }
                 if (answer) {
                     task?.markVisible(answer);
                     this.session.addAssistantMessage(answer, this.generationMetadata());
@@ -595,7 +405,7 @@ export class IntelligenceEngine extends EventEmitter {
 
             // A manual press without a question answers the interviewer's latest words from the
             // same snapshot as the background; the renderer shows them through the answer events.
-            const interviewerQuestion = options?.manual && !question && !isSpeculative
+            const interviewerQuestion = options?.manual && !question
                 ? latestInterviewerQuestion(contextItems) : undefined;
             const shownQuestion = question || interviewerQuestion;
 
@@ -655,17 +465,15 @@ export class IntelligenceEngine extends EventEmitter {
                     break;
                 }
                 fullAnswer += token;
-                if (!isSpeculative) {
-                    pendingDisplay += token;
-                    const possibleSentinel = isPendingAnswerSentinel(fullAnswer);
-                    if (!possibleSentinel) {
-                        task?.markVisible(pendingDisplay);
-                        this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
-                        pendingDisplay = "";
-                    }
+                pendingDisplay += token;
+                const possibleSentinel = isPendingAnswerSentinel(fullAnswer);
+                if (!possibleSentinel) {
+                    task?.markVisible(pendingDisplay);
+                    this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
+                    pendingDisplay = "";
                 }
             } } catch (error) {
-                if (pendingDisplay && !isSpeculative && !task?.signal.aborted && task === this.activeGenerationTask) {
+                if (pendingDisplay && !task?.signal.aborted && task === this.activeGenerationTask) {
                     task?.markVisible(pendingDisplay);
                     this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
                 }
@@ -674,13 +482,6 @@ export class IntelligenceEngine extends EventEmitter {
 
             if (streamAborted) {
                 // Aborted mid-stream — don't update session or emit final event
-                if (isSpeculative) {
-                    this.speculativeText = null;
-                    this.speculativeTextExpiry = Infinity;
-                    // Stamp lastTriggerTime so the real trigger that caused this abort
-                    // doesn't allow a rapid second trigger within the cooldown window.
-                    this.lastTriggerTime = Date.now();
-                }
                 this.setMode('idle');
                 return null;
             }
@@ -690,24 +491,13 @@ export class IntelligenceEngine extends EventEmitter {
             }
 
             if (IntelligenceEngine.isNonAnswerSentinel(fullAnswer)) {
-                if (isSpeculative) {
-                    this.speculativeText = null;
-                    this.speculativeTextExpiry = Infinity;
-                    this.lastTriggerTime = Date.now();
-                }
                 this.setMode('idle');
                 return null;
             }
 
-            if (pendingDisplay && !isSpeculative) {
+            if (pendingDisplay) {
                 task?.markVisible(pendingDisplay);
                 this.emit('suggested_answer_token', pendingDisplay, tokenQuestion(), confidence);
-            }
-            if (isSpeculative) {
-                this.lastTriggerTime = Date.now();
-                this.speculativeTextExpiry = this.lastTriggerTime + this.triggerCooldown + 500;
-                this.setMode('idle');
-                return fullAnswer;
             }
 
             this.session.addAssistantMessage(fullAnswer, this.generationMetadata());
@@ -726,7 +516,6 @@ export class IntelligenceEngine extends EventEmitter {
 
         } catch (error) {
             if (task?.signal.aborted || task !== this.activeGenerationTask) throw error;
-            if (isSpeculative) { this.speculativeText = null; this.speculativeTextExpiry = Infinity; }
             if ((error as Error)?.name === 'AbortError') throw error;
             // An IPC caller owns its error display; emitting as well can target another window.
             if (options?.errorDelivery !== 'caller') this.emit('error', error as Error, 'what_to_say');
@@ -1267,11 +1056,5 @@ export class IntelligenceEngine extends EventEmitter {
             this.assistCancellationToken.abort();
             this.assistCancellationToken = null;
         }
-        if (this.speculativeTimer !== null) {
-            clearTimeout(this.speculativeTimer);
-            this.speculativeTimer = null;
-        }
-        this.speculativeText = null;
-        this.speculativeTextExpiry = Infinity;
     }
 }

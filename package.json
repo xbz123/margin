@@ -23,9 +23,6 @@
     "test": "npm run build:electron && node scripts/margin/isolation/run-node.mjs --test 'electron/services/__tests__/**/*.test.mjs' 'electron/llm/__tests__/**/*.test.mjs' 'electron/audio/__tests__/**/*.test.mjs' 'electron/margin/__tests__/**/*.test.mjs' 'electron/utils/__tests__/**/*.test.mjs' 'src/lib/__tests__/**/*.test.mjs'",
     "test:margin": "npm run build:electron && vite build && node scripts/margin/isolation/run-node.mjs --allow-exec Electron:osascript --test --test-timeout=240000 tests/margin/answer-regression.test.mjs tests/margin/meeting-storage.test.mjs tests/margin/startup-smoke.test.mjs",
     "gates": "node scripts/margin/run-gates.mjs",
-    "test:e2e": "npx playwright test",
-    "test:e2e:headed": "npx playwright test --headed",
-    "test:e2e:parity": "ELECTRON_E2E=1 ELECTRON_APP_PORT=${ELECTRON_APP_PORT:-5173} npx playwright test tests/e2e/parity-gaps-evidence.spec.ts",
     "doctor": "npx react-doctor@latest"
   },
   "build": {

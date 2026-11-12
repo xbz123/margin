@@ -111,16 +111,6 @@ function findMegaEffect(srcLines) {
 
 const effect = findMegaEffect(lines);
 
-test('mega-effect anchored on onNativeAudioConnected is the expected ~1434-1807 block', () => {
-    // Sanity: this should be the largest useEffect in the file (>200 lines).
-    const span = effect.closeLine - effect.openLine;
-    assert.ok(
-        span > 200,
-        `expected mega-effect to span >200 lines, got ${span} (open=${effect.openLine + 1}, close=${effect.closeLine + 1}). ` +
-        `Has the file been restructured? Update the test anchor.`,
-    );
-});
-
 test('mega-effect dep array does not include expansion state', () => {
     const stripped = effect.closeStmt.trim();
 

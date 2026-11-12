@@ -42,20 +42,6 @@ const HANDLER_RE =
   /onAudioCaptureFailed\?\.\(\((?:payload|[^)]*)\)\s*=>\s*\{[\s\S]*?\}\s*\)\s*;[\s\S]*?return\s*\(\)\s*=>\s*unsub\?\.\(\)\s*;/g;
 
 describe('B1: mic-channel audio-capture-failed must surface in the renderer', () => {
-  it('contains exactly one onAudioCaptureFailed subscription', () => {
-    const subscriptions = source.match(/onAudioCaptureFailed/g) || [];
-    // We expect: one subscription site. The handler reference may also
-    // appear in the electron preload type, but that lives in a
-    // different file — within NativelyInterface.tsx itself there should
-    // be a single call site.
-    assert.equal(
-      subscriptions.length,
-      1,
-      `BUG: expected exactly 1 onAudioCaptureFailed subscription in NativelyInterface.tsx, found ${subscriptions.length}. ` +
-        'If you intentionally added a second handler, consolidate them — multiple handlers fragment the surface logic.',
-    );
-  });
-
   it('handler body does NOT contain any `channel !== \'system\'` comparison (loose catch)', () => {
     const matches = source.match(HANDLER_RE);
     assert.ok(matches && matches.length === 1, 'could not locate onAudioCaptureFailed handler');

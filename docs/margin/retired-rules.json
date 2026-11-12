@@ -31,8 +31,7 @@
     "tsconfig.json",
     "tsconfig.node.json",
     "electron-builder.signed.cjs",
-    "index.html",
-    "playwright.config.ts"
+    "index.html"
   ],
   "scanExclude": [
     "scripts/margin",
