@@ -481,6 +481,44 @@ test('S42-03 an interim twenty seconds before Answer and never updated is not di
   assert.equal(frozen.dictation, '');
 });
 
+test('S42-03 an interim idle at Answer that the Stop seal only finalizes stays out; one that gains new words joins whole', async t => {
+  for (const [last, expected] of [['好的，我明白了。', ''], ['好的，我明白了，为什么想离开现在的公司？', '好的，我明白了，为什么想离开现在的公司？']]) {
+    const { session, user, advance } = meeting(t);
+    sealsPerAction(user);
+    said(user, 'req-1', '0', '好的，我明白了');
+    await advance(20_000);
+    const mark = session.markDictation(Date.now());
+    assert.deepEqual(serialize(mark.open), ['user:1:req-1:0']);
+    await advance(3000);
+    // Nothing said after Answer was recognised; the seal's last result settles the idle sentence.
+    const frozen = await stopDictation(session, advance, mark, () => said(user, 'req-1', '0', last, true));
+    assert.equal(frozen.dictation, expected);
+    t.mock.timers.reset();
+  }
+});
+
+test('S42-03 words heard by the cutoff that the provider splits off under a new key stay in the action', async t => {
+  const { session, interviewer, advance } = meeting(t);
+  const heard = (segmentId, text, isFinal = false) => interviewer.emit('transcript', { segmentId, epoch: 'req-1', scope: 'req-1', text, isFinal });
+  heard('0', '请解释一下数据库索引是怎么工作的？');
+  await advance(5000);
+  heard('0', '请解释一下数据库索引是怎么工作的？请你详细介绍一下你');
+  await advance(200);
+  const cut = Date.now();
+  const collector = session.collect({ cutoffAt: cut, deadline: cut + 10_000, signal: new AbortController().signal });
+  collector.setStage1End(cut);
+  await advance(900);
+  // Doubao settles the first sentence and moves the clicked words to the next key.
+  heard('0', '请解释一下数据库索引是怎么工作的？', true);
+  heard('1', '请你详细介绍一下你在上一家公司');
+  await advance(500);
+  heard('2', '后来才开始说的另一句');
+  await advance(4000);
+  const frozen = await collector.frozen;
+  assert.deepEqual(serialize(frozen.channels.interviewer.segments.map(segment => segment.text)),
+    ['请解释一下数据库索引是怎么工作的？', '请你详细介绍一下你在上一家公司']);
+});
+
 test('S42-03 a just-said interim joins only the dictation it preceded, not the next one', async t => {
   const { session, user, advance } = meeting(t);
   user.emit('transcript', { segmentId: 'just-said', epoch: 'req-1', text: '红黑树和AVL树的区别', isFinal: false });

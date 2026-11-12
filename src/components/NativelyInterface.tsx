@@ -2509,9 +2509,12 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const handleAnswerNow = async () => {
     setRetryGeneration(undefined);
     if (isManualRecording) {
-      if (!tryBeginOverlayAction('answer_now')) return;
+      // Each Stop ends its own recording. The previous round may still be freezing or answering, so
+      // neither its in-flight action nor a recent Stop may swallow this one; only a repeated trigger
+      // of a recording that already stopped is ignored. Its newer epoch drops the older round's result.
+      if (!isRecordingRef.current) return;
       const epoch = ++generationEpochRef.current;
-      try {
+      {
         // Stop recording: main freezes the dictated speech and owns the question.
         isRecordingRef.current = false;
         setIsManualRecording(false);
@@ -2659,7 +2662,7 @@ Provide only the answer, nothing else.`;
             ];
           });
         }
-      } finally { endOverlayAction('answer_now'); }
+      }
     } else {
       // Start recording - reset voice input state
       setVoiceInput('');

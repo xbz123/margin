@@ -124,6 +124,43 @@ test('S42-03 Answer only starts dictation and never sends', async () => {
   assert.deepEqual(calls, ['begin']);
 });
 
+test('S42-03 a Stop while the previous round is still freezing or answering is not swallowed; a repeated trigger of the same Stop is', async () => {
+  const ref = current => ({ current });
+  const freezes = [], sent = [], messages = [], answering = [];
+  const isRecordingRef = ref(true);
+  const bindings = {
+    isManualRecording: true, generationEpochRef: ref(0), isRecordingRef, voiceInputRef: ref(''), manualTranscriptRef: ref(''),
+    attachedContext: [], submittedChatRef: ref(), messagesEndRef: ref(), ...guidance,
+    streamingMsgIdRef: ref(), streamingIntentRef: ref(), streamingTextRef: ref(''), streamingNodeRef: ref(null), streamingRafRef: ref(null),
+    requestStartTimeRef: ref(null), setIsManualRecording() {}, setManualTranscript() {}, setVoiceInput() {}, setIsProcessing() {},
+    setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
+    genMessageId: () => String(messages.length), setTimeout() {}, pinAnswerPanel() {}, t: english => i18n.translate('en', english),
+    window: { electronAPI: {
+      finishDictation: () => new Promise(resolve => freezes.push(resolve)),
+      streamGeminiChat: (...args) => { sent.push(args); return new Promise(resolve => answering.push(resolve)); },
+    } },
+  };
+  const run = handler('handleAnswerNow', bindings);
+  // Round one: Stop, the same Stop fired twice, then Answer again while it freezes.
+  const first = run();
+  void run();
+  assert.equal(freezes.length, 1, 'a repeated trigger of a stopped recording is ignored');
+  isRecordingRef.current = true;
+  freezes[0]({ speechActionId: 'one', question: 'First question' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(sent.map(args => args[3].speechActionId), ['one'], 'the first round is answered while the next one records');
+  // Round two stops while the first answer is still streaming.
+  const second = run();
+  assert.equal(freezes.length, 2, 'the second Stop asks main for its own question');
+  freezes[1]({ speechActionId: 'two', question: 'Second question' });
+  await new Promise(resolve => setImmediate(resolve));
+  for (const resolve of answering) resolve();
+  await Promise.all([first, second]);
+  assert.deepEqual(sent.map(args => args[3].speechActionId), ['one', 'two']);
+  assert.deepEqual(messages.filter(message => message.role === 'user').map(message => message.text), ['First question', 'Second question']);
+  assert.doesNotMatch(JSON.stringify(messages), /could not be collected|Error/);
+});
+
 test('AG42 real answer row and feedback callback use shared translations and show one scope error', async () => {
   const Row = handler('MessageRow', { React, useI18n: i18n.useI18n, Copy: () => null });
   try {

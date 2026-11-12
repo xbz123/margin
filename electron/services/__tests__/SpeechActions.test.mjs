@@ -624,6 +624,32 @@ test('S42-03 Stop: main freezes the dictated question, the chat request carries 
   assert.equal(c.sent.length, 1, 'a question main did not freeze sends nothing');
 });
 
+test('S42-03 Answer pressed while the previous Stop is still freezing keeps that round and starts a separate dictation', async () => {
+  const c = chain();
+  const clockMovesOn = () => new Promise(resolve => setTimeout(resolve, 2));
+  const first = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  await clockMovesOn();
+  c.user.emit('transcript', { segmentId: 'q1', text: 'first dictated question', isFinal: true });
+  await clockMovesOn();
+  const stop1 = await c.begin('answer', { dictationId: first.dictationId });
+  const freezing = c.invoke('speech-action:freeze', stop1);
+  await clockMovesOn();
+  // The collector is still waiting for its seals when Answer is pressed again.
+  const second = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  await clockMovesOn();
+  c.user.emit('transcript', { segmentId: 'q2', text: 'second dictated question', isFinal: true });
+  c.releaseSeals();
+  const frozen1 = await freezing;
+  assert.equal(frozen1.question, 'first dictated question');
+  await c.invoke('gemini-chat-stream', frozen1.question, undefined, 'PROMPT', { skipSystemPrompt: true, speechActionId: stop1.speechActionId });
+  assert.equal(c.sent.length, 1, 'the first round is answered');
+  await clockMovesOn();
+  const stop2 = await c.begin('answer', { dictationId: second.dictationId });
+  c.releaseSeals();
+  const frozen2 = await c.invoke('speech-action:freeze', stop2);
+  assert.equal(frozen2.question, 'second dictated question', 'the new dictation holds only its own words');
+});
+
 test('S42-03 references are owned, typed, single-use and cannot be revived; typed questions and cancel release pending actions', async () => {
   const c = chain();
   const other = new Sender(8);

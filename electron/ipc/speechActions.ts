@@ -39,6 +39,8 @@ interface Entry {
   collector?: SpeechCollector;
   failure?: unknown;
   consumed?: boolean;
+  /** A Stop is waiting for this answer's question and has not sent it yet. */
+  freezing?: boolean;
   detach(): void;
 }
 
@@ -120,6 +122,7 @@ export class SpeechActions {
     const action = entry.action;
     if (action.task.signal.aborted) { this.release(action.id); throw new SpeechActionError(); }
     if (typeof stage1EndAt === 'number') entry.collector?.setStage1End(stage1EndAt);
+    if (!consume) entry.freezing = true;
     // Consuming the capability must not relinquish cancellation while its task is still running.
     if (consume) entry.consumed = true;
     return action;
@@ -134,7 +137,12 @@ export class SpeechActions {
     const { dictationId, clickedAt } = (payload ?? {}) as Record<string, unknown>;
     if (typeof dictationId !== 'string' || !ID.test(dictationId) || typeof clickedAt !== 'number' || !Number.isFinite(clickedAt)
       || clickedAt <= 0 || owner.isDestroyed()) throw new SpeechActionError();
-    this.cancel(owner);
+    // Answer only starts recording: the previous round's Stop, still freezing its question, goes on
+    // until a newer question (the next Stop's begin) or a real cancel replaces it. Its cutoff precedes
+    // this mark, so its speech stays out of the new dictation.
+    for (const [id, entry] of [...this.entries]) {
+      if (entry.owner === owner && !(entry.freezing && !entry.consumed)) this.release(id);
+    }
     this.endDictation(owner.id);
     const destroyed = () => { if (this.dictations.get(owner.id)?.id === dictationId) this.endDictation(owner.id); };
     owner.once('destroyed', destroyed);

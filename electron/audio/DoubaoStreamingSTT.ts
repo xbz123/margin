@@ -1,5 +1,6 @@
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { DomesticStreamingSTT } from './DomesticStreamingSTT';
+import { comparableText as comparable } from './MeetingSttSession';
 
 export interface DoubaoSttOptions { appId?: string; resourceId?: string }
 
@@ -39,11 +40,6 @@ export function decodeDoubaoResponse(bytes: Buffer) {
 
 /** A definite whose start_time is at most this much before the open sentence's interims is that sentence. */
 const SAME_SENTENCE_START_MS = 1000;
-const NUMERALS =/[0-9零〇一二两三四五六七八九十百千万亿]+/gu;
-/** Text for comparison only: punctuation, spacing and case ignored, a numeral run (三 / 3) one token. */
-function comparable(spoken: string): string {
-  return spoken.normalize('NFKC').toLowerCase().replace(/[\p{P}\p{S}\p{Z}\s]+/gu, '').replace(NUMERALS, '#');
-}
 
 export class DoubaoStreamingSTT extends DomesticStreamingSTT {
   private sequence = 1;

@@ -101,6 +101,11 @@ export interface DictationMark {
    * the mark, or was last updated within a few seconds before it; otherwise it is left-over speech.
    */
   open?: readonly string[];
+  /**
+   * Open fragments idle for longer than DICTATION_FRESH_INTERIM_MS at the mark, with their comparable
+   * text then. Finalizing or punctuating one later (a seal's last result) is not a revision.
+   */
+  idle?: readonly (readonly [key: string, comparable: string])[];
 }
 export interface CollectOptions {
   cutoffAt: number;
@@ -149,6 +154,11 @@ const SNAPSHOT_WINDOW_MS = 180_000;
 /** An interim live at the mark and updated at most this long before it is speech just said, dictated without a later update. */
 const DICTATION_FRESH_INTERIM_MS = 5000;
 const LEDGER_LIMIT = 2000;
+const NUMERAL_RUN = /[0-9零〇一二两三四五六七八九十百千万亿]+/gu;
+/** Text for comparison only: punctuation, spacing and case ignored, a numeral run (三 / 3) one token. */
+export function comparableText(spoken: string): string {
+  return spoken.normalize('NFKC').toLowerCase().replace(/[\p{P}\p{S}\p{Z}\s]+/gu, '').replace(NUMERAL_RUN, '#');
+}
 /** Microphone seal scopes remembered with the cutoff of the action that ended them. */
 const ENDED_SCOPE_LIMIT = 256;
 
@@ -320,9 +330,10 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     // a reconnect, a moved start time or a fallback key can leave one that is never revised again.
     // Only speech with text counts: an empty speech-start record (speech_started, sentence_begin) replaces nothing yet.
     const latestStart = Math.max(-Infinity, ...user.filter(record => record.text.trim()).map(record => record.firstSeenAt));
-    const open = user.filter(record => record.state === 'interim' && !(latestStart > record.updatedAt) && !this.endedBy(record, at))
-      .map(record => record.key);
-    return Object.freeze({ sessionId: this.session, at, open: Object.freeze(open) });
+    const live = user.filter(record => record.state === 'interim' && !(latestStart > record.updatedAt) && !this.endedBy(record, at));
+    const idle = live.filter(record => at - record.updatedAt > DICTATION_FRESH_INTERIM_MS)
+      .map(record => Object.freeze([record.key, comparableText(record.text)] as const));
+    return Object.freeze({ sessionId: this.session, at, open: Object.freeze(live.map(record => record.key)), idle: Object.freeze(idle) });
   }
 
   /**
@@ -357,9 +368,13 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     // Known boundary, as in the earlier renderer gate: words said between two actions and not yet
     // final share a record with what follows when the provider appends new speech to it (Doubao does
     // until it splits the sentence), so a dictation that continues that record includes all of it.
-    // Such a record finalized only by this action's own seal (its last result) is a revision too.
+    // Such a record finalized only by this action's own seal (its last result) is a revision too,
+    // unless it had been idle at the mark and that result only finalized or punctuated the same words:
+    // Doubao keeps a sentence followed by silence interim until the next sentence or a seal.
+    const idleAtMark = new Map(marked ? mark.idle : undefined);
     const revised = (record: SegmentRecord) => record.channel === 'user' && marked && !ended(record)
-      && record.updatedAt > mark.at && (record.finalAt ?? Infinity) > mark.at;
+      && record.updatedAt > mark.at && (record.finalAt ?? Infinity) > mark.at
+      && idleAtMark.get(record.key) !== comparableText(record.text);
     const fresh = (record: SegmentRecord) => record.channel === 'user' && marked && !ended(record)
       && record.state === 'interim' && openAtMark.has(record.key) && mark.at - record.updatedAt <= DICTATION_FRESH_INTERIM_MS;
     // A fresh interim whose connection was replaced (later speech from another epoch) was cut off, not just said.
@@ -437,13 +452,28 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       return Object.freeze({ sessionId, cutoffAt, frozenAt: Math.max(...lanes.map(ending)), channels: Object.freeze(channels),
         ...(mark ? { dictation: spoken.map(segment => segment.text.trim()).join(' '), dictationKeys: Object.freeze(spoken.map(segment => segment.key)) } : {}) });
     };
+    // A provider can move words heard by the cutoff to a key first seen after it: Doubao appends the
+    // next sentence to the open one, then sends the first one's definite (dropping those words from
+    // its key) with the rest under a new key. A record continuing what a collected record of the same
+    // epoch lost that way is that speech, not later speech.
+    const splitOff = (lane: Lane, record: SegmentRecord) => {
+      const spoken = comparableText(record.text);
+      return spoken !== '' && [...lane.history.values()].some(versions => {
+        const atCutoff = versions.findLast(version => version.updatedAt <= cutoffAt);
+        const now = versions[versions.length - 1];
+        if (!atCutoff || now.epoch !== record.epoch) return false;
+        const held = comparableText(atCutoff.text), kept = comparableText(now.text);
+        const dropped = held.length > kept.length && held.startsWith(kept) ? held.slice(kept.length) : '';
+        return dropped !== '' && (spoken.startsWith(dropped) || dropped.startsWith(spoken));
+      });
+    };
     const remember = (record: SegmentRecord, initial = false) => {
       const lane = lanes.find(item => item.channel === record.channel)!;
       if (lane.closed) return;
       if (record.sessionId !== sessionId || record.updatedAt > Math.min(maximumEnd, lane.earlyAt)
         || (receiptKnown && record.updatedAt > ending(lane))) return;
       const ownedScope = record.scope !== undefined && lane.scopes.has(record.scope);
-      if (!lane.history.has(record.key) && !(initial && record.firstSeenAt <= cutoffAt) && !ownedScope) return;
+      if (!lane.history.has(record.key) && !(initial && record.firstSeenAt <= cutoffAt) && !ownedScope && !splitOff(lane, record)) return;
       if (record.identityReliable === false && !ownedScope && (!initial || record.updatedAt > cutoffAt)) return;
       // A fragment open at the mark is kept past the window so a revision during the tail can still join it.
       if (!revised(record) && !openAtMark.has(record.key) && record.updatedAt < cutoffAt - SNAPSHOT_WINDOW_MS) return;
