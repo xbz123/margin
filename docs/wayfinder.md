@@ -6,7 +6,7 @@
 
 **Current answer:** 截至2026-11-10，Mac 线与 Windows 线已合并到 `codex/margin-unified`（以 Mac 线为基底）；面试提示采用 Mac 线的精简版，打包检查与构建脚本取 Windows 线的双平台结构并保留 Mac 线新增的检查。合并结果待双平台 CI 与设备验证，两条旧分支保留作回退。
 
-**Current focus:** 在统一分支上跑 macOS 门禁和 Windows 编译，再各出一个测试包按两份精简清单验证核心场景。
+**Current focus:** 统一分支已出到测试包 test.9（`7a0e9c733`，2026-11-12），公开 CI 门禁 16/16、Windows 编译通过。Answer / Stop 口述与 What to answer 的问题来源已按用户要求调整，test.8 在 Windows 上用真实豆包复测通过（一项已知边界除外）；test.9 新增的“Stop 没有口述就用面试官的话”只有自动化测试。下一步是用户在 Mac 上实测 test.9，见[记录](margin/evidence/answer-dictation/README.md)。
 
 **Mac 线合并前状态：** 截至2026-10-26，已安装保存/输入及S50修复`b7f57addf`，见[回执](margin/evidence/S50-mode-controls/README.md)。精简英文面试提示及重复菜单修正本地门禁通过、未安装；[真实对照](margin/evidence/software-interview-prompt/README.md)仍有失败和质量限制。未推送/远端CI，阶段6未签收。
 
@@ -18,6 +18,7 @@
 
 ## Waiting
 
+- **test.9 用户实测（Mac）** — 待用户验证：面试官提问时按 Answer、听完按 Stop、自己不说话，问题应为面试官的话；自己口述照旧；连续几轮只含本轮内容；面试官说到一半点 What to answer 能带上正在说的那句。Windows 不为这次改动单独复测，真人对着 Windows 麦克风说话仍未验证；resume：[记录](margin/evidence/answer-dictation/README.md)。
 - **保存/输入及S50用户测试** — 合并新版已安装；待验证保存、草稿、模式、截图、格式及费用；resume：[记录](margin/evidence/S50-mode-controls/README.md)。
 
 - **系统静音复测** — 修复已安装；待用户验证静音不误报、恢复声音后采集正常；resume：[记录](margin/evidence/system-silence/README.md)。
@@ -41,6 +42,7 @@
 
 ## Done (rolling)
 
+- Answer / Stop 口述与 What to answer 问题来源（2026-11-10 至 11-12）：test.6–test.9 两个平台构建成功，公开 CI 通过；test.8 Windows 真机（真实豆包）9 个场景 8 个通过，剩一项已知边界；[记录](margin/evidence/answer-dictation/README.md)。Mac 未实测。
 - S45 设置对齐与独立网关（2026-10-15）：两库交付，本地门禁、独立复查及公开 CI 成功；本机测试包已安装；[验收记录](margin/evidence/S45/README.md)。真实界面与服务尚未签收。
 
 - S44 设置与退出修复（2026-10-14）：`51eeed7a` 两库推送、门禁及 CI 38616962535 通过；[历史记录](margin/evidence/S44/README.md)。当前启动/退出问题后续已处理，真实服务验收独立。

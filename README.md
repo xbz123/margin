@@ -39,6 +39,16 @@ only where the interview's rules permit it.
 - Separate **What to answer**, **Answer / Stop** and text-send entry points;
   Clarify, Brainstorm, Recap and Follow Up Question remain available. Stop finishes
   the current dictation for sending, not the meeting; ending a meeting is separate.
+  - **What to answer** takes the interviewer's most recent words as the question,
+    including a sentence still being spoken, and shows them above the answer.
+  - **Answer / Stop** takes what you say into the microphone between the two
+    presses as the question. A sentence you had already begun when you pressed
+    Answer is included whole; a sentence that had been idle for more than five
+    seconds is not. If you say nothing and the interviewer spoke between fifteen
+    seconds before Answer and Stop, Stop answers the interviewer's words instead
+    of reporting that no speech was detected.
+  - Pressing Answer or Stop again starts a new question and replaces the previous
+    round, including an answer that is still streaming.
 - Streamed answers, configurable deadlines and a retry of the current failed
   question. Retry retains the original input/context but uses current model and
   credential settings. Partial output stays separate from the retry answer;
@@ -84,8 +94,13 @@ overall for interview answers; written answers have a 180-second total budget
 without the interview first-text limit. These values are configurable deadlines,
 not measured speed or accuracy guarantees. Timing begins with the action, Stop
 or text submission and includes speech tail collection where applicable. Speech
-actions collect both channels within the bounded window without ending their
-connections; late revisions may update the transcript, not an answer already sent.
+actions collect both channels within the bounded window. With Doubao or Alibaba
+Cloud Bailian, each action ends the microphone channel's current request and
+continues on a new one; the system-audio channel keeps its connection. Late
+revisions may update the transcript, not an answer already sent. With Doubao, a
+sentence followed by silence is finalized only when speech resumes or the request
+ends, so words spoken just before Answer can join the next question when new
+speech continues the same sentence.
 
 The optional **Codex login source** is separate from API-key providers. It reads
 a supported local auth file only after explicit enablement/risk confirmation and
