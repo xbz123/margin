@@ -642,6 +642,7 @@
     {"line":"failed = true;","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; MeetingSttSession.ts: sets a local failure flag. Generic assignment."},
     {"line":"const preload = fs.readFileSync(path.join(ROOT, 'electron/preload.ts'), 'utf8');","reason":"Public CI sync (2026-11-10): flagged after the upstream pool grew, not by a change on this branch; preload-contract-check.mjs: reads this repository's own preload source for the contract gate. Generic Node file read."},
     {"line":"import { sliceSafeHandleBlock } from './ipcTestUtils.mjs';","reason":"Added with the STT saved-key preview fix (2026-11-10); SttSavedKeyPreview.test.mjs: imports this repository's own IPC test helper, as the neighbouring STT tests do. Generic ES module import."},
-    {"line":"const root = path.resolve(dirname, '../../..');","reason":"Added with the STT saved-key preview fix (2026-11-10); SttSavedKeyPreview.test.mjs: resolves the repository root from the test directory. Generic Node path resolution."}
+    {"line":"const root = path.resolve(dirname, '../../..');","reason":"Added with the STT saved-key preview fix (2026-11-10); SttSavedKeyPreview.test.mjs: resolves the repository root from the test directory. Generic Node path resolution."},
+    {"line":"t.mock.timers.enable({ apis: ['setTimeout'] });","reason":"Public CI sync (2026-11-13): flagged after the upstream pool grew, not by a change on this branch (0 hits at f1432086b, lines on this branch since 2026-11-11); DomesticStreamingLifecycle.test.mjs and DomesticSttSettings.test.mjs: enables node:test mock timers. Generic Node test-runner idiom."}
   ]
 }
