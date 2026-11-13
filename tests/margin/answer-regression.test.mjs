@@ -126,12 +126,22 @@ test.before(async () => {
   const imageTarget = { id: answerGateway, protocol: 'chat-completions', baseUrl: mock.baseURL, model: MODEL,
     imageSupportConfirmedFor: JSON.stringify(['gateway', answerGateway, 'chat-completions', mock.baseURL.replace(/\/+$/, ''), MODEL]) };
   assert.equal((await launcher.evaluate(config => window.electronAPI.setGatewayConfiguration(config), imageTarget)).ok, true);
-  await launcher.evaluate((m) => window.electronAPI.setModel(m), `llm-gateway:${answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`);
-  const config = await launcher.evaluate(() => window.electronAPI.getCurrentLlmConfig());
-  assert.equal(config?.model, `llm-gateway:${answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`, `active model is ${JSON.stringify(config)}`);
 
   overlay = await windowWithQuery(app, 'window=overlay');
   await overlay.waitForLoadState('domcontentloaded');
+  // On mount the overlay reads the saved default model and makes it the runtime model.
+  // Select the gateway model from the overlay itself, after its interface is mounted and
+  // after two round trips on the same IPC channel order, so that reset cannot land later.
+  await overlay.locator('input[type="text"]').last().waitFor({ state: 'attached', timeout: 20_000 });
+  const answerModel = `llm-gateway:${answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`;
+  await overlay.evaluate(async (m) => {
+    await window.electronAPI.getDefaultModel();
+    await window.electronAPI.getDefaultModel();
+    await window.electronAPI.setModel(m);
+    await window.electronAPI.getDefaultModel();
+  }, answerModel);
+  const config = await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig());
+  assert.equal(config?.model, answerModel, `active model is ${JSON.stringify(config)}`);
 });
 
 test.after(async () => {
