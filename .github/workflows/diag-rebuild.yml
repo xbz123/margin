@@ -28,7 +28,8 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
-      ROUNDS: ${{ inputs.rounds || '1' }}
+      # push: 8 rounds (CI: ~150 s new gates + ~80 s old suite per round, ~31 min + build, under the 70 min timeout)
+      ROUNDS: ${{ inputs.rounds || '8' }}
     steps:
       - uses: actions/checkout@v7
         with:
