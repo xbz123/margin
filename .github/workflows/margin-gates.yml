@@ -1,8 +1,8 @@
 # Margin ticket gates on a clean macOS runner (PLAN.md §8, "CI 门禁").
 # Runs only when a push to the migration branch says "[gates]" in its head commit
-# message, or by hand. It reads the upstream repository (public, read-only) so the
-# provenance check sees the same restricted pool as a local run, uses no secrets,
-# and keeps the raw gate output as a run artifact. A green run is a reference for a
+# message, or by hand. It uses no secrets and keeps the raw gate output as a run
+# artifact. The provenance check is not part of the gates; run
+# scripts/margin/provenance-check.mjs by hand before a release. A green run is a reference for a
 # clean install. With no_cache (manual runs only) it skips the Electron and cargo
 # caches, so the native module is compiled from scratch; that run is the evidence for
 # phase 1 exit item 1 under D5 (PLAN.md section 3). Every run also keeps the native
@@ -40,17 +40,6 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Fetch upstream refs and extra restricted commits (read-only)
-        run: |
-          # The empty extraheader keeps the checkout token from being sent to the upstream repository.
-          git -c http.https://github.com/.extraheader= fetch --no-tags https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant.git \
-            '+refs/heads/*:refs/remotes/upstream/*'
-          for sha in $(node -p "require('./docs/margin/provenance-config.json').restrictedExtraRefs.join(' ')"); do
-            git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch --no-tags origin "$sha"
-            git cat-file -e "$sha^{commit}"
-          done
-          echo "upstream refs: $(git for-each-ref refs/remotes/upstream --format=x | wc -l)"
 
       - uses: actions/setup-node@v7
         with:

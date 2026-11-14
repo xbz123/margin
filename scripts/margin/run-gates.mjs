@@ -52,7 +52,9 @@ const steps = [
   { id: 'vite-build', cmd: BIN('vite'), args: ['build'] },
   { id: 'tsc-renderer', cmd: BIN('tsc'), args: ['--noEmit', '-p', '.'] },
   { id: 'tsc-electron', cmd: BIN('tsc'), args: ['-p', 'electron/tsconfig.json', '--noEmit'], compare: 'diagnostics' },
-  { id: 'provenance', cmd: NODE, args: ['scripts/margin/provenance-check.mjs'] },
+  // The provenance check (scripts/margin/provenance-check.mjs) is not a gate step: its result
+  // depends on the upstream refs fetched at run time, not only on this branch. Run it by hand
+  // before a release.
   { id: 'retired', cmd: NODE, args: ['scripts/margin/retired-check.mjs'] },
   { id: 'preload-contract', cmd: NODE, args: ['scripts/margin/preload-contract-check.mjs'], compare: 'gaps' },
   { id: 'ipc-channels', cmd: NODE, args: ['scripts/margin/ipc-channel-check.mjs'], compare: 'gaps' },
