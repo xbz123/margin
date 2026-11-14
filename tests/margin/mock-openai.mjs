@@ -7,6 +7,8 @@
 // `chunks`) answers each request on its own; `setScript({ hold: true })` records chat
 // requests and never answers them (until `close`). `afterChunk(entry)` may pause a
 // stream after a chunk is written, so a test can observe it before releasing the tail.
+// `openStreamCount()` reports the responses still open and `clearRequests()` empties
+// the request log (used by tests/margin/regression-harness.mjs between cases).
 // Also serves the Groq SDK's path
 // (/openai/v1/chat/completions), so a Groq client can be pointed here too.
 
@@ -86,6 +88,10 @@ export async function startMockOpenAI() {
     requests,
     chatRequests: () => requests.filter((r) => /^\/(openai\/)?v1\/chat\/completions/.test(r.url)),
     setScript(next) { script = { errorStatus: 0, respond: undefined, hold: false, ...script, afterChunk: undefined, disconnectAfterChunks: undefined, retryAfterSeconds: undefined, ...next }; },
+    // Read-only: streamed (and held) responses that are still open.
+    openStreamCount: () => openStreams.size,
+    // Empties the request log in place, so `requests` stays the same array.
+    clearRequests() { requests.length = 0; },
     async close() {
       for (const s of openStreams) s.destroy();
       await new Promise((r) => server.close(r));

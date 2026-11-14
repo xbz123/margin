@@ -467,3 +467,56 @@ test('a failed save is kept, blocks start without side effects, and is saved on 
 
   assert.deepEqual(mock.requests.slice(requestsBefore).map((r) => r.url), [], 'the failed-save run sends nothing');
 });
+
+// Moved from answer-regression.test.mjs (docs/margin/REGRESSION-SUITE-REBUILD.md, W3):
+// assertions, the three-attempt retry and the diagnostics of a14f7e827 are unchanged. It
+// runs on this suite's shared app; at the end the AG33-sqlite-roundtrip row is deleted
+// through the same DatabaseManager so it never shows up in this suite's meeting lists.
+test('AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items', async () => {
+  const databasePath = path.resolve(import.meta.dirname, '../../dist-electron/electron/db/DatabaseManager.js');
+  const metadata = { requestId: 'AG33-sqlite-synthetic', provider: 'openai', model: 'actual-backup', status: 'failed', timeout: 'total', attempts: 2, partial: true, codeOutputFormat: 'plain' };
+  try {
+    // Playwright reports "Promise was collected" as a destroyed context (see launch-app.mjs); the body is idempotent (INSERT OR REPLACE), so retry it and log whether it already ran.
+    const evaluateRoundTrip = () => app.evaluate(({}, { filename, generation }) => {
+      const { DatabaseManager } = process.mainModule.require(filename);
+      const db = DatabaseManager.getInstance();
+      db.saveMeeting({ id: 'AG33-sqlite-roundtrip', title: 'Synthetic metadata only', date: '2026-10-10T00:00:00Z', duration: '0:01', summary: '', usage: [
+        { type: 'chat', timestamp: 1, question: 'synthetic', answer: 'saved partial', ...generation },
+        { type: 'followup_questions', timestamp: 2, items: ['legacy one', 'legacy two'] },
+      ] }, 0, 1000);
+      const saved = db.getMeetingDetails('AG33-sqlite-roundtrip');
+      db.saveMeeting(saved, 0, 1000);
+      const resaved = db.getMeetingDetails('AG33-sqlite-roundtrip');
+      return { usage: saved.usage, resavedUsage: resaved.usage, raw: db.db.prepare('SELECT metadata_json FROM ai_interactions WHERE meeting_id = ? ORDER BY timestamp').all('AG33-sqlite-roundtrip').map(row => JSON.parse(row.metadata_json)) };
+    }, { filename: databasePath, generation: metadata });
+    let result;
+    for (let attempt = 1; ; attempt++) {
+      try { result = await evaluateRoundTrip(); break; } catch (e) {
+        const alive = app.process().exitCode === null && app.process().signalCode === null;
+        console.error(`AG33 sqlite evaluate attempt ${attempt} failed: ${e.message} alive=${alive}`);
+        const probe = await Promise.race([app.evaluate(({}, filename) => {
+          const { DatabaseManager } = process.mainModule.require(filename);
+          return { pid: process.pid, rowExists: Boolean(DatabaseManager.getInstance().db.prepare('SELECT 1 FROM meetings WHERE id = ?').get('AG33-sqlite-roundtrip')) };
+        }, databasePath), new Promise((_, reject) => setTimeout(() => reject(new Error('probe timed out')), 5000))]).catch(probeError => ({ probeError: probeError.message }));
+        console.error(`AG33 sqlite attempt ${attempt} probe=${JSON.stringify(probe)}`);
+        if (!(alive && attempt < 3 && /context was destroyed/.test(e.message))) throw e;
+        await new Promise(r => setTimeout(r, 200));
+      }
+    }
+    assert.deepEqual(result.usage[0].generation, metadata); assert.equal(result.usage[0].answer, 'saved partial');
+    assert.deepEqual(result.usage[1].items, ['legacy one', 'legacy two']);
+    assert.deepEqual(result.resavedUsage, result.usage, 'saving the loader output preserves generation metadata and legacy items');
+    assert.deepEqual(result.raw[0], { generation: metadata }); assert.deepEqual(result.raw[1], ['legacy one', 'legacy two']);
+  } finally {
+    // Cleanup must not hide the case's own error, so a failure here is only logged.
+    const cleanup = await app.evaluate(({}, filename) => {
+      const { DatabaseManager } = process.mainModule.require(filename);
+      const db = DatabaseManager.getInstance();
+      const deleted = db.deleteMeeting('AG33-sqlite-roundtrip');
+      // ai_interactions cascades on delete; clear any rows left if foreign keys are off.
+      const orphans = db.db.prepare('DELETE FROM ai_interactions WHERE meeting_id = ?').run('AG33-sqlite-roundtrip').changes;
+      return { deleted, orphans };
+    }, databasePath).catch((e) => ({ cleanupError: e.message }));
+    console.error(`AG33 sqlite cleanup ${JSON.stringify(cleanup)}`);
+  }
+});

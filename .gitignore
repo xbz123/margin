@@ -257,3 +257,5 @@ windowswork.md
 
 # Margin local caches (provenance pools, isolation run logs)
 /.margin-cache/
+# Reset-proof marker of tests/margin/regression-harness.mjs (diag-out/skip-session-reset)
+/diag-out/
