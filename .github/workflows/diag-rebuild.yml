@@ -1,0 +1,153 @@
+# Temporary (docs/margin/REGRESSION-SUITE-REBUILD.md, W2/W4): runs the rebuilt regression
+# suite (through run-gates, with the storage suite) and, side by side on the same
+# machine, the old suite as the control. Test failures are data recorded in
+# diag-out/rounds.json; the job fails only when a round is malformed (wrong steps or a
+# timed-out step). Not for the main line.
+name: Diag rebuild
+
+on:
+  push:
+    branches:
+      - 'diag/**'
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: Rounds per shard
+        type: string
+        default: '1'
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: macos-15
+    timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    env:
+      ROUNDS: ${{ inputs.rounds || '1' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26.0.0
+
+      - name: Toolchain versions
+        id: tools
+        run: |
+          node -v; npm -v; xcodebuild -version
+          # The native module builds with the toolchain pinned in native-module/rust-toolchain.toml.
+          cd native-module && rustup toolchain install && rustc -V && cargo -V
+          echo "rustc=$(rustc -V | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/Library/Caches/electron
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-${{ runner.arch }}-
+
+      - uses: actions/cache@v6
+        with:
+          path: native-module/target
+          key: cargo-target-${{ runner.os }}-${{ runner.arch }}-${{ steps.tools.outputs.rustc }}-${{ hashFiles('native-module/Cargo.lock') }}
+          restore-keys: cargo-target-${{ runner.os }}-${{ runner.arch }}-${{ steps.tools.outputs.rustc }}-
+
+      - run: npm ci
+
+      - name: Native setup
+        run: npm run setup:native
+
+      - name: Build Electron and renderer
+        run: |
+          node scripts/build-electron.js
+          node_modules/.bin/vite build
+
+      - name: Run rounds (new suite through run-gates, then the old suite as control)
+        run: |
+          set +e
+          mkdir -p diag-out
+          now() { node -e 'console.log(Date.now())'; }
+          for i in $(seq 1 "$ROUNDS"); do
+            echo "=== Round $i / $ROUNDS (shard ${{ matrix.shard }}) ==="
+            t0=$(now)
+            node scripts/margin/run-gates.mjs --out "diag-out/new-$i" --only regression,storage 2>&1 | tee "diag-out/new-$i.log"
+            echo "${PIPESTATUS[0]}" > "diag-out/new-$i.exit"
+            t1=$(now)
+            node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.test.mjs 2>&1 | tee "diag-out/old-$i.log"
+            echo "${PIPESTATUS[0]}" > "diag-out/old-$i.exit"
+            t2=$(now)
+            echo "{\"newGatesMs\": $((t1 - t0)), \"oldSuiteMs\": $((t2 - t1))}" > "diag-out/durations-$i.json"
+            echo "Round $i: new exit $(cat "diag-out/new-$i.exit"), old exit $(cat "diag-out/old-$i.exit")"
+          done
+          exit 0
+
+      # The reset check must not be vacuous: without session-reset, resetCase() step 9
+      # has to fail from the second case on. Shard 1 only, once.
+      - name: Reset proof (resetCase without session-reset must fail)
+        if: ${{ matrix.shard == 1 }}
+        run: |
+          set +e
+          touch diag-out/skip-session-reset
+          node scripts/margin/isolation/run-node.mjs --allow-exec Electron --test --test-timeout=180000 tests/margin/answer-regression.next.test.mjs > diag-out/reset-proof.log 2>&1
+          ec=$?
+          rm -f diag-out/skip-session-reset
+          step9=$(grep -c 'resetCase step 9' diag-out/reset-proof.log)
+          skipped=$(grep -c 'resetCase step 7 (session-reset) skipped' diag-out/reset-proof.log)
+          node -e '
+            const [ec, step9, skipped] = process.argv.slice(1).map(Number);
+            const proof = { exitCode: ec, failed: ec !== 0, step9Failures: step9, step7SkippedLines: skipped,
+              proven: ec !== 0 && step9 > 0 && skipped > 0 };
+            require("fs").writeFileSync("diag-out/reset-proof.json", JSON.stringify(proof, null, 2) + "\n");
+            console.log(JSON.stringify(proof));
+          ' "$ec" "$step9" "$skipped"
+          exit 0
+
+      - name: Verify every round and write rounds.json
+        run: |
+          node -e '
+            const fs = require("fs");
+            const rounds = Number(process.env.ROUNDS);
+            const out = [], malformed = [];
+            const readExit = (f) => fs.existsSync(f) ? Number(fs.readFileSync(f, "utf8").trim()) : null;
+            for (let i = 1; i <= rounds; i++) {
+              const file = `diag-out/new-${i}/summary.json`;
+              let summary = null;
+              try { summary = JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { malformed.push(`round ${i}: ${file} unreadable: ${e.message}`); }
+              const steps = summary?.steps ?? [];
+              const ids = steps.map((s) => s.id).sort();
+              if (summary && JSON.stringify(ids) !== JSON.stringify(["regression", "storage"])) malformed.push(`round ${i}: steps ${JSON.stringify(ids)}`);
+              for (const s of steps) if (s.timedOut) malformed.push(`round ${i}: step ${s.id} timed out`);
+              const step = (id) => { const s = steps.find((x) => x.id === id); return s ? { exitCode: s.exitCode, passed: s.passed, timedOut: s.timedOut } : null; };
+              const durations = fs.existsSync(`diag-out/durations-${i}.json`) ? JSON.parse(fs.readFileSync(`diag-out/durations-${i}.json`, "utf8")) : {};
+              out.push({
+                round: i,
+                newRegression: step("regression"),
+                newStorage: step("storage"),
+                oldSuite: { exitCode: readExit(`diag-out/old-${i}.exit`), passed: readExit(`diag-out/old-${i}.exit`) === 0 },
+                durationsMs: {
+                  regression: steps.find((s) => s.id === "regression")?.durationMs ?? null,
+                  storage: steps.find((s) => s.id === "storage")?.durationMs ?? null,
+                  newGates: durations.newGatesMs ?? null,
+                  oldSuite: durations.oldSuiteMs ?? null,
+                },
+              });
+            }
+            fs.writeFileSync("diag-out/rounds.json", JSON.stringify({ shard: Number(process.env.SHARD), rounds: out, malformed }, null, 2) + "\n");
+            console.log(JSON.stringify(out, null, 2));
+            if (malformed.length) { console.error("Malformed rounds:\n" + malformed.join("\n")); process.exit(1); }
+          '
+        env:
+          SHARD: ${{ matrix.shard }}
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rebuild-shard-${{ matrix.shard }}
+          path: diag-out/
+          retention-days: 14

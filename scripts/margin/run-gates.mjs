@@ -64,7 +64,7 @@ const steps = [
   // cannot stop the others from reporting and every count comes from a TAP footer.
   { id: 'tests', custom: 'testFiles', compare: 'tests' },
   { id: 'regression', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
-    '--test-timeout=180000', 'tests/margin/answer-regression.test.mjs'], timeoutMs: 600_000 },
+    '--test-timeout=180000', 'tests/margin/answer-regression.next.test.mjs'], timeoutMs: 600_000 },
   { id: 'storage', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
     '--test-timeout=240000', 'tests/margin/meeting-storage.test.mjs'], timeoutMs: 600_000 },
   { id: 'startup', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron:osascript', '--test',
