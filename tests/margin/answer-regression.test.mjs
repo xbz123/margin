@@ -34,6 +34,9 @@ let mainErrorsLog;
 let mainPid;
 let answerGateway;
 
+// The overlay is never shown here, so requestAnimationFrame polling can stall.
+const waitIn = (page, fn, arg, options = {}) => page.waitForFunction(fn, arg, { polling: 100, ...options });
+
 // Visible transcript text of the overlay's message list.
 const overlayText = () => overlay.evaluate(() => document.body.innerText);
 
@@ -184,14 +187,14 @@ test('a typed question streams the mock answer into the overlay', async () => {
     ]);
     // Hold the server's tail while observing the real renderer: slow browser
     // round trips cannot turn a partial-state assertion into a completed sample.
-    await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression'), null, { timeout: 15_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('Margin regression'), null, { timeout: 15_000 });
     const partial = await overlayText();
     assert.equal(req.chunksSent, 2, 'only the first two chunks were sent while observing the partial');
     assert.ok(partial.includes('Margin regression'), 'the renderer must display the paused partial');
     assert.ok(!partial.includes('Margin regression answer one.'), 'first visible state should be partial');
     releaseTail();
-    await overlay.waitForFunction(() => document.body.innerText.includes('Margin regression answer one.'), null, { timeout: 15_000 });
-    await overlay.waitForFunction(() => window.__t151Done >= 1, null, { timeout: 15_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('Margin regression answer one.'), null, { timeout: 15_000 });
+    await waitIn(overlay, () => window.__t151Done >= 1, null, { timeout: 15_000 });
   } finally {
     clearTimeout(pauseTimeout);
     releaseTail();
@@ -219,11 +222,11 @@ test('S42-04 actual hidden DOM cannot acknowledge quick EOF until the answer bec
     void window.electronAPI.streamGeminiChat('S42 original hidden DOM question', undefined, undefined, { generationKind: 'interview' });
   });
   try {
-    await overlay.waitForFunction(() => document.body.textContent.includes('S42 actual visible body.'), null, { timeout: 10_000 });
+    await waitIn(overlay, () => document.body.textContent.includes('S42 actual visible body.'), null, { timeout: 10_000 });
     assert.deepEqual(await app.evaluate(() => globalThis.__s42Visible), []);
     assert.deepEqual(await overlay.evaluate(() => window.__s42Done), []);
     await overlay.evaluate(() => document.getElementById('s42-hidden-answer').remove());
-    await overlay.waitForFunction(() => window.__s42Done.length === 1, null, { timeout: 10_000 });
+    await waitIn(overlay, () => window.__s42Done.length === 1, null, { timeout: 10_000 });
     const metadata = await overlay.evaluate(() => window.__s42Done[0]);
     assert.equal((await app.evaluate(() => globalThis.__s42Visible)).filter(id => id === metadata.requestId).length, 1);
     assert.ok(metadata.timing.firstVisibleMs >= metadata.timing.modelToVisibleMs);
@@ -238,7 +241,7 @@ test('S42-04 actual Retry preserves the partial row and original wire input whil
   const originalQuestionId = await overlay.locator('[data-question-id]').last().getAttribute('data-question-id');
   mock.setScript({ chunks: ['S42 independent retry body.'], delayMs: 1 });
   await overlay.getByRole('button', { name: 'Retry', exact: true }).click();
-  await overlay.waitForFunction(() => document.body.innerText.includes('S42 independent retry body.'));
+  await waitIn(overlay, () => document.body.innerText.includes('S42 independent retry body.'));
   assert.deepEqual(mock.chatRequests().at(-1).body.messages, original.messages);
   const text = await overlayText(); assert.match(text, /S42 retained partial\./);
   const rows = await overlay.locator(`[data-question-id="${originalQuestionId}"]`).allTextContents();
@@ -297,10 +300,10 @@ test('closing the attached screenshot while its answer streams keeps that answer
   try {
     await ask('Screenshot question to keep');
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
-    await overlay.waitForFunction(() => document.body.innerText.includes('Kept'));
+    await waitIn(overlay, () => document.body.innerText.includes('Kept'));
     await overlay.getByRole('button', { name: 'Remove all', exact: true }).click();
     await overlay.getByAltText('Screenshot 1', { exact: true }).waitFor({ state: 'hidden' });
-    await overlay.waitForFunction(() => document.body.innerText.includes('Kept screenshot answer complete.'), null, { timeout: 20_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('Kept screenshot answer complete.'), null, { timeout: 20_000 });
     assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), cancelledBefore);
     assert.ok(!(await overlayText()).includes('withdrawn'));
   } finally { mock.setScript({ errorStatus: 0 }); }
@@ -319,7 +322,7 @@ test('after cancel, and after a new stream has started, events of the old stream
   mock.setScript({ chunks: ['Cancel ', 'test ', 'LATE-1 ', 'LATE-2 ', 'LATE-3 ', 'LATE-4.'], delayMs: 800,
     afterChunk: (entry) => (entry.chunksSent === 2 ? oldGate : undefined) });
   await ask('Please give a long answer.');
-  await overlay.waitForFunction(() => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000, polling: 100 });
+  await waitIn(overlay, () => document.body.innerText.includes('Cancel test'), null, { timeout: 15_000, polling: 100 });
   const oldReq = mock.chatRequests().at(-1);
   const [oldId] = await streamIds();
   assert.ok(oldId !== undefined && oldId !== null, `main sent no stream id with the tokens: ${JSON.stringify(await streamIds())}`);
@@ -327,7 +330,7 @@ test('after cancel, and after a new stream has started, events of the old stream
   // Positive control: while the stream is live, an injected token with its id is shown,
   // so the injection path below really reaches the overlay.
   await sendOverlayStreamEvent('gemini-stream-token', 'LIVE-INJECTED ', oldId);
-  await overlay.waitForFunction(() => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000, polling: 100 });
+  await waitIn(overlay, () => document.body.innerText.includes('LIVE-INJECTED'), null, { timeout: 5_000, polling: 100 });
   assert.equal(oldReq.closedEarly, false, 'the old HTTP stream must still be open before the cancel');
 
   const lateAtCancel = await overlay.evaluate(() => {
@@ -350,7 +353,7 @@ test('after cancel, and after a new stream has started, events of the old stream
   // sent before it saw the stop) and events without an id must still be dropped.
   mock.setScript({ chunks: ['Fresh ', 'answer ', 'arrives ', 'intact.'], delayMs: 600 });
   await overlay.evaluate(() => { window.electronAPI.streamGeminiChat('Fresh question'); });
-  await overlay.waitForFunction(() => window.__marginDelivered.tokens.includes('Fresh '), null, { timeout: 15_000 });
+  await waitIn(overlay, () => window.__marginDelivered.tokens.includes('Fresh '), null, { timeout: 15_000 });
   const newId = (await streamIds()).at(-1);
   assert.notEqual(newId, oldId, 'the new stream must have its own id');
   await sendOverlayStreamEvent('gemini-stream-token', 'STALE-INJECTED', oldId);
@@ -360,14 +363,14 @@ test('after cancel, and after a new stream has started, events of the old stream
   await sendOverlayStreamEvent('gemini-stream-done');
   // Positive control for the new stream: its own id is delivered.
   await sendOverlayStreamEvent('gemini-stream-token', 'NEW-INJECTED ', newId);
-  await overlay.waitForFunction(() => window.__marginDelivered.tokens.includes('NEW-INJECTED '), null, { timeout: 5_000 });
+  await waitIn(overlay, () => window.__marginDelivered.tokens.includes('NEW-INJECTED '), null, { timeout: 5_000 });
   const midStream = await delivered();
   assert.equal(midStream.done, 0, 'a done of the old stream ended the new one');
   assert.deepEqual(midStream.errors, [], 'an error of the old stream reached the new one');
 
   // The new stream finishes normally: one done, its full text, nothing stale.
-  await overlay.waitForFunction(() => window.__marginDelivered.done === 1, null, { timeout: 15_000 });
-  await overlay.waitForFunction(() => document.body.innerText.includes('intact.'), null, { timeout: 5_000 });
+  await waitIn(overlay, () => window.__marginDelivered.done === 1, null, { timeout: 15_000 });
+  await waitIn(overlay, () => document.body.innerText.includes('intact.'), null, { timeout: 5_000 });
   await new Promise((r) => setTimeout(r, 4_500)); // longer than the old stream's remaining script
   const final = await delivered();
   assert.equal(final.done, 1);
@@ -389,7 +392,7 @@ test('after cancel, and after a new stream has started, events of the old stream
 test('while an answer streams, a typed question is held back and a new stream request supersedes it', async () => {
   mock.setScript({ chunks: ['First ', 'STALE-A ', 'STALE-B ', 'STALE-C ', 'STALE-D.'], delayMs: 500 });
   await ask('First question');
-  await overlay.waitForFunction(() => document.body.innerText.includes('First'), null, { timeout: 15_000 });
+  await waitIn(overlay, () => document.body.innerText.includes('First'), null, { timeout: 15_000 });
   const firstReq = mock.chatRequests().at(-1);
 
   // UI contract: the overlay does not accept a second typed question mid-stream.
@@ -405,7 +408,7 @@ test('while an answer streams, a typed question is held back and a new stream re
   // Main-process contract: a new gemini-chat-stream from the same window aborts the old one.
   mock.setScript({ chunks: ['Second ', 'answer ', 'done.'], delayMs: 50 });
   await overlay.evaluate(() => window.electronAPI.streamGeminiChat('Second question'));
-  await overlay.waitForFunction(() => document.body.innerText.includes('Second answer done.'), null, { timeout: 15_000 });
+  await waitIn(overlay, () => document.body.innerText.includes('Second answer done.'), null, { timeout: 15_000 });
   await new Promise((r) => setTimeout(r, 2_500));
   const text = await overlayText();
   assert.ok(!text.includes('STALE-D'), `superseded stream kept writing:\n${text.slice(-400)}`);
@@ -419,7 +422,7 @@ test('a screenshot question sends the fixture image to the model', async () => {
   await overlay.getByRole('img', { name: /^Screenshot \d+$/ }).first().waitFor({ timeout: 15_000 });
   const before = mock.chatRequests().length;
   await ask('What is on the screen?');
-  await overlay.waitForFunction(() => document.body.innerText.includes('Screenshot seen.'), null, { timeout: 20_000 });
+  await waitIn(overlay, () => document.body.innerText.includes('Screenshot seen.'), null, { timeout: 20_000 });
   const req = mock.chatRequests().slice(before).find((r) => JSON.stringify(r.body).includes('What is on the screen?'));
   assert.ok(req, 'no request carried the screenshot question');
   const serialized = JSON.stringify(req.body.messages);
@@ -457,13 +460,13 @@ test('a WhatToSay scope refusal through the real renderer action displays one er
     // Exercise the existing screenshot attachment path along with manual answering.
     const removeAll = overlay.locator('button[title="Remove all"]');
     if (await removeAll.count()) await removeAll.click();
-    await overlay.waitForFunction(() => !document.querySelector('img[alt="Screenshot 1"]'));
+    await waitIn(overlay, () => !document.querySelector('img[alt="Screenshot 1"]'));
     await pressScreenshotShortcut();
-    await overlay.waitForFunction(() => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
+    await waitIn(overlay, () => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
     await app.evaluate(({ BrowserWindow }) => {
       for (const window of BrowserWindow.getAllWindows()) if (window.webContents.getURL().includes('window=overlay')) window.webContents.send('global-shortcut', { action: 'whatToAnswer' });
     });
-    await overlay.waitForFunction(count => document.body.innerText.split('Error (what_to_say):').length - 1 === count + 1, errorsBefore, { timeout: 15_000 });
+    await waitIn(overlay, count => document.body.innerText.split('Error (what_to_say):').length - 1 === count + 1, errorsBefore, { timeout: 15_000 });
     const text = await overlayText();
     assert.equal(text.split('Error (what_to_say):').length - 1, errorsBefore + 1);
     assert.equal(text.split('Data scope denied').length - 1, transcriptBefore + 1, 'the scope refusal must be shown exactly once');
@@ -475,14 +478,14 @@ test('a provider error is shown and the next question still works', async () => 
   mock.setScript({ errorStatus: 400 });
   const before = mock.chatRequests().length;
   await ask('This one fails.');
-  await overlay.waitForFunction(() => document.body.innerText.includes('Gateway request failed (HTTP 400)'), null, { timeout: 15_000 });
+  await waitIn(overlay, () => document.body.innerText.includes('Gateway request failed (HTTP 400)'), null, { timeout: 15_000 });
   assert.doesNotMatch(await overlayText(), /mock: injected error/, 'raw gateway errors are not reflected into the renderer');
   await new Promise((r) => setTimeout(r, 1_000)); // a retry storm would show up here
   assert.equal(mock.chatRequests().length - before, 1, 'a 400 should not be retried');
 
   mock.setScript({ errorStatus: 0, chunks: ['Recovered ', 'answer.'], delayMs: 50 });
   await ask('And this one?');
-  await overlay.waitForFunction(() => document.body.innerText.includes('Recovered answer.'), null, { timeout: 20_000 });
+  await waitIn(overlay, () => document.body.innerText.includes('Recovered answer.'), null, { timeout: 20_000 });
 });
 
 // Makes the next gemini-chat-stream request fail in its setup, before any stream event,
@@ -571,7 +574,7 @@ test('a complete compatible target saved through preload drives a real typed UI 
     mock.setScript({ errorStatus: 0, chunks: ['AG31 ', 'opaque ', 'target ', 'answer.'], delayMs: 50 });
     const before = mock.chatRequests().length;
     await ask('Synthetic AG31 saved target question');
-    await overlay.waitForFunction(() => document.body.innerText.includes('AG31 opaque target answer.'), null, { timeout: 20_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('AG31 opaque target answer.'), null, { timeout: 20_000 });
     const requests = mock.chatRequests().slice(before);
     assert.equal(requests.length, 1);
     assert.equal(requests[0].url, '/v1/chat/completions');
@@ -604,12 +607,12 @@ test('manual send clears the draft before completion and preserves the next iden
     });
     await input.fill(question);
     await input.press('Enter');
-    await overlay.waitForFunction(() => document.body.innerText.includes('Immediate-clear partial'));
+    await waitIn(overlay, () => document.body.innerText.includes('Immediate-clear partial'));
     assert.equal(await input.inputValue(), '', 'sent text clears while the answer is still running');
     await input.fill(question);
     release();
-    await overlay.waitForFunction(() => document.body.innerText.includes('Immediate-clear partial finished.'));
-    await overlay.waitForFunction(() => window.__draftFinished);
+    await waitIn(overlay, () => document.body.innerText.includes('Immediate-clear partial finished.'));
+    await waitIn(overlay, () => window.__draftFinished);
     assert.equal(await input.inputValue(), question, 'completion cannot delete a new draft, even with identical text');
   } finally {
     release();
@@ -636,10 +639,13 @@ test('manual send failure restores only an empty draft without overwriting new i
       await input.fill(question);
       await input.press('Enter');
       await firstChunk;
-      await overlay.waitForFunction(() => [...document.querySelectorAll('input[type="text"]')].at(-1)?.value === '');
+      await waitIn(overlay, () => [...document.querySelectorAll('input[type="text"]')].at(-1)?.value === '');
       await input.fill(nextDraft);
+      const failedBefore = await overlay.evaluate(() => document.querySelectorAll('[data-generation-status="failed"]').length);
       release();
-      await overlay.waitForFunction(() => window.__draftFailed);
+      await waitIn(overlay, () => window.__draftFailed);
+      // The restored draft and the failed row are committed in the same React batch.
+      await waitIn(overlay, count => document.querySelectorAll('[data-generation-status="failed"]').length === count + 1, failedBefore);
       assert.equal(await input.inputValue(), nextDraft || question);
     } finally {
       release();
@@ -659,20 +665,20 @@ test('AG33 unknown image capability preserves the real renderer input and attach
     const removeAll = overlay.getByRole('button', { name: 'Remove all' });
     if (await removeAll.count()) await removeAll.click();
     await pressScreenshotShortcut();
-    await overlay.waitForFunction(() => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
+    await waitIn(overlay, () => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
     await input.fill('AG33 image confirmation question'); await input.press('Enter');
-    await overlay.waitForFunction(() => document.body.innerText.includes('Image support is unconfirmed'), null, { timeout: 15_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('Image support is unconfirmed'), null, { timeout: 15_000 });
     assert.equal(await input.inputValue(), 'AG33 image confirmation question');
     assert.equal(await overlay.locator('img[alt="Screenshot 1"]').count(), 1);
     assert.equal(mock.chatRequests().length, before);
     assert.equal((await overlay.evaluate(config => window.electronAPI.setGatewayConfiguration(config), original)).ok, true);
     mock.setScript({ errorStatus: 0, chunks: ['AG33 image retry accepted.'], delayMs: 20 });
     await input.press('Enter');
-    await overlay.waitForFunction(() => document.body.innerText.includes('AG33 image retry accepted.'), null, { timeout: 15_000 });
-    await overlay.waitForFunction(() => document.querySelector('input[type="text"]')?.value === '' || [...document.querySelectorAll('input[type="text"]')].at(-1)?.value === '');
+    await waitIn(overlay, () => document.body.innerText.includes('AG33 image retry accepted.'), null, { timeout: 15_000 });
+    await waitIn(overlay, () => document.querySelector('input[type="text"]')?.value === '' || [...document.querySelectorAll('input[type="text"]')].at(-1)?.value === '');
     assert.equal(mock.chatRequests().length, before + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
-    await overlay.waitForFunction(() => [...document.querySelectorAll('[data-generation-status="completed"]')].some(node => node.textContent.includes('gpt-5.4')));
+    await waitIn(overlay, () => [...document.querySelectorAll('[data-generation-status="completed"]')].some(node => node.textContent.includes('gpt-5.4')));
   } finally { await overlay.evaluate(config => window.electronAPI.setGatewayConfiguration(config), original); }
 });
 
@@ -694,20 +700,20 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
     const deliveredBefore = await overlay.locator('[data-generation-status="cancelled"]').count();
     mock.setScript({ errorStatus: 0, chunks: ['', 'Written ', 'partial ', 'OLD-WRITTEN-TAIL'], delayMs: 800, afterChunk: delayFirstBody });
     await ask('Synthetic written screenshot-free question');
-    await overlay.waitForFunction(() => document.body.innerText.includes('Written partial'));
+    await waitIn(overlay, () => document.body.innerText.includes('Written partial'));
     await overlay.evaluate(() => window.electronAPI.cancelChatStream('natively'));
-    await overlay.waitForFunction(() => document.body.innerText.includes('Written partial') && document.body.innerText.includes('cancelled'));
+    await waitIn(overlay, () => document.body.innerText.includes('Written partial') && document.body.innerText.includes('cancelled'));
     assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), deliveredBefore + 1);
     mock.setScript({ errorStatus: 0, chunks: ['Written explicit retry completed.'], delayMs: 20 });
     await ask('Synthetic written explicit retry');
-    await overlay.waitForFunction(() => document.body.innerText.includes('Written explicit retry completed.'));
+    await waitIn(overlay, () => document.body.innerText.includes('Written explicit retry completed.'));
     assert.ok((await overlayText()).includes('Written partial'), 'cancelled partial remains its own record after retry');
     assert.ok(!(await overlayText()).includes('OLD-WRITTEN-TAIL'));
     const beforeCapture = mock.chatRequests().length;
     mock.setScript({ errorStatus: 0, chunks: ['', 'Written captured image answer.'], delayMs: 20, afterChunk: delayFirstBody });
     const screenshot = await overlay.evaluate(() => window.electronAPI.takeScreenshot());
     await sendOverlayStreamEvent('capture-and-process', screenshot);
-    await overlay.waitForFunction(() => document.body.innerText.includes('Written captured image answer.'), null, { timeout: 20_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('Written captured image answer.'), null, { timeout: 20_000 });
     assert.equal(mock.chatRequests().length, beforeCapture + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
   } finally {
@@ -722,12 +728,12 @@ test('AG33 real Written: a new captured question while an answer streams cancels
     const cancelledBefore = await overlay.locator('[data-generation-status="cancelled"]').count();
     mock.setScript({ errorStatus: 0, chunks: ['Superseded ', 'written ', 'SUPERSEDED-TAIL'], delayMs: 1_500 });
     await ask('Synthetic superseded written question');
-    await overlay.waitForFunction(() => document.body.innerText.includes('Superseded written'));
+    await waitIn(overlay, () => document.body.innerText.includes('Superseded written'));
     const before = mock.chatRequests().length;
     mock.setScript({ errorStatus: 0, chunks: ['Superseding captured answer.'], delayMs: 20 });
     const screenshot = await overlay.evaluate(() => window.electronAPI.takeScreenshot());
     await sendOverlayStreamEvent('capture-and-process', screenshot);
-    await overlay.waitForFunction(() => document.body.innerText.includes('Superseding captured answer.'), null, { timeout: 20_000 });
+    await waitIn(overlay, () => document.body.innerText.includes('Superseding captured answer.'), null, { timeout: 20_000 });
     assert.equal(mock.chatRequests().length, before + 1);
     assert.match(JSON.stringify(mock.chatRequests().at(-1).body.messages), /data:image/);
     assert.equal(await overlay.locator('[data-generation-status="cancelled"]').count(), cancelledBefore + 1);
@@ -776,7 +782,7 @@ test('AG33 real Natively renderer ignores automatic intelligence while manual ch
     await sendOverlayStreamEvent('intelligence-suggested-answer', { ...metadata, answer: 'AUTOMATIC-LATE-DONE' });
     await sendOverlayStreamEvent('intelligence-generation-terminal', { ...metadata, error: 'AUTOMATIC-LATE-ERROR' });
     release();
-    await overlay.waitForFunction(() => document.body.innerText.includes('Manual source answer intact.'));
+    await waitIn(overlay, () => document.body.innerText.includes('Manual source answer intact.'));
     assert.doesNotMatch(await overlayText(), /AUTOMATIC-LATE-|automatic ·/);
   } finally { release(); }
 });
@@ -805,7 +811,7 @@ test('AG33 existing SQLite meeting storage round-trips exact generation status/t
 test('AG33 real Natively late action invoke cannot change the newer manual answer or erase prior UI records', async () => {
   mock.setScript({ errorStatus: 0, chunks: ['AG33 prior retained record.'], delayMs: 20 });
   await ask('AG33 prior retained record question');
-  await overlay.waitForFunction(() => document.body.innerText.includes('AG33 prior retained record.') && document.querySelector('[data-generation-status="completed"]'));
+  await waitIn(overlay, () => document.body.innerText.includes('AG33 prior retained record.') && document.querySelector('[data-generation-status="completed"]'));
   await app.evaluate(({ ipcMain }) => {
     const handlers = ipcMain._invokeHandlers; const real = handlers.get('generate-what-to-say');
     handlers.set('generate-what-to-say', event => {
@@ -817,16 +823,16 @@ test('AG33 real Natively late action invoke cannot change the newer manual answe
     });
   });
   await sendOverlayStreamEvent('global-shortcut', { action: 'whatToAnswer' });
-  await overlay.waitForFunction(() => document.body.innerText.includes('Old action partial preserved.'));
+  await waitIn(overlay, () => document.body.innerText.includes('Old action partial preserved.'));
   let release; const gate = new Promise(resolve => { release = resolve; });
   let entered; const paused = new Promise(resolve => { entered = resolve; });
   mock.setScript({ errorStatus: 0, chunks: ['New manual source ', 'finishes intact.'], delayMs: 20, afterChunk(entry) { if (entry.chunksSent === 1) { entered(); return gate; } } });
   try {
     await ask('AG33 new manual over delayed action'); await paused;
     await app.evaluate(() => { globalThis.__ag33RejectOldAction(); return true; });
-    await overlay.waitForFunction(() => [...document.querySelectorAll('[data-generation-status="cancelled"]')].some(node => node.textContent.includes('old-action')));
+    await waitIn(overlay, () => [...document.querySelectorAll('[data-generation-status="cancelled"]')].some(node => node.textContent.includes('old-action')));
     release();
-    await overlay.waitForFunction(() => document.body.innerText.includes('New manual source finishes intact.'));
+    await waitIn(overlay, () => document.body.innerText.includes('New manual source finishes intact.'));
     const text = await overlayText();
     assert.doesNotMatch(text, /LATE-ACTION-INVOKE/); assert.ok(text.includes('Old action partial preserved.'));
     assert.ok(text.includes('AG33 prior retained record.'), 'cancellation preserves prior UI records');

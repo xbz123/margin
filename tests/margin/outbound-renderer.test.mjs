@@ -1388,7 +1388,18 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
     const status = await page.evaluate(() => window.electronAPI.testCodexCli());
     assert.equal(status.status, 'locally-valid'); assert.match(status.message, /unverified/);
     const baseline = await counts(); assert.equal(baseline.opens, 1); assert.ok(baseline.bytes > 0); assert.equal(baseline.closes, 1);
-    assert.equal((await page.evaluate(() => window.electronAPI.setModel('codex-cli'))).success, true);
+    // Select from the mounted overlay after its own default-model reset, which could otherwise land later.
+    const overlay = await windowWithQuery(app, 'window=overlay', 30_000);
+    await overlay.locator('input[type="text"]').last().waitFor({ state: 'attached', timeout: 20_000 });
+    const selected = await overlay.evaluate(async () => {
+      await window.electronAPI.getDefaultModel();
+      await window.electronAPI.getDefaultModel();
+      const result = await window.electronAPI.setModel('codex-cli');
+      await window.electronAPI.getDefaultModel();
+      return result;
+    });
+    assert.equal(selected.success, true);
+    assert.equal((await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()))?.model, 'codex-cli');
     await app.evaluate(() => { globalThis.__ag34AuthProbe.probe.delayed = true; });
     await page.evaluate(() => {
       window.ag34Errors = [];

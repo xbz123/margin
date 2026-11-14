@@ -5,15 +5,19 @@ import { deferred } from '../../audio/__tests__/meetingAudioFixture.mjs';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
-test('S42-03 production manual action collects both channels without finishing provider tasks or stopping capture', async () => {
+test('S42-03 production manual action collects both channels without finishing provider tasks or stopping capture', async t => {
   const f = mainFixture(); await f.start();
   const user = f.providers.find(item => item.channel === 'user');
+  // Only Date is frozen so the 10 ms deadline cannot pass before the final; collect timers stay real.
+  t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
   user.emit('transcript', { segmentId: 'tail', text: 'manual', isFinal: false });
   const mark = f.state.markDictation(0);
   const controller = new AbortController();
   const collector = f.state.collectSpeech({ cutoffAt: Date.now(), deadline: Date.now() + 10, signal: controller.signal, dictation: mark });
   user.emit('transcript', { segmentId: 'tail', text: 'manual tail', isFinal: true });
+  t.mock.timers.tick(11);
   const frozen = await collector.frozen;
+  t.mock.timers.reset();
   assert.equal(f.order.some(item => item.startsWith('finalize:')), false, 'a manual action never finishes a provider task');
   assert.equal(frozen.channels.user.segments.at(-1).text, 'manual tail');
   assert.equal(frozen.dictation, 'manual tail');
