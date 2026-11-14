@@ -10,9 +10,11 @@
 // requestAnimationFrame-based polling (the overlay is never shown). The only fixed wait
 // is observeWindow(), for product clocks and for "something does not happen" windows.
 //
-// Main-process calls go through mainRead() (read-only or idempotent: retried up to 3
-// times on "context was destroyed", with a diagnostic line per retry) or mainDo() (side
-// effects: never retried; a diagnostic line, then the original error).
+// Main-process calls go through mainRead() (read-only or repeatable, i.e. two runs in a
+// row leave the same end state as one: retried up to 3 times on "context was destroyed",
+// with a diagnostic line per retry) or mainDo() (side effects that must happen exactly
+// once: never retried; a diagnostic line, then the original error). Nothing calls
+// state.app.evaluate directly.
 //
 // Reset proof: when the file diag-out/skip-session-reset exists at the repository root,
 // resetCase() skips step 7 (session-reset), so step 9 must fail from the second case on.
@@ -209,38 +211,57 @@ function releaseAllGates() {
 // Installs a one-time patch of the ipcMain invoke handler `channel`. The harness saves
 // the real handler first; `install` (a main-process function, ({ ipcMain, ... }, arg))
 // does the patching itself. resetCase() puts the saved handler back.
+// Both steps are repeatable, so both go through mainRead: the save keeps the first saved
+// handler, and the install step first puts the saved (real) handler back, then runs
+// `install`, so a second run replaces the first run's patch instead of wrapping it.
+// `install` is sent as source text and evaluated in the main process, as Playwright
+// itself does with the function it is given.
 export async function patchOnce(channel, install, arg) {
-  await mainDo(({ ipcMain }, ch) => {
+  state.patchedChannels.add(channel);
+  await mainRead(({ ipcMain }, ch) => {
     const real = ipcMain._invokeHandlers?.get(ch);
     if (!real) throw new Error(`${ch} handler not found`);
     globalThis.__marginSavedInvoke ??= {};
     if (!globalThis.__marginSavedInvoke[ch]) globalThis.__marginSavedInvoke[ch] = real;
   }, channel, `patchOnce save ${channel}`);
-  state.patchedChannels.add(channel);
-  return mainDo(install, arg, `patchOnce install ${channel}`);
+  return mainRead(async (electron, { ch, src, a }) => {
+    const saved = globalThis.__marginSavedInvoke?.[ch];
+    if (!saved) throw new Error(`${ch}: no saved handler to patch`);
+    electron.ipcMain._invokeHandlers.set(ch, saved);
+    return (0, eval)(`(${src})`)(electron, a);
+  }, { ch: channel, src: install.toString(), a: arg }, `patchOnce install ${channel}`);
 }
 
 // Records the first argument of every ipcMain `channel` event under `key`; read with
 // recorded(key). resetCase() removes the listener.
+// Repeatable (mainRead): a second run finds this key's listener already registered on
+// the same channel and does nothing. A key reused within a case is refused in Node.
 export async function record(channel, key) {
-  await mainDo(({ ipcMain }, { ch, k }) => {
+  if (state.recorderKeys.has(key)) throw new Error(`recorder ${key} already installed`);
+  state.recorderKeys.add(key);
+  await mainRead(({ ipcMain }, { ch, k }) => {
     globalThis.__marginRecorders ??= {};
-    if (globalThis.__marginRecorders[k]) throw new Error(`recorder ${k} already installed`);
+    const existing = globalThis.__marginRecorders[k];
+    if (existing) {
+      if (existing.channel === ch && ipcMain.listeners(ch).includes(existing.listener)) return;
+      throw new Error(`recorder ${k} already installed on ${existing.channel}`);
+    }
     const entry = { channel: ch, values: [], listener: (_event, value) => entry.values.push(value) };
     globalThis.__marginRecorders[k] = entry;
     ipcMain.on(ch, entry.listener);
   }, { ch: channel, k: key }, `record ${channel}`);
-  state.recorderKeys.add(key);
 }
 
 export const recorded = (key) => mainRead((_, k) => globalThis.__marginRecorders?.[k]?.values ?? null, key, `recorded ${key}`);
 
 // Main side: records the stream id of every chat token the app sends to the overlay.
-// Installed at the start of the case that uses it; retried on a destroyed context only
-// while no stream is open (the wrapper is idempotent and clears the id list).
+// Installed at the start of the case that uses it. Repeatable (mainRead): the id list is
+// created only if missing (resetCase() deletes it) and an already wrapped window is skipped,
+// so a second run keeps the ids the first run's wrapper recorded.
 export async function installStreamIdSpy() {
-  const install = () => state.app.evaluate(({ BrowserWindow }) => {
-    globalThis.__marginStreamIds = [];
+  state.streamIdSpy = true;
+  return mainRead(({ BrowserWindow }) => {
+    globalThis.__marginStreamIds ??= [];
     for (const w of BrowserWindow.getAllWindows()) {
       const wc = w.webContents;
       if (!wc.getURL().includes('window=overlay') || wc.__marginRealSend) continue;
@@ -250,16 +271,7 @@ export async function installStreamIdSpy() {
         return wc.__marginRealSend(ch, ...args);
       };
     }
-  });
-  state.streamIdSpy = true;
-  for (let attempt = 0; ; attempt++) {
-    try { return await install(); } catch (e) {
-      const retry = attempt < 3 && appAlive() && /context was destroyed/.test(e.message) && state.mock.openStreamCount() === 0;
-      console.error(`[harness] installStreamIdSpy attempt ${attempt + 1} failed: ${e.message.split('\n')[0]} openStreams=${state.mock.openStreamCount()}${retry ? `; retry ${attempt + 1}/3` : ''}`);
-      if (!retry) throw e;
-      await sleep(200);
-    }
-  }
+  }, undefined, 'installStreamIdSpy');
 }
 
 export const streamIds = () => mainRead(() => globalThis.__marginStreamIds, undefined, 'streamIds');
@@ -446,11 +458,15 @@ export async function resetCase() {
   });
 
   // 7. session-reset, only after every request has ended (step 3), or the preload's
-  // in-flight flag would stay set.
+  // in-flight flag would stay set. Sent through mainRead: a duplicate is harmless. Its
+  // only receivers in the overlay (electron/preload.ts:562 and NativelyInterface.tsx:1311)
+  // set fixed values, plus generationEpochRef.current++, which is only ever compared for
+  // equality with an epoch captured earlier, so one or two increments invalidate the same
+  // generations; and no request is in flight here (step 3).
   if (skipSessionReset) {
     console.error(`[harness] ${SKIP_SESSION_RESET_MARKER} exists: resetCase step 7 (session-reset) skipped`);
   } else {
-    await resetStep(7, 'session-reset', 5_000, () => mainDo(({ BrowserWindow }) => {
+    await resetStep(7, 'session-reset', 5_000, () => mainRead(({ BrowserWindow }) => {
       let sent = 0;
       for (const w of BrowserWindow.getAllWindows()) {
         if (w.webContents.getURL().includes('window=overlay')) { w.webContents.send('session-reset'); sent += 1; }

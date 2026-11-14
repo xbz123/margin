@@ -21,7 +21,7 @@ import { windowWithQuery } from './launch-app.mjs';
 import {
   MODEL, RENDERER_UNSUBS, ctx, startSuite, endSuite, resetCase, ask, typeAndEnter, rows, rowsText, rowsTextContent,
   rowLocator, waitRows, waitRowsText, waitText, waitPage, waitVisible, waitHidden, until, observeWindow, holdStream,
-  mainDo, patchOnce, record, recorded, installStreamIdSpy, streamIds, sendOverlayEvent, pressScreenshotShortcut,
+  mainRead, patchOnce, record, recorded, installStreamIdSpy, streamIds, sendOverlayEvent, pressScreenshotShortcut,
   overlayInput,
 } from './regression-harness.mjs';
 
@@ -758,7 +758,8 @@ test('AG33 real Natively renderer ignores automatic intelligence while manual ch
   mock.setScript({ errorStatus: 0, chunks: ['New manual source ', 'finishes intact.'], delayMs: 20, afterChunk: hold.afterChunk });
   try {
     await ask('AG33 new manual over delayed action'); await hold.reached(30_000);
-    await mainDo(() => { globalThis.__ag33RejectOldAction(); return true; }, undefined, 'reject the old action invoke');
+    // Repeatable: a second call schedules a second reject() of an already settled promise, a no-op.
+    await mainRead(() => { globalThis.__ag33RejectOldAction(); return true; }, undefined, 'reject the old action invoke');
     await waitRows((r) => r.status === 'cancelled' && (r.statusText ?? '').includes('old-action'), { what: 'the old action row cancelled' });
     hold.release();
     await waitText('New manual source finishes intact.');
