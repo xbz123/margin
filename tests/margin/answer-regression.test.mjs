@@ -790,7 +790,8 @@ test('AG33 real Natively renderer ignores automatic intelligence while manual ch
 test('AG33 existing SQLite meeting storage round-trips exact generation status/target/partial/timeout and legacy items', async () => {
   const databasePath = path.resolve(import.meta.dirname, '../../dist-electron/electron/db/DatabaseManager.js');
   const metadata = { requestId: 'AG33-sqlite-synthetic', provider: 'openai', model: 'actual-backup', status: 'failed', timeout: 'total', attempts: 2, partial: true, codeOutputFormat: 'plain' };
-  const result = await app.evaluate(({}, { filename, generation }) => {
+  // Playwright reports "Promise was collected" as a destroyed context (see launch-app.mjs); the body is idempotent (INSERT OR REPLACE), so retry it and log whether it already ran.
+  const evaluateRoundTrip = () => app.evaluate(({}, { filename, generation }) => {
     const { DatabaseManager } = process.mainModule.require(filename);
     const db = DatabaseManager.getInstance();
     db.saveMeeting({ id: 'AG33-sqlite-roundtrip', title: 'Synthetic metadata only', date: '2026-10-10T00:00:00Z', duration: '0:01', summary: '', usage: [
@@ -802,6 +803,20 @@ test('AG33 existing SQLite meeting storage round-trips exact generation status/t
     const resaved = db.getMeetingDetails('AG33-sqlite-roundtrip');
     return { usage: saved.usage, resavedUsage: resaved.usage, raw: db.db.prepare('SELECT metadata_json FROM ai_interactions WHERE meeting_id = ? ORDER BY timestamp').all('AG33-sqlite-roundtrip').map(row => JSON.parse(row.metadata_json)) };
   }, { filename: databasePath, generation: metadata });
+  let result;
+  for (let attempt = 1; ; attempt++) {
+    try { result = await evaluateRoundTrip(); break; } catch (e) {
+      const alive = app.process().exitCode === null && app.process().signalCode === null;
+      console.error(`AG33 sqlite evaluate attempt ${attempt} failed: ${e.message} alive=${alive}`);
+      const probe = await Promise.race([app.evaluate(({}, filename) => {
+        const { DatabaseManager } = process.mainModule.require(filename);
+        return { pid: process.pid, rowExists: Boolean(DatabaseManager.getInstance().db.prepare('SELECT 1 FROM meetings WHERE id = ?').get('AG33-sqlite-roundtrip')) };
+      }, databasePath), new Promise((_, reject) => setTimeout(() => reject(new Error('probe timed out')), 5000))]).catch(probeError => ({ probeError: probeError.message }));
+      console.error(`AG33 sqlite attempt ${attempt} probe=${JSON.stringify(probe)}`);
+      if (!(alive && attempt < 3 && /context was destroyed/.test(e.message))) throw e;
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
   assert.deepEqual(result.usage[0].generation, metadata); assert.equal(result.usage[0].answer, 'saved partial');
   assert.deepEqual(result.usage[1].items, ['legacy one', 'legacy two']);
   assert.deepEqual(result.resavedUsage, result.usage, 'saving the loader output preserves generation metadata and legacy items');

@@ -424,7 +424,29 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
     const restarted = await windowWithQuery(app, 'window=launcher', 30_000);
     await restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN');
-    await restarted.getByRole('button', { name: '设置', exact: true }).first().waitFor();
+    // Diagnose, then repair, a first-run flag lost across the restart (key names only, never values).
+    const snapshot = () => restarted.evaluate(() => ({
+      seenStartup: localStorage.getItem('natively_seen_startup_v1'),
+      keys: Object.keys(localStorage),
+      buttons: [...document.querySelectorAll('button')].slice(0, 20).map(b => b.getAttribute('aria-label') || b.textContent.trim()),
+      text: document.body.innerText.slice(0, 300),
+      hiddenOrInert: document.querySelectorAll('[aria-hidden="true"], [inert]').length,
+    }));
+    const restartState = await snapshot();
+    if (restartState.seenStartup !== 'true') {
+      console.error(`AG60 restart state: ${JSON.stringify(restartState)}`);
+      const leveldb = path.join(userDataPath, 'Local Storage', 'leveldb');
+      try { console.error(`AG60 leveldb: ${JSON.stringify(fs.readdirSync(leveldb).map(name => [name, fs.statSync(path.join(leveldb, name)).size]))}`); } catch (e) { console.error(`AG60 leveldb: ${e.message}`); }
+      await restarted.evaluate(() => { localStorage.setItem('natively_seen_startup_v1', 'true'); localStorage.setItem('natively_perms_shown_v1', '1'); });
+      await restarted.reload();
+      await restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    }
+    try {
+      await restarted.getByRole('button', { name: '设置', exact: true }).first().waitFor();
+    } catch (e) {
+      console.error(`AG60 settings button missing: ${JSON.stringify(await snapshot().catch(err => ({ snapshotError: err.message })))}`);
+      throw e;
+    }
     assert.ok((await menuLabels(app)).includes('视图'));
     await restarted.evaluate(() => window.electronAPI.toggleSettingsWindow());
     const popup = await windowWithQuery(app, 'window=settings');
