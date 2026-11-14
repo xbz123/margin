@@ -9,6 +9,8 @@
 // Waits: every wait here polls on an interval from Node (until()), never with
 // requestAnimationFrame-based polling (the overlay is never shown). The only fixed wait
 // is observeWindow(), for product clocks and for "something does not happen" windows.
+// A harness wait that times out prints one '[harness] timeout dump <json>' line
+// (timeoutDump) before it throws its original error.
 //
 // Main-process calls go through mainRead() (read-only or repeatable, i.e. two runs in a
 // row leave the same end state as one: retried up to 3 times on "context was destroyed",
@@ -57,9 +59,102 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Wait helpers default to 30 s, Playwright's default timeout, which the old suite's
 // waits without an explicit timeout used.
 
+const DUMP_BUDGET_MS = 5_000;
+const clip = (value, n) => (typeof value === 'string' && value.length > n ? `${value.slice(0, n)}...` : value);
+let dumping = false;
+
+// The text of the last user message of a chat request body.
+function lastUserText(body) {
+  const user = (body?.messages ?? []).filter((m) => m?.role === 'user').at(-1);
+  if (!user) return null;
+  if (typeof user.content === 'string') return user.content;
+  if (Array.isArray(user.content)) return user.content.filter((p) => typeof p?.text === 'string').map((p) => p.text).join(' ');
+  return null;
+}
+
+// On a timed-out harness wait: prints ONE line '[harness] timeout dump <json>' with the
+// overlay's rows, the awaited text or locator, the input value, the mock's request log and
+// the saved written-exam mode. Never throws and takes at most DUMP_BUDGET_MS (each part
+// guarded on its own; the line is printed with whatever was gathered by then), so the
+// caller's original error is thrown unchanged. Renderer reads only, no main-process
+// evaluate. `needle`: awaited row text; `locator`: awaited Playwright locator.
+export async function timeoutDump(what, { needle, locator } = {}) {
+  if (dumping) return;
+  dumping = true;
+  let timer;
+  const dump = { what: clip(String(what), 300), caseCount: state.caseCount };
+  try {
+    const parts = async () => {
+      try {
+        const requests = state.mock?.chatRequests() ?? [];
+        dump.mock = {
+          count: requests.length,
+          openStreamCount: state.mock?.openStreamCount(),
+          requests: requests.map((r) => ({
+            lastUser: clip(lastUserText(r.body), 120),
+            image: JSON.stringify(r.body?.messages ?? []).includes('data:image/'),
+            chunksSent: r.chunksSent,
+            aborted: r.closedEarly,
+          })),
+        };
+      } catch (e) { dump.mockError = String(e?.message ?? e); }
+      const overlay = state.overlay;
+      if (!overlay) { dump.overlay = null; return; }
+      try {
+        Object.assign(dump, await overlay.evaluate(({ sel, text }) => {
+          const visible = (el) => (typeof el.checkVisibility === 'function' ? el.checkVisibility() : el.getClientRects().length > 0);
+          const rowList = [...document.querySelectorAll(sel)].map((row) => {
+            const status = row.querySelector('[data-generation-status]');
+            return {
+              text: (row.innerText ?? '').slice(0, 200),
+              data: { ...row.dataset },
+              status: status ? (status.dataset.generationStatus ?? null) : null,
+              streaming: !!row.querySelector('.overlay-subtle-surface'),
+            };
+          });
+          const inputs = [...document.querySelectorAll('input[type="text"]')];
+          let matches;
+          if (text) {
+            // Deepest elements whose text contains the awaited text.
+            const all = [...document.body.querySelectorAll('*')].filter((el) => (el.textContent ?? '').includes(text)
+              && ![...el.children].some((child) => (child.textContent ?? '').includes(text)));
+            matches = { count: all.length, visible: all.slice(0, 20).map(visible) };
+          }
+          return { rows: rowList, inputValue: inputs.length ? inputs.at(-1).value : null, ...(matches ? { needleMatches: matches } : {}) };
+        }, { sel: ROW_CSS, text: needle ?? null }));
+      } catch (e) { dump.overlayError = String(e?.message ?? e).split('\n')[0]; }
+      if (locator) {
+        try {
+          const count = await locator.count();
+          const vis = [];
+          for (let i = 0; i < Math.min(count, 10); i++) vis.push(await locator.nth(i).isVisible());
+          dump.locatorMatches = { count, visible: vis };
+        } catch (e) { dump.locatorError = String(e?.message ?? e).split('\n')[0]; }
+      }
+      try {
+        const exam = await overlay.evaluate(() => window.electronAPI?.getWrittenExam?.());
+        dump.writtenExam = exam && typeof exam === 'object' ? { enabled: exam.enabled ?? exam.settings?.enabled ?? null, running: exam.running ?? null } : exam ?? null;
+      } catch (e) { dump.writtenExamError = String(e?.message ?? e).split('\n')[0]; }
+    };
+    await Promise.race([
+      parts().catch((e) => { dump.error = String(e?.message ?? e); }),
+      new Promise((resolve) => { timer = setTimeout(() => { dump.incomplete = `dump budget ${DUMP_BUDGET_MS} ms exceeded`; resolve(); }, DUMP_BUDGET_MS); }),
+    ]);
+    let line;
+    try { line = JSON.stringify(dump); } catch (e) { line = JSON.stringify({ what: dump.what, stringifyError: String(e?.message ?? e) }); }
+    console.error(`[harness] timeout dump ${line}`);
+  } catch (e) {
+    try { console.error(`[harness] timeout dump failed: ${e?.message ?? e}`); } catch { /* nothing left to do */ }
+  } finally {
+    clearTimeout(timer);
+    dumping = false;
+  }
+}
+
 // Interval polling from Node. Returns the first truthy value of `check`; on timeout
-// throws (or, with throwOnTimeout: false, returns the last value).
-export async function until(check, { timeoutMs = 15_000, intervalMs = 100, what = 'condition', throwOnTimeout = true } = {}) {
+// prints a timeout dump (unless dump: false) and throws (or, with throwOnTimeout: false,
+// returns the last value without a dump). `needle` / `locator` only feed the dump.
+export async function until(check, { timeoutMs = 15_000, intervalMs = 100, what = 'condition', throwOnTimeout = true, dump = true, needle, locator } = {}) {
   const deadline = Date.now() + timeoutMs;
   let last;
   for (;;) {
@@ -68,7 +163,11 @@ export async function until(check, { timeoutMs = 15_000, intervalMs = 100, what 
     if (Date.now() >= deadline) break;
     await sleep(intervalMs);
   }
-  if (throwOnTimeout) throw new Error(`timed out after ${timeoutMs} ms waiting for ${what} (last: ${JSON.stringify(last)})`);
+  if (throwOnTimeout) {
+    const error = new Error(`timed out after ${timeoutMs} ms waiting for ${what} (last: ${JSON.stringify(last)})`);
+    if (dump) await timeoutDump(what, { needle, locator });
+    throw error;
+  }
   return last;
 }
 
@@ -77,13 +176,13 @@ export const waitPage = (page, fn, arg, { timeoutMs = 30_000, what = String(fn) 
   until(() => page.evaluate(fn, arg), { timeoutMs, what });
 
 export const waitVisible = (locator, { timeoutMs = 30_000, what = String(locator) } = {}) =>
-  until(() => locator.isVisible(), { timeoutMs, what: `${what} visible` });
+  until(() => locator.isVisible(), { timeoutMs, what: `${what} visible`, locator });
 
 export const waitHidden = (locator, { timeoutMs = 30_000, what = String(locator) } = {}) =>
-  until(async () => !(await locator.isVisible()), { timeoutMs, what: `${what} hidden` });
+  until(async () => !(await locator.isVisible()), { timeoutMs, what: `${what} hidden`, locator });
 
 export const waitDetached = (locator, { timeoutMs = 30_000, what = String(locator) } = {}) =>
-  until(async () => (await locator.count()) === 0, { timeoutMs, what: `${what} detached` });
+  until(async () => (await locator.count()) === 0, { timeoutMs, what: `${what} detached`, locator });
 
 // The only fixed wait. Allowed for product clocks and "something does not happen"
 // observation windows (docs/margin/REGRESSION-SUITE-REBUILD.md, kept list).
@@ -146,20 +245,27 @@ export const rowsTextContent = async () => (await rows()).map((r) => r.textConte
 export const waitRows = (predicate, { timeoutMs = 30_000, what = 'matching row' } = {}) =>
   until(async () => { const found = await rows(predicate); return found.length ? found : false; }, { timeoutMs, what });
 
-export const waitRowsText = (predicate, { timeoutMs = 30_000, what = 'rows text' } = {}) =>
-  until(async () => predicate(await rowsText()), { timeoutMs, what });
+export const waitRowsText = (predicate, { timeoutMs = 30_000, what = 'rows text', needle } = {}) =>
+  until(async () => predicate(await rowsText()), { timeoutMs, what, needle });
 
 export const waitText = (needle, { timeoutMs = 30_000 } = {}) =>
-  waitRowsText((text) => text.includes(needle), { timeoutMs, what: `rows to show ${JSON.stringify(needle)}` });
+  waitRowsText((text) => text.includes(needle), { timeoutMs, what: `rows to show ${JSON.stringify(needle)}`, needle });
 
 // Fill and submit once; accepted means the mock received a chat request. No refill, no re-press.
+// It does not wait for an earlier answer of the case to finish; a case that submits after
+// an earlier answer waits for that answer's terminal row status itself (waitRows), unless
+// the overlap is what it tests.
 export async function ask(text, { timeoutMs = 15_000 } = {}) {
   const input = overlayInput();
   const before = state.mock.chatRequests().length;
   await input.fill(text);
   await input.press('Enter');
   const accepted = await until(() => state.mock.chatRequests().length > before, { timeoutMs, throwOnTimeout: false });
-  if (!accepted) throw new Error(`overlay did not accept ${JSON.stringify(text)} within ${timeoutMs} ms (input now ${JSON.stringify(await input.inputValue())})`);
+  if (!accepted) {
+    const error = new Error(`overlay did not accept ${JSON.stringify(text)} within ${timeoutMs} ms (input now ${JSON.stringify(await input.inputValue())})`);
+    await timeoutDump(`the mock to receive the request for ${JSON.stringify(text)}`);
+    throw error;
+  }
 }
 
 // Fill and press Enter only; acceptance is not required (held-back or retained drafts).
@@ -193,6 +299,9 @@ export function holdStream({ afterChunks = 1 } = {}) {
         return await Promise.race([reachedPromise, new Promise((_, reject) => {
           timer = setTimeout(() => reject(new Error(`mock stream did not pause after ${afterChunks} chunk(s) within ${timeoutMs} ms`)), timeoutMs);
         })]);
+      } catch (e) {
+        await timeoutDump(`a mock stream to pause after ${afterChunks} chunk(s)`);
+        throw e;
       } finally { clearTimeout(timer); }
     },
     release() { hold.released = true; open(); },
@@ -398,8 +507,9 @@ export async function resetCase() {
   }));
 
   // 3. No stream may stay open on the mock.
+  // No dump here: the step's own 15 s bound would expire while it is being built.
   await resetStep(3, 'mock open streams = 0', 15_000, () => until(() => mock.openStreamCount() === 0,
-    { timeoutMs: 15_000, what: 'mock open streams to reach 0' }));
+    { timeoutMs: 15_000, what: 'mock open streams to reach 0', dump: false }));
 
   // 4. Reset intelligence through the preload (electron/preload.ts:1046).
   await resetStep(4, 'resetIntelligence', 10_000, async () => {

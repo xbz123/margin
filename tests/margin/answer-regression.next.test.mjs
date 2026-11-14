@@ -641,6 +641,10 @@ test('AG33 real Written typed and captured-image questions survive interview TTF
     mock.setScript({ errorStatus: 0, chunks: ['Written explicit retry completed.'], delayMs: 20 });
     await ask('Synthetic written explicit retry');
     await waitText('Written explicit retry completed.');
+    // The retry answer has completed before the captured question is sent: in written mode
+    // a capture while an answer is in flight supersedes it (the next case tests that).
+    await waitRows((r) => r.status === 'completed' && r.text.includes('Written explicit retry completed.'),
+      { what: 'the written retry answer row to complete' });
     assert.ok((await rowsText()).includes('Written partial'), 'cancelled partial remains its own record after retry');
     assert.ok(!(await rowsText()).includes('OLD-WRITTEN-TAIL'));
     const beforeCapture = mock.chatRequests().length;
@@ -706,6 +710,11 @@ test('AG51 saved written/interview mode selects prompts without a second questio
       mock.setScript({ errorStatus: 0, chunks: [answer], delayMs: 20 });
       await ask(`AG51 synthetic ${selection} question`);
       await waitVisible(rowLocator().getByText(answer, { exact: true }).first(), { what: `row text ${answer}` });
+      // The answer has completed (its row carries the completed status) before the next
+      // question: done follows the visible text, and in written mode a question typed while
+      // an answer is in flight supersedes it (NativelyInterface.tsx submitQuestion), which
+      // this case does not test. The old suite's ask() slept 250 ms after Enter instead.
+      await waitRows((r) => r.status === 'completed' && r.text.includes(answer), { what: `the ${selection} answer row to complete` });
       const system = mock.chatRequests().at(-1).body.messages.find(message => message.role === 'system').content;
       assert.ok(system.startsWith(scene === 'written' ? writtenOutputPrompt(scenarioPrompt(scene), 'plain') : scenarioPrompt(scene)));
       assert.equal(system.includes('submittable code first'), scene === 'written');
