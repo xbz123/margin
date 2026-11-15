@@ -5,9 +5,10 @@
 // select-ref keeps the earlier rule: an explicit reference must be one of the listed
 // directory names and hold summary.json; otherwise the newest AG-<n> directory.
 // required only reads the evidence the gates run just wrote. It runs nothing again and
-// accepts no failure, inherited or new, in the listed checks. For outbound-renderer it
-// also needs the step's recorded case counts: at least OUTBOUND_RENDERER_MIN_TESTS run,
-// all passed, none skipped or todo.
+// accepts no failure, inherited or new, in the listed checks. For each Electron suite in
+// PINNED_NODE_TEST_STEPS (regression, storage, startup, outbound-renderer) it also needs
+// the step's recorded case counts: at least the pinned number run, all passed, none
+// failed, cancelled, skipped or todo.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,13 +34,23 @@ export const S42_REQUIRED_FILES = [
   'src/lib/__tests__/settingsFoundation.test.mjs',
 ];
 
-// The number of cases (top-level test() calls) in tests/margin/outbound-renderer.test.mjs.
-// UPDATE THIS NUMBER WHEN CASES ARE ADDED TO OR REMOVED FROM THAT FILE; gateEvidence.test.mjs
-// fails until it matches the file. The required check treats it as a floor: the step
-// must have run at least this many cases and passed every one it ran, with none skipped,
-// todo or cancelled. More cases are accepted on purpose (a case added before this number is
-// raised still has to pass); fewer means a case was deleted or not reached.
-export const OUTBOUND_RENDERER_MIN_TESTS = 17;
+// The gate steps that run one node:test file each, with the number of cases (top-level
+// test() calls) in that file. UPDATE A NUMBER WHEN CASES ARE ADDED TO OR REMOVED FROM ITS
+// FILE; gateEvidence.test.mjs fails until each matches its file. run-gates.mjs records the
+// node:test counts of these steps (`counts: 'node-test'`). The required check treats each
+// number as a floor: the step must have run once, exited 0 without timing out, run at least
+// this many cases and passed every one it ran, with none failed, skipped, todo or cancelled.
+// More cases are accepted on purpose (a case added before the number is raised still has to
+// pass); fewer means a case was deleted or not reached.
+// startup-smoke.test.mjs skips its native-termination case off macOS ({ skip: platform }).
+// The gates run on macOS only, where it runs, so a skip there is a failure like any other.
+export const PINNED_NODE_TEST_STEPS = [
+  { id: 'regression', file: 'tests/margin/answer-regression.test.mjs', minTests: 24 },
+  { id: 'storage', file: 'tests/margin/meeting-storage.test.mjs', minTests: 4 },
+  { id: 'startup', file: 'tests/margin/startup-smoke.test.mjs', minTests: 2 },
+  { id: 'outbound-renderer', file: 'tests/margin/outbound-renderer.test.mjs', minTests: 17 },
+];
+export const OUTBOUND_RENDERER_MIN_TESTS = PINNED_NODE_TEST_STEPS.find((s) => s.id === 'outbound-renderer').minTests;
 
 // The summary counts node:test prints at the end of a run, from the TAP ("# tests 17")
 // or the spec ("ℹ tests 17") reporter, whichever is the default for the Node and stdout
@@ -78,24 +89,25 @@ export function requiredFailures(summary, perFile, files = S42_REQUIRED_FILES) {
     return rows.length === 1 ? rows[0] : null;
   };
   const tests = step('tests');
-  if (tests && (tests.passed !== true || !Array.isArray(tests.isolationBlocked) || tests.isolationBlocked.length
+  if (tests && (tests.passed !== true || !(Number.isInteger(tests.files) && tests.files > 0) || !Array.isArray(tests.isolationBlocked) || tests.isolationBlocked.length
     || !Array.isArray(tests.unexplainedExits) || tests.unexplainedExits.length)) {
     problems.push('tests :: step did not pass cleanly');
   }
-  const outbound = step('outbound-renderer');
-  if (outbound && (outbound.exitCode !== 0 || outbound.passed !== true || outbound.timedOut !== false)) {
-    problems.push(`outbound-renderer :: exit ${outbound.exitCode}${outbound.timedOut ? ' (timed out)' : ''}`);
-  }
-  // node --test exits 0 when cases are skipped or missing, so the exit code alone does
-  // not show that every security case ran. The counts come from run-gates.mjs; without
-  // them the step fails.
-  if (outbound) {
-    const c = outbound.counts;
+  for (const { id, minTests } of PINNED_NODE_TEST_STEPS) {
+    const s = step(id);
+    if (!s) continue;
+    if (s.exitCode !== 0 || s.passed !== true || s.timedOut !== false) {
+      problems.push(`${id} :: exit ${s.exitCode}${s.timedOut ? ' (timed out)' : ''}`);
+    }
+    // node --test exits 0 when cases are skipped or missing, so the exit code alone does
+    // not show that every case ran. The counts come from run-gates.mjs; without them the
+    // step fails.
+    const c = s.counts;
     const n = (k) => Number.isInteger(c?.[k]) && c[k] >= 0;
     if (!c || !NODE_TEST_COUNTS.every(n)) {
-      problems.push('outbound-renderer :: case counts missing');
-    } else if (c.tests < OUTBOUND_RENDERER_MIN_TESTS || c.pass !== c.tests || c.fail || c.cancelled || c.skipped || c.todo) {
-      problems.push(`outbound-renderer :: ${c.pass}/${c.tests} passed (at least ${OUTBOUND_RENDERER_MIN_TESTS} required), `
+      problems.push(`${id} :: case counts missing`);
+    } else if (c.tests < minTests || c.pass !== c.tests || c.fail || c.cancelled || c.skipped || c.todo) {
+      problems.push(`${id} :: ${c.pass}/${c.tests} passed (at least ${minTests} required), `
         + `${c.fail} failed, ${c.cancelled} cancelled, ${c.skipped} skipped, ${c.todo} todo`);
     }
   }
@@ -124,7 +136,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const problems = requiredFailures(read('summary.json'), read('tests.files.json'));
     for (const problem of problems) console.error(problem);
     if (problems.length) process.exit(1);
-    console.log(`[gates] S42 required checks ran and passed: ${S42_REQUIRED_FILES.join(' ')} outbound-renderer (at least ${OUTBOUND_RENDERER_MIN_TESTS} cases)`);
+    console.log(`[gates] S42 required checks ran and passed: ${S42_REQUIRED_FILES.join(' ')} ${PINNED_NODE_TEST_STEPS.map((s) => `${s.id} (at least ${s.minTests} cases)`).join(' ')}`);
   } else {
     console.error('usage: gate-evidence.mjs select-ref | required <evidence dir>');
     process.exit(2);

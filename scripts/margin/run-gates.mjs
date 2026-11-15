@@ -14,7 +14,9 @@
 // A step "passes" when its exit code is 0, or, for the compared steps, when nothing
 // is new. A step marked `counts: 'node-test'` also records the node:test summary
 // counts of its output in summary.json (`counts`, null when no complete summary was
-// found); gate-evidence.mjs checks them for outbound-renderer.
+// found); gate-evidence.mjs checks them against PINNED_NODE_TEST_STEPS (regression,
+// storage, startup, outbound-renderer). The tests step fails when its globs match no
+// test file or no file reports a test, whatever the reference says.
 // The runner exits 1 if any step did not pass.
 
 import { spawn, spawnSync } from 'node:child_process';
@@ -67,11 +69,11 @@ const steps = [
   // cannot stop the others from reporting and every count comes from a TAP footer.
   { id: 'tests', custom: 'testFiles', compare: 'tests' },
   { id: 'regression', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
-    '--test-timeout=180000', 'tests/margin/answer-regression.test.mjs'], timeoutMs: 600_000 },
+    '--test-timeout=180000', 'tests/margin/answer-regression.test.mjs'], timeoutMs: 600_000, counts: 'node-test' },
   { id: 'storage', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
-    '--test-timeout=240000', 'tests/margin/meeting-storage.test.mjs'], timeoutMs: 600_000 },
+    '--test-timeout=240000', 'tests/margin/meeting-storage.test.mjs'], timeoutMs: 600_000, counts: 'node-test' },
   { id: 'startup', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron:osascript', '--test',
-    '--test-timeout=180000', 'tests/margin/startup-smoke.test.mjs'], timeoutMs: 300_000 },
+    '--test-timeout=180000', 'tests/margin/startup-smoke.test.mjs'], timeoutMs: 300_000, counts: 'node-test' },
   { id: 'outbound-renderer', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron:esbuild', '--test',
     '--test-timeout=180000', 'tests/margin/outbound-renderer.test.mjs'], timeoutMs: 300_000, counts: 'node-test' },
   { id: 'diff-check', cmd: 'git', args: ['diff', 'HEAD', '--check'] },
@@ -161,9 +163,14 @@ async function runTestFiles() {
   const tap = results.map((r) => `# ===== ${r.file}\n${r.tap}`).join('\n');
   const log = results.filter((r) => r.stderr.trim() || r.timedOut)
     .map((r) => `===== ${r.file}${r.timedOut ? ` (killed after ${TEST_FILE_TIMEOUT_MS} ms)` : ''}\n${r.stderr}`).join('\n');
-  // A file passes when it exited 0, or was ended after its footer with no failures.
-  const status = perFile.every((f) => f.finished && (f.exitCode === 0 || (f.endedAfterFooter && f.fail === 0))) ? 0 : 1;
-  return { status, tap, log, counts, failures: [...new Set(failures)].sort(), isolation: isolation.sort(), unexplainedExits: unexplainedExits.sort(), perFile };
+  // A file passes when it exited 0, or was ended after its footer with no failures. No
+  // file found, or no test reported by any file, is a failure: every() is true on an
+  // empty list.
+  const noTests = files.length === 0 || counts.tests === 0;
+  if (files.length === 0) failures.push(`${TEST_GLOBS.join(' ')} :: <no test file found>`);
+  else if (counts.tests === 0) failures.push(`${TEST_GLOBS.join(' ')} :: <no test ran>`);
+  const status = !noTests && perFile.every((f) => f.finished && (f.exitCode === 0 || (f.endedAfterFooter && f.fail === 0))) ? 0 : 1;
+  return { status, noTests, tap, log, counts, failures: [...new Set(failures)].sort(), isolation: isolation.sort(), unexplainedExits: unexplainedExits.sort(), perFile };
 }
 
 // The blocked attempts in one isolation log, as unique "<kind> <detail>" lines, plus
@@ -303,7 +310,10 @@ for (const step of steps) {
     }
     // Not compared with the reference: any blocked attempt, or a non-zero exit that no
     // failing test explains, fails the step on its own (PLAN.md AG-17 review).
-    if (testRun.isolation.length || testRun.unexplainedExits.length) passed = false;
+    // Nor is a run that found no test file or ran no test, which the reference would
+    // otherwise excuse.
+    entry.noTests = testRun.noTests;
+    if (testRun.isolation.length || testRun.unexplainedExits.length || testRun.noTests) passed = false;
   }
   entry.passed = passed;
   summary.steps.push(entry);
