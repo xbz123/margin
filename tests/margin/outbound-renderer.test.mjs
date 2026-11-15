@@ -9,6 +9,7 @@ import vm from 'node:vm';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { isDeepStrictEqual } from 'node:util';
 import { launchApp as launchIsolatedApp, windowWithQuery } from './launch-app.mjs';
 import { mainRead, mainDo, withMainOutputOnFailure } from './main-eval.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
@@ -1398,7 +1399,25 @@ test('S42-01 mounted domestic STT settings save, reload and test the chosen work
         }
         await new Promise(resolve => setTimeout(resolve, 25));
       }
-      await page.waitForTimeout(100);
+      // Loaded is not rendered: wait until the form shows the reply it loaded (was: a
+      // fixed 100 ms). The effect sets every field from one reply in one batch.
+      const loaded = JSON.parse(replies[calls.map(([channel]) => channel).lastIndexOf('get-domestic-stt')]);
+      const shown = async () => ({
+        hasKey: (await page.getByLabel('API key / Access Key').getAttribute('placeholder')) === 'Saved',
+        second: await page.getByLabel(provider === 'aliyun' ? 'Workspace ID' : 'App ID').inputValue(),
+        ...(provider === 'doubao' ? { resourceId: await page.getByLabel('Resource type').inputValue() } : {}),
+      });
+      const want = { hasKey: loaded.hasKey, second: provider === 'aliyun' ? loaded.workspaceId : loaded.appId,
+        ...(provider === 'doubao' ? { resourceId: loaded.resourceId } : {}) };
+      const renderDeadline = Date.now() + 10_000;
+      let seen;
+      while (!isDeepStrictEqual(seen = await shown(), want)) {
+        if (Date.now() > renderDeadline) {
+          await timeoutDump(`S42 render ${provider}`, { page });
+          throw new Error(`${provider} settings did not show the loaded values within 10000 ms: want ${JSON.stringify(want)}, shown ${JSON.stringify(seen)}`);
+        }
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
     };
     const button = name => page.getByRole('button', { name, exact: true });
 

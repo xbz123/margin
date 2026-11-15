@@ -218,6 +218,58 @@ function tapFailures(tap) {
   return [...result].sort();
 }
 
+// Every live descendant of `root` (children, grandchildren, ...), read from ps. Playwright
+// starts Electron detached, in a process group of its own, so killing the step's group
+// alone does not reach the app; walking the parent links does.
+function descendants(root) {
+  const ps = spawnSync('ps', ['-A', '-o', 'pid=', '-o', 'ppid='], { encoding: 'utf8' });
+  const children = new Map();
+  for (const line of (ps.stdout ?? '').split('\n')) {
+    const [pid, ppid] = line.trim().split(/\s+/).map(Number);
+    if (!pid) continue;
+    if (!children.has(ppid)) children.set(ppid, []);
+    children.get(ppid).push(pid);
+  }
+  const found = [];
+  for (let queue = [root]; queue.length;) for (const pid of children.get(queue.shift()) ?? []) { found.push(pid); queue.push(pid); }
+  return found;
+}
+
+// Runs one command step. On timeout it kills the step's whole process tree: the direct
+// child, its process group, and every descendant (an Electron suite's app, helpers and
+// mock servers), where spawnSync's timeout signalled only the direct child and left
+// the rest running into the next step. Returns the spawnSync result fields read below.
+function runStep(step) {
+  const timeoutMs = step.timeoutMs ?? 900_000;
+  return new Promise((resolve) => {
+    const posix = process.platform !== 'win32';
+    const child = spawn(step.cmd, step.args, { cwd: REPO, detached: posix });
+    const killTree = () => {
+      // Collect before killing: once a parent dies its children are re-parented and lost.
+      const tree = posix ? descendants(child.pid) : [];
+      for (const pid of [child.pid, ...tree]) { try { process.kill(pid, 'SIGKILL'); } catch { /* already gone */ } }
+      if (posix) { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* already gone */ } }
+    };
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8').on('data', (d) => { stdout += d; });
+    child.stderr.setEncoding('utf8').on('data', (d) => { stderr += d; });
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; killTree(); }, timeoutMs);
+    child.on('error', (error) => { clearTimeout(timer); resolve({ status: null, signal: null, stdout, stderr: stderr + String(error), error }); });
+    child.on('close', (code, signal) => {
+      clearTimeout(timer);
+      resolve({ status: code, signal, stdout, stderr, ...(timedOut ? { error: { code: 'ETIMEDOUT' } } : {}) });
+    });
+  });
+}
+
+// Electron suites save failure screenshots here (inside the repo, so the isolation
+// sandbox's temporary root is not the only copy); they are copied into the evidence
+// directory after the run, which CI uploads.
+const FAILURE_SHOTS = path.join(REPO, '.margin-cache', 'failure-shots');
+fs.rmSync(FAILURE_SHOTS, { recursive: true, force: true });
+
 fs.mkdirSync(out, { recursive: true });
 const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout.trim();
 const dirty = spawnSync('git', ['status', '--porcelain'], { cwd: REPO, encoding: 'utf8' }).stdout.trim().split('\n').filter(Boolean);
@@ -234,7 +286,7 @@ for (const step of steps) {
   const testRun = step.custom === 'testFiles' ? await runTestFiles() : null;
   const res = testRun
     ? { status: testRun.status, stdout: testRun.log, stderr: '' }
-    : spawnSync(step.cmd, step.args, { cwd: REPO, encoding: 'utf8', maxBuffer: 512 * 1024 * 1024, timeout: step.timeoutMs ?? 900_000 });
+    : await runStep(step);
   const text = (res.stdout ?? '') + (res.stderr ? `\n--- stderr ---\n${res.stderr}` : '');
   fs.writeFileSync(log, text);
   const entry = {
@@ -277,6 +329,10 @@ for (const step of steps) {
   process.stdout.write(`exit ${res.status}${entry.timedOut ? ' (timed out)' : ''} ${passed ? 'PASS' : 'FAIL'} (${Math.round(entry.durationMs / 1000)}s)\n`);
 }
 
+if (fs.existsSync(FAILURE_SHOTS) && fs.readdirSync(FAILURE_SHOTS).length) {
+  fs.cpSync(FAILURE_SHOTS, path.join(out, 'failure-shots'), { recursive: true });
+  summary.failureShots = path.relative(REPO, path.join(out, 'failure-shots'));
+}
 summary.finishedAt = new Date().toISOString();
 summary.allPassed = summary.steps.every((s) => s.passed);
 fs.writeFileSync(path.join(out, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');

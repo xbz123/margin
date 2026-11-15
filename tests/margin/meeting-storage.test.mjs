@@ -124,7 +124,9 @@ async function clickOrExplain(page, locator, what) {
         coveringChain: chain,
       };
     }).catch((e) => ({ inspectFailed: String(e) }));
-    await page.screenshot({ path: path.join(sandbox.root, `click-failed-${what.replace(/\W+/g, '-')}.png`) }).catch(() => {});
+    // Saved in the repo's ignored cache; run-gates.mjs copies it into the uploaded evidence
+    // (the sandbox root is a temporary directory nobody collects).
+    await page.screenshot({ path: path.join(REPO, '.margin-cache', 'failure-shots', `meeting-storage-click-failed-${what.replace(/\W+/g, '-')}.png`) }).catch(() => {});
     throw new Error(`clicking ${what} failed: ${error.message.split('\n')[0]}\n${JSON.stringify(seen, null, 2)}`);
   }
 }
