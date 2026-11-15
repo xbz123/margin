@@ -918,6 +918,30 @@ test('cross-entry: a typed stream with partial output replaced by a shortcut is 
   assert.equal(answers.filter(answer => answer === 'NEW ANSWER').length, 1, 'the shortcut answer is recorded once');
 });
 
+// Chat streams are owned by the sender that started them (was: source matching in
+// LlmStreamAbortController.test.mjs): another renderer's stop cannot cancel the stream;
+// the owner's own stop aborts it and its late output is dropped.
+test('a typed chat stream is stopped only by its own sender', async () => {
+  const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c, 'OLD FIRST ');
+  const old = startTyped(c);
+  try {
+    await provider.started; await provider.shown; await tick();
+    const stop = c.listeners.get('gemini-chat-stream-stop');
+    assert.equal(typeof stop, 'function', 'gemini-chat-stream-stop is registered with ipcMain.on');
+    const other = new Sender(8);
+    stop({ sender: other });
+    await tick();
+    assert.equal(tasks[0].signal.aborted, false, 'another sender cannot stop this stream');
+    stop({ sender: c.sender });
+    assert.equal(tasks[0].signal.aborted, true, 'the owner stop aborts its stream');
+    provider.release(); await old.catch(() => {}); await tick();
+    assert.equal(tasks[0].terminalStatus, 'cancelled');
+    assert.equal(c.sender.sent.some(([name, token]) => name === 'gemini-stream-token' && token === 'LATE OLD'), false, 'no late token after the stop');
+    assert.equal(c.sender.sent.some(([name, , meta]) => name === 'gemini-stream-done' && meta?.status === 'completed'), false);
+    assert.deepEqual(other.sent, [], 'nothing is sent to the other sender');
+  } finally { provider.release(); await old.catch(() => {}); }
+});
+
 test('mode changes and session end cancel independent typed streams and discard late output', async () => {
   for (const action of ['written', 'interview', 'end']) {
     const c = chain(), tasks = trackTasks(c), provider = gatedProvider(c, 'OLD FIRST ');

@@ -182,6 +182,28 @@ test('cross-entry preload: a shortcut replaced by a typed question delivers no l
   assert.deepEqual(b.seen.chatDone, ['new:completed']);
 });
 
+// Was source matching in LlmStreamAbortController.test.mjs: cancelChatStream reaches main
+// through ipcRenderer.send('gemini-chat-stream-stop'), and only for the UI that owns the stream.
+test('preload: only the owning UI cancels the active chat stream, through gemini-chat-stream-stop', async () => {
+  const b = switchBridge();
+  const globalErrors = [], globalTokens = [];
+  b.api.onGeminiStreamToken(token => globalTokens.push(token), 'global');
+  b.api.onGeminiStreamError((error, meta) => globalErrors.push(`${meta?.requestId}:${error}`), 'global');
+  void b.api.streamGeminiChat('global question', undefined, undefined, { owner: 'global' });
+  const id = b.streamId();
+  b.ipc.emit('gemini-stream-token', {}, 'GLOBAL FIRST', id, { requestId: 'g' });
+  b.api.cancelChatStream('natively');
+  b.api.cancelChatStream();
+  assert.deepEqual(b.sent, [], 'a UI that does not own the stream sends no stop');
+  b.api.cancelChatStream('global');
+  assert.deepEqual(b.sent, ['gemini-chat-stream-stop'], 'the owner stop is sent to main once');
+  assert.deepEqual(globalErrors, ['g:Generation cancelled'], 'the owner sees its stream cancelled');
+  b.ipc.emit('gemini-stream-token', {}, 'LATE', id, { requestId: 'g' });
+  b.api.cancelChatStream('global');
+  assert.deepEqual(globalErrors, ['g:Generation cancelled'], 'nothing more after the stop');
+  assert.deepEqual(globalTokens, ['GLOBAL FIRST'], 'no late token after the stop');
+});
+
 test('cross-entry preload: a typed stream replaced by a shortcut stops, delivers no late stream output; the shortcut is delivered', async () => {
   const b = switchBridge();
   void b.api.streamGeminiChat('typed question');
