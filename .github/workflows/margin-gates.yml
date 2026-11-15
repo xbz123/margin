@@ -19,10 +19,6 @@ on:
         description: Skip the Electron and cargo caches and build everything from scratch
         type: boolean
         default: false
-      gate_ref:
-        description: Explicit gate reference directory (docs/margin/evidence/AG-<n>, S42-ready or S42-<n>)
-        type: string
-        default: ''
       package_apps:
         description: AG-25 temp and release apps, their launch checks, and the S19-C source bundle (workflow artifacts only)
         type: boolean
@@ -113,17 +109,14 @@ jobs:
           path: ${{ runner.temp }}/native-artifact/
           retention-days: 30
 
-      - name: Run gates against the newest local ticket evidence
-        env:
-          GATE_REF: ${{ inputs.gate_ref }}
+      # Every step passes only on its own result; nothing is compared with earlier evidence.
+      - name: Run gates
         run: |
-          ref=$(node scripts/margin/gate-evidence.mjs select-ref)
-          echo "reference: $ref"
-          node scripts/margin/run-gates.mjs --out ci-evidence --ref "$ref" \
-            --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, no_cache=${{ inputs.no_cache && 'true' || 'false' }}, compared with $ref"
+          node scripts/margin/run-gates.mjs --out ci-evidence \
+            --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, no_cache=${{ inputs.no_cache && 'true' || 'false' }}"
 
       # Reads only the evidence written above; no test runs twice and no failure in the
-      # listed S42 checks is excused by the reference (PLAN.md S42-05). regression,
+      # listed S42 checks is accepted (PLAN.md S42-05). regression,
       # storage, startup and outbound-renderer must each have run once, exited 0 and
       # run at least their pinned number of cases with none skipped, failed, todo or
       # cancelled (PINNED_NODE_TEST_STEPS in gate-evidence.mjs); the tests step must have

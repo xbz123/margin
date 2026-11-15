@@ -7,8 +7,9 @@ Each run directory holds:
 
 - `summary.json`: the commit (`head`), how many paths were uncommitted, an optional
   `note` on how the run was made, and for every step the exact command, exit code,
-  duration and log path. Compared steps also list inherited, new and resolved items
-  against the reference run (`reference`).
+  duration and log path. Runs made before the comparison was removed (see below)
+  also list, for the compared steps, inherited, new and resolved items against their
+  reference run (`reference`).
 - `<step>.log`: stdout and stderr of the step, unedited. For `tests` it holds the
   stderr of every test file that wrote any (for example the isolation guard's list
   of blocked attempts).
@@ -16,21 +17,27 @@ Each run directory holds:
   `tests.files.json`: per file, its exit code, duration, counts, and whether it
   finished, timed out or was ended after its footer; `test-failures.txt`: the
   failing tests as `file :: name`.
-- `tsc-electron.diagnostics.txt`: Electron type errors without line numbers, with
-  their counts (the repository path inside messages is written as `<repo>`).
-- `preload-contract.gaps.txt`, `ipc-channels.gaps.txt`: the gaps the contract checks
-  listed.
+- Older runs also hold `tsc-electron.diagnostics.txt` (Electron type errors without
+  line numbers) and `preload-contract.gaps.txt`, `ipc-channels.gaps.txt` (the gaps
+  the contract checks listed), the lists the comparison used; the step logs hold the
+  same output.
 
 ## How the steps are judged
 
-A step passes when it exits 0. `tsc-electron`, `tests`, `preload-contract` and
-`ipc-channels` exited non-zero because of inherited problems until AG-17, so for
-them the step passes when nothing is new compared with the reference run. Two
-things fail the `tests` step regardless of the reference: an attempt the isolation
-guard blocked in any test file (`isolationBlocked` in `summary.json`), and a file
-that exited non-zero with no failing test in its TAP (`unexplainedExits`).
-"Inherited" therefore means "already present in the reference run"; whether a
-reference item comes from upstream is shown by comparing with `baseline-a786910e/`.
+A step passes only on its own result: it exits 0. Three more things fail the
+`tests` step: an attempt the isolation guard blocked in any test file
+(`isolationBlocked` in `summary.json`), a file that exited non-zero with no failing
+test in its TAP (`unexplainedExits`), and a run that found no test file or ran no
+test (`noTests`).
+
+Until 2026-11 the runner took `--ref <earlier run>` and passed `tsc-electron`,
+`tests`, `preload-contract` and `ipc-channels` when nothing was new compared with
+that run, because those steps exited non-zero on inherited problems until AG-17.
+"Inherited" in the older records means "already present in the reference run";
+whether a reference item came from upstream is shown by comparing with
+`baseline-a786910e/`. No step has needed the comparison since AG-17, and it could
+also pass a check that crashed with no output, so it was removed; `--ref` is now
+refused.
 
 The `tests` step runs each test file in its own guarded process (`run-node.mjs`)
 with a 180 s limit, four at a time, and takes every count from that file's TAP
@@ -68,10 +75,11 @@ that imported them still ran (see the AG-13 record in PLAN.md).
 | `AG-17-review7/` | The fixes for the seventh Astra review, on the committed, clean tree of `9a7dcf1c`, compared with `AG-17-review6/`. `checks/` holds the one-off and mutation check outputs, the earlier runs of the new cases, and the checks run before the commit (see its README) |
 | `CI-37706465030/` | Raw evidence of the uncached GitHub Actions run on `d70e585d` (code of `9a7dcf1c`): the evidence for phase 1 exit item 1 under S11; see its README |
 
-Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> --ref docs/margin/evidence/<reference> [--note "..."]`.
+Rerun: `node scripts/margin/run-gates.mjs --out docs/margin/evidence/<name> [--only <ids>] [--skip <ids>] [--note "..."]`
+(an unknown or empty step id in `--only` / `--skip` is an error).
 The `regression`, `storage` and `startup` steps need a display session (they launch the app
 under the isolation guard); everything runs offline.
 
 CI (`.github/workflows/margin-gates.yml`) runs the same command on a clean macOS runner
-against the newest `AG-*` directory and keeps its output as a run artifact (30 days),
+and keeps its output as a run artifact (30 days),
 not in this directory; PLAN.md records how each CI run compares with the local one.

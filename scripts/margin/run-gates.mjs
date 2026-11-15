@@ -1,22 +1,18 @@
 #!/usr/bin/env node
 // Runs the Margin ticket gates and keeps reviewable evidence (PLAN.md §5).
 //   node scripts/margin/run-gates.mjs --out docs/margin/evidence/AG-13 \
-//     [--ref docs/margin/evidence/pre-AG-13] [--only build,tests,...] [--skip regression]
-//     [--note "how this run was made"]
+//     [--only build-electron,tests,...] [--skip regression] [--note "how this run was made"]
 //
 // For every step it writes <out>/<step>.log (stdout and stderr as produced) and records
-// the exact command, exit code and duration in <out>/summary.json. Two steps are
-// compared with a reference run (--ref) instead of judged by exit code alone:
-//   - tsc-electron: diagnostics are normalized (file + code + message, no line
-//     numbers) and split into inherited / new / resolved;
-//   - tests: failing tests (file + name, from the TAP report) are split the same way;
-//   - preload-contract, ipc-channels: the listed gaps (indented lines) likewise.
-// A step "passes" when its exit code is 0, or, for the compared steps, when nothing
-// is new. A step marked `counts: 'node-test'` also records the node:test summary
-// counts of its output in summary.json (`counts`, null when no complete summary was
-// found); gate-evidence.mjs checks them against PINNED_NODE_TEST_STEPS (regression,
-// storage, startup, outbound-renderer). The tests step fails when its globs match no
-// test file or no file reports a test, whatever the reference says.
+// the exact command, exit code and duration in <out>/summary.json. A step passes only on
+// its own result: exit code 0, nothing excused by an earlier run. The tests step also
+// fails when its globs match no test file, no file reports a test, the isolation guard
+// blocked an attempt, or a non-zero exit is not explained by a failing test; its failing
+// tests (file + name, from the TAP report) are listed in <out>/test-failures.txt. A step
+// marked `counts: 'node-test'` also records the node:test summary counts of its output
+// in summary.json (`counts`, null when no complete summary was found); gate-evidence.mjs
+// checks them against PINNED_NODE_TEST_STEPS (regression, storage, startup,
+// outbound-renderer).
 // The runner exits 1 if any step did not pass, and 2 before running anything when --only
 // or --skip names an unknown step id or is empty (selectSteps in gate-evidence.mjs).
 
@@ -36,7 +32,6 @@ function arg(name) {
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
 const out = path.resolve(REPO, arg('--out') ?? 'docs/margin/evidence/latest');
-const ref = arg('--ref') ? path.resolve(REPO, arg('--ref')) : null;
 
 const TEST_GLOBS = [
   'electron/services/__tests__/**/*.test.mjs',
@@ -55,18 +50,18 @@ const steps = [
   { id: 'build-electron', cmd: NODE, args: ['scripts/build-electron.js'] },
   { id: 'vite-build', cmd: BIN('vite'), args: ['build'] },
   { id: 'tsc-renderer', cmd: BIN('tsc'), args: ['--noEmit', '-p', '.'] },
-  { id: 'tsc-electron', cmd: BIN('tsc'), args: ['-p', 'electron/tsconfig.json', '--noEmit'], compare: 'diagnostics' },
+  { id: 'tsc-electron', cmd: BIN('tsc'), args: ['-p', 'electron/tsconfig.json', '--noEmit'] },
   // The provenance check (scripts/margin/provenance-check.mjs) is not a gate step: its result
   // depends on the upstream refs fetched at run time, not only on this branch. Run it by hand
   // before a release.
   { id: 'retired', cmd: NODE, args: ['scripts/margin/retired-check.mjs'] },
-  { id: 'preload-contract', cmd: NODE, args: ['scripts/margin/preload-contract-check.mjs'], compare: 'gaps' },
-  { id: 'ipc-channels', cmd: NODE, args: ['scripts/margin/ipc-channel-check.mjs'], compare: 'gaps' },
+  { id: 'preload-contract', cmd: NODE, args: ['scripts/margin/preload-contract-check.mjs'] },
+  { id: 'ipc-channels', cmd: NODE, args: ['scripts/margin/ipc-channel-check.mjs'] },
   { id: 'guard-selftest', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-blocked', '--test',
     'scripts/margin/isolation/__tests__/guard.node.test.mjs', 'scripts/margin/isolation/__tests__/native-exports.node.test.mjs'] },
   // One guarded node process per test file (see runTestFiles), so a file that hangs
   // cannot stop the others from reporting and every count comes from a TAP footer.
-  { id: 'tests', custom: 'testFiles', compare: 'tests' },
+  { id: 'tests', custom: 'testFiles' },
   { id: 'regression', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
     '--test-timeout=180000', 'tests/margin/answer-regression.test.mjs'], timeoutMs: 600_000, counts: 'node-test' },
   { id: 'storage', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron', '--test',
@@ -80,6 +75,11 @@ const steps = [
 
 // --only / --skip are checked before anything runs or is written: an unknown or empty
 // step id is an error, not a silently smaller run.
+// --ref (comparison with an earlier run) was removed; refuse it rather than ignore it.
+if (process.argv.includes('--ref')) {
+  console.error('[gates] --ref was removed: every step passes only on its own result');
+  process.exit(2);
+}
 let selected;
 try { selected = selectSteps(steps.map((s) => s.id), process.argv.slice(2)); } catch (error) {
   console.error(`[gates] ${error.message}`);
@@ -199,19 +199,8 @@ function isolationRecords(log, runNodePid, file) {
   return blocked;
 }
 
-// "file(line,col): error TS1234: message" -> "file error TS1234: message ×count"
-function tscDiagnostics(log) {
-  const counts = new Map();
-  for (const m of log.split('\n').map((l) => l.match(/^(\S+?)\(\d+,\d+\): (error TS\d+: .*)$/)).filter(Boolean)) {
-    const key = `${m[1]} ${m[2].trim().split(REPO + '/').join('<repo>/')}`;
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-  return [...counts].map(([k, n]) => `${k} ×${n}`).sort();
-}
-
 // Failing tests from a node:test TAP report, as "file :: name". Parents of failing
-// subtests are kept too; the comparison is still exact because both sides are
-// produced the same way.
+// subtests are kept too.
 function tapFailures(tap) {
   const lines = tap.split('\n');
   const result = new Set();
@@ -229,22 +218,12 @@ function tapFailures(tap) {
   return [...result].sort();
 }
 
-function split(now, before) {
-  const b = new Set(before);
-  const n = new Set(now);
-  return { inherited: now.filter((x) => b.has(x)), new: now.filter((x) => !b.has(x)), resolved: before.filter((x) => !n.has(x)) };
-}
-
-function readList(file) {
-  return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(Boolean) : null;
-}
-
 fs.mkdirSync(out, { recursive: true });
 const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout.trim();
 const dirty = spawnSync('git', ['status', '--porcelain'], { cwd: REPO, encoding: 'utf8' }).stdout.trim().split('\n').filter(Boolean);
 // The paths themselves are kept too, so a non-zero count can be checked (PLAN.md AG-17
 // fourth review).
-const summary = { startedAt: new Date().toISOString(), head, uncommittedPaths: dirty.length, uncommittedPathList: dirty.slice(0, 200), reference: ref ? path.relative(REPO, ref) : null,
+const summary = { startedAt: new Date().toISOString(), head, uncommittedPaths: dirty.length, uncommittedPathList: dirty.slice(0, 200),
   ...(arg('--note') ? { note: arg('--note') } : {}), steps: [] };
 
 for (const step of steps) {
@@ -270,31 +249,9 @@ for (const step of steps) {
     log: path.relative(REPO, log),
   };
   if (step.counts === 'node-test') entry.counts = nodeTestCounts(res.stdout ?? '');
+  // A step passes on its own result only; nothing is excused by an earlier run.
   let passed = res.status === 0;
-  if (step.compare === 'diagnostics') {
-    const now = tscDiagnostics(text);
-    fs.writeFileSync(path.join(out, 'tsc-electron.diagnostics.txt'), now.join('\n') + '\n');
-    const before = ref && readList(path.join(ref, 'tsc-electron.diagnostics.txt'));
-    entry.diagnostics = { total: now.length };
-    if (before) {
-      const s = split(now, before);
-      entry.diagnostics = { total: now.length, inherited: s.inherited.length, new: s.new, resolved: s.resolved };
-      passed = passed || s.new.length === 0;
-    }
-  }
-  if (step.compare === 'gaps') {
-    const now = [...new Set(text.split('\n').filter((l) => /^  \S/.test(l)).map((l) => l.trim()))].sort();
-    const listFile = path.join(out, `${step.id}.gaps.txt`);
-    fs.writeFileSync(listFile, now.join('\n') + (now.length ? '\n' : ''));
-    const before = ref && readList(path.join(ref, `${step.id}.gaps.txt`));
-    entry.gaps = { total: now.length };
-    if (before) {
-      const s = split(now, before);
-      entry.gaps = { total: now.length, inherited: s.inherited.length, new: s.new, resolved: s.resolved };
-      passed = passed || s.new.length === 0;
-    }
-  }
-  if (step.compare === 'tests') {
+  if (testRun) {
     const tapFile = path.join(out, 'tests.tap');
     fs.writeFileSync(tapFile, testRun.tap);
     fs.writeFileSync(path.join(out, 'tests.files.json'), JSON.stringify(testRun.perFile, null, 2) + '\n');
@@ -308,16 +265,10 @@ for (const step of steps) {
     entry.counts = testRun.counts;
     entry.isolationBlocked = testRun.isolation;
     entry.unexplainedExits = testRun.unexplainedExits;
-    const before = ref && readList(path.join(ref, 'test-failures.txt'));
-    if (before) {
-      const s = split(now, before);
-      entry.failures = { total: now.length, inherited: s.inherited.length, new: s.new, resolved: s.resolved };
-      passed = res.status === 0 || s.new.length === 0;
-    }
-    // Not compared with the reference: any blocked attempt, or a non-zero exit that no
-    // failing test explains, fails the step on its own (PLAN.md AG-17 review).
-    // Nor is a run that found no test file or ran no test, which the reference would
-    // otherwise excuse.
+    entry.failures = { total: now.length };
+    // Besides a non-zero exit, any blocked attempt, a non-zero exit that no failing test
+    // explains (PLAN.md AG-17 review), or a run that found no test file or ran no test
+    // fails the step.
     entry.noTests = testRun.noTests;
     if (testRun.isolation.length || testRun.unexplainedExits.length || testRun.noTests) passed = false;
   }

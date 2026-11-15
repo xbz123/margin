@@ -30,7 +30,7 @@ node scripts/build-electron.js
 npx vite build
 node scripts/margin/isolation/run-node.mjs --allow-exec Electron \
   --test --test-timeout=180000 tests/margin/answer-regression.test.mjs
-node scripts/margin/run-gates.mjs --out <new-evidence-directory> --ref <verified-reference>
+node scripts/margin/run-gates.mjs --out <new-evidence-directory>
 git diff --check
 ```
 

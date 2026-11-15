@@ -1,42 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OUTBOUND_RENDERER_MIN_TESTS, PINNED_NODE_TEST_STEPS, S42_REQUIRED_FILES, nodeTestCounts, requiredFailures, selectGateRef, selectSteps } from '../../../scripts/margin/gate-evidence.mjs';
+import { OUTBOUND_RENDERER_MIN_TESTS, PINNED_NODE_TEST_STEPS, S42_REQUIRED_FILES, nodeTestCounts, requiredFailures, selectSteps } from '../../../scripts/margin/gate-evidence.mjs';
 
 const REPO = fileURLToPath(new URL('../../../', import.meta.url));
 
-test('S42-05 gate_ref accepts only listed evidence directories that hold a summary', () => {
-  const anything = { list: () => [], exists: () => true };
-  for (const ref of ['docs/margin/evidence/AG-26', 'docs/margin/evidence/S42-ready', 'docs/margin/evidence/S42-01']) {
-    assert.equal(selectGateRef(ref, anything), ref);
-  }
-  for (const ref of ['docs/margin/evidence/S42-ready/../AG-26', 'docs/margin/evidence/S42-ready/', 'docs/margin/evidence/S42-ready\n',
-    './docs/margin/evidence/S42-ready', '/docs/margin/evidence/S42-ready', 'docs/margin/evidence/S42-', 'docs/margin/evidence/S42-readyx',
-    'docs/margin/evidence/S43-ready', 'docs/margin/evidence/s42-ready', 'docs/margin/evidence/AG-51/gates', 'docs/margin/evidence/AG-17-review',
-    'docs/margin/evidence/../../../etc', 'docs/margin/evidence/S42-ready/summary.json']) {
-    assert.throws(() => selectGateRef(ref, anything), /Invalid gate_ref/, JSON.stringify(ref));
-  }
-  const evidence = { list: () => ['AG-9', 'AG-51', 'AG-10-review', 'S42-ready', 'S42-99'],
-    exists: (file) => file === 'docs/margin/evidence/S42-ready/summary.json' };
-  assert.throws(() => selectGateRef('docs/margin/evidence/S42-01', evidence), /Invalid gate_ref/);
-  assert.equal(selectGateRef('docs/margin/evidence/S42-ready', evidence), 'docs/margin/evidence/S42-ready');
-  assert.equal(selectGateRef('', evidence), 'docs/margin/evidence/AG-51', 'the automatic choice still takes the newest AG-<n>');
+// The real runner, started with arguments it must refuse: it exits 2 at once, before any
+// step runs or the evidence directory is created.
+test('run-gates refuses --ref and an unknown --only id before running anything', () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'gates-refuse-'));
+  try {
+    for (const [args, message] of [
+      [['--only', 'nosuchstep'], /unknown step id nosuchstep; valid step ids: clean-dist, .*diff-check/],
+      [['--only', 'tests', '--ref', 'docs/margin/evidence/AG-73'], /--ref was removed/],
+    ]) {
+      const dir = path.join(out, 'evidence');
+      const res = spawnSync(process.execPath, ['scripts/margin/run-gates.mjs', '--out', dir, ...args], { cwd: REPO, encoding: 'utf8', timeout: 30_000 });
+      assert.equal(res.status, 2, `${args.join(' ')}: ${res.stderr}`);
+      assert.match(res.stderr, message);
+      assert.doesNotMatch(res.stdout, /\[gates\] \S+ \.\.\./, 'no step started');
+      assert.equal(fs.existsSync(dir), false, 'no evidence directory written');
+    }
+  } finally { fs.rmSync(out, { recursive: true, force: true }); }
 });
 
 const row = (file, patch = {}) => ({ file, exitCode: 0, signal: null, timedOut: false, endedAfterFooter: false, durationMs: 1,
   tests: 2, pass: 2, fail: 0, finished: true, isolationBlocked: [], ...patch });
 const good = () => ({
   summary: { steps: [
-    // An inherited failure in an unrelated file keeps the step passed with exit 1.
-    { id: 'tests', exitCode: 1, passed: true, files: S42_REQUIRED_FILES.length + 1, isolationBlocked: [], unexplainedExits: [] },
+    { id: 'tests', exitCode: 0, passed: true, files: S42_REQUIRED_FILES.length + 1, isolationBlocked: [], unexplainedExits: [] },
     ...[['regression', 24], ['storage', 4], ['startup', 2]].map(([id, n]) => ({ id, exitCode: 0, timedOut: false, passed: true,
       counts: { tests: n, pass: n, fail: 0, cancelled: 0, skipped: 0, todo: 0 } })),
     { id: 'outbound-renderer', exitCode: 0, timedOut: false, passed: true,
       counts: { tests: 17, pass: 17, fail: 0, cancelled: 0, skipped: 0, todo: 0 } },
   ] },
-  files: [...S42_REQUIRED_FILES.map((file) => row(file)), row('electron/services/__tests__/Unrelated.test.mjs', { exitCode: 1, pass: 1, fail: 1 })],
+  files: [...S42_REQUIRED_FILES.map((file) => row(file)), row('electron/services/__tests__/Unrelated.test.mjs')],
 });
 
 test('S42-05 required checks pass on complete evidence, including a file ended after its footer', () => {
@@ -96,10 +98,6 @@ test('run-gates step selection: --only and --skip accept known ids and reject un
     assert.throws(() => selectSteps(ids, argv), /valid step ids: build-electron, tests, regression, diff-check/, JSON.stringify(argv));
   }
   assert.throws(() => selectSteps(ids, ['--only', 'tests,nope,neither']), /unknown step ids nope, neither/);
-  // run-gates.mjs selects with its own step list before it runs or writes anything.
-  const gates = fs.readFileSync(path.join(REPO, 'scripts/margin/run-gates.mjs'), 'utf8');
-  const check = gates.indexOf('selectSteps(steps.map((s) => s.id), process.argv.slice(2))');
-  assert.ok(check > 0 && check < gates.indexOf('fs.mkdirSync(out') && check < gates.indexOf('for (const step of steps)'), 'selection is checked first');
 });
 
 test('node:test summary counts are read from TAP or spec output, and absent without a full summary', () => {
@@ -129,7 +127,8 @@ test('S42-05 required checks reject missing, failed, unfinished, skipped or isol
     'required file isolation block': (e) => { e.files[4].isolationBlocked = ['net synthetic.invalid:443']; },
     'required file without isolation record': (e) => { delete e.files[4].isolationBlocked; },
     'tests step absent': (e) => { e.summary.steps = e.summary.steps.filter((s) => s.id !== 'tests'); },
-    'tests step has new failures': (e) => { tests(e).passed = false; },
+    'tests step has failures': (e) => { tests(e).passed = false; },
+    'tests step exit 1 recorded as passed': (e) => { tests(e).exitCode = 1; },
     'tests step isolation block': (e) => { tests(e).isolationBlocked = ['x :: <no guard-loaded record>']; },
     'tests step unexplained exit': (e) => { tests(e).unexplainedExits = ['x :: exit 1 with no failing test']; },
     'outbound renderer absent': (e) => { e.summary.steps = e.summary.steps.filter((s) => s.id !== 'outbound-renderer'); },
