@@ -2868,7 +2868,6 @@ async function initializeApp() {
 
 
   // app.dock?.hide() // REMOVED: User wants Dock icon visible
-  app.commandLine.appendSwitch("disable-background-timer-throttling")
 }
 
 // Start the application
