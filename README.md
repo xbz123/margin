@@ -142,6 +142,17 @@ With protection off, the tray menu also offers Quit. There is no quit shortcut,
 and Windows shutdown or sign-out is not handled: end the meeting before
 shutting down, or its record may be lost.
 
+**An interview answer needs the overlay to draw.** In interview mode the
+first-token deadline (10 s by default) stops only when the overlay has actually
+drawn the first answer text. If the overlay draws no frame until the deadline,
+for example because the screen is locked or the display sleeps right after
+asking, or because macOS stops drawing a hidden or fully covered overlay, the
+answer fails with `timeout:first-token` even when the model replied in time. The
+text received so far stays as partial output and Retry is offered. Keep the
+overlay on screen until the first answer text appears. When macOS stops drawing
+a window has not been measured on real hardware; CI virtual machines keep
+drawing in every one of these states.
+
 Tests use synthetic data and loopback transports. Local/macOS CI checks do not
 establish real-device, real-provider, Windows/Linux, keychain or adversarial
 security acceptance. This branch has no local model downloads, managed API,
