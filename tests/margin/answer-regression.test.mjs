@@ -158,7 +158,7 @@ test('F1 actual Retry then Answer then Remove all cannot resend the withdrawn sc
     const before = mock.chatRequests().length;
     mock.setScript({ errorStatus: 503, retryAfterSeconds: 4 });
     await retry.click();
-    await until(() => mock.chatRequests().length !== before, { timeoutMs: 2_000, intervalMs: 20, throwOnTimeout: false });
+    await until(() => mock.chatRequests().length !== before, { timeoutMs: 15_000, intervalMs: 20, what: 'the Retry click to send its request' });
     assert.equal(mock.chatRequests().length, before + 1);
     await overlay.getByRole('button', { name: 'Answer', exact: true }).click();
     await waitVisible(stop);

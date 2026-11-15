@@ -996,7 +996,12 @@ test('S47 mounted settings and session selector share saved candidates through t
     const optionValues = locator => locator.locator('option').evaluateAll(options => options.map(option => option.value));
     await page.waitForFunction(id => [...document.querySelectorAll('[aria-label="Primary model"] option')].some(option => option.value === id), primary);
     const state = () => ({ primary: manager.getDefaultModel(), backup: manager.getGenerationPolicy().backupModel, session: helper.getCurrentModelSelection() });
-    const until = async (condition, message) => { for (let i = 0; i < 100 && !condition(); i++) await new Promise(resolve => setTimeout(resolve, 20)); assert.ok(condition(), message); };
+    // Main-process state behind a UI click (IPC + config write): 15 s like the suite's other
+    // waits (was 2 s), and a miss names the state it saw.
+    const until = async (condition, message) => {
+      for (const end = Date.now() + 15_000; !condition() && Date.now() < end;) await new Promise(resolve => setTimeout(resolve, 20));
+      assert.ok(condition(), `${message} (timed out after 15000 ms; state ${JSON.stringify(state())})`);
+    };
     assert.deepEqual(state(), { primary, backup: undefined, session: primary });
     const before = await optionValues(primarySelect);
     assert.ok(before.includes(id('gpt-5.4')) && before.includes('llm-target:deepseek:chat-completions:shared-model'));
