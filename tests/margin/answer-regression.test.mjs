@@ -2,7 +2,8 @@
 // (docs/margin/REGRESSION-SUITE-REBUILD.md, W2; replaced the previous suite in W5). Same
 // scenarios as the previous version of this file (PLAN.md AG-09, at commit 31ba5a3ea)
 // except the SQLite round trip (moved to tests/margin/meeting-storage.test.mjs) and S50
-// (deleted). "old line N" below is a line number in that previous version.
+// (deleted). "old line N" below is a line number in that previous version. Two cases marked
+// "New" close coverage gaps the previous version had.
 //
 // Drives the real renderer -> preload -> IPC -> LLMHelper path against a loopback mock
 // OpenAI server, inside the X2 isolation. Every case starts with resetCase(), so the
@@ -23,7 +24,7 @@ import {
   MODEL, RENDERER_UNSUBS, ctx, startSuite, endSuite, resetCase, ask, typeAndEnter, rows, rowsText, rowsTextContent,
   rowLocator, waitRows, waitRowsText, waitText, waitPage, waitVisible, waitHidden, until, observeWindow, holdStream,
   mainRead, patchOnce, record, recorded, installStreamIdSpy, streamIds, sendOverlayEvent, pressScreenshotShortcut,
-  overlayInput,
+  overlayInput, injectTranscript, waitOverlayMounted, selectAnswerModelAfterMount,
 } from './regression-harness.mjs';
 
 const require = createRequire(import.meta.url);
@@ -391,6 +392,31 @@ test('a WhatToSay scope refusal through the real renderer action displays one er
     assert.equal(occurrences(text, 'Data scope denied'), transcriptBefore + 1, 'the scope refusal must be shown exactly once');
     assert.equal(mock.chatRequests().length, before);
   } finally { await overlay.evaluate(scopes => window.electronAPI.setProviderDataScopes(scopes), original); }
+});
+
+// New (closes a coverage gap): What to answer from the transcript alone, success path. The
+// interviewer's words reach the session through IntelligenceManager.addTranscript
+// (injectTranscript); the whatToAnswer shortcut then runs handleWhatToSay with no
+// attachment (resetCase step 6), so generate-what-to-say answers from the frozen
+// transcript view only.
+test('What to answer from the transcript alone sends one answer request with the transcript and no image, shown once', async () => {
+  // Lowercase, no filler words: the What-to-answer transcript cleaner lowercases and drops fillers.
+  const heard = 'how would you migrate the zebra ledger service to three regions?';
+  const answer = 'Transcript gap answer complete.';
+  mock.setScript({ chunks: ['Transcript gap ', 'answer complete.'], delayMs: 20 });
+  assert.equal(await overlay.evaluate(() => [...document.querySelectorAll('img')].filter((img) => /^Screenshot \d+$/.test(img.alt)).length), 0,
+    'no attached screenshot');
+  assert.deepEqual(await injectTranscript({ speaker: 'interviewer', text: heard, final: true }), { success: true });
+  await sendOverlayEvent('global-shortcut', { action: 'whatToAnswer' });
+  await waitRows((r) => r.status === 'completed' && r.text.includes(answer), { what: 'the completed What to answer row' });
+  const requests = mock.chatRequests();
+  assert.equal(requests.length, 1, 'exactly one answer request');
+  assert.equal(requests[0].body.model, MODEL);
+  const wire = JSON.stringify(requests[0].body.messages);
+  assert.ok(wire.includes(heard), `the request carries the transcript text: ${wire.slice(0, 600)}`);
+  assert.doesNotMatch(wire, /data:image\//, 'no image in the request');
+  assert.equal((await rows((r) => r.text.includes(answer))).length, 1, 'the answer is in one row');
+  assert.equal(occurrences(await rowsText(), answer), 1, 'the answer is shown once');
 });
 
 // old line 477
@@ -777,4 +803,46 @@ test('AG33 real Natively renderer ignores automatic intelligence while manual ch
     assert.doesNotMatch(text, /LATE-ACTION-INVOKE/); assert.ok(text.includes('Old action partial preserved.'));
     assert.ok(text.includes('AG33 prior retained record.'), 'cancellation preserves prior UI records');
   } finally { hold.release(); }
+});
+
+// New (closes a coverage gap): on mount the overlay reads the saved default model and makes
+// it the runtime model (NativelyInterface.tsx, the getDefaultModel -> setModel effect), the
+// behaviour startSuite and the outbound AG34 case have to wait out. The overlay page is
+// reloaded to mount it again. Kept as the last case on purpose: a reload drops all
+// renderer-side state (preload state, subscriptions, the React tree, startSuite's frame
+// sampler). The finally block restores what startSuite established: frames steady after
+// the reload, the original saved default, and the answer model selected after the mount's
+// own reset has landed, so after() and any case added later see the startup state.
+test('on mount the overlay makes the saved default model the runtime model', async () => {
+  const savedDefault = `llm-target:openai:chat-completions:${encodeURIComponent(MODEL)}`;
+  const runtime = () => overlay.evaluate(async () => (await window.electronAPI.getCurrentLlmConfig())?.model ?? null);
+  const savedNow = async () => (await overlay.evaluate(() => window.electronAPI.getDefaultModel()))?.model ?? null;
+  const original = await overlay.evaluate(() => window.electronAPI.getDefaultModel());
+  assert.ok(original?.model && !original.unavailable, `the original default can be restored: ${JSON.stringify(original)}`);
+  assert.notEqual(savedDefault, ctx.answerModel);
+  assert.equal(await runtime(), ctx.answerModel);
+  let reloaded = false;
+  let mounted = false;
+  try {
+    const saved = await overlay.evaluate((m) => window.electronAPI.setDefaultModel(m), savedDefault);
+    assert.equal(saved?.ok, true, `setDefaultModel failed: ${JSON.stringify(saved)}`);
+    // set-default-model also applies the model at runtime; select the answer model again so
+    // that only the mount can make the runtime model equal the saved default.
+    await overlay.evaluate((m) => window.electronAPI.setModel(m), ctx.answerModel);
+    assert.equal(await savedNow(), savedDefault);
+    assert.equal(await runtime(), ctx.answerModel, 'before the mount the runtime model differs from the saved default');
+    reloaded = true;
+    await overlay.reload();
+    await waitOverlayMounted(overlay, 'default-model case reload');
+    mounted = true;
+    await until(async () => (await runtime()) === savedDefault,
+      { timeoutMs: 15_000, what: 'the runtime model to become the saved default after the overlay mounted' });
+  } finally {
+    if (reloaded && !mounted) await waitOverlayMounted(overlay, 'default-model case restore');
+    const restored = await overlay.evaluate((m) => window.electronAPI.setDefaultModel(m), original.model);
+    assert.equal(restored?.ok, true, `restore the original default model: ${JSON.stringify(restored)}`);
+    // After the reload the mount's own setModel may still be in flight; this waits it out first.
+    await selectAnswerModelAfterMount();
+    assert.equal(await savedNow(), original.model, 'the original default model is saved again');
+  }
 });

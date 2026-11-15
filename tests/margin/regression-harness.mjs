@@ -394,6 +394,28 @@ export function sendOverlayEvent(channel, ...args) {
   }, [channel, args], `send ${channel}`);
 }
 
+// Adds one transcript segment through the product's own test-inject-transcript handler
+// (electron/ipcHandlers.ts: IntelligenceManager.addTranscript, the call live STT finals
+// and gemini-chat also make). That handler answers only when NODE_ENV is 'test', and this
+// suite runs with NODE_ENV=production like the other Electron suites, so the main process
+// sets NODE_ENV to 'test' for the synchronous part of one direct call of the registered
+// handler (the check and addTranscript run before its first await) and puts it back before
+// anything else can run. Side effect, so mainDo (never retried). resetCase() step 4
+// (resetIntelligence) clears the transcript again.
+export function injectTranscript(segment) {
+  return mainDo(async ({ ipcMain }, seg) => {
+    const handler = ipcMain._invokeHandlers?.get('test-inject-transcript');
+    if (!handler) throw new Error('test-inject-transcript handler not found');
+    const previous = process.env.NODE_ENV;
+    let pending;
+    process.env.NODE_ENV = 'test';
+    try { pending = handler({ sender: null }, seg); } finally {
+      if (previous === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previous;
+    }
+    return await pending;
+  }, segment, 'injectTranscript');
+}
+
 // The real shortcut path: main sends 'global-shortcut' {action:'takeScreenshot'} to the overlay.
 export const pressScreenshotShortcut = () => sendOverlayEvent('global-shortcut', { action: 'takeScreenshot' });
 
@@ -427,6 +449,35 @@ export async function startSuite() {
 
   const overlay = await windowWithQuery(state.app, 'window=overlay');
   state.overlay = overlay;
+  await waitOverlayMounted(overlay, 'startSuite');
+
+  // On mount the overlay reads the saved default model and makes it the runtime model.
+  // Select the gateway model from the overlay itself, after two round trips on the same
+  // IPC channel order, so that reset cannot land later.
+  state.answerModel = `llm-gateway:${state.answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`;
+  await selectAnswerModelAfterMount();
+  state.defaultScopes = await overlay.evaluate(() => window.electronAPI.getProviderDataScopes());
+  return state;
+}
+
+// Selects the suite's answer model from the overlay after its mount-time default-model
+// reset (getDefaultModel then setModel, NativelyInterface.tsx), which could otherwise land
+// later: two getDefaultModel round trips on the same IPC channel order come first.
+export async function selectAnswerModelAfterMount() {
+  const { overlay } = state;
+  await overlay.evaluate(async (m) => {
+    await window.electronAPI.getDefaultModel();
+    await window.electronAPI.getDefaultModel();
+    await window.electronAPI.setModel(m);
+    await window.electronAPI.getDefaultModel();
+  }, state.answerModel);
+  const config = await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig());
+  assert.equal(config?.model, state.answerModel, `active model is ${JSON.stringify(config)}`);
+}
+
+// Waits until the overlay page has loaded, rendered its input and draws frames steadily.
+// Used at launch and after a case reloads the overlay page.
+export async function waitOverlayMounted(overlay, label) {
   await overlay.waitForLoadState('domcontentloaded');
   await until(async () => (await overlay.locator('input[type="text"]').count()) > 0, { timeoutMs: 20_000, what: 'overlay input attached' });
 
@@ -449,23 +500,8 @@ export async function startSuite() {
     const samples = await overlay.evaluate(() => {
       const s = window.__marginRafSampler; s.stopped = true; clearInterval(s.timer); return s.perSecond;
     });
-    console.log(`[harness] overlay frames per second until steady (${Date.now() - t0} ms): ${JSON.stringify(samples)}`);
+    console.log(`[harness] ${label}: overlay frames per second until steady (${Date.now() - t0} ms): ${JSON.stringify(samples)}`);
   }
-
-  // On mount the overlay reads the saved default model and makes it the runtime model.
-  // Select the gateway model from the overlay itself, after two round trips on the same
-  // IPC channel order, so that reset cannot land later.
-  state.answerModel = `llm-gateway:${state.answerGateway}:chat-completions:${encodeURIComponent(MODEL)}`;
-  await overlay.evaluate(async (m) => {
-    await window.electronAPI.getDefaultModel();
-    await window.electronAPI.getDefaultModel();
-    await window.electronAPI.setModel(m);
-    await window.electronAPI.getDefaultModel();
-  }, state.answerModel);
-  const config = await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig());
-  assert.equal(config?.model, state.answerModel, `active model is ${JSON.stringify(config)}`);
-  state.defaultScopes = await overlay.evaluate(() => window.electronAPI.getProviderDataScopes());
-  return state;
 }
 
 // Closes the app and the mock and returns what the suite's after hook asserts.
