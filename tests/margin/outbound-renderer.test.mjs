@@ -10,7 +10,80 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { launchApp, windowWithQuery } from './launch-app.mjs';
+import { mainRead, mainDo } from './main-eval.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
+
+// Every main-process call of this suite goes through mainRead (repeatable: retried on a
+// transient "context was destroyed") or mainDo (side effects: never retried), see
+// tests/margin/main-eval.mjs. launchApp's own startup query has its own retry.
+
+// On a timed-out wait, prints ONE line '[outbound] timeout dump <json>' with the page's
+// URL, localStorage keys (never values), up to 20 button labels, the first 300 characters
+// of the body text and the number of [aria-hidden="true"], [inert] elements (for a
+// window wait: the URLs of the app's windows). Never throws and takes at most
+// DUMP_BUDGET_MS, so the caller's original error is thrown unchanged.
+const DUMP_BUDGET_MS = 5_000;
+const isTimeout = error => error?.name === 'TimeoutError' || /Timeout \d+ms exceeded|did not appear|timed out/i.test(String(error?.message ?? error));
+async function timeoutDump(label, { page, app } = {}) {
+  const dump = { label };
+  let timer;
+  try {
+    const gather = async () => {
+      if (app) { try { dump.windows = app.windows().map(w => w.url().slice(0, 160)); } catch (e) { dump.windowsError = String(e?.message ?? e).split('\n')[0]; } }
+      const target = typeof page === 'function' ? page() : page;
+      if (!target) return;
+      try { dump.url = target.url().slice(0, 300); } catch (e) { dump.urlError = String(e?.message ?? e).split('\n')[0]; }
+      try {
+        Object.assign(dump, await target.evaluate(() => {
+          let keys; try { keys = Object.keys(localStorage); } catch (e) { keys = `unavailable: ${e.message}`; }
+          return {
+            localStorageKeys: keys,
+            buttons: [...document.querySelectorAll('button')].slice(0, 20).map(b => b.getAttribute('aria-label') || b.textContent.trim().slice(0, 80)),
+            text: (document.body?.innerText ?? '').slice(0, 300),
+            hiddenOrInert: document.querySelectorAll('[aria-hidden="true"], [inert]').length,
+          };
+        }));
+      } catch (e) { dump.pageError = String(e?.message ?? e).split('\n')[0]; }
+    };
+    await Promise.race([
+      gather().catch(e => { dump.error = String(e?.message ?? e); }),
+      new Promise(resolve => { timer = setTimeout(() => { dump.incomplete = `dump budget ${DUMP_BUDGET_MS} ms exceeded`; resolve(); }, DUMP_BUDGET_MS); }),
+    ]);
+    let line;
+    try { line = JSON.stringify(dump); } catch (e) { line = JSON.stringify({ label, stringifyError: String(e?.message ?? e) }); }
+    console.error(`[outbound] timeout dump ${line}`);
+  } catch (e) {
+    try { console.error(`[outbound] timeout dump failed: ${e?.message ?? e}`); } catch { /* nothing left to do */ }
+  } finally { clearTimeout(timer); }
+}
+// Runs `wait`; if it times out, prints a timeout dump of `target` ({ page, app }; page may
+// be a function returning the page) and rethrows the original error.
+async function dumpOnTimeout(label, target, wait) {
+  try { return await wait(); } catch (error) {
+    if (isTimeout(error)) await timeoutDump(label, target);
+    throw error;
+  }
+}
+const findWindow = (app, query, timeoutMs) => dumpOnTimeout(`window ${query}`, { app }, () => windowWithQuery(app, query, timeoutMs));
+
+// Opens a hidden sandboxed test window with `html` and returns its page. Repeatable
+// (mainRead): the window is created at most once per key, and a second run waits for the
+// first run's load.
+let testWindows = 0;
+async function openTestWindow(app, html = '<div id="root"></div>', options = {}) {
+  const key = `w${++testWindows}`;
+  const opened = app.waitForEvent('window');
+  opened.catch(() => {});
+  await mainRead(app, async ({ BrowserWindow }, { key, html, options }) => {
+    const slots = (globalThis.__outboundTestWindows ??= {});
+    slots[key] ??= (async () => {
+      const win = new BrowserWindow({ show: false, ...options, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
+      await win.loadURL(`data:text/html,${html}`);
+    })();
+    await slots[key];
+  }, { key, html, options }, `open test window ${key}`);
+  return dumpOnTimeout(`test window ${key}`, { app }, () => opened);
+}
 
 test('AG62 mounted Launcher checks local setup, refreshes on return and cleans up stale reads without outbound actions', async () => {
   const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
@@ -57,10 +130,8 @@ test('AG62 mounted Launcher checks local setup, refreshes on return and cleans u
   const sandbox = makeSandbox('ag62-setup'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await opened, pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app), pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
     await page.evaluate(() => {
       const storage = new Map();
       Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
@@ -173,10 +244,8 @@ test('AG62 mounted App cancels permission guidance on meeting start and ignores 
   const sandbox = makeSandbox('ag62-permissions'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await opened, errors = []; page.on('pageerror', error => errors.push(error.message));
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app), errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.evaluate(() => {
       const storage = new Map([['natively_seen_startup_v1', 'true'], ['natively_perms_shown_v1', '1']]);
       Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
@@ -255,10 +324,8 @@ test('AG61 mounted production consumers reconcile save/apply failures and ignore
   const applyError = 'The window preference could not be fully applied. Retry the setting.';
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await opened; const pageErrors = []; page.on('pageerror', error => { pageErrors.push(error.message); console.error('[AG61 renderer]', error.message); });
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app); const pageErrors = []; page.on('pageerror', error => { pageErrors.push(error.message); console.error('[AG61 renderer]', error.message); });
     await page.evaluate(() => {
       const storage = new Map();
       Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
@@ -329,13 +396,8 @@ test('AG60a mounted Skills settings switch language without resetting controls o
   let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => {
-      const window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
-      await window.loadURL('data:text/html,<div id="root"></div>');
-    });
-    const page = await opened;
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app);
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
     await page.getByRole('heading', { name: 'Prompt Skills and additional instructions', exact: true }).waitFor();
     await page.waitForFunction(() => window.refreshes === 1);
@@ -362,46 +424,50 @@ test('AG60a mounted Skills settings switch language without resetting controls o
 test('AG60 real launcher, overlay and menu share a saved interface language without losing drafts', async () => {
   const sandbox = makeSandbox('ag60-ui-language');
   const lang = page => page.evaluate(() => document.documentElement.lang);
-  const menuLabels = app => app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.items.map(item => item.label) ?? []);
+  const menuLabels = app => mainRead(app, ({ Menu }) => Menu.getApplicationMenu()?.items.map(item => item.label) ?? [], undefined, 'AG60 menu labels');
+  // The overlay is never shown in this case: its waits poll on an interval, not on animation frames.
+  const overlayPolling = { polling: 100 };
   let app, userDataPath;
   try {
     ({ app, userDataPath } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    const launcher = await windowWithQuery(app, 'window=launcher', 30_000);
-    const overlay = await windowWithQuery(app, 'window=overlay', 30_000);
+    const launcher = await findWindow(app, 'window=launcher', 30_000);
+    const overlay = await findWindow(app, 'window=overlay', 30_000);
+    const onLauncher = (label, wait) => dumpOnTimeout(`AG60 ${label}`, { page: launcher }, wait);
+    const onOverlay = (label, wait) => dumpOnTimeout(`AG60 overlay ${label}`, { page: overlay }, wait);
     // Skip the existing first-run screens so the launcher home and Settings are reachable.
     await launcher.evaluate(() => { localStorage.setItem('natively_seen_startup_v1', 'true'); localStorage.setItem('natively_perms_shown_v1', '1'); });
     await launcher.reload();
-    await launcher.getByRole('button', { name: 'Settings', exact: true }).first().click();
-    await launcher.getByRole('heading', { name: 'Interface Language', exact: true }).waitFor();
+    await onLauncher('Settings button', () => launcher.getByRole('button', { name: 'Settings', exact: true }).first().click());
+    await onLauncher('Interface Language heading', () => launcher.getByRole('heading', { name: 'Interface Language', exact: true }).waitFor());
     assert.equal(await lang(launcher), 'en');
     assert.ok((await menuLabels(app)).includes('View'));
 
     // A change saved from another window reaches the launcher without remounting its draft.
-    await launcher.getByRole('button', { name: 'Context & Skills', exact: true }).click();
+    await onLauncher('Context & Skills section', () => launcher.getByRole('button', { name: 'Context & Skills', exact: true }).click());
     const draft = launcher.locator('textarea').first();
-    await draft.waitFor();
+    await onLauncher('Context & Skills draft', () => draft.waitFor());
     await draft.fill('UNSAVED AG60 DRAFT');
     await draft.evaluate(element => { element.ag60Marker = true; });
     assert.deepEqual(await overlay.evaluate(() => window.electronAPI.setUiLanguage('zh-CN')), { ok: true, language: 'zh-CN' });
-    await launcher.getByRole('button', { name: '上下文与技能', exact: true }).waitFor();
+    await onLauncher('上下文与技能 section', () => launcher.getByRole('button', { name: '上下文与技能', exact: true }).waitFor());
     assert.equal(await draft.inputValue(), 'UNSAVED AG60 DRAFT');
     assert.equal(await draft.evaluate(element => element.ag60Marker), true);
     assert.equal(await lang(launcher), 'zh-CN');
-    await overlay.waitForFunction(() => document.documentElement.lang === 'zh-CN');
-    await overlay.waitForFunction(() => document.body.textContent.includes('该怎么回答？'));
+    await onOverlay('lang zh-CN', () => overlay.waitForFunction(() => document.documentElement.lang === 'zh-CN', undefined, overlayPolling));
+    await onOverlay('Chinese text', () => overlay.waitForFunction(() => document.body.textContent.includes('该怎么回答？'), undefined, overlayPolling));
     assert.ok((await menuLabels(app)).includes('视图'));
 
     // The settings control saves through main; invalid values from a renderer change nothing.
-    await launcher.getByRole('button', { name: '通用', exact: true }).click();
-    await launcher.getByRole('radio', { name: 'English', exact: true }).click();
-    await launcher.getByRole('heading', { name: 'Interface Language', exact: true }).waitFor();
-    await overlay.waitForFunction(() => document.documentElement.lang === 'en');
+    await onLauncher('通用 section', () => launcher.getByRole('button', { name: '通用', exact: true }).click());
+    await onLauncher('English radio', () => launcher.getByRole('radio', { name: 'English', exact: true }).click());
+    await onLauncher('Interface Language heading after English', () => launcher.getByRole('heading', { name: 'Interface Language', exact: true }).waitFor());
+    await onOverlay('lang en', () => overlay.waitForFunction(() => document.documentElement.lang === 'en', undefined, overlayPolling));
     assert.ok((await menuLabels(app)).includes('View'));
     assert.deepEqual(await overlay.evaluate(() => window.electronAPI.setUiLanguage('fr')), { ok: false, message: 'Unsupported interface language.' });
-    await launcher.getByRole('radio', { name: '简体中文', exact: true }).click();
-    await launcher.getByRole('heading', { name: '界面语言', exact: true }).waitFor();
+    await onLauncher('简体中文 radio', () => launcher.getByRole('radio', { name: '简体中文', exact: true }).click());
+    await onLauncher('界面语言 heading', () => launcher.getByRole('heading', { name: '界面语言', exact: true }).waitFor());
     assert.equal(await launcher.getByRole('radio', { name: '简体中文', exact: true }).getAttribute('aria-checked'), 'true');
-    await overlay.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    await onOverlay('lang zh-CN after radio', () => overlay.waitForFunction(() => document.documentElement.lang === 'zh-CN', undefined, overlayPolling));
     assert.equal(JSON.parse(fs.readFileSync(path.join(userDataPath, 'settings.json'), 'utf8')).uiLanguage, 'zh-CN');
 
     // A failed write reports an error and leaves every window and the saved file unchanged.
@@ -411,8 +477,8 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
     const unlock = () => fs.chmodSync(locked, process.platform === 'win32' ? 0o600 : 0o700);
     fs.chmodSync(locked, process.platform === 'win32' ? 0o444 : 0o500);
     try {
-      await launcher.getByRole('radio', { name: 'English', exact: true }).click();
-      await launcher.getByRole('alert').filter({ hasText: '无法保存界面语言' }).waitFor();
+      await onLauncher('English radio (read-only file)', () => launcher.getByRole('radio', { name: 'English', exact: true }).click());
+      await onLauncher('save error alert', () => launcher.getByRole('alert').filter({ hasText: '无法保存界面语言' }).waitFor());
     } finally { unlock(); }
     assert.equal(await lang(launcher), 'zh-CN');
     assert.equal(await lang(overlay), 'zh-CN');
@@ -422,8 +488,9 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
     await app.close(); app = undefined;
 
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    const restarted = await windowWithQuery(app, 'window=launcher', 30_000);
-    await restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    const restarted = await findWindow(app, 'window=launcher', 30_000);
+    const onRestarted = (label, wait) => dumpOnTimeout(`AG60 after restart ${label}`, { page: restarted }, wait);
+    await onRestarted('lang zh-CN', () => restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN'));
     // Diagnose, then repair, a first-run flag lost across the restart (key names only, never values).
     const snapshot = () => restarted.evaluate(() => ({
       seenStartup: localStorage.getItem('natively_seen_startup_v1'),
@@ -439,7 +506,7 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
       try { console.error(`AG60 leveldb: ${JSON.stringify(fs.readdirSync(leveldb).map(name => [name, fs.statSync(path.join(leveldb, name)).size]))}`); } catch (e) { console.error(`AG60 leveldb: ${e.message}`); }
       await restarted.evaluate(() => { localStorage.setItem('natively_seen_startup_v1', 'true'); localStorage.setItem('natively_perms_shown_v1', '1'); });
       await restarted.reload();
-      await restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+      await onRestarted('lang zh-CN after re-seed', () => restarted.waitForFunction(() => document.documentElement.lang === 'zh-CN'));
     }
     try {
       await restarted.getByRole('button', { name: '设置', exact: true }).first().waitFor();
@@ -449,8 +516,8 @@ test('AG60 real launcher, overlay and menu share a saved interface language with
     }
     assert.ok((await menuLabels(app)).includes('视图'));
     await restarted.evaluate(() => window.electronAPI.toggleSettingsWindow());
-    const popup = await windowWithQuery(app, 'window=settings');
-    await popup.waitForFunction(() => document.documentElement.lang === 'zh-CN');
+    const popup = await findWindow(app, 'window=settings');
+    await dumpOnTimeout('AG60 settings popup lang zh-CN', { page: popup }, () => popup.waitForFunction(() => document.documentElement.lang === 'zh-CN'));
     assert.equal(await popup.getByText('面试模式', { exact: true }).count(), 1, 'the menu has exactly one interview-mode label');
     assert.equal(await popup.getByRole('switch', { name: '面试模式', exact: true }).count(), 1);
   } finally {
@@ -489,13 +556,8 @@ test('AG60 mounted help, meeting history and a visible error fallback switch lan
   const sandbox = makeSandbox('ag60-retained-surfaces'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => {
-      const window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
-      await window.loadURL('data:text/html,<div id="root"></div>');
-    });
-    const page = await opened;
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app);
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
     await page.getByRole('button', { name: 'Transcript', exact: true }).waitFor();
     await page.evaluate(() => window.changeLanguage('zh-CN'));
@@ -581,9 +643,8 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('ag34-consent-components'); let app;
   try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
-    const created = app.waitForEvent('window'); await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await created; await page.exposeFunction('invokeCodex', (name, args) => bridge[name](...args)); await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app); await page.exposeFunction('invokeCodex', (name, args) => bridge[name](...args)); await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
     const enable = page.getByRole('button', { name: 'Enable Codex login source', exact: true }), risk = page.getByRole('checkbox', { name: 'Accept Codex login-source risks', exact: true });
     await page.waitForFunction(() => document.body.innerText.includes('Codex login source (file only)')); assert.equal(await enable.isDisabled(), true); assert.equal(reads, 0); assert.equal(sends, 0);
     assert.match(await page.locator('body').innerText(), /consent is not provider authorization|Your consent is not provider authorization/);
@@ -651,9 +712,8 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('s45-provider-settings'); let app;
   try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
-    const created = app.waitForEvent('window'); await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await created; await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app); await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
     await page.getByRole('button', { name: /^OpenAI/ }).click();
     // S48: the official card has no reasoning control; the protocol select is the draft field here.
     const protocol = page.getByRole('combobox', { name: 'OpenAI protocol', exact: true });
@@ -795,10 +855,8 @@ test('S49 mounted provider discards a late list after an external protocol updat
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('s49-external-protocol'); let app;
   try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
-    const created = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await created; await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app); await page.addScriptTag({ content: bundle.outputFiles[0].text });
     await page.getByRole('button', { name: /^OpenAI/ }).click();
     const fetch = page.getByRole('button', { name: 'Fetch Models', exact: true });
     const list = page.getByRole('combobox', { name: 'OpenAI model to add', exact: true });
@@ -914,9 +972,8 @@ test('S47 mounted settings and session selector share saved candidates through t
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('s47-candidates'); let app;
   try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
-    const created = app.waitForEvent('window'); await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="settings"></div><div id="selector"></div>'); });
-    const page = await created; page.on('dialog', dialog => dialog.accept());
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app, '<div id="settings"></div><div id="selector"></div>'); page.on('dialog', dialog => dialog.accept());
     await page.exposeFunction('invokeMain', (name, args) => call(name, args));
     await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => { window.mountSettings(); window.mountSelector(); });
     const settings = page.locator('#settings'), selector = page.locator('#selector');
@@ -1120,11 +1177,8 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('s48-reasoning'); let app;
   try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
-    const created = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, width: 900, height: 1400, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
-      await win.loadURL('data:text/html,<div id="settings"></div><div id="overlay"></div>'); });
-    page = await created; const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message)); page.on('dialog', dialog => dialog.accept());
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
+    page = await openTestWindow(app, '<div id="settings"></div><div id="overlay"></div>', { width: 900, height: 1400 }); const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message)); page.on('dialog', dialog => dialog.accept());
     const assets = path.join(REPO, 'dist/assets');
     for (const css of fs.readdirSync(assets).filter(name => name.endsWith('.css'))) await page.addStyleTag({ path: path.join(assets, css) });
     await page.exposeFunction('invokeMain', (name, args) => call(name, args));
@@ -1299,15 +1353,22 @@ test('S42-01 mounted domestic STT settings save, reload and test the chosen work
   ` }, bundle: true, write: false, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('s42-domestic-stt'); let app;
   try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await opened; await page.exposeFunction('invokeStt', (name, args) => bridge[name](...args)); await page.addScriptTag({ content: bundle.outputFiles[0].text });
+    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app); await page.exposeFunction('invokeStt', (name, args) => bridge[name](...args)); await page.addScriptTag({ content: bundle.outputFiles[0].text });
     const status = text => page.waitForFunction(value => document.querySelector('[role="status"]')?.textContent === value, text);
     const show = async provider => {
       const loads = calls.filter(([channel]) => channel === 'get-domestic-stt').length;
       await page.evaluate(value => window.show(value), provider);
-      while (replies.length < calls.length || calls.filter(([channel]) => channel === 'get-domestic-stt').length === loads) await new Promise(resolve => setTimeout(resolve, 25));
+      // Bounded (it used to wait until the test timeout) so a stuck load prints a timeout dump.
+      const loadDeadline = Date.now() + 30_000;
+      while (replies.length < calls.length || calls.filter(([channel]) => channel === 'get-domestic-stt').length === loads) {
+        if (Date.now() > loadDeadline) {
+          const error = new Error(`timed out after 30000 ms waiting for ${provider} settings to load (calls ${calls.length}, replies ${replies.length})`);
+          await timeoutDump(`S42 show ${provider}`, { page });
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
       await page.waitForTimeout(100);
     };
     const button = name => page.getByRole('button', { name, exact: true });
@@ -1382,9 +1443,11 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
   let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    const page = await windowWithQuery(app, 'window=launcher', 30_000);
-    await page.waitForFunction(() => Boolean(window.electronAPI?.getCodexCliConfig));
-    await app.evaluate((_electron, filename) => {
+    const page = await findWindow(app, 'window=launcher', 30_000);
+    await dumpOnTimeout('AG34 launcher preload', { page }, () => page.waitForFunction(() => Boolean(window.electronAPI?.getCodexCliConfig)));
+    // Repeatable (mainRead): a second run finds the probe installed and leaves it alone.
+    await mainRead(app, (_electron, filename) => {
+      if (globalThis.__ag34AuthProbe) return;
       const fs = process.getBuiltinModule('fs'), original = fs.promises.open;
       const probe = { opens: 0, bytes: 0, closes: 0, delayed: false, started: false, release: undefined };
       fs.promises.open = async function (...args) {
@@ -1397,8 +1460,8 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
         return file;
       };
       globalThis.__ag34AuthProbe = { probe, restore: () => { fs.promises.open = original; } };
-    }, authFile);
-    const counts = () => app.evaluate(() => { const { opens, bytes, closes, started } = globalThis.__ag34AuthProbe.probe; return { opens, bytes, closes, started }; });
+    }, authFile, 'AG34 install auth probe');
+    const counts = () => mainRead(app, () => { const { opens, bytes, closes, started } = globalThis.__ag34AuthProbe.probe; return { opens, bytes, closes, started }; }, undefined, 'AG34 probe counts');
     assert.equal((await page.evaluate(() => window.electronAPI.getCodexCliConfig())).enabled, false);
     assert.equal((await page.evaluate(() => window.electronAPI.testCodexCli())).status, 'disabled');
     assert.equal((await counts()).opens, 0);
@@ -1411,8 +1474,8 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
     assert.equal(status.status, 'locally-valid'); assert.match(status.message, /unverified/);
     const baseline = await counts(); assert.equal(baseline.opens, 1); assert.ok(baseline.bytes > 0); assert.equal(baseline.closes, 1);
     // Select from the mounted overlay after its own default-model reset, which could otherwise land later.
-    const overlay = await windowWithQuery(app, 'window=overlay', 30_000);
-    await overlay.locator('input[type="text"]').last().waitFor({ state: 'attached', timeout: 20_000 });
+    const overlay = await findWindow(app, 'window=overlay', 30_000);
+    await dumpOnTimeout('AG34 overlay input', { page: overlay }, () => overlay.locator('input[type="text"]').last().waitFor({ state: 'attached', timeout: 20_000 }));
     const selected = await overlay.evaluate(async () => {
       await window.electronAPI.getDefaultModel();
       await window.electronAPI.getDefaultModel();
@@ -1422,7 +1485,7 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
     });
     assert.equal(selected.success, true);
     assert.equal((await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()))?.model, 'codex-cli');
-    await app.evaluate(() => { globalThis.__ag34AuthProbe.probe.delayed = true; });
+    await mainRead(app, () => { globalThis.__ag34AuthProbe.probe.delayed = true; }, undefined, 'AG34 delay auth reads');
     await page.evaluate(() => {
       window.ag34Errors = [];
       window.ag34Unsubscribe = window.electronAPI.onGeminiStreamError((error, metadata) => window.ag34Errors.push({ error, metadata }));
@@ -1436,7 +1499,7 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
     await page.waitForFunction(() => window.ag34Finished && window.ag34Errors.length === 1);
     const metadata = await page.evaluate(() => window.ag34Errors[0].metadata);
     assert.equal(metadata.status, 'cancelled'); assert.equal(metadata.attempts, 0);
-    await app.evaluate(() => { globalThis.__ag34AuthProbe.probe.release(); });
+    await mainDo(app, () => { globalThis.__ag34AuthProbe.probe.release(); }, undefined, 'AG34 release delayed read');
     const closeDeadline = Date.now() + 10_000;
     while ((await counts()).closes !== 2 && Date.now() < closeDeadline) await new Promise(resolve => setTimeout(resolve, 25));
     const after = await counts(); assert.equal(after.opens, 2); assert.equal(after.closes, 2); assert.equal(after.bytes, baseline.bytes);
@@ -1444,19 +1507,19 @@ test('AG34 native launcher preload and IPC gate synthetic local auth and cancel 
     assert.equal((await page.evaluate(() => window.electronAPI.testCodexCli())).status, 'disabled');
     assert.equal((await counts()).opens, 2);
     assert.equal((await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: true, acceptRisk: true }))).success, true);
-    await app.evaluate(() => { const probe = globalThis.__ag34AuthProbe.probe; probe.started = false; probe.release = undefined; });
+    await mainRead(app, () => { const probe = globalThis.__ag34AuthProbe.probe; probe.started = false; probe.release = undefined; }, undefined, 'AG34 reset probe');
     await page.evaluate(() => { window.ag34LocalCheck = window.electronAPI.testCodexCli().then(result => { window.ag34LocalResult = result; }); });
     const statusDeadline = Date.now() + 10_000;
     while (!(await counts()).started && Date.now() < statusDeadline) await new Promise(resolve => setTimeout(resolve, 25));
     assert.equal((await counts()).started, true, 'local status must reach the same exact synthetic auth file');
     assert.equal((await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: false }))).success, true);
-    await app.evaluate(() => { globalThis.__ag34AuthProbe.probe.release(); });
+    await mainDo(app, () => { globalThis.__ag34AuthProbe.probe.release(); }, undefined, 'AG34 release local status read');
     await page.waitForFunction(() => Boolean(window.ag34LocalResult));
     assert.equal((await page.evaluate(() => window.ag34LocalResult)).status, 'disabled');
     const statusAfter = await counts(); assert.equal(statusAfter.opens, 3); assert.equal(statusAfter.closes, 3); assert.equal(statusAfter.bytes, baseline.bytes);
     await page.evaluate(() => window.ag34Unsubscribe());
   } finally {
-    if (app) { await app.evaluate(() => { globalThis.__ag34AuthProbe?.probe.release?.(); globalThis.__ag34AuthProbe?.restore(); }).catch(() => {}); await app.close(); }
+    if (app) { await mainDo(app, () => { globalThis.__ag34AuthProbe?.probe.release?.(); globalThis.__ag34AuthProbe?.restore(); }, undefined, 'AG34 release and restore probe').catch(() => {}); await app.close(); }
   }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
@@ -1478,15 +1541,10 @@ test('AG33 real Global React overlay preserves partial failure, fences closed ca
   const sandbox = makeSandbox('ag33-components'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
+    await findWindow(app, 'window=launcher', 30_000);
     // The meeting chat overlay was removed in AG-52 (PLAN S33); only the global one is left.
     for (const owner of ['global']) {
-      const created = app.waitForEvent('window');
-      await app.evaluate(async ({ BrowserWindow }) => {
-        const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
-        await win.loadURL('data:text/html,<div id="root"></div>');
-      });
-      const page = await created;
+      const page = await openTestWindow(app);
       await page.addScriptTag({ content: bundle.outputFiles[0].text });
       await page.evaluate(kind => window.show(kind, 'Partial question'), owner);
       await page.waitForFunction(() => window.calls.length === 1);
@@ -1532,9 +1590,23 @@ test('AG33 real Global React overlay preserves partial failure, fences closed ca
       assert.equal((await page.locator('body').innerText()).split('Fresh post-close answer.').length - 1, 1);
       await page.evaluate(kind => window.show(kind, '', false), owner);
       await page.waitForTimeout(300);
-      await page.evaluate(kind => window.show(kind, 'Delayed close question'), owner);
-      await page.waitForFunction(() => document.body.innerText.includes('Delayed close question'));
-      await page.evaluate(kind => window.show(kind, '', false), owner);
+      // The close has to land inside the component's own 200 ms typing delay
+      // (src/components/GlobalChatOverlay.tsx:214), which starts when the question is
+      // submitted, just before it is shown. Closing from Node after a waitForFunction
+      // round trip (animation-frame polling in a hidden window, then a second evaluate)
+      // could miss that window on a slow machine, so the page closes the overlay itself
+      // as soon as the question appears. The 400 ms observation window below is unchanged.
+      await page.evaluate(kind => new Promise((resolve, reject) => {
+        const shown = () => document.body.innerText.includes('Delayed close question');
+        const observer = new MutationObserver(() => {
+          if (!shown()) return;
+          observer.disconnect(); clearTimeout(timer);
+          window.show(kind, '', false); resolve();
+        });
+        const timer = setTimeout(() => { observer.disconnect(); reject(Error('Delayed close question was not shown within 30000 ms')); }, 30_000);
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+        window.show(kind, 'Delayed close question');
+      }), owner);
       await page.waitForTimeout(400);
       assert.equal(await page.evaluate(() => window.calls.length), 4, 'closing inside the 200ms delay makes no provider invocation');
       await page.close();
@@ -1574,13 +1646,8 @@ test('all seven Markdown callers and streaming sanitize block image loads in a r
   let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const created = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => {
-      const window = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } });
-      await window.loadURL('data:text/html,<div id="markdown"></div><div id="stream"></div>');
-    });
-    const page = await created;
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app, '<div id="markdown"></div><div id="stream"></div>');
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
     await page.evaluate(url => window.render(`![synthetic](${url})`, true), image);
     await page.waitForFunction(() => document.querySelector('img')?.complete);
@@ -1615,18 +1682,19 @@ test('app windows refuse foreign navigation and child windows; only https links 
   let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    const page = await windowWithQuery(app, 'window=launcher', 30_000);
+    const page = await findWindow(app, 'window=launcher', 30_000);
     const startUrl = page.url();
-    const windowCount = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const windowCount = () => mainRead(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length, undefined, 'AG24 window count');
     const before = await windowCount();
 
     // Positive control: the loopback page itself is reachable, so zero requests below
     // mean the navigations were refused, not that the server was unreachable.
-    await app.evaluate(async ({ BrowserWindow }, url) => {
+    // mainDo: it makes the one request the count below expects.
+    await mainDo(app, async ({ BrowserWindow }, url) => {
       const control = new BrowserWindow({ show: false });
       await control.loadURL(url);
       control.destroy();
-    }, `${local}/control`);
+    }, `${local}/control`, 'AG24 loopback control');
     assert.equal(requests, 1);
 
     const externalOpens = () => readBlocked(sandbox).filter(record => record.kind === 'external-open').map(record => record.detail).sort();
@@ -1670,9 +1738,11 @@ test('app windows refuse foreign navigation and child windows; only https links 
       }, 25);
       return navigator.userActivation.isActive;
     };
-    const activeAtSetup = await app.evaluate(({ BrowserWindow }, source) => BrowserWindow.getAllWindows()
+    // mainDo: it installs the controls and arms the timer in the launcher (a second run
+    // would add a second set and a second timer).
+    const activeAtSetup = await mainDo(app, ({ BrowserWindow }, source) => BrowserWindow.getAllWindows()
       .find(win => win.webContents.getURL().includes('window=launcher')).webContents.executeJavaScript(source, false),
-    `(${setup})(${JSON.stringify(local)})`);
+    `(${setup})(${JSON.stringify(local)})`, 'AG24 install controls');
     assert.equal(activeAtSetup, false, 'the timer was armed without user activation');
     await page.waitForTimeout(200);
     assert.deepEqual(externalOpens(), [], 'nothing opens before the first click');
@@ -1755,10 +1825,8 @@ test('mounted Launcher unsaved meeting banner orders query and events, guards co
   const sandbox = makeSandbox('unsaved-meeting-banner'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    await windowWithQuery(app, 'window=launcher', 30_000);
-    const opened = app.waitForEvent('window');
-    await app.evaluate(async ({ BrowserWindow }) => { const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false } }); await win.loadURL('data:text/html,<div id="root"></div>'); });
-    const page = await opened, pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
+    await findWindow(app, 'window=launcher', 30_000);
+    const page = await openTestWindow(app), pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
     await page.evaluate(() => {
       const storage = new Map();
       Object.defineProperty(window, 'localStorage', { value: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, String(value)), removeItem: key => storage.delete(key) } });
