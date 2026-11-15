@@ -23,7 +23,7 @@ import { windowWithQuery } from './launch-app.mjs';
 import {
   MODEL, RENDERER_UNSUBS, ctx, startSuite, endSuite, resetCase, ask, typeAndEnter, rows, rowsText, rowsTextContent,
   rowLocator, waitRows, waitRowsText, waitText, waitPage, waitVisible, waitHidden, until, observeWindow, holdStream,
-  mainRead, patchOnce, record, recorded, installStreamIdSpy, streamIds, sendOverlayEvent, pressScreenshotShortcut,
+  mainRead, patchOnce, record, recorded, installStreamIdSpy, streamIds, sendOverlayEvent, pressScreenshotShortcut, pressOverlayShortcut,
   overlayInput, injectTranscript, waitOverlayMounted, selectAnswerModelAfterMount,
 } from './regression-harness.mjs';
 
@@ -385,7 +385,7 @@ test('a WhatToSay scope refusal through the real renderer action displays one er
     await waitPage(overlay, () => !document.querySelector('img[alt="Screenshot 1"]'));
     await pressScreenshotShortcut();
     await waitPage(overlay, () => document.querySelector('img[alt="Screenshot 1"]')?.src.startsWith('data:image'));
-    await sendOverlayEvent('global-shortcut', { action: 'whatToAnswer' });
+    await pressOverlayShortcut('whatToAnswer');
     await waitRowsText(text => occurrences(text, 'Error (what_to_say):') === errorsBefore + 1, { timeoutMs: 15_000, what: 'one what_to_say error row' });
     const text = await rowsText();
     assert.equal(occurrences(text, 'Error (what_to_say):'), errorsBefore + 1);
@@ -407,7 +407,9 @@ test('What to answer from the transcript alone sends one answer request with the
   assert.equal(await overlay.evaluate(() => [...document.querySelectorAll('img')].filter((img) => /^Screenshot \d+$/.test(img.alt)).length), 0,
     'no attached screenshot');
   assert.deepEqual(await injectTranscript({ speaker: 'interviewer', text: heard, final: true }), { success: true });
-  await sendOverlayEvent('global-shortcut', { action: 'whatToAnswer' });
+  // The scope-refusal case just pressed whatToAnswer; the harness waits out the renderer's
+  // 5 s de-dup of the same action (regression-harness.mjs sendToOverlay) before this press.
+  await pressOverlayShortcut('whatToAnswer');
   await waitRows((r) => r.status === 'completed' && r.text.includes(answer), { what: 'the completed What to answer row' });
   const requests = mock.chatRequests();
   assert.equal(requests.length, 1, 'exactly one answer request');
@@ -788,7 +790,7 @@ test('AG33 real Natively renderer ignores automatic intelligence while manual ch
       return new Promise((resolve, reject) => { globalThis.__ag33RejectOldAction = () => setImmediate(() => reject(Error('LATE-ACTION-INVOKE'))); });
     });
   });
-  await sendOverlayEvent('global-shortcut', { action: 'whatToAnswer' });
+  await pressOverlayShortcut('whatToAnswer');
   await waitText('Old action partial preserved.');
   const hold = holdStream({ afterChunks: 1 });
   mock.setScript({ errorStatus: 0, chunks: ['New manual source ', 'finishes intact.'], delayMs: 20, afterChunk: hold.afterChunk });

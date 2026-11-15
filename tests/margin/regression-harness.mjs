@@ -7,8 +7,10 @@
 // never to the whole page text.
 //
 // Waits: every wait here polls on an interval from Node (until()), never with
-// requestAnimationFrame-based polling (the overlay is never shown). The only fixed wait
-// is observeWindow(), for product clocks and for "something does not happen" windows.
+// requestAnimationFrame-based polling (the overlay is never shown). The fixed waits are
+// observeWindow(), for product clocks and for "something does not happen" windows, and
+// the overlay action de-dup wait in sendToOverlay() (a product clock the harness owns:
+// the renderer's 5 s quick-action de-dup survives resetCase()). Both log one '[harness]' line.
 // A harness wait that times out prints one '[harness] timeout dump <json>' line
 // (timeoutDump) before it throws its original error.
 //
@@ -255,6 +257,9 @@ export const waitText = (needle, { timeoutMs = 30_000 } = {}) =>
 // It does not wait for an earlier answer of the case to finish; a case that submits after
 // an earlier answer waits for that answer's terminal row status itself (waitRows), unless
 // the overlap is what it tests.
+// The renderer also drops a typed question equal (whitespace-normalised) to the last one
+// within 5 s (src/lib/overlaySubmitDedup.mjs; lastManualSubmitRef, which session-reset does
+// not clear, but a failed submit does). Every case asks its own text, so no wait is needed.
 export async function ask(text, { timeoutMs = 15_000 } = {}) {
   const input = overlayInput();
   const before = state.mock.chatRequests().length;
@@ -385,13 +390,86 @@ export async function installStreamIdSpy() {
 
 export const streamIds = () => mainRead(() => globalThis.__marginStreamIds, undefined, 'streamIds');
 
-// Sends an event to the overlay over the real main -> preload -> renderer IPC path.
-export function sendOverlayEvent(channel, ...args) {
-  return mainDo(({ BrowserWindow }, [ch, a]) => {
-    for (const w of BrowserWindow.getAllWindows()) {
-      if (w.webContents.getURL().includes('window=overlay')) (w.webContents.__marginRealSend ?? w.webContents.send.bind(w.webContents))(ch, ...a);
+// Overlay quick-action de-dup. The renderer drops an action whose key equals the last
+// started action's key within 5 s (src/lib/overlayActionDedup.mjs, windowMs 5000;
+// NativelyInterface.tsx tryBeginOverlayAction), silently. session-reset does not clear
+// that state, so resetCase() cannot, and a case's press would be swallowed by the same
+// press of the case before it. The harness therefore records, per de-duplicated key, when
+// it last sent an event that reaches tryBeginOverlayAction, and before sending another
+// one with that key waits out the rest of the window plus a margin (the renderer stamps
+// its own time on receipt, a little after the send; hidden-overlay frames can lag).
+// Keys, from the global-shortcut dispatch (NativelyInterface.tsx onGlobalShortcut) and
+// the handlers' tryBeginOverlayAction calls:
+// - whatToAnswer -> handleWhatToSay 'what_to_say' (written mode instead submits the
+//   typed input, which has its own text de-dup; the wait is then merely unneeded);
+// - shorten -> 'follow_up:shorten'; followUp -> 'follow_up_questions'; recap -> 'recap';
+//   clarify -> 'clarify'; brainstorm -> 'brainstorm';
+// - dynamicAction4 -> 'brainstorm' or 'recap' by the action-button mode, so both;
+// - capture-and-process (its own channel) -> handleWhatToSay, 'what_to_say' as above.
+// answer, codeHint, scrolling, focusInput, takeScreenshot and the other screenshot and
+// reset actions do not go through tryBeginOverlayAction and are sent without a wait, as
+// is every other channel. Recording every send (also one the renderer refused) only
+// ever makes the harness wait longer than needed, never too short.
+const OVERLAY_ACTION_DEDUP_MS = 5_000;
+const OVERLAY_ACTION_DEDUP_MARGIN_MS = 1_000;
+const DEDUP_KEYS_BY_SHORTCUT = {
+  whatToAnswer: ['what_to_say'],
+  shorten: ['follow_up:shorten'],
+  followUp: ['follow_up_questions'],
+  recap: ['recap'],
+  dynamicAction4: ['brainstorm', 'recap'],
+  clarify: ['clarify'],
+  brainstorm: ['brainstorm'],
+};
+const lastDedupSendAt = new Map();
+
+function overlayDedupKeys(channel, args) {
+  if (channel === 'global-shortcut') return DEDUP_KEYS_BY_SHORTCUT[args[0]?.action] ?? [];
+  if (channel === 'capture-and-process') return ['what_to_say'];
+  return [];
+}
+
+async function sendToOverlay(channel, args, { waitOutDedup = true } = {}) {
+  const keys = overlayDedupKeys(channel, args);
+  if (keys.length && waitOutDedup) {
+    const now = Date.now();
+    let waitMs = 0;
+    let waitKey = null;
+    for (const key of keys) {
+      const last = lastDedupSendAt.get(key);
+      const remaining = last === undefined ? 0 : last + OVERLAY_ACTION_DEDUP_MS + OVERLAY_ACTION_DEDUP_MARGIN_MS - now;
+      if (remaining > waitMs) { waitMs = remaining; waitKey = key; }
     }
-  }, [channel, args], `send ${channel}`);
+    if (waitMs > 0) {
+      console.log(`[harness] overlayActionDedupWait ${waitMs} ms: ${channel} ${JSON.stringify(args[0]?.action ?? null)} reuses de-dup key ${waitKey}, sent ${Date.now() - lastDedupSendAt.get(waitKey)} ms ago; the renderer drops a repeat within ${OVERLAY_ACTION_DEDUP_MS} ms (+${OVERLAY_ACTION_DEDUP_MARGIN_MS} ms margin)`);
+      await sleep(waitMs);
+    }
+  } else if (keys.length) {
+    console.log(`[harness] overlayActionDedupWait skipped (opt-out): ${channel} ${JSON.stringify(args[0]?.action ?? null)} may be dropped by the renderer's de-dup`);
+  }
+  try {
+    return await mainDo(({ BrowserWindow }, [ch, a]) => {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (w.webContents.getURL().includes('window=overlay')) (w.webContents.__marginRealSend ?? w.webContents.send.bind(w.webContents))(ch, ...a);
+      }
+    }, [channel, args], `send ${channel}`);
+  } finally {
+    const sentAt = Date.now();
+    for (const key of keys) lastDedupSendAt.set(key, sentAt);
+  }
+}
+
+// Sends an event to the overlay over the real main -> preload -> renderer IPC path.
+// A de-duplicated quick action first waits out the renderer's de-dup window (above).
+export function sendOverlayEvent(channel, ...args) {
+  return sendToOverlay(channel, args);
+}
+
+// Sends 'global-shortcut' {action} to the overlay, as main does for a global shortcut.
+// waitOutDedup: false is for a case that tests the de-dup or the in-flight guard itself
+// and must press the same action again inside the window; no case does today.
+export function pressOverlayShortcut(action, { waitOutDedup = true } = {}) {
+  return sendToOverlay('global-shortcut', [{ action }], { waitOutDedup });
 }
 
 // Adds one transcript segment through the product's own test-inject-transcript handler
@@ -417,7 +495,8 @@ export function injectTranscript(segment) {
 }
 
 // The real shortcut path: main sends 'global-shortcut' {action:'takeScreenshot'} to the overlay.
-export const pressScreenshotShortcut = () => sendOverlayEvent('global-shortcut', { action: 'takeScreenshot' });
+// takeScreenshot has no de-dup key, so it never waits.
+export const pressScreenshotShortcut = () => pressOverlayShortcut('takeScreenshot');
 
 // Renderer-side subscriptions a case makes push their unsubscribe function here;
 // resetCase() calls them all.
