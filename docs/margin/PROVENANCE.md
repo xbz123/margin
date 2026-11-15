@@ -250,7 +250,8 @@ pools excluded:
 
 - `const dir = tempDir();`: UiLanguageSettings.test.mjs (4), from `968ea59d`
 - `assert.equal(created.ok, true);`: credentialTransactions.test.mjs (2) and
-  answer-regression.test.mjs (1), from `dd3eb703`
+  answer-regression.test.mjs (1), from `dd3eb703` (that line has since moved to
+  regression-harness.mjs, in startSuite)
 - `const safeStorage = {`: credentialTransactions.test.mjs, from `2db88817`
 - `const [confirm, setConfirm] = useState(false);` and `setConfirm(false);`:
   PromptSettings.tsx, from `45a4e9ce`
