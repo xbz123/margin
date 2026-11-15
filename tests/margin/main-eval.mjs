@@ -14,6 +14,8 @@
 // mainDo: for a function with side effects that must happen exactly once (sends an
 //   event, triggers an action). Never retried; one diagnostic line, then the original
 //   error.
+// withMainOutputOnFailure: wraps a case body; on failure prints the tail of the main
+//   process output of the apps it launched, then the original error.
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -45,4 +47,28 @@ export async function mainDo(app, fn, arg, label = 'mainDo') {
     console.error(`[main-eval] ${label} failed (not retried): ${firstLine(e)} alive=${appAlive(app)}`);
     throw e;
   }
+}
+
+// Runs one case body. `outputs` is the list that collects the `output` buffer of each
+// app the case launches (launchApp's return value); it is emptied before and after.
+// When the body throws, prints ONE marked block with the last `lines` lines of each
+// buffer (only what the main process itself wrote; isolation-debug lines left out,
+// as launchApp does) and rethrows the original error. Prints nothing when the body
+// passes. The printing is guarded, so it can never replace the original error.
+export async function withMainOutputOnFailure(label, outputs, body, lines = 40) {
+  outputs.length = 0;
+  try { return await body(); } catch (error) {
+    try {
+      const parts = outputs.map((output, i) => {
+        const tail = output.join('').replace(/\s+$/, '').split('\n').filter((l) => !l.includes('isolation-debug')).slice(-lines).join('\n');
+        return `--- app ${i + 1} of ${outputs.length}: last ${lines} lines ---\n${tail}`;
+      });
+      console.error([`[main-output] ===== main-process output of failed case: ${label} =====`,
+        ...(parts.length ? parts : ['(no app was launched, or its startup failed and launchApp printed its output)']),
+        '[main-output] ===== end of main-process output ====='].join('\n'));
+    } catch (e) {
+      try { console.error(`[main-output] could not print the main-process output: ${firstLine(e)}`); } catch { /* nothing left to do */ }
+    }
+    throw error;
+  } finally { outputs.length = 0; }
 }

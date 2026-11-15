@@ -1,4 +1,4 @@
-import test from 'node:test';
+import nodeTest from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -9,13 +9,26 @@ import vm from 'node:vm';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { launchApp, windowWithQuery } from './launch-app.mjs';
-import { mainRead, mainDo } from './main-eval.mjs';
+import { launchApp as launchIsolatedApp, windowWithQuery } from './launch-app.mjs';
+import { mainRead, mainDo, withMainOutputOnFailure } from './main-eval.mjs';
 import { makeSandbox, readBlocked, REPO } from '../../scripts/margin/isolation/env.mjs';
 
 // Every main-process call of this suite goes through mainRead (repeatable: retried on a
 // transient "context was destroyed") or mainDo (side effects: never retried), see
 // tests/margin/main-eval.mjs. launchApp's own startup query has its own retry.
+
+// When a case fails, the main-process output of the apps it launched is printed once
+// (last 40 lines each, see withMainOutputOnFailure) before the original error. The
+// cases below are unchanged: `test` and `launchApp` are these two thin wrappers, which
+// collect each launched app's output buffer for the running case (cases in this file
+// run one at a time) and pass everything else through untouched.
+const caseOutputs = [];
+const launchApp = async (...args) => {
+  const launched = await launchIsolatedApp(...args);
+  caseOutputs.push(launched.output);
+  return launched;
+};
+const test = (name, fn) => nodeTest(name, (t) => withMainOutputOnFailure(name, caseOutputs, () => fn(t)));
 
 // On a timed-out wait, prints ONE line '[outbound] timeout dump <json>' with the page's
 // URL, localStorage keys (never values), up to 20 button labels, the first 300 characters
