@@ -51,8 +51,26 @@ async function launcherWindow() {
   return w;
 }
 
+// app.close() waits for the app to quit, and quitting waits on audio shutdown with no
+// bound of its own (electron/main.ts before-quit). A quit that hangs fails here, named,
+// and the main process is killed, instead of the run hanging until the test timeout.
+const CLOSE_TIMEOUT_MS = 30_000;
+async function closeApp() {
+  let timer;
+  const closed = app.close().then(() => 'closed');
+  const late = new Promise((resolve) => { timer = setTimeout(() => resolve('timeout'), CLOSE_TIMEOUT_MS); });
+  try {
+    if (await Promise.race([closed, late]) === 'closed') return;
+  } finally { clearTimeout(timer); }
+  try { process.kill(mainPid, 'SIGKILL'); } catch { /* already gone */ }
+  closed.catch(() => {});
+  const error = new Error(`closing the app did not finish within ${CLOSE_TIMEOUT_MS} ms (main pid ${mainPid} killed)`);
+  error.closeTimeout = true;
+  throw error;
+}
+
 async function restart() {
-  await app.close();
+  await closeApp();
   await launch();
   return launcherWindow();
 }
@@ -133,8 +151,10 @@ test.before(async () => {
 });
 
 test.after(async () => {
-  try { await app?.close(); } catch { /* already gone */ }
+  let closeTimeout;
+  try { if (app) await closeApp(); } catch (error) { if (error.closeTimeout) closeTimeout = error; /* else already gone */ }
   await mock?.close();
+  assert.equal(closeTimeout?.message, undefined, 'the app quits when closed');
   assert.deepEqual(mock?.requests.filter(r => r.method === 'POST').map(r => r.url) ?? [], [], 'no STT upload or generation request during the storage run');
   const blocked = sandbox ? readBlocked(sandbox).filter((b) => !['permission', 'device', 'local-exec'].includes(b.kind)) : [];
   assert.deepEqual(blocked.map((b) => `${b.kind} ${b.detail}`), [], 'no outbound attempts during the storage run');
@@ -290,8 +310,10 @@ test('a meeting opened from the history list shows its usage and rolls back a fa
   const rename = async (text) => {
     await title.dispatchEvent('click');
     await waitFor(() => title.evaluate((e) => document.activeElement === e), 'focus on the title', 5_000);
-    await launcher.keyboard.press('ControlOrMeta+A');
-    await launcher.keyboard.type(text);
+    // The text is set in one step, then Enter saves it (blur -> handleSave). Typing it key
+    // by key raced the block's 600 ms autosave (src/components/EditableTextBlock.tsx): a
+    // pause between keys on a slow runner saved a partial title and used up a patchOnce.
+    await title.evaluate((e, value) => { e.innerText = value; }, text);
     await launcher.keyboard.press('Enter');
   };
   const NOT_SAVED = 'This change could not be saved.';
@@ -381,6 +403,11 @@ test('a failed save is kept, blocks start without side effects, and is saved on 
     return unsaved();
   };
 
+  // A saved meeting of this case's own, opened from the list below while a save is pending.
+  const SAVED_TITLE = 'Margin Storage Banner Check';
+  const listed = await saveMeeting(launcher, [['interviewer', 'BANNER one: a meeting saved before the failure.']]);
+  assert.equal(await launcher.evaluate(({ id, t }) => window.electronAPI.updateMeetingTitle(id, t), { id: listed.id, t: SAVED_TITLE }), true);
+
   await launcher.evaluate((flags) => {
     for (const [key, value] of Object.entries(flags)) localStorage.setItem(key, value);
   }, { natively_seen_startup_v1: 'true', natively_perms_shown_v1: '1' });
@@ -403,8 +430,8 @@ test('a failed save is kept, blocks start without side effects, and is saved on 
   await launcher.waitForLoadState('domcontentloaded');
   await banner.waitFor({ state: 'visible', timeout: 10_000 });
   // The banner is shared by the list and a meeting's details: opening a saved meeting
-  // (the previous test's TITLE) and going back keeps it visible and usable.
-  await clickOrExplain(launcher, launcher.getByText(TITLE, { exact: true }).first(), 'the saved meeting in the history list');
+  // (SAVED_TITLE, saved above) and going back keeps it visible and usable.
+  await clickOrExplain(launcher, launcher.getByText(SAVED_TITLE, { exact: true }).first(), 'the saved meeting in the history list');
   await launcher.locator('h1[contenteditable]').first().waitFor();
   await banner.waitFor({ state: 'visible', timeout: 10_000 });
   assert.equal((await unsaved())?.id, pending.id, 'the same meeting is pending on the details page');
