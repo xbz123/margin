@@ -68,6 +68,31 @@ export function nodeTestCounts(text) {
   return counts;
 }
 
+// The steps run-gates.mjs is asked to run, from its --only and --skip arguments (each a
+// comma-separated list of step ids). Throws, naming the valid ids, when a flag has no
+// value, a list is empty or has an empty entry, an id is not one of `ids`, or nothing is
+// left to run, so a typo cannot silently run fewer steps (or none, which would pass).
+// Returns the ids to run, in the order of `ids`.
+export function selectSteps(ids, argv) {
+  const valid = `valid step ids: ${ids.join(', ')}`;
+  const list = (flag) => {
+    const i = argv.indexOf(flag);
+    if (i < 0) return null;
+    const value = argv[i + 1];
+    if (value === undefined || value.startsWith('--')) throw new Error(`${flag} needs a comma-separated list of step ids; ${valid}`);
+    const items = value.split(',').map((s) => s.trim());
+    if (items.some((s) => !s)) throw new Error(`${flag} ${JSON.stringify(value)} has an empty step id; ${valid}`);
+    const unknown = items.filter((s) => !ids.includes(s));
+    if (unknown.length) throw new Error(`${flag}: unknown step id${unknown.length > 1 ? 's' : ''} ${unknown.join(', ')}; ${valid}`);
+    return items;
+  };
+  const only = list('--only');
+  const skip = list('--skip') ?? [];
+  const selected = ids.filter((id) => (!only || only.includes(id)) && !skip.includes(id));
+  if (!selected.length) throw new Error(`--only and --skip leave no step to run; ${valid}`);
+  return selected;
+}
+
 export function selectGateRef(explicit, { exists, list }) {
   if (explicit) {
     if (typeof explicit !== 'string' || explicit.trim() !== explicit || !GATE_REF.test(explicit) || !exists(explicit + '/summary.json')) throw new Error('Invalid gate_ref');

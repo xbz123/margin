@@ -17,14 +17,15 @@
 // found); gate-evidence.mjs checks them against PINNED_NODE_TEST_STEPS (regression,
 // storage, startup, outbound-renderer). The tests step fails when its globs match no
 // test file or no file reports a test, whatever the reference says.
-// The runner exits 1 if any step did not pass.
+// The runner exits 1 if any step did not pass, and 2 before running anything when --only
+// or --skip names an unknown step id or is empty (selectSteps in gate-evidence.mjs).
 
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nodeTestCounts } from './gate-evidence.mjs';
+import { nodeTestCounts, selectSteps } from './gate-evidence.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const BIN = (name) => path.join(REPO, 'node_modules/.bin', name);
@@ -36,8 +37,6 @@ function arg(name) {
 }
 const out = path.resolve(REPO, arg('--out') ?? 'docs/margin/evidence/latest');
 const ref = arg('--ref') ? path.resolve(REPO, arg('--ref')) : null;
-const only = arg('--only')?.split(',');
-const skip = arg('--skip')?.split(',') ?? [];
 
 const TEST_GLOBS = [
   'electron/services/__tests__/**/*.test.mjs',
@@ -78,6 +77,14 @@ const steps = [
     '--test-timeout=180000', 'tests/margin/outbound-renderer.test.mjs'], timeoutMs: 300_000, counts: 'node-test' },
   { id: 'diff-check', cmd: 'git', args: ['diff', 'HEAD', '--check'] },
 ];
+
+// --only / --skip are checked before anything runs or is written: an unknown or empty
+// step id is an error, not a silently smaller run.
+let selected;
+try { selected = selectSteps(steps.map((s) => s.id), process.argv.slice(2)); } catch (error) {
+  console.error(`[gates] ${error.message}`);
+  process.exit(2);
+}
 
 const TEST_FILE_TIMEOUT_MS = 180_000;
 const TEST_FOOTER_GRACE_MS = 5_000;
@@ -241,8 +248,7 @@ const summary = { startedAt: new Date().toISOString(), head, uncommittedPaths: d
   ...(arg('--note') ? { note: arg('--note') } : {}), steps: [] };
 
 for (const step of steps) {
-  if (only && !only.includes(step.id)) continue;
-  if (skip.includes(step.id)) continue;
+  if (!selected.includes(step.id)) continue;
   const log = path.join(out, `${step.id}.log`);
   const t0 = Date.now();
   process.stdout.write(`[gates] ${step.id} ... `);

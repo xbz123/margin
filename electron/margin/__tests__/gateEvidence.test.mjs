@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OUTBOUND_RENDERER_MIN_TESTS, PINNED_NODE_TEST_STEPS, S42_REQUIRED_FILES, nodeTestCounts, requiredFailures, selectGateRef } from '../../../scripts/margin/gate-evidence.mjs';
+import { OUTBOUND_RENDERER_MIN_TESTS, PINNED_NODE_TEST_STEPS, S42_REQUIRED_FILES, nodeTestCounts, requiredFailures, selectGateRef, selectSteps } from '../../../scripts/margin/gate-evidence.mjs';
 
 const REPO = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -83,6 +83,23 @@ test('regression, storage and startup case floors: the pins match their suites a
     Object.assign(counts, { tests: minTests + 1, pass: minTests + 1 });
     assert.deepEqual(requiredFailures(evidence.summary, evidence.files), [], `${id}: one more passing case than pinned`);
   }
+});
+
+test('run-gates step selection: --only and --skip accept known ids and reject unknown or empty ones before running', () => {
+  const ids = ['build-electron', 'tests', 'regression', 'diff-check'];
+  assert.deepEqual(selectSteps(ids, []), ids, 'no flag runs every step');
+  assert.deepEqual(selectSteps(ids, ['--out', 'x', '--only', 'regression,tests']), ['tests', 'regression'], 'in step order');
+  assert.deepEqual(selectSteps(ids, ['--skip', 'regression']), ['build-electron', 'tests', 'diff-check']);
+  assert.deepEqual(selectSteps(ids, ['--only', 'tests,regression', '--skip', 'regression']), ['tests']);
+  for (const argv of [['--only', 'nosuchstep'], ['--only', 'tests,regresion'], ['--skip', 'nosuchstep'], ['--only', ''], ['--only', ','],
+    ['--only', 'tests,'], ['--only'], ['--only', '--out', 'x'], ['--skip'], ['--only', 'tests', '--skip', 'tests']]) {
+    assert.throws(() => selectSteps(ids, argv), /valid step ids: build-electron, tests, regression, diff-check/, JSON.stringify(argv));
+  }
+  assert.throws(() => selectSteps(ids, ['--only', 'tests,nope,neither']), /unknown step ids nope, neither/);
+  // run-gates.mjs selects with its own step list before it runs or writes anything.
+  const gates = fs.readFileSync(path.join(REPO, 'scripts/margin/run-gates.mjs'), 'utf8');
+  const check = gates.indexOf('selectSteps(steps.map((s) => s.id), process.argv.slice(2))');
+  assert.ok(check > 0 && check < gates.indexOf('fs.mkdirSync(out') && check < gates.indexOf('for (const step of steps)'), 'selection is checked first');
 });
 
 test('node:test summary counts are read from TAP or spec output, and absent without a full summary', () => {
