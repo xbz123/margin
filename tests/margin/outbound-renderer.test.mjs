@@ -975,7 +975,9 @@ test('S47 mounted settings and session selector share saved candidates through t
     import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
     import { AIProvidersSettings as Settings } from './src/components/settings/AIProvidersSettings'; import Selector from './src/components/ModelSelectorWindow';
     const memory = new Map(); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)), removeItem: key => memory.delete(key) } });
-    const bridge = name => (...args) => window.invokeMain(name, args);
+    // The component gets the same promise; settledCalls(name) counts calls whose result has reached the page.
+    const settled = {}; window.settledCalls = name => settled[name] ?? 0;
+    const bridge = name => (...args) => { const result = window.invokeMain(name, args); result.then(() => {}, () => {}).finally(() => { settled[name] = (settled[name] ?? 0) + 1; }); return result; };
     window.electronAPI = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}), getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
       onModelChanged: () => () => {}, onThemeChanged: () => () => {} };
     for (const name of ${JSON.stringify(Object.keys(preload))}) window.electronAPI[name] = bridge(name);
@@ -1042,10 +1044,19 @@ test('S47 mounted settings and session selector share saved candidates through t
     // Save and test checks only the edited candidate; a late result cannot mark another candidate tested.
     await editSelect.selectOption('model-b');
     let release; deferredTest = { promise: new Promise(resolve => { release = resolve; }) };
+    const settledTests = await page.evaluate(() => window.settledCalls('testLlmConnection'));
     await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();
     await until(() => tests.length === 1, 'test started');
     await editSelect.selectOption('gpt-5.4'); release('ANSWER'); deferredTest = undefined;
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Positive signal first: the late result has reached the page's ProviderCard. Only then
+    // is the negative meaningful (a fixed sleep could end before the result even arrived).
+    await page.waitForFunction(n => window.settledCalls('testLlmConnection') > n, settledTests);
+    // A wrongly accepted result would render on React's next scheduled commit, a task or
+    // two after the await resumes; 250 ms of polling covers that many times over.
+    for (const end = Date.now() + 250; Date.now() < end;) {
+      assert.doesNotMatch(await cloud.innerText(), /Connection test passed|Test passed/);
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
     assert.doesNotMatch(await cloud.innerText(), /Connection test passed|Test passed/);
     await editSelect.selectOption('model-b');
     await cloud.getByRole('button', { name: 'Save and test', exact: true }).click();

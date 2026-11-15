@@ -107,6 +107,13 @@ test('S42-04 actual hidden DOM cannot acknowledge quick EOF until the answer bec
   try {
     await until(async () => (await rowsTextContent()).includes('S42 actual visible body.'),
       { timeoutMs: 6_000, what: 'the hidden answer text in a row' });
+    // A premature receipt would come from the renderer's next frame callbacks after the
+    // text lands, then one IPC hop and the main process's done: tens of milliseconds, a
+    // few hundred when the hidden overlay's frame rate dips (REGRESSION-SUITE-REBUILD.md
+    // W1: 14-26 frames/s for a second). 1 s covers that several times over and keeps the
+    // case inside the 10 s first-token clock: at most 6 s (above) + 1 s before visibility
+    // is restored below.
+    await observeWindow(1_000, 'a hidden answer may not send a first-visible receipt or done');
     assert.deepEqual(await recorded('s42Visible'), []);
     assert.deepEqual(await overlay.evaluate(() => window.__s42Done), []);
     await overlay.evaluate(() => document.getElementById('s42-hidden-answer').remove());
