@@ -671,7 +671,10 @@ test('reconfigure changes provider identity and detaches old listeners', async (
   await session.cancel();
 });
 
-test('cancel while provider stop hangs is bounded and blocks late events', async () => {
+test('cancel while provider stop hangs is bounded and blocks late events', async t => {
+  // Mocked before fixture(), which hands setTimeout to the session's context: the budget is
+  // measured on the mocked clock, so a slow machine cannot make it look longer or shorter.
+  const advance = clock(t);
   const { session, events } = fixture(() => {
     const emitter = new EventEmitter();
     emitter.stop = () => new Promise(() => {});
@@ -679,9 +682,11 @@ test('cancel while provider stop hangs is bounded and blocks late events', async
   });
   session.begin('meeting-1');
   const provider = session.ensure('user');
-  const beginTimestamp = Date.now();
-  await session.cancel(50);
-  assert.ok(Date.now() - beginTimestamp < 250);
+  const cancelled = watch(session.cancel(50));
+  await advance(49);
+  assert.equal(cancelled.done, false, 'the hanging stop keeps cancel waiting inside its budget');
+  await advance(1);
+  assert.ok(cancelled.done && !cancelled.error, 'cancel returns when its 50 ms budget ends, not later');
   provider.emit('transcript', { text: 'after cancel', isFinal: true });
   assert.equal(events.length, 0);
 });

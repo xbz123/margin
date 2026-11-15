@@ -352,7 +352,11 @@ test('S42-03 Soniox: an untimed non-final utterance still ends at its marker, an
   stt.stop(false);
 });
 
-test('S42-03 Soniox through the session: a new utterance after the click is excluded even though finalize completed', async () => {
+test('S42-03 Soniox through the session: a new utterance after the click is excluded even though finalize completed', async t => {
+  // Only Date is frozen (as in Mg21StopConsumer S42-03): the 200 ms deadline cannot pass
+  // before the tokens arrive on a slow machine, and each 2 ms step below is exactly 2 ms.
+  // The collector's timers stay real; the <fin> settles it without any time passing.
+  t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
   const { MeetingSttSession } = require('../../../dist-electron/electron/audio/MeetingSttSession.js');
   const loaded = subject('SonioxStreamingSTT'), stt = new loaded.Class('synthetic-only');
   const session = new MeetingSttSession({ create: () => stt, onTranscript() {} });
@@ -360,13 +364,14 @@ test('S42-03 Soniox through the session: a new utterance after the click is excl
   stt.start(); ready('SonioxStreamingSTT', loaded.sockets[0]);
   const tokens = list => loaded.sockets[0].emit('message', Buffer.from(JSON.stringify({ tokens: list })));
   tokens([{ text: 'before click', is_final: false, start_ms: 0, end_ms: 400 }]);
-  await new Promise(resolve => setTimeout(resolve, 2));
+  t.mock.timers.tick(2); await new Promise(resolve => setImmediate(resolve));
   const collector = session.collect({ cutoffAt: Date.now(), deadline: Date.now() + 200, signal: new AbortController().signal });
   collector.setStage1End(Date.now());
-  await new Promise(resolve => setTimeout(resolve, 2));
+  t.mock.timers.tick(2); await new Promise(resolve => setImmediate(resolve));
   tokens([{ text: 'before click', is_final: true, start_ms: 0, end_ms: 400 }, { text: '<end>', is_final: true },
     { text: 'AFTER CLICK utterance', is_final: true, start_ms: 900, end_ms: 1200 }, { text: '<fin>', is_final: true }]);
   const frozen = await collector.frozen;
   assert.deepEqual(frozen.channels.user.segments.map(segment => [segment.text, segment.final]), [['before click', true]]);
   stt.stop(false);
+  t.mock.timers.reset();
 });
