@@ -245,6 +245,12 @@ fonts. Browser behavior checks run without CSP for a positive image-load control
 so CSP cannot conceal a component/sanitizer regression.
 The `outbound-renderer` step is part of the ordinary run-gates sequence (and its
 CI callers), running serially under X2 with only Electron/esbuild exec allowed.
+A zero exit is not enough for the S42 required check (`gate-evidence.mjs
+required`): run-gates records the step's node:test counts, and the check fails
+unless at least `OUTBOUND_RENDERER_MIN_TESTS` cases (17, pinned in
+`scripts/margin/gate-evidence.mjs`) ran and all passed, with none skipped, todo or
+cancelled, or when the counts are missing. Raise or lower that number with the
+cases; `gateEvidence.test.mjs` fails while it differs from the suite.
 
 User-clicked links are not automatic resources. `navigationPolicy.ts`, installed
 in bootstrap before `main` and any window, handles every webContents: renderer

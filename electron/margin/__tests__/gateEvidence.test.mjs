@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { S42_REQUIRED_FILES, requiredFailures, selectGateRef } from '../../../scripts/margin/gate-evidence.mjs';
+import { OUTBOUND_RENDERER_MIN_TESTS, S42_REQUIRED_FILES, nodeTestCounts, requiredFailures, selectGateRef } from '../../../scripts/margin/gate-evidence.mjs';
 
 const REPO = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -31,7 +31,8 @@ const good = () => ({
   summary: { steps: [
     // An inherited failure in an unrelated file keeps the step passed with exit 1.
     { id: 'tests', exitCode: 1, passed: true, isolationBlocked: [], unexplainedExits: [] },
-    { id: 'outbound-renderer', exitCode: 0, timedOut: false, passed: true },
+    { id: 'outbound-renderer', exitCode: 0, timedOut: false, passed: true,
+      counts: { tests: 17, pass: 17, fail: 0, cancelled: 0, skipped: 0, todo: 0 } },
   ] },
   files: [...S42_REQUIRED_FILES.map((file) => row(file)), row('electron/services/__tests__/Unrelated.test.mjs', { exitCode: 1, pass: 1, fail: 1 })],
 });
@@ -42,6 +43,33 @@ test('S42-05 required checks pass on complete evidence, including a file ended a
   Object.assign(evidence.files[0], { exitCode: null, signal: 'SIGKILL', endedAfterFooter: true });
   assert.deepEqual(requiredFailures(evidence.summary, evidence.files), []);
   for (const file of S42_REQUIRED_FILES) assert.ok(fs.existsSync(path.join(REPO, file)), file);
+});
+
+test('outbound-renderer case floor: 17/17 passes, more passing cases pass, and the pin matches the suite', () => {
+  const evidence = good();
+  const counts = evidence.summary.steps.find((s) => s.id === 'outbound-renderer').counts;
+  assert.deepEqual(requiredFailures(evidence.summary, evidence.files), [], '17 run, 17 passed');
+  // Deliberate: the pin is a floor, so a case added before the number is raised is
+  // accepted as long as every case that ran passed.
+  Object.assign(counts, { tests: 18, pass: 18 });
+  assert.deepEqual(requiredFailures(evidence.summary, evidence.files), [], '18 run, 18 passed');
+  Object.assign(counts, { tests: 18, pass: 17, skipped: 1 });
+  assert.notDeepEqual(requiredFailures(evidence.summary, evidence.files), [], '18 run with 1 skipped');
+  // The pin must follow the suite: update OUTBOUND_RENDERER_MIN_TESTS when cases change.
+  const suite = fs.readFileSync(path.join(REPO, 'tests/margin/outbound-renderer.test.mjs'), 'utf8');
+  assert.equal(OUTBOUND_RENDERER_MIN_TESTS, 17);
+  assert.equal((suite.match(/^test\(/gm) ?? []).length, OUTBOUND_RENDERER_MIN_TESTS, 'top-level test( cases in outbound-renderer.test.mjs');
+});
+
+test('node:test summary counts are read from TAP or spec output, and absent without a full summary', () => {
+  const expected = { tests: 17, pass: 16, fail: 0, cancelled: 0, skipped: 1, todo: 0 };
+  const tap = '# Subtest: a\nok 1 - a\n# tests 3\n# app said this\n# tests 17\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n# duration_ms 1.5\n';
+  assert.deepEqual(nodeTestCounts(tap), expected);
+  const spec = '✔ a (1ms)\nℹ tests 17\nℹ suites 0\nℹ pass 16\nℹ fail 0\nℹ cancelled 0\nℹ skipped 1\nℹ todo 0\nℹ duration_ms 1.5\n';
+  assert.deepEqual(nodeTestCounts(spec), expected);
+  assert.equal(nodeTestCounts(tap.replace('# skipped 1\n', '')), null, 'one count missing');
+  assert.equal(nodeTestCounts('ok 1 - a\n'), null, 'no summary');
+  assert.equal(nodeTestCounts(undefined), null);
 });
 
 test('S42-05 required checks reject missing, failed, unfinished, skipped or isolated evidence', () => {
@@ -66,6 +94,17 @@ test('S42-05 required checks reject missing, failed, unfinished, skipped or isol
     'outbound renderer absent': (e) => { e.summary.steps = e.summary.steps.filter((s) => s.id !== 'outbound-renderer'); },
     'outbound renderer failed': (e) => { Object.assign(outbound(e), { exitCode: 1, passed: false }); },
     'outbound renderer timed out': (e) => { Object.assign(outbound(e), { exitCode: null, timedOut: true }); },
+    // node --test exits 0 in all of these, so only the counts show them.
+    'outbound renderer ran 16 cases, all passing': (e) => { Object.assign(outbound(e).counts, { tests: 16, pass: 16 }); },
+    'outbound renderer ran 17 with 1 skipped': (e) => { Object.assign(outbound(e).counts, { pass: 16, skipped: 1 }); },
+    'outbound renderer skip counted as passing': (e) => { outbound(e).counts.skipped = 1; },
+    'outbound renderer ran 17 with 16 passed': (e) => { outbound(e).counts.pass = 16; },
+    'outbound renderer todo': (e) => { Object.assign(outbound(e).counts, { pass: 16, todo: 1 }); },
+    'outbound renderer cancelled': (e) => { Object.assign(outbound(e).counts, { pass: 16, cancelled: 1 }); },
+    'outbound renderer counts missing': (e) => { delete outbound(e).counts; },
+    'outbound renderer counts null': (e) => { outbound(e).counts = null; },
+    'outbound renderer counts incomplete': (e) => { delete outbound(e).counts.skipped; },
+    'outbound renderer counts not numbers': (e) => { outbound(e).counts.tests = '17'; },
   };
   for (const [name, mutate] of Object.entries(cases)) {
     const evidence = good();

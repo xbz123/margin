@@ -5,7 +5,9 @@
 // select-ref keeps the earlier rule: an explicit reference must be one of the listed
 // directory names and hold summary.json; otherwise the newest AG-<n> directory.
 // required only reads the evidence the gates run just wrote. It runs nothing again and
-// accepts no failure, inherited or new, in the listed checks.
+// accepts no failure, inherited or new, in the listed checks. For outbound-renderer it
+// also needs the step's recorded case counts: at least OUTBOUND_RENDERER_MIN_TESTS run,
+// all passed, none skipped or todo.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +32,30 @@ export const S42_REQUIRED_FILES = [
   'src/lib/__tests__/manualAnswerRenderer.test.mjs',
   'src/lib/__tests__/settingsFoundation.test.mjs',
 ];
+
+// The number of cases (top-level test() calls) in tests/margin/outbound-renderer.test.mjs.
+// UPDATE THIS NUMBER WHEN CASES ARE ADDED TO OR REMOVED FROM THAT FILE; gateEvidence.test.mjs
+// fails until it matches the file. The required check treats it as a floor: the step
+// must have run at least this many cases and passed every one it ran, with none skipped,
+// todo or cancelled. More cases are accepted on purpose (a case added before this number is
+// raised still has to pass); fewer means a case was deleted or not reached.
+export const OUTBOUND_RENDERER_MIN_TESTS = 17;
+
+// The summary counts node:test prints at the end of a run, from the TAP ("# tests 17")
+// or the spec ("ℹ tests 17") reporter, whichever is the default for the Node and stdout
+// in use; run-gates.mjs records them for a step marked `counts: 'node-test'`. The last
+// line of each kind wins, as the summary comes after all test output. Null unless every
+// count is present, so a missing summary cannot read as zero skips.
+export const NODE_TEST_COUNTS = ['tests', 'pass', 'fail', 'cancelled', 'skipped', 'todo'];
+export function nodeTestCounts(text) {
+  const counts = {};
+  for (const key of NODE_TEST_COUNTS) {
+    const all = [...String(text ?? '').matchAll(new RegExp(`^(?:#|\\u2139) ${key} (\\d+)\\s*$`, 'gm'))];
+    if (!all.length) return null;
+    counts[key] = Number(all.at(-1)[1]);
+  }
+  return counts;
+}
 
 export function selectGateRef(explicit, { exists, list }) {
   if (explicit) {
@@ -60,6 +86,19 @@ export function requiredFailures(summary, perFile, files = S42_REQUIRED_FILES) {
   if (outbound && (outbound.exitCode !== 0 || outbound.passed !== true || outbound.timedOut !== false)) {
     problems.push(`outbound-renderer :: exit ${outbound.exitCode}${outbound.timedOut ? ' (timed out)' : ''}`);
   }
+  // node --test exits 0 when cases are skipped or missing, so the exit code alone does
+  // not show that every security case ran. The counts come from run-gates.mjs; without
+  // them the step fails.
+  if (outbound) {
+    const c = outbound.counts;
+    const n = (k) => Number.isInteger(c?.[k]) && c[k] >= 0;
+    if (!c || !NODE_TEST_COUNTS.every(n)) {
+      problems.push('outbound-renderer :: case counts missing');
+    } else if (c.tests < OUTBOUND_RENDERER_MIN_TESTS || c.pass !== c.tests || c.fail || c.cancelled || c.skipped || c.todo) {
+      problems.push(`outbound-renderer :: ${c.pass}/${c.tests} passed (at least ${OUTBOUND_RENDERER_MIN_TESTS} required), `
+        + `${c.fail} failed, ${c.cancelled} cancelled, ${c.skipped} skipped, ${c.todo} todo`);
+    }
+  }
   if (!Array.isArray(perFile)) {
     problems.push('tests.files.json :: missing or unreadable');
     return problems;
@@ -85,7 +124,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const problems = requiredFailures(read('summary.json'), read('tests.files.json'));
     for (const problem of problems) console.error(problem);
     if (problems.length) process.exit(1);
-    console.log(`[gates] S42 required checks ran and passed: ${S42_REQUIRED_FILES.join(' ')} outbound-renderer`);
+    console.log(`[gates] S42 required checks ran and passed: ${S42_REQUIRED_FILES.join(' ')} outbound-renderer (at least ${OUTBOUND_RENDERER_MIN_TESTS} cases)`);
   } else {
     console.error('usage: gate-evidence.mjs select-ref | required <evidence dir>');
     process.exit(2);

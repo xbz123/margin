@@ -123,7 +123,9 @@ jobs:
             --note "GitHub Actions run ${{ github.run_id }} (attempt ${{ github.run_attempt }}) on macos-15, no_cache=${{ inputs.no_cache && 'true' || 'false' }}, compared with $ref"
 
       # Reads only the evidence written above; no test runs twice and no failure in the
-      # listed S42 checks is excused by the reference (PLAN.md S42-05).
+      # listed S42 checks is excused by the reference (PLAN.md S42-05). outbound-renderer
+      # must also have run at least the pinned number of cases with none skipped
+      # (OUTBOUND_RENDERER_MIN_TESTS in gate-evidence.mjs).
       - name: Check the S42 required checks ran and passed
         run: |
           set -o pipefail

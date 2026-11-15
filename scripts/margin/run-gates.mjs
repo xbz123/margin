@@ -12,7 +12,9 @@
 //   - tests: failing tests (file + name, from the TAP report) are split the same way;
 //   - preload-contract, ipc-channels: the listed gaps (indented lines) likewise.
 // A step "passes" when its exit code is 0, or, for the compared steps, when nothing
-// is new.
+// is new. A step marked `counts: 'node-test'` also records the node:test summary
+// counts of its output in summary.json (`counts`, null when no complete summary was
+// found); gate-evidence.mjs checks them for outbound-renderer.
 // The runner exits 1 if any step did not pass.
 
 import { spawn, spawnSync } from 'node:child_process';
@@ -20,6 +22,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { nodeTestCounts } from './gate-evidence.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const BIN = (name) => path.join(REPO, 'node_modules/.bin', name);
@@ -70,7 +73,7 @@ const steps = [
   { id: 'startup', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron:osascript', '--test',
     '--test-timeout=180000', 'tests/margin/startup-smoke.test.mjs'], timeoutMs: 300_000 },
   { id: 'outbound-renderer', cmd: NODE, args: ['scripts/margin/isolation/run-node.mjs', '--allow-exec', 'Electron:esbuild', '--test',
-    '--test-timeout=180000', 'tests/margin/outbound-renderer.test.mjs'], timeoutMs: 300_000 },
+    '--test-timeout=180000', 'tests/margin/outbound-renderer.test.mjs'], timeoutMs: 300_000, counts: 'node-test' },
   { id: 'diff-check', cmd: 'git', args: ['diff', 'HEAD', '--check'] },
 ];
 
@@ -253,6 +256,7 @@ for (const step of steps) {
     durationMs: Date.now() - t0,
     log: path.relative(REPO, log),
   };
+  if (step.counts === 'node-test') entry.counts = nodeTestCounts(res.stdout ?? '');
   let passed = res.status === 0;
   if (step.compare === 'diagnostics') {
     const now = tscDiagnostics(text);
