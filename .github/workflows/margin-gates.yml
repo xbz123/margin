@@ -12,7 +12,7 @@ name: Margin gates
 
 on:
   push:
-    branches: [codex/margin-agpl-migration]
+    branches: [codex/margin-unified]
   workflow_dispatch:
     inputs:
       no_cache:
