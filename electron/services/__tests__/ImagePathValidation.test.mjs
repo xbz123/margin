@@ -34,7 +34,6 @@ function handlers(root, queue = []) {
     resetEngine() { resets.push('engine'); }, reset() { resets.push('session'); },
     runWhatShouldISay: async (...args) => { sends.push(args); return 'answer'; },
     runCodeHint: async (...args) => { sends.push(args); return 'hint'; },
-    runBrainstorm: async (...args) => { sends.push(args); return 'script'; },
   };
   const module = { exports: {} };
   vm.runInNewContext(compiled, { module, exports: module.exports, console: { log() {}, warn() {}, error() {} }, process: { env: { NODE_ENV: 'test' }, platform: process.platform }, AbortController,
@@ -84,7 +83,7 @@ test('AG42 registered manual IPC returns fixed failures even before a task can s
   assert.equal(f.sends.length, 0);
 });
 
-for (const channel of ['generate-code-hint', 'generate-brainstorm']) test(`R3-2 ${channel} validates selected queue once before generation and uses canonical symlinks`, async t => {
+for (const channel of ['generate-code-hint']) test(`R3-2 ${channel} validates selected queue once before generation and uses canonical symlinks`, async t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'r3-queue-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
   const root = path.join(temp, 'userData'); fs.mkdirSync(root);
   const outside = path.join(temp, 'outside.png'); fs.writeFileSync(outside, 'synthetic');
@@ -142,7 +141,7 @@ test('AG33 actual registered chat handler fixes written/interview task budgets a
   assert.equal(startedTasks.length, 3); assert.equal(sends.length, 3);
 });
 
-for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-say', 'generate-code-hint', 'generate-brainstorm']) test(`AG33 real registered ${channel} rejects malformed, traversal, missing, sensitive and symlink-escape images before generation`, async t => {
+for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-say', 'generate-code-hint']) test(`AG33 real registered ${channel} rejects malformed, traversal, missing, sensitive and symlink-escape images before generation`, async t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ag33-image-handler-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
   const root = path.join(temp, 'userData'); fs.mkdirSync(root);
   const outside = path.join(temp, 'outside.png'); fs.writeFileSync(outside, 'synthetic private data');
@@ -154,7 +153,7 @@ for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-sa
     const outcome = await invoke(images).then(result => ({ result }), error => ({ error }));
     if (outcome.error) assert.match(outcome.error.message, /Invalid image path/);
     else {
-      assert.equal(outcome.result.answer ?? outcome.result.hint ?? outcome.result.script ?? null, null);
+      assert.equal(outcome.result.answer ?? outcome.result.hint ?? null, null);
       assert.match(outcome.result.error, /Invalid image path/);
     }
     assert.equal(sends.length, 0);

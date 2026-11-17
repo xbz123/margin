@@ -435,7 +435,6 @@ const shortcuts = {
   'follow-up-questions': ['generate-follow-up-questions'],
   'follow-up': ['generate-follow-up', 'shorten', undefined],
   'code-hint': ['generate-code-hint', undefined, undefined],
-  brainstorm: ['generate-brainstorm', undefined, undefined],
 };
 
 async function historyAction(c, kind) {
@@ -766,7 +765,7 @@ test('S42-03 registry: a failed collection releases its task, and dictation mark
 });
 
 const GENERATION_CHANNELS = ['generate-what-to-say', 'generate-clarify', 'generate-follow-up',
-  'generate-recap', 'generate-follow-up-questions', 'generate-code-hint', 'generate-brainstorm'];
+  'generate-recap', 'generate-follow-up-questions', 'generate-code-hint'];
 
 test('every generation entry point is registered once, through the generation wrapper', () => {
   const file = new URL('../../ipcHandlers.ts', import.meta.url);

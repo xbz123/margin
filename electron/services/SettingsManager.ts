@@ -17,7 +17,6 @@ export interface AppSettings {
     isUndetectable?: boolean;
     disguiseMode?: 'terminal' | 'settings' | 'activity' | 'none';
     verboseLogging?: boolean;
-    actionButtonMode?: 'recap' | 'brainstorm';
     groqFastTextMode?: boolean;
     codexCliEnabled?: boolean;
     codexCliPath?: string;
@@ -31,8 +30,9 @@ export interface AppSettings {
     knowledgeMode?: boolean;
     // Phase 9 — privacy/retention controls. Foundation only. Encryption is
     // documented in docs/engineering/LOCAL_DB_ENCRYPTION_DESIGN.md.
-    // 'forever' (default), '7d', '30d', or 'never' (do not store transcripts).
-    meetingRetention?: 'forever' | '7d' | '30d' | 'never';
+    // 'forever' (default) or 'never' (do not store transcripts). Older builds also
+    // saved '7d'/'30d', which were never enforced; getMeetingRetention() reads them as 'forever'.
+    meetingRetention?: 'forever' | 'never';
     providerDataScopes?: {
         transcript?: boolean;
         screenshots?: boolean;
@@ -117,6 +117,10 @@ export class SettingsManager {
         catch (error: any) { if (error?.code !== 'EEXIST') { try { fs.unlinkSync(temp); } catch {} } throw new Error('Unable to save Codex configuration.'); }
         this.settings = candidate;
         return { ...config };
+    }
+
+    public getMeetingRetention(): 'forever' | 'never' {
+        return this.settings.meetingRetention === 'never' ? 'never' : 'forever';
     }
 
     public getUiLanguage(): UiLanguage {

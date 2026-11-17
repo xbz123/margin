@@ -140,8 +140,8 @@ export function applyWhatToAnswerNullFeedbackMessages(prev, feedback, idFactory 
 }
 
 // Labels the main process sends on the suggested_answer events when no interviewer words were
-// named: What to Answer's placeholders, retry, and the Code Hint / Brainstorm streams.
-const UNNAMED_ANSWER_QUESTIONS = new Set(['inferred', 'What to Answer', 'retry', 'Code Hint', 'Brainstorming Approaches']);
+// named: What to Answer's placeholders, retry, and the Code Hint stream.
+const UNNAMED_ANSWER_QUESTIONS = new Set(['inferred', 'What to Answer', 'retry', 'Code Hint']);
 
 /**
  * Show the interviewer's words a What to Answer press is answering, once, just above its answer row.

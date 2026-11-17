@@ -148,18 +148,12 @@ export interface ElectronAPI {
   }>
   generateClarify: () => Promise<{ clarification: string | null }>
   generateCodeHint: (imagePaths?: string[], problemStatement?: string) => Promise<{ hint: string | null }>
-  generateBrainstorm: (imagePaths?: string[], problemStatement?: string) => Promise<{ script: string | null }>
   generateFollowUp: (intent: string, userRequest?: string) => Promise<{ refined: string | null; intent: string }>
   generateFollowUpQuestions: () => Promise<{ questions: string | null }>
   generateRecap: () => Promise<{ summary: string | null }>
   beginDictation: () => Promise<void>
   finishDictation: () => Promise<{ speechActionId: string; question: string; interviewerHeard?: boolean }>
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>
-
-  // Dynamic Action Button Mode
-  getActionButtonMode: () => Promise<'recap' | 'brainstorm'>
-  setActionButtonMode: (mode: 'recap' | 'brainstorm') => Promise<{ success: boolean }>
-  onActionButtonModeChanged: (callback: (mode: 'recap' | 'brainstorm') => void) => () => void
 
 
   // Meeting Lifecycle
@@ -296,9 +290,9 @@ export interface ElectronAPI {
   // Verbose / Debug Logging
   getVerboseLogging: () => Promise<boolean>;
   setVerboseLogging: (enabled: boolean) => Promise<{ success: boolean }>;
-  getMeetingRetention: () => Promise<'forever' | '7d' | '30d' | 'never'>;
-  setMeetingRetention: (retention: 'forever' | '7d' | '30d' | 'never') => Promise<{ success: boolean; error?: string }>;
-  onMeetingRetentionChanged: (callback: (retention: 'forever' | '7d' | '30d' | 'never') => void) => () => void;
+  getMeetingRetention: () => Promise<'forever' | 'never'>;
+  setMeetingRetention: (retention: 'forever' | 'never') => Promise<{ success: boolean; error?: string }>;
+  onMeetingRetentionChanged: (callback: (retention: 'forever' | 'never') => void) => () => void;
   getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean }>;
   setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean }) => Promise<{ success: boolean; error?: string }>;
   onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean }) => void) => () => void;

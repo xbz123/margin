@@ -185,10 +185,6 @@ export class IntelligenceManager extends EventEmitter {
         this.session.clearCodingQuestion();
     }
 
-    async runBrainstorm(imagePaths?: string[], problemStatement?: string, view?: TranscriptView): Promise<string | null> {
-        return this.engine.runBrainstorm(imagePaths, problemStatement, view);
-    }
-
     // ============================================
     // State Management
     // ============================================

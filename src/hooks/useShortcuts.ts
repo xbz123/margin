@@ -12,7 +12,6 @@ export interface ShortcutConfig {
     dynamicAction4: string[];
     answer: string[];
     codeHint: string[];
-    brainstorm: string[];
     shorten: string[];
     recap: string[];
     scrollUp: string[];
@@ -46,7 +45,6 @@ function buildDefaultShortcuts(): ShortcutConfig {
         followUp: [mod, '4'],
         answer: [mod, '5'],
         codeHint: [mod, '6'],
-        brainstorm: [mod, '7'],
         shorten: [],
         recap: [],
         scrollUp: [mod, '↑'],
@@ -93,7 +91,6 @@ export const useShortcuts = () => {
                 else if (kb.id === 'chat:dynamicAction4') newShortcuts.dynamicAction4 = keys;
                 else if (kb.id === 'chat:answer') newShortcuts.answer = keys;
                 else if (kb.id === 'chat:codeHint') newShortcuts.codeHint = keys;
-                else if (kb.id === 'chat:brainstorm') newShortcuts.brainstorm = keys;
                 else if (kb.id === 'chat:shorten') newShortcuts.shorten = keys;
                 else if (kb.id === 'chat:recap') newShortcuts.recap = keys;
                 else if (kb.id === 'chat:scrollUp') newShortcuts.scrollUp = keys;
@@ -170,7 +167,6 @@ export const useShortcuts = () => {
             case 'dynamicAction4': backendId = 'chat:dynamicAction4'; break;
             case 'answer': backendId = 'chat:answer'; break;
             case 'codeHint': backendId = 'chat:codeHint'; break;
-            case 'brainstorm': backendId = 'chat:brainstorm'; break;
             case 'shorten': backendId = 'chat:shorten'; break;
             case 'recap': backendId = 'chat:recap'; break;
             case 'scrollUp': backendId = 'chat:scrollUp'; break;

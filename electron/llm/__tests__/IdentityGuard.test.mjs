@@ -79,7 +79,7 @@ describe('IdentityGuard — full-tier prompts.ts retains the rule', () => {
 describe('IdentityGuard — prompts name Margin and no creator', () => {
   const exported = [...Object.entries(full), ...Object.entries(tiny)].filter(([, value]) => typeof value === 'string');
   test('no exported prompt carries the upstream assistant or creator name', () => {
-    assert.ok(exported.length > 33);
+    assert.ok(exported.length > 31);
     for (const [name, value] of exported) {
       assert.doesNotMatch(value, /Natively|Evin/, name);
     }

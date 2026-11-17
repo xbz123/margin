@@ -148,7 +148,7 @@ test('actual prompt wrappers propagate terminal results without adding a fallbac
       chat: async () => { throw terminal; },
       streamChat: async function* () { yield 'partial'; throw terminal; },
     });
-    for (const name of ['WhatToAnswer', 'Answer', 'Brainstorm', 'CodeHint', 'Clarify', 'FollowUp', 'FollowUpQuestions', 'Recap']) {
+    for (const name of ['WhatToAnswer', 'Answer', 'CodeHint', 'Clarify', 'FollowUp', 'FollowUpQuestions', 'Recap']) {
       const className = `${name}LLM`;
       const Class = require(path.join(root, `dist-electron/electron/llm/${className}.js`))[className];
       const wrapper = new Class(fakeHelper);

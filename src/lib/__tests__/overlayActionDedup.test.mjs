@@ -41,7 +41,7 @@ describe('overlayActionDedup', () => {
     assert.equal(
       shouldDedupeOverlayAction({
         actionKey: 'clarify',
-        lastActionKey: 'brainstorm',
+        lastActionKey: 'follow_up_questions',
         lastAtMs: 9000,
         nowMs: 10000,
       }),

@@ -166,7 +166,7 @@ test('prompt wrappers propagate a refusal instead of inventing an answer', async
     streamChat: async function* () { throw denied; },
   };
   const require = createRequire(import.meta.url);
-  for (const name of ['WhatToAnswer', 'CodeHint', 'Brainstorm', 'Answer', 'Recap', 'FollowUp', 'Clarify', 'FollowUpQuestions']) {
+  for (const name of ['WhatToAnswer', 'CodeHint', 'Answer', 'Recap', 'FollowUp', 'Clarify', 'FollowUpQuestions']) {
     const className = `${name}LLM`;
     const Class = require(path.join(repoRoot, `dist-electron/electron/llm/${className}.js`))[className];
     const wrapper = new Class(helper);

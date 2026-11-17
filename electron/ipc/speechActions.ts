@@ -2,7 +2,7 @@ import type { GenerationTask } from '../llm/generateTask';
 import type { CollectOptions, DictationMark, FrozenSpeech, SpeechCollector } from '../audio/MeetingSttSession';
 import type { ConversationBase } from '../SessionTracker';
 
-export const SPEECH_ACTION_KINDS = ['what-to-say', 'clarify', 'follow-up', 'recap', 'follow-up-questions', 'code-hint', 'brainstorm', 'answer'] as const;
+export const SPEECH_ACTION_KINDS = ['what-to-say', 'clarify', 'follow-up', 'recap', 'follow-up-questions', 'code-hint', 'answer'] as const;
 export type SpeechActionKind = typeof SPEECH_ACTION_KINDS[number];
 
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

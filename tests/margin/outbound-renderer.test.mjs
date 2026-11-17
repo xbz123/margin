@@ -241,7 +241,7 @@ test('AG62 mounted App cancels permission guidance on meeting start and ignores 
       checkPermissions: () => window.deferPermissions ? new Promise(resolve => window.permissionReplies.push(resolve)) : Promise.resolve({ platform: 'darwin', microphone: 'denied', screen: 'denied' }),
       getCredentialLoadStatus: async () => ({ ok: true }), getThemeMode: async () => ({ mode: 'system' }),
       getInputDevices: async () => [], getOutputDevices: async () => [], getRecognitionLanguages: async () => ({}), getAiResponseLanguages: async () => [],
-      getOpenAtLogin: async () => false, getMeetingRetention: async () => 'forever', getActionButtonMode: async () => 'recap', getDefaultModel: async () => ({ model: 'synthetic' }),
+      getOpenAtLogin: async () => false, getMeetingRetention: async () => 'forever', getDefaultModel: async () => ({ model: 'synthetic' }),
       getWindowPreferences: async () => [], getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
       getRecentMeetings: async () => [], getMeetingActive: async () => false,
       startMeeting: async () => { window.starts++; return { success: true }; }
@@ -322,7 +322,7 @@ test('AG61 mounted production consumers reconcile save/apply failures and ignore
       getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }), onKeybindResult: fn => subscribe('onKeybindResult', fn),
       getRecentMeetings: async () => [], getStoredCredentials: async () => ({}), getCredentialLoadStatus: async () => ({ ok: true }), getThemeMode: async () => ({ mode: 'system' }),
       getInputDevices: async () => [], getOutputDevices: async () => [], getRecognitionLanguages: async () => ({}), getAiResponseLanguages: async () => [],
-      getOpenAtLogin: async () => false, getMeetingActive: async () => false, getMeetingRetention: async () => 'forever', getActionButtonMode: async () => 'recap',
+      getOpenAtLogin: async () => false, getMeetingActive: async () => false, getMeetingRetention: async () => 'forever',
       getDefaultModel: async () => ({ model: 'synthetic' }), resetKeybinds: () => pending('keybinds', null)
     };
     window.electronAPI = new Proxy(api, { get(target, name) { if (name in target) return target[name]; if (String(name).startsWith('on')) return fn => subscribe(name, fn); return async () => undefined; } });

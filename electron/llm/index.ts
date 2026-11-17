@@ -2,7 +2,6 @@
 // Central export for the LLM modules used outside electron/llm.
 
 export { AnswerLLM } from "./AnswerLLM";
-export { BrainstormLLM } from "./BrainstormLLM";
 export { ClarifyLLM } from "./ClarifyLLM";
 export { CodeHintLLM } from "./CodeHintLLM";
 export { FollowUpLLM } from "./FollowUpLLM";

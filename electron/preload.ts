@@ -386,12 +386,12 @@ interface ElectronAPI {
   // Verbose / Debug Logging
   getVerboseLogging: () => Promise<boolean>;
   setVerboseLogging: (enabled: boolean) => Promise<{ success: boolean }>;
-  getMeetingRetention: () => Promise<'forever' | '7d' | '30d' | 'never'>;
+  getMeetingRetention: () => Promise<'forever' | 'never'>;
   setMeetingRetention: (
-    retention: 'forever' | '7d' | '30d' | 'never',
+    retention: 'forever' | 'never',
   ) => Promise<{ success: boolean; error?: string }>;
   onMeetingRetentionChanged: (
-    callback: (retention: 'forever' | '7d' | '30d' | 'never') => void,
+    callback: (retention: 'forever' | 'never') => void,
   ) => () => void;
   getProviderDataScopes: () => Promise<{
     transcript?: boolean;
@@ -787,8 +787,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   generateClarify: () => speechIntelligence('clarify', 'generate-clarify'),
   generateCodeHint: (imagePaths?: string[], problemStatement?: string) =>
     speechIntelligence('code-hint', 'generate-code-hint', imagePaths, problemStatement),
-  generateBrainstorm: (imagePaths?: string[], problemStatement?: string) =>
-    speechIntelligence('brainstorm', 'generate-brainstorm', imagePaths, problemStatement),
   generateFollowUp: (intent: string, userRequest?: string) =>
     speechIntelligence('follow-up', 'generate-follow-up', intent, userRequest),
   generateFollowUpQuestions: () => speechIntelligence('follow-up-questions', 'generate-follow-up-questions'),
@@ -810,18 +808,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     dictation = undefined;
     if (!dictationId) return Promise.reject(new Error('Dictation was not started'));
     return runSpeechAction('answer', ref => ipcRenderer.invoke('speech-action:freeze', ref), dictationId);
-  },
-
-  // Action Button Mode (Dynamic Recap / Brainstorm toggle)
-  getActionButtonMode: () => ipcRenderer.invoke('get-action-button-mode'),
-  setActionButtonMode: (mode: 'recap' | 'brainstorm') =>
-    ipcRenderer.invoke('set-action-button-mode', mode),
-  onActionButtonModeChanged: (callback: (mode: 'recap' | 'brainstorm') => void) => {
-    const subscription = (_: any, mode: 'recap' | 'brainstorm') => callback(mode);
-    ipcRenderer.on('action-button-mode-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('action-button-mode-changed', subscription);
-    };
   },
 
   // Meeting Lifecycle
@@ -1161,12 +1147,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVerboseLogging: () => ipcRenderer.invoke('get-verbose-logging'),
   setVerboseLogging: (enabled: boolean) => ipcRenderer.invoke('set-verbose-logging', enabled),
   getMeetingRetention: () => ipcRenderer.invoke('get-meeting-retention'),
-  setMeetingRetention: (retention: 'forever' | '7d' | '30d' | 'never') =>
+  setMeetingRetention: (retention: 'forever' | 'never') =>
     ipcRenderer.invoke('set-meeting-retention', retention),
   onMeetingRetentionChanged: (
-    callback: (retention: 'forever' | '7d' | '30d' | 'never') => void,
+    callback: (retention: 'forever' | 'never') => void,
   ) => {
-    const subscription = (_: any, retention: 'forever' | '7d' | '30d' | 'never') =>
+    const subscription = (_: any, retention: 'forever' | 'never') =>
       callback(retention);
     ipcRenderer.on('meeting-retention-changed', subscription);
     return () => {

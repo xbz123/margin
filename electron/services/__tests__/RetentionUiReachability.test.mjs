@@ -11,7 +11,8 @@ test('meeting retention IPC exposes get/set and broadcasts updates', () => {
   const ipc = read('electron/ipcHandlers.ts');
 
   assert.match(ipc, /safeHandle\(['"]get-meeting-retention['"]/);
-  assert.match(ipc, /SettingsManager\.getInstance\(\)\.get\('meetingRetention'\) \?\? 'forever'/);
+  assert.match(ipc, /SettingsManager\.getInstance\(\)\.getMeetingRetention\(\)/);
+  assert.match(ipc, /retention !== 'forever' && retention !== 'never'/);
   assert.match(ipc, /safeHandle\(['"]set-meeting-retention['"]/);
   assert.match(ipc, /SettingsManager\.getInstance\(\)\.set\('meetingRetention', retention\)/);
   assert.match(ipc, /webContents\.send\('meeting-retention-changed', retention\)/);
@@ -24,8 +25,8 @@ test('preload and renderer types expose meeting retention controls', () => {
   assert.match(preload, /getMeetingRetention: \(\) => ipcRenderer\.invoke\('get-meeting-retention'\)/);
   assert.match(preload, /setMeetingRetention:[\s\S]{0,120}ipcRenderer\.invoke\('set-meeting-retention', retention\)/);
   assert.match(preload, /ipcRenderer\.on\('meeting-retention-changed', subscription\)/);
-  assert.match(types, /getMeetingRetention: \(\) => Promise<'forever' \| '7d' \| '30d' \| 'never'>/);
-  assert.match(types, /setMeetingRetention: \(retention: 'forever' \| '7d' \| '30d' \| 'never'\) => Promise<\{ success: boolean; error\?: string \}>/);
+  assert.match(types, /getMeetingRetention: \(\) => Promise<'forever' \| 'never'>/);
+  assert.match(types, /setMeetingRetention: \(retention: 'forever' \| 'never'\) => Promise<\{ success: boolean; error\?: string \}>/);
 });
 
 test('SettingsOverlay renders a real do-not-save meetings control', () => {

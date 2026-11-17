@@ -37,8 +37,9 @@ only where the interview's rules permit it.
 - Written-question practice and manual real-time meeting assistance, using text,
   screenshots, microphone speech and system-audio transcription.
 - Separate **What to answer**, **Answer / Stop** and text-send entry points;
-  Clarify, Brainstorm, Recap and Follow Up Question remain available. Stop finishes
-  the current dictation for sending, not the meeting; ending a meeting is separate.
+  Clarify, Recap and Follow Up Question remain available (Brainstorm was
+  removed). Stop finishes the current dictation for sending, not the meeting;
+  ending a meeting is separate.
   - **What to answer** takes the interviewer's most recent words as the question,
     including a sentence still being spoken, and shows them above the answer.
   - **Answer / Stop** takes what you say into the microphone between the two
@@ -81,8 +82,9 @@ Configuration indicators do not prove account access, image support, device
 operation or service connectivity. Connection tests are explicit user actions
 and can send synthetic input to a provider; they are not automatic setup checks.
 
-Primary and backup models are selected together; configure reasoning in each
-provider card for its saved model. Gateway options describe protocol fields, not
+Primary and backup models are selected together. Reasoning is set once as
+**Default reasoning** next to the primary model and can be changed per meeting in
+the overlay (**Reasoning for this meeting**). Gateway options describe protocol fields, not
 verified server support, and rejected settings are not silently downgraded.
 Context-window figures are reference information only; custom gateways allow an
 optional note. Requests are not rejected by a local model-capacity estimate, while

@@ -101,6 +101,15 @@ test('an untitled meeting is saved as Untitled Session', async () => {
   assert.equal(saved[0].meeting.title, 'Untitled Session');
 });
 
+test('a legacy 7d or 30d retention keeps the meeting like forever', async () => {
+  for (const retention of ['7d', '30d']) {
+    const { MeetingPersistence, saved } = load({ retention });
+    const result = await new MeetingPersistence(session()).stopMeeting();
+    assert.equal(result.status, 'saved', retention);
+    assert.equal(saved.length, 1, retention);
+  }
+});
+
 test('short, never-retained, do-not-persist and unreadable-privacy meetings are skipped and keep nothing', async () => {
   for (const [options, tracker, reason] of [
     [{}, session({ startedMsAgo: 10 }), 'too-short'],

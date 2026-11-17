@@ -403,8 +403,7 @@ export const streamIds = () => mainRead(() => globalThis.__marginStreamIds, unde
 // - whatToAnswer -> handleWhatToSay 'what_to_say' (written mode instead submits the
 //   typed input, which has its own text de-dup; the wait is then merely unneeded);
 // - shorten -> 'follow_up:shorten'; followUp -> 'follow_up_questions'; recap -> 'recap';
-//   clarify -> 'clarify'; brainstorm -> 'brainstorm';
-// - dynamicAction4 -> 'brainstorm' or 'recap' by the action-button mode, so both;
+//   clarify -> 'clarify'; dynamicAction4 -> 'recap';
 // - capture-and-process (its own channel) -> handleWhatToSay, 'what_to_say' as above.
 // answer, codeHint, scrolling, focusInput, takeScreenshot and the other screenshot and
 // reset actions do not go through tryBeginOverlayAction and are sent without a wait, as
@@ -417,9 +416,8 @@ const DEDUP_KEYS_BY_SHORTCUT = {
   shorten: ['follow_up:shorten'],
   followUp: ['follow_up_questions'],
   recap: ['recap'],
-  dynamicAction4: ['brainstorm', 'recap'],
+  dynamicAction4: ['recap'],
   clarify: ['clarify'],
-  brainstorm: ['brainstorm'],
 };
 const lastDedupSendAt = new Map();
 

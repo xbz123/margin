@@ -527,7 +527,6 @@ export class AppState {
           actionId === 'chat:followUp' ||
           actionId === 'chat:answer' ||
           actionId === 'chat:codeHint' ||
-          actionId === 'chat:brainstorm' ||
           actionId === 'chat:dynamicAction4' ||
           actionId === 'chat:scrollUp' ||
           actionId === 'chat:scrollDown' ||
@@ -540,7 +539,6 @@ export class AppState {
             'chat:followUp': 'followUp',
             'chat:answer': 'answer',
             'chat:codeHint': 'codeHint',
-            'chat:brainstorm': 'brainstorm',
             'chat:dynamicAction4': 'dynamicAction4',
             'chat:scrollUp': 'scrollUp',
             'chat:scrollDown': 'scrollDown',

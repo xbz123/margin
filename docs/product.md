@@ -113,7 +113,7 @@ flowchart LR
 | Answer / Stop | Answer 开始口述，Stop 结束口述 | 两次点击之间用户口述的内容；没有口述时见下 |
 | 文字发送 | 输入文字后提交 | 输入的文字，不等待转写 |
 
-- Clarify、Brainstorm、Recap、Follow Up Question 保留各自的功能；不恢复面试自动回答和 Judge。
+- Clarify、Recap、Follow Up Question 保留各自的功能（Brainstorm 已移除，原位置固定为 Recap）；不恢复面试自动回答和 Judge。
 - 面试快捷动作和 Stop 都走同一套双路收尾（见 [U3](#u3)、[U4](#u4)）。顶部的结束会议按钮走独立的会议结束流程（见[会议与本地记录](#meeting)）。
 - 已有的取消与任务隔离保留。“发新消息会取消旧生成”需要按真实入口核对，不能当作现成保证。
 - **Answer / Stop 的口述范围**（2026-11-11 至 11-12，用户要求参照旧 Margin；[记录](margin/evidence/answer-dictation/README.md)）：

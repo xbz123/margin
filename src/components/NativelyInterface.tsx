@@ -10,7 +10,6 @@ import {
   Copy,
   HelpCircle,
   Image,
-  Lightbulb,
   MessageSquare,
   MessageSquareText,
   Mic,
@@ -534,7 +533,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   /** Blocks concurrent typed submits (double-click / key repeat) before React state updates. */
   const manualSubmitInFlightRef = useRef(false);
   const lastManualSubmitRef = useRef<{ text: string; atMs: number } | null>(null);
-  /** Blocks duplicate quick-action LLM calls (Clarify, Follow-up, Brainstorm, Answer). */
+  /** Blocks duplicate quick-action LLM calls (Clarify, Follow-up, Answer). */
   const overlayActionInFlightRef = useRef(new Set<string>());
   const lastOverlayActionRef = useRef<{ key: string; atMs: number } | null>(null);
   // Set when the user tried to engage the tap but Accessibility isn't
@@ -601,29 +600,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const exam = useWrittenExam();
   const questionMode = exam.status?.enabled ? 'written' : 'interview';
   const automaticSubmit = useRef(false);
-
-  // Dynamic Action Button Mode (Recap vs Brainstorm)
-  const [actionButtonMode, setActionButtonMode] = useState<'recap' | 'brainstorm'>('recap');
-
-  useEffect(() => {
-    // Load persisted mode
-    window.electronAPI
-      ?.getActionButtonMode?.()
-      ?.then((mode: 'recap' | 'brainstorm') => {
-        if (mode) setActionButtonMode(mode);
-      })
-      .catch(() => {});
-
-    // Listen for live changes from SettingsPopup / IPC
-    const unsubscribe = window.electronAPI?.onActionButtonModeChanged?.(
-      (mode: 'recap' | 'brainstorm') => {
-        setActionButtonMode(mode);
-      },
-    );
-    return () => {
-      unsubscribe?.();
-    };
-  }, []);
 
   const codeTheme = isLightTheme ? oneLight : vscDarkPlus;
   const codeLineNumberColor = isLightTheme ? 'rgba(15,23,42,0.35)' : 'rgba(255,255,255,0.2)';
@@ -2185,55 +2161,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     }
   };
 
-  const handleBrainstorm = async () => {
-    if (!tryBeginOverlayAction('brainstorm')) return;
-    window.electronAPI.cancelChatStream('natively');
-    const epoch = ++generationEpochRef.current;
-    whatToSayQuestionRef.current = null;
-    setIsExpanded(true);
-    setIsProcessing(true);
-    prepareIntelligenceStreamPlaceholder('what_to_answer');
-
-    const currentAttachments = attachedContext;
-    if (currentAttachments.length > 0) {
-      // Show the attached image in chat
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: genMessageId(),
-          role: 'user',
-          text: t('Brainstorm with this context'),
-          hasScreenshot: true,
-          screenshotPreview: currentAttachments[0].preview,
-        },
-      ]);
-      // Scroll to bottom when user sends message
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
-    }
-
-    try {
-      const result = await window.electronAPI.generateBrainstorm(
-        currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
-      );
-      if (generationEpochRef.current !== epoch) return;
-      if (result.script != null) setAttachedContext(prev => prev.filter(item => !currentAttachments.some(sent => sent.path === item.path)));
-    } catch (err) {
-      if (generationEpochRef.current !== epoch) return;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: genMessageId(),
-          role: 'system',
-          text: `Error: ${err}`,
-        },
-      ]);
-    } finally {
-      endOverlayAction('brainstorm');
-      if (generationEpochRef.current === epoch) setIsProcessing(false);
-    }
-  };
   useEffect(() => {
     const cleanups: (() => void)[] = [];
 
@@ -3007,7 +2934,6 @@ Provide only the answer, nothing else.`;
     handleAnswerNow,
     handleClarify,
     handleCodeHint,
-    handleBrainstorm,
   });
 
   // Update ref on every render so the event listener always access latest state/props
@@ -3019,7 +2945,6 @@ Provide only the answer, nothing else.`;
     handleAnswerNow,
     handleClarify,
     handleCodeHint,
-    handleBrainstorm,
   };
 
   useEffect(() => {
@@ -3122,7 +3047,6 @@ Provide only the answer, nothing else.`;
         handleAnswerNow,
         handleClarify,
         handleCodeHint,
-        handleBrainstorm,
       } = handlersRef.current;
 
       // Chat Shortcuts (Scope: Local to Chat/Overlay usually, but we allow them here if focused)
@@ -3137,20 +3061,13 @@ Provide only the answer, nothing else.`;
         handleFollowUpQuestions();
       } else if (isShortcutPressed(e, 'dynamicAction4')) {
         e.preventDefault();
-        if (actionButtonMode === 'brainstorm') {
-          handleBrainstorm();
-        } else {
-          handleRecap();
-        }
+        handleRecap();
       } else if (isShortcutPressed(e, 'answer')) {
         e.preventDefault();
         handleAnswerNow();
       } else if (isShortcutPressed(e, 'codeHint')) {
         e.preventDefault();
         handleCodeHint();
-      } else if (isShortcutPressed(e, 'brainstorm')) {
-        e.preventDefault();
-        handleBrainstorm();
       } else if (isShortcutPressed(e, 'scrollUp')) {
         e.preventDefault();
         upHeld = true;
@@ -3506,14 +3423,10 @@ Provide only the answer, nothing else.`;
       if (action === 'whatToAnswer') handlers.handleWhatToSay();
       else if (action === 'shorten') handlers.handleFollowUp('shorten');
       else if (action === 'followUp') handlers.handleFollowUpQuestions();
-      else if (action === 'recap') handlers.handleRecap();
-      else if (action === 'dynamicAction4') {
-        if (actionButtonMode === 'brainstorm') handlers.handleBrainstorm();
-        else handlers.handleRecap();
-      } else if (action === 'answer') handlers.handleAnswerNow();
+      else if (action === 'recap' || action === 'dynamicAction4') handlers.handleRecap();
+      else if (action === 'answer') handlers.handleAnswerNow();
       else if (action === 'clarify') handlers.handleClarify();
       else if (action === 'codeHint') handlers.handleCodeHint();
-      else if (action === 'brainstorm') handlers.handleBrainstorm();
       else if (action === 'scrollUp') inertialScrollRef.current?.kick('vert', -1);
       else if (action === 'scrollDown') inertialScrollRef.current?.kick('vert', 1);
       else if (action === 'scrollLeft') inertialScrollRef.current?.kick('horiz', -1);
@@ -4343,19 +4256,11 @@ Provide only the answer, nothing else.`;
                   <MessageSquare className="w-3 h-3 opacity-70" /> {t('Clarify')}
                 </button>
                 <button
-                  onClick={actionButtonMode === 'brainstorm' ? handleBrainstorm : handleRecap}
+                  onClick={handleRecap}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all active:scale-95 duration-200 interaction-base interaction-press whitespace-nowrap shrink-0 ${quickActionClass}`}
                   style={appearance.chipStyle}
                 >
-                  {actionButtonMode === 'brainstorm' ? (
-                    <>
-                      <Lightbulb className="w-3 h-3 opacity-70" /> {t('Brainstorm')}
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-3 h-3 opacity-70" /> {t('Recap')}
-                    </>
-                  )}
+                  <RefreshCw className="w-3 h-3 opacity-70" /> {t('Recap')}
                 </button>
                 <button
                   onClick={handleFollowUpQuestions}

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Command, Monitor, Mic, Settings, Zap, Key, Play, Image, ArrowUp, FileText, Sparkles, Search, ChevronUp,
     Copy, MessageSquare, Briefcase, Eye, EyeOff, Ghost, ChevronDown, ChevronRight, HelpCircle, RefreshCw,
-    Trash2, Check, ExternalLink, Volume2, Globe, Cpu, Calendar, Pencil, Lightbulb, SlidersHorizontal,
+    Trash2, Check, ExternalLink, Volume2, Globe, Cpu, Calendar, Pencil, SlidersHorizontal,
     PointerOff, ArrowRight
 } from 'lucide-react';
 import { SiOpenai, SiGoogle, SiAnthropic } from 'react-icons/si';
@@ -22,7 +22,7 @@ const CMD_SYMBOL = getModifierSymbol('cmd');
 const MOCK_BUTTONS = [
     { icon: Pencil, label: 'What to answer?', kbd: `${CMD_SYMBOL}1`, color: 'blue' },
     { icon: MessageSquare, label: 'Clarify', kbd: `${CMD_SYMBOL}2`, color: 'indigo' },
-    { icon: RefreshCw, label: 'Recap', kbd: `${CMD_SYMBOL}7`, color: 'amber' },
+    { icon: RefreshCw, label: 'Recap', kbd: `${CMD_SYMBOL}3`, color: 'amber' },
     { icon: HelpCircle, label: 'Follow Up Question', kbd: `${CMD_SYMBOL}4`, color: 'teal' },
     { icon: Zap, label: 'Answer', kbd: `${CMD_SYMBOL}5`, color: 'emerald' },
 ] as const;
@@ -1070,7 +1070,6 @@ export const HelpSettings: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                             {([
                                 { Icon: Pencil, color: 'blue', title: 'What to Answer?', badge: null, bc: '', kbd: ['⌘', '1'], desc: 'Reads the active transcript and screen, then streams a precise response to read aloud.' },
-                                { Icon: Lightbulb, color: 'violet', title: 'Brainstorm', badge: null, bc: '', kbd: ['⌘', '3'], desc: 'Develops ideas and multi-step strategies from the current context.' },
                                 { Icon: HelpCircle, color: 'teal', title: 'Follow Up', badge: null, bc: '', kbd: ['⌘', '4'], desc: 'Suggests the next logical question to keep conversation flowing gracefully.' },
                                 { Icon: Zap, color: 'emerald', title: 'Answer Now', badge: null, bc: '', kbd: ['⌘', '5'], desc: 'Records your mic + screen context and fires an immediate AI query.' },
                                 { Icon: MessageSquare, color: 'indigo', title: 'Clarify', badge: null, bc: '', kbd: ['⌘', '2'], desc: 'Generates sharp probing questions from latent audio when a topic is unclear.' },

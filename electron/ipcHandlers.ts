@@ -40,7 +40,7 @@ import { manualAnswerError, MANUAL_ANSWER_UNCONFIGURED, MANUAL_ANSWER_CANCELLED,
 const SPEECH_ACTION_CHANNELS: Record<string, [SpeechActionKind, number]> = {
   'generate-what-to-say': ['what-to-say', 2], 'generate-clarify': ['clarify', 0], 'generate-follow-up': ['follow-up', 2],
   'generate-recap': ['recap', 0], 'generate-follow-up-questions': ['follow-up-questions', 0],
-  'generate-code-hint': ['code-hint', 2], 'generate-brainstorm': ['brainstorm', 2],
+  'generate-code-hint': ['code-hint', 2],
 };
 
 // Answer configuration saves that committed but could not be applied to the running service.
@@ -838,7 +838,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   safeHandle('get-meeting-retention', async () => {
-    return SettingsManager.getInstance().get('meetingRetention') ?? 'forever';
+    return SettingsManager.getInstance().getMeetingRetention();
   });
 
   safeHandle('ui-language:get', () => SettingsManager.getInstance().getUiLanguage());
@@ -867,8 +867,8 @@ export function initializeIpcHandlers(appState: AppState): void {
     return { ok: true, language };
   });
 
-  safeHandle('set-meeting-retention', async (_, retention: 'forever' | '7d' | '30d' | 'never') => {
-    if (!['forever', '7d', '30d', 'never'].includes(retention)) {
+  safeHandle('set-meeting-retention', async (_, retention: 'forever' | 'never') => {
+    if (retention !== 'forever' && retention !== 'never') {
       return { success: false, error: 'invalid_retention' };
     }
     SettingsManager.getInstance().set('meetingRetention', retention);
@@ -2035,50 +2035,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     } catch (error: any) {
       throw error;
     }
-  });
-
-  registerGenerationHandler('generate-brainstorm', async (_, imagePaths: string[] | undefined, problemStatement: string | undefined, freeze: () => Promise<TranscriptView>) => {
-    try {
-      // If no explicit images were passed from the frontend, fall back to the
-      // screenshot queue so the AI can always "see" the user's screen.
-      const resolvedImagePaths = validateImages(imagePaths === undefined || Array.isArray(imagePaths) && imagePaths.length === 0
-        ? appState.getScreenshotQueue() : imagePaths)!;
-
-      console.log(
-        `[IPC] generate-brainstorm: using ${resolvedImagePaths.length} image(s) (${imagePaths?.length ? 'explicit' : 'queue fallback'})`,
-      );
-
-      const intelligenceManager = appState.getIntelligenceManager();
-      const script = await intelligenceManager.runBrainstorm(
-        resolvedImagePaths.length > 0 ? resolvedImagePaths : undefined,
-        problemStatement,
-        await freeze(),
-      );
-      return { script };
-    } catch (error: any) {
-      throw error;
-    }
-  });
-
-  // Dynamic Action Button Mode (Recap vs Brainstorm)
-  safeHandle('get-action-button-mode', () => {
-    const { SettingsManager } = require('./services/SettingsManager');
-    const sm = SettingsManager.getInstance();
-    return sm.get('actionButtonMode') ?? 'recap';
-  });
-
-  safeHandle('set-action-button-mode', (_, mode: 'recap' | 'brainstorm') => {
-    const { SettingsManager } = require('./services/SettingsManager');
-    const sm = SettingsManager.getInstance();
-    sm.set('actionButtonMode', mode);
-
-    BrowserWindow.getAllWindows().forEach((win) => {
-      if (!win.isDestroyed()) {
-        win.webContents.send('action-button-mode-changed', mode);
-      }
-    });
-
-    return { success: true };
   });
 
   // MODE 3: Follow-Up (Refinement)

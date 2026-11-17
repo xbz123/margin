@@ -413,7 +413,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
 
     const [verboseLogging, setVerboseLogging] = useState(false);
-    const [meetingRetention, setMeetingRetention] = useState<'forever' | '7d' | '30d' | 'never'>('forever');
+    const [meetingRetention, setMeetingRetention] = useState<'forever' | 'never'>('forever');
     const [showVerboseToast, setShowVerboseToast] = useState(false);
     const verboseToastTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1748,10 +1748,9 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             { id: 'whatToAnswer', label: 'What to Answer', icon: Sparkles },
                                             { id: 'clarify', label: 'Clarify', icon: MessageSquare },
                                             { id: 'followUp', label: 'Follow Up', icon: MessageSquare },
-                                            { id: 'dynamicAction4', label: 'Recap / Brainstorm', icon: RefreshCw },
+                                            { id: 'dynamicAction4', label: 'Recap', icon: RefreshCw },
                                             { id: 'answer', label: 'Answer / Record', icon: Mic },
                                             { id: 'codeHint', label: 'Get Code Hint', icon: Zap },
-                                            { id: 'brainstorm', label: 'Brainstorm Approaches', icon: Zap },
                                             { id: 'scrollUp', label: 'Scroll Up', icon: ArrowUp },
                                             { id: 'scrollDown', label: 'Scroll Down', icon: ArrowDown },
                                             { id: 'scrollLeft', label: 'Scroll Left (code block)', icon: ArrowLeft },
