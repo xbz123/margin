@@ -28,28 +28,13 @@ export interface ElectronAPI {
   }) => Promise<void>
   onToggleExpand: (callback: () => void) => () => void
   getRecognitionLanguages: () => Promise<Record<string, any>>
-  getScreenshots: () => Promise<Array<{ path: string; preview: string }>>
   deleteScreenshot: (path: string) => Promise<{ success: boolean; error?: string }>
   onScreenshotTaken: (
-    callback: (data: { path: string; preview: string }) => void
-  ) => () => void
-  onScreenshotAttached: (
     callback: (data: { path: string; preview: string }) => void
   ) => () => void
   onCaptureAndProcess: (
     callback: (data: { path: string; preview: string; speechActionId?: string }) => void
   ) => () => void
-  onSolutionsReady: (callback: (solutions: string) => void) => () => void
-  onResetView: (callback: () => void) => () => void
-  onSolutionStart: (callback: () => void) => () => void
-  onDebugStart: (callback: () => void) => () => void
-  onDebugSuccess: (callback: (data: any) => void) => () => void
-  onSolutionError: (callback: (error: string) => void) => () => void
-  onProcessingNoScreenshots: (callback: () => void) => () => void
-  onProblemExtracted: (callback: (data: any) => void) => () => void
-  onSolutionSuccess: (callback: (data: any) => void) => () => void
-  onUnauthorized: (callback: () => void) => () => void
-  onDebugError: (callback: (error: string) => void) => () => void
   takeScreenshot: () => Promise<{ path: string; preview: string }>
   takeSelectiveScreenshot: () => Promise<{ path: string; preview: string; cancelled?: boolean }>
   moveWindowLeft: () => Promise<void>
@@ -61,12 +46,10 @@ export interface ElectronAPI {
   windowClose: () => Promise<void>
   windowIsMaximized: () => Promise<boolean>
 
-  analyzeImageFile: (path: string) => Promise<void>
   quitApp: () => Promise<void>
   toggleWindow: () => Promise<void>
   showWindow: (inactive?: boolean) => Promise<void>
   hideWindow: () => Promise<void>
-  showOverlay: () => Promise<void>
   hideOverlay: () => Promise<void>
   getMeetingActive: () => Promise<boolean>
   onMeetingStateChanged: (callback: (data: { isActive: boolean }) => void) => () => void
@@ -87,12 +70,9 @@ export interface ElectronAPI {
   setUndetectable: (state: boolean) => Promise<WindowPreferenceResult>
   getUndetectable: () => Promise<boolean>
   setOverlayMousePassthrough: (enabled: boolean) => Promise<WindowPreferenceResult>
-  toggleOverlayMousePassthrough: () => Promise<WindowPreferenceResult>
   getOverlayMousePassthrough: () => Promise<boolean>
-  onOverlayMousePassthroughChanged: (callback: (enabled: boolean) => void) => () => void
   setDisguise: (mode: 'terminal' | 'settings' | 'activity' | 'none') => Promise<WindowPreferenceResult>
   getDisguise: () => Promise<'none' | 'terminal' | 'settings' | 'activity'>
-  onDisguiseChanged: (callback: (mode: 'terminal' | 'settings' | 'activity' | 'none') => void) => () => void
   setOpenAtLogin: (open: boolean) => Promise<{ success: boolean; error?: string }>
   getOpenAtLogin: () => Promise<boolean>
   onSettingsVisibilityChange: (callback: (isVisible: boolean) => void) => () => void
@@ -136,13 +116,6 @@ export interface ElectronAPI {
 
   // Native Audio Service Events
   onNativeAudioTranscript: (callback: (transcript: { speaker: string; text: string; final: boolean }) => void) => () => void
-  onNativeAudioSuggestion: (callback: (suggestion: { context: string; lastQuestion: string; confidence: number }) => void) => () => void
-  onNativeAudioConnected: (callback: () => void) => () => void
-  onNativeAudioDisconnected: (callback: () => void) => () => void
-  onSuggestionGenerated: (callback: (data: { question: string; suggestion: string; confidence: number }) => void) => () => void
-  onSuggestionProcessingStart: (callback: () => void) => () => void
-  onSuggestionError: (callback: (error: { error: string }) => void) => () => void
-  generateSuggestion: (context: string, lastQuestion: string) => Promise<{ suggestion: string }>
   getInputDevices: () => Promise<Array<{ id: string; name: string }>>
   getOutputDevices: () => Promise<Array<{ id: string; name: string }>>
   setRecognitionLanguage: (key: string) => Promise<CredentialSaveResult>
@@ -150,7 +123,6 @@ export interface ElectronAPI {
   setAiResponseLanguage: (language: string) => Promise<CredentialSaveResult>
   getSttLanguage: () => Promise<string>
   getAiResponseLanguage: () => Promise<string>
-  onSttLanguageAutoDetected: (callback: (bcp47: string) => void) => () => void
   onSystemAudioPermissionDenied: (callback: (message: string) => void) => () => void
   onDeviceSelectionApplied: (callback: (payload: { kind: 'input' | 'output'; requested: string | null; actual: string | null; fellBack: boolean; reason?: string }) => void) => () => void
   onAudioCaptureFailed: (callback: (payload: { channel: 'system' | 'mic'; message: string; attempt: number; maxAttempts: number; terminal?: boolean; stuck?: boolean }) => void) => () => void
@@ -158,10 +130,8 @@ export interface ElectronAPI {
   // STT Status Events
   onSttStatusChanged: (callback: (data: { state: 'connected' | 'reconnecting' | 'failed' | 'awaiting-audio'; provider: string; error?: string; channel: 'user' | 'interviewer'; reconnectAttempts?: number }) => void) => () => void
 
-  getNativeAudioStatus: () => Promise<{ connected: boolean }>
 
   // Intelligence Mode IPC
-  generateAssist: () => Promise<{ insight: string | null }>
   generateWhatToSay: (question?: string, imagePaths?: string[], speechActionId?: string) => Promise<{
     answer: string | null;
     question?: string;
@@ -182,10 +152,8 @@ export interface ElectronAPI {
   generateFollowUp: (intent: string, userRequest?: string) => Promise<{ refined: string | null; intent: string }>
   generateFollowUpQuestions: () => Promise<{ questions: string | null }>
   generateRecap: () => Promise<{ summary: string | null }>
-  submitManualQuestion: (question: string) => Promise<{ answer: string | null; question: string }>
   beginDictation: () => Promise<void>
   finishDictation: () => Promise<{ speechActionId: string; question: string; interviewerHeard?: boolean }>
-  getIntelligenceContext: () => Promise<{ context: string; lastAssistantMessage: string | null; activeMode: string }>
   resetIntelligence: () => Promise<{ success: boolean; error?: string }>
 
   // Dynamic Action Button Mode
@@ -220,22 +188,13 @@ export interface ElectronAPI {
   onUiLanguageChanged: (callback: (language: UiLanguage) => void) => () => void
 
   // Intelligence Mode Events
-  onIntelligenceAssistUpdate: (callback: (data: { insight: string }) => void) => () => void
-  onIntelligenceSuggestedAnswerToken: (callback: (data: { token: string; question: string; confidence: number }) => void) => () => void
   onIntelligenceSuggestedAnswer: (callback: (data: { answer: string; question: string; confidence: number }) => void) => () => void
   // Sprint 9: time-batched IPC token channel.
   onIntelligenceTokenBatch: (callback: (data: { kind: 'suggested_answer' | 'refined_answer' | 'recap' | 'clarify' | 'follow_up_questions'; items: any[] }) => void) => () => void
-  onIntelligenceRefinedAnswerToken: (callback: (data: { token: string; intent: string }) => void) => () => void
   onIntelligenceRefinedAnswer: (callback: (data: { answer: string; intent: string }) => void) => () => void
   onIntelligenceFollowUpQuestionsUpdate: (callback: (data: { questions: string }) => void) => () => void
-  onIntelligenceFollowUpQuestionsToken: (callback: (data: { token: string }) => void) => () => void
   onIntelligenceRecap: (callback: (data: { summary: string }) => void) => () => void
-  onIntelligenceRecapToken: (callback: (data: { token: string }) => void) => () => void
   onIntelligenceClarify: (callback: (data: { clarification: string }) => void) => () => void
-  onIntelligenceClarifyToken: (callback: (data: { token: string }) => void) => () => void
-  onIntelligenceManualStarted: (callback: () => void) => () => void
-  onIntelligenceManualResult: (callback: (data: { answer: string; question: string }) => void) => () => void
-  onIntelligenceModeChanged: (callback: (data: { mode: string }) => void) => () => void
   onIntelligenceError: (callback: (data: { error: string, mode: string }) => void) => () => void;
   // Session Management
   onSessionReset: (callback: () => void) => () => void;
@@ -286,10 +245,6 @@ export interface ElectronAPI {
   onAudioTestSystemLevel: (callback: (level: number) => void) => () => void;
   onAudioTestSystemError: (callback: (errorMessage: string) => void) => () => void;
 
-  // Database
-  flushDatabase: () => Promise<{ success: boolean }>;
-
-  onUndetectableChanged: (callback: (state: boolean) => void) => () => void;
   onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
   onModelChanged: (callback: (modelId: string) => void) => () => void;
 
@@ -347,16 +302,6 @@ export interface ElectronAPI {
   getProviderDataScopes: () => Promise<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean }>;
   setProviderDataScopes: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean }) => Promise<{ success: boolean; error?: string }>;
   onProviderDataScopesChanged: (callback: (scopes: { transcript?: boolean; screenshots?: boolean; profile_history?: boolean }) => void) => () => void;
-  getTechnicalInterviewVisionFirst: () => Promise<boolean>;
-  setTechnicalInterviewVisionFirst: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  onTechnicalInterviewVisionFirstChanged: (callback: (enabled: boolean) => void) => () => void;
-  /** @deprecated alias retained for older renderer builds — maps to technicalInterviewVisionFirst */
-  getTechnicalInterviewDirectVision: () => Promise<boolean>;
-  /** @deprecated alias retained for older renderer builds — maps to technicalInterviewVisionFirst */
-  setTechnicalInterviewDirectVision: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  /** @deprecated alias retained for older renderer builds — maps to technicalInterviewVisionFirstChanged */
-  onTechnicalInterviewDirectVisionChanged: (callback: (enabled: boolean) => void) => () => void;
-  getLogFilePath: () => Promise<string | null>;
   openLogFile: () => Promise<{ success: boolean; error?: string }>;
 
   // Arch

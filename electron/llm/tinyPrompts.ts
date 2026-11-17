@@ -63,10 +63,6 @@ MODE: Strategic response to live conversation. Read the transcript and answer th
 - ${INTERVIEW_ANSWER_SHAPE}
 ${GROUNDED_ANSWER_RULES}`;
 
-export const TINY_ASSIST_PROMPT = `${TINY_CORE}
-
-MODE: Passive observer. Briefly note what is happening in the conversation. 1-2 sentences. Observation only — no advice, no suggestions on what to say.`;
-
 export const TINY_RECAP_PROMPT = `${TINY_CORE.split('\n').slice(0, 4).join('\n')}
 
 MODE: Recap. Summarize the conversation in 3-5 concise bullet points. Plain markdown bullets. No preamble. No "here is the summary".
@@ -110,7 +106,7 @@ No markdown, no commentary. JSON only.`;
 // Keep in sync with the individual exports above.
 export const TINY_PROMPTS_SET: ReadonlySet<string> = new Set([
   TINY_SYSTEM_PROMPT, TINY_ANSWER_PROMPT, TINY_WHAT_TO_ANSWER_PROMPT,
-  TINY_ASSIST_PROMPT, TINY_RECAP_PROMPT, TINY_FOLLOWUP_PROMPT,
+  TINY_RECAP_PROMPT, TINY_FOLLOWUP_PROMPT,
   TINY_FOLLOW_UP_QUESTIONS_PROMPT, TINY_BRAINSTORM_PROMPT,
   TINY_CLARIFY_PROMPT, TINY_CODE_HINT_PROMPT,
 ]);

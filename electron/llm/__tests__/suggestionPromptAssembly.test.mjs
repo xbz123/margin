@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -13,67 +12,6 @@ const intentClassifierSource = fs.readFileSync(intentClassifierPath, 'utf8');
 const distWhatToAnswerPath = path.resolve(__dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js');
 const require = createRequire(import.meta.url);
 const { scenarioPrompt } = require(path.resolve(__dirname, '../../../dist-electron/electron/llm/scenarioPrompts.js'));
-
-// Replaces a baseline case that asserted call shapes the baseline code never had
-// (it failed at a786910e; resolved in PLAN.md AG-17). This one runs the built
-// generateSuggestion against a stub and checks where the notes actually go:
-// streamChat puts its `context` argument into the user message.
-function loadBuiltLLMHelper() {
-  const built = path.resolve(__dirname, '../../../dist-electron/electron/LLMHelper.js');
-  const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
-  const previous = require.cache[electronId];
-  require.cache[electronId] = {
-    id: electronId, filename: electronId, loaded: true,
-    exports: { app: { getPath: () => os.tmpdir(), isPackaged: false, getVersion: () => '0.0.0' } },
-  };
-  try {
-    return require(built).LLMHelper;
-  } finally {
-    if (previous) require.cache[electronId] = previous; else delete require.cache[electronId];
-  }
-}
-
-function suggestionHarness({ codexEnabled }) {
-  const calls = { streamChat: [], chatWithGemini: [] };
-  const self = {
-    runGeneration: factory => factory(),
-    runGenerationStream: factory => factory(),
-    customNotes: 'NOTES_SENTINEL',
-    codexCliConfig: { enabled: codexEnabled },
-    client: {},
-    injectLanguageInstruction: (text) => text,
-    processResponse: (text) => text,
-    async *streamChat(...args) { calls.streamChat.push(args); yield 'streamed'; },
-    async chatWithGemini(...args) { calls.chatWithGemini.push(args); return 'from codex'; },
-  };
-  return { self, calls };
-}
-
-test('generateSuggestion sends custom notes and the transcript as user content, not in the system prompt', async () => {
-  const LLMHelper = loadBuiltLLMHelper();
-  const basePrompt = scenarioPrompt('interview');
-
-  const cloud = suggestionHarness({ codexEnabled: false });
-  assert.equal(await LLMHelper.prototype.generateSuggestion.call(cloud.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
-  assert.equal(cloud.calls.streamChat.length, 1);
-  const [message, imagePaths, context, systemPrompt, ignoreKnowledgeMode, skipModeInjection] = cloud.calls.streamChat[0];
-  assert.match(message, /QUESTION_SENTINEL/);
-  assert.equal(imagePaths, undefined);
-  assert.match(context, /<user_context>\nNOTES_SENTINEL\n<\/user_context>/);
-  assert.match(context, /CONTEXT_SENTINEL/);
-  assert.equal(systemPrompt, basePrompt);
-  assert.equal(ignoreKnowledgeMode, true);
-  assert.equal(skipModeInjection, true, 'the interview prompt already carries the full answer contract');
-
-  const codex = suggestionHarness({ codexEnabled: true });
-  assert.equal(await LLMHelper.prototype.generateSuggestion.call(codex.self, 'CONTEXT_SENTINEL', 'QUESTION_SENTINEL'), 'streamed');
-  assert.equal(codex.calls.chatWithGemini.length, 0, 'enabling CLI does not add an extra independent generation');
-  const [codexMessage, , codexContext] = codex.calls.streamChat[0];
-  assert.match(codexMessage, /QUESTION_SENTINEL/);
-  assert.doesNotMatch(codexMessage, /NOTES_SENTINEL|CONTEXT_SENTINEL/);
-  assert.match(codexContext, /NOTES_SENTINEL/);
-  assert.match(codexContext, /CONTEXT_SENTINEL/);
-});
 
 test('intent answer shapes require grounding for examples and behavioral stories', () => {
   assert.match(intentClassifierSource, /behavioral: 'Use a specific story only when grounded candidate\/profile context exists/);

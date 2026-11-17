@@ -15,7 +15,7 @@ import { toJpeg } from "./services/screen/imageCodec"
 import {
   HARD_SYSTEM_PROMPT,
   UNIVERSAL_SYSTEM_PROMPT, UNIVERSAL_ANSWER_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT,
-  UNIVERSAL_RECAP_PROMPT, UNIVERSAL_FOLLOWUP_PROMPT, UNIVERSAL_FOLLOW_UP_QUESTIONS_PROMPT, UNIVERSAL_ASSIST_PROMPT,
+  UNIVERSAL_RECAP_PROMPT, UNIVERSAL_FOLLOWUP_PROMPT, UNIVERSAL_FOLLOW_UP_QUESTIONS_PROMPT,
   CHAT_MODE_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX
 } from "./llm/prompts"
 import { TINY_PROMPTS_SET } from "./llm/tinyPrompts"
@@ -28,7 +28,7 @@ import { LocalContextStore } from './services/LocalContextStore';
 import { PromptSettingsStore } from './services/PromptSettingsStore';
 import { scenarioPrompt, appendPromptGuidance, writtenOutputFormat, writtenOutputPrompt } from './llm/scenarioPrompts';
 import { attachLocalContext } from './llm/localContextRequest';
-import { GenerationResultError, rethrowTerminalGenerationError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
+import { GenerationResultError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
 import { assertProviderDataScopes, getDeniedDataScopes, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
 import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { createProviderRateLimiters } from './services/RateLimiter';
@@ -77,9 +77,6 @@ const GROQ_MODEL = "llama-3.3-70b-versatile"
 const CLAUDE_MODEL = "claude-sonnet-4-6"
 const DEEPSEEK_MODEL = "deepseek-v4-flash"
 const MAX_OUTPUT_TOKENS = 65536
-
-// Simple prompt for image analysis (not interview copilot - kept separate)
-const IMAGE_ANALYSIS_PROMPT = `Analyze concisely. Be direct. No markdown formatting. Return plain text only.`
 
 export class LLMHelper {
   private codeOutputFormat: 'plain' | 'markdown' = 'plain';
@@ -736,21 +733,13 @@ export class LLMHelper {
     return truncateTranscriptToFit(turns, budget);
   }
 
-  private cleanJsonResponse(text: string): string {
-    // Remove markdown code block syntax if present
-    text = text.replace(/^```(?:json)?\n/, '').replace(/\n```$/, '');
-    // Remove any leading/trailing whitespace
-    text = text.trim();
-    return text;
-  }
-
   /**
    * Post-process the response
    * NOTE: Truncation/clamping removed - response length is handled in prompts
    */
   private processResponse(text: string): string {
-    // Basic cleaning
-    let clean = this.cleanJsonResponse(text);
+    // Basic cleaning: drop a surrounding markdown code fence and whitespace
+    const clean = text.replace(/^```(?:json)?\n/, '').replace(/\n```$/, '').trim();
 
     // Truncation/clamping removed - prompts already handle response length
     // clean = clampResponse(clean, 3, 60);
@@ -780,101 +769,6 @@ export class LLMHelper {
       for await (const chunk of this.selectedGeneration(JSON.stringify(contents), undefined, undefined, false, 'answer', task, contents)) text += chunk;
       return text;
     } finally { if (!inherited) task.close(); } }
-
-  public async extractProblemFromImages(imagePaths: string[]) {
-    const prompt = `You are a wingman. Please analyze these images and extract the following information in JSON format:\n{
-  "problem_statement": "A clear statement of the problem or situation depicted in the images.",
-  "context": "Relevant background or context from the images.",
-  "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-  "reasoning": "Explanation of why these suggestions are appropriate."
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`
-
-    const text = await this.generateWithVisionFallback(IMAGE_ANALYSIS_PROMPT, prompt, imagePaths)
-    return JSON.parse(this.cleanJsonResponse(text))
-  }
-
-  public async generateSolution(problemInfo: any) {
-    const prompt = `Given this problem or situation:\n${JSON.stringify(problemInfo, null, 2)}\n\nPlease provide your response in the following JSON format:\n{
-  "solution": {
-    "code": "The code or main answer here.",
-    "problem_statement": "Restate the problem or situation.",
-    "context": "Relevant background/context.",
-    "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-    "reasoning": "Explanation of why these suggestions are appropriate."
-  }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`
-
-    const text = await this.generateWithVisionFallback(IMAGE_ANALYSIS_PROMPT, prompt)
-    const parsed = JSON.parse(this.cleanJsonResponse(text))
-    return parsed
-  }
-
-  /**
-   * Generate a structured 4-phase "Rolling Interview Script" from screenshot(s).
-   * Returns a typed Solution with: problem_identifier_script, brainstorm_script,
-   * code, dry_run_script, time_complexity, space_complexity.
-   */
-  public async generateRollingScript(imagePaths: string[]): Promise<{
-    problem_identifier_script: string;
-    brainstorm_script: string;
-    code: string;
-    dry_run_script: string;
-    time_complexity: string;
-    space_complexity: string;
-  }> {
-    const systemPrompt = `You are an elite FAANG Senior Software Engineer taking a live technical interview.
-The user has provided a screenshot of a coding problem. You must generate a highly structured "Rolling Interview Script" that the candidate can read out loud to pass the interview perfectly.
-
-Output EXACTLY this JSON structure, and nothing else (no markdown fences around the whole response):
-{
-  "problem_identifier_script": "1-2 conversational sentences confirming you understand the problem and its edge cases. Start with 'So just to make sure I understand...'",
-  "brainstorm_script": "3-4 conversational sentences. First, mention a naive/brute-force approach and its complexity. Then, pivot to the optimal approach, mentioning the key data structure or algorithm. End by asking the interviewer if you can proceed with the optimal approach. Keep it natural.",
-  "code": "The full, production-ready, heavily-commented optimal code solution in the language shown or Python if unclear. Include all necessary imports.",
-  "dry_run_script": "2-3 conversational sentences doing a quick dry-run of the code with a simple example input. E.g., 'Let\\'s trace this. If our array is [1,2], the loop starts...'",
-  "time_complexity": "O(...) — brief 5-word explanation",
-  "space_complexity": "O(...) — brief 5-word explanation"
-}
-
-CRITICAL RULES:
-- The scripts MUST sound like a human speaking out loud in an interview. Use "I", "we", "my first thought is".
-- The JSON must be perfectly valid. Escape any internal quotes with backslash.
-- Do NOT wrap the JSON in markdown fences.`;
-
-    const userPrompt = `Please analyze the coding problem shown in the screenshot(s) and generate the Rolling Interview Script JSON.`;
-
-    const raw = await this.generateWithVisionFallback(systemPrompt, userPrompt, imagePaths);
-    const cleaned = this.cleanJsonResponse(raw);
-
-    // Primary: direct parse
-    try {
-      return JSON.parse(cleaned);
-    } catch (_) {
-      // Fallback: extract JSON block via regex
-      const match = cleaned.match(/\{[\s\S]*\}/);
-      if (match) return JSON.parse(match[0]);
-      throw new Error('Could not extract valid JSON from LLM response');
-    }
-  }
-
-  public async debugSolutionWithImages(problemInfo: any, currentCode: string, debugImagePaths: string[]) {
-    const prompt = `You are a wingman. Given:\n1. The original problem or situation: ${JSON.stringify(problemInfo, null, 2)}\n2. The current response or approach: ${currentCode}\n3. The debug information in the provided images\n\nPlease analyze the debug information and provide feedback in this JSON format:\n{
-  "solution": {
-    "code": "The code or main answer here.",
-    "problem_statement": "Restate the problem or situation.",
-    "context": "Relevant background/context.",
-    "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-    "reasoning": "Explanation of why these suggestions are appropriate."
-  }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`
-
-    const text = await this.generateWithVisionFallback(IMAGE_ANALYSIS_PROMPT, prompt, debugImagePaths)
-    const parsed = JSON.parse(this.cleanJsonResponse(text))
-    return parsed
-  }
-
-
-
-
 
   /**
    * Encodes the image as JPEG (quality 80) at its original resolution: the user wants
@@ -912,47 +806,6 @@ CRITICAL RULES:
   private getOpenAiPromptCacheKey(systemPrompt?: string): string | undefined {
     if (!systemPrompt) return undefined;
     return createHash('sha256').update(systemPrompt).digest('hex').slice(0, 32);
-  }
-
-  public async analyzeImageFiles(imagePaths: string[]) {
-    try {
-      const prompt = `Describe the content of ${imagePaths.length > 1 ? 'these images' : 'this image'} in a short, concise answer. If it contains code or a problem, solve it.`;
-      const text = await this.generateWithVisionFallback(HARD_SYSTEM_PROMPT, prompt, imagePaths);
-
-      return { text: text, timestamp: Date.now() };
-
-    } catch (error: any) {
-      rethrowTerminalGenerationError(error);
-      console.error("Error analyzing image files:", error);
-      return {
-        text: `I couldn't analyze the screen right now (${error.message}). Please try again.`,
-        timestamp: Date.now()
-      };
-    }
-  }
-
-  /**
-   * Generate a suggestion based on conversation transcript - Natively-style
-   * This uses Gemini Flash to reason about what the user should say
-   * @param context - The full conversation transcript
-   * @param lastQuestion - The most recent question from the interviewer
-   * @returns Suggested response for the user
-   */
-  public generateSuggestion(context: string, lastQuestion: string): Promise<string> {
-    return this.runGeneration(async () => {
-      const notes = generationTasks.getStore()?.primary.customNotes ?? this.customNotes;
-      const customNotesBlock = notes?.trim()
-        ? `<user_context>\n${notes.trim()}\n</user_context>\nUse this context naturally if relevant. Never quote it verbatim.` : '';
-      const suggestionContext = [customNotesBlock, context].filter(Boolean).join('\n\n');
-      const basePrompt = scenarioPrompt('interview');
-      const promptMessage = `LATEST QUESTION:
-${lastQuestion}
-
-ANSWER DIRECTLY:`;
-      let fullResponse = '';
-      for await (const chunk of this.streamChat(promptMessage, undefined, suggestionContext, basePrompt, true, true)) fullResponse += chunk;
-      return this.processResponse(fullResponse);
-    });
   }
 
   public setCustomNotes(notes: string): void {
@@ -1111,12 +964,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     } finally { if (!inherited) task.close(); }
   }
 
-  private async generateWithVisionFallback(systemPrompt: string, userPrompt: string, imagePaths: string[] = []): Promise<string> {
-    let text = '';
-    for await (const chunk of this.selectedGeneration(userPrompt, imagePaths, systemPrompt, false, 'answer')) text += chunk;
-    return text;
-  }
-
 
 
   public streamChatWithGemini(message: string, imagePaths?: string[], context?: string, skipSystemPrompt: boolean = false, abortSignal?: AbortSignal): AsyncGenerator<string> {
@@ -1189,7 +1036,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
       systemPromptOverride === UNIVERSAL_RECAP_PROMPT ||
       systemPromptOverride === UNIVERSAL_FOLLOWUP_PROMPT ||
       systemPromptOverride === UNIVERSAL_FOLLOW_UP_QUESTIONS_PROMPT ||
-      systemPromptOverride === UNIVERSAL_ASSIST_PROMPT ||
       systemPromptOverride === CHAT_MODE_PROMPT ||
       TINY_PROMPTS_SET.has(systemPromptOverride)
     );

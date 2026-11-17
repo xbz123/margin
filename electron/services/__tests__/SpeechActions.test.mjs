@@ -765,7 +765,7 @@ test('S42-03 registry: a failed collection releases its task, and dictation mark
   for (const task of tasks) task.close();
 });
 
-const GENERATION_CHANNELS = ['generate-assist', 'submit-manual-question', 'generate-what-to-say', 'generate-clarify', 'generate-follow-up',
+const GENERATION_CHANNELS = ['generate-what-to-say', 'generate-clarify', 'generate-follow-up',
   'generate-recap', 'generate-follow-up-questions', 'generate-code-hint', 'generate-brainstorm'];
 
 test('every generation entry point is registered once, through the generation wrapper', () => {
@@ -782,24 +782,6 @@ test('every generation entry point is registered once, through the generation wr
   };
   visit(tree);
   for (const channel of GENERATION_CHANNELS) assert.deepEqual(registrations.get(channel), ['registerGenerationHandler'], channel);
-});
-
-test('a non-speech generation entry point runs in its own task bound to the calling window', async () => {
-  const c = chain(), tasks = [], closed = [];
-  const begin = c.helper.beginGenerationTask.bind(c.helper);
-  c.helper.beginGenerationTask = (...args) => {
-    const task = begin(...args), close = task.close.bind(task);
-    task.close = () => { closed.push(task.requestId); close(); };
-    tasks.push(task);
-    return task;
-  };
-  c.intelligence.runAssistMode = async () => 'SYNTHETIC INSIGHT';
-  const result = await c.invoke('generate-assist');
-  assert.equal(tasks.length, 1);
-  assert.equal(tasks[0].rendererOwner, c.sender);
-  assert.equal(result.insight, 'SYNTHETIC INSIGHT');
-  assert.equal(result.requestId, tasks[0].requestId);
-  assert.ok(closed.includes(tasks[0].requestId), 'the task is closed when the call ends');
 });
 
 // A provider whose first request ignores cancellation: it can stay silent or show a first part, then

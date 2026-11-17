@@ -420,7 +420,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   // Keep chat history visible once an answer lands until explicit clear / session reset.
   const [answerPanelPinned, setAnswerPanelPinned] = useState(false);
   const answerPanelPinnedRef = useRef(false);
-  const [isConnected, setIsConnected] = useState(false);
   // 'awaiting-audio' is the correct initial state: STT has not yet produced a
   // transcript, so we cannot claim "connected" (green) just because the app
   // launched. Showing green before verifying live audio masks the TCC zero-fill
@@ -1781,25 +1780,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   useEffect(() => {
     const cleanups: (() => void)[] = [];
 
-    // Connection Status
-    window.electronAPI
-      .getNativeAudioStatus()
-      .then((status) => {
-        setIsConnected(status.connected);
-      })
-      .catch(() => setIsConnected(false));
-
-    cleanups.push(
-      window.electronAPI.onNativeAudioConnected(() => {
-        setIsConnected(true);
-      }),
-    );
-    cleanups.push(
-      window.electronAPI.onNativeAudioDisconnected(() => {
-        setIsConnected(false);
-      }),
-    );
-
     // Real-time Transcripts
     cleanups.push(
       window.electronAPI.onNativeAudioTranscript((transcript) => {
@@ -1855,43 +1835,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       }),
     );
 
-    // AI Suggestions from native audio (legacy)
-    cleanups.push(
-      window.electronAPI.onSuggestionProcessingStart(() => {
-        setIsProcessing(true);
-        setIsExpanded(true);
-      }),
-    );
-
-    cleanups.push(
-      window.electronAPI.onSuggestionGenerated((data) => {
-        setIsProcessing(false);
-        pinAnswerPanel();
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: genMessageId(),
-            role: 'system',
-            text: data.suggestion,
-          },
-        ]);
-      }),
-    );
-
-    cleanups.push(
-      window.electronAPI.onSuggestionError((err) => {
-        setIsProcessing(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: genMessageId(),
-            role: 'system',
-            text: `Error: ${err.error}`,
-          },
-        ]);
-      }),
-    );
-
     cleanups.push(
       window.electronAPI.onIntelligenceGenerationStarted((metadata) => {
         setRetryGeneration(undefined);
@@ -1909,14 +1852,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       }),
     );
     cleanups.push(
-      window.electronAPI.onIntelligenceSuggestedAnswerToken((data) => {
-        pinAnswerPanel();
-        showWhatToSayQuestion(data.question);
-        queueToken('what_to_answer', data.token);
-      }),
-    );
-
-    cleanups.push(
       window.electronAPI.onIntelligenceSuggestedAnswer((data) => {
         setIsProcessing(false);
         pinAnswerPanel();
@@ -1927,10 +1862,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     // Sprint 9: time-batched token channel — single subscription that
     // unrolls a kind-tagged items array onto the existing queueToken path.
-    // The 5 per-token channels (intelligence-suggested-answer-token,
-    // intelligence-refined-answer-token, etc.) are no longer being sent
-    // by main.ts for these streams — their handlers above are now inert
-    // safety nets and only fire if some other code path emits them.
     cleanups.push(
       window.electronAPI.onIntelligenceTokenBatch((data) => {
         const { kind, items } = data;
@@ -1953,13 +1884,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     // STREAMING: Refinement
     cleanups.push(
-      window.electronAPI.onIntelligenceRefinedAnswerToken((data) => {
-        // PERF: rAF-coalesce per-token state updates.
-        queueToken(data.intent, data.token);
-      }),
-    );
-
-    cleanups.push(
       window.electronAPI.onIntelligenceRefinedAnswer((data) => {
         setIsProcessing(false);
         finalizeStreamingByIntent(data.intent, data.answer);
@@ -1968,33 +1892,9 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
     // STREAMING: Recap
     cleanups.push(
-      window.electronAPI.onIntelligenceRecapToken((data) => {
-        queueToken('recap', data.token);
-      }),
-    );
-
-    cleanups.push(
       window.electronAPI.onIntelligenceRecap((data) => {
         setIsProcessing(false);
         finalizeStreamingByIntent('recap', data.summary);
-      }),
-    );
-
-    // STREAMING: Follow-Up Questions (Rendered as message? Or specific UI?)
-    // Currently interface typically renders follow-up Qs as a message or button update.
-    // Let's assume message for now based on existing 'follow_up_questions_update' handling
-    // But wait, existing handle just sets state?
-    // Let's check how 'follow_up_questions_update' was handled.
-    // It was handled separate locally in this component maybe?
-    // Ah, I need to see the existing listener for 'onIntelligenceFollowUpQuestionsUpdate'
-
-    // Let's implemented token streaming for it anyway, likely it updates a message bubble
-    // OR it might update a specialized "Suggested Questions" area.
-    // Assuming it's a message for consistency with "Copilot" approach.
-
-    cleanups.push(
-      window.electronAPI.onIntelligenceFollowUpQuestionsToken((data) => {
-        queueToken('follow_up_questions', data.token);
       }),
     );
 
@@ -2009,20 +1909,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       window.electronAPI.onIntelligenceClarify((data) => {
         setIsProcessing(false);
         finalizeStreamingByIntent('clarify', data.clarification);
-      }),
-    );
-
-    cleanups.push(
-      window.electronAPI.onIntelligenceManualResult((data) => {
-        setIsProcessing(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: genMessageId(),
-            role: 'system',
-            text: `🎯 **${tRef.current('Answer:')}**\n\n${data.answer}`,
-          },
-        ]);
       }),
     );
 
@@ -2057,10 +1943,8 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   // useState setters so a mount-only closure is safe here.
   useEffect(() => {
     const cleanupTaken = window.electronAPI.onScreenshotTaken(handleScreenshotAttach);
-    const cleanupAttached = window.electronAPI.onScreenshotAttached?.(handleScreenshotAttach);
     return () => {
       cleanupTaken?.();
-      cleanupAttached?.();
     };
   }, []);
 

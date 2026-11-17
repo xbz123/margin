@@ -38,9 +38,6 @@ export interface AppSettings {
         screenshots?: boolean;
         profile_history?: boolean;
     };
-    // When true (default) and the active mode is a technical / coding interview, prefer
-    // direct vision LLM over structured-extract-then-answer for lowest latency.
-    technicalInterviewVisionFirst?: boolean;
     uiLanguage?: UiLanguage;
 }
 
@@ -120,10 +117,6 @@ export class SettingsManager {
         catch (error: any) { if (error?.code !== 'EEXIST') { try { fs.unlinkSync(temp); } catch {} } throw new Error('Unable to save Codex configuration.'); }
         this.settings = candidate;
         return { ...config };
-    }
-
-    public getTechnicalInterviewVisionFirst(): boolean {
-        return this.settings.technicalInterviewVisionFirst !== false;
     }
 
     public getUiLanguage(): UiLanguage {

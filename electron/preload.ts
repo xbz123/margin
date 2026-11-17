@@ -69,23 +69,9 @@ interface ElectronAPI {
   updateContentDimensions: (dimensions: { width: number; height: number }) => Promise<void>;
   updateContentDimensionsCentered: (dimensions: { width: number; height: number }) => Promise<void>;
   getRecognitionLanguages: () => Promise<Record<string, any>>;
-  getScreenshots: () => Promise<Array<{ path: string; preview: string }>>;
   deleteScreenshot: (path: string) => Promise<{ success: boolean; error?: string }>;
   onScreenshotTaken: (callback: (data: { path: string; preview: string }) => void) => () => void;
-  onScreenshotAttached: (callback: (data: { path: string; preview: string }) => void) => () => void;
   onCaptureAndProcess: (callback: (data: { path: string; preview: string; speechActionId?: string }) => void) => () => void;
-  onSolutionsReady: (callback: (solutions: string) => void) => () => void;
-  onResetView: (callback: () => void) => () => void;
-  onSolutionStart: (callback: () => void) => () => void;
-  onDebugStart: (callback: () => void) => () => void;
-  onDebugSuccess: (callback: (data: any) => void) => () => void;
-  onSolutionError: (callback: (error: string) => void) => () => void;
-  onProcessingNoScreenshots: (callback: () => void) => () => void;
-  onProblemExtracted: (callback: (data: any) => void) => () => void;
-  onSolutionSuccess: (callback: (data: any) => void) => () => void;
-
-  onUnauthorized: (callback: () => void) => () => void;
-  onDebugError: (callback: (error: string) => void) => () => void;
   takeScreenshot: () => Promise<void>;
   takeSelectiveScreenshot: () => Promise<{ path: string; preview: string; cancelled?: boolean }>;
   moveWindowLeft: () => Promise<void>;
@@ -97,7 +83,6 @@ interface ElectronAPI {
   windowClose: () => Promise<void>;
   windowIsMaximized: () => Promise<boolean>;
 
-  analyzeImageFile: (path: string) => Promise<void>;
   quitApp: () => Promise<void>;
 
   // LLM Model Management
@@ -168,17 +153,6 @@ interface ElectronAPI {
   onNativeAudioTranscript: (
     callback: (transcript: { speaker: string; text: string; final: boolean }) => void,
   ) => () => void;
-  onNativeAudioSuggestion: (
-    callback: (suggestion: { context: string; lastQuestion: string; confidence: number }) => void,
-  ) => () => void;
-  onNativeAudioConnected: (callback: () => void) => () => void;
-  onNativeAudioDisconnected: (callback: () => void) => () => void;
-  onSuggestionGenerated: (
-    callback: (data: { question: string; suggestion: string; confidence: number }) => void,
-  ) => () => void;
-  onSuggestionProcessingStart: (callback: () => void) => () => void;
-  onSuggestionError: (callback: (error: { error: string }) => void) => () => void;
-  generateSuggestion: (context: string, lastQuestion: string) => Promise<{ suggestion: string }>;
   getInputDevices: () => Promise<Array<{ id: string; name: string }>>;
   getOutputDevices: () => Promise<Array<{ id: string; name: string }>>;
   setRecognitionLanguage: (key: string) => Promise<CredentialSaveResult>;
@@ -186,9 +160,7 @@ interface ElectronAPI {
   setAiResponseLanguage: (language: string) => Promise<CredentialSaveResult>;
   getSttLanguage: () => Promise<string>;
   getAiResponseLanguage: () => Promise<string>;
-  onSttLanguageAutoDetected: (callback: (bcp47: string) => void) => () => void;
   onSystemAudioPermissionDenied: (callback: (message: string) => void) => () => void;
-  getSystemAudioPermissionWarning: () => Promise<string | null>;
   onDeviceSelectionApplied: (
     callback: (payload: {
       kind: 'input' | 'output';
@@ -221,7 +193,6 @@ interface ElectronAPI {
   ) => () => void;
 
   // Intelligence Mode IPC
-  generateAssist: () => Promise<{ insight: string | null }>;
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
@@ -244,12 +215,6 @@ interface ElectronAPI {
     userRequest?: string,
   ) => Promise<{ refined: string | null; intent: string }>;
   generateRecap: () => Promise<{ summary: string | null }>;
-  submitManualQuestion: (question: string) => Promise<{ answer: string | null; question: string }>;
-  getIntelligenceContext: () => Promise<{
-    context: string;
-    lastAssistantMessage: string | null;
-    activeMode: string;
-  }>;
   testInjectTranscript: (segment: {
     speaker: string;
     text: string;
@@ -276,7 +241,6 @@ interface ElectronAPI {
   onMeetingsUpdated: (callback: () => void) => () => void;
 
   // Intelligence Mode Events
-  onIntelligenceAssistUpdate: (callback: (data: { insight: string }) => void) => () => void;
   onIntelligenceSuggestedAnswer: (
     callback: (data: { answer: string; question: string; confidence: number }) => void,
   ) => () => void;
@@ -285,12 +249,6 @@ interface ElectronAPI {
   ) => () => void;
   onIntelligenceRecap: (callback: (data: { summary: string }) => void) => () => void;
   onIntelligenceClarify: (callback: (data: { clarification: string }) => void) => () => void;
-  onIntelligenceClarifyToken: (callback: (data: { token: string }) => void) => () => void;
-  onIntelligenceManualStarted: (callback: () => void) => () => void;
-  onIntelligenceManualResult: (
-    callback: (data: { answer: string; question: string }) => void,
-  ) => () => void;
-  onIntelligenceModeChanged: (callback: (data: { mode: string }) => void) => () => void;
   onIntelligenceError: (callback: (data: { error: string; mode: string }) => void) => () => void;
   // Sprint 9: time-batched IPC token channel. Carries a batch of streaming
   // tokens for ANY of the 5 streaming kinds in one IPC send. Replaces
@@ -336,11 +294,9 @@ interface ElectronAPI {
   onAudioTestSystemLevel: (callback: (level: number) => void) => () => void;
   onAudioTestSystemError: (callback: (errorMessage: string) => void) => () => void;
 
-  // Database
-  flushDatabase: () => Promise<{ success: boolean }>;
+  // Windows
   showWindow: () => Promise<void>;
   hideWindow: () => Promise<void>;
-  showOverlay: () => Promise<void>;
   hideOverlay: () => Promise<void>;
   getMeetingActive: () => Promise<boolean>;
   onMeetingStateChanged: (callback: (data: { isActive: boolean }) => void) => () => void;
@@ -350,9 +306,7 @@ interface ElectronAPI {
   openSettingsTab: (tab: string) => Promise<void>;
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void;
   setOverlayMousePassthrough: (enabled: boolean) => Promise<WindowPreferenceResult>;
-  toggleOverlayMousePassthrough: () => Promise<WindowPreferenceResult>;
   getOverlayMousePassthrough: () => Promise<boolean>;
-  onOverlayMousePassthroughChanged: (callback: (enabled: boolean) => void) => () => void;
 
   // Streaming listeners
   streamGeminiChat: (
@@ -371,7 +325,6 @@ interface ElectronAPI {
   cancelIntelligenceGeneration: () => Promise<void>;
   onIntelligenceGenerationTerminal: (callback: (metadata: GenerationMetadata & { error?: string }) => void) => () => void;
 
-  onUndetectableChanged: (callback: (state: boolean) => void) => () => void;
   onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
   onModelChanged: (callback: (modelId: string) => void) => () => void;
 
@@ -457,20 +410,6 @@ interface ElectronAPI {
       profile_history?: boolean;
     }) => void,
   ) => () => void;
-  getTechnicalInterviewVisionFirst: () => Promise<boolean>;
-  setTechnicalInterviewVisionFirst: (
-    enabled: boolean,
-  ) => Promise<{ success: boolean; error?: string }>;
-  onTechnicalInterviewVisionFirstChanged: (callback: (enabled: boolean) => void) => () => void;
-  /** @deprecated alias for technicalInterviewVisionFirst — retained so older renderer builds keep working. */
-  getTechnicalInterviewDirectVision: () => Promise<boolean>;
-  /** @deprecated alias for technicalInterviewVisionFirst — retained so older renderer builds keep working. */
-  setTechnicalInterviewDirectVision: (
-    enabled: boolean,
-  ) => Promise<{ success: boolean; error?: string }>;
-  /** @deprecated alias for technicalInterviewVisionFirstChanged — retained so older renderer builds keep working. */
-  onTechnicalInterviewDirectVisionChanged: (callback: (enabled: boolean) => void) => () => void;
-  getLogFilePath: () => Promise<string | null>;
   openLogFile: () => Promise<{ success: boolean; error?: string }>;
 
   // Arch
@@ -515,23 +454,6 @@ interface ElectronAPI {
   // response to drain through the supersession check.
   cancelChatStream: (owner?: string) => void;
 }
-
-export const PROCESSING_EVENTS = {
-  //global states
-  UNAUTHORIZED: 'procesing-unauthorized',
-  NO_SCREENSHOTS: 'processing-no-screenshots',
-
-  //states for generating the initial solution
-  INITIAL_START: 'initial-start',
-  PROBLEM_EXTRACTED: 'problem-extracted',
-  SOLUTION_SUCCESS: 'solution-success',
-  INITIAL_SOLUTION_ERROR: 'solution-error',
-
-  //states for processing the debugging
-  DEBUG_START: 'debug-start',
-  DEBUG_SUCCESS: 'debug-success',
-  DEBUG_ERROR: 'debug-error',
-} as const;
 
 // Expose the Electron API to the renderer process
 // Chat stream identity for this window (PLAN.md AG-17 review). streamGeminiChat()
@@ -626,7 +548,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRecognitionLanguages: () => ipcRenderer.invoke('get-recognition-languages'),
   takeScreenshot: () => ipcRenderer.invoke('take-screenshot'),
   takeSelectiveScreenshot: () => ipcRenderer.invoke('take-selective-screenshot'),
-  getScreenshots: () => ipcRenderer.invoke('get-screenshots'),
   deleteScreenshot: (path: string) => ipcRenderer.invoke('delete-screenshot', path),
 
   // Event listeners
@@ -637,97 +558,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('screenshot-taken', subscription);
     };
   },
-  onScreenshotAttached: (callback: (data: { path: string; preview: string }) => void) => {
-    const subscription = (_: any, data: { path: string; preview: string }) => callback(data);
-    ipcRenderer.on('screenshot-attached', subscription);
-    return () => {
-      ipcRenderer.removeListener('screenshot-attached', subscription);
-    };
-  },
   onCaptureAndProcess: (callback: (data: { path: string; preview: string; speechActionId?: string }) => void) => {
     const subscription = (_: any, data: { path: string; preview: string; speechActionId?: string }) => callback(data);
     ipcRenderer.on('capture-and-process', subscription);
     return () => {
       ipcRenderer.removeListener('capture-and-process', subscription);
-    };
-  },
-  onSolutionsReady: (callback: (solutions: string) => void) => {
-    const subscription = (_: any, solutions: string) => callback(solutions);
-    ipcRenderer.on('solutions-ready', subscription);
-    return () => {
-      ipcRenderer.removeListener('solutions-ready', subscription);
-    };
-  },
-  onResetView: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('reset-view', subscription);
-    return () => {
-      ipcRenderer.removeListener('reset-view', subscription);
-    };
-  },
-  onSolutionStart: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on(PROCESSING_EVENTS.INITIAL_START, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.INITIAL_START, subscription);
-    };
-  },
-  onDebugStart: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on(PROCESSING_EVENTS.DEBUG_START, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.DEBUG_START, subscription);
-    };
-  },
-
-  onDebugSuccess: (callback: (data: any) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('debug-success', subscription);
-    return () => {
-      ipcRenderer.removeListener('debug-success', subscription);
-    };
-  },
-  onDebugError: (callback: (error: string) => void) => {
-    const subscription = (_: any, error: string) => callback(error);
-    ipcRenderer.on(PROCESSING_EVENTS.DEBUG_ERROR, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.DEBUG_ERROR, subscription);
-    };
-  },
-  onSolutionError: (callback: (error: string) => void) => {
-    const subscription = (_: any, error: string) => callback(error);
-    ipcRenderer.on(PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR, subscription);
-    };
-  },
-  onProcessingNoScreenshots: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on(PROCESSING_EVENTS.NO_SCREENSHOTS, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.NO_SCREENSHOTS, subscription);
-    };
-  },
-
-  onProblemExtracted: (callback: (data: any) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on(PROCESSING_EVENTS.PROBLEM_EXTRACTED, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.PROBLEM_EXTRACTED, subscription);
-    };
-  },
-  onSolutionSuccess: (callback: (data: any) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on(PROCESSING_EVENTS.SOLUTION_SUCCESS, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.SOLUTION_SUCCESS, subscription);
-    };
-  },
-  onUnauthorized: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on(PROCESSING_EVENTS.UNAUTHORIZED, subscription);
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.UNAUTHORIZED, subscription);
     };
   },
   moveWindowLeft: () => ipcRenderer.invoke('move-window-left'),
@@ -739,12 +574,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   windowClose: () => ipcRenderer.invoke('window-close'),
   windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
 
-  analyzeImageFile: (path: string) => ipcRenderer.invoke('analyze-image-file', path),
   quitApp: () => ipcRenderer.invoke('quit-app'),
   toggleWindow: () => ipcRenderer.invoke('toggle-window'),
   showWindow: (inactive?: boolean) => ipcRenderer.invoke('show-window', inactive),
   hideWindow: () => ipcRenderer.invoke('hide-window'),
-  showOverlay: () => ipcRenderer.invoke('show-overlay'),
   hideOverlay: () => ipcRenderer.invoke('hide-overlay'),
   getMeetingActive: () => ipcRenderer.invoke('get-meeting-active'),
   onMeetingStateChanged: (callback: (data: { isActive: boolean }) => void) => {
@@ -788,20 +621,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getUndetectable: () => ipcRenderer.invoke('get-undetectable'),
   setOverlayMousePassthrough: (enabled: boolean) =>
     ipcRenderer.invoke('set-overlay-mouse-passthrough', enabled),
-  toggleOverlayMousePassthrough: () => ipcRenderer.invoke('toggle-overlay-mouse-passthrough'),
   getOverlayMousePassthrough: () => ipcRenderer.invoke('get-overlay-mouse-passthrough'),
   setOpenAtLogin: (open: boolean) => ipcRenderer.invoke('set-open-at-login', open),
   getOpenAtLogin: () => ipcRenderer.invoke('get-open-at-login'),
   setDisguise: (mode: 'terminal' | 'settings' | 'activity' | 'none') =>
     ipcRenderer.invoke('set-disguise', mode),
   getDisguise: () => ipcRenderer.invoke('get-disguise'),
-  onDisguiseChanged: (callback: (mode: 'terminal' | 'settings' | 'activity' | 'none') => void) => {
-    const subscription = (_: any, mode: any) => callback(mode);
-    ipcRenderer.on('disguise-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('disguise-changed', subscription);
-    };
-  },
 
   onSettingsVisibilityChange: (callback: (isVisible: boolean) => void) => {
     const subscription = (_: any, isVisible: boolean) => callback(isVisible);
@@ -890,56 +715,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('native-audio-transcript', subscription);
     };
   },
-  onNativeAudioSuggestion: (
-    callback: (suggestion: { context: string; lastQuestion: string; confidence: number }) => void,
-  ) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('native-audio-suggestion', subscription);
-    return () => {
-      ipcRenderer.removeListener('native-audio-suggestion', subscription);
-    };
-  },
-  onNativeAudioConnected: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('native-audio-connected', subscription);
-    return () => {
-      ipcRenderer.removeListener('native-audio-connected', subscription);
-    };
-  },
-  onNativeAudioDisconnected: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('native-audio-disconnected', subscription);
-    return () => {
-      ipcRenderer.removeListener('native-audio-disconnected', subscription);
-    };
-  },
-  onSuggestionGenerated: (
-    callback: (data: { question: string; suggestion: string; confidence: number }) => void,
-  ) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('suggestion-generated', subscription);
-    return () => {
-      ipcRenderer.removeListener('suggestion-generated', subscription);
-    };
-  },
-  onSuggestionProcessingStart: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('suggestion-processing-start', subscription);
-    return () => {
-      ipcRenderer.removeListener('suggestion-processing-start', subscription);
-    };
-  },
-  onSuggestionError: (callback: (error: { error: string }) => void) => {
-    const subscription = (_: any, data: any) => callback(data);
-    ipcRenderer.on('suggestion-error', subscription);
-    return () => {
-      ipcRenderer.removeListener('suggestion-error', subscription);
-    };
-  },
-  generateSuggestion: (context: string, lastQuestion: string) =>
-    ipcRenderer.invoke('generate-suggestion', context, lastQuestion),
-
-  getNativeAudioStatus: () => ipcRenderer.invoke('native-audio-status'),
   getInputDevices: () => ipcRenderer.invoke('get-input-devices'),
   getOutputDevices: () => ipcRenderer.invoke('get-output-devices'),
   setRecognitionLanguage: (key: string) => ipcRenderer.invoke('set-recognition-language', key),
@@ -948,13 +723,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('set-ai-response-language', language),
   getSttLanguage: () => ipcRenderer.invoke('get-stt-language'),
   getAiResponseLanguage: () => ipcRenderer.invoke('get-ai-response-language'),
-  onSttLanguageAutoDetected: (callback: (bcp47: string) => void) => {
-    const subscription = (_: any, bcp47: string) => callback(bcp47);
-    ipcRenderer.on('stt-language-auto-detected', subscription);
-    return () => {
-      ipcRenderer.removeListener('stt-language-auto-detected', subscription);
-    };
-  },
   onSystemAudioPermissionDenied: (callback: (message: string) => void) => {
     const subscription = (_: any, message: string) => callback(message);
     ipcRenderer.on('system-audio-permission-denied', subscription);
@@ -962,7 +730,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('system-audio-permission-denied', subscription);
     };
   },
-  getSystemAudioPermissionWarning: () => ipcRenderer.invoke('get-system-audio-permission-warning'),
   onDeviceSelectionApplied: (
     callback: (payload: {
       kind: 'input' | 'output';
@@ -1013,7 +780,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // Intelligence Mode IPC
-  generateAssist: () => invokeIntelligence('generate-assist'),
   generateWhatToSay: (
     question?: string,
     imagePaths?: string[],
@@ -1031,9 +797,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     speechIntelligence('follow-up', 'generate-follow-up', intent, userRequest),
   generateFollowUpQuestions: () => speechIntelligence('follow-up-questions', 'generate-follow-up-questions'),
   generateRecap: () => speechIntelligence('recap', 'generate-recap'),
-  submitManualQuestion: (question: string) =>
-    invokeIntelligence('submit-manual-question', question),
-  getIntelligenceContext: () => ipcRenderer.invoke('get-intelligence-context'),
   testInjectTranscript: (segment: {
     speaker: string;
     text: string;
@@ -1097,22 +860,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('set-window-mode', mode, inactive),
 
   // Intelligence Mode Events
-  onIntelligenceAssistUpdate: (callback: (data: { insight: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-assist-update', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-assist-update', subscription);
-    };
-  },
-  onIntelligenceSuggestedAnswerToken: (
-    callback: (data: { token: string; question: string; confidence: number }) => void,
-  ) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-suggested-answer-token', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-suggested-answer-token', subscription);
-    };
-  },
   onIntelligenceSuggestedAnswer: (
     callback: (data: { answer: string; question: string; confidence: number }) => void,
   ) => {
@@ -1130,27 +877,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('intelligence-token-batch', subscription);
     };
   },
-  onIntelligenceRefinedAnswerToken: (
-    callback: (data: { token: string; intent: string }) => void,
-  ) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-refined-answer-token', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-refined-answer-token', subscription);
-    };
-  },
   onIntelligenceRefinedAnswer: (callback: (data: { answer: string; intent: string }) => void) => {
     const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-refined-answer', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-refined-answer', subscription);
-    };
-  },
-  onIntelligenceRecapToken: (callback: (data: { token: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-recap-token', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-recap-token', subscription);
     };
   },
   onIntelligenceRecap: (callback: (data: { summary: string }) => void) => {
@@ -1160,13 +891,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('intelligence-recap', subscription);
     };
   },
-  onIntelligenceClarifyToken: (callback: (data: { token: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-clarify-token', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-clarify-token', subscription);
-    };
-  },
   onIntelligenceClarify: (callback: (data: { clarification: string }) => void) => {
     const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-clarify', subscription);
@@ -1174,39 +898,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('intelligence-clarify', subscription);
     };
   },
-  onIntelligenceFollowUpQuestionsToken: (callback: (data: { token: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-follow-up-questions-token', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-follow-up-questions-token', subscription);
-    };
-  },
   onIntelligenceFollowUpQuestionsUpdate: (callback: (data: { questions: string }) => void) => {
     const subscription = intelligenceSubscription(callback);
     ipcRenderer.on('intelligence-follow-up-questions-update', subscription);
     return () => {
       ipcRenderer.removeListener('intelligence-follow-up-questions-update', subscription);
-    };
-  },
-  onIntelligenceManualStarted: (callback: () => void) => {
-    const subscription = () => callback();
-    ipcRenderer.on('intelligence-manual-started', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-manual-started', subscription);
-    };
-  },
-  onIntelligenceManualResult: (callback: (data: { answer: string; question: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-manual-result', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-manual-result', subscription);
-    };
-  },
-  onIntelligenceModeChanged: (callback: (data: { mode: string }) => void) => {
-    const subscription = intelligenceSubscription(callback);
-    ipcRenderer.on('intelligence-mode-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('intelligence-mode-changed', subscription);
     };
   },
   onIntelligenceError: (callback: (data: { error: string; mode: string }) => void) => {
@@ -1340,25 +1036,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('audio-test-system-error', subscription);
     return () => {
       ipcRenderer.removeListener('audio-test-system-error', subscription);
-    };
-  },
-
-  // Database
-  flushDatabase: () => ipcRenderer.invoke('flush-database'),
-
-  onUndetectableChanged: (callback: (state: boolean) => void) => {
-    const subscription = (_: any, state: boolean) => callback(state);
-    ipcRenderer.on('undetectable-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('undetectable-changed', subscription);
-    };
-  },
-
-  onOverlayMousePassthroughChanged: (callback: (enabled: boolean) => void) => {
-    const subscription = (_: any, enabled: boolean) => callback(enabled);
-    ipcRenderer.on('overlay-mouse-passthrough-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('overlay-mouse-passthrough-changed', subscription);
     };
   },
 
@@ -1509,30 +1186,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('provider-data-scopes-changed', subscription);
     };
   },
-  getTechnicalInterviewVisionFirst: () =>
-    ipcRenderer.invoke('get-technical-interview-vision-first'),
-  setTechnicalInterviewVisionFirst: (enabled: boolean) =>
-    ipcRenderer.invoke('set-technical-interview-vision-first', enabled),
-  onTechnicalInterviewVisionFirstChanged: (callback: (enabled: boolean) => void) => {
-    const subscription = (_: any, enabled: boolean) => callback(enabled);
-    ipcRenderer.on('technical-interview-vision-first-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('technical-interview-vision-first-changed', subscription);
-    };
-  },
-  // Deprecated aliases — kept so renderer builds compiled against the old API keep working.
-  getTechnicalInterviewDirectVision: () =>
-    ipcRenderer.invoke('get-technical-interview-direct-vision'),
-  setTechnicalInterviewDirectVision: (enabled: boolean) =>
-    ipcRenderer.invoke('set-technical-interview-direct-vision', enabled),
-  onTechnicalInterviewDirectVisionChanged: (callback: (enabled: boolean) => void) => {
-    const subscription = (_: any, enabled: boolean) => callback(enabled);
-    ipcRenderer.on('technical-interview-vision-first-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('technical-interview-vision-first-changed', subscription);
-    };
-  },
-  getLogFilePath: () => ipcRenderer.invoke('get-log-file-path'),
   openLogFile: () => ipcRenderer.invoke('open-log-file'),
 
   // Arch

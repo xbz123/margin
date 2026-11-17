@@ -24,7 +24,6 @@ function handlers(root, queue = []) {
     clearPreparedInput() {}, attachPresentation(task, sender) { task.rendererOwner = sender; },
     dependPreparedImages() {},
     chatWithGemini: async (...args) => { sends.push(args); return 'answer'; },
-    analyzeImageFiles: async (...args) => { sends.push(args); return 'answer'; },
     runGenerationStream: factory => factory(), streamChat: async function* (...args) { sends.push(args); yield 'answer'; },
     deniedDataScopes: () => [],
     getPromptTier: () => 'standard',
@@ -143,14 +142,14 @@ test('AG33 actual registered chat handler fixes written/interview task budgets a
   assert.equal(startedTasks.length, 3); assert.equal(sends.length, 3);
 });
 
-for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-say', 'generate-code-hint', 'generate-brainstorm', 'analyze-image-file']) test(`AG33 real registered ${channel} rejects malformed, traversal, missing, sensitive and symlink-escape images before generation`, async t => {
+for (const channel of ['gemini-chat', 'gemini-chat-stream', 'generate-what-to-say', 'generate-code-hint', 'generate-brainstorm']) test(`AG33 real registered ${channel} rejects malformed, traversal, missing, sensitive and symlink-escape images before generation`, async t => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ag33-image-handler-')); t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
   const root = path.join(temp, 'userData'); fs.mkdirSync(root);
   const outside = path.join(temp, 'outside.png'); fs.writeFileSync(outside, 'synthetic private data');
   const escape = path.join(root, 'escape.png'); fs.symlinkSync(outside, escape);
   const { callbacks, sends, act } = handlers(root); const callback = callbacks.get(channel);
   const sender = owner(1);
-  const invoke = async images => channel === 'analyze-image-file' ? callback({ sender }, Array.isArray(images) && images.length === 1 ? images[0] : images) : channel.startsWith('gemini-') ? callback({ sender }, 'QUESTION', images) : channel === 'generate-what-to-say' ? callback({ sender }, 'QUESTION', images, await act(sender, 'what-to-say')) : callback({ sender }, images, 'QUESTION', await act(sender, channel.slice(9)));
+  const invoke = async images => channel.startsWith('gemini-') ? callback({ sender }, 'QUESTION', images) : channel === 'generate-what-to-say' ? callback({ sender }, 'QUESTION', images, await act(sender, 'what-to-say')) : callback({ sender }, images, 'QUESTION', await act(sender, channel.slice(9)));
   for (const images of [{ length: 1 }, [null], [''], Array(6).fill(escape), [path.join(root, '../outside.png')], ['/etc/passwd'], ['C:\\Windows\\secret.png'], [path.join(root, 'missing.png')], [escape]]) {
     const outcome = await invoke(images).then(result => ({ result }), error => ({ error }));
     if (outcome.error) assert.match(outcome.error.message, /Invalid image path/);

@@ -628,25 +628,4 @@ export class DatabaseManager {
             return false;
         }
     }
-
-    public clearAllData(): boolean {
-        if (!this.db) return false;
-
-        try {
-            // Clear all tables atomically (order matters due to foreign keys,
-            // but SQLite handles cascades). Using a transaction ensures we never
-            // end up in a half-cleared state if one statement fails.
-            this.db.transaction(() => {
-                this.db!.exec('DELETE FROM ai_interactions');
-                this.db!.exec('DELETE FROM transcripts');
-                this.db!.exec('DELETE FROM meetings');
-            })();
-
-            console.log('[DatabaseManager] All data cleared from database.');
-            return true;
-        } catch (error) {
-            console.error('[DatabaseManager] Failed to clear all data:', error);
-            return false;
-        }
-    }
 }

@@ -81,7 +81,6 @@ export function mainFixture(options = {}) {
     transcriptDisplay: new TranscriptDisplayThrottle(() => {}),
     windowHelper: { resetOverlayPosition() {}, setWindowMode() {} },
     processingHelper: {
-      cancelOngoingRequests: () => order.push('processing-cancel'),
       getLLMHelper: () => ({ setModel() {}, setCodeOutputFormat() {}, cancelGenerationTasks() {}, getCurrentModelSelection: () => 'synthetic-model', clearSessionReasoning: () => { reasoningClears++; } }),
     },
     intelligenceManager: {

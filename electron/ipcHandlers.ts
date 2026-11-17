@@ -321,33 +321,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('get-screenshots', async () => {
-    // console.log({ view: appState.getView() })
-    try {
-      let previews = [];
-      if (appState.getView() === 'queue') {
-        previews = await Promise.all(
-          appState.getScreenshotQueue().map(async (path) => ({
-            path,
-            preview: await appState.getImagePreview(path),
-          })),
-        );
-      } else {
-        previews = await Promise.all(
-          appState.getExtraScreenshotQueue().map(async (path) => ({
-            path,
-            preview: await appState.getImagePreview(path),
-          })),
-        );
-      }
-      // previews.forEach((preview: any) => console.log(preview.path))
-      return previews;
-    } catch (error) {
-      // console.error("Error getting screenshots:", error)
-      throw error;
-    }
-  });
-
   safeHandle('toggle-window', async () => {
     appState.toggleMainWindow();
   });
@@ -361,40 +334,12 @@ export function initializeIpcHandlers(appState: AppState): void {
     appState.hideMainWindow();
   });
 
-  safeHandle('show-overlay', async () => {
-    appState.getWindowHelper().showOverlay();
-  });
-
   safeHandle('hide-overlay', async () => {
     appState.getWindowHelper().hideOverlay();
   });
 
   safeHandle('get-meeting-active', async () => {
     return appState.getIsMeetingActive();
-  });
-
-  safeHandle('reset-queues', async () => {
-    try {
-      appState.clearQueues();
-      // console.log("Screenshot queues have been cleared.")
-      return { success: true };
-    } catch (error: any) {
-      // console.error("Error resetting queues:", error)
-      return { success: false, error: error.message };
-    }
-  });
-
-  // Generate suggestion from transcript - Natively-style text-only reasoning
-  safeHandle('generate-suggestion', async (event, context: string, lastQuestion: string) => {
-    try {
-      const suggestion = await appState.processingHelper
-        .getLLMHelper()
-        .generateSuggestion(context, lastQuestion);
-      return { suggestion };
-    } catch (error: any) {
-      // console.error("Error generating suggestion:", error)
-      throw error;
-    }
   });
 
   // Begin returns at once: providers keep running and the action channel freezes the speech.
@@ -411,17 +356,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     action.question ??= frozen.dictation ?? '';
     // A silent Stop with recent interviewer speech can be answered through generate-what-to-say with this id.
     return { speechActionId: action.id, question: action.question, interviewerHeard: !!frozen.interviewerHeard };
-  });
-
-  // IPC handler for analyzing image from file path
-  safeHandle('analyze-image-file', async (event, filePath: string) => {
-    const resolved = validateImages([filePath])![0];
-    try {
-      const result = await appState.processingHelper.getLLMHelper().analyzeImageFiles([resolved]);
-      return result;
-    } catch (error: any) {
-      throw error;
-    }
   });
 
   safeHandle(
@@ -828,10 +762,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     appState.moveWindowDown();
   });
 
-  safeHandle('center-and-show-window', async () => {
-    appState.centerAndShowWindow();
-  });
-
   // Window Controls
   safeHandle('window-minimize', async () => {
     appState.getWindowHelper().minimizeWindow();
@@ -864,10 +794,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('close-settings-window', () => {
-    appState.settingsWindowHelper.closeWindow();
-  });
-
   safeHandle('window-preferences:get', () => appState.getWindowPreferences());
   safeHandle('set-undetectable', (_, state: boolean) => appState.setUndetectable(state));
 
@@ -882,10 +808,6 @@ export function initializeIpcHandlers(appState: AppState): void {
   // Adapted from public PR #113
   safeHandle('set-overlay-mouse-passthrough', async (_, enabled: boolean) => {
     return appState.setOverlayMousePassthrough(enabled);
-  });
-
-  safeHandle('toggle-overlay-mouse-passthrough', async () => {
-    return appState.setOverlayMousePassthrough(!appState.getOverlayMousePassthrough());
   });
 
   safeHandle('get-overlay-mouse-passthrough', async () => {
@@ -989,50 +911,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       }
     });
     return { success: true };
-  });
-
-  safeHandle('get-technical-interview-vision-first', async () => {
-    return SettingsManager.getInstance().getTechnicalInterviewVisionFirst();
-  });
-
-  safeHandle('set-technical-interview-vision-first', async (_, enabled: boolean) => {
-    if (typeof enabled !== 'boolean') {
-      return { success: false, error: 'invalid_value' };
-    }
-    SettingsManager.getInstance().set('technicalInterviewVisionFirst', enabled);
-    BrowserWindow.getAllWindows().forEach((win) => {
-      if (!win.isDestroyed()) {
-        win.webContents.send('technical-interview-vision-first-changed', enabled);
-      }
-    });
-    return { success: true };
-  });
-
-  // Legacy alias for renderer builds that still call the old IPC name.
-  // Maps the deprecated technicalInterviewDirectVision channel onto the new
-  // technicalInterviewVisionFirst getter/setter so old renderer builds keep working.
-  safeHandle('get-technical-interview-direct-vision', async () => {
-    return SettingsManager.getInstance().getTechnicalInterviewVisionFirst();
-  });
-  safeHandle('set-technical-interview-direct-vision', async (_, enabled: boolean) => {
-    if (typeof enabled !== 'boolean') {
-      return { success: false, error: 'invalid_value' };
-    }
-    SettingsManager.getInstance().set('technicalInterviewVisionFirst', enabled);
-    BrowserWindow.getAllWindows().forEach((win) => {
-      if (!win.isDestroyed()) {
-        win.webContents.send('technical-interview-vision-first-changed', enabled);
-      }
-    });
-    return { success: true };
-  });
-
-  safeHandle('get-log-file-path', async () => {
-    try {
-      return path.join(app.getPath('logs'), 'debug.log');
-    } catch {
-      return null;
-    }
   });
 
   safeHandle('open-log-file', async () => {
@@ -1832,14 +1710,6 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   // --- Model Selector Window IPC ---
 
-  safeHandle('show-model-selector', (_, coords: { x: number; y: number; activate?: boolean }) => {
-    appState.modelSelectorWindowHelper.showWindow(coords.x, coords.y, { activate: coords.activate });
-  });
-
-  safeHandle('hide-model-selector', () => {
-    appState.modelSelectorWindowHelper.hideWindow();
-  });
-
   safeHandle('toggle-model-selector', (_, coords: { x: number; y: number; activate?: boolean }) => {
     appState.modelSelectorWindowHelper.toggleWindow(coords.x, coords.y, { activate: coords.activate });
   });
@@ -1855,13 +1725,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     if (win && !win.isDestroyed() && win.isVisible()) {
       appState.modelSelectorWindowHelper.hideWindow();
     }
-  });
-
-  // Native Audio Service Handlers
-  // Native Audio handlers removed as part of migration to driverless architecture
-  safeHandle('native-audio-status', async () => {
-    // Always return true or pseudo-status since it's "driverless"
-    return { connected: true };
   });
 
   safeHandle('get-input-devices', async () => {
@@ -1940,11 +1803,6 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   safeHandle('update-meeting-title', async (_, { id, title }: { id: string; title: string }) => {
     return DatabaseManager.getInstance().updateMeetingTitle(id, title);
-  });
-
-  safeHandle('flush-database', async () => {
-    const result = DatabaseManager.getInstance().clearAllData();
-    return { success: result };
   });
 
   // UX2: in-app TCC repair button.
@@ -2036,17 +1894,6 @@ export function initializeIpcHandlers(appState: AppState): void {
   // ==========================================
   // Intelligence Mode Handlers
   // ==========================================
-
-  // MODE 1: Assist (Passive observation)
-  registerGenerationHandler('generate-assist', async () => {
-    try {
-      const intelligenceManager = appState.getIntelligenceManager();
-      const insight = await intelligenceManager.runAssistMode();
-      return { insight };
-    } catch (error: any) {
-      throw error;
-    }
-  });
 
   const promptOperation = (action: (event: any, input: any) => Promise<void> | void, changes = true) =>
     async (event: any, input?: any): Promise<PromptSettingsResult> => {
@@ -2271,30 +2118,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  // MODE 5: Manual Answer (Fallback)
-  registerGenerationHandler('submit-manual-question', async (_, question: string) => {
-    try {
-      const intelligenceManager = appState.getIntelligenceManager();
-      const answer = await intelligenceManager.runManualAnswer(question);
-      return { answer, question };
-    } catch (error: any) {
-      throw error;
-    }
-  });
-
-  // Get current intelligence context
-  safeHandle('get-intelligence-context', async () => {
-    try {
-      const intelligenceManager = appState.getIntelligenceManager();
-      return {
-        context: intelligenceManager.getFormattedContext(),
-        lastAssistantMessage: intelligenceManager.getLastAssistantMessage(),
-        activeMode: intelligenceManager.getActiveMode(),
-      };
-    } catch (error: any) {
-      throw error;
-    }
-  });
 
   // Reset intelligence state
   safeHandle('cancel-intelligence-generation', (event) => {

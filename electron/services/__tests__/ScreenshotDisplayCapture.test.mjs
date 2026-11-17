@@ -58,7 +58,7 @@ function load(platform, sizeFor) {
       throw new Error(`unexpected require ${id}`);
     },
   });
-  return { helper: new module.exports.ScreenshotHelper('queue'), requests, writes, crops };
+  return { helper: new module.exports.ScreenshotHelper(), requests, writes, crops };
 }
 
 const native = d => ({ width: Math.round(d.bounds.width * d.scaleFactor), height: Math.round(d.bounds.height * d.scaleFactor) });

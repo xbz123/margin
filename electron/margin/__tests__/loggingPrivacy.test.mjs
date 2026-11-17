@@ -231,7 +231,6 @@ test('critical evidence rejects missing, extra and unknown events and has no pay
 test('real log IPC uses identity logs and hostile forwarded payloads stay opaque', async () => {
   const r = runtime(); r.load('electron/bootstrap.ts');
   r.load('electron/ipcHandlers.ts').initializeIpcHandlers({ getVerboseLogging: () => true });
-  assert.equal(await r.ipcHandlers.get('get-log-file-path')(), '/synthetic/temp/debug.log');
   assert.equal((await r.ipcHandlers.get('open-log-file')()).success, true);
   assert.deepEqual(r.sent, [['create', '/synthetic/temp/debug.log'], ['openPath', '/synthetic/temp/debug.log']]);
   r.ipcEvents.get('forward-log-to-file')({ sender: { id: 1, once() {} } }, 'error', '\r\n[CRITICAL] ' + CANARY);

@@ -148,7 +148,7 @@ test('actual prompt wrappers propagate terminal results without adding a fallbac
       chat: async () => { throw terminal; },
       streamChat: async function* () { yield 'partial'; throw terminal; },
     });
-    for (const name of ['WhatToAnswer', 'Answer', 'Assist', 'Brainstorm', 'CodeHint', 'Clarify', 'FollowUp', 'FollowUpQuestions', 'Recap']) {
+    for (const name of ['WhatToAnswer', 'Answer', 'Brainstorm', 'CodeHint', 'Clarify', 'FollowUp', 'FollowUpQuestions', 'Recap']) {
       const className = `${name}LLM`;
       const Class = require(path.join(root, `dist-electron/electron/llm/${className}.js`))[className];
       const wrapper = new Class(fakeHelper);
@@ -200,20 +200,13 @@ test('cache guard refusal is not swallowed and a stale cache can fall back to sy
   assert.equal(requests.length, 2);
 });
 
-test('suggestion and screenshot wrappers reach the physical Gemini entry with separated content', async () => {
+test('the screenshot wrapper reaches the physical Gemini entry with separated content', async () => {
   const requests = [];
   const self = helper({ models: { generateContentStream: async args => {
     requests.push(args); return (async function* () { yield packet('answer'); })();
   } } }, {}, { customNotes: 'NOTES', processImage: async () => ({ mimeType: 'image/jpeg', data: 'AAAA' }) });
-  assert.equal(await self.generateSuggestion('TRANSCRIPT', 'QUESTION'), 'answer');
-  assert.match(requests[0].contents[0].text, /NOTES/);
-  assert.match(requests[0].contents[0].text, /TRANSCRIPT/);
-  assert.doesNotMatch(JSON.stringify(requests[0].config), /NOTES|TRANSCRIPT/);
-  // The concise interview contract is sent without the legacy meeting suffix.
-  assert.equal(requests[0].config.systemInstruction.parts[0].text,
-    require(path.join(root, 'dist-electron/electron/llm/scenarioPrompts.js')).scenarioPrompt('interview'));
   await drain(self.streamChat('QUESTION', [import.meta.filename], undefined, 'SYSTEM', true, true));
-  assert.equal(requests[1].contents[1].inlineData.data, 'AAAA');
+  assert.equal(requests[0].contents[1].inlineData.data, 'AAAA');
 });
 
 test('context scopes survive limiter wait and denied context is omitted before Gemini sending', async () => {

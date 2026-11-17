@@ -50,11 +50,10 @@ export class IntelligenceManager extends EventEmitter {
      */
     private forwardEngineEvents(): void {
         const events = [
-            'assist_update', 'suggested_answer', 'suggested_answer_token',
+            'suggested_answer', 'suggested_answer_token',
             'refined_answer', 'refined_answer_token',
             'recap', 'recap_token', 'clarify', 'clarify_token',
             'follow_up_questions_update', 'follow_up_questions_token',
-            'manual_answer_started', 'manual_answer_result',
             'mode_changed', 'error',
             'generation_started', 'generation_terminal',
         ];
@@ -136,10 +135,6 @@ export class IntelligenceManager extends EventEmitter {
     // Mode Executors (delegates to engine)
     // ============================================
 
-    async runAssistMode(): Promise<string | null> {
-        return this.engine.runAssistMode();
-    }
-
     async runWhatShouldISay(question?: string, confidence?: number, imagePaths?: string[], options?: { manual?: boolean; beforeGenerate?: (signal: AbortSignal) => Promise<TranscriptView | void>; skipCooldown?: boolean; errorDelivery?: 'caller'; screenContext?: ScreenContext }): Promise<string | null> {
         return this.engine.runWhatShouldISay(question, confidence, imagePaths, options);
     }
@@ -162,10 +157,6 @@ export class IntelligenceManager extends EventEmitter {
 
     async runFollowUpQuestions(view?: TranscriptView): Promise<string | null> {
         return this.engine.runFollowUpQuestions(view);
-    }
-
-    async runManualAnswer(question: string): Promise<string | null> {
-        return this.engine.runManualAnswer(question);
     }
 
     async runCodeHint(imagePaths?: string[], problemStatement?: string, view?: TranscriptView): Promise<string | null> {

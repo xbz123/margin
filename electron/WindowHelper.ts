@@ -635,35 +635,6 @@ export class WindowHelper {
     }
   }
 
-  // Show overlay directly without going through full switchToOverlay flow.
-  // Used by IPC handlers to show the overlay independently.
-  public showOverlay(): void {
-    if (!this.overlayWindow || this.overlayWindow.isDestroyed()) return;
-    this.applyContentProtection(this.contentProtection);
-
-    // Restore opacity in case it was zeroed by hideMainWindow() before a screenshot.
-    this.overlayWindow.setOpacity(1);
-
-    // Re-assert z-order on Windows before showing — same DWM demotion risk as
-    // switchToOverlay(). Must come before show()/showInactive() so the window
-    // lands at the correct level on first paint (issue #136).
-    if (process.platform === 'win32') {
-      this.overlayWindow.setAlwaysOnTop(true, 'screen-saver');
-    }
-
-    if (this.appState.getOverlayMousePassthrough()) {
-      // In passthrough/stealth mode: appear on screen without stealing OS focus.
-      // The underlying app (Zoom, browser, etc.) must keep focus.
-      this.overlayWindow.showInactive();
-    } else {
-      // Normal interactive mode: show and focus so the user can click/type.
-      this.overlayWindow.showInactive();
-      // Bring to front without a full app-activate (avoids dock bounce on macOS).
-      // setAlwaysOnTop is already set at creation; a focus() call alone is safe.
-      this.overlayWindow.focus();
-    }
-  }
-
   // Hide overlay directly without switching to launcher.
   // Used by IPC handlers to hide the overlay independently.
   public hideOverlay(): void {

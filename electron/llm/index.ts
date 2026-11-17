@@ -2,7 +2,6 @@
 // Central export for all LLM modules
 
 export { AnswerLLM } from "./AnswerLLM";
-export { AssistLLM } from "./AssistLLM";
 export { BrainstormLLM } from "./BrainstormLLM";
 export { ClarifyLLM } from "./ClarifyLLM";
 export { CodeHintLLM } from "./CodeHintLLM";
@@ -45,7 +44,6 @@ export {
     TINY_SYSTEM_PROMPT,
     TINY_ANSWER_PROMPT,
     TINY_WHAT_TO_ANSWER_PROMPT,
-    TINY_ASSIST_PROMPT,
     TINY_RECAP_PROMPT,
     TINY_FOLLOWUP_PROMPT,
     TINY_FOLLOW_UP_QUESTIONS_PROMPT,

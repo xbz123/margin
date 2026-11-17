@@ -1,4 +1,4 @@
-import { rethrowProviderScopeError, type ProviderDataScope } from './ProviderRouter';
+import { type ProviderDataScope } from './ProviderRouter';
 import type { GenerateContentConfig } from '@google/genai';
 import type { LlmProtocol, ReasoningSetting } from '../../src/types/llmTarget';
 
@@ -40,11 +40,4 @@ export class GenerationResultError extends Error {
     super(`Generation ${status}${partial ? ' after partial output' : ''}`);
     this.name = 'GenerationResultError';
   }
-}
-
-export function rethrowTerminalGenerationError(error: unknown): void {
-  rethrowProviderScopeError(error);
-  const terminal = error as GenerationResultError | undefined;
-  if ((error as any)?.generationTaskTerminal || error instanceof GenerationResultError || terminal?.name === 'GenerationResultError'
-    || terminal?.name === 'GenerationTimeoutError' || terminal?.name === 'AbortError') throw error;
 }

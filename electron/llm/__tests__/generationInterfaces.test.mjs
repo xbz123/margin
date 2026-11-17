@@ -13,11 +13,10 @@ const built = path.resolve(import.meta.dirname, '../../../dist-electron/electron
 const electronId = require.resolve('electron', { paths: [path.dirname(built)] });
 const previous = require.cache[electronId];
 require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => os.tmpdir(), isPackaged: true, getVersion: () => '0.0.0' } } };
-let LLMHelper, WhatToAnswerLLM, ProcessingHelper, IntelligenceEngine, IntelligenceManager, SessionTracker;
+let LLMHelper, WhatToAnswerLLM, IntelligenceEngine, IntelligenceManager, SessionTracker;
 try {
   ({ LLMHelper } = require(built));
   ({ WhatToAnswerLLM } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/llm/WhatToAnswerLLM.js')));
-  ({ ProcessingHelper } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/ProcessingHelper.js')));
   ({ IntelligenceEngine } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/IntelligenceEngine.js')));
   ({ IntelligenceManager } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/IntelligenceManager.js')));
   ({ SessionTracker } = require(path.resolve(import.meta.dirname, '../../../dist-electron/electron/SessionTracker.js')));
@@ -431,50 +430,6 @@ test('actual separately bundled Engine and LLMHelper share the supplied logical 
   late.resolve(packet('late')); assert.equal(requests.length, 1);
 });
 
-for (const consumeFirstBudget of [false, true]) test(`actual debug ProcessingHelper shares the two-send budget: first-step retry ${consumeFirstBudget}`, async () => {
-  const { self, requests } = helper((args, number) => {
-    if (consumeFirstBudget && number === 1) throw Object.assign(Error('overloaded'), { status: 503 });
-    return packet(JSON.stringify({ solution: { code: 'synthetic solution' } }));
-  });
-  const events = []; let debugged = false;
-  const processing = Object.assign(Object.create(ProcessingHelper.prototype), { llmHelper: self, appState: {
-    getMainWindow: () => ({ webContents: { send: (...args) => events.push(args) } }), getView: () => 'solutions',
-    getScreenshotHelper: () => ({ getExtraScreenshotQueue: () => ['original-image'] }),
-    getProblemInfo: () => ({ problem: 'synthetic problem' }), setHasDebugged: value => { debugged = value; },
-    PROCESSING_EVENTS: { DEBUG_START: 'start', DEBUG_SUCCESS: 'success', DEBUG_ERROR: 'error' },
-  } });
-  await processing.processScreenshots();
-  assert.equal(requests.length, 2, 'the workflow never sends a third generation');
-  assert.equal(debugged, !consumeFirstBudget);
-  assert.equal(events.at(-1)[0], consumeFirstBudget ? 'error' : 'success');
-  if (!consumeFirstBudget) assert.ok(requests[1].contents.some(part => part.inlineData));
-});
-
-test('AG33 actual ProcessingHelper late cancellation cannot clear the newer controller or publish the old result', async () => {
-  const first = deferred(), second = deferred(), entered = deferred();
-  const { self } = helper((args, number) => { if (number === 1) { entered.resolve(); return first.promise; } return second.promise; });
-  const events = [], usage = [];
-  const processing = Object.assign(Object.create(ProcessingHelper.prototype), { llmHelper: self, appState: {
-    getMainWindow: () => ({ webContents: { id: 1, send: (...args) => events.push(args) } }), getView: () => 'queue',
-    getScreenshotHelper: () => ({ getScreenshotQueue: () => ['original-image'] }), setView() {}, setProblemInfo() {}, setHasDebugged() {},
-    getIntelligenceManager: () => ({ logUsage: (...args) => usage.push(args) }),
-    PROCESSING_EVENTS: { INITIAL_START: 'start', PROBLEM_EXTRACTED: 'problem', SOLUTION_SUCCESS: 'success', INITIAL_SOLUTION_ERROR: 'error' },
-  } });
-  const old = processing.processScreenshots(); await entered.promise;
-  const fresh = processing.processScreenshots(); const controller = processing.currentProcessingAbortController;
-  await old;
-  assert.equal(processing.currentProcessingAbortController, controller);
-  assert.equal(controller.signal.aborted, false);
-  assert.equal(usage[0][3].status, 'cancelled'); assert.equal(usage[0][3].model, 'gemini-3.1-flash-lite');
-  first.resolve(packet(JSON.stringify({ code: 'OLD' })));
-  second.resolve(packet(JSON.stringify({ code: 'FRESH' })));
-  await fresh;
-  assert.equal(events.filter(event => event[0] === 'success').length, 1);
-  assert.equal(events.find(event => event[0] === 'success')[1].solution.code, 'FRESH');
-  assert.equal(events.find(event => event[0] === 'success')[1].generation.status, 'completed');
-  assert.equal(usage.at(-1)[3].status, 'completed');
-});
-
 for (const status of ['empty', 'refused', 'incomplete']) test(`AG33 actual Engine stores ${status} even without a visible partial`, async () => {
   const { self } = helper(() => packet('', status === 'empty' ? 'STOP' : status === 'refused' ? 'SAFETY' : 'MAX_TOKENS'));
   const session = new SessionTracker(), engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
@@ -507,10 +462,10 @@ for (const visible of [false, true]) test(`actual Engine TTFT clears only at dis
   assert.equal(requests.length, 1, 'timeout or cancellation never buys backup time'); release.resolve();
 });
 
-for (const stop of ['timeout', 'model-switch']) test(`AG33 Engine ${stop} releases its mode and allows the next assist request`, async t => {
+for (const stop of ['timeout', 'model-switch']) test(`AG33 Engine ${stop} releases its mode and allows the next request`, async t => {
   t.mock.timers.enable({ apis: ['Date', 'setTimeout'], now: 100_000 });
   const entered = deferred(), late = deferred();
-  const { self, requests } = helper((_, number) => { if (number === 1) { entered.resolve(); return late.promise; } return packet('fresh assist'); });
+  const { self, requests } = helper((_, number) => { if (number === 1) { entered.resolve(); return late.promise; } return packet('fresh answer'); });
   const session = new SessionTracker(); session.addTranscript({ speaker: 'interviewer', text: 'QUESTION', timestamp: Date.now(), final: true });
   const engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
   const modes = []; engine.on('mode_changed', mode => modes.push(mode));
@@ -521,7 +476,7 @@ for (const stop of ['timeout', 'model-switch']) test(`AG33 Engine ${stop} releas
   await assert.rejects(pending, { name: stop === 'timeout' ? 'GenerationTimeoutError' : 'AbortError' });
   assert.equal(engine.getActiveMode(), 'idle'); assert.equal(modes.at(-1), 'idle');
   assert.deepEqual(lifecycle.slice(-2), ['idle', 'terminal'], 'idle is sent while main still retains the request owner');
-  assert.equal(await engine.runAssistMode(), 'fresh assist', 'the completed cleanup must not leave assist locked out');
+  assert.equal(await engine.runRecap(), 'fresh answer', 'the completed cleanup must not leave the next mode locked out');
   assert.equal(requests.length, 2); assert.equal(engine.getActiveMode(), 'idle');
   late.resolve(packet('LATE OLD ANSWER'));
   await new Promise(resolve => setImmediate(resolve));
@@ -536,11 +491,11 @@ test('AG33 old Engine finally cannot reset the newer active request mode', async
   const engine = new IntelligenceEngine(self, session); engine.on('error', () => {});
   const old = engine.runWhatShouldISay('OLD', 0.8, undefined, { skipCooldown: true });
   await oldEntered.promise;
-  const fresh = engine.runManualAnswer('FRESH'); const newTask = engine.activeGenerationTask;
+  const fresh = engine.runRecap(); const newTask = engine.activeGenerationTask;
   await assert.rejects(old, { name: 'AbortError' }); await freshEntered.promise;
-  assert.equal(engine.activeGenerationTask, newTask); assert.equal(engine.getActiveMode(), 'manual');
+  assert.equal(engine.activeGenerationTask, newTask); assert.equal(engine.getActiveMode(), 'recap');
   oldLate.resolve(packet('LATE OLD ANSWER')); await new Promise(resolve => setImmediate(resolve));
-  assert.equal(engine.activeGenerationTask, newTask); assert.equal(engine.getActiveMode(), 'manual');
+  assert.equal(engine.activeGenerationTask, newTask); assert.equal(engine.getActiveMode(), 'recap');
   freshLate.resolve(packet('fresh answer')); assert.equal(await fresh, 'fresh answer');
   assert.equal(engine.getActiveMode(), 'idle');
 });

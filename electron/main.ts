@@ -80,16 +80,6 @@ type MacScreenCaptureCapability = {
   error?: string;
 };
 
-let latestSystemAudioPermissionWarning: string | null = null;
-
-function rememberSystemAudioPermissionWarning(message: string): void {
-  latestSystemAudioPermissionWarning = message;
-}
-
-function clearSystemAudioPermissionWarning(): void {
-  latestSystemAudioPermissionWarning = null;
-}
-
 /**
  * B5: Whether the dev-mode TCC bypass is enabled.
  *
@@ -130,18 +120,15 @@ async function resolveMacScreenCaptureCapability(context: string): Promise<MacSc
   // B5: Mirror getMacScreenCaptureStatus's opt-in bypass policy. Default in
   // dev is to run the full capability resolution so devs see the real path.
   if (!isMac || isDevTccBypassEnabled()) {
-    clearSystemAudioPermissionWarning();
     return { status, capturable: true, effectiveDenied: false, sourceCount: 0 };
   }
 
   if (isMac && status === 'restricted') {
     const message = formatPermissionMessage('mac-screen-recording-restricted');
-    rememberSystemAudioPermissionWarning(message);
     return { status, capturable: false, effectiveDenied: true, sourceCount: 0, message };
   }
 
   if (status !== 'denied') {
-    clearSystemAudioPermissionWarning();
     return { status, capturable: true, effectiveDenied: false, sourceCount: 0 };
   }
 
@@ -158,10 +145,7 @@ async function resolveMacScreenCaptureCapability(context: string): Promise<MacSc
     const capturable = sourceCount > 0;
 
     if (capturable) {
-      clearSystemAudioPermissionWarning();
       console.warn(`[Main] Screen Recording status is denied during ${context}, but capture probe succeeded; continuing without permission banner.`);
-    } else {
-      rememberSystemAudioPermissionWarning(formatPermissionMessage('screen-recording-denied'));
     }
 
     return { status, capturable, effectiveDenied: !capturable, sourceCount };
@@ -169,13 +153,11 @@ async function resolveMacScreenCaptureCapability(context: string): Promise<MacSc
     // Did the timeout fire?
     if (error?.message?.includes('screen-capture-probe-timeout')) {
       const message = formatPermissionMessage('screen-recording-denied');
-      rememberSystemAudioPermissionWarning(message + ' (probe timed out)');
       console.warn(`[Main] Screen Recording capture probe timed out during ${context} — treating as denied.`);
       return { status, capturable: false, effectiveDenied: true, sourceCount: 0, message, error: error.message };
     }
     const errorMessage = error instanceof Error ? error.message : String(error);
     const message = formatPermissionMessage('screen-recording-denied');
-    rememberSystemAudioPermissionWarning(message);
     console.warn(`[Main] Screen Recording capture probe failed during ${context}: ${errorMessage}`);
     return { status, capturable: false, effectiveDenied: true, sourceCount: 0, message, error: errorMessage };
   }
@@ -326,8 +308,6 @@ export class AppState {
   private tray: Tray | null = null
   private disguiseMode: 'terminal' | 'settings' | 'activity' | 'none' = 'none'
 
-  // View management
-  private view: "queue" | "solutions" = "queue"
   private isUndetectable: boolean = false
   private _windowPreferenceRevision = { protection: 0, passthrough: 0, disguise: 0 };
   private _protectionApplyFailed = false;
@@ -335,15 +315,6 @@ export class AppState {
   private _settingsBlurRestoreTimer: NodeJS.Timeout | null = null;
   private _windowPreferenceResults: Partial<Record<WindowPreferenceKind, WindowPreferenceResult>> = {};
 
-  private problemInfo: {
-    problem_statement: string
-    input_format: Record<string, any>
-    output_format: Record<string, any>
-    constraints: Array<Record<string, any>>
-    test_cases: Array<Record<string, any>>
-  } | null = null // Allow null
-
-  private hasDebugged: boolean = false
   private isMeetingActive: boolean = false; // Guard for session state leaks
   private readonly meetingLifecycle = new MeetingLifecycleQueue();
   private activeAudioSession: string | null = null;
@@ -375,24 +346,6 @@ export class AppState {
   private screenshotCaptureInProgress: boolean = false;
 
 
-  // Processing events
-  public readonly PROCESSING_EVENTS = {
-    //global states
-    UNAUTHORIZED: "procesing-unauthorized",
-    NO_SCREENSHOTS: "processing-no-screenshots",
-
-    //states for generating the initial solution
-    INITIAL_START: "initial-start",
-    PROBLEM_EXTRACTED: "problem-extracted",
-    SOLUTION_SUCCESS: "solution-success",
-    INITIAL_SOLUTION_ERROR: "solution-error",
-
-    //states for processing the debugging
-    DEBUG_START: "debug-start",
-    DEBUG_SUCCESS: "debug-success",
-    DEBUG_ERROR: "debug-error"
-  } as const
-
   constructor() {
     // 1. Load boot-critical settings first (used by WindowHelpers)
     const settingsManager = SettingsManager.getInstance();
@@ -410,7 +363,7 @@ export class AppState {
     this.cropperWindowHelper = new CropperWindowHelper(() => this.getDisguiseName(), () => this.reportProtectionFailure(), () => this.getDisguiseIconPath())
 
     // 3. Initialize other helpers
-    this.screenshotHelper = new ScreenshotHelper(this.view)
+    this.screenshotHelper = new ScreenshotHelper()
     this.processingHelper = new ProcessingHelper(this)
 
     this.windowHelper.setContentProtection(this.isUndetectable);
@@ -444,7 +397,6 @@ export class AppState {
       ipcMain.removeHandler(channel);
       ipcMain.handle(channel, fn);
     };
-    registerStealthHandler('get-system-audio-permission-warning', () => latestSystemAudioPermissionWarning);
     if (process.platform === 'darwin') {
       const { StealthKeyboardManager } = require('./services/StealthKeyboardManager');
       const stealth = StealthKeyboardManager.getInstance();
@@ -1583,7 +1535,6 @@ export class AppState {
           if (this.endingMeeting || this._isQuitting) throw new Error('Wait until the session has ended.');
           manager.saveWrittenExamSettings(candidate);
           this.processingHelper.getLLMHelper().cancelGenerationTasks('Session mode changed');
-          this.processingHelper.cancelOngoingRequests();
           this.intelligenceManager.resetEngine();
         } catch (error) {
           this.writtenMeeting = true;
@@ -1598,7 +1549,6 @@ export class AppState {
         if (this.isMeetingActive && candidate.enabled && !this.writtenMeeting) {
           this.writtenMeeting = true;
           this.processingHelper.getLLMHelper().cancelGenerationTasks('Session mode changed');
-          this.processingHelper.cancelOngoingRequests();
           this.intelligenceManager.resetEngine();
           await this.meetingAudio.abortInit();
           await this.meetingAudio.detachAndDestroy();
@@ -1618,7 +1568,6 @@ export class AppState {
     if (this.syncWrittenExam) this.syncWrittenExam(false);
     else this.pauseWrittenExam?.();
     this.processingHelper.getLLMHelper().cancelGenerationTasks('Session ended');
-    this.processingHelper.cancelOngoingRequests();
     this.intelligenceManager.resetEngine();
     return this.meetingLifecycle.stop(async () => {
       if (this.overlayMousePassthrough) this.setOverlayMousePassthrough(false);
@@ -1694,10 +1643,8 @@ export class AppState {
     // (carrying an items array). Net: ~3-5× fewer IPC messages on hot
     // streams with no perceptible latency cost (sub-frame).
     //
-    // The old per-token channels (intelligence-suggested-answer-token, etc.)
-    // are NO LONGER USED for these 5 streams. The single
-    // 'intelligence-token-batch' channel replaces them. The old channel
-    // names + preload bridges are kept (defense-in-depth, no callers).
+    // The single 'intelligence-token-batch' channel carries these 5 streams;
+    // the old per-token channels and their preload bridges were removed.
     type BatchKind = 'suggested_answer' | 'refined_answer' | 'recap' | 'clarify' | 'follow_up_questions';
     const tokenBatches = new Map<string, { kind: BatchKind; items: any[]; metadata: any }>();
     let batchFlushScheduled = false;
@@ -1740,10 +1687,6 @@ export class AppState {
     const flushBatchesBeforeFinal = flushBatchesNow;
 
     // Forward intelligence events to renderer
-    this.intelligenceManager.on('assist_update', (insight: string, metadata) => {
-      send('intelligence-assist-update', { insight }, metadata);
-    })
-
     this.intelligenceManager.on('suggested_answer', (answer: string, question: string, confidence: number, metadata) => {
       flushBatchesBeforeFinal();
       send('intelligence-suggested-answer', { answer, question, confidence }, metadata);
@@ -1794,19 +1737,6 @@ export class AppState {
     this.intelligenceManager.on('follow_up_questions_token', (token: string, metadata) => {
       // Sprint 9: batch.
       queueBatch('follow_up_questions', { token }, metadata);
-    })
-
-    this.intelligenceManager.on('manual_answer_started', (metadata) => {
-      send('intelligence-manual-started', {}, metadata);
-    })
-
-    this.intelligenceManager.on('manual_answer_result', (answer: string, question: string, metadata) => {
-      send('intelligence-manual-result', { answer, question }, metadata);
-
-    })
-
-    this.intelligenceManager.on('mode_changed', (mode: string, metadata) => {
-      send('intelligence-mode-changed', { mode }, metadata);
     })
 
     this.intelligenceManager.on('error', (error: Error, mode: string, metadata) => {
@@ -1871,15 +1801,6 @@ export class AppState {
     return this.themeManager
   }
 
-  public getView(): "queue" | "solutions" {
-    return this.view
-  }
-
-  public setView(view: "queue" | "solutions"): void {
-    this.view = view
-    this.screenshotHelper.setView(view)
-  }
-
   public isVisible(): boolean {
     return this.windowHelper.isVisible()
   }
@@ -1888,20 +1809,8 @@ export class AppState {
     return this.screenshotHelper
   }
 
-  public getProblemInfo(): any {
-    return this.problemInfo
-  }
-
-  public setProblemInfo(problemInfo: any): void {
-    this.problemInfo = problemInfo
-  }
-
   public getScreenshotQueue(): string[] {
     return this.screenshotHelper.getScreenshotQueue()
-  }
-
-  public getExtraScreenshotQueue(): string[] {
-    return this.screenshotHelper.getExtraScreenshotQueue()
   }
 
   // Window management methods
@@ -1920,12 +1829,7 @@ export class AppState {
   }
 
   public toggleMainWindow(): void {
-    console.log(
-      "Screenshots: ",
-      this.screenshotHelper.getScreenshotQueue().length,
-      "Extra screenshots: ",
-      this.screenshotHelper.getExtraScreenshotQueue().length
-    )
+    console.log("Screenshots: ", this.screenshotHelper.getScreenshotQueue().length)
 
     const mode = this.windowHelper.getCurrentWindowMode();
 
@@ -1943,16 +1847,6 @@ export class AppState {
 
   public setWindowDimensions(width: number, height: number): void {
     this.windowHelper.setWindowDimensions(width, height)
-  }
-
-  public clearQueues(): void {
-    this.screenshotHelper.clearQueues()
-
-    // Clear problem info
-    this.problemInfo = null
-
-    // Reset view to initial state
-    this.setView("queue")
   }
 
   private createScreenshotCaptureSession(
@@ -2236,14 +2130,6 @@ export class AppState {
   public refreshLocalizedMenus(): void {
     this.updateTrayMenu();
     KeybindManager.getInstance().updateMenu();
-  }
-
-  public setHasDebugged(value: boolean): void {
-    this.hasDebugged = value
-  }
-
-  public getHasDebugged(): boolean {
-    return this.hasDebugged
   }
 
   private windowPreferenceResult(kind: WindowPreferenceKind, code?: WindowPreferenceResult['code']): WindowPreferenceResult {

@@ -451,15 +451,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     }, []);
 
     useEffect(() => {
-        if (window.electronAPI?.onSttLanguageAutoDetected) {
-            const unsubscribe = window.electronAPI.onSttLanguageAutoDetected((bcp47: string) => {
-                setAutoDetectedLanguage(bcp47);
-            });
-            return () => unsubscribe();
-        }
-    }, []);
-
-    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target as Node)) {
                 setIsThemeDropdownOpen(false);
@@ -495,7 +486,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
     const [recognitionLanguage, setRecognitionLanguage] = useState('');
     const [selectedSttGroup, setSelectedSttGroup] = useState('');
     const [availableLanguages, setAvailableLanguages] = useState<Record<string, any>>({});
-    const [autoDetectedLanguage, setAutoDetectedLanguage] = useState<string | null>(null);
 
     // AI Response Language
     const [aiResponseLanguage, setAiResponseLanguage] = useState('English');
@@ -729,7 +719,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                 return;
             }
             setRecognitionLanguage(key);
-            setAutoDetectedLanguage(null);
             if (availableLanguages[key]) setSelectedSttGroup(availableLanguages[key].group);
             setCredentialNotice(result.warning || '');
         } catch {
@@ -2022,14 +2011,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 <Info size={14} className="text-text-secondary shrink-0" />
                                                 <p className="text-xs text-text-secondary">
                                                     {recognitionLanguage === 'auto'
-                                                        ? autoDetectedLanguage
-                                                            ? (() => {
-                                                                const label = Object.values(availableLanguages).find((l: any) =>
-                                                                    l.bcp47 === autoDetectedLanguage || l.iso639 === autoDetectedLanguage
-                                                                )?.label as string | undefined;
-                                                                return t('Auto mode — detected: {language}', { language: label ?? autoDetectedLanguage });
-                                                              })()
-                                                            : t('Auto mode — language will be detected from the first few seconds of audio.')
+                                                        ? t('Auto mode — language will be detected from the first few seconds of audio.')
                                                         : t('Select the primary language being spoken in the meeting.')
                                                     }
                                                 </p>

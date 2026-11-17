@@ -162,7 +162,7 @@ test('AG61: actual IPC propagates authoritative results from production setters,
   assert.equal((await callbacks.get('set-disguise')({}, 'terminal')).code, 'save_failed');
   assert.equal((await callbacks.get('window-preferences:get')()).find(result => result.kind === 'protection').value, false);
   assert.deepEqual(f.calls, ['save', 'save']);
-  const result = await callbacks.get('toggle-overlay-mouse-passthrough')({});
+  const result = await callbacks.get('set-overlay-mouse-passthrough')({}, true);
   assert.equal(result.success, true); assert.equal(result.value, true);
 });
 

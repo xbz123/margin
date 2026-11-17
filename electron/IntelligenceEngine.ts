@@ -11,7 +11,7 @@ import type { PreparedInput } from './llm/preparedInput';
 import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
 import { SessionTracker, TranscriptSegment, ContextItem, type TranscriptView } from './SessionTracker';
 import {
-    AnswerLLM, AssistLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
+    AnswerLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
     FollowUpQuestionsLLM, WhatToAnswerLLM,
     prepareTranscriptForWhatToAnswer, buildTemporalContext,
     AssistantResponse as LLMAssistantResponse, classifyIntent
@@ -20,7 +20,7 @@ import { ScreenContext } from './services/screen/ScreenContextService';
 import { buildPreparedTranscriptContext as assemblePreparedTranscriptContext } from './utils/preparedTranscriptContext';
 
 // Mode types
-export type IntelligenceMode = 'idle' | 'assist' | 'what_to_say' | 'follow_up' | 'recap' | 'clarify' | 'manual' | 'follow_up_questions' | 'code_hint' | 'brainstorm';
+export type IntelligenceMode = 'idle' | 'what_to_say' | 'follow_up' | 'recap' | 'clarify' | 'follow_up_questions' | 'code_hint' | 'brainstorm';
 
 // Refinement intent detection (refined to avoid false positives)
 function detectRefinementIntent(userText: string): { isRefinement: boolean; intent: string } {
@@ -46,7 +46,6 @@ function detectRefinementIntent(userText: string): { isRefinement: boolean; inte
 
 // Events emitted by IntelligenceEngine
 export interface IntelligenceModeEvents {
-    'assist_update': (insight: string) => void;
     'suggested_answer': (answer: string, question: string, confidence: number) => void;
     'suggested_answer_token': (token: string, question: string, confidence: number) => void;
     'refined_answer': (answer: string, intent: string) => void;
@@ -57,8 +56,6 @@ export interface IntelligenceModeEvents {
     'clarify_token': (token: string) => void;
     'follow_up_questions_update': (questions: string) => void;
     'follow_up_questions_token': (token: string) => void;
-    'manual_answer_started': () => void;
-    'manual_answer_result': (answer: string, question: string) => void;
     'mode_changed': (mode: IntelligenceMode) => void;
     'error': (error: Error, mode: IntelligenceMode) => void;
 }
@@ -69,7 +66,6 @@ export class IntelligenceEngine extends EventEmitter {
 
     // Mode-specific LLMs
     private answerLLM: AnswerLLM | null = null;
-    private assistLLM: AssistLLM | null = null;
     private clarifyLLM: ClarifyLLM | null = null;
     private followUpLLM: FollowUpLLM | null = null;
     private recapLLM: RecapLLM | null = null;
@@ -79,7 +75,6 @@ export class IntelligenceEngine extends EventEmitter {
     private brainstormLLM: BrainstormLLM | null = null;
 
     // Concurrency tracking
-    private assistCancellationToken: AbortController | null = null;
     private currentGenerationId: number = 0;
     private activeGenerationController?: AbortController;
     private activeGenerationTask?: GenerationTask<any>;
@@ -97,7 +92,7 @@ export class IntelligenceEngine extends EventEmitter {
             if (task !== this.activeGenerationTask || task.signal.aborted) return false;
             if (event === 'error') task.errorMessage = args[0]?.message;
             if (String(event).endsWith('_token')) { task.displayedText += String(args[0] ?? ''); task.markVisible(String(args[0] ?? '')); }
-            else if (['suggested_answer', 'refined_answer', 'recap', 'clarify', 'follow_up_questions_update', 'manual_answer_result'].includes(String(event))) task.markVisible(String(args[0] ?? ''));
+            else if (['suggested_answer', 'refined_answer', 'recap', 'clarify', 'follow_up_questions_update'].includes(String(event))) task.markVisible(String(args[0] ?? ''));
             return super.emit(event, ...args, this.llmHelper.getTaskMetadata(task), task.rendererOwner);
         }
         return super.emit(event, ...args);
@@ -221,7 +216,6 @@ export class IntelligenceEngine extends EventEmitter {
     initializeLLMs(): void {
         console.log(`[IntelligenceEngine] Initializing LLMs with LLMHelper`);
         this.answerLLM = new AnswerLLM(this.llmHelper);
-        this.assistLLM = new AssistLLM(this.llmHelper);
         this.clarifyLLM = new ClarifyLLM(this.llmHelper);
         this.followUpLLM = new FollowUpLLM(this.llmHelper);
         this.recapLLM = new RecapLLM(this.llmHelper);
@@ -273,60 +267,6 @@ export class IntelligenceEngine extends EventEmitter {
     }
 
     /**
-     * MODE 1: Assist (Passive)
-     * Low-priority observational insights
-     */
-    runAssistMode(...args: Parameters<IntelligenceEngine['runAssistModeInner']>): Promise<string | null> {
-        return this.runGenerationRequest(() => this.runAssistModeInner(...args));
-    }
-
-    async runAssistModeInner(): Promise<string | null> {
-        if (this.activeMode !== 'idle' && this.activeMode !== 'assist') {
-            return null;
-        }
-
-        if (this.assistCancellationToken) {
-            this.assistCancellationToken.abort();
-        }
-
-        this.assistCancellationToken = new AbortController();
-        this.setMode('assist');
-
-        try {
-            if (!this.assistLLM) {
-                this.setMode('idle');
-                return null;
-            }
-
-            const context = this.session.getFormattedContext(60);
-            if (!context) {
-                this.setMode('idle');
-                return null;
-            }
-
-            const insight = await this.assistLLM.generate(context);
-
-            if (this.assistCancellationToken?.signal.aborted) {
-                return null;
-            }
-
-            if (insight) {
-                this.emit('assist_update', insight);
-            }
-            this.setMode('idle');
-            return insight;
-
-        } catch (error) {
-            if ((error as Error).name === 'AbortError') {
-                return null;
-            }
-            this.emit('error', error as Error, 'assist');
-            this.setMode('idle');
-            return null;
-        }
-    }
-
-    /**
      * MODE 2: What Should I Say (Primary)
      * Manual trigger - uses clean transcript pipeline for question inference
      * Scope refusals reach the error boundary, never become a suggested answer.
@@ -358,10 +298,6 @@ export class IntelligenceEngine extends EventEmitter {
             return null;
         }
 
-        if (this.assistCancellationToken) {
-            this.assistCancellationToken.abort();
-            this.assistCancellationToken = null;
-        }
 
         this.setMode('what_to_say');
         this.lastTriggerTime = now;
@@ -813,49 +749,6 @@ export class IntelligenceEngine extends EventEmitter {
     }
 
     /**
-     * MODE 5: Manual Answer (Fallback)
-     * Explicit bypass when auto-detection fails
-     */
-    runManualAnswer(...args: Parameters<IntelligenceEngine['runManualAnswerInner']>): Promise<string | null> {
-        return this.runGenerationRequest(() => this.runManualAnswerInner(...args));
-    }
-
-    async runManualAnswerInner(question: string): Promise<string | null> {
-        this.emit('manual_answer_started');
-        this.setMode('manual');
-
-        try {
-            if (!this.answerLLM) {
-                this.setMode('idle');
-                return null;
-            }
-
-            const context = this.session.getFormattedContext(120);
-            const answer = await this.answerLLM.generate(question, context);
-
-            if (answer) {
-                this.session.addAssistantMessage(answer, this.generationMetadata());
-                this.emit('manual_answer_result', answer, question);
-
-                this.recordUsage({
-                    type: 'chat',
-                    timestamp: Date.now(),
-                    question: question,
-                    answer: answer
-                });
-            }
-
-            this.setMode('idle');
-            return answer;
-
-        } catch (error) {
-            this.emit('error', error as Error, 'manual');
-            this.setMode('idle');
-            return null;
-        }
-    }
-
-    /**
      * MODE 7: Code Hint (Live Code Reviewer)
      * Analyzes a screenshot of partially written code against the detected/provided question
      * and returns a short targeted hint. Question comes from (priority order):
@@ -868,11 +761,6 @@ export class IntelligenceEngine extends EventEmitter {
     }
 
     async runCodeHintInner(imagePaths?: string[], problemStatement?: string, view: TranscriptView = this.session): Promise<string | null> {
-        if (this.assistCancellationToken) {
-            this.assistCancellationToken.abort();
-            this.assistCancellationToken = null;
-        }
-
         this.setMode('code_hint');
 
         try {
@@ -954,11 +842,6 @@ export class IntelligenceEngine extends EventEmitter {
     }
 
     async runBrainstormInner(imagePaths?: string[], problemStatement?: string, view: TranscriptView = this.session): Promise<string | null> {
-        if (this.assistCancellationToken) {
-            this.assistCancellationToken.abort();
-            this.assistCancellationToken = null;
-        }
-
         this.setMode('brainstorm');
 
         try {
@@ -1052,9 +935,5 @@ export class IntelligenceEngine extends EventEmitter {
         this.activeGenerationController?.abort(new DOMException('Session reset', 'AbortError'));
         this.activeMode = 'idle';
         this.currentGenerationId++; // Increment to break all active LLM streams
-        if (this.assistCancellationToken) {
-            this.assistCancellationToken.abort();
-            this.assistCancellationToken = null;
-        }
     }
 }

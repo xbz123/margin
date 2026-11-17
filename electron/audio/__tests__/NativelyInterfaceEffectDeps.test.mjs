@@ -2,7 +2,7 @@
 //
 // Bug: The large useEffect at ~L1434 in src/components/NativelyInterface.tsx
 // — the one that registers ~20 IPC subscriptions including
-// onNativeAudioConnected, onIntelligenceManualResult, onIntelligenceError,
+// onNativeAudioTranscript, onIntelligenceTokenBatch, onIntelligenceError,
 // etc. — previously declared `[isExpanded]` as its dep array. Every expand
 // or collapse toggle would therefore:
 //   1. Run the cleanup forEach, removing all ~20 IPC listeners.
@@ -39,20 +39,20 @@ const source = readFileSync(filePath, 'utf8');
 const lines = source.split('\n');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Locate the mega-effect by its unique anchor: onNativeAudioConnected.
+// 1. Locate the mega-effect by its unique anchor: onNativeAudioTranscript.
 //    Walk backward from that line to find the enclosing `useEffect(() => {`.
 // ─────────────────────────────────────────────────────────────────────────────
 function findMegaEffect(srcLines) {
     let anchorLine = -1;
     for (let i = 0; i < srcLines.length; i++) {
-        if (srcLines[i].includes('onNativeAudioConnected')) {
+        if (srcLines[i].includes('onNativeAudioTranscript')) {
             anchorLine = i;
             break;
         }
     }
     assert.ok(
         anchorLine >= 0,
-        'could not find onNativeAudioConnected anchor — has the IPC API renamed?',
+        'could not find onNativeAudioTranscript anchor — has the IPC API renamed?',
     );
 
     // Walk backward to find the opening `useEffect(() => {`.
@@ -65,7 +65,7 @@ function findMegaEffect(srcLines) {
     }
     assert.ok(
         openLine >= 0,
-        'could not find enclosing useEffect(() => { for the onNativeAudioConnected anchor',
+        'could not find enclosing useEffect(() => { for the onNativeAudioTranscript anchor',
     );
 
     // Brace-balance from the opening `{` of the arrow body forward to find

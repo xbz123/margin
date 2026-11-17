@@ -166,7 +166,7 @@ test('prompt wrappers propagate a refusal instead of inventing an answer', async
     streamChat: async function* () { throw denied; },
   };
   const require = createRequire(import.meta.url);
-  for (const name of ['WhatToAnswer', 'CodeHint', 'Brainstorm', 'Answer', 'Recap', 'FollowUp', 'Clarify', 'Assist', 'FollowUpQuestions']) {
+  for (const name of ['WhatToAnswer', 'CodeHint', 'Brainstorm', 'Answer', 'Recap', 'FollowUp', 'Clarify', 'FollowUpQuestions']) {
     const className = `${name}LLM`;
     const Class = require(path.join(repoRoot, `dist-electron/electron/llm/${className}.js`))[className];
     const wrapper = new Class(helper);
@@ -280,7 +280,7 @@ for (const [name, makeClient] of directSends) test(`${name} sends nothing when a
 });
 
 // The path the review named: Claude selected, the transcript in the message itself
-// (as generateSuggestion builds it), the Transcripts scope denied.
+// (as the retired generateSuggestion built it), the Transcripts scope denied.
 test('chatWithGemini with Claude selected does not send a transcript-bearing message when transcripts are denied', async () => {
   const ask = (self) => self.chatWithGemini('Question from the transcript: TRANSCRIPT_SENTINEL said hello', undefined, 'TRANSCRIPT_SENTINEL context');
   const allowed = await sendWith({}, claudeClient, ask);
