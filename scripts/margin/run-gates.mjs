@@ -112,10 +112,15 @@ async function runTestFiles() {
       results[i] = await new Promise((resolve) => {
         const isolationLog = path.join(isolationDir, `${i}.jsonl`);
         const child = spawn(NODE, ['scripts/margin/isolation/run-node.mjs', '--test', '--test-timeout=60000',
-          '--test-reporter=tap', file], { cwd: REPO, detached: true, env: { ...process.env, MARGIN_RUN_NODE_LOG: isolationLog } });
+          '--test-reporter=tap', file], { cwd: REPO, detached: process.platform !== 'win32', windowsHide: true, env: { ...process.env, MARGIN_RUN_NODE_LOG: isolationLog } });
         // run-node.mjs passes its stdio to the real test process, so end the whole
         // process group; killing only run-node would leave the pipe open.
-        const killGroup = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* already gone */ } };
+        // Windows has no process groups here (the child is not detached, so it opens no
+        // console window), so end the tree with taskkill instead.
+        const killGroup = () => {
+          if (process.platform === 'win32') { spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true }); return; }
+          try { process.kill(-child.pid, 'SIGKILL'); } catch { /* already gone */ }
+        };
         let stdout = '';
         let stderr = '';
         child.stdout.on('data', (d) => { stdout += d; });
@@ -243,7 +248,7 @@ function runStep(step) {
   const timeoutMs = step.timeoutMs ?? 900_000;
   return new Promise((resolve) => {
     const posix = process.platform !== 'win32';
-    const child = spawn(step.cmd, step.args, { cwd: REPO, detached: posix });
+    const child = spawn(step.cmd, step.args, { cwd: REPO, detached: posix, windowsHide: true });
     const killTree = () => {
       // Collect before killing: once a parent dies its children are re-parented and lost.
       const tree = posix ? descendants(child.pid) : [];

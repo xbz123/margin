@@ -24,6 +24,8 @@ const res = spawnSync(process.execPath, args, {
   cwd: REPO,
   env: isolatedEnv(sandbox, { MARGIN_ISOLATION_ALLOW_EXEC: allowExec }),
   stdio: 'inherit',
+  // A detached or console-less parent would otherwise open a console window per test on Windows.
+  windowsHide: true,
 });
 // The test process itself must have loaded the guard (readGuardLog checks its pid).
 const blocked = readBlocked(sandbox, { pid: res.pid });
