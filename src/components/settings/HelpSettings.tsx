@@ -896,13 +896,11 @@ export const HelpSettings: React.FC = () => {
 
                             <div className={`p-4 rounded-xl border bg-bg-item-surface border-border-subtle space-y-2`}>
                                 <h5 className={`font-semibold text-[13px] text-text-primary flex items-center gap-2`}>
-                                    <Globe size={14} className="text-green-500" /> {t('Language & Regional Accents')}
+                                    <Globe size={14} className="text-green-500" /> {t('Recognition language')}
                                 </h5>
                                 <p className="text-[11px] opacity-90 leading-relaxed text-text-secondary">
-                                    {withParts(t('Below the provider list, you must specify the {language} you will be speaking (e.g., English). Where offered, also select your regional {accent} (e.g., {examples}); speech providers use it to improve recognition of regional accents.'), {
+                                    {withParts(t('Below the provider list, choose the {language} you will be speaking: Auto recognises Chinese and English, or pick English or Chinese.'), {
                                         language: <strong>{t('Language')}</strong>,
-                                        accent: <span className={kbdClass}>{t('Accent / Region')}</span>,
-                                        examples: <><em>en-US</em> / <em>en-GB</em> / <em>en-IN</em></>,
                                     })}
                                 </p>
                             </div>

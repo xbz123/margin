@@ -7,6 +7,7 @@ import { NOT_AVAILABLE_NOTICE, capabilityTarget, controlState, effectiveReasonin
 import { isReasoningChoice, officialCapability, type ReasoningChoice } from '../src/types/modelCapabilities';
 import type { ReasoningControlState } from '../src/types/answerReasoning';
 import { outboundFetch } from './services/outbound';
+import { normalizeAnswerLanguage } from './config/languages';
 import Anthropic from "@anthropic-ai/sdk"
 import fs from "fs"
 import { AsyncLocalStorage } from "async_hooks"
@@ -787,8 +788,8 @@ export class LLMHelper {
   }
 
   public setAiResponseLanguage(language: string) {
-    this.aiResponseLanguage = language;
-    console.log(`[LLMHelper] AI Response Language set to: ${language}`);
+    this.aiResponseLanguage = normalizeAnswerLanguage(language);
+    console.log(`[LLMHelper] AI Response Language set to: ${this.aiResponseLanguage}`);
   }
 
   /**

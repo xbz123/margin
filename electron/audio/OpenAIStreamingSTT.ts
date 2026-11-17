@@ -16,7 +16,7 @@ import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 import { outboundAxios as axios, openAiSttEndpoint } from '../services/outbound';
 import FormData from 'form-data';
-import { RECOGNITION_LANGUAGES } from '../config/languages';
+import { transcriptionLanguage } from '../config/languages';
 import { streamingStttWsOptions } from './dnsHelpers';
 import { OpenAITranscriptTurnCoalescer } from './openaiTranscriptTurnCoalescer';
 import type { SttSeal } from './MeetingSttSession';
@@ -470,9 +470,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
 
             // Configure the transcription session
             // 'auto' key → empty string so Whisper/gpt-4o-transcribe auto-detects the language
-            const lang = (this.languageKey && this.languageKey !== 'auto')
-                ? (RECOGNITION_LANGUAGES[this.languageKey]?.iso639 ?? '')
-                : '';
+            const lang = transcriptionLanguage(this.languageKey) ?? '';
 
             const transcription: { model: string; language?: string } = { model };
             if (lang) transcription.language = lang;
@@ -1108,9 +1106,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
         });
         form.append('model', 'whisper-1');
 
-        const lang = (this.languageKey && this.languageKey !== 'auto')
-            ? (RECOGNITION_LANGUAGES[this.languageKey]?.iso639 ?? '')
-            : '';
+        const lang = transcriptionLanguage(this.languageKey) ?? '';
         if (lang) form.append('language', lang);
 
         const response = await axios.post(this.restEndpoint, form, {

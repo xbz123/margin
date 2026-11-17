@@ -8,7 +8,7 @@ import {
     X, Mic, Speaker, Monitor, Keyboard, LogOut, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Camera, RotateCcw,
     Eye, Layout, MessageSquare, Crop, ChevronDown, ChevronUp, Check, BadgeCheck, Power, Palette, Ghost, Sun,
     Moon, RefreshCw, Info, Globe, FlaskConical, Terminal, Settings, Activity, ExternalLink, Trash2, Sparkles,
-    Pencil, MapPin, HelpCircle, Zap, SlidersHorizontal, PointerOff, AlertCircle, Archive, Languages,
+    Pencil, HelpCircle, Zap, SlidersHorizontal, PointerOff, AlertCircle, Archive, Languages,
     type LucideIcon
 } from 'lucide-react';
 import { AboutSection } from './AboutSection';
@@ -480,7 +480,6 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
     // Recognition Language
     const [recognitionLanguage, setRecognitionLanguage] = useState('');
-    const [selectedSttGroup, setSelectedSttGroup] = useState('');
     const [availableLanguages, setAvailableLanguages] = useState<Record<string, any>>({});
 
     // AI Response Language
@@ -678,26 +677,11 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                 }
 
                 setRecognitionLanguage(currentLangKey);
-
-                // Initialize Group based on current language
-                if (langs[currentLangKey]) {
-                    setSelectedSttGroup(langs[currentLangKey].group);
-                } else {
-                    setSelectedSttGroup('English');
-                }
             }
 
             if (window.electronAPI?.getAiResponseLanguages) {
-                const aiLangs = await window.electronAPI.getAiResponseLanguages();
-                // Sort: Auto first, English second, then alphabetical
-                const sortedAiLangs = [...aiLangs].sort((a, b) => {
-                    if (a.code === 'auto') return -1;
-                    if (b.code === 'auto') return 1;
-                    if (a.label === 'English') return -1;
-                    if (b.label === 'English') return 1;
-                    return a.label.localeCompare(b.label);
-                });
-                setAvailableAiLanguages(sortedAiLangs);
+                // Main lists them in display order: Auto (Chinese & English), English, Chinese.
+                setAvailableAiLanguages(await window.electronAPI.getAiResponseLanguages());
 
                 const storedAi = await window.electronAPI.getAiResponseLanguage();
                 setAiResponseLanguage(storedAi || 'auto');
@@ -715,38 +699,17 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                 return;
             }
             setRecognitionLanguage(key);
-            if (availableLanguages[key]) setSelectedSttGroup(availableLanguages[key].group);
             setCredentialNotice(result.warning || '');
         } catch {
             setCredentialNotice('The recognition language could not be saved.');
         }
     };
 
-    const handleGroupChange = (group: string) => {
-        // Find default variant for this group (first one)
-        const firstVariant = Object.entries(availableLanguages).find(([_, lang]) => lang.group === group);
-        if (firstVariant) {
-            handleLanguageChange(firstVariant[0]);
-        }
-    };
-
-    // Helper to get unique groups
-    const languageGroups = Array.from(new Set(Object.values(availableLanguages).map((l: any) => l.group)))
-        .sort((a, b) => {
-            if (a === 'Auto') return -1;
-            if (b === 'Auto') return 1;
-            if (a === 'English') return -1;
-            if (b === 'English') return 1;
-            return a.localeCompare(b);
-        });
-
-    // Helper to get variants for current group
-    const currentGroupVariants = Object.entries(availableLanguages)
-
-        .filter(([_, lang]) => lang.group === selectedSttGroup)
+    // Auto (Chinese & English), English and Chinese, in the order main lists them.
+    const recognitionLanguageOptions = Object.entries(availableLanguages)
         .map(([key, lang]) => ({
             deviceId: key,
-            label: lang.label,
+            label: t(lang.label),
             kind: 'audioinput' as MediaDeviceKind,
             groupId: '',
             toJSON: () => ({})
@@ -1382,7 +1345,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                 <div className="relative" ref={aiLangDropdownRef}>
                                                     <button type="button" onClick={() => setIsAiLangDropdownOpen(!isAiLangDropdownOpen)} className={dropdownButtonClass}>
                                                         <span className="capitalize text-ellipsis overflow-hidden whitespace-nowrap">
-                                                            {aiResponseLanguage === 'auto' ? t('Auto') : aiResponseLanguage}
+                                                            {t(availableAiLanguages.find(option => option.code === aiResponseLanguage)?.label ?? aiResponseLanguage)}
                                                         </span>
                                                         <ChevronDown size={12} className={`shrink-0 transition-transform ${isAiLangDropdownOpen ? 'rotate-180' : ''}`} />
                                                     </button>
@@ -1398,7 +1361,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                                     }}
                                                                     className={dropdownItemClass(aiResponseLanguage === option.code)}
                                                                 >
-                                                                    <span className="font-medium">{option.code === 'auto' ? t('Auto') : option.label}</span>
+                                                                    <span className="font-medium">{t(option.label)}</span>
                                                                 </button>
                                                             ))}
                                                         </div>
@@ -1974,39 +1937,20 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
                                     <SettingsGroup title={t('Recognition language')}>
                                         <div className="p-4 space-y-3">
-                                            {/* Recognition Language Family */}
                                             <CustomSelect
                                                 label="Language"
                                                 icon={<Globe size={14} />}
-                                                value={selectedSttGroup}
-                                                options={languageGroups.map(g => ({
-                                                    deviceId: g,
-                                                    label: g,
-                                                    kind: 'audioinput' as MediaDeviceKind,
-                                                    groupId: '',
-                                                    toJSON: () => ({})
-                                                }))}
-                                                onChange={handleGroupChange}
+                                                value={recognitionLanguage}
+                                                options={recognitionLanguageOptions}
+                                                onChange={handleLanguageChange}
                                                 placeholder="Select Language"
                                             />
-
-                                            {/* Variant/Accent Selector (Conditional) */}
-                                            {currentGroupVariants.length > 1 && (
-                                                <CustomSelect
-                                                    label="Accent / Region"
-                                                    icon={<MapPin size={14} />}
-                                                    value={recognitionLanguage}
-                                                    options={currentGroupVariants}
-                                                    onChange={handleLanguageChange}
-                                                    placeholder="Select Region"
-                                                />
-                                            )}
 
                                             <div className="flex gap-2 items-center">
                                                 <Info size={14} className="text-text-secondary shrink-0" />
                                                 <p className="text-xs text-text-secondary">
                                                     {recognitionLanguage === 'auto'
-                                                        ? t('Auto mode — language will be detected from the first few seconds of audio.')
+                                                        ? t('Auto mode recognises Chinese and English, including both in one meeting.')
                                                         : t('Select the primary language being spoken in the meeting.')
                                                     }
                                                 </p>

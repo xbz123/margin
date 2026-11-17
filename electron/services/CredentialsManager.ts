@@ -9,6 +9,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../../src/types/credentialSave';
 import { openAiSttEndpoint } from './outbound';
+import { isAnswerLanguage, isRecognitionLanguage, normalizeAnswerLanguage, normalizeRecognitionLanguage } from '../config/languages';
 import { validateSttBaseUrl } from '../utils/validateSttBaseUrl';
 import { LLM_PRESETS, candidateConfiguration, modelTargetId, parseModelSelection, providerCandidates, withCandidates, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave, type GatewaySummary, type ModelTarget } from '../../src/types/llmTarget';
 import { validateProviderConfiguration, validateGatewayConfiguration, resolveModelTarget, followSelection, removedCandidatesInUse, GROQ_ANSWERS_RETIRED } from '../llm/llmTarget';
@@ -184,12 +185,13 @@ export class CredentialsManager {
         return this.credentials.sonioxApiKey;
     }
 
+    /** Saved values from older builds are read as English or auto; the file is not rewritten. */
     public getSttLanguage(): string {
-        return this.credentials.sttLanguage || 'english-us';
+        return normalizeRecognitionLanguage(this.credentials.sttLanguage);
     }
 
     public getAiResponseLanguage(): string {
-        return this.credentials.aiResponseLanguage || 'auto';
+        return normalizeAnswerLanguage(this.credentials.aiResponseLanguage);
     }
     public getDefaultModel(): string {
         return this.credentials.defaultModel || LLM_PRESETS.gemini.model;
@@ -457,10 +459,12 @@ export class CredentialsManager {
     }
 
     public setSttLanguage(language: string): CredentialSaveResult {
+        if (!isRecognitionLanguage(language)) return { ok: false, code: 'write_failed', message: 'Unsupported recognition language' };
         return this.saveCredentials({ sttLanguage: language });
     }
 
     public setAiResponseLanguage(language: string): CredentialSaveResult {
+        if (!isAnswerLanguage(language)) return { ok: false, code: 'write_failed', message: 'Unsupported answer language' };
         return this.saveCredentials({ aiResponseLanguage: language });
     }
     /**

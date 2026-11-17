@@ -12,7 +12,7 @@
 import { EventEmitter } from 'events';
 import { outboundAxios as axios } from '../services/outbound';
 import FormData from 'form-data';
-import { RECOGNITION_LANGUAGES } from '../config/languages';
+import { transcriptionLanguage } from '../config/languages';
 import type { SttSeal } from './MeetingSttSession';
 import { RestBatches, type RestBatch } from './restBatches';
 
@@ -31,7 +31,7 @@ type ProviderConfigFactory = (apiKey: string, region?: string, languageKey?: str
 
 const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
     groq: (apiKey, region, languageKey) => {
-        const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.iso639 : undefined;
+        const lang = transcriptionLanguage(languageKey);
         return {
             endpoint: 'https://api.groq.com/openai/v1/audio/transcriptions',
             model: 'whisper-large-v3-turbo',
@@ -48,7 +48,7 @@ const PROVIDER_CONFIGS: Record<RestSttProvider, ProviderConfigFactory> = {
         };
     },
     openai: (apiKey, region, languageKey) => {
-        const lang = (languageKey && languageKey !== 'auto') ? RECOGNITION_LANGUAGES[languageKey]?.iso639 : undefined;
+        const lang = transcriptionLanguage(languageKey);
         return {
             endpoint: 'https://api.openai.com/v1/audio/transcriptions',
             model: 'whisper-1',

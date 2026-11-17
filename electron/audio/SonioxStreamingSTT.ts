@@ -18,7 +18,7 @@
 
 import { EventEmitter } from 'events';
 import WebSocket from 'ws';
-import { RECOGNITION_LANGUAGES } from '../config/languages';
+import { recognitionLanguageHints } from '../config/languages';
 import { streamingStttWsOptions } from './dnsHelpers';
 import type { SttSeal } from './MeetingSttSession';
 
@@ -93,22 +93,17 @@ export class SonioxStreamingSTT extends EventEmitter {
         console.log(`[SonioxStreaming] Channel count set to ${count}`);
     }
 
-    private languageCode?: string;
+    /** Hints sent with the session config; auto mode listens for Chinese and English. */
+    private languageHints: string[] = recognitionLanguageHints('auto');
 
-    /** Set recognition language hint using ISO-639-1 code */
+    /** Set recognition language hints using ISO-639-1 codes */
     public setRecognitionLanguage(key: string): void {
-        const config = RECOGNITION_LANGUAGES[key];
-        if (config) {
-            this.languageCode = config.iso639;
-            console.log(`[SonioxStreaming] Language hint set to ${this.languageCode}`);
+        this.languageHints = recognitionLanguageHints(key);
+        console.log(`[SonioxStreaming] Language hints set to ${this.languageHints.join(',')}`);
 
-            if (this.isActive) {
-                console.log('[SonioxStreaming] Language changed while active. Scheduling debounced restart...');
-                this.scheduleRestart();
-            }
-        } else if (key === 'auto') {
-            this.languageCode = undefined;
-            console.log(`[SonioxStreaming] Language hint set to auto`);
+        if (this.isActive) {
+            console.log('[SonioxStreaming] Language changed while active. Scheduling debounced restart...');
+            this.scheduleRestart();
         }
     }
 
@@ -311,9 +306,7 @@ export class SonioxStreamingSTT extends EventEmitter {
                 enable_endpoint_detection: true,
             };
 
-            if (this.languageCode) {
-                config.language_hints = [this.languageCode];
-            }
+            config.language_hints = [...this.languageHints];
 
             try {
                 // Use ?. (not !) — stop() could theoretically null this.ws between the

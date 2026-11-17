@@ -22,7 +22,7 @@ const bodies = [];
 const outbound = { outboundAxios: { post: async (_url, form) => { bodies.push(form.getBuffer().toString('latin1')); return { data: { text: 'synthetic' } }; } } };
 const { RestSTT } = load('electron/audio/RestSTT.ts', id => {
   if (id === '../services/outbound') return outbound;
-  if (id === '../config/languages') return { RECOGNITION_LANGUAGES: { 'english-us': { iso639: 'en' } } };
+  if (id === '../config/languages') return require('../../../dist-electron/electron/config/languages.js');
   if (id === './restBatches') return require('../../../dist-electron/electron/audio/restBatches.js');
   return require(id);
 });

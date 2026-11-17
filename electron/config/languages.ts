@@ -1,116 +1,69 @@
 
 export type LanguageOption = {
     label: string;
-    code: string; // Internal key (e.g. 'russian')
-    bcp47: string; // Standard BCP-47 tag (e.g. 'ru-RU')
-    iso639: string; // For OpenAI, Groq (e.g. 'ru')
+    code: string; // Internal key (e.g. 'chinese')
+    bcp47: string; // Standard BCP-47 tag (e.g. 'zh-CN')
+    iso639: string; // For OpenAI, Groq (e.g. 'zh')
     group: string; // For UI grouping
     alternates?: string[];
 };
 
-export type EnglishVariant = LanguageOption & {
-    primary: string;
-    alternates: string[];
-};
+/** The languages auto mode listens for: Chinese and English. */
+export const AUTO_DETECT_ALTERNATES = ['zh-CN', 'en-US'];
+/** ISO-639-1 hints sent to providers that accept a hint list (Soniox) in auto mode. */
+export const AUTO_DETECT_HINTS = ['zh', 'en'];
 
-export const ENGLISH_VARIANTS: Record<string, EnglishVariant> = {
-    'english-us': {
-        label: 'United States',
-        code: 'english-us',
-        bcp47: 'en-US',
-        iso639: 'en',
-        group: 'English',
-        primary: 'en-US',
-        alternates: ['en-GB', 'en-IN', 'en-AU', 'en-CA'],
-    },
-    'english-uk': {
-        label: 'United Kingdom',
-        code: 'english-uk',
-        bcp47: 'en-GB',
-        iso639: 'en',
-        group: 'English',
-        primary: 'en-GB',
-        alternates: ['en-US', 'en-IN', 'en-AU', 'en-CA'],
-    },
-    'english-in': {
-        label: 'India',
-        code: 'english-in',
-        bcp47: 'en-IN',
-        iso639: 'en',
-        group: 'English',
-        primary: 'en-IN',
-        alternates: ['en-US', 'en-GB', 'en-AU', 'en-CA'],
-    },
-    'english-au': {
-        label: 'Australia',
-        code: 'english-au',
-        bcp47: 'en-AU',
-        iso639: 'en',
-        group: 'English',
-        primary: 'en-AU',
-        alternates: ['en-US', 'en-GB', 'en-IN', 'en-CA'],
-    },
-    'english-ca': {
-        label: 'Canada',
-        code: 'english-ca',
-        bcp47: 'en-CA',
-        iso639: 'en',
-        group: 'English',
-        primary: 'en-CA',
-        alternates: ['en-US', 'en-GB', 'en-IN', 'en-AU'],
-    },
-};
-
-export const AUTO_DETECT_ALTERNATES = [
-    'en-US',
-    'en-GB',
-    'en-IN',
-    'en-AU',
-    'en-CA',
-    'id-ID',
-    'ru-RU',
-    'es-ES',
-    'fr-FR',
-    'de-DE',
-    'it-IT',
-    'pt-PT',
-    'ja-JP',
-    'ko-KR',
-    'zh-CN',
-    'tr-TR',
-    'uk-UA',
-];
+export const ENGLISH_RECOGNITION_LANGUAGE = 'english-us';
+export const DEFAULT_RECOGNITION_LANGUAGE = ENGLISH_RECOGNITION_LANGUAGE;
 
 export const RECOGNITION_LANGUAGES: Record<string, LanguageOption> = {
-    'auto': { label: 'Auto Detect', code: 'auto', bcp47: 'auto', iso639: 'auto', group: 'Auto', alternates: AUTO_DETECT_ALTERNATES },
-    ...ENGLISH_VARIANTS,
-    'indonesian': { label: 'Indonesian', code: 'indonesian', bcp47: 'id-ID', iso639: 'id', group: 'Indonesian' },
-    'russian': { label: 'Russian', code: 'russian', bcp47: 'ru-RU', iso639: 'ru', group: 'Russian' },
-    'spanish': { label: 'Spanish', code: 'spanish', bcp47: 'es-ES', iso639: 'es', group: 'Spanish' },
-    'french': { label: 'French', code: 'french', bcp47: 'fr-FR', iso639: 'fr', group: 'French' },
-    'german': { label: 'German', code: 'german', bcp47: 'de-DE', iso639: 'de', group: 'German' },
-    'italian': { label: 'Italian', code: 'italian', bcp47: 'it-IT', iso639: 'it', group: 'Italian' },
-    'portuguese': { label: 'Portuguese', code: 'portuguese', bcp47: 'pt-PT', iso639: 'pt', group: 'Portuguese' },
-    'japanese': { label: 'Japanese', code: 'japanese', bcp47: 'ja-JP', iso639: 'ja', group: 'Japanese' },
-    'korean': { label: 'Korean', code: 'korean', bcp47: 'ko-KR', iso639: 'ko', group: 'Korean' },
-    'chinese': { label: 'Chinese (Simplified)', code: 'chinese', bcp47: 'zh-CN', iso639: 'zh', group: 'Chinese' },
-    'turkish': { label: 'Turkish', code: 'turkish', bcp47: 'tr-TR', iso639: 'tr', group: 'Turkish' },
-    'ukrainian': { label: 'Ukrainian', code: 'ukrainian', bcp47: 'uk-UA', iso639: 'uk', group: 'Ukrainian' },
+    'auto': { label: 'Auto (Chinese & English)', code: 'auto', bcp47: 'auto', iso639: 'auto', group: 'Auto', alternates: AUTO_DETECT_ALTERNATES },
+    // Keeps the old 'english-us' key so existing saved settings stay valid.
+    'english-us': { label: 'English', code: 'english-us', bcp47: 'en-US', iso639: 'en', group: 'English' },
+    'chinese': { label: 'Chinese', code: 'chinese', bcp47: 'zh-CN', iso639: 'zh', group: 'Chinese' },
 };
 
 export const AI_RESPONSE_LANGUAGES = [
-    { label: 'Auto (Detect)', code: 'auto' },
+    { label: 'Auto (Chinese & English)', code: 'auto' },
     { label: 'English', code: 'English' },
-    { label: 'Indonesian', code: 'Indonesian' },
-    { label: 'Russian', code: 'Russian' },
-    { label: 'Spanish', code: 'Spanish' },
-    { label: 'French', code: 'French' },
-    { label: 'German', code: 'German' },
-    { label: 'Italian', code: 'Italian' },
-    { label: 'Portuguese', code: 'Portuguese' },
-    { label: 'Japanese', code: 'Japanese' },
-    { label: 'Korean', code: 'Korean' },
     { label: 'Chinese', code: 'Chinese' },
-    { label: 'Turkish', code: 'Turkish' },
-    { label: 'Ukrainian', code: 'Ukrainian' },
 ];
+
+export function isRecognitionLanguage(value: unknown): value is string {
+    return typeof value === 'string' && Object.hasOwn(RECOGNITION_LANGUAGES, value);
+}
+
+export function isAnswerLanguage(value: unknown): value is string {
+    return typeof value === 'string' && AI_RESPONSE_LANGUAGES.some(option => option.code === value);
+}
+
+/**
+ * Maps a saved recognition language to a supported key. Older builds offered five English
+ * variants and eleven other languages: any English variant reads as English, anything else
+ * unknown reads as auto. Nothing is written back; the saved value is only interpreted.
+ */
+export function normalizeRecognitionLanguage(value: unknown): string {
+    if (value === undefined || value === null || value === '') return DEFAULT_RECOGNITION_LANGUAGE;
+    if (isRecognitionLanguage(value)) return value;
+    if (typeof value === 'string' && value.toLowerCase().startsWith('english')) return ENGLISH_RECOGNITION_LANGUAGE;
+    return 'auto';
+}
+
+/** Maps a saved answer language to auto, English or Chinese; anything else reads as auto. */
+export function normalizeAnswerLanguage(value: unknown): string {
+    return isAnswerLanguage(value) ? value : 'auto';
+}
+
+/** Language hints for a recognition key: Chinese and English in auto mode, otherwise the one language. */
+export function recognitionLanguageHints(key: string): string[] {
+    const normalized = normalizeRecognitionLanguage(key);
+    if (normalized === 'auto') return [...AUTO_DETECT_HINTS];
+    return [RECOGNITION_LANGUAGES[normalized].iso639];
+}
+
+/** The single `language` parameter for Whisper-style APIs; undefined in auto mode so the service detects it. */
+export function transcriptionLanguage(key: string | undefined): string | undefined {
+    if (!key) return undefined;
+    const normalized = normalizeRecognitionLanguage(key);
+    return normalized === 'auto' ? undefined : RECOGNITION_LANGUAGES[normalized].iso639;
+}

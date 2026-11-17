@@ -65,6 +65,9 @@ only where the interview's rules permit it.
 - English/Simplified Chinese interface, independent recognition/answer language
   settings, configurable shortcuts, window protection, mouse passthrough and
   application disguise. Disguise does not hide a process from other software.
+- Recognition and answer languages are Auto (Chinese & English), English or
+  Chinese. A value saved by an older build is read as English (any English
+  accent) or Auto (any other removed language); the settings file is not rewritten.
 
 ### Configure before use
 

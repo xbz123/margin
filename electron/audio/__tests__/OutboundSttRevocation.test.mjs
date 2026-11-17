@@ -41,7 +41,7 @@ function subject(name) {
     setTimeout: schedule, setInterval: schedule, clearTimeout() {}, clearInterval() {},
     require(id) {
       if (id === 'ws') return Socket;
-      if (id === '../config/languages') return { RECOGNITION_LANGUAGES: { 'english-us': { bcp47: 'en-US', iso639: 'en' } } };
+      if (id === '../config/languages') return require('../../../dist-electron/electron/config/languages.js');
       if (id === './dnsHelpers') return { streamingStttWsOptions: () => ({}) };
       if (id === '../services/outbound') return outbound;
       if (id === './openaiTranscriptTurnCoalescer') return require('../../../dist-electron/electron/audio/openaiTranscriptTurnCoalescer.js');

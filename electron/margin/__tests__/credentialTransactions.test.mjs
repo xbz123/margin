@@ -118,6 +118,7 @@ function storage() {
         if (id === '../llm/llmTarget') return require('../../../dist-electron/electron/llm/llmTarget.js');
         if (id === '../../src/types/modelCapabilities') return capabilityModule.exports;
         if (id === '../llm/answerReasoning') return require('../../../dist-electron/electron/llm/answerReasoning.js');
+        if (id === '../config/languages') return require('../../../dist-electron/electron/config/languages.js');
         return require(id);
       },
     });
@@ -379,7 +380,7 @@ test('all credential setters commit only after persistence and can be read after
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
-    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', model: 'opaque', models: [{ model: 'gpt-5.4' }], apiKey: 'synthetic-old' }] : name === 'setGatewayConfiguration' ? [{ protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setSavedReasoning' ? [targetModule.exports.modelTargetId(manager.resolveSelection(manager.getDefaultModel())), 'high'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : 'synthetic-value'];
+    const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', model: 'opaque', models: [{ model: 'gpt-5.4' }], apiKey: 'synthetic-old' }] : name === 'setGatewayConfiguration' ? [{ protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setSavedReasoning' ? [targetModule.exports.modelTargetId(manager.resolveSelection(manager.getDefaultModel())), 'high'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setSttLanguage' ? 'chinese' : name === 'setAiResponseLanguage' ? 'Chinese' : 'synthetic-value'];
     if (name === 'setDomesticStt') args.splice(0, args.length, 'aliyun', { key: 'synthetic-key', workspaceId: 'workspace', appId: '' });
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
@@ -1210,22 +1211,74 @@ test('ProviderCard stops model Fetch while complete configuration is unsaved', a
   assert.equal(fetched, false);
 });
 
-test('recognition language applies only after its real manager setter succeeds', () => {
+function recognitionLanguageSubject(save) {
   const source = read('electron/main.ts');
   const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
   const klass = ast.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'AppState');
   const method = klass.members.find(node => node.name?.getText(ast) === 'setRecognitionLanguage').getText(ast);
+  const module = { exports: {} };
+  vm.runInNewContext(compile(`class Subject { ${method} } exports.Subject = Subject;`), {
+    exports: module.exports, console: quiet,
+    require: id => id === './config/languages' ? require('../../../dist-electron/electron/config/languages.js')
+      : { CredentialsManager: { getInstance: () => ({ setSttLanguage: () => save }) } },
+  });
+  return new module.exports.Subject();
+}
+
+test('recognition language applies only after its real manager setter succeeds', () => {
   for (const save of [failure, { ok: true }]) {
     let effects = 0;
-    const module = { exports: {} };
-    vm.runInNewContext(compile(`class Subject { ${method} } exports.Subject = Subject;`), {
-      exports: module.exports, console: quiet,
-      require: () => ({ CredentialsManager: { getInstance: () => ({ setSttLanguage: () => save }) } }),
-    });
-    const state = new module.exports.Subject();
+    const state = recognitionLanguageSubject(save);
     Object.assign(state, { googleSTT: { setRecognitionLanguage() { effects++; } } });
     assert.equal(state.setRecognitionLanguage('english-us').ok, save.ok);
     assert.equal(effects, save.ok ? 1 : 0);
+  }
+});
+
+test('switching to auto during a meeting hands auto to both running providers, not English', () => {
+  const state = recognitionLanguageSubject({ ok: true });
+  const applied = [];
+  Object.assign(state, {
+    googleSTT: { setRecognitionLanguage: key => applied.push(['interviewer', key]) },
+    googleSTT_User: { setRecognitionLanguage: key => applied.push(['user', key]) },
+  });
+  assert.equal(state.setRecognitionLanguage('auto').ok, true);
+  assert.deepEqual(applied, [['interviewer', 'auto'], ['user', 'auto']]);
+});
+
+test('saved languages from older builds read as English or auto without rewriting the file', () => {
+  const disk = storage();
+  // The manager joins its own path, so the seeded file uses the platform separator.
+  const file = path.join('/synthetic', 'credentials.enc');
+  const legacy = Buffer.from('cipher:' + JSON.stringify({ sttLanguage: 'english-uk', aiResponseLanguage: 'Japanese' }));
+  disk.files.set(file, legacy);
+  const manager = disk.boot();
+  assert.equal(manager.getSttLanguage(), 'english-us');
+  assert.equal(manager.getAiResponseLanguage(), 'auto');
+  assert.deepEqual(disk.files.get(file), legacy, 'reading never rewrites the saved value');
+
+  disk.files.set(file, Buffer.from('cipher:' + JSON.stringify({ sttLanguage: 'japanese', aiResponseLanguage: 'Chinese' })));
+  const reloaded = disk.boot();
+  assert.equal(reloaded.getSttLanguage(), 'auto');
+  assert.equal(reloaded.getAiResponseLanguage(), 'Chinese');
+});
+
+test('language setters accept only Auto, English and Chinese and keep the saved file on refusal', () => {
+  const disk = storage(), manager = disk.boot();
+  const before = disk.files.get(disk.filename);
+  for (const [setter, value] of [['setSttLanguage', 'english-uk'], ['setSttLanguage', 'japanese'], ['setAiResponseLanguage', 'Japanese'], ['setAiResponseLanguage', 'english']]) {
+    const result = manager[setter](value);
+    assert.equal(result.ok, false, `${setter}(${value})`);
+    assert.equal(result.code, 'write_failed');
+  }
+  assert.deepEqual(disk.files.get(disk.filename), before);
+  for (const value of ['auto', 'english-us', 'chinese']) {
+    assert.equal(manager.setSttLanguage(value).ok, true, value);
+    assert.equal(manager.getSttLanguage(), value);
+  }
+  for (const value of ['auto', 'English', 'Chinese']) {
+    assert.equal(manager.setAiResponseLanguage(value).ok, true, value);
+    assert.equal(manager.getAiResponseLanguage(), value);
   }
 });
 
@@ -1286,7 +1339,7 @@ test('renderer save, remove and selection callbacks retain the previous UI on fa
     [ai, 'handleSaveKey', ['openai', 'synthetic-key', () => assert.fail('input was cleared')], ['setHasStoredKey']],
     [ai, 'handleRemoveKey', ['openai', () => assert.fail('input was cleared')], ['setHasStoredKey']],
     [ai, 'handleDefaultModelChange', ['synthetic-model'], ['setDefaultModel']],
-    [overlay, 'handleLanguageChange', ['english-us'], ['setRecognitionLanguage', 'setSelectedSttGroup', 'setAutoDetectedLanguage']],
+    [overlay, 'handleLanguageChange', ['english-us'], ['setRecognitionLanguage']],
     [overlay, 'handleAiLanguageChange', ['english'], ['setAiResponseLanguage']],
     [overlay, 'handleSttProviderChange', ['groq'], ['setSttProvider']],
     [overlay, 'handleGroqSttModelChange', ['synthetic-model'], ['setGroqSttModel']],

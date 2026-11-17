@@ -1760,8 +1760,9 @@ export class AppState {
     const result = CredentialsManager.getInstance().setSttLanguage(key);
     if (!result.ok) return result;
 
-    // 'auto' needs server-side language detection, which no remaining provider offers.
-    const effectiveKey = key === 'auto' ? 'english-us' : key;
+    // The running providers get the same key a new meeting would: auto stays auto.
+    const { normalizeRecognitionLanguage } = require('./config/languages');
+    const effectiveKey = normalizeRecognitionLanguage(key);
 
     try {
       this.googleSTT?.setRecognitionLanguage(effectiveKey);
