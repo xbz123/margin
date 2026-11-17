@@ -556,7 +556,7 @@ test('AG60 mounted help, meeting history and a visible error fallback switch lan
       getKeybinds: async () => [], onKeybindsUpdate: () => () => {},
       updateMeetingTitle: async () => { window.requests++; return true; } };
     startUiLanguageSync(); window.changeLanguage = language => broadcast(language);
-    const meeting = { id: 'synthetic-ag60', title: 'Untranslated meeting title', date: '2026-10-13T10:00:00Z', duration: '2 min', summary: '',
+    const meeting = { id: 'synthetic-ag60', title: 'Untranslated meeting title', date: '2026-10-13T10:00:00Z', duration: '2 min',
       transcript: [{ speaker: 'user', text: 'Untranslated user speech', timestamp: 1 }, { speaker: 'interviewer', text: 'Untranslated remote speech', timestamp: 2 }],
       usage: [{ type: 'assist', timestamp: 3, question: 'Untranslated user question', answer: 'Untranslated generated answer',
         generation: { requestId: 'synthetic-history', provider: 'openai', model: 'opaque-model-id', status: 'completed', partial: false, attempts: 1 } }] };

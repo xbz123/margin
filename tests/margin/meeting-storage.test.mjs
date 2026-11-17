@@ -192,8 +192,7 @@ test('a meeting is saved without any request, survives a restart, and stays dele
   const meeting = await saveMeeting(launcher, lines);
   const details = await launcher.evaluate((id) => window.electronAPI.getMeetingDetails(id), meeting.id);
   assert.equal(details.title, 'Untitled Session', 'no generated title');
-  assert.equal(details.summary, '');
-  assert.deepEqual(details.detailedSummary, { actionItems: [], keyPoints: [] });
+  assert.ok(!('summary' in details) && !('detailedSummary' in details), 'no summary fields');
   assert.equal(details.transcript.length, lines.length);
   assert.ok(details.transcript.some((t) => t.text.includes('survive a restart')));
   await new Promise((r) => setTimeout(r, 1_000));
@@ -509,7 +508,7 @@ test('AG33 existing SQLite meeting storage round-trips exact generation status/t
     const evaluateRoundTrip = () => app.evaluate(({}, { filename, generation }) => {
       const { DatabaseManager } = process.mainModule.require(filename);
       const db = DatabaseManager.getInstance();
-      db.saveMeeting({ id: 'AG33-sqlite-roundtrip', title: 'Synthetic metadata only', date: '2026-10-10T00:00:00Z', duration: '0:01', summary: '', usage: [
+      db.saveMeeting({ id: 'AG33-sqlite-roundtrip', title: 'Synthetic metadata only', date: '2026-10-10T00:00:00Z', duration: '0:01', usage: [
         { type: 'chat', timestamp: 1, question: 'synthetic', answer: 'saved partial', ...generation },
         { type: 'followup_questions', timestamp: 2, items: ['legacy one', 'legacy two'] },
       ] }, 0, 1000);
