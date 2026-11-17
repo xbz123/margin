@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
-  "packageLockSHA256": "81f487b004acb3df5d68ff2ecfe44ee694b9addbc4a070a401c7c94067e3f583",
+  "packageLockSHA256": "101b75cc2f240d6d243e4b74f60f7a4c56cbdeba0ca0d177ce9ba41a049909cf",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
-  "sourceConfigSHA256": "2eeb3a5e3a92b9c6e130704143de3af0d2de1a6607ed0d6d11b703707355145c",
+  "sourceConfigSHA256": "066cf486622b2d420027747f564673c30f41b580c8eeb9a68bc8566be9193314",
   "electronVersion": "43.1.0",
   "components": [
     {
@@ -40,44 +40,6 @@
           "file": "texts/117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76.txt",
           "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76",
           "sourcePath": "node_modules/@babel/runtime/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@emotion/is-prop-valid@1.4.0:node_modules/@emotion/is-prop-valid",
-      "kind": "npm",
-      "name": "@emotion/is-prop-valid",
-      "version": "1.4.0",
-      "location": "node_modules/@emotion/is-prop-valid",
-      "license": "MIT",
-      "integrity": "sha512-QgD4fyscGcbbKwJmqNvUMSE02OsHUa+lAWKdEUIJKgqe5IwRSKd7+KhibEWdaKwgjLj0DRSHA9biAIqGBk05lw==",
-      "repo": "emotion-js/emotion",
-      "texts": [
-        {
-          "file": "texts/6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a.txt",
-          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
-          "sourcePath": "node_modules/@emotion/is-prop-valid/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@emotion/memoize@0.9.0:node_modules/@emotion/memoize",
-      "kind": "npm",
-      "name": "@emotion/memoize",
-      "version": "0.9.0",
-      "location": "node_modules/@emotion/memoize",
-      "license": "MIT",
-      "integrity": "sha512-30FAj7/EoJ5mwVPOWhAyCX+FPfMDrVecJAM+Iw9NRoSl4BBAQeqj4cApHHUXOVvIPgLVDsCFoz/hGD+5QQD1GQ==",
-      "repo": "emotion-js/emotion",
-      "texts": [
-        {
-          "file": "texts/6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a.txt",
-          "sha256": "6e8d23763cf7cb707ad8f6677aa502ebeca1dda447e6d6e57f6549c1625b9c4a",
-          "sourcePath": "node_modules/@emotion/memoize/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -373,25 +335,6 @@
       "vcs": "fcef0668a5c827e5a4baac405474d75680f9a4eb"
     },
     {
-      "id": "npm:@radix-ui/react-dialog@1.1.15:node_modules/@radix-ui/react-dialog",
-      "kind": "npm",
-      "name": "@radix-ui/react-dialog",
-      "version": "1.1.15",
-      "location": "node_modules/@radix-ui/react-dialog",
-      "license": "MIT",
-      "integrity": "sha512-TCglVRtzlffRNxRMEyR36DGBLJpeusFcgMVD9PZEzAKnUs1lKCgX5u9BmC2Yg+LL9MgZDugFFs1Vl+Jp4t/PGw==",
-      "repo": "radix-ui/primitives",
-      "texts": [
-        {
-          "file": "texts/0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138.txt",
-          "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138",
-          "sourcePath": "node_modules/@radix-ui/react-dialog/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:@radix-ui/react-dismissable-layer@1.1.11:node_modules/@radix-ui/react-dismissable-layer",
       "kind": "npm",
       "name": "@radix-ui/react-dismissable-layer",
@@ -409,65 +352,6 @@
         }
       ],
       "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@radix-ui/react-focus-guards@1.1.3:node_modules/@radix-ui/react-focus-guards",
-      "kind": "npm",
-      "name": "@radix-ui/react-focus-guards",
-      "version": "1.1.3",
-      "location": "node_modules/@radix-ui/react-focus-guards",
-      "license": "MIT",
-      "integrity": "sha512-0rFg/Rj2Q62NCm62jZw0QX7a3sz6QCQU0LpZdNrJX8byRGaGVTqbrW9jAoIAHyMQqsNpeZ81YgSizOt5WXq0Pw==",
-      "repo": "radix-ui/primitives",
-      "texts": [
-        {
-          "file": "texts/0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138.txt",
-          "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138",
-          "sourcePath": "node_modules/@radix-ui/react-focus-guards/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@radix-ui/react-focus-scope@1.1.7:node_modules/@radix-ui/react-focus-scope",
-      "kind": "npm",
-      "name": "@radix-ui/react-focus-scope",
-      "version": "1.1.7",
-      "location": "node_modules/@radix-ui/react-focus-scope",
-      "license": "MIT",
-      "integrity": "sha512-t2ODlkXBQyn7jkl6TNaw/MtVEVvIGelJDCG41Okq/KwUsJBwQ4XVZsHAVUkK4mBv3ewiAS3PGuUWuY2BoK4ZUw==",
-      "repo": "radix-ui/primitives",
-      "texts": [
-        {
-          "file": "texts/0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138.txt",
-          "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138",
-          "sourcePath": "node_modules/@radix-ui/react-focus-scope/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@radix-ui/react-id@1.1.1:node_modules/@radix-ui/react-id",
-      "kind": "npm",
-      "name": "@radix-ui/react-id",
-      "version": "1.1.1",
-      "location": "node_modules/@radix-ui/react-id",
-      "license": "MIT",
-      "integrity": "sha512-kGkGegYIdQsOb4XjsfM97rXsiHaBwco+hFI66oO4s9LU+PLAC5oJ7khdOVFxkhsmlbpUqDAvXw11CluXP+jkHg==",
-      "repo": "radix-ui/primitives",
-      "texts": [
-        {
-          "file": "texts/0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138.txt",
-          "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138",
-          "url": "https://raw.githubusercontent.com/radix-ui/primitives/fcef0668a5c827e5a4baac405474d75680f9a4eb/LICENSE",
-          "gitBlob": "a18858fb7b014098cba85703e66609be66a26ef5",
-          "sourcePath": "LICENSE"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "vcs": "fcef0668a5c827e5a4baac405474d75680f9a4eb"
     },
     {
       "id": "npm:@radix-ui/react-portal@1.1.9:node_modules/@radix-ui/react-portal",
@@ -825,46 +709,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:@types/keytar@4.4.0:node_modules/@types/keytar",
-      "kind": "npm",
-      "name": "@types/keytar",
-      "version": "4.4.0",
-      "location": "node_modules/@types/keytar",
-      "license": "MIT",
-      "integrity": "sha512-cq/NkUUy6rpWD8n7PweNQQBpw2o0cf5v6fbkUVEpOB9VzzIvyPvSEId1/goIj+MciW2v1Lw5mRimKO01XgE9EA==",
-      "repo": "DefinitelyTyped/DefinitelyTyped",
-      "directory": "types/keytar",
-      "texts": [
-        {
-          "file": "texts/dea9265341829002e2c23a7372393eb2ed6e26085fb623f38a4ba0af833f30a6.txt",
-          "sha256": "dea9265341829002e2c23a7372393eb2ed6e26085fb623f38a4ba0af833f30a6",
-          "sourcePath": "node_modules/@types/keytar/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:@types/marked@5.0.2:node_modules/@types/marked",
-      "kind": "npm",
-      "name": "@types/marked",
-      "version": "5.0.2",
-      "location": "node_modules/@types/marked",
-      "license": "MIT",
-      "integrity": "sha512-OucS4KMHhFzhz27KxmWg7J+kIYqyqoW5kdIEI319hqARQQUTqhao3M/F+uFnDXD0Rg72iDDZxZNxq5gvctmLlg==",
-      "repo": "DefinitelyTyped/DefinitelyTyped",
-      "directory": "types/marked",
-      "texts": [
-        {
-          "file": "texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
-          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
-          "sourcePath": "node_modules/@types/marked/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:@types/mdast@4.0.4:node_modules/@types/mdast",
       "kind": "npm",
       "name": "@types/mdast",
@@ -1161,44 +1005,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:ajv@8.20.0:node_modules/ajv",
-      "kind": "npm",
-      "name": "ajv",
-      "version": "8.20.0",
-      "location": "node_modules/ajv",
-      "license": "MIT",
-      "integrity": "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==",
-      "repo": "ajv-validator/ajv",
-      "texts": [
-        {
-          "file": "texts/a05350a88e318e4f5f2c2a1ff1e2e88daa4dd38e6e78b71cccae422bdc762cc3.txt",
-          "sha256": "a05350a88e318e4f5f2c2a1ff1e2e88daa4dd38e6e78b71cccae422bdc762cc3",
-          "sourcePath": "node_modules/ajv/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:aria-hidden@1.2.6:node_modules/aria-hidden",
-      "kind": "npm",
-      "name": "aria-hidden",
-      "version": "1.2.6",
-      "location": "node_modules/aria-hidden",
-      "license": "MIT",
-      "integrity": "sha512-ik3ZgC9dY/lYVVM++OISsaYDeg1tb0VtP5uL3ouh1koGOaUMDPpbFIei4JkFimWUFPn90sbMNMXQAIVOlnYKJA==",
-      "repo": "theKashey/aria-hidden",
-      "texts": [
-        {
-          "file": "texts/30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9.txt",
-          "sha256": "30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9",
-          "sourcePath": "node_modules/aria-hidden/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:asynckit@0.4.0:node_modules/asynckit",
       "kind": "npm",
       "name": "asynckit",
@@ -1212,25 +1018,6 @@
           "file": "texts/1953150d5d4b10c7542cee6f6e0c613b2682545233f069d75cfff1936386ce10.txt",
           "sha256": "1953150d5d4b10c7542cee6f6e0c613b2682545233f069d75cfff1936386ce10",
           "sourcePath": "node_modules/asynckit/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:atomically@1.7.0:node_modules/atomically",
-      "kind": "npm",
-      "name": "atomically",
-      "version": "1.7.0",
-      "location": "node_modules/atomically",
-      "license": "MIT",
-      "integrity": "sha512-Xcz9l0z7y9yQ9rdDaxlmaI4uJHf/T8g9hOEzJcsEqX2SjCj4J20uK7+ldkDHMbpJDK76wF7xEIgxc/vSlsfw5w==",
-      "repo": "fabiospampinato/atomically",
-      "texts": [
-        {
-          "file": "texts/716bd9213ef82d9017ed813688703837aaa99fc56de205a7b97475d40056a500.txt",
-          "sha256": "716bd9213ef82d9017ed813688703837aaa99fc56de205a7b97475d40056a500",
-          "sourcePath": "node_modules/atomically/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -1484,25 +1271,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:camelize@1.0.1:node_modules/camelize",
-      "kind": "npm",
-      "name": "camelize",
-      "version": "1.0.1",
-      "location": "node_modules/camelize",
-      "license": "MIT",
-      "integrity": "sha512-dU+Tx2fsypxTgtLoE36npi3UqcjSSMNYfkqgmoEhtZrraP5VWq0K7FkWVTYa8eMPtnU/G2txVsfdCJTn9uzpuQ==",
-      "repo": "ljharb/camelize",
-      "texts": [
-        {
-          "file": "texts/435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b.txt",
-          "sha256": "435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b",
-          "sourcePath": "node_modules/camelize/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:canvg@3.0.11:node_modules/canvg",
       "kind": "npm",
       "name": "canvg",
@@ -1617,44 +1385,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:class-variance-authority@0.7.1:node_modules/class-variance-authority",
-      "kind": "npm",
-      "name": "class-variance-authority",
-      "version": "0.7.1",
-      "location": "node_modules/class-variance-authority",
-      "license": "Apache-2.0",
-      "integrity": "sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg==",
-      "repo": "joe-bell/cva",
-      "texts": [
-        {
-          "file": "texts/0ccbf956cffc8dcf515809433cb5242ee67c94513d46e48c261d68d0880de406.txt",
-          "sha256": "0ccbf956cffc8dcf515809433cb5242ee67c94513d46e48c261d68d0880de406",
-          "sourcePath": "node_modules/class-variance-authority/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:clsx@2.1.1:node_modules/clsx",
-      "kind": "npm",
-      "name": "clsx",
-      "version": "2.1.1",
-      "location": "node_modules/clsx",
-      "license": "MIT",
-      "integrity": "sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==",
-      "repo": "lukeed/clsx",
-      "texts": [
-        {
-          "file": "texts/9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97.txt",
-          "sha256": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97",
-          "sourcePath": "node_modules/clsx/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:combined-stream@1.0.8:node_modules/combined-stream",
       "kind": "npm",
       "name": "combined-stream",
@@ -1693,63 +1423,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:conf@10.2.0:node_modules/conf",
-      "kind": "npm",
-      "name": "conf",
-      "version": "10.2.0",
-      "location": "node_modules/conf",
-      "license": "MIT",
-      "integrity": "sha512-8fLl9F04EJqjSqH+QjITQfJF8BrOVaYr1jewVgSRAEWePfxT0sku4w2hrGQ60BC/TNLGQ2pgxNlTbWQmMPFvXg==",
-      "repo": "sindresorhus/conf",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/conf/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:ajv-formats@2.1.1:node_modules/conf/node_modules/ajv-formats",
-      "kind": "npm",
-      "name": "ajv-formats",
-      "version": "2.1.1",
-      "location": "node_modules/conf/node_modules/ajv-formats",
-      "license": "MIT",
-      "integrity": "sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==",
-      "repo": "ajv-validator/ajv-formats",
-      "texts": [
-        {
-          "file": "texts/9df3bb69929a3b650ed73b3bfa1756725aaff0ac296461605753547004eafeaf.txt",
-          "sha256": "9df3bb69929a3b650ed73b3bfa1756725aaff0ac296461605753547004eafeaf",
-          "sourcePath": "node_modules/conf/node_modules/ajv-formats/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:json-schema-typed@7.0.3:node_modules/conf/node_modules/json-schema-typed",
-      "kind": "npm",
-      "name": "json-schema-typed",
-      "version": "7.0.3",
-      "location": "node_modules/conf/node_modules/json-schema-typed",
-      "license": "BSD-2-Clause",
-      "integrity": "sha512-7DE8mpG+/fVw+dTpjbxnx47TaMnDfOI1jwft9g1VybltZCduyRQPJPvc+zzKY9WPHxhPWczyFuYa6I8Mw4iU5A==",
-      "repo": "typeslick/json-schema-typed",
-      "texts": [
-        {
-          "file": "texts/59992f12a42bfad11b6586e1bffda51749bb468847ca27c7070647462a66ed7b.txt",
-          "sha256": "59992f12a42bfad11b6586e1bffda51749bb468847ca27c7070647462a66ed7b",
-          "sourcePath": "node_modules/conf/node_modules/json-schema-typed/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:core-js@3.49.0:node_modules/core-js",
       "kind": "npm",
       "name": "core-js",
@@ -1770,25 +1443,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:css-color-keywords@1.0.0:node_modules/css-color-keywords",
-      "kind": "npm",
-      "name": "css-color-keywords",
-      "version": "1.0.0",
-      "location": "node_modules/css-color-keywords",
-      "license": "ISC",
-      "integrity": "sha512-FyyrDHZKEjXDpNJYvVsV960FiqQyXc/LlYmsxl2BcdMb2WPx0OGRVgTg55rPSyLSNMqP52R9r8geSp7apN3Ofg==",
-      "repo": "sonicdoe/css-color-keywords",
-      "texts": [
-        {
-          "file": "texts/17a548211b4a0cfaa8991068a39d30b0e7ef5c199321bb1c3484509529a8df05.txt",
-          "sha256": "17a548211b4a0cfaa8991068a39d30b0e7ef5c199321bb1c3484509529a8df05",
-          "sourcePath": "node_modules/css-color-keywords/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:css-line-break@2.1.0:node_modules/css-line-break",
       "kind": "npm",
       "name": "css-line-break",
@@ -1802,25 +1456,6 @@
           "file": "texts/ce1ee0539f7fe1f7b75b76d121e674cb897c709c3e24ddba7f9a10fe2d0d88a5.txt",
           "sha256": "ce1ee0539f7fe1f7b75b76d121e674cb897c709c3e24ddba7f9a10fe2d0d88a5",
           "sourcePath": "node_modules/css-line-break/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:css-to-react-native@3.2.0:node_modules/css-to-react-native",
-      "kind": "npm",
-      "name": "css-to-react-native",
-      "version": "3.2.0",
-      "location": "node_modules/css-to-react-native",
-      "license": "MIT",
-      "integrity": "sha512-e8RKaLXMOFii+02mOlqwjbD00KSEKqblnpO9e++1aXS1fPQOpS1YoqdVHBqPjHNoxeF2mimzVqawm2KCbEdtHQ==",
-      "repo": "styled-components/css-to-react-native",
-      "texts": [
-        {
-          "file": "texts/9200b800b2460900fe3bff06010726f3a29079511e80245f43a24ef89c0e9d38.txt",
-          "sha256": "9200b800b2460900fe3bff06010726f3a29079511e80245f43a24ef89c0e9d38",
-          "sourcePath": "node_modules/css-to-react-native/LICENSE.md",
           "origin": "installed package"
         }
       ],
@@ -1860,25 +1495,6 @@
           "sha256": "a7cc4332acfa1f9b6530e01aac77fefe74f2efa32579215fddaa473013f9a25c",
           "sourcePath": "node_modules/data-uri-to-buffer/README.md",
           "origin": "original installed README with complete embedded MIT license"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:debounce-fn@4.0.0:node_modules/debounce-fn",
-      "kind": "npm",
-      "name": "debounce-fn",
-      "version": "4.0.0",
-      "location": "node_modules/debounce-fn",
-      "license": "MIT",
-      "integrity": "sha512-8pYCQiL9Xdcg0UPSD3d+0KMlOjp+KGU5EPwYddgzQ7DATsg4fuUDjQtsYLmWjnk2obnNHgV3vE2Y4jejSOJVBQ==",
-      "repo": "sindresorhus/debounce-fn",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/debounce-fn/license",
-          "origin": "installed package"
         }
       ],
       "basis": "installed non-dev lock candidate"
@@ -2036,25 +1652,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:detect-node-es@1.1.0:node_modules/detect-node-es",
-      "kind": "npm",
-      "name": "detect-node-es",
-      "version": "1.1.0",
-      "location": "node_modules/detect-node-es",
-      "license": "MIT",
-      "integrity": "sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==",
-      "repo": "thekashey/detect-node",
-      "texts": [
-        {
-          "file": "texts/54b32293ea560d22cd9b62af9b2cda1a030d910a48c6601d227c5ff2338d95f8.txt",
-          "sha256": "54b32293ea560d22cd9b62af9b2cda1a030d910a48c6601d227c5ff2338d95f8",
-          "sourcePath": "node_modules/detect-node-es/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:devlop@1.1.0:node_modules/devlop",
       "kind": "npm",
       "name": "devlop",
@@ -2068,25 +1665,6 @@
           "file": "texts/6f296a5eccc1dc96714bb94ebaa9cac25b0a1467d74cc5263ac4d0646ab01f62.txt",
           "sha256": "6f296a5eccc1dc96714bb94ebaa9cac25b0a1467d74cc5263ac4d0646ab01f62",
           "sourcePath": "node_modules/devlop/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:diff@7.0.0:node_modules/diff",
-      "kind": "npm",
-      "name": "diff",
-      "version": "7.0.0",
-      "location": "node_modules/diff",
-      "license": "BSD-3-Clause",
-      "integrity": "sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==",
-      "repo": "kpdecker/jsdiff",
-      "texts": [
-        {
-          "file": "texts/eda81a415869e67809f6a9f3fd6056062cb83a462118e07eec5e92b2e0c40ce9.txt",
-          "sha256": "eda81a415869e67809f6a9f3fd6056062cb83a462118e07eec5e92b2e0c40ce9",
-          "sourcePath": "node_modules/diff/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -2112,25 +1690,6 @@
           "file": "texts/5803fa925ae1703b9c752921c95a321570e6cabf06fcf2de895ddaf1687cebef.txt",
           "sha256": "5803fa925ae1703b9c752921c95a321570e6cabf06fcf2de895ddaf1687cebef",
           "sourcePath": "node_modules/dompurify/src/license_header",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:dot-prop@6.0.1:node_modules/dot-prop",
-      "kind": "npm",
-      "name": "dot-prop",
-      "version": "6.0.1",
-      "location": "node_modules/dot-prop",
-      "license": "MIT",
-      "integrity": "sha512-tE7ztYzXHIeyvc7N+hR3oi7FIbf/NIjVP9hmAt3yMXzrQ072/fpjGLx2GxNxGxUl5V73MEqYzioOMoVhGMJ5cA==",
-      "repo": "sindresorhus/dot-prop",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/dot-prop/license",
           "origin": "installed package"
         }
       ],
@@ -2194,63 +1753,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:electron-store@8.2.0:node_modules/electron-store",
-      "kind": "npm",
-      "name": "electron-store",
-      "version": "8.2.0",
-      "location": "node_modules/electron-store",
-      "license": "MIT",
-      "integrity": "sha512-ukLL5Bevdil6oieAOXz3CMy+OgaItMiVBg701MNlG6W5RaC0AHN7rvlqTCmeb6O7jP0Qa1KKYTE0xV0xbhF4Hw==",
-      "repo": "sindresorhus/electron-store",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/electron-store/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:encoding@0.1.13:node_modules/encoding",
-      "kind": "npm",
-      "name": "encoding",
-      "version": "0.1.13",
-      "location": "node_modules/encoding",
-      "license": "MIT",
-      "integrity": "sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==",
-      "repo": "andris9/encoding",
-      "texts": [
-        {
-          "file": "texts/2453d3b90aa23715eec80b25fcda1bebf71052ad41a6694d58a9aa867d103c81.txt",
-          "sha256": "2453d3b90aa23715eec80b25fcda1bebf71052ad41a6694d58a9aa867d103c81",
-          "sourcePath": "node_modules/encoding/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:iconv-lite@0.6.3:node_modules/encoding/node_modules/iconv-lite",
-      "kind": "npm",
-      "name": "iconv-lite",
-      "version": "0.6.3",
-      "location": "node_modules/encoding/node_modules/iconv-lite",
-      "license": "MIT",
-      "integrity": "sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==",
-      "repo": "ashtuchkin/iconv-lite",
-      "texts": [
-        {
-          "file": "texts/ac779f7314c74f232ef847ea86e714abe25cf6eeb5cc97b69451b74e2af6492d.txt",
-          "sha256": "ac779f7314c74f232ef847ea86e714abe25cf6eeb5cc97b69451b74e2af6492d",
-          "sourcePath": "node_modules/encoding/node_modules/iconv-lite/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:end-of-stream@1.4.5:node_modules/end-of-stream",
       "kind": "npm",
       "name": "end-of-stream",
@@ -2283,25 +1785,6 @@
           "file": "texts/cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164.txt",
           "sha256": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
           "sourcePath": "node_modules/entities/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:env-paths@2.2.1:node_modules/env-paths",
-      "kind": "npm",
-      "name": "env-paths",
-      "version": "2.2.1",
-      "location": "node_modules/env-paths",
-      "license": "MIT",
-      "integrity": "sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==",
-      "repo": "sindresorhus/env-paths",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/env-paths/license",
           "origin": "installed package"
         }
       ],
@@ -2460,25 +1943,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:fast-deep-equal@3.1.3:node_modules/fast-deep-equal",
-      "kind": "npm",
-      "name": "fast-deep-equal",
-      "version": "3.1.3",
-      "location": "node_modules/fast-deep-equal",
-      "license": "MIT",
-      "integrity": "sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==",
-      "repo": "epoberezkin/fast-deep-equal",
-      "texts": [
-        {
-          "file": "texts/7bf9b2de73a6b356761c948d0e9eeb4be6c1270bd04c79cd489c1e400ffdfc1a.txt",
-          "sha256": "7bf9b2de73a6b356761c948d0e9eeb4be6c1270bd04c79cd489c1e400ffdfc1a",
-          "sourcePath": "node_modules/fast-deep-equal/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:fast-png@6.4.0:node_modules/fast-png",
       "kind": "npm",
       "name": "fast-png",
@@ -2492,25 +1956,6 @@
           "file": "texts/47ec9747cf2c470a505fcb20f3ec2ff2e60ea4febaf2e1e7041a24fc369fac3c.txt",
           "sha256": "47ec9747cf2c470a505fcb20f3ec2ff2e60ea4febaf2e1e7041a24fc369fac3c",
           "sourcePath": "node_modules/fast-png/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:fast-uri@3.1.2:node_modules/fast-uri",
-      "kind": "npm",
-      "name": "fast-uri",
-      "version": "3.1.2",
-      "location": "node_modules/fast-uri",
-      "license": "BSD-3-Clause",
-      "integrity": "sha512-rVjf7ArG3LTk+FS6Yw81V1DLuZl1bRbNrev6Tmd/9RaroeeRRJhAt7jg/6YFxbvAQXUCavSoZhPPj6oOx+5KjQ==",
-      "repo": "fastify/fast-uri",
-      "texts": [
-        {
-          "file": "texts/b010b0dfdfdb23d7396e03b82cd4621fc9bb8f95d6b0aea70b9c24e12074c786.txt",
-          "sha256": "b010b0dfdfdb23d7396e03b82cd4621fc9bb8f95d6b0aea70b9c24e12074c786",
-          "sourcePath": "node_modules/fast-uri/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -2895,25 +2340,6 @@
           "file": "texts/39c5ec504cf6bd5cd782a7c695828e09189df79f5d94840e4f08feb97b9fd416.txt",
           "sha256": "39c5ec504cf6bd5cd782a7c695828e09189df79f5d94840e4f08feb97b9fd416",
           "sourcePath": "node_modules/get-intrinsic/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:get-nonce@1.0.1:node_modules/get-nonce",
-      "kind": "npm",
-      "name": "get-nonce",
-      "version": "1.0.1",
-      "location": "node_modules/get-nonce",
-      "license": "MIT",
-      "integrity": "sha512-FJhYRoDaiatfEkUK8HKlicmu/3SGFD51q3itKDGoSTysQJBnfOcxU5GxnhE1E6soB76MbT0MBtnKJuXyAx+96Q==",
-      "repo": "theKashey/get-nonce",
-      "texts": [
-        {
-          "file": "texts/acf3b087b348d2f2e731b9d4131af185aad694c1204ce14a46909483fd42da05.txt",
-          "sha256": "acf3b087b348d2f2e731b9d4131af185aad694c1204ce14a46909483fd42da05",
-          "sourcePath": "node_modules/get-nonce/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -3804,25 +3230,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:is-obj@2.0.0:node_modules/is-obj",
-      "kind": "npm",
-      "name": "is-obj",
-      "version": "2.0.0",
-      "location": "node_modules/is-obj",
-      "license": "MIT",
-      "integrity": "sha512-drqDG3cbczxxEJRoOXcOjtdp1J/lyp1mNn0xaznRs8+muBhgQcrnbspox5X5fOw0HnMnbfDzvnEMEtqDEJEo8w==",
-      "repo": "sindresorhus/is-obj",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/is-obj/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:is-plain-obj@4.1.0:node_modules/is-plain-obj",
       "kind": "npm",
       "name": "is-plain-obj",
@@ -3874,25 +3281,6 @@
           "file": "texts/18a2bfd070b08bd1cc538c90f59989a9523e070e72fe9a9068593c3e82f44fa7.txt",
           "sha256": "18a2bfd070b08bd1cc538c90f59989a9523e070e72fe9a9068593c3e82f44fa7",
           "sourcePath": "node_modules/json-schema-to-ts/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:json-schema-traverse@1.0.0:node_modules/json-schema-traverse",
-      "kind": "npm",
-      "name": "json-schema-traverse",
-      "version": "1.0.0",
-      "location": "node_modules/json-schema-traverse",
-      "license": "MIT",
-      "integrity": "sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==",
-      "repo": "epoberezkin/json-schema-traverse",
-      "texts": [
-        {
-          "file": "texts/7bf9b2de73a6b356761c948d0e9eeb4be6c1270bd04c79cd489c1e400ffdfc1a.txt",
-          "sha256": "7bf9b2de73a6b356761c948d0e9eeb4be6c1270bd04c79cd489c1e400ffdfc1a",
-          "sourcePath": "node_modules/json-schema-traverse/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -4026,25 +3414,6 @@
           "file": "texts/4fcf69bbecb999ec8fa0ece62bc8934b7cdd45061ac1a8b1939a09be64cd4352.txt",
           "sha256": "4fcf69bbecb999ec8fa0ece62bc8934b7cdd45061ac1a8b1939a09be64cd4352",
           "sourcePath": "node_modules/keytar/node_modules/node-addon-api/LICENSE.md",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:liquid-glass-react@1.1.1:node_modules/liquid-glass-react",
-      "kind": "npm",
-      "name": "liquid-glass-react",
-      "version": "1.1.1",
-      "location": "node_modules/liquid-glass-react",
-      "license": "MIT",
-      "integrity": "sha512-pKzaktaMAEztd93wpWcz2Z5Z9qdLJUNJdMX+n00Ca4XsnrLTQ5xJzm/+GQXZUeuFXe/PQ8ziVMZO6531PyaFJw==",
-      "repo": null,
-      "texts": [
-        {
-          "file": "texts/3beea6e227a2549d48b616818e01ce303482cb0d598182add5d629b339bdb7cc.txt",
-          "sha256": "3beea6e227a2549d48b616818e01ce303482cb0d598182add5d629b339bdb7cc",
-          "sourcePath": "node_modules/liquid-glass-react/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -5071,25 +4440,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:mimic-fn@3.1.0:node_modules/mimic-fn",
-      "kind": "npm",
-      "name": "mimic-fn",
-      "version": "3.1.0",
-      "location": "node_modules/mimic-fn",
-      "license": "MIT",
-      "integrity": "sha512-Ysbi9uYW9hFyfrThdDEQuykN4Ey6BuwPD2kpI5ES/nFTDn/98yxYNLZJcgUAKPT/mcrLLKaGzJR9YVxJrIdASQ==",
-      "repo": "sindresorhus/mimic-fn",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/mimic-fn/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:minimist@1.2.8:node_modules/minimist",
       "kind": "npm",
       "name": "minimist",
@@ -5261,44 +4611,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:onetime@5.1.2:node_modules/onetime",
-      "kind": "npm",
-      "name": "onetime",
-      "version": "5.1.2",
-      "location": "node_modules/onetime",
-      "license": "MIT",
-      "integrity": "sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==",
-      "repo": "sindresorhus/onetime",
-      "texts": [
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "sourcePath": "node_modules/onetime/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:mimic-fn@2.1.0:node_modules/onetime/node_modules/mimic-fn",
-      "kind": "npm",
-      "name": "mimic-fn",
-      "version": "2.1.0",
-      "location": "node_modules/onetime/node_modules/mimic-fn",
-      "license": "MIT",
-      "integrity": "sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==",
-      "repo": "sindresorhus/mimic-fn",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/onetime/node_modules/mimic-fn/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:openai@6.38.0:node_modules/openai",
       "kind": "npm",
       "name": "openai",
@@ -5343,25 +4655,6 @@
           "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
           "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
           "sourcePath": "node_modules/p-retry/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:p-try@2.2.0:node_modules/p-try",
-      "kind": "npm",
-      "name": "p-try",
-      "version": "2.2.0",
-      "location": "node_modules/p-try",
-      "license": "MIT",
-      "integrity": "sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==",
-      "repo": "sindresorhus/p-try",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/p-try/license",
           "origin": "installed package"
         }
       ],
@@ -5458,139 +4751,6 @@
           "file": "texts/c3af1272f30870168177e888b184c1f802e5081e75a126c794670c0b562d3783.txt",
           "sha256": "c3af1272f30870168177e888b184c1f802e5081e75a126c794670c0b562d3783",
           "sourcePath": "node_modules/performance-now/license.txt",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:pkg-up@3.1.0:node_modules/pkg-up",
-      "kind": "npm",
-      "name": "pkg-up",
-      "version": "3.1.0",
-      "location": "node_modules/pkg-up",
-      "license": "MIT",
-      "integrity": "sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==",
-      "repo": "sindresorhus/pkg-up",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/pkg-up/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:find-up@3.0.0:node_modules/pkg-up/node_modules/find-up",
-      "kind": "npm",
-      "name": "find-up",
-      "version": "3.0.0",
-      "location": "node_modules/pkg-up/node_modules/find-up",
-      "license": "MIT",
-      "integrity": "sha512-1yD6RmLI1XBfxugvORwlck6f75tYL+iR0jqwsOrOxMZyGYqUuDhJ0l4AXdO1iX/FTs9cBAMEk1gWSEx1kSbylg==",
-      "repo": "sindresorhus/find-up",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/pkg-up/node_modules/find-up/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:locate-path@3.0.0:node_modules/pkg-up/node_modules/locate-path",
-      "kind": "npm",
-      "name": "locate-path",
-      "version": "3.0.0",
-      "location": "node_modules/pkg-up/node_modules/locate-path",
-      "license": "MIT",
-      "integrity": "sha512-7AO748wWnIhNqAuaty2ZWHkQHRSNfPVIsPIfwEOWO22AmaoVrWavlOcMR5nzTLNYvp36X220/maaRsrec1G65A==",
-      "repo": "sindresorhus/locate-path",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/pkg-up/node_modules/locate-path/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:p-limit@2.3.0:node_modules/pkg-up/node_modules/p-limit",
-      "kind": "npm",
-      "name": "p-limit",
-      "version": "2.3.0",
-      "location": "node_modules/pkg-up/node_modules/p-limit",
-      "license": "MIT",
-      "integrity": "sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==",
-      "repo": "sindresorhus/p-limit",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/pkg-up/node_modules/p-limit/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:p-locate@3.0.0:node_modules/pkg-up/node_modules/p-locate",
-      "kind": "npm",
-      "name": "p-locate",
-      "version": "3.0.0",
-      "location": "node_modules/pkg-up/node_modules/p-locate",
-      "license": "MIT",
-      "integrity": "sha512-x+12w/To+4GFfgJhBEpiDcLozRJGegY+Ei7/z0tSLkMmxGZNybVMSfWj9aJn8Z5Fc7dBUNJOOVgPv2H7IwulSQ==",
-      "repo": "sindresorhus/p-locate",
-      "texts": [
-        {
-          "file": "texts/48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0.txt",
-          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0",
-          "sourcePath": "node_modules/pkg-up/node_modules/p-locate/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:path-exists@3.0.0:node_modules/pkg-up/node_modules/path-exists",
-      "kind": "npm",
-      "name": "path-exists",
-      "version": "3.0.0",
-      "location": "node_modules/pkg-up/node_modules/path-exists",
-      "license": "MIT",
-      "integrity": "sha512-bpC7GYwiDYQ4wYLe+FA8lhRjhQCMcQGuSgGGqDkg/QerRWw9CmGRT0iSOVRSZJ29NMLZgIzqaljJ63oaL4NIJQ==",
-      "repo": "sindresorhus/path-exists",
-      "texts": [
-        {
-          "file": "texts/6fb9754611c20f6649f68805e8c990e83261f29316e29de9e6cedae607b8634c.txt",
-          "sha256": "6fb9754611c20f6649f68805e8c990e83261f29316e29de9e6cedae607b8634c",
-          "sourcePath": "node_modules/pkg-up/node_modules/path-exists/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:postcss-value-parser@4.2.0:node_modules/postcss-value-parser",
-      "kind": "npm",
-      "name": "postcss-value-parser",
-      "version": "4.2.0",
-      "location": "node_modules/postcss-value-parser",
-      "license": "MIT",
-      "integrity": "sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==",
-      "repo": "TrySound/postcss-value-parser",
-      "texts": [
-        {
-          "file": "texts/3687447039151857a6ba378db062172c7f33d4aa70a615c87a43a9c50e990485.txt",
-          "sha256": "3687447039151857a6ba378db062172c7f33d4aa70a615c87a43a9c50e990485",
-          "sourcePath": "node_modules/postcss-value-parser/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -5806,25 +4966,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:react-code-blocks@0.1.6:node_modules/react-code-blocks",
-      "kind": "npm",
-      "name": "react-code-blocks",
-      "version": "0.1.6",
-      "location": "node_modules/react-code-blocks",
-      "license": "MIT",
-      "integrity": "sha512-ENNuxG07yO+OuX1ChRje3ieefPRz6yrIpHmebQlaFQgzcAHbUfVeTINpOpoI9bSRSObeYo/OdHsporeToZ7fcg==",
-      "repo": null,
-      "texts": [
-        {
-          "file": "texts/2df7b06450be0c5830bd69b5b47129fb90efb414753b91a4b8055197bb2d680c.txt",
-          "sha256": "2df7b06450be0c5830bd69b5b47129fb90efb414753b91a4b8055197bb2d680c",
-          "sourcePath": "node_modules/react-code-blocks/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:react-dom@19.2.6:node_modules/react-dom",
       "kind": "npm",
       "name": "react-dom",
@@ -5877,73 +5018,6 @@
           "file": "texts/f6196c64e144f9a6fa9154c3a80bc8b89615a9567934b83a8951879f06ba2aef.txt",
           "sha256": "f6196c64e144f9a6fa9154c3a80bc8b89615a9567934b83a8951879f06ba2aef",
           "sourcePath": "node_modules/react-markdown/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:react-remove-scroll@2.7.2:node_modules/react-remove-scroll",
-      "kind": "npm",
-      "name": "react-remove-scroll",
-      "version": "2.7.2",
-      "location": "node_modules/react-remove-scroll",
-      "license": "MIT",
-      "integrity": "sha512-Iqb9NjCCTt6Hf+vOdNIZGdTiH1QSqr27H/Ek9sv/a97gfueI/5h1s3yRi1nngzMUaOOToin5dI1dXKdXiF+u0Q==",
-      "repo": "theKashey/react-remove-scroll",
-      "texts": [
-        {
-          "file": "texts/30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9.txt",
-          "sha256": "30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9",
-          "sourcePath": "node_modules/react-remove-scroll/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:react-remove-scroll-bar@2.3.8:node_modules/react-remove-scroll-bar",
-      "kind": "npm",
-      "name": "react-remove-scroll-bar",
-      "version": "2.3.8",
-      "location": "node_modules/react-remove-scroll-bar",
-      "license": "MIT",
-      "integrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
-      "repo": "theKashey/react-remove-scroll-bar",
-      "texts": [
-        {
-          "file": "texts/e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0.txt",
-          "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
-          "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
-          "gitBlob": "fbbae9a73f966bc351a8f0ce073dddb4c4cbc9fb",
-          "origin": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice."
-        },
-        {
-          "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
-          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
-          "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
-          "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
-          "origin": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged."
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "evidenceCategory": "approved-metadata-MIT",
-      "noticeBasis": "published MIT metadata + fixed official standard terms; not a complete original notice/copyright grant, legal verdict or native distribution acceptance"
-    },
-    {
-      "id": "npm:react-style-singleton@2.2.3:node_modules/react-style-singleton",
-      "kind": "npm",
-      "name": "react-style-singleton",
-      "version": "2.2.3",
-      "location": "node_modules/react-style-singleton",
-      "license": "MIT",
-      "integrity": "sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==",
-      "repo": "theKashey/react-style-singleton",
-      "texts": [
-        {
-          "file": "texts/30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9.txt",
-          "sha256": "30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9",
-          "sourcePath": "node_modules/react-style-singleton/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -6315,25 +5389,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:require-from-string@2.0.2:node_modules/require-from-string",
-      "kind": "npm",
-      "name": "require-from-string",
-      "version": "2.0.2",
-      "location": "node_modules/require-from-string",
-      "license": "MIT",
-      "integrity": "sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==",
-      "repo": "floatdrop/require-from-string",
-      "texts": [
-        {
-          "file": "texts/6ee0feb1f6ef996ff5a68600f8cf98909cf412d39ef3cdceaefd87d636fa1b7f.txt",
-          "sha256": "6ee0feb1f6ef996ff5a68600f8cf98909cf412d39ef3cdceaefd87d636fa1b7f",
-          "sourcePath": "node_modules/require-from-string/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:retry@0.13.1:node_modules/retry",
       "kind": "npm",
       "name": "retry",
@@ -6620,44 +5675,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:styled-components@6.4.1:node_modules/styled-components",
-      "kind": "npm",
-      "name": "styled-components",
-      "version": "6.4.1",
-      "location": "node_modules/styled-components",
-      "license": "MIT",
-      "integrity": "sha512-ADu2dF53esUzzM4I0ewxhxFtsDd6v4V6dNkg3vG0iFKhnt06sJneTZnRvujAosZwW0XD58IKgGMQoqri4wHRqg==",
-      "repo": "styled-components/styled-components",
-      "texts": [
-        {
-          "file": "texts/5b893305a717230e5b0024ff5ca3eec1dc05ba600c9b140730488d97ce56f1e6.txt",
-          "sha256": "5b893305a717230e5b0024ff5ca3eec1dc05ba600c9b140730488d97ce56f1e6",
-          "sourcePath": "node_modules/styled-components/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:stylis@4.3.6:node_modules/stylis",
-      "kind": "npm",
-      "name": "stylis",
-      "version": "4.3.6",
-      "location": "node_modules/stylis",
-      "license": "MIT",
-      "integrity": "sha512-yQ3rwFWRfwNUY7H5vpU0wfdkNSnvnJinhF9830Swlaxl03zsOjCfmX0ugac+3LtK0lYSgwL/KXc8oYL3mG4YFQ==",
-      "repo": "thysultan/stylis.js",
-      "texts": [
-        {
-          "file": "texts/88c579c6ee44b41137a21321190d177982e5b17d4fa1b83a4a2e3ea325a8fc9a.txt",
-          "sha256": "88c579c6ee44b41137a21321190d177982e5b17d4fa1b83a4a2e3ea325a8fc9a",
-          "sourcePath": "node_modules/stylis/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:supports-color@8.1.1:node_modules/supports-color",
       "kind": "npm",
       "name": "supports-color",
@@ -6690,25 +5707,6 @@
           "file": "texts/cd05e8e2516f46a2cd79494bbabdea76f874e8d049dbc19a76b367534a4e013e.txt",
           "sha256": "cd05e8e2516f46a2cd79494bbabdea76f874e8d049dbc19a76b367534a4e013e",
           "sourcePath": "node_modules/svg-pathdata/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:tailwind-merge@2.6.1:node_modules/tailwind-merge",
-      "kind": "npm",
-      "name": "tailwind-merge",
-      "version": "2.6.1",
-      "location": "node_modules/tailwind-merge",
-      "license": "MIT",
-      "integrity": "sha512-Oo6tHdpZsGpkKG88HJ8RR1rg/RdnEkQEfMoEk2x1XRI3F1AxeU+ijRXpiVUF4UbLfcxxRGw6TbUINKYdWVsQTQ==",
-      "repo": "dcastil/tailwind-merge",
-      "texts": [
-        {
-          "file": "texts/d4c70c7ce38cea8778f0aed3fc0bef0a9dbd27f13bd8b6773cbd6d37941971e5.txt",
-          "sha256": "d4c70c7ce38cea8778f0aed3fc0bef0a9dbd27f13bd8b6773cbd6d37941971e5",
-          "sourcePath": "node_modules/tailwind-merge/LICENSE.md",
           "origin": "installed package"
         }
       ],
@@ -6812,25 +5810,6 @@
       "noticeBasis": "exact-version declared standard license plus authoritative standard full text; not a substituted copyright grant"
     },
     {
-      "id": "npm:tree-kill@1.2.2:node_modules/tree-kill",
-      "kind": "npm",
-      "name": "tree-kill",
-      "version": "1.2.2",
-      "location": "node_modules/tree-kill",
-      "license": "MIT",
-      "integrity": "sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==",
-      "repo": "pkrumins/node-tree-kill",
-      "texts": [
-        {
-          "file": "texts/33eba3cb810ee4b03426ec7fecf22e7529e2fe95f8163e7213016459bee7a276.txt",
-          "sha256": "33eba3cb810ee4b03426ec7fecf22e7529e2fe95f8163e7213016459bee7a276",
-          "sourcePath": "node_modules/tree-kill/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:trim-lines@3.0.1:node_modules/trim-lines",
       "kind": "npm",
       "name": "trim-lines",
@@ -6924,34 +5903,6 @@
         }
       ],
       "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:type-fest@2.19.0:node_modules/type-fest",
-      "kind": "npm",
-      "name": "type-fest",
-      "version": "2.19.0",
-      "location": "node_modules/type-fest",
-      "license": "(MIT OR CC0-1.0)",
-      "integrity": "sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==",
-      "repo": "sindresorhus/type-fest",
-      "texts": [
-        {
-          "file": "texts/a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499.txt",
-          "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
-          "url": "https://raw.githubusercontent.com/sindresorhus/type-fest/d07df21f8b79e35ad8411cb9ceb8b5cb8f40f9d4/license-cc0",
-          "gitBlob": "0e259d42c996742e9e3cba14c677129b2c1b6311",
-          "sourcePath": "license-cc0"
-        },
-        {
-          "file": "texts/5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3.txt",
-          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
-          "url": "https://raw.githubusercontent.com/sindresorhus/type-fest/d07df21f8b79e35ad8411cb9ceb8b5cb8f40f9d4/license-mit",
-          "gitBlob": "fa7ceba3eb4a9657a9db7f3ffca4e4e97a9019de",
-          "sourcePath": "license-mit"
-        }
-      ],
-      "basis": "installed non-dev lock candidate",
-      "vcs": "d07df21f8b79e35ad8411cb9ceb8b5cb8f40f9d4"
     },
     {
       "id": "npm:undici-types@6.21.0:node_modules/undici-types",
@@ -7119,44 +6070,6 @@
           "file": "texts/ca4662cb5d1b738fbe5350c0d5485ba11773b4b7208974082ae6e129a52d631d.txt",
           "sha256": "ca4662cb5d1b738fbe5350c0d5485ba11773b4b7208974082ae6e129a52d631d",
           "sourcePath": "node_modules/unist-util-visit-parents/license",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:use-callback-ref@1.3.3:node_modules/use-callback-ref",
-      "kind": "npm",
-      "name": "use-callback-ref",
-      "version": "1.3.3",
-      "location": "node_modules/use-callback-ref",
-      "license": "MIT",
-      "integrity": "sha512-jQL3lRnocaFtu3V00JToYz/4QkNWswxijDaCVNZRiRTO3HQDLsdu1ZtmIUvV4yPp+rvWm5j0y0TG/S61cuijTg==",
-      "repo": "theKashey/use-callback-ref",
-      "texts": [
-        {
-          "file": "texts/30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9.txt",
-          "sha256": "30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9",
-          "sourcePath": "node_modules/use-callback-ref/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:use-sidecar@1.1.3:node_modules/use-sidecar",
-      "kind": "npm",
-      "name": "use-sidecar",
-      "version": "1.1.3",
-      "location": "node_modules/use-sidecar",
-      "license": "MIT",
-      "integrity": "sha512-Fedw0aZvkhynoPYlA5WXrMCAMm+nSWdZt6lzJQ7Ok8S6Q+VsHmHpRWndVRJ8Be0ZbkfPc5LRYH+5XrzXcEeLRQ==",
-      "repo": "theKashey/use-sidecar",
-      "texts": [
-        {
-          "file": "texts/30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9.txt",
-          "sha256": "30f0cfddf483d1128e3610205020f2041a6c5e837aa999e0aa82e5576187d4a9",
-          "sourcePath": "node_modules/use-sidecar/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -7404,25 +6317,6 @@
           "file": "texts/82e67379203d5794e7c44549847d8d64ae6904591381682360470898bd306821.txt",
           "sha256": "82e67379203d5794e7c44549847d8d64ae6904591381682360470898bd306821",
           "sourcePath": "node_modules/xtend/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
-      "id": "npm:zod@4.4.3:node_modules/zod",
-      "kind": "npm",
-      "name": "zod",
-      "version": "4.4.3",
-      "location": "node_modules/zod",
-      "license": "MIT",
-      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==",
-      "repo": "colinhacks/zod",
-      "texts": [
-        {
-          "file": "texts/3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8.txt",
-          "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8",
-          "sourcePath": "node_modules/zod/LICENSE",
           "origin": "installed package"
         }
       ],
@@ -14177,57 +13071,6 @@
         "url": "https://www.unicode.org/Public/idna/8.0.0/IdnaMappingTable.txt",
         "gitBlob": "55371f50b786e4ab843f8a3958daee4866370ada",
         "origin": "original Unicode IDNA 8.0.0 data header retaining Copyright (c) 1991-2015 Unicode, Inc. and its terms-of-use/documentation links; current Unicode License v3 applicability is established by the separate current official policy, not asserted to have been the license named in 2015; no data-table bytes retained"
-      }
-    },
-    {
-      "id": "metadata:react-remove-scroll-bar",
-      "version": "2.3.8",
-      "license": "MIT",
-      "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
-      "localPath": "scripts/margin/license-inputs/metadata/react-remove-scroll-bar-2.3.8.txt",
-      "sourceSHA256": "323c0e8aaf3d042220fe250db2a0e726d4b7db3fad856239d5e11371cc7d13f9",
-      "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
-      "endBefore": "<!-- margin-metadata-end -->",
-      "archiveMember": "package/package.json",
-      "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
-      "role": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice.",
-      "bind": {
-        "kind": "npm",
-        "name": "react-remove-scroll-bar"
-      },
-      "closesMissing": false,
-      "text": {
-        "file": "texts/e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0.txt",
-        "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
-        "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
-        "gitBlob": "fbbae9a73f966bc351a8f0ce073dddb4c4cbc9fb",
-        "origin": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice."
-      }
-    },
-    {
-      "id": "standard:metadata-react-remove-scroll-bar",
-      "version": "2.3.8",
-      "license": "MIT",
-      "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
-      "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
-      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
-      "authorityURL": "https://opensource.org/license/mit",
-      "role": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged.",
-      "evidenceCategory": "approved-metadata-MIT",
-      "metadataSourceId": "metadata:react-remove-scroll-bar",
-      "metadataSHA256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
-      "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
-      "bind": {
-        "kind": "npm",
-        "name": "react-remove-scroll-bar"
-      },
-      "closesMissing": true,
-      "text": {
-        "file": "texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
-        "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
-        "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
-        "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
-        "origin": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged."
       }
     },
     {

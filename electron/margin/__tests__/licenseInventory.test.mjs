@@ -212,6 +212,10 @@ test('missing or duplicated inventory markers fail rather than overwrite legal p
   assert.equal(fs.readFileSync(path.join(options.root, 'NOTICE'), 'utf8'), duplicate);
 });
 
+// The repository's approved-metadata-MIT sources now cover only cargo (realfft); the
+// npm approval left with react-remove-scroll-bar in cleanup batch 4.
+const METADATA_KINDS = ['cargo'];
+
 function metadataFixture(t, kind) {
   const options = fixture(t);
   const sources = json(path.join(ROOT, 'scripts/margin/license-sources.json'));
@@ -240,7 +244,7 @@ function metadataFixture(t, kind) {
 }
 
 test('approved exact MIT metadata and standard terms remain a separate evidence category', async (t) => {
-  for (const kind of ['npm', 'cargo']) {
+  for (const kind of METADATA_KINDS) {
     const options = metadataFixture(t, kind);
     const result = await collect(options);
     assert.deepEqual(result.unresolved, []);
@@ -322,7 +326,7 @@ test('metadata acceptance rejects unapproved identities and incomplete or change
       o.standardBytes = bytes.toString('utf8');
     }],
   ];
-  for (const kind of ['npm', 'cargo']) for (const [name, mutate] of cases) await t.test(kind + ': ' + name, async (st) => {
+  for (const kind of METADATA_KINDS) for (const [name, mutate] of cases) await t.test(kind + ': ' + name, async (st) => {
     const options = metadataFixture(st, kind);
     const cached = json(path.join(options.root, 'licenses/manifest.json')).attachments[0].text;
     options.standardBytes = fs.readFileSync(path.join(options.root, 'licenses', cached.file), 'utf8');
@@ -337,7 +341,7 @@ test('metadata acceptance rejects unapproved identities and incomplete or change
 });
 
 test('metadata alone and a remaining unrelated missing notice cannot pass inventory checks', async (t) => {
-  for (const kind of ['npm', 'cargo']) {
+  for (const kind of METADATA_KINDS) {
     const options = metadataFixture(t, kind);
     const cachedStandard = json(path.join(options.root, 'licenses/manifest.json')).attachments[0];
     write(options.root, 'scripts/margin/license-sources.json', [options.metadata]);

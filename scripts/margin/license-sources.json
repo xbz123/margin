@@ -800,43 +800,6 @@
     "closesMissing": false
   },
   {
-    "id": "metadata:react-remove-scroll-bar",
-    "version": "2.3.8",
-    "license": "MIT",
-    "url": "https://registry.npmjs.org/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.8.tgz",
-    "localPath": "scripts/margin/license-inputs/metadata/react-remove-scroll-bar-2.3.8.txt",
-    "sourceSHA256": "323c0e8aaf3d042220fe250db2a0e726d4b7db3fad856239d5e11371cc7d13f9",
-    "sha256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
-    "endBefore": "<!-- margin-metadata-end -->",
-    "archiveMember": "package/package.json",
-    "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
-    "role": "Exact published package/package.json bytes declaring MIT; author fields are metadata, not copyright statements. The package README also has a short MIT declaration, but the published archive has no complete original license/copyright notice.",
-    "bind": {
-      "kind": "npm",
-      "name": "react-remove-scroll-bar"
-    },
-    "closesMissing": false
-  },
-  {
-    "id": "standard:metadata-react-remove-scroll-bar",
-    "version": "2.3.8",
-    "license": "MIT",
-    "url": "https://raw.githubusercontent.com/spdx/license-list-data/d46e94e2c78ceede1cfc63cfa0396472d2798d4c/text/MIT.txt",
-    "gitBlob": "d817195dad53ec992418c28ffca5fbd1cd86502a",
-    "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
-    "authorityURL": "https://opensource.org/license/mit",
-    "role": "S19-B narrowly approved published MIT metadata declaration plus fixed official SPDX MIT standard terms; not a complete original notice, copyright grant, legal verdict or native distribution acceptance. Standard copyright placeholders are unchanged.",
-    "evidenceCategory": "approved-metadata-MIT",
-    "metadataSourceId": "metadata:react-remove-scroll-bar",
-    "metadataSHA256": "e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0",
-    "artifactIntegrity": "sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==",
-    "bind": {
-      "kind": "npm",
-      "name": "react-remove-scroll-bar"
-    },
-    "closesMissing": true
-  },
-  {
     "id": "metadata:realfft",
     "version": "3.5.0",
     "license": "MIT",

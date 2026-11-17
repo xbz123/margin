@@ -21,10 +21,6 @@ const officialRepos = {
 
 // S19-B accepts this weaker evidence only for these exact published artifacts.
 const metadataMIT = {
-  'npm:react-remove-scroll-bar@2.3.8': {
-    artifactIntegrity: 'sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==',
-    metadataSHA256: 'e372f857ce05f266137c65293436b5380fec42ac311e6acb9378ed78b98d75d0',
-  },
   'cargo:realfft@3.5.0': {
     artifactChecksum: 'f821338fddb99d089116342c46e9f1fbf3828dba077674613e734e01d6ea8677',
     metadataSHA256: 'd72ddbadf9bb55ed21ae973ac97f0bb4e8df2064af628c54b802b2c7d764c8de',

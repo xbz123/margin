@@ -82,7 +82,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-599 candidates; 347 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
+542 candidates; 320 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
@@ -91,7 +91,6 @@ Current supplemental notice bindings:
 - cargo:oboe@0.6.1: Apache-2.0
 - cargo:oboe-sys@0.6.1: Apache-2.0
 - npm:tr46@0.0.3: MIT
-- npm:react-remove-scroll-bar@2.3.8: MIT (published MIT metadata + standard terms; not a complete original notice)
 - cargo:realfft@3.5.0: MIT (published MIT metadata + standard terms; not a complete original notice)
 
 Unresolved candidates:
@@ -116,9 +115,12 @@ This closes only the new 0.3.0 missing-text entry, not an old-version grant,
 native obligations or distribution acceptance.
 
 S19-B separately accepts `approved-metadata-MIT` evidence only for the exact
-published artifacts react-remove-scroll-bar 2.3.8 and realfft 3.5.0. Both READMEs
-contain short MIT declarations, but no complete original license/copyright
-notice was located. Their verbatim published package.json/Cargo.toml.orig bytes
+published artifact realfft 3.5.0 (it originally also covered react-remove-scroll-bar
+2.3.8, which left the dependency graph with @radix-ui/react-dialog in cleanup
+batch 4; its approval and metadata input were removed with it and remain
+recoverable from Git history). The README
+contains a short MIT declaration, but no complete original license/copyright
+notice was located. Its verbatim published Cargo.toml.orig bytes
 and fixed official SPDX MIT standard terms are retained together in the
 verified inventory. Exact identity, published artifact integrity, original and
 installed metadata hashes, and fixed standard text/ref are checked fail-closed;
@@ -169,9 +171,7 @@ Sami Samhuri), including their external MIT authorization links, from commit
 `4f898096759776b7c84fa7a25b13c923dadfe46e`. The accompanying fixed SPDX MIT full
 text is standard terminology: its copyright placeholders remain unfilled and
 are not substituted for either original attribution or an invented grant from
-the changing linked website. react-remove-scroll-bar's published
-gitHead does not resolve in the identified repository; a neighboring version is
-not substituted.
+the changing linked website.
 
 realfft 3.5.0 still lacks a complete original notice and declares only MIT (no
 Apache alternative was found in its exact original manifest/version sources);
