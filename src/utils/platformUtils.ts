@@ -11,7 +11,6 @@ const platform = normalizePlatform(
 
 export const isMac = platform === 'darwin';
 export const isWindows = platform === 'win32';
-export const isLinux = platform === 'linux';
 
 export function getModifierSymbol(modifier: 'commandorcontrol' | 'ctrl' | 'control' | 'cmd' | 'command' | 'meta' | 'alt' | 'option' | 'shift'): string {
     const m = modifier.toLowerCase();

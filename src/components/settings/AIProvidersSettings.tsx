@@ -133,7 +133,7 @@ export const AIProvidersSettings: React.FC = () => {
     // Panel keys stay stable when a new gateway receives its identity, so its edits and results are kept.
     const [gatewayPanels, setGatewayPanels] = useState<{ key: string; id?: string }[]>([{ key: 'new-0' }]);
     const [addressOverrides, setAddressOverrides] = useState<Partial<Record<LlmProvider, string>>>({});
-    const [savedStatus, setSavedStatus] = useState<Record<string, boolean>>({});
+    const [, setSavedStatus] = useState<Record<string, boolean>>({});
     const [hasStoredKey, setHasStoredKey] = useState<Record<string, boolean>>({});
     const [credentialNotice, setCredentialNotice] = useState('');
     const [activeTab, setActiveTab] = useState<'cloud' | 'gateway' | 'privacy'>('cloud');

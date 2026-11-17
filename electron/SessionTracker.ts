@@ -127,10 +127,6 @@ export class SessionTracker {
         return this.currentMeetingMetadata;
     }
 
-    public clearMeetingMetadata(): void {
-        this.currentMeetingMetadata = null;
-    }
-
     // ============================================
     // Coding Question Tracking
     // ============================================
@@ -510,27 +506,6 @@ export class SessionTracker {
             }
         }
         return null;
-    }
-
-    /**
-     * Get full session context from accumulated transcript (User + Interviewer + Assistant)
-     */
-    getFullSessionContext(): string {
-        const recentTranscript = this.fullTranscript.map(segment => {
-            const role = this.mapSpeakerToRole(segment.speaker);
-            const label = role === 'interviewer' ? 'INTERVIEWER' :
-                role === 'user' ? 'ME' :
-                    'ASSISTANT';
-            return `[${label}]: ${segment.text}`;
-        }).join('\n');
-
-        // Prepend epoch summaries for full session context preservation
-        if (this.transcriptEpochSummaries.length > 0) {
-            const epochContext = this.transcriptEpochSummaries.join('\n---\n');
-            return `[SESSION HISTORY - EARLIER DISCUSSION]\n${epochContext}\n\n[RECENT TRANSCRIPT]\n${recentTranscript}`;
-        }
-
-        return recentTranscript;
     }
 
     // ============================================

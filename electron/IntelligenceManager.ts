@@ -54,7 +54,7 @@ export class IntelligenceManager extends EventEmitter {
             'refined_answer', 'refined_answer_token',
             'recap', 'recap_token', 'clarify', 'clarify_token',
             'follow_up_questions_update', 'follow_up_questions_token',
-            'mode_changed', 'error',
+            'error',
             'generation_started', 'generation_terminal',
         ];
 
@@ -192,10 +192,6 @@ export class IntelligenceManager extends EventEmitter {
     // ============================================
     // State Management
     // ============================================
-
-    getActiveMode() {
-        return this.engine.getActiveMode();
-    }
 
     setMode(mode: import('./IntelligenceEngine').IntelligenceMode): void {
         // This was private in the original, but kept for compatibility

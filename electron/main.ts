@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, shell, systemPreferences, screen, desktopCapturer } from "electron"
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, systemPreferences, screen, desktopCapturer } from "electron"
 import * as crypto from "crypto"
 import path from "path"
 import fs from "fs"
@@ -232,7 +232,6 @@ import { MeetingLifecycleQueue } from './audio/meetingLifecycleQueue';
 import { validExamSettings, type WrittenExamSettings } from '../src/types/writtenExam';
 import { TranscriptDisplayThrottle } from './audio/TranscriptDisplayThrottle';
 import { registerOsEventSubscriptions } from './osEventSubscriptions';
-import { loadNativeModule } from "./audio/nativeModuleLoader"
 import { RestSTT } from "./audio/RestSTT"
 import { SonioxStreamingSTT } from "./audio/SonioxStreamingSTT"
 import { OpenAIStreamingSTT } from "./audio/OpenAIStreamingSTT"
@@ -342,7 +341,6 @@ export class AppState {
   private _isQuitting: boolean = false;
   private _verboseLogging: boolean = false;
   private _disguiseTimers: NodeJS.Timeout[] = []; // Track forceUpdate timeouts
-  private _dockReassertTimers: NodeJS.Timeout[] = []; // Re-assert dock-hidden state after show+focus
   private screenshotCaptureInProgress: boolean = false;
 
 
@@ -1770,7 +1768,6 @@ export class AppState {
     try {
       this.googleSTT?.setRecognitionLanguage(effectiveKey);
       this.googleSTT_User?.setRecognitionLanguage(effectiveKey);
-      this.processingHelper.getLLMHelper().setSttLanguage(effectiveKey);
       return result;
     } catch {
       return { ok: true, warning: 'Saved, but the running service could not apply the language. Restart the application to use the saved configuration.' };
@@ -2015,10 +2012,6 @@ export class AppState {
 
   public centerAndShowWindow(): void {
     this.windowHelper.centerAndShowWindow()
-  }
-
-  public createTray(): void {
-    this.showTray();
   }
 
   public showTray(): void {

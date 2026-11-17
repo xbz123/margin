@@ -133,7 +133,7 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
     let policy = {};
     const helper = Object.assign(Object.create(LLMHelper.prototype), {
       selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-4o' },
-      currentModelId: 'gpt-4o', aiResponseLanguage: 'auto', personaPrompt: '', customNotes: '',
+      currentModelId: 'gpt-4o', aiResponseLanguage: 'auto', customNotes: '',
       getProviderScopePolicy: () => policy,
       openaiClient: { chat: { completions: { create: async body => {
         sent.push(body);

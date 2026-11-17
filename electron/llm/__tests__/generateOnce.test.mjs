@@ -30,7 +30,7 @@ const request = (extra = {}) => ({ protocol: 'gemini', purpose: 'answer', model:
   temperature: 0.3, dataScopes: ['transcript'], stream: false, ...extra });
 const drain = async (events) => { const result = []; for await (const event of events) result.push(event); return result; };
 const helper = (client, policy = {}, extra = {}) => Object.assign(Object.create(LLMHelper.prototype), {
-  client, getProviderScopePolicy: () => policy, personaPrompt: '', customNotes: '',
+  client, getProviderScopePolicy: () => policy, customNotes: '',
   // A listed model (S48): image sends need the capability table, not an older manual confirmation.
   selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite' },
   currentModelId: 'gemini-3.1-flash-lite', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },

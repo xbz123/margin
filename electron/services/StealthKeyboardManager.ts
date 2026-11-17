@@ -1,4 +1,4 @@
-import { BrowserWindow, shell, systemPreferences } from 'electron';
+import { BrowserWindow, shell } from 'electron';
 import type { CapturedKey, OverlayBoundsInput } from '../audio/nativeModuleLoader';
 import { isVerboseLogging } from '../verboseLog';
 
@@ -90,36 +90,6 @@ export class StealthKeyboardManager {
         this.overlayBoundsProvider = provider;
     }
 
-    /**
-     * Push the latest overlay bounds into the live tap. Wire this to
-     * overlayWindow 'resize' / 'move' so the Rust mouse-down classifier
-     * stays in sync with the actual OS frame. Safe to call unconditionally
-     * — the native side no-ops when the tap is not active, and the
-     * provider lambda is the single source of truth for current bounds.
-     *
-     * Dedup-on-equal at this layer skips the N-API marshal entirely for
-     * identical frames (common at animation start/end and during idle
-     * height-only updates). The native side also no-ops when inactive.
-     */
-    public pushBoundsToTap(): void {
-        if (!this.tap) return;
-        const bounds = this.getOverlayBoundsForTap();
-        if (StealthKeyboardManager.boundsEqual(this.lastPushedBounds, bounds)) return;
-        this.lastPushedBounds = bounds;
-        try {
-            this.tap.updateOverlayBounds(bounds);
-        } catch (e) {
-            console.error('[StealthKeyboardManager] updateOverlayBounds threw:', e);
-        }
-    }
-
-    private lastPushedBounds: OverlayBoundsInput | null = null;
-    private static boundsEqual(a: OverlayBoundsInput | null, b: OverlayBoundsInput | null): boolean {
-        if (a === b) return true;
-        if (!a || !b) return false;
-        return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-    }
-
     public setOverlayWindow(win: BrowserWindow | null): void {
         // ROUND 4 FIX (#5): bump the token on EVERY call, including null
         // clears. R3 had skipped the bump on null which technically worked
@@ -151,35 +121,6 @@ export class StealthKeyboardManager {
     /** True if the native module shipped with stealth-tap support. */
     public isAvailable(): boolean {
         return this.nativeAvailable;
-    }
-
-    /** True if Accessibility is granted right now. */
-    public isPermissionGranted(): boolean {
-        if (process.platform !== 'darwin') return false;
-        // Prefer Electron's systemPreferences (well-supported, no rebuild
-        // required). Fall back to the native module's check if Electron's
-        // API is unavailable in this version.
-        try {
-            return systemPreferences.isTrustedAccessibilityClient(false);
-        } catch {
-            return this.callNativePermissionCheck();
-        }
-    }
-
-    /**
-     * Trigger the macOS Accessibility prompt. Returns the current trust state
-     * (almost always false on first call — user needs to grant in System
-     * Settings, then restart the app for the tap to bind).
-     */
-    public requestPermission(): boolean {
-        if (process.platform !== 'darwin') return false;
-        try {
-            // Pass true to surface the prompt. macOS shows the standard
-            // "App would like to control your computer" dialog.
-            return systemPreferences.isTrustedAccessibilityClient(true);
-        } catch {
-            return false;
-        }
     }
 
     /** Open System Settings → Privacy & Security → Accessibility directly. */
@@ -373,19 +314,6 @@ export class StealthKeyboardManager {
             // would mask real bugs.
             console.error('[StealthKeyboardManager] failed to instantiate native tap:', e);
             return null;
-        }
-    }
-
-    private callNativePermissionCheck(): boolean {
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { loadNativeModule } = require('../audio/nativeModuleLoader');
-            const native = loadNativeModule();
-            return typeof native?.isAccessibilityGranted === 'function'
-                ? native.isAccessibilityGranted()
-                : false;
-        } catch {
-            return false;
         }
     }
 

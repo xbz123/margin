@@ -1,4 +1,4 @@
-import { TrustLevel, ContextBlock } from './TrustLevels';
+import { ContextBlock } from './TrustLevels';
 
  export interface ContextPacket {
      blocks: ContextBlock[];

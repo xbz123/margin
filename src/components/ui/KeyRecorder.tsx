@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Check } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { eventToKeys } from '../../utils/keyboardUtils';
 

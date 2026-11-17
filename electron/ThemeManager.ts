@@ -1,4 +1,4 @@
-import { nativeTheme, ipcMain, BrowserWindow, app } from 'electron';
+import { nativeTheme, BrowserWindow, app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 

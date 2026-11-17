@@ -588,7 +588,7 @@ test('AG31 startup ignores environment keys: never-saved, saved, removed and unr
       constructor(...args) { constructed.push(args); }
       configureProvider(config, key) { configured.push([config.provider, key, config]); }
       configureGateway(config, key) { configured.push(['gateway', key, config]); }
-      setModel() {} setGenerationPolicy() {} setSavedReasoning() {} setSttLanguage() {} setAiResponseLanguage() {}
+      setModel() {} setGenerationPolicy() {} setSavedReasoning() {} setAiResponseLanguage() {}
     }
     const ProcessingHelper = processingHelperClass(manager, Helper, { env: { ...ENV_KEYS } });
     new ProcessingHelper({ getIntelligenceManager: () => ({ initializeLLMs() {} }) }).loadStoredCredentials();
@@ -605,8 +605,8 @@ test('AG31 startup ignores environment keys: never-saved, saved, removed and unr
   }
 });
 
-const CLIENT_FIELDS = { gemini: ['client', 'apiKey'], groq: ['groqClient', 'groqApiKey'], openai: ['openaiClient', 'openaiApiKey'],
-  claude: ['claudeClient', 'claudeApiKey'], deepseek: ['deepseekClient', 'deepseekApiKey'] };
+// LLMHelper keeps each official key only inside its client.
+const CLIENT_FIELDS = { gemini: 'client', groq: 'groqClient', openai: 'openaiClient', claude: 'claudeClient', deepseek: 'deepseekClient' };
 const ADDRESS_VARIABLES = ['OPENAI_BASE_URL', 'GROQ_BASE_URL', 'ANTHROPIC_BASE_URL', 'GOOGLE_GEMINI_BASE_URL'];
 const ANSWER_APPLY_WARNING = 'Saved, but the running service could not fully apply the change. Try restarting the application; if the problem persists, check the configuration.';
 
@@ -656,7 +656,7 @@ function answerOperations(manager, llm, appState, calls = []) {
   return calls;
 }
 
-const usable = helper => PROVIDERS.filter(provider => helper[CLIENT_FIELDS[provider][0]] || helper[CLIENT_FIELDS[provider][1]]);
+const usable = helper => PROVIDERS.filter(provider => helper[CLIENT_FIELDS[provider]]);
 
 test('real ProcessingHelper construction and startup create no official client from environment keys', () => {
   const runtime = realAnswerRuntime(), { LLMHelper } = runtime;
@@ -677,7 +677,7 @@ test('real ProcessingHelper construction and startup create no official client f
       processing.loadStoredCredentials();
       assert.deepEqual(calls, ['initializeLLMs']);
       assert.deepEqual(usable(helper), scenario === 'saved' ? ['openai'] : [], `${scenario}: startup uses only saved keys`);
-      if (scenario === 'saved') { assert.equal(helper.openaiApiKey, 'synthetic-saved'); assert.equal(helper.openaiClient.apiKey, 'synthetic-saved'); }
+      if (scenario === 'saved') assert.equal(helper.openaiClient.apiKey, 'synthetic-saved');
     }
   } finally {
     for (const [name, value] of Object.entries(previous)) if (value === undefined) delete process.env[name]; else process.env[name] = value;
@@ -685,12 +685,11 @@ test('real ProcessingHelper construction and startup create no official client f
   }
 });
 
-// Comparable running state: configurations, exact keys, addresses, client availability and gateway clients.
+// Comparable running state: configurations, client availability with exact keys and addresses, and gateway clients.
 const clientState = client => client ? { apiKey: client.apiKey ?? null, baseURL: client.baseURL ?? null } : null;
 const runtimeState = helper => ({
   configurations: plain(helper.providerConfigurations), gateways: plain(helper.gateways ?? {}), blocked: plain(helper.blockedProviders ?? {}),
-  keys: Object.fromEntries(PROVIDERS.map(provider => [provider, helper[CLIENT_FIELDS[provider][1]] ?? null])),
-  clients: Object.fromEntries(PROVIDERS.map(provider => [provider, clientState(helper[CLIENT_FIELDS[provider][0]])])),
+  clients: Object.fromEntries(PROVIDERS.map(provider => [provider, clientState(helper[CLIENT_FIELDS[provider]])])),
   gatewayClients: Object.fromEntries([...(helper.gatewayClients ?? new Map())].map(([id, client]) => [id, clientState(client)])),
 });
 const GATEWAY_SAVE = { protocol: 'chat-completions', baseUrl: 'https://custom.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' };
@@ -755,7 +754,7 @@ test('remove-provider-api-key with a failed storage write keeps the running key 
     disk.setFault('rename');
     const result = await handler('remove-provider-api-key', { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState })({}, 'openai');
     assert.equal(result.ok, false); assert.equal(result.code, 'write_failed');
-    assert.equal(live.openaiApiKey, 'synthetic-openai'); assert.equal(live.openaiClient, client);
+    assert.equal(live.openaiClient, client); assert.equal(client.apiKey, 'synthetic-openai');
     assert.deepEqual(changed, []);
     assert.deepEqual(disk.files.get(disk.filename), cipher);
     assert.equal(manager.getProviderApiKey('openai'), 'synthetic-openai');
@@ -783,7 +782,7 @@ test('after every answer save or removal the running service equals a cold start
         assert.deepEqual(clientState(live.gatewayClients.get(gatewayId)), { apiKey: 'synthetic-gateway', baseURL: 'https://custom.invalid/v1' });
       }],
       ['remove openai key', () => handler('remove-provider-api-key', context)({}, 'openai'), () => {
-        assert.equal(live.openaiClient, null); assert.equal(live.openaiApiKey, null);
+        assert.equal(live.openaiClient, null);
         assert.equal(live.claudeClient.apiKey, 'synthetic-claude'); assert.equal(live.gatewayClients.get(gatewayId).apiKey, 'synthetic-gateway');
       }],
       ['remove gateway', () => handler('remove-gateway', context)({}, gatewayId), () => {
@@ -1224,10 +1223,9 @@ test('recognition language applies only after its real manager setter succeeds',
       require: () => ({ CredentialsManager: { getInstance: () => ({ setSttLanguage: () => save }) } }),
     });
     const state = new module.exports.Subject();
-    Object.assign(state, { googleSTT: { setRecognitionLanguage() { effects++; } },
-      processingHelper: { getLLMHelper: () => ({ setSttLanguage() { effects++; } }) } });
+    Object.assign(state, { googleSTT: { setRecognitionLanguage() { effects++; } } });
     assert.equal(state.setRecognitionLanguage('english-us').ok, save.ok);
-    assert.equal(effects, save.ok ? 2 : 0);
+    assert.equal(effects, save.ok ? 1 : 0);
   }
 });
 

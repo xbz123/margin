@@ -254,7 +254,7 @@ function helper(onSend, scopes = {}) {
   }, caches: { create: async () => ({ name: 'cachedContents/explicit' }) } };
   const self = Object.assign(Object.create(LLMHelper.prototype), {
     client, selectedTarget: target(), currentModelId: 'gemini-3.1-flash-lite', geminiModel: 'gemini-3.1-flash-lite',
-    generationPolicy: policy(), personaPrompt: '', customNotes: '', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
+    generationPolicy: policy(), customNotes: '', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
     rateLimiters: { gemini: { acquire: async () => {} } }, getProviderScopePolicy: () => scopes,
     injectLanguageInstruction: value => value, processResponse: value => value, logScopeFallback: () => {},
     geminiPromptCache: { getOrCreate: async () => null, invalidate() {} },

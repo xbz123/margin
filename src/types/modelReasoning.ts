@@ -23,12 +23,6 @@ const PROTOCOL_REASONING: Record<LlmProtocol, Omit<ReasoningOptions, 'verified'>
   gemini: { effort: ['minimal', 'low', 'medium', 'high'], thinking: [] },
 };
 
-/** Read-only vendor reference for the exact official target; undefined for gateways and unlisted models. */
-export function officialModelCapacity(config: ReasoningTarget): { contextTokens: number; outputTokens: number } | undefined {
-  const capacity = officialCapability(config)?.capacity;
-  return capacity && { ...capacity };
-}
-
 /** Field values a gateway's own reasoning setting may use; official models use the reasoning control instead. */
 export function reasoningOptions(config: ReasoningTarget): ReasoningOptions {
   const reasoning = officialCapability(config)?.reasoning;

@@ -4,17 +4,15 @@
 
 import { EventEmitter } from 'events';
 import { LLMHelper } from './LLMHelper';
-import { rethrowProviderScopeError } from './llm/ProviderRouter';
 import type { GenerationTask } from './llm/generateTask';
 import { prepareManualAnswer, isPendingAnswerSentinel, latestInterviewerQuestion } from './llm/answerGeneration';
 import type { PreparedInput } from './llm/preparedInput';
 import { manualAnswerError, MANUAL_ANSWER_CANCELLED } from './direct-assist/errors';
-import { SessionTracker, TranscriptSegment, ContextItem, type TranscriptView } from './SessionTracker';
+import { SessionTracker, TranscriptSegment, type TranscriptView } from './SessionTracker';
 import {
     AnswerLLM, BrainstormLLM, ClarifyLLM, CodeHintLLM, FollowUpLLM, RecapLLM,
     FollowUpQuestionsLLM, WhatToAnswerLLM,
-    prepareTranscriptForWhatToAnswer, buildTemporalContext,
-    AssistantResponse as LLMAssistantResponse, classifyIntent
+    prepareTranscriptForWhatToAnswer, buildTemporalContext, classifyIntent
 } from './llm';
 import { ScreenContext } from './services/screen/ScreenContextService';
 import { buildPreparedTranscriptContext as assemblePreparedTranscriptContext } from './utils/preparedTranscriptContext';
@@ -180,7 +178,6 @@ export class IntelligenceEngine extends EventEmitter {
     private session: SessionTracker;
 
     // Timestamps for tracking
-    private lastTranscriptTime: number = 0;
     private lastTriggerTime: number = 0;
     private readonly triggerCooldown: number = 3000; // 3 seconds
 
@@ -241,7 +238,6 @@ export class IntelligenceEngine extends EventEmitter {
      */
     handleTranscript(segment: TranscriptSegment, skipRefinementCheck: boolean = false): void {
         const result = this.session.handleTranscript(segment);
-        this.lastTranscriptTime = Date.now();
 
         // Check for follow-up intent if user is speaking
         if (result && !skipRefinementCheck && result.role === 'user' && this.session.getLastAssistantMessage()) {

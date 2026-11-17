@@ -349,51 +349,6 @@ export class DatabaseManager {
         }
     }
 
-    // ============================================
-    // System KV Store (app_state)
-    // ============================================
-
-    public getAppState(key: string): string | null {
-        if (!this.db) return null;
-        try {
-            const stmt = this.db.prepare('SELECT value FROM app_state WHERE key = ?');
-            const row = stmt.get(key) as { value: string } | undefined;
-            return row ? row.value : null;
-        } catch (error) {
-            console.error(`[DatabaseManager] Failed to get app_state for key: ${key}`, error);
-            return null;
-        }
-    }
-
-    public setAppState(key: string, value: string): void {
-        if (!this.db) return;
-        try {
-            const stmt = this.db.prepare('INSERT OR REPLACE INTO app_state (key, value) VALUES (?, ?)');
-            stmt.run(key, value);
-        } catch (error) {
-            console.error(`[DatabaseManager] Failed to set app_state for key: ${key}`, error);
-        }
-    }
-
-    public deleteAppState(key: string): void {
-        if (!this.db) return;
-        try {
-            const stmt = this.db.prepare('DELETE FROM app_state WHERE key = ?');
-            stmt.run(key);
-        } catch (error) {
-            console.error(`[DatabaseManager] Failed to delete app_state for key: ${key}`, error);
-        }
-    }
-
-    public getDb(): Database.Database | null {
-        return this.db;
-    }
-
-    /** Path to the SQLite database file on disk. Used by worker threads. */
-    public getDbPath(): string {
-        return this.dbPath;
-    }
-
     public saveMeeting(meeting: Meeting, startTimeMs: number, durationMs: number) {
         if (!this.db) {
             console.error('[DatabaseManager] DB not initialized');

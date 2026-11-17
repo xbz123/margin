@@ -58,7 +58,6 @@ import {
   prepareIntelligenceStreamPlaceholderMessages,
 } from '../lib/overlayMessagePersistence.mjs';
 import {
-  resolveCgEventTapAvailable,
   shouldBlockFocus as shouldBlockStealthFocus,
   shouldFireStealthTapStart,
 } from '../lib/overlayStealthFocusGuards.mjs';
@@ -450,9 +449,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
     return stored === 'true';
   });
 
-  // Analytics State
-  const requestStartTimeRef = useRef<number | null>(null);
-
   // Sync transcript setting
   useEffect(() => {
     const handleStorage = () => {
@@ -582,7 +578,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
 
   // Settings State with Persistence
   const { isUndetectable, isMousePassthrough, setPassthrough, preferenceErrors } = useWindowPreferences();
-  const [hideChatHidesWidget, setHideChatHidesWidget] = useState(() => {
+  const [hideChatHidesWidget] = useState(() => {
     const stored = localStorage.getItem('natively_hideChatHidesWidget');
     return stored ? stored === 'true' : true;
   });
@@ -847,14 +843,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         .catch((err: any) => console.error('Failed to fetch default model:', err));
     }
   }, []);
-
-  const handleModelSelect = (modelId: string) => {
-    setCurrentModel(modelId);
-    // Session-only: update runtime but don't persist as default
-    window.electronAPI
-      .setModel(modelId)
-      .catch((err: any) => console.error('Failed to set model:', err));
-  };
 
   // Session reasoning comes from the main process, which also tells every window about changes (S48).
   const [answerReasoning, setAnswerReasoning] = useState<AnswerReasoningState | undefined>();
@@ -1225,13 +1213,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         stableVisibilityTimerRef.current = null;
       }
       pendingVisibilityRef.current = null;
-      // PERF: cancel any pending token-flush RAF so we don't try to
-      // setState on an unmounted component.
-      if (tokenBufRef.current.raf !== null) {
-        cancelAnimationFrame(tokenBufRef.current.raf);
-        tokenBufRef.current.raf = null;
-        tokenBufRef.current.text = '';
-      }
       // Also reset imperative streaming refs on unmount so stale DOM
       // node refs don't fire after the component is gone.
       streamingNodeRef.current = null;
@@ -1388,8 +1369,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   //     the bubble. The bubble's ref-callback wires streamingNodeRef.
   //   • flushToken() resets the imperative refs so the final-answer
   //     setMessages() takes ownership of the rendered row via React.
-  //   • tokenBufRef is kept for the legacy sentinel/negotiation-coaching path
-  //     and for the cleanup effect above.
   //
   // Tradeoff: marked parses the FULL accumulated text each RAF tick (not
   // incremental). In practice this is <1ms for typical LLM responses and
@@ -1397,12 +1376,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   // the RAF to every other frame.
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Legacy buffer kept for sentinel/negotiation-coaching reset path.
-  const tokenBufRef = useRef<{ intent: string; text: string; raf: number | null }>({
-    intent: '',
-    text: '',
-    raf: null,
-  });
   const generationMetadataRef = useRef<import('../types/generationMetadata').GenerationMetadata | undefined>(undefined);
   const [retryGeneration, setRetryGeneration] = useState<import('../types/generationMetadata').GenerationMetadata>();
   const visibleReportedRef = useRef<string | undefined>(undefined);
@@ -1721,12 +1694,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
   const prepareIntelligenceStreamPlaceholder = useCallback(
     (intent: string) => {
       flushToken();
-      tokenBufRef.current.intent = '';
-      tokenBufRef.current.text = '';
-      if (tokenBufRef.current.raf !== null) {
-        cancelAnimationFrame(tokenBufRef.current.raf);
-        tokenBufRef.current.raf = null;
-      }
       const placeholderId = genMessageId();
       streamingMsgIdRef.current = placeholderId;
       streamingIntentRef.current = intent;
@@ -2293,13 +2260,6 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           submittedChatRef.current = undefined;
         }
 
-        // Calculate latency if we have a start time
-        let latency = 0;
-        if (requestStartTimeRef.current) {
-          latency = Date.now() - requestStartTimeRef.current;
-          requestStartTimeRef.current = null;
-        }
-
         setMessages((prev) => {
           const idx =
             pendingMsgId != null ? prev.findLastIndex((m) => m.id === pendingMsgId) : -1;
@@ -2336,13 +2296,11 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         const partialText = streamingTextRef.current;
         flushToken();
         setIsProcessing(false);
-        requestStartTimeRef.current = null; // Clear timer on error
         setMessages((prev) => {
           // Append error to the current message or add new one?
           // Let's add a new error block if the previous one confusing,
           // or just update status.
           // Ideally we want to show the partial response AND the error.
-          const lastMsg = prev[prev.length - 1];
           const index = pendingId ? prev.findIndex(msg => msg.id === pendingId) : -1;
           if (index !== -1) {
             const updated = [...prev];
@@ -2526,7 +2484,6 @@ ${GROUNDED_ANSWER_RULES}
 Provide only the answer, nothing else.`;
           }
 
-          requestStartTimeRef.current = Date.now();
           await window.electronAPI.streamGeminiChat(
             question,
             currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
@@ -2620,12 +2577,6 @@ Provide only the answer, nothing else.`;
     // text from the previous turn. Also flush any tokens still pending
     // in the rAF buffer so they land on the prior row, not the new one.
     flushToken();
-    tokenBufRef.current.intent = '';
-    tokenBufRef.current.text = '';
-    if (tokenBufRef.current.raf !== null) {
-      cancelAnimationFrame(tokenBufRef.current.raf);
-      tokenBufRef.current.raf = null;
-    }
     setMessages((prev) =>
       prev.some((m) => m.isStreaming)
         ? prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
@@ -2677,7 +2628,6 @@ Provide only the answer, nothing else.`;
 
     try {
       // Pass imagePath if attached, AND conversation context
-      requestStartTimeRef.current = Date.now();
       const request = window.electronAPI.streamGeminiChat(
         userText || SCREENSHOT_QUESTION,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
@@ -2732,14 +2682,6 @@ Provide only the answer, nothing else.`;
   useEffect(() => window.electronAPI.onWrittenExamCapture?.(capture => {
     void automaticCaptureRef.current(capture).catch(() => {});
   }), []);
-
-  const clearChat = () => {
-    setMessages([]);
-    answerPanelPinnedRef.current = false;
-    setAnswerPanelPinned(false);
-    lastManualSubmitRef.current = null;
-    manualSubmitInFlightRef.current = false;
-  };
 
   // PERF: useCallback so MessageRow's memo comparator can rely on a stable
   // function identity. Deps are the things the closure actually reads that
@@ -3175,7 +3117,6 @@ Provide only the answer, nothing else.`;
     const handleKeyDown = (e: KeyboardEvent) => {
       const {
         handleWhatToSay,
-        handleFollowUp,
         handleFollowUpQuestions,
         handleRecap,
         handleAnswerNow,
@@ -4694,7 +4635,6 @@ Provide only the answer, nothing else.`;
 
                           const contentRect = contentRef.current.getBoundingClientRect();
                           const buttonRect = e.currentTarget.getBoundingClientRect();
-                          const POPUP_WIDTH = 270; // Matches SettingsWindowHelper actual width
                           const GAP = 8; // Same gap as between TopPill and main body (gap-2 = 8px)
 
                           // X: Left-aligned relative to the Settings Button

@@ -96,12 +96,6 @@ MODE: Code hint. The user has shared a coding problem (screenshot or text). Outp
 3. One first-person sentence dry-running a small input.
 4. Time and space complexity, one bullet each.`;
 
-export const TINY_TITLE_PROMPT = `Generate a concise 3-6 word title for this meeting context. Plain text only. No quotes, no punctuation at the end.`;
-
-export const TINY_SUMMARY_JSON_PROMPT = `Convert this conversation into concise meeting notes. Return ONLY valid JSON with this shape:
-{"summary": string, "keyPoints": string[], "actionItems": string[], "decisions": string[]}
-No markdown, no commentary. JSON only.`;
-
 // Set of all tiny prompts that should bypass the default answer suffix in streamChat.
 // Keep in sync with the individual exports above.
 export const TINY_PROMPTS_SET: ReadonlySet<string> = new Set([

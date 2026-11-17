@@ -37,7 +37,7 @@ function chain() {
   const sent = [], policy = { current: {} };
   const helper = Object.assign(Object.create(modules.LLMHelper.prototype), {
     selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'gpt-5.4' },
-    currentModelId: 'gpt-5.4', aiResponseLanguage: 'auto', personaPrompt: '', customNotes: '',
+    currentModelId: 'gpt-5.4', aiResponseLanguage: 'auto', customNotes: '',
     getProviderScopePolicy: () => policy.current,
     openaiClient: { chat: { completions: { create: async body => {
       sent.push(body);

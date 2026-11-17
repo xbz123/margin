@@ -22,15 +22,12 @@
     "src",
     "native-module",
     "scripts",
-    "renderer",
-    "worker-script",
     "tests",
     ".github",
     "package.json",
     "vite.config.mts",
     "tsconfig.json",
     "tsconfig.node.json",
-    "electron-builder.signed.cjs",
     "index.html"
   ],
   "scanExclude": [

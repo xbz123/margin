@@ -46,8 +46,3 @@ export function openAiSttEndpoint(base = 'https://api.openai.com'): string {
   url.pathname = prefix + (/\/v\d+$/.test(prefix) ? '/audio/transcriptions' : '/v1/audio/transcriptions');
   return url.href;
 }
-
-export function googleSpeechUniverseDomain(value = 'googleapis.com'): string {
-  if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/i.test(value)) throw new Error('Invalid Google universe domain');
-  return value;
-}

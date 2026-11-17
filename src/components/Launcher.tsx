@@ -1,6 +1,6 @@
 import { APP_NAME } from '../appIdentity';
 import React, { useState, useEffect } from 'react';
-import { ToggleLeft, ToggleRight, Search, Calendar, ArrowRight, ArrowLeft, MoreHorizontal, Globe, Clock, ChevronRight, Settings, LayoutGrid, RefreshCw, Eye, EyeOff, Ghost, Plus, Mail, Link as LinkIcon, ChevronDown, Trash2, Bell, Check, Download, User, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft, MoreHorizontal, Settings, RefreshCw, Ghost, Trash2, Download } from 'lucide-react';
 import { generateMeetingPDF } from '../utils/pdfGenerator';
 import icon from "./icon.png";
 import MeetingDetails from './MeetingDetails';

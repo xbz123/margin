@@ -153,9 +153,9 @@ describe("B5: dev-mode TCC bypass is opt-in (NATIVELY_DEV_BYPASS_SCREEN_TCC=1) o
         "The dev branch of the OR must be gated through isDevTccBypassEnabled().",
     );
     assert.ok(
-      !/if\s*\(\s*!\s*app\.isPackaged\s*\)\s*\{?\s*(?:return|clearSystemAudioPermissionWarning)/.test(body),
+      !/if\s*\(\s*!\s*app\.isPackaged\s*\)/.test(body),
       "BUG: resolveMacScreenCaptureCapability contains a bare `if (!app.isPackaged)` " +
-        "early-return path. The dev-bypass condition must be expressed via isDevTccBypassEnabled().",
+        "branch. The dev-bypass condition must be expressed via isDevTccBypassEnabled().",
     );
   });
 

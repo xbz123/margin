@@ -5,12 +5,10 @@ import { STT_TERM_PROMPT_MAX_WEIGHT, sttTermPromptWeight } from '../types/sttTer
 import React, { useState, useEffect, useMemo } from 'react';
 import packageJson from '../../package.json';
 import {
-    X, Mic, Speaker, Monitor, Keyboard, User, LifeBuoy, LogOut, Upload,
-    ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
-    Camera, RotateCcw, Eye, Layout, MessageSquare, Crop,
-    ChevronDown, ChevronUp, Check, BadgeCheck, Power, Palette, Ghost, Sun, Moon, RefreshCw, Info, Globe, FlaskConical, Terminal, Settings, Activity, ExternalLink, Trash2,
-    Sparkles, Pencil, Briefcase, Building2, Search, MapPin, CheckCircle, HelpCircle, Zap, SlidersHorizontal, PointerOff,
-    Star, AlertCircle, Gift, Archive, Languages,
+    X, Mic, Speaker, Monitor, Keyboard, LogOut, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Camera, RotateCcw,
+    Eye, Layout, MessageSquare, Crop, ChevronDown, ChevronUp, Check, BadgeCheck, Power, Palette, Ghost, Sun,
+    Moon, RefreshCw, Info, Globe, FlaskConical, Terminal, Settings, Activity, ExternalLink, Trash2, Sparkles,
+    Pencil, MapPin, HelpCircle, Zap, SlidersHorizontal, PointerOff, AlertCircle, Archive, Languages,
     type LucideIcon
 } from 'lucide-react';
 import { AboutSection } from './AboutSection';
@@ -19,7 +17,6 @@ import { AIProvidersSettings } from './settings/AIProvidersSettings';
 import { LocalContextSettings } from './settings/LocalContextSettings';
 import { CredentialLoadBanner } from './settings/CredentialLoadBanner';
 import { PromptSettings } from './settings/PromptSettings';
-import { NativelyLogoMark } from './NativelyLogoMark';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShortcuts } from '../hooks/useShortcuts';
 import { useWindowPreferences } from '../hooks/useWindowPreferences';
@@ -366,7 +363,6 @@ interface SettingsOverlayProps {
 
 const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, initialTab = 'general' }) => {
     const { t, language } = useI18n();
-    const isLight = useResolvedTheme() === 'light';
     const [activeTab, setActiveTab] = useState<SettingsTab>(() => resolveSettingsTab(initialTab));
 
     // Sync active tab when modal opens

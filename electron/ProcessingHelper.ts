@@ -75,13 +75,8 @@ export class ProcessingHelper {
     this.llmHelper.setGenerationPolicy(credManager.getGenerationPolicy());
     this.llmHelper.setSavedReasoning(credManager.getSavedReasoning());
 
-    // Load Languages
-    const sttLanguage = credManager.getSttLanguage();
+    // Load answer language
     const aiResponseLanguage = credManager.getAiResponseLanguage();
-
-    if (sttLanguage) {
-      this.llmHelper.setSttLanguage(sttLanguage);
-    }
 
     if (aiResponseLanguage) {
       this.llmHelper.setAiResponseLanguage(aiResponseLanguage);

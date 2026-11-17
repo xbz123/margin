@@ -145,12 +145,6 @@ export class SonioxStreamingSTT extends EventEmitter {
     /** No-op for Soniox */
     public setCredentials(_path: string): void { }
 
-    /**
-     * No-op for keywords — Soniox uses structured context instead.
-     * Context is set via the initial config message.
-     */
-    public setKeywords(_keywords: string[]): void { }
-
     // =========================================================================
     // Lifecycle
     // =========================================================================

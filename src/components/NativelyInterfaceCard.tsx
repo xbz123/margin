@@ -1,5 +1,4 @@
 import { APP_NAME } from '../appIdentity';
-import React from "react";
 import { motion } from "framer-motion";
 import nativelyLogo from "../assets/logo.webp";
 import { getModifierSymbol } from "../utils/platformUtils";

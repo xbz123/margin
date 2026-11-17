@@ -123,28 +123,24 @@ export function initializeIpcHandlers(appState: AppState): void {
     ipcMain.removeHandler(channel);
     ipcMain.handle(channel, async (event, ...args) => listener(event, ...args));
   };
-  // Generation entry points: each call owns a task bound to its window, from start to close.
+  // Generation entry points: every one is a speech action. Each call owns the task its click
+  // began, bound to its window, from start to close.
   const registerGenerationHandler = (
     channel: string,
     listener: (event: any, ...args: any[]) => Promise<any> | any,
   ) => {
+    const speech = SPEECH_ACTION_CHANNELS[channel];
+    if (!speech) throw new Error(`${channel} is not a speech action channel`);
     safeHandle(channel, async (event, ...args) => {
       const helper = appState.processingHelper.getLLMHelper();
-      const speech = SPEECH_ACTION_CHANNELS[channel];
       let task: GenerationTask<any> | undefined;
-      let run = () => listener(event, ...args);
       try {
-        if (speech) {
-          // The action began at the click; its task and speech cut are reused exactly once.
-          const action = speechActions.take(event.sender, args[speech[1]], speech[0]);
-          task = action.task;
-          const fixed = Array.from({ length: speech[1] }, (_, index) => args[index]);
-          run = () => helper.withDeclaredScopes(declare => listener(event, ...fixed, () => frozenView(action, declare)));
-        } else {
-          speechActions.cancel(event.sender);
-          task = helper.beginGenerationTask(); task.rendererOwner = event.sender;
-        }
-        helper.attachPresentation(task, event.sender, speech?.[0] ?? channel, visibleOwners.has(event.sender.id));
+        // The action began at the click; its task and speech cut are reused exactly once.
+        const action = speechActions.take(event.sender, args[speech[1]], speech[0]);
+        task = action.task;
+        const fixed = Array.from({ length: speech[1] }, (_, index) => args[index]);
+        const run = () => helper.withDeclaredScopes(declare => listener(event, ...fixed, () => frozenView(action, declare)));
+        helper.attachPresentation(task, event.sender, speech[0], visibleOwners.has(event.sender.id));
         const result = await helper.runGeneration(async () => {
           const value = await run();
           task!.terminalStatus ??= (value as any)?.error ? 'failed' : 'empty';

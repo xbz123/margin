@@ -156,14 +156,6 @@ export function simulateSameIntentTokenStream(messages, tokens, intent, idFactor
 }
 
 /**
- * flushToken when streamingMsgIdRef is null (NativelyInterface ~1488-1492).
- * Buffered text is discarded; no commitStreamingFlush runs.
- */
-export function discardStreamingBufferWhenNoMsgId(streamingText) {
-  return streamingText != null && streamingText.length > 0 ? '' : streamingText ?? '';
-}
-
-/**
  * Models WTA batch+final with Fix 1 (placeholder pre-wired) and Fix 3 (finalize by id).
  * queueToken uses the mid-stream path (streamingMsgIdRef set), so no deferred
  * applyFirstStreamingToken runs after sync finalize.

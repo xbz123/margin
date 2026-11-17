@@ -35,7 +35,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
     iconConnected, iconReconnecting, iconFailed,
 }) => {
     const { t } = useI18n();
-    const [copied, setCopied] = useState(false);
+    const [, setCopied] = useState(false);
 
     const cleanedError = error?.replace(/\s*\(\d+ consecutive errors\):?/gi, '');
 

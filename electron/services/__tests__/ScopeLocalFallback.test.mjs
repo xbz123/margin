@@ -41,7 +41,7 @@ async function codexWith(entry, policy) {
     codexCliConfig: { enabled: true, riskConfirmedVersion: 1, model: 'gpt-5.4', fastModel: 'gpt-5.3-codex', serviceTier: 'default' },
     codexAuthSource: new CodexAuthSource(async () => { reads.push(1); return JSON.stringify({ tokens: { access_token: token, account_id: 'synthetic-account' } }); }, async url => { spawned.push(url); return new Response('data: {"type":"response.output_text.delta","delta":"allowed"}\n\ndata: {"type":"response.completed"}\n\n', { headers: { 'content-type': 'text/event-stream' } }); }),
     currentModelId: 'codex-cli:gpt-5.4',
-    getProviderScopePolicy: () => policy, personaPrompt: '', aiResponseLanguage: 'auto',
+    getProviderScopePolicy: () => policy, aiResponseLanguage: 'auto',
   });
   try {
     if (entry === 'stream') {
@@ -214,7 +214,7 @@ test('default chat routing refuses transcript denial but can omit denied history
 const denialRoutes = [
   ['non-streaming chat', self => self.chatWithGemini('QUESTION')],
   ['structured generation', self => self.generateContentStructured('QUESTION')],
-  ['streaming text', self => drain(self.streamChatWithGemini('QUESTION'))],
+  ['streaming text', self => drain(self.streamChat('QUESTION'))],
   ['streaming images', self => drain(self.streamChat('QUESTION', NO_IMAGE))],
   ['selected content generation', self => self.generateContent([{ text: 'QUESTION' }])],
 ];
@@ -238,7 +238,7 @@ function helperWith(policy, fields) {
   const LLMHelper = loadBuiltLLMHelper();
   const noLimit = { acquire: async () => {} };
   return Object.assign(Object.create(LLMHelper.prototype), {
-    codexCliConfig: { enabled: false }, personaPrompt: '', customNotes: '', aiResponseLanguage: 'auto',
+    codexCliConfig: { enabled: false }, customNotes: '', aiResponseLanguage: 'auto',
     currentModelId: 'gemini-test', selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' },
     processImage: async () => ({ mimeType: 'image/png', data: 'AAAA' }),
     geminiPromptCache: { getOrCreate: async () => null, invalidate() {} },
@@ -307,7 +307,7 @@ for (const [name, call] of branchSends) test(`${name} refuses transcript denial 
 // Fourth review, finding 1: scopes the caller declares for a request describe data
 // that may sit in the message itself. streamChat must refuse the request when one of
 // them is denied, even with the transcript allowed.
-const openaiClient = (send) => ({ ...chosen('openai', 'chat-completions', 'gpt-5.4'), openaiClient: { chat: { completions: { create: send } } }, currentModelId: 'gpt-5.4', personaPrompt: '' });
+const openaiClient = (send) => ({ ...chosen('openai', 'chat-completions', 'gpt-5.4'), openaiClient: { chat: { completions: { create: send } } }, currentModelId: 'gpt-5.4' });
 
 test('streamChat refuses a request whose declared scope is denied, before anything is sent', async () => {
   const run = (self) => (async () => {

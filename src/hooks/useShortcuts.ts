@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { KeybindResult } from '../types/windowPreferences';
 import { acceleratorToKeys, keysToAccelerator } from '../utils/keyboardUtils';
-import { getPlatformShortcut, isMac } from '../utils/platformUtils';
+import { isMac } from '../utils/platformUtils';
 
 // Define the shape of our shortcuts configuration
 export interface ShortcutConfig {
@@ -67,20 +67,6 @@ function buildDefaultShortcuts(): ShortcutConfig {
         selectiveScreenshot: [mod, shift, 'H']
     };
 }
-
-/**
- * Platform-aware default shortcuts. Computed once at module load using the
- * current process platform — same source of truth as `buildDefaultShortcuts()`
- * below, which is the actual hook initializer. Kept as a named export so
- * consumers that need the defaults synchronously (without invoking the hook)
- * don't see Mac glyphs on Windows.
- *
- * Historical note: this export was previously hardcoded to '⌘'/'⌥'/'⇧'
- * literals, which would surface Mac symbols in any Windows surface that
- * consumed it directly. Replacing the literal with `buildDefaultShortcuts()`
- * keeps the two code paths consistent.
- */
-export const DEFAULT_SHORTCUTS: ShortcutConfig = buildDefaultShortcuts();
 
 export const useShortcuts = () => {
     // Initialize state with platform-aware defaults

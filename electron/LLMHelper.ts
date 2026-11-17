@@ -19,7 +19,7 @@ import {
   CHAT_MODE_PROMPT, DEFAULT_ANSWER_PROMPT_SUFFIX
 } from "./llm/prompts"
 import { TINY_PROMPTS_SET } from "./llm/tinyPrompts"
-import { getModelCapabilities, selectPromptTier, estimateTokens, truncateTranscriptToFit, type PromptTier, type ModelCapabilities } from "./llm/modelCapabilities"
+import { getModelCapabilities, selectPromptTier, estimateTokens, type PromptTier, type ModelCapabilities } from "./llm/modelCapabilities"
 import { GeminiPromptCache } from "./llm/GeminiPromptCache"
 import { generateOnce } from './llm/generateOnce';
 import { app } from 'electron';
@@ -30,7 +30,6 @@ import { scenarioPrompt, appendPromptGuidance, writtenOutputFormat, writtenOutpu
 import { attachLocalContext } from './llm/localContextRequest';
 import { GenerationResultError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
 import { assertProviderDataScopes, getDeniedDataScopes, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
-import type { TranscriptTurn } from "./llm/transcriptCleaner"
 import { createProviderRateLimiters } from './services/RateLimiter';
 import { CodexAuthSource } from './services/CodexAuthSource';
 import { DEFAULT_CODEX_SOURCE_CONFIG, assertCodexConsent, codexImageTarget, isCodexSelection, validateCodexModel, validateCodexSourceConfig, type CodexSourceConfig } from '../src/types/codexSource';
@@ -39,7 +38,7 @@ import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPol
 import { assertModelImageSupport } from '../src/types/modelImageSupport';
 import { PreparedInputs, copyPreparedInput, type PreparedInput, type PresentationOwner } from './llm/preparedInput';
 
-type SnapshotContext = { language: string; customNotes: string; personaPrompt: string; fastMode: boolean };
+type SnapshotContext = { language: string; customNotes: string; fastMode: boolean };
 type GenerationTargetSnapshot = SnapshotContext & ({ kind: 'api'; target: ModelTarget; client: any; custom: boolean }
   | { kind: 'codex'; target: { provider: 'codex-cli'; protocol: 'responses'; model: string }; codex: CodexSourceConfig; imageSupportConfirmedFor?: string });
 
@@ -167,7 +166,7 @@ export class LLMHelper {
   public beginGenerationTask(kind: GenerationKind = 'interview', signal?: AbortSignal, primary?: ModelTarget, startedAt?: number): GenerationTask<GenerationTargetSnapshot> {
     if (this.generationClosed) throw new DOMException('Application quit', 'AbortError');
     const configs = this.providerConfigurations ?? LLM_PRESETS;
-    const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', personaPrompt: this.personaPrompt ?? '', fastMode: this.groqFastTextMode };
+    const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', fastMode: this.groqFastTextMode };
     // A gateway target only ever uses its own client; a missing gateway or key fails, never an official client.
     // Reasoning is fixed here for the whole task (S48 C3): the selected primary takes the session or saved
     // default; an official backup or an explicit target (connection test) takes the provider default.
@@ -316,20 +315,13 @@ export class LLMHelper {
   // DeepSeek is OpenAI-compatible; reuse the OpenAI SDK with a custom baseURL.
   // Kept as a separate client so credentials/scope/telemetry stay provider-specific.
   private deepseekClient: OpenAI | null = null
-  private apiKey: string | null = null
-  private groqApiKey: string | null = null
-  private openaiApiKey: string | null = null
-  private claudeApiKey: string | null = null
-  private deepseekApiKey: string | null = null
   private geminiModel: string = GEMINI_FLASH_MODEL
   private groqFastTextMode: boolean = false;
   private codexCliConfig: CodexSourceConfig = { ...DEFAULT_CODEX_SOURCE_CONFIG };
   private codexAuthSource = new CodexAuthSource();
   private codexStatusController?: AbortController;
   private customNotes: string = '';
-  private personaPrompt: string = '';
   private aiResponseLanguage: string = 'auto';
-  private sttLanguage: string = 'english-us';
 
   // Rate limiters per provider to prevent 429 errors on free tiers
   private rateLimiters: ReturnType<typeof createProviderRateLimiters>;
@@ -365,10 +357,6 @@ export class LLMHelper {
     if (text.trim().length > 0) scopes.add('transcript');
     if (imagePaths?.length) scopes.add('screenshots');
     return [...scopes];
-  }
-
-  private assertOutboundScopes(provider: string, text: string, imagePaths?: string[], extraScopes: ProviderDataScope[] = []): void {
-    assertProviderDataScopes(provider, this.scopesForPayload(text, imagePaths, extraScopes), this.getProviderScopePolicy());
   }
 
 
@@ -421,20 +409,15 @@ export class LLMHelper {
     this.blockedProviders = { ...this.blockedProviders, [config.provider]: blocked || undefined };
     const apiKey = blocked ? null : key?.trim() || null;
     if (config.provider === 'gemini') {
-      this.apiKey = apiKey;
       this.client = apiKey ? new GoogleGenAI({ apiKey, httpOptions: { baseUrl: config.baseUrl, apiVersion: 'v1alpha', retryOptions: { attempts: 1 } } }) : null;
       this.geminiPromptCache.clear();
     } else if (config.provider === 'claude') {
-      this.claudeApiKey = apiKey;
       this.claudeClient = apiKey ? new Anthropic({ apiKey, baseURL: config.baseUrl.replace(/\/v1$/, ''), fetch: outboundFetch, maxRetries: 0 }) : null;
     } else if (config.provider === 'openai') {
-      this.openaiApiKey = apiKey;
       this.openaiClient = apiKey ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }) : null;
     } else if (config.provider === 'groq') {
-      this.groqApiKey = apiKey;
       this.groqClient = apiKey ? new Groq({ apiKey, baseURL: 'https://api.groq.com', fetch: outboundFetch, maxRetries: 0 }) : null;
     } else {
-      this.deepseekApiKey = apiKey;
       this.deepseekClient = apiKey ? new OpenAI({ apiKey, baseURL: config.baseUrl, fetch: outboundFetch, maxRetries: 0 }) : null;
     }
     this.refreshSelection(previous, validated);
@@ -579,7 +562,6 @@ export class LLMHelper {
     this.generationClosed = true;
     this.codexStatusController?.abort(new DOMException('Application quit', 'AbortError'));
     for (const task of this.activeGenerationTasks) task.controller.abort(new DOMException('Application quit', 'AbortError'));
-    this.apiKey = null; this.groqApiKey = null; this.openaiApiKey = null; this.claudeApiKey = null; this.deepseekApiKey = null;
     this.gatewayClients?.clear();
     this.client = null; this.groqClient = null; this.openaiClient = null; this.claudeClient = null; this.deepseekClient = null;
     if (this.rateLimiters) Object.values(this.rateLimiters).forEach(limiter => limiter.destroy());
@@ -688,7 +670,6 @@ export class LLMHelper {
     if (isCodexSelection(targetModelId) && targetModelId.startsWith('codex-cli:')) validateCodexModel(targetModelId.slice(10));
 
     const selection = this.isCodexCliModel(targetModelId) ? undefined : this.resolve(targetModelId);
-    const backup = this.getGenerationPolicy().backupModel;
     this.validateGenerationTargets(targetModelId);
     if ((selection ? modelTargetId(selection) : targetModelId) !== this.getCurrentModelSelection()) {
       for (const task of this.activeGenerationTasks ?? []) task.controller.abort(new DOMException('Model selection changed', 'AbortError'));
@@ -724,13 +705,6 @@ export class LLMHelper {
       lines.shift();
     }
     return lines.join('\n');
-  }
-
-  // Trim a transcript array to fit within the active model's prompt budget.
-  public fitTranscriptForCurrentModel(turns: TranscriptTurn[]): TranscriptTurn[] {
-    const caps = getModelCapabilities(this.getCurrentModel());
-    const budget = Math.max(0, Math.floor(caps.maxContextTokens * 0.8) - caps.promptBudgetTokens - caps.outputBudgetTokens);
-    return truncateTranscriptToFit(turns, budget);
   }
 
   /**
@@ -812,18 +786,9 @@ export class LLMHelper {
     this.customNotes = notes;
   }
 
-  public setPersonaPrompt(prompt: string): void {
-    this.personaPrompt = prompt;
-  }
-
   public setAiResponseLanguage(language: string) {
     this.aiResponseLanguage = language;
     console.log(`[LLMHelper] AI Response Language set to: ${language}`);
-  }
-
-  public setSttLanguage(language: string) {
-    this.sttLanguage = language;
-    console.log(`[LLMHelper] STT Language set to: ${language}`);
   }
 
   /**
@@ -966,9 +931,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
 
 
-  public streamChatWithGemini(message: string, imagePaths?: string[], context?: string, skipSystemPrompt: boolean = false, abortSignal?: AbortSignal): AsyncGenerator<string> {
-    return this.streamChat(message, imagePaths, context, skipSystemPrompt ? '' : HARD_SYSTEM_PROMPT, false, true, [], abortSignal);
-  }
 
 
   /**
@@ -1112,41 +1074,6 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     return getModelCapabilities(this.getCurrentModel());
   }
 
-  public hasGroq(): boolean {
-    return this.groqClient !== null;
-  }
-
-  public hasOpenai(): boolean {
-    return this.openaiClient !== null;
-  }
-
-  /**
-   * Check if Claude is available
-   */
-  public hasClaude(): boolean {
-    return this.claudeClient !== null;
-  }
-
-  public hasDeepseek(): boolean {
-    return this.deepseekClient !== null;
-  }
-
-  public async testConnection(): Promise<{ success: boolean; error?: string }> {
-    try {
-      if (!this.client) {
-        return { success: false, error: "No Gemini client configured" };
-      }
-      // Test with a simple prompt using the selected model
-      const text = await this.generateContent([{ text: "Hello" }])
-      if (text) {
-        return { success: true };
-      } else {
-        return { success: false, error: "Empty response from Gemini" };
-      }
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  }
   /**
    * Universal Chat (Non-streaming)
    */

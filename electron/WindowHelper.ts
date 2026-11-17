@@ -23,9 +23,6 @@ export class WindowHelper {
   private launcherWindow: BrowserWindow | null = null;
   private overlayWindow: BrowserWindow | null = null;
   private isWindowVisible: boolean = false;
-  // Position/Size tracking for Launcher
-  private launcherPosition: { x: number; y: number } | null = null;
-  private launcherSize: { width: number; height: number } | null = null;
   private overlayBounds: Electron.Rectangle | null = null;
   // Track current window mode (persists even when overlay is hidden via Cmd+B)
   private currentWindowMode: 'launcher' | 'overlay' = 'launcher';
@@ -118,12 +115,6 @@ export class WindowHelper {
       width: newWidth,
       height: newHeight,
     });
-
-    // Update internal tracking if it's launcher
-    if (activeWindow === this.launcherWindow) {
-      this.launcherSize = { width: newWidth, height: newHeight };
-      this.launcherPosition = { x: newX, y: currentY };
-    }
   }
 
   // Dedicated method for overlay window resizing - decoupled from launcher
@@ -452,7 +443,6 @@ export class WindowHelper {
     this.launcherWindow.on('move', () => {
       if (this.launcherWindow) {
         const bounds = this.launcherWindow.getBounds();
-        this.launcherPosition = { x: bounds.x, y: bounds.y };
         this.appState.settingsWindowHelper.reposition(bounds);
       }
     });
@@ -460,7 +450,6 @@ export class WindowHelper {
     this.launcherWindow.on('resize', () => {
       if (this.launcherWindow) {
         const bounds = this.launcherWindow.getBounds();
-        this.launcherSize = { width: bounds.width, height: bounds.height };
         this.appState.settingsWindowHelper.reposition(bounds);
       }
     });
@@ -661,10 +650,6 @@ export class WindowHelper {
       // They can click the window to focus it if they need to type.
       this.showMainWindow(true);
     }
-  }
-
-  public toggleOverlayWindow(): void {
-    this.toggleMainWindow();
   }
 
   public centerAndShowWindow(): void {

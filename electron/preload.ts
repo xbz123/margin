@@ -498,10 +498,6 @@ const claimIntelligence = () => {
   if (chatInFlight && activeChatOwner === 'natively') cancelActiveChat();
   activeIntelligenceRequestId = null;
 };
-const invokeIntelligence = (channel: string, ...args: any[]) => {
-  claimIntelligence();
-  return ipcRenderer.invoke(channel, ...args);
-};
 // Speech actions cut the transcript at the trigger. Begin returns without waiting for STT; the
 // action channel follows on its receipt or 750 ms after the trigger, whichever comes first.
 const SPEECH_RECEIPT_WINDOW_MS = 750;

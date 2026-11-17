@@ -2,10 +2,10 @@ import { APP_NAME } from '../../appIdentity';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Command, Monitor, Mic, Settings, Zap, Key, User, Play, Image, ArrowUp, FileText, Sparkles, Search, ChevronUp, Copy,
-    FileJson, MessageSquare, Briefcase, Eye, EyeOff, Ghost, ChevronDown, ChevronRight, HelpCircle, Upload, CheckCircle2,
-    RefreshCw, Trash2, Check, ExternalLink, Volume2, Globe, Brain, Cpu, Calendar, Star, CreditCard, X, Pencil, Lightbulb,
-    SlidersHorizontal, PointerOff, ArrowRight, LayoutGrid, DollarSign, Building2
+    Command, Monitor, Mic, Settings, Zap, Key, Play, Image, ArrowUp, FileText, Sparkles, Search, ChevronUp,
+    Copy, MessageSquare, Briefcase, Eye, EyeOff, Ghost, ChevronDown, ChevronRight, HelpCircle, RefreshCw,
+    Trash2, Check, ExternalLink, Volume2, Globe, Cpu, Calendar, Pencil, Lightbulb, SlidersHorizontal,
+    PointerOff, ArrowRight
 } from 'lucide-react';
 import { SiOpenai, SiGoogle, SiAnthropic } from 'react-icons/si';
 import { useShortcuts } from '../../hooks/useShortcuts';
@@ -544,7 +544,6 @@ const getIconStyle = (color?: string, isSelectedItem: boolean = false) => {
 
 const MockProviderSelectionAnim = () => {
     const { t } = useI18n();
-    const isLight = useResolvedTheme() === 'light';
     const [isOpen, setIsOpen] = useState(false);
     useEffect(() => {
         const i = setInterval(() => setIsOpen(o => !o), 4000);

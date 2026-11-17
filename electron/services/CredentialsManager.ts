@@ -389,18 +389,6 @@ export class CredentialsManager {
     // Vision provider availability — used by the vision-first screen pipeline
     // =========================================================================
 
-    /**
-     * True if at least one configured provider is vision-capable.
-     * Legacy capability query; it does not select or reorder generation targets.
-     */
-    public anyVisionProviderConfigured(): boolean {
-        if (this.credentials.openaiApiKey) return true;          // gpt-4o / gpt-5 vision
-        if (this.credentials.claudeApiKey) return true;          // Claude vision
-        if (this.credentials.geminiApiKey) return true;          // Gemini vision
-        if (this.credentials.groqApiKey) return true;            // Groq llama-4-scout vision
-        return false; // An external login file is neither an API credential nor proof of vision support.
-    }
-
     // =========================================================================
     // Setters (auto-save)
     // =========================================================================
@@ -566,18 +554,6 @@ export class CredentialsManager {
         this.unreadableOnDisk = false;
         this.loadFailure = undefined;
         return { ok: true, backupName };
-    }
-
-    public clearAll(): void {
-        this.scrubMemory();
-        if (fs.existsSync(CREDENTIALS_PATH)) {
-            fs.unlinkSync(CREDENTIALS_PATH);
-        }
-        const plaintextPath = CREDENTIALS_PATH + '.json';
-        if (fs.existsSync(plaintextPath)) {
-            fs.unlinkSync(plaintextPath);
-        }
-        console.log('[CredentialsManager] All credentials cleared');
     }
 
     /**

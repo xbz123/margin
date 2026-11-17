@@ -187,8 +187,6 @@ async function getDisplaysIntersectingSelection(
     
     console.log(`[ScreenshotHelper] Selection intersects with display ${display.id}:`, intersection);
     
-    const scaleFactor = display.scaleFactor;
-    
     // Find the corresponding source using the pre-built map
     const displayIdStr = display.id.toString();
     let source = sourceByDisplayId.get(displayIdStr);
