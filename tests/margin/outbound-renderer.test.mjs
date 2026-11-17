@@ -907,6 +907,7 @@ test('S47 mounted settings and session selector share saved candidates through t
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require(`${REPO}/dist-electron/electron/services/outbound.js`);
         if (id === '../utils/validateSttBaseUrl') return require(`${REPO}/dist-electron/electron/utils/validateSttBaseUrl.js`);
+        if (id === '../config/languages') return require(`${REPO}/dist-electron/electron/config/languages.js`);
         if (id === '../../src/types/llmTarget') return types;
         if (id === '../../src/types/generationPolicy') return policyTypes;
         if (id === '../../src/types/codexSource') return codexTypes;
@@ -1121,6 +1122,7 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require(`${REPO}/dist-electron/electron/services/outbound.js`);
         if (id === '../utils/validateSttBaseUrl') return require(`${REPO}/dist-electron/electron/utils/validateSttBaseUrl.js`);
+        if (id === '../config/languages') return require(`${REPO}/dist-electron/electron/config/languages.js`);
         if (id === '../../src/types/llmTarget') return types;
         if (id === '../../src/types/generationPolicy') return policyTypes;
         if (id === '../../src/types/codexSource') return codexTypes;
