@@ -255,7 +255,6 @@ test('Gemini custom target uses the same v1alpha prefix for generation, test and
     helper.setModel('llm-gateway:gw-gemini:gemini:opaque-model');
     assert.equal(await helper.testProviderConnection({ gatewayId: 'gw-gemini' }), 'ANSWER');
     assert.deepEqual(await fetchGatewayModels(config, 'synthetic-only'), [{ id: 'opaque-model', label: 'Opaque' }]);
-    assert.equal(helper.modelVersionManager.geminiApiKey, null);
     assert.equal(await helper.chatWithGemini('USER'), 'ANSWER');
   });
   assert.deepEqual(urls, ['/proxy/v1alpha/models/opaque-model:generateContent', '/proxy/v1alpha/models', '/proxy/v1alpha/models/opaque-model:generateContent']);

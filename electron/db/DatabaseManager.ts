@@ -1,5 +1,3 @@
-import { APP_IDENTITY } from '../margin/appIdentity';
-
 import Database from 'better-sqlite3';
 import path from 'path';
 import { app } from 'electron';
@@ -11,18 +9,6 @@ export interface Meeting {
     title: string;
     date: string; // ISO string
     duration: string;
-    summary: string;
-    detailedSummary?: {
-        overview?: string;
-        actionItems: string[];
-        keyPoints: string[];
-        actionItemsTitle?: string;
-        keyPointsTitle?: string;
-        sections?: Array<{ title: string; bullets: string[] }>;
-        schemaVersion?: number;
-        actionItemsStructured?: Array<{ id: string; text: string; owner?: string; deadline?: string; sourceTimestamp?: number }>;
-        coachingInsights?: Array<{ id: string; type: string; title: string; detail: string; severity: 'info' | 'opportunity' | 'warning'; evidence?: string }>;
-    };
     transcript?: Array<{
         speaker: string;
         text: string;
@@ -96,6 +82,7 @@ export class DatabaseManager {
             this.db.pragma('journal_mode = WAL');
 
             this.runMigrations();
+            this.removeRetiredDemoMeeting();
         } catch (error) {
             console.error('[DatabaseManager] Failed to initialize database:', error);
             throw error;
@@ -428,10 +415,8 @@ export class DatabaseManager {
             VALUES (?, ?, ?, ?, ?, ?)
         `);
 
-        const summaryJson = JSON.stringify({
-            legacySummary: meeting.summary,
-            detailedSummary: meeting.detailedSummary
-        });
+        // Summaries are retired; the column stays (no schema change) and is written empty.
+        const summaryJson = '{}';
 
         const runTransaction = this.db.transaction(() => {
             // 1. Insert Meeting
@@ -530,8 +515,6 @@ export class DatabaseManager {
         const rows = stmt.all(limit) as any[];
 
         return rows.map(row => {
-            const summaryData = JSON.parse(row.summary_json || '{}');
-
             // Format duration string if needed, but we typically store ms
             // Let's recreate the 'duration' string "MM:SS" from duration_ms
             const minutes = Math.floor(row.duration_ms / 60000);
@@ -543,8 +526,6 @@ export class DatabaseManager {
                 title: row.title,
                 date: row.created_at, // Use the stored ISO string
                 duration: durationStr,
-                summary: summaryData.legacySummary || '',
-                detailedSummary: summaryData.detailedSummary,
                 // We don't load full transcript/usage for list view to keep it light
                 transcript: [] as any[],
                 usage: [] as any[]
@@ -569,7 +550,6 @@ export class DatabaseManager {
         const usageRows = usageStmt.all(id) as any[];
 
         // Reconstruct
-        const summaryData = JSON.parse(meetingRow.summary_json || '{}');
         const minutes = Math.floor(meetingRow.duration_ms / 60000);
         const seconds = Math.floor((meetingRow.duration_ms % 60000) / 1000);
         const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -612,11 +592,27 @@ export class DatabaseManager {
             title: meetingRow.title,
             date: meetingRow.created_at,
             duration: durationStr,
-            summary: summaryData.legacySummary || '',
-            detailedSummary: summaryData.detailedSummary,
             transcript: transcript,
             usage: usage
         };
+    }
+
+    /**
+     * Earlier builds seeded a fixed 'demo-meeting' guide describing features that no longer
+     * exist. Remove it (and its rows) on every start; a no-op once it is gone.
+     */
+    public removeRetiredDemoMeeting(): void {
+        if (!this.db) return;
+        try {
+            const id = 'demo-meeting';
+            this.db.transaction(() => {
+                this.db!.prepare('DELETE FROM ai_interactions WHERE meeting_id = ?').run(id);
+                this.db!.prepare('DELETE FROM transcripts WHERE meeting_id = ?').run(id);
+                this.db!.prepare('DELETE FROM meetings WHERE id = ?').run(id);
+            })();
+        } catch (error) {
+            console.error('[DatabaseManager] Failed to remove the retired demo meeting:', error);
+        }
     }
 
     public deleteMeeting(id: string): boolean {
@@ -652,146 +648,5 @@ export class DatabaseManager {
             console.error('[DatabaseManager] Failed to clear all data:', error);
             return false;
         }
-    }
-
-    public seedDemoMeeting() {
-        if (!this.db) return;
-
-        // Check if demo meeting already exists
-        const existing = this.db.prepare('SELECT id FROM meetings WHERE id = ?').get('demo-meeting');
-        if (existing) {
-            console.log('[DatabaseManager] Demo meeting already exists, skipping seed.');
-            return;
-        }
-
-        // Do NOT flush all meetings. Preserving user data is critical.
-        // If we really need to clean up old demo data, we should delete only that ID.
-        // this.deleteMeeting('demo-meeting'); // Optional safety if we wanted to force update
-
-        const demoId = 'demo-meeting';
-
-        // Set date to today 9:30 AM
-        const today = new Date();
-        today.setHours(9, 30, 0, 0);
-
-        const durationMs = 300000; // 5 min
-
-        const summaryMarkdown = `# Overview
-
-${APP_IDENTITY.name} is a real-time AI meeting assistant designed to help you stay focused, informed, and fast-moving during calls. Get live insights while you speak, instant answers to questions, and structured notes after every meeting.
-
-# Getting Started
-
-### Start a Session
-Click **Start Session** from the dashboard.
-Join a scheduled meeting and start directly from the meeting notification.
-
-### During a Meeting
-- Use the **five quick action buttons** for real-time assistance
-- Show or hide ${APP_IDENTITY.name} at any time:
-  - **Mac**: Cmd + B
-  - **Windows**: Ctrl + B
-- Move the widget anywhere on your screen by hovering over the top pill and dragging
-
-# Main Features
-
-## Five Quick Action Buttons
-- **What to answer**: Instantly generates a context-aware response to the current topic.
-- **Clarify**: Asks a targeted, senior-level clarifying question to establish constraints.
-- **Recap**: Generates a comprehensive summary of the conversation so far.
-- **Follow Up Question**: Suggests strategic questions you can ask to drive the conversation.
-- **Answer**: Manually trigger a response or use voice input to ask specific questions.
-
-## Meeting Insights (Launcher)
-- **Smart Note Taking**: Automatically captures key points, action items, and structured summaries.
-- **Summary**: A concise high-level brief of the entire meeting.
-- **Transcript**: Full real-time speech-to-text transcript, available during and after the call.
-- **Usage**: Track your interaction history and see how ${APP_IDENTITY.name} assisted you.
-
-## Live Insights
-Click **Live Insights** during a call to view:
-- Real-time questions and prompts
-- Detected keywords and topics
-- Context-aware suggestions based on the conversation
-- Click any insight to get an instant response.
-
-## AI Chat
-- Type your question and press **Enter** or click **Submit**
-- Enable **Smart Mode** for advanced reasoning and coding assistance
-
-## Screenshots
-- **Full Screen Screenshot**: Cmd + H
-- **Selective Screenshot**: Cmd + Shift + H
-
-# Making the Most of ${APP_IDENTITY.name}
-
-### Custom Context
-Upload resumes, project briefs, sales scripts, or other documents to tailor responses to your workflow. (coming soon).
-
-### Language Preferences
-Go to **Settings → Language Preferences** to:
-- Change input and output language
-- Enable real-time translation during calls
-
-### Undetectability
-Unlock the **Undetectability** add-on to keep ${APP_IDENTITY.name} invisible during screen sharing.
-
-# Interface Basics
-
-- **Dashboard**: Start meetings and view recent activity
-- **Start Session**: Begin a new meeting instantly
-- **Settings**: Configure API keys, language, and visibility
-- **History**: Review past meetings, notes, and transcripts
-
-# API Setup
-
-1. Open **Settings**
-2. Scroll to **Credentials**
-3. Add your API keys:
-   - **Gemini**
-   - **Groq**
-4. To enable real-time transcription, select a speech-to-text provider in **Settings** and add its API key.
-
-# Support
-
-If you need help with setup or usage, contact us anytime at:
-natively.contact@gmail.com`;
-
-        const demoMeeting: Meeting = {
-            id: demoId,
-            title: `${APP_IDENTITY.name} Demo & Guide`,
-            date: today.toISOString(),
-            duration: "5:00",
-            summary: `Complete guide to using ${APP_IDENTITY.name} - your real-time AI meeting assistant.`,
-            detailedSummary: {
-                overview: summaryMarkdown,
-                actionItems: [],
-                keyPoints: []
-            },
-            transcript: [
-                { speaker: 'interviewer', text: `Welcome to ${APP_IDENTITY.name}! Let me show you how it works.`, timestamp: 0 },
-                { speaker: 'user', text: "Thanks! I'm excited to try it out.", timestamp: 5000 },
-                { speaker: 'interviewer', text: "You have 5 quick action buttons. 'What to answer' listens to the conversation and suggests what you should say.", timestamp: 10000 },
-                { speaker: 'user', text: "That sounds helpful for interviews.", timestamp: 18000 },
-                { speaker: 'interviewer', text: "Check out the 'How to Use' section in the notes for API setup instructions.", timestamp: 20000 },
-                { speaker: 'interviewer', text: "'Clarify' asks a targeted question to get missing constraints. 'Recap' summarizes the entire conversation so far.", timestamp: 22000 },
-                { speaker: 'user', text: "What about the other buttons?", timestamp: 30000 },
-                { speaker: 'interviewer', text: "'Follow Up Questions' suggests questions you can ask. 'Answer' lets you speak a question and get an instant response.", timestamp: 35000 },
-                { speaker: 'user', text: "Can I take screenshots during calls?", timestamp: 45000 },
-                { speaker: 'interviewer', text: "Yes! Press Cmd+H for full screen or Cmd+Shift+H to select an area. The AI will analyze it and help you.", timestamp: 50000 },
-                { speaker: 'user', text: `How do I hide ${APP_IDENTITY.name} during screen share?`, timestamp: 60000 },
-                { speaker: 'interviewer', text: "Press Cmd+B to toggle visibility anytime. You can also enable undetectable mode in settings.", timestamp: 65000 },
-                { speaker: 'user', text: "This is amazing. What happens after the call?", timestamp: 75000 },
-                { speaker: 'interviewer', text: "You get detailed meeting notes with action items, key points, full transcript, and a log of all AI interactions.", timestamp: 80000 }
-            ],
-            usage: [
-                { type: 'assist', timestamp: 15000, question: `What features does ${APP_IDENTITY.name} have?`, answer: `${APP_IDENTITY.name} offers 5 quick action buttons, screenshot analysis, real-time transcription, and comprehensive meeting notes.` },
-                { type: 'followup', timestamp: 40000, question: 'How do the action buttons work?', answer: 'Each button serves a specific purpose: suggest answers, clarify questions, recap conversations, generate follow-up questions, or get instant voice-to-answer responses.' }
-            ],
-            isProcessed: true
-        };
-
-        this.saveMeeting(demoMeeting, today.getTime(), durationMs);
-        console.log('[DatabaseManager] Seeded demo meeting.');
     }
 }

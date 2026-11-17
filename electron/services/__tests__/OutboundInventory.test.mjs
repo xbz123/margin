@@ -14,7 +14,6 @@ const registered = {
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
   'electron/audio/RestSTT.ts': { 'axios.post': 1 },
   'electron/ipcHandlers.ts': { 'new WebSocket': 1, 'axios.post': 1 },
-  'electron/services/ModelVersionManager.ts': { fetch: 4 },
   'electron/services/CodexAuthSource.ts': { createOutboundFetch: 1 },
   'electron/services/outbound.ts': { createOutboundFetch: 2 },
   'electron/utils/modelFetcher.ts': { 'axios.get': 6 },

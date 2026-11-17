@@ -1942,11 +1942,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     return DatabaseManager.getInstance().updateMeetingTitle(id, title);
   });
 
-  safeHandle('seed-demo', async () => {
-    DatabaseManager.getInstance().seedDemoMeeting();
-    return { success: true };
-  });
-
   safeHandle('flush-database', async () => {
     const result = DatabaseManager.getInstance().clearAllData();
     return { success: result };

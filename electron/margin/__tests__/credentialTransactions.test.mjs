@@ -588,7 +588,6 @@ test('AG31 startup ignores environment keys: never-saved, saved, removed and unr
       constructor(...args) { constructed.push(args); }
       configureProvider(config, key) { configured.push([config.provider, key, config]); }
       configureGateway(config, key) { configured.push(['gateway', key, config]); }
-      initModelVersionManager() { return Promise.resolve(); }
       setModel() {} setGenerationPolicy() {} setSavedReasoning() {} setSttLanguage() {} setAiResponseLanguage() {}
     }
     const ProcessingHelper = processingHelperClass(manager, Helper, { env: { ...ENV_KEYS } });
@@ -637,11 +636,10 @@ function realAnswerRuntime() {
   } };
 }
 
-// Real ProcessingHelper over the manager and LLMHelper class; the model-list manager is replaced by an async recorder.
-function startAnswerRuntime(manager, LLMHelper, appState, calls = []) {
+// Real ProcessingHelper over the manager and LLMHelper class.
+function startAnswerRuntime(manager, LLMHelper, appState) {
   const processing = new (processingHelperClass(manager, LLMHelper, process))(appState);
   appState.processingHelper = processing;
-  processing.getLLMHelper().initModelVersionManager = async () => { calls.push('initModelVersionManager'); };
   processing.loadStoredCredentials();
   return processing.getLLMHelper();
 }
@@ -676,10 +674,8 @@ test('real ProcessingHelper construction and startup create no official client f
       const helper = processing.getLLMHelper();
       assert.deepEqual(usable(helper), [], `${scenario}: construction creates no official client`);
       assert.equal(helper.gatewayClients?.size ?? 0, 0);
-      // The real manager would fetch model lists with the key and start a background timer.
-      helper.initModelVersionManager = async () => { calls.push('initModelVersionManager'); };
       processing.loadStoredCredentials();
-      assert.deepEqual(calls, ['initializeLLMs', 'initModelVersionManager']);
+      assert.deepEqual(calls, ['initializeLLMs']);
       assert.deepEqual(usable(helper), scenario === 'saved' ? ['openai'] : [], `${scenario}: startup uses only saved keys`);
       if (scenario === 'saved') { assert.equal(helper.openaiApiKey, 'synthetic-saved'); assert.equal(helper.openaiClient.apiKey, 'synthetic-saved'); }
     }
@@ -909,7 +905,6 @@ test('S47 two candidates resolve to themselves through save, cold start and the 
     process.env.MARGIN_DEV_OPENAI_BASE_URL = `http://127.0.0.1:${server.address().port}/v1`;
     const disk = storage(), manager = disk.boot();
     const start = store => { const helper = new LLMHelper(); helpers.push(helper); helper.getProviderScopePolicy = () => ({});
-      helper.initModelVersionManager = async () => {};
       const appState = sessionAppState(); answerOperations(store, helper, appState); appState.processingHelper.loadStoredCredentials(); return { helper, appState }; };
     const { helper, appState } = start(manager);
     const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }), appState };

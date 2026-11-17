@@ -86,8 +86,7 @@ test('stopMeeting saves the finished transcript and usage once, without generati
   assert.deepEqual(plain(result), { status: 'saved', id: meeting.id });
   assert.equal(meeting.title, 'Weekly sync', 'the title is read before reset clears the metadata');
   assert.equal(meeting.isProcessed, true);
-  assert.equal(meeting.summary, '');
-  assert.deepEqual(JSON.parse(JSON.stringify(meeting.detailedSummary)), { actionItems: [], keyPoints: [] });
+  assert.equal('summary' in meeting || 'detailedSummary' in meeting, false, 'summaries are retired');
   assert.equal(meeting.transcript[0].text, 'TRANSCRIPT_SENTINEL', 'the transcript is copied before reset');
   assert.equal(meeting.usage.length, 1);
   assert.ok(durationMs >= 5_000);

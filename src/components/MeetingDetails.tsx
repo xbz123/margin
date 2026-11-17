@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
-import { ArrowLeft, Search, Mail, Link, ChevronDown, Play, ArrowUp, Copy, Check, MoreHorizontal, Settings, ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Copy, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import EditableTextBlock from './EditableTextBlock';
 import NativelyLogo from './icon.png';
 import ReactMarkdown from './SafeMarkdown';
@@ -15,12 +15,6 @@ const formatTime = (ms: number) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
 };
 
-const formatDuration = (ms: number) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = ((ms % 60000) / 1000).toFixed(0);
-    return `${minutes}:${Number(seconds) < 10 ? '0' : ''}${seconds}`;
-};
-
 const cleanMarkdown = (content: string) => {
     if (!content) return '';
     // Ensure code blocks are on new lines to fix rendering issues
@@ -32,7 +26,6 @@ interface Meeting {
     title: string;
     date: string;
     duration: string;
-    summary: string;
     transcript?: Array<{
         speaker: string;
         text: string;
@@ -56,8 +49,6 @@ const restoreField = (current: Meeting, source: Meeting, _field: EditField): Mee
 
 interface MeetingDetailsProps {
     meeting: Meeting;
-    onBack: () => void;
-    onOpenSettings: () => void;
 }
 
 const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting }) => {
@@ -187,9 +178,6 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                 <div role="alert" className="mt-1 text-xs text-red-500">{t(saveError.message)}</div>
                             )}
                         </div>
-
-                        {/* Moved Actions: Follow-up & Share (REMOVED per user request) */}
-                        {/* <div className="flex items-center gap-2 mt-1"> ... </div> */}
                     </div>
 
                     {/* Tabs */}

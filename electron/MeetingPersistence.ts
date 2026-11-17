@@ -84,8 +84,6 @@ export class MeetingPersistence {
             title: metadata?.title || 'Untitled Session',
             date: new Date().toISOString(),
             duration: `${minutes}:${Number(seconds) < 10 ? '0' : ''}${seconds}`,
-            summary: '',
-            detailedSummary: { actionItems: [], keyPoints: [] },
             transcript,
             usage,
             isProcessed: true

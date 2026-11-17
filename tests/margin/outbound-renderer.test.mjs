@@ -124,7 +124,7 @@ test('AG62 mounted Launcher checks local setup, refreshes on return and cleans u
       getDomesticStt: async provider => { window.reads.push('domestic:' + provider); return { hasKey: true, workspaceId: '', resourceId: 'volc.seedasr.sauc.concurrent' }; },
       getCodexCliConfig: async () => { window.reads.push('codex'); return { ...window.codex }; },
       getWindowPreferences: async () => [], getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
-      getRecentMeetings: async () => [], getMeetingActive: async () => false, seedDemo: async () => ({ success: true })
+      getRecentMeetings: async () => [], getMeetingActive: async () => false
     };
     window.electronAPI = new Proxy(api, { get(target, name) {
       if (name in target) return target[name];
@@ -243,7 +243,7 @@ test('AG62 mounted App cancels permission guidance on meeting start and ignores 
       getInputDevices: async () => [], getOutputDevices: async () => [], getRecognitionLanguages: async () => ({}), getAiResponseLanguages: async () => [],
       getOpenAtLogin: async () => false, getMeetingRetention: async () => 'forever', getActionButtonMode: async () => 'recap', getDefaultModel: async () => ({ model: 'synthetic' }),
       getWindowPreferences: async () => [], getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
-      getRecentMeetings: async () => [], getMeetingActive: async () => false, seedDemo: async () => ({ success: true }),
+      getRecentMeetings: async () => [], getMeetingActive: async () => false,
       startMeeting: async () => { window.starts++; return { success: true }; }
     };
     window.electronAPI = new Proxy(api, { get(target, name) {
@@ -1855,7 +1855,7 @@ test('mounted Launcher unsaved meeting banner orders query and events, guards co
       checkPermissions: async () => ({ platform: 'darwin', microphone: 'granted', screen: 'granted' }),
       getCodexCliConfig: async () => ({ enabled: false }), getWindowPreferences: async () => [],
       getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
-      getRecentMeetings: async () => [], getMeetingActive: async () => false, seedDemo: async () => ({ success: true })
+      getRecentMeetings: async () => [], getMeetingActive: async () => false
     };
     window.electronAPI = new Proxy(api, { get(target, name) {
       if (name in target) return target[name];

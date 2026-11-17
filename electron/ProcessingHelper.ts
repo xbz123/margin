@@ -72,11 +72,6 @@ export class ProcessingHelper {
     // This fixes the issue where buttons don't work in production because of late key loading
     this.appState.getIntelligenceManager().initializeLLMs();
 
-    // Initialize self-improving model version manager (background, non-blocking)
-    this.llmHelper.initModelVersionManager().catch(err => {
-      console.warn('[ProcessingHelper] ModelVersionManager initialization failed (non-critical):', err.message);
-    });
-
     // NEW: Load Default Model Config
     const defaultModel = credManager.getDefaultModel();
     if (defaultModel) {

@@ -269,7 +269,7 @@ interface ElectronAPI {
   discardUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>;
   onUnsavedMeetingChanged: (callback: (meeting: UnsavedMeeting | null) => void) => () => void;
   getRecentMeetings: () => Promise<
-    Array<{ id: string; title: string; date: string; duration: string; summary: string }>
+    Array<{ id: string; title: string; date: string; duration: string }>
   >;
   getMeetingDetails: (id: string) => Promise<any>;
   updateMeetingTitle: (id: string, title: string) => Promise<boolean>;
@@ -326,9 +326,6 @@ interface ElectronAPI {
   getCodexCliConfig: () => Promise<CodexSourceConfig>;
   setCodexCliConfig: (config: CodexSourceUpdate) => Promise<{ success: boolean; error?: string; config?: CodexSourceConfig }>;
   testCodexCli: () => Promise<CodexSourceStatus>;
-
-  // Demo
-  seedDemo: () => Promise<{ success: boolean }>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;
@@ -1317,9 +1314,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCodexCliConfig: () => ipcRenderer.invoke('get-codex-cli-config'),
   setCodexCliConfig: (config: CodexSourceUpdate) => ipcRenderer.invoke('set-codex-cli-config', config),
   testCodexCli: () => ipcRenderer.invoke('test-codex-cli'),
-
-  // Demo
-  seedDemo: () => ipcRenderer.invoke('seed-demo'),
 
   // Audio Test
   startAudioTest: (deviceId?: string) => ipcRenderer.invoke('start-audio-test', deviceId),

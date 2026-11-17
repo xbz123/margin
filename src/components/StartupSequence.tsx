@@ -1,7 +1,6 @@
 import { APP_NAME } from '../appIdentity';
 import React from 'react';
 import { motion } from 'framer-motion';
-import logoAsset from '../assets/logo.png';
 import celebFont from '../font/Masterfont - Celeb MF Medium.otf?url';
 import celebLightFont from '../font/Masterfont - Celeb MF Light.otf?url';
 import interFont from '../font/Inter-4.1/web/Inter-Medium.woff2?url';

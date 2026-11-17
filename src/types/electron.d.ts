@@ -201,7 +201,7 @@ export interface ElectronAPI {
   retryUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>
   discardUnsavedMeeting: (id: string) => Promise<UnsavedMeetingCommandResult>
   onUnsavedMeetingChanged: (callback: (meeting: UnsavedMeeting | null) => void) => () => void
-  getRecentMeetings: () => Promise<Array<{ id: string; title: string; date: string; duration: string; summary: string }>>
+  getRecentMeetings: () => Promise<Array<{ id: string; title: string; date: string; duration: string }>>
   getMeetingDetails: (id: string) => Promise<any>
   updateMeetingTitle: (id: string, title: string) => Promise<boolean>
   deleteMeeting: (id: string) => Promise<boolean>
@@ -276,9 +276,6 @@ export interface ElectronAPI {
   getCodexCliConfig: () => Promise<CodexSourceConfig>;
   setCodexCliConfig: (config: CodexSourceUpdate) => Promise<{ success: boolean; error?: string; config?: CodexSourceConfig }>;
   testCodexCli: () => Promise<CodexSourceStatus>;
-
-  // Demo
-  seedDemo: () => Promise<{ success: boolean }>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;

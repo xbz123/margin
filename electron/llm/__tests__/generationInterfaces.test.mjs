@@ -358,7 +358,6 @@ test('reselecting the same canonical target through qualified or raw model id ke
 test('application quit cancels existing tasks and refuses all later generation entries before any send', async () => {
   const { self, requests } = helper();
   self.rateLimiters.gemini.destroy = () => {};
-  self.modelVersionManager = { stopScheduler() {} };
   const task = self.beginGenerationTask('background');
   self.scrubKeys();
   assert.equal(task.signal.aborted, true);

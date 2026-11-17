@@ -12,7 +12,6 @@ import fs from "fs"
 import { AsyncLocalStorage } from "async_hooks"
 import { createHash } from "crypto"
 import { toJpeg } from "./services/screen/imageCodec"
-import { ModelVersionManager } from './services/ModelVersionManager'
 import {
   HARD_SYSTEM_PROMPT,
   UNIVERSAL_SYSTEM_PROMPT, UNIVERSAL_ANSWER_PROMPT, UNIVERSAL_WHAT_TO_ANSWER_PROMPT,
@@ -338,9 +337,6 @@ export class LLMHelper {
   // Rate limiters per provider to prevent 429 errors on free tiers
   private rateLimiters: ReturnType<typeof createProviderRateLimiters>;
 
-  // Self-improving model version manager for vision analysis
-  private modelVersionManager: ModelVersionManager;
-
   // Process-local cache of Gemini explicit context caches (caches.create).
   // Lifecycle and contract documented in GeminiPromptCache.ts.
   private geminiPromptCache: GeminiPromptCache = new GeminiPromptCache();
@@ -446,7 +442,6 @@ export class LLMHelper {
     }
     this.refreshSelection(previous, validated);
     if (config.provider === 'gemini' && this.selectedTarget?.provider === 'gemini') this.geminiModel = this.selectedTarget.model;
-    this.refreshDiscoveryKeys();
   }
 
   /** The adapter follows the gateway's protocol only; its key is never shared with an official client. */
@@ -527,16 +522,6 @@ export class LLMHelper {
     this.selectionError = reason;
   }
 
-  private refreshDiscoveryKeys(): void {
-    const configs = this.providerConfigurations ?? LLM_PRESETS;
-    this.modelVersionManager?.setApiKeys({
-      openai: effectiveProviderConfiguration(configs.openai).custom ? null : this.openaiApiKey,
-      gemini: effectiveProviderConfiguration(configs.gemini).custom ? null : this.apiKey,
-      claude: effectiveProviderConfiguration(configs.claude).custom ? null : this.claudeApiKey,
-      groq: null,
-    });
-  }
-
   /** Tests exactly one saved candidate of an official provider (its first by default) or a gateway; nothing else is tried. */
   public async testProviderConnection(provider: LlmProvider | { gatewayId: string }, model?: string): Promise<string> {
     let target: ModelTarget;
@@ -583,20 +568,6 @@ export class LLMHelper {
 
     // Initialize rate limiters
     this.rateLimiters = createProviderRateLimiters();
-
-    // Initialize model version manager
-    this.modelVersionManager = new ModelVersionManager();
-  }
-
-  /**
-   * Initialize the self-improving model version manager.
-   * Should be called after all API keys are configured.
-   * Triggers initial model discovery and starts background scheduler.
-   */
-  public async initModelVersionManager(): Promise<void> {
-    this.refreshDiscoveryKeys();
-    await this.modelVersionManager.initialize();
-    console.log(this.modelVersionManager.getSummary());
   }
 
   public setGroqFastTextMode(enabled: boolean) {
@@ -615,7 +586,6 @@ export class LLMHelper {
     this.gatewayClients?.clear();
     this.client = null; this.groqClient = null; this.openaiClient = null; this.claudeClient = null; this.deepseekClient = null;
     if (this.rateLimiters) Object.values(this.rateLimiters).forEach(limiter => limiter.destroy());
-    this.modelVersionManager.stopScheduler();
   }
 
   public getGroqFastTextMode(): boolean {

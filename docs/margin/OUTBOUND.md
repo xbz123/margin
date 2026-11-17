@@ -30,7 +30,6 @@ preserved. Nothing patches node_modules or SDK prototypes.
 | LLMHelper DeepSeek via llm/generateOnce (Chat) | Fixed https://api.deepseek.com | Text/images subject to exact-target capability admission |
 | LLMHelper Gemini via llm/generateOnce; GeminiPromptCache caches.create | Fixed https://generativelanguage.googleapis.com; explicit API-key v1alpha backend | Text/images/system instructions |
 | LLMHelper independent gateway via llm/generateOnce | Explicit saved URL, own stable identity and Key; separate Gemini/Anthropic/OpenAI client according to protocol, never an official fallback | Text/images subject to gateway-specific confirmation; final SDK errors are replaced after retry classification before reaching renderer/log consumers |
-| ModelVersionManager discovery | Official OpenAI/Gemini/Anthropic model-list URLs; Groq and custom targets receive no discovery key | Key/config only; startup/background/model-error discovery |
 | utils/modelFetcher, fetch-provider-models / fetch-gateway-models IPC | Saved official target or independent gateway; gateway model IDs unfiltered, no official fallback | User-triggered saved key/config only |
 | test-llm-connection / test-gateway-connection IPC | Saved target and protocol through generateOnce; supplied expected configuration must match storage | Fixed Hello and saved key |
 | test-stt-connection IPC | Soniox WS, Groq/OpenAI transcription POST | Manual validation; synthetic WAV only |

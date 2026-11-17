@@ -15,7 +15,6 @@ interface Meeting {
     id: string;
     title: string;
     date: string;
-    summary?: string;
 }
 
 interface SearchResult {
@@ -61,11 +60,7 @@ function searchMeetings(meetings: Meeting[], query: string, locale: string): Sea
     for (const meeting of meetings) {
         if (seen.has(meeting.id)) continue;
 
-        // Match against title and summary
-        const titleMatch = fuzzyMatch(meeting.title, query);
-        const summaryMatch = meeting.summary && fuzzyMatch(meeting.summary, query);
-
-        if (titleMatch || summaryMatch) {
+        if (fuzzyMatch(meeting.title, query)) {
             seen.add(meeting.id);
             results.push({
                 id: meeting.id,
