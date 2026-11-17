@@ -11,6 +11,7 @@
   ],
   "excludePaths": ["docs/margin", "package-lock.json"],
   "allowLines": [
+    { "line": "windowsHide: true,", "reason": "Standard Node child_process option in scripts/margin/isolation/run-node.mjs so gate test processes open no console window on Windows; written for this branch, 2026-11-17" },
     { "line": "return candidate;", "reason": "S50 mode revision: independently returns the validated saved settings object; generic local-variable return, not AnswerPlanner or another upstream function body." },
     { "line": "private paused = false;", "reason": "S50 mode revision: independently authored in-memory manual-capture pause flag; generic boolean field, not the upstream transcriptionPause implementation." },
     { "line": "getSessionStartTime: () => startedAt,", "reason": "S50 CI repair: independently changed the synthetic session getter to return its fixed start instant; generic constant getter, verified with an advancing-clock red/green test." },
