@@ -98,6 +98,10 @@ export class IntelligenceManager extends EventEmitter {
         }
     }
 
+    hasFinalUserSegments(keys: readonly string[]): boolean {
+        return this.session.hasFinalUserSegments(keys);
+    }
+
     addAssistantMessage(text: string, generation?: import('../src/types/generationMetadata').GenerationMetadata): void {
         this.session.addAssistantMessage(text, generation);
     }

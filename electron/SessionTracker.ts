@@ -512,6 +512,11 @@ export class SessionTracker {
     // Session Data Accessors (for MeetingPersistence)
     // ============================================
 
+    /** True when every key is already stored as a final user STT segment. */
+    hasFinalUserSegments(keys: readonly string[]): boolean {
+        return keys.length > 0 && keys.every(key => this.fullTranscript.some(item => item.speaker === 'user' && item.segmentId === key));
+    }
+
     getFullTranscript(): TranscriptSegment[] {
         return this.fullTranscript;
     }

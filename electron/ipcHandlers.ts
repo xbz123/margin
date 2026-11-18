@@ -599,9 +599,11 @@ export function initializeIpcHandlers(appState: AppState): void {
         // question, confusing small models (the "20-char context" log line was just an echo).
         let autoContextSnapshot: string | undefined;
         const declaredScopes: ProviderDataScope[] = [];
+        let dictationKeys: readonly string[] = [];
         if (speechAction) {
           // Both channels as frozen for the action, without the dictated question itself.
           const frozen = await speechAction.frozen;
+          dictationKeys = frozen.dictationKeys ?? [];
           const view = await frozenView(speechAction, scope => declaredScopes.push(scope), new Set(frozen.dictationKeys));
           const transcript = formatTranscriptItems(view.getContext(100));
           if (transcript.trim()) context = context ? `${context}\n\nRecent conversation:\n${transcript}` : transcript;
@@ -614,16 +616,21 @@ export function initializeIpcHandlers(appState: AppState): void {
           }
         }
 
-        // Now add USER message to IntelligenceManager (after context snapshot)
-        intelligenceManager.addTranscript(
-          {
-            text: message,
-            speaker: 'user',
-            timestamp: Date.now(),
-            final: true,
-          },
-          true,
-        );
+        // Now add USER message to IntelligenceManager (after context snapshot).
+        // A dictated question whose STT finals are already stored is not added twice; a
+        // single-segment one keeps its segment id so a late final replaces it instead.
+        if (!intelligenceManager.hasFinalUserSegments(dictationKeys)) {
+          intelligenceManager.addTranscript(
+            {
+              text: message,
+              speaker: 'user',
+              timestamp: Date.now(),
+              final: true,
+              ...(dictationKeys.length === 1 ? { segmentId: dictationKeys[0] } : {}),
+            },
+            true,
+          );
+        }
 
         let fullResponse = '';
 

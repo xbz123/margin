@@ -623,6 +623,59 @@ test('S42-03 Stop: main freezes the dictated question, the chat request carries 
   assert.equal(c.sent.length, 1, 'a question main did not freeze sends nothing');
 });
 
+const userLines = (c, text) => c.intelligence.session.getFullTranscript().filter(item => item.speaker === 'user' && item.text === text).length;
+
+async function dictateAndStop(c, final) {
+  const { dictationId } = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  await new Promise(resolve => setTimeout(resolve, 2));
+  c.user.emit('transcript', { segmentId: 'q', text: 'how would you shard the cache', isFinal: final });
+  await new Promise(resolve => setTimeout(resolve, 2));
+  const ref = await c.begin('answer', { dictationId });
+  c.releaseSeals();
+  const frozen = await c.invoke('speech-action:freeze', ref);
+  assert.equal(frozen.question, 'how would you shard the cache');
+  // Past SessionTracker's 500 ms same-text dedup, as in a real Stop.
+  await new Promise(resolve => setTimeout(resolve, 600));
+  await c.invoke('gemini-chat-stream', frozen.question, undefined, 'PROMPT', { skipSystemPrompt: true, speechActionId: ref.speechActionId });
+  assert.equal(c.sent.length, 1);
+  return frozen.question;
+}
+
+test('Stop: a dictated question already stored as an STT final is saved once in the transcript', async () => {
+  const c = chain();
+  const question = await dictateAndStop(c, true);
+  assert.equal(userLines(c, question), 1, 'the answer request does not add the dictated question again');
+  assert.equal(c.intelligence.getContext(100).filter(item => item.role === 'user' && item.text === question).length, 1);
+});
+
+test('Stop: a dictated question still interim at the freeze is saved once by the answer request', async () => {
+  const c = chain();
+  const question = await dictateAndStop(c, false);
+  assert.equal(userLines(c, question), 1, 'the question is not lost');
+  // Its final arriving after the request replaces that line instead of adding one.
+  c.user.emit('transcript', { segmentId: 'q', text: question, isFinal: true });
+  await new Promise(resolve => setTimeout(resolve, 2));
+  assert.equal(userLines(c, question), 1, 'a late final does not add a second line');
+});
+
+test('a typed question is still saved once in the transcript', async () => {
+  const c = chain();
+  await c.invoke('gemini-chat-stream', 'typed cache question');
+  assert.equal(userLines(c, 'typed cache question'), 1);
+});
+
+test('SessionTracker.hasFinalUserSegments needs every key stored as a final user segment', () => {
+  const { SessionTracker } = dist('SessionTracker');
+  const session = new SessionTracker();
+  session.addTranscript({ speaker: 'user', text: 'first', timestamp: 1, final: true, segmentId: 'a' });
+  session.addTranscript({ speaker: 'user', text: 'pending', timestamp: 2, final: false, segmentId: 'b' });
+  session.addTranscript({ speaker: 'interviewer', text: 'theirs', timestamp: 3, final: true, segmentId: 'c' });
+  assert.equal(session.hasFinalUserSegments(['a']), true);
+  assert.equal(session.hasFinalUserSegments(['a', 'b']), false, 'an interim segment is not stored');
+  assert.equal(session.hasFinalUserSegments(['c']), false, 'another speaker does not count');
+  assert.equal(session.hasFinalUserSegments([]), false);
+});
+
 test('S42-03 Answer pressed while the previous Stop is still freezing keeps that round and starts a separate dictation', async () => {
   const c = chain();
   const clockMovesOn = () => new Promise(resolve => setTimeout(resolve, 2));
