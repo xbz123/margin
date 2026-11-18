@@ -28,7 +28,7 @@ function handlers(root, queue = []) {
     deniedDataScopes: () => [],
     getPromptTier: () => 'standard',
   };
-  const manager = { getFormattedContext: () => '', getLastAssistantMessage: () => null, addTranscript() {}, addAssistantMessage() {}, logUsage() {},
+  const manager = { getFormattedContext: () => '', getLastAssistantMessage: () => null, addTranscript() {}, hasFinalUserSegments: () => false, addAssistantMessage() {}, logUsage() {},
     getDetectedCodingQuestion: () => ({ question: null, source: null }), captureBase: () => ({}),
     frozenView: () => ({ frozen: true, getLastAssistantMessage: () => null, getContext: () => [] }),
     resetEngine() { resets.push('engine'); }, reset() { resets.push('session'); },
