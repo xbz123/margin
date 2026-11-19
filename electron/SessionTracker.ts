@@ -301,7 +301,7 @@ export class SessionTracker {
             timestamp: Date.now()
         });
 
-        // Also add to fullTranscript so it persists in the session history (and summaries)
+        // Also add to fullTranscript so it persists in the session history
         this.fullTranscript.push({
             speaker: 'assistant',
             text: cleanText,
