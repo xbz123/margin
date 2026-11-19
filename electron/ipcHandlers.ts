@@ -618,7 +618,8 @@ export function initializeIpcHandlers(appState: AppState): void {
 
         // Now add USER message to IntelligenceManager (after context snapshot).
         // A dictated question whose STT finals are already stored is not added twice; a
-        // single-segment one keeps its segment id so a late final replaces it instead.
+        // single-segment one is a provisional stand-in under its segment id, so a late final
+        // (or the next stand-in for a still-open segment) replaces it instead.
         if (!intelligenceManager.hasFinalUserSegments(dictationKeys)) {
           intelligenceManager.addTranscript(
             {
@@ -626,7 +627,7 @@ export function initializeIpcHandlers(appState: AppState): void {
               speaker: 'user',
               timestamp: Date.now(),
               final: true,
-              ...(dictationKeys.length === 1 ? { segmentId: dictationKeys[0] } : {}),
+              ...(dictationKeys.length === 1 ? { segmentId: dictationKeys[0], provisional: true } : {}),
             },
             true,
           );

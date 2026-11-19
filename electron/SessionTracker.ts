@@ -17,6 +17,11 @@ export interface TranscriptSegment {
     generation?: GenerationMetadata;
     /** Stable STT segment identity; a later revision with the same ID updates the stored text. */
     segmentId?: string;
+    /**
+     * Input only: text written for a segment STT has not confirmed (a dictated question frozen
+     * before its final). It never overwrites a confirmed final; the next STT final replaces it.
+     */
+    provisional?: boolean;
 }
 
 // Context item matching Swift ContextManager structure
@@ -58,6 +63,13 @@ export interface ConversationBase {
     readonly coding: { readonly question: string | null; readonly source: 'screenshot' | 'transcript' | null };
 }
 
+/** Text the answer handlers pass through addTranscript as prompts; never stored as a transcript line. */
+function isInternalPrompt(text: string): boolean {
+    return text.startsWith("You are a real-time interview assistant") ||
+        text.startsWith("You are a helper") ||
+        text.startsWith("CONTEXT:");
+}
+
 export function formatTranscriptItems(items: readonly ContextItem[]): string {
     return items.map(item => {
         const label = item.role === 'interviewer' ? 'INTERVIEWER' :
@@ -86,6 +98,8 @@ export class SessionTracker {
 
     // Full Session Tracking (Persisted)
     private fullTranscript: TranscriptSegment[] = [];
+    // Segment IDs whose stored text is a provisional stand-in, not yet confirmed by an STT final.
+    private provisionalSegments = new Set<string>();
     private fullUsage: any[] = []; // UsageInteraction
     private sessionStartTime: number = Date.now();
 
@@ -224,17 +238,25 @@ export class SessionTracker {
 
         if (!text) return null;
 
+        const { provisional, ...row } = segment;
+        const segmentId = row.segmentId;
+
         // A corrected final of the same STT segment replaces the stored text instead of adding a turn.
-        if (segment.segmentId) {
-            const existing = this.contextItems.findLast(item => item.segmentId === segment.segmentId);
-            const stored = this.fullTranscript.findLast(item => item.segmentId === segment.segmentId);
+        if (segmentId) {
+            const existing = this.contextItems.findLast(item => item.segmentId === segmentId);
+            const stored = this.fullTranscript.findLast(item => item.segmentId === segmentId);
             if (existing || stored) {
+                // A stand-in never overwrites text an STT final confirmed.
+                if (provisional && !this.provisionalSegments.has(segmentId)) return null;
+                if (!provisional) this.provisionalSegments.delete(segmentId);
                 if (existing && existing.text !== text) {
                     existing.previous = { text: existing.text, since: existing.textSince ?? existing.timestamp };
                     existing.textSince = Date.now();
                     existing.text = text;
                 }
                 if (stored) stored.text = text;
+                // Only the context held it (its earlier text was an internal prompt): store the line now.
+                else if (existing && !isInternalPrompt(text)) this.storeTranscriptLine({ ...row, text, timestamp: existing.timestamp });
                 return null;
             }
         }
@@ -248,6 +270,11 @@ export class SessionTracker {
             return null;
         }
 
+        if (segmentId) {
+            if (provisional) this.provisionalSegments.add(segmentId);
+            else this.provisionalSegments.delete(segmentId);
+        }
+
         this.contextItems.push({
             role,
             text,
@@ -258,21 +285,19 @@ export class SessionTracker {
         this.evictOldEntries();
 
         // Filter out internal system prompts that might be passed via IPC
-        const isInternalPrompt = text.startsWith("You are a real-time interview assistant") ||
-            text.startsWith("You are a helper") ||
-            text.startsWith("CONTEXT:");
-
-        if (!isInternalPrompt) {
-            // Add to session transcript
-            this.fullTranscript.push(segment);
-            // Compact transcript with summarization instead of losing early context
-            // Fire-and-forget: sync context; errors are caught internally
-            void this.compactTranscriptIfNeeded().catch(e =>
-                console.warn('[SessionTracker] compactTranscript error (non-fatal):', e)
-            );
-        }
+        if (!isInternalPrompt(text)) this.storeTranscriptLine(row);
 
         return { role };
+    }
+
+    private storeTranscriptLine(segment: TranscriptSegment): void {
+        // Add to session transcript
+        this.fullTranscript.push(segment);
+        // Compact transcript with summarization instead of losing early context
+        // Fire-and-forget: sync context; errors are caught internally
+        void this.compactTranscriptIfNeeded().catch(e =>
+            console.warn('[SessionTracker] compactTranscript error (non-fatal):', e)
+        );
     }
 
     /**
@@ -512,9 +537,10 @@ export class SessionTracker {
     // Session Data Accessors (for MeetingPersistence)
     // ============================================
 
-    /** True when every key is already stored as a final user STT segment. */
+    /** True when every key is already stored as a final user STT segment (a provisional stand-in does not count). */
     hasFinalUserSegments(keys: readonly string[]): boolean {
-        return keys.length > 0 && keys.every(key => this.fullTranscript.some(item => item.speaker === 'user' && item.segmentId === key));
+        return keys.length > 0 && keys.every(key => !this.provisionalSegments.has(key)
+            && this.fullTranscript.some(item => item.speaker === 'user' && item.segmentId === key));
     }
 
     getFullTranscript(): TranscriptSegment[] {
@@ -583,6 +609,7 @@ export class SessionTracker {
     reset(): void {
         this.contextItems = [];
         this.fullTranscript = [];
+        this.provisionalSegments.clear();
         this.fullUsage = [];
         this.transcriptEpochSummaries = [];
         this.sessionStartTime = Date.now();

@@ -676,6 +676,87 @@ test('SessionTracker.hasFinalUserSegments needs every key stored as a final user
   assert.equal(session.hasFinalUserSegments([]), false);
 });
 
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+const userTexts = c => c.intelligence.session.getFullTranscript().filter(item => item.speaker === 'user').map(item => item.text);
+
+// One Answer round: dictation begins, `speak` emits microphone results, Stop freezes, then the answer request.
+async function dictationRound(c, speak, { beforeRequest } = {}) {
+  const { dictationId } = await c.invoke('dictation:begin', { dictationId: crypto.randomUUID(), clickedAt: Date.now() });
+  await pause(2);
+  speak();
+  await pause(2);
+  const ref = await c.begin('answer', { dictationId });
+  c.releaseSeals();
+  const frozen = await c.invoke('speech-action:freeze', ref);
+  beforeRequest?.();
+  // Past SessionTracker's 500 ms same-text dedup, as in a real Stop.
+  await pause(600);
+  await c.invoke('gemini-chat-stream', frozen.question, undefined, 'PROMPT', { skipSystemPrompt: true, speechActionId: ref.speechActionId });
+  return frozen.question;
+}
+
+test('Stop: a final for the same key stored before the request is kept; the frozen question is not written over it', async () => {
+  const c = chain();
+  const question = await dictationRound(c,
+    () => c.user.emit('transcript', { segmentId: 'q', text: 'how would you shard the cache', isFinal: false }),
+    { beforeRequest: () => c.user.emit('transcript', { segmentId: 'q', text: 'how would you shard the cash', isFinal: true }) });
+  assert.equal(question, 'how would you shard the cache');
+  assert.equal(c.sent.length, 1);
+  assert.match(JSON.stringify(c.sent[0]), /how would you shard the cache/, 'the model receives the frozen question');
+  assert.deepEqual(userTexts(c), ['how would you shard the cash'], 'one user line, holding the STT final');
+});
+
+test('Stop: a dictation of several segments that are all final is saved once, without a joined extra line', async () => {
+  const c = chain();
+  const question = await dictationRound(c, () => {
+    c.user.emit('transcript', { segmentId: 'q1', text: 'how would you', isFinal: true });
+    c.user.emit('transcript', { segmentId: 'q2', text: 'shard the cache', isFinal: true });
+  });
+  assert.equal(question, 'how would you shard the cache');
+  assert.deepEqual(userTexts(c), ['how would you', 'shard the cache']);
+});
+
+test('Stop: two Answer rounds over the same still-open key keep the revised text when no final arrives', async () => {
+  const c = chain();
+  const first = await dictationRound(c, () => c.user.emit('transcript', { segmentId: 'q', text: 'how would you', isFinal: false }));
+  assert.equal(first, 'how would you');
+  const second = await dictationRound(c, () => c.user.emit('transcript', { segmentId: 'q', text: 'how would you shard it', isFinal: false }));
+  assert.equal(second, 'how would you shard it', 'the second round revises the same provider key');
+  assert.equal(c.sent.length, 2);
+  assert.match(JSON.stringify(c.sent[1]), /how would you shard it/);
+  assert.deepEqual(userTexts(c), ['how would you shard it'], 'the meeting keeps what the model was asked');
+  assert.equal(c.intelligence.session.getFullTranscript().some(item => 'provisional' in item), false, 'the stand-in mark is not stored');
+});
+
+test('SessionTracker: a provisional stand-in never overwrites an STT final, and an STT final replaces a stand-in', () => {
+  const { SessionTracker } = dist('SessionTracker');
+  const session = new SessionTracker();
+  const now = Date.now();
+  session.addTranscript({ speaker: 'user', text: 'confirmed words', timestamp: now + 1, final: true, segmentId: 'a' });
+  session.addTranscript({ speaker: 'user', text: 'frozen interim words', timestamp: now + 2, final: true, segmentId: 'a', provisional: true });
+  assert.deepEqual(session.getFullTranscript().map(item => item.text), ['confirmed words']);
+  assert.equal(session.getContext(100).find(item => item.segmentId === 'a').text, 'confirmed words');
+  assert.equal(session.hasFinalUserSegments(['a']), true);
+
+  session.addTranscript({ speaker: 'user', text: 'stand in', timestamp: now + 3, final: true, segmentId: 'b', provisional: true });
+  assert.equal(session.hasFinalUserSegments(['b']), false, 'a stand-in is not an STT final');
+  session.addTranscript({ speaker: 'user', text: 'stand in revised', timestamp: now + 4, final: true, segmentId: 'b', provisional: true });
+  session.addTranscript({ speaker: 'user', text: 'stt final', timestamp: now + 5, final: true, segmentId: 'b' });
+  assert.equal(session.hasFinalUserSegments(['b']), true, 'the STT final clears the mark');
+  session.addTranscript({ speaker: 'user', text: 'later stand in', timestamp: now + 6, final: true, segmentId: 'b', provisional: true });
+  assert.deepEqual(session.getFullTranscript().map(item => item.text), ['confirmed words', 'stt final']);
+});
+
+test('Stop: a stand-in filtered as an internal prompt does not swallow its corrected final', async () => {
+  const c = chain();
+  const question = await dictationRound(c, () => c.user.emit('transcript', { segmentId: 'q', text: 'You are a helper shard the cache', isFinal: false }));
+  assert.equal(question, 'You are a helper shard the cache');
+  assert.deepEqual(userTexts(c), [], 'the internal-prompt text is not a transcript line');
+  c.user.emit('transcript', { segmentId: 'q', text: 'how would you shard the cache', isFinal: true });
+  await pause(2);
+  assert.deepEqual(userTexts(c), ['how would you shard the cache']);
+});
+
 test('S42-03 Answer pressed while the previous Stop is still freezing keeps that round and starts a separate dictation', async () => {
   const c = chain();
   const clockMovesOn = () => new Promise(resolve => setTimeout(resolve, 2));
