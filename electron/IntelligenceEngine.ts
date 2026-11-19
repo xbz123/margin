@@ -218,9 +218,6 @@ export class IntelligenceEngine extends EventEmitter {
         this.followUpQuestionsLLM = new FollowUpQuestionsLLM(this.llmHelper);
         this.whatToAnswerLLM = new WhatToAnswerLLM(this.llmHelper);
         this.codeHintLLM = new CodeHintLLM(this.llmHelper);
-
-        // Sync RecapLLM reference to SessionTracker for epoch compaction
-        this.session.setRecapLLM(this.recapLLM);
     }
 
     reinitializeLLMs(): void {

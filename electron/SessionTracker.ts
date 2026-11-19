@@ -1,8 +1,7 @@
 // SessionTracker.ts
-// Manages session state, transcript arrays, context windows, and epoch compaction.
+// Manages session state, transcript arrays and context windows.
 // Extracted from IntelligenceManager to decouple state management from LLM orchestration.
 
-import { RecapLLM } from './llm';
 import { isVerboseLogging } from './verboseLog';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
 import type { FrozenSpeech } from './audio/MeetingSttSession';
@@ -96,17 +95,14 @@ export class SessionTracker {
         title?: string;
     } | null = null;
 
-    // Full Session Tracking (Persisted)
+    // Full Session Tracking (Persisted). Append-only for the whole meeting (apart from replacing
+    // the text of the same STT segment) so the saved meeting keeps every line; the model's
+    // bounded context is contextItems, evicted separately.
     private fullTranscript: TranscriptSegment[] = [];
     // Segment IDs whose stored text is a provisional stand-in, not yet confirmed by an STT final.
     private provisionalSegments = new Set<string>();
     private fullUsage: any[] = []; // UsageInteraction
     private sessionStartTime: number = Date.now();
-
-    // Rolling summarization: epoch summaries preserve early context when arrays are compacted
-    private static readonly MAX_EPOCH_SUMMARIES = 5;
-    private transcriptEpochSummaries: string[] = [];
-    private isCompacting: boolean = false;
 
     // Track interim interviewer segment
     private lastInterimInterviewer: TranscriptSegment | null = null;
@@ -122,16 +118,9 @@ export class SessionTracker {
     // Screenshot-detected question stays sticky for 3 min before transcript can override
     private static readonly SCREENSHOT_STALE_MS = 3 * 60 * 1000;
 
-    // Reference to RecapLLM for epoch summarization (injected later)
-    private recapLLM: RecapLLM | null = null;
-
     // ============================================
     // Configuration
     // ============================================
-
-    public setRecapLLM(recapLLM: RecapLLM | null): void {
-        this.recapLLM = recapLLM;
-    }
 
     public setMeetingMetadata(metadata: any): void {
         this.currentMeetingMetadata = metadata;
@@ -291,13 +280,7 @@ export class SessionTracker {
     }
 
     private storeTranscriptLine(segment: TranscriptSegment): void {
-        // Add to session transcript
         this.fullTranscript.push(segment);
-        // Compact transcript with summarization instead of losing early context
-        // Fire-and-forget: sync context; errors are caught internally
-        void this.compactTranscriptIfNeeded().catch(e =>
-            console.warn('[SessionTracker] compactTranscript error (non-fatal):', e)
-        );
     }
 
     /**
@@ -327,12 +310,6 @@ export class SessionTracker {
             confidence: 1.0,
             generation,
         });
-
-        // Compact transcript with summarization instead of losing early context
-        // Fire-and-forget: sync context; errors are caught internally
-        void this.compactTranscriptIfNeeded().catch(e =>
-            console.warn('[SessionTracker] compactTranscript error (non-fatal):', e)
-        );
 
         this.lastAssistantMessage = cleanText;
 
@@ -611,7 +588,6 @@ export class SessionTracker {
         this.fullTranscript = [];
         this.provisionalSegments.clear();
         this.fullUsage = [];
-        this.transcriptEpochSummaries = [];
         this.sessionStartTime = Date.now();
         this.lastAssistantMessage = null;
         this.assistantResponseHistory = [];
@@ -639,65 +615,6 @@ export class SessionTracker {
         // Safety limit
         if (this.contextItems.length > this.maxContextItems) {
             this.contextItems = this.contextItems.slice(-this.maxContextItems);
-        }
-    }
-
-    /**
-     * Compact transcript buffer by summarizing oldest entries into an epoch summary.
-     * Called instead of raw slice() to preserve early meeting context.
-     */
-    private async compactTranscriptIfNeeded(): Promise<void> {
-        if (this.fullTranscript.length <= 1800 || this.isCompacting) return;
-
-        this.isCompacting = true;
-        try {
-            // Take the oldest 500 entries to summarize
-            const summarizeCount = 500;
-            const oldEntries = this.fullTranscript.slice(0, summarizeCount);
-            const summaryInput = oldEntries.map(seg => {
-                const role = this.mapSpeakerToRole(seg.speaker);
-                const label = role === 'interviewer' ? 'INTERVIEWER' :
-                    role === 'user' ? 'ME' : 'ASSISTANT';
-                return `[${label}]: ${seg.text}`;
-            }).join('\n');
-
-            // Fire-and-forget LLM summarization (non-blocking)
-            if (this.recapLLM) {
-                try {
-                    const epochSummary = await this.recapLLM.generateCompression(
-                        `Summarize this conversation segment into 3-5 concise bullet points preserving key topics, decisions, and questions:\n\n${summaryInput}`
-                    );
-                    if (epochSummary && epochSummary.trim().length > 0) {
-                        this.transcriptEpochSummaries.push(epochSummary.trim());
-                        console.log(`[SessionTracker] Epoch summary created (${this.transcriptEpochSummaries.length} total)`);
-                    } else {
-                        // Empty LLM response — store a basic marker so context is not lost
-                        const marker = `[Earlier discussion: ${oldEntries.length} segments summarized without transcript snippets.]`;
-                        this.transcriptEpochSummaries.push(marker);
-                    }
-                } catch (e) {
-                    // If summarization fails, store a simple marker
-                    const fallback = `[Earlier discussion: ${oldEntries.length} segments summarized without transcript snippets.]`;
-                    this.transcriptEpochSummaries.push(fallback);
-                    console.warn('[SessionTracker] Epoch summarization failed, using fallback marker');
-                }
-            } else {
-                // BUG-03 fix: recapLLM not yet available — always push a plain marker so early
-                // context is not silently discarded with no record in transcriptEpochSummaries.
-                const marker = `[Earlier discussion (no LLM): ${oldEntries.length} segments summarized without transcript snippets.]`;
-                this.transcriptEpochSummaries.push(marker);
-                console.warn('[SessionTracker] recapLLM not available — storing plain epoch marker');
-            }
-
-            // Cap epoch summaries to prevent LLM context window overflow
-            if (this.transcriptEpochSummaries.length > SessionTracker.MAX_EPOCH_SUMMARIES) {
-                this.transcriptEpochSummaries = this.transcriptEpochSummaries.slice(-SessionTracker.MAX_EPOCH_SUMMARIES);
-            }
-
-            // Evict ONLY the exact 500 oldest entries that we just summarized
-            this.fullTranscript = this.fullTranscript.slice(summarizeCount);
-        } finally {
-            this.isCompacting = false;
         }
     }
 }
