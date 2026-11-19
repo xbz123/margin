@@ -14,7 +14,7 @@ test('meeting retention IPC exposes get/set and broadcasts updates', () => {
   assert.match(ipc, /SettingsManager\.getInstance\(\)\.getMeetingRetention\(\)/);
   assert.match(ipc, /retention !== 'forever' && retention !== 'never'/);
   assert.match(ipc, /safeHandle\(['"]set-meeting-retention['"]/);
-  assert.match(ipc, /SettingsManager\.getInstance\(\)\.set\('meetingRetention', retention\)/);
+  assert.match(ipc, /SettingsManager\.getInstance\(\)\.savePrivacySetting\('meetingRetention', retention\)/);
   assert.match(ipc, /webContents\.send\('meeting-retention-changed', retention\)/);
 });
 

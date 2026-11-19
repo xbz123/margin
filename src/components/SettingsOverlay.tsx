@@ -414,6 +414,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
 
     const [verboseLogging, setVerboseLogging] = useState(false);
     const [meetingRetention, setMeetingRetention] = useState<'forever' | 'never'>('forever');
+    const [meetingRetentionError, setMeetingRetentionError] = useState('');
     const [showVerboseToast, setShowVerboseToast] = useState(false);
     const verboseToastTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -1622,12 +1623,21 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                             align="start"
                                             title={t('Do not save meetings')}
                                             description={t('When enabled, live assistance works but transcripts, summaries, and history are discarded when the meeting ends')}
-                                            control={<SettingsSwitch label={t('Do not save meetings')} checked={meetingRetention === 'never'} onChange={() => {
-                                                const nextRetention = meetingRetention === 'never' ? 'forever' : 'never';
+                                            control={<SettingsSwitch label={t('Do not save meetings')} checked={meetingRetention === 'never'} onChange={async () => {
+                                                const previousRetention = meetingRetention;
+                                                const nextRetention = previousRetention === 'never' ? 'forever' : 'never';
                                                 setMeetingRetention(nextRetention);
-                                                window.electronAPI?.setMeetingRetention?.(nextRetention);
+                                                setMeetingRetentionError('');
+                                                // Main saves before it confirms; a failed save puts the switch back.
+                                                const result = await window.electronAPI?.setMeetingRetention?.(nextRetention).catch(() => undefined);
+                                                if (!result?.success) {
+                                                    setMeetingRetention(previousRetention);
+                                                    setMeetingRetentionError(result?.error || 'The privacy setting could not be saved. The previous setting was kept.');
+                                                }
                                             }} />}
-                                        />
+                                        >
+                                            {meetingRetentionError && <p role="alert" className="text-xs text-amber-500">{t(meetingRetentionError)}</p>}
+                                        </SettingsRow>
                                     </SettingsGroup>
                                     <SettingsGroup title={t('Diagnostics')}>
                                         <SettingsRow

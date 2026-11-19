@@ -33,7 +33,7 @@ function retentionHandlers(stored) {
   const source = fs.readFileSync(path.resolve(import.meta.dirname, '../../ipcHandlers.ts'), 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const callbacks = new Map(); const saves = []; const sent = [];
-  const settings = { get: () => undefined, set(key, value) { saves.push([key, value]); stored = value; }, getMeetingRetention: () => stored === 'never' ? 'never' : 'forever' };
+  const settings = { get: () => undefined, savePrivacySetting(key, value) { saves.push([key, value]); stored = value; }, getMeetingRetention: () => stored === 'never' ? 'never' : 'forever' };
   const win = { isDestroyed: () => false, webContents: { send: (...args) => sent.push(args) } };
   const module = { exports: {} };
   vm.runInNewContext(compiled, { module, exports: module.exports, console: quiet, process: { env: { NODE_ENV: 'test' }, platform: process.platform }, AbortController,

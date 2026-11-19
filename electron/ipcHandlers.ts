@@ -879,7 +879,12 @@ export function initializeIpcHandlers(appState: AppState): void {
     if (retention !== 'forever' && retention !== 'never') {
       return { success: false, error: 'invalid_retention' };
     }
-    SettingsManager.getInstance().set('meetingRetention', retention);
+    // Saved before memory or any window changes, so a failed write keeps the previous setting.
+    try {
+      SettingsManager.getInstance().savePrivacySetting('meetingRetention', retention);
+    } catch (error: any) {
+      return { success: false, error: error?.message || 'The privacy setting could not be saved. The previous setting was kept.' };
+    }
     BrowserWindow.getAllWindows().forEach((win) => {
       if (!win.isDestroyed()) {
         win.webContents.send('meeting-retention-changed', retention);
@@ -907,7 +912,11 @@ export function initializeIpcHandlers(appState: AppState): void {
         sanitized[key] = value;
       }
     }
-    SettingsManager.getInstance().set('providerDataScopes', sanitized as any);
+    try {
+      SettingsManager.getInstance().savePrivacySetting('providerDataScopes', sanitized);
+    } catch (error: any) {
+      return { success: false, error: error?.message || 'The privacy setting could not be saved. The previous setting was kept.' };
+    }
     appState.processingHelper.getLLMHelper().cancelGenerationTasks('Provider data scopes changed');
     BrowserWindow.getAllWindows().forEach((win) => {
       if (!win.isDestroyed()) {

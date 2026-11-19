@@ -156,6 +156,7 @@ export const AIProvidersSettings: React.FC = () => {
     const canUseFastMode = codexSourceAvailable(codexCliConfig);
 
     const [providerDataScopes, setProviderDataScopes] = useState<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean }>({});
+    const [dataScopeError, setDataScopeError] = useState('');
 
     // Local reads only: mounting, switching tabs and expanding rows never contact a provider.
     const refreshCredentials = async () => {
@@ -654,10 +655,16 @@ export const AIProvidersSettings: React.FC = () => {
                                     <span className="block text-[11px] text-text-tertiary">{t(note)}</span>
                                 </div>
                                 <button type="button"
-                                    onClick={() => {
+                                    onClick={async () => {
                                         const next = { ...providerDataScopes, [key]: !allowed };
                                         setProviderDataScopes(next);
-                                        window.electronAPI?.setProviderDataScopes?.(next);
+                                        setDataScopeError('');
+                                        // Main saves before it confirms; a failed save puts this switch back.
+                                        const result = await window.electronAPI?.setProviderDataScopes?.(next).catch(() => undefined);
+                                        if (!result?.success) {
+                                            setProviderDataScopes(current => ({ ...current, [key]: allowed }));
+                                            setDataScopeError(result?.error || 'The privacy setting could not be saved. The previous setting was kept.');
+                                        }
                                     }}
                                     className={`shrink-0 w-9 h-5 rounded-full relative transition-colors ${allowed ? 'bg-emerald-500' : 'bg-bg-toggle-switch border border-border-muted'}`}
                                     role="switch" aria-checked={allowed} aria-label={t('Allow {scope} to cloud providers', { scope: t(label) })}>
@@ -667,6 +674,7 @@ export const AIProvidersSettings: React.FC = () => {
                         );
                     })}
                 </div>
+                {dataScopeError && <p role="alert" className="text-xs text-amber-500">{t(dataScopeError)}</p>}
                 <p className="flex items-start gap-2 text-[11px] text-text-tertiary"><Info size={13} className="shrink-0 mt-0.5" />{t('When a data type is disabled, it is left out of every request to a cloud provider. There is no local model to fall back to.')}</p>
             </div>
         </div>

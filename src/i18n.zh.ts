@@ -158,6 +158,7 @@ export const chinese: Readonly<Record<string, string>> = {
     'Toggle Visibility': '显示/隐藏',
     'Unsupported interface language.': '不支持的界面语言。',
     'The interface language could not be saved.': '无法保存界面语言。',
+    'The privacy setting could not be saved. The previous setting was kept.': '无法保存隐私设置，原设置已保留。',
     'Credentials could not be saved. The previous credentials were kept.': '无法保存凭据，原凭据已保留。',
     'Invalid language value': '语言值无效',
     'Local Codex file check failed. Service connectivity is unverified.': '本地 Codex 文件检查失败，服务连通性未验证。',

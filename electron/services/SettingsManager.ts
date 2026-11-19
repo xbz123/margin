@@ -9,6 +9,15 @@ import { DEFAULT_WRITTEN_EXAM, validExamSettings, type WrittenExamSettings } fro
 // Kept local so test harnesses that compile this file alone need no extra module.
 const isUiLanguage = (value: unknown): value is UiLanguage => value === 'en' || value === 'zh-CN';
 
+// Privacy values used while a present settings.json could not be read: keep nothing and send
+// nothing until the user saves a setting again (the next write stores these explicitly).
+const failSecurePrivacy = (): Pick<AppSettings, 'meetingRetention' | 'providerDataScopes'> => ({
+    meetingRetention: 'never',
+    providerDataScopes: { transcript: false, screenshots: false, profile_history: false },
+});
+
+export const PRIVACY_SAVE_FAILED = 'The privacy setting could not be saved. The previous setting was kept.';
+
 export interface AppSettings {
     writtenExam?: WrittenExamSettings;
     // Only boot-critical or non-encrypted settings should live here.
@@ -45,6 +54,8 @@ export class SettingsManager {
     private static instance: SettingsManager;
     private settings: AppSettings = {};
     private settingsPath: string;
+    // True after boot found settings.json present but unreadable, until a write succeeds.
+    private privacyUnreadable = false;
 
     private constructor() {
         if (!app.isReady()) {
@@ -69,6 +80,30 @@ export class SettingsManager {
         if (key === 'codexCliEnabled') throw new Error('Legacy Codex enable is unsupported; confirm the current login-source risks.');
         this.settings[key] = value;
         this.saveSettings();
+    }
+
+    // Privacy settings are written before memory changes; a failed write throws and keeps the
+    // previous value both in memory and on disk.
+    public savePrivacySetting<K extends 'meetingRetention' | 'providerDataScopes'>(key: K, value: AppSettings[K]): void {
+        this.writeCandidate({ ...this.settings, [key]: value }, 'privacy', PRIVACY_SAVE_FAILED);
+    }
+
+    // A present settings.json could not be read at boot and no setting has been saved since.
+    public privacySettingsUnreadable(): boolean {
+        return this.privacyUnreadable;
+    }
+
+    private writeCandidate(candidate: AppSettings, tag: string, message: string): void {
+        const temp = this.settingsPath + `.${tag}.${randomUUID()}.tmp`;
+        try {
+            fs.writeFileSync(temp, JSON.stringify(candidate, null, 2), { flag: 'wx', mode: 0o600 });
+            fs.renameSync(temp, this.settingsPath);
+        } catch (error: any) {
+            if (error?.code !== 'EEXIST') { try { fs.unlinkSync(temp); } catch {} }
+            throw new Error(message);
+        }
+        this.settings = candidate;
+        this.privacyUnreadable = false;
     }
 
     public saveWindowPreference(key: 'isUndetectable' | 'disguiseMode', value: boolean | AppSettings['disguiseMode']): void {
@@ -161,28 +196,35 @@ export class SettingsManager {
     }
 
     private loadSettings(): void {
+        // A missing file is a first run and keeps the defaults.
+        if (!fs.existsSync(this.settingsPath)) return;
         try {
-            if (fs.existsSync(this.settingsPath)) {
-                const data = fs.readFileSync(this.settingsPath, 'utf8');
-                try {
-                    const parsed = JSON.parse(data);
-                    // Minimal validation to ensure it's an object before assigning
-                    if (typeof parsed === 'object' && parsed !== null) {
-                        this.settings = parsed;
-                        this.migrateLegacySettings();
-                        console.log('[SettingsManager] Settings loaded successfully', { keys: Object.keys(this.settings).length });
-                    } else {
-                        throw new Error('Settings JSON is not a valid object');
-                    }
-                } catch (parseError) {
-                    console.error('[SettingsManager] Failed to parse settings.json. Continuing with empty settings. Error:', parseError);
-                    this.settings = {};
-                }
-                console.log('[SettingsManager] Settings loaded');
-            }
-        } catch (e) {
-            console.error('[SettingsManager] Failed to read settings file:', e);
-            this.settings = {};
+            const parsed = JSON.parse(fs.readFileSync(this.settingsPath, 'utf8'));
+            if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('Settings JSON is not a valid object');
+            this.settings = parsed;
+        } catch (error) {
+            console.error('[SettingsManager] settings.json could not be read; privacy settings fail secure until saved again:', error);
+            const preserved = this.preserveUnreadableFile();
+            this.settings = failSecurePrivacy();
+            // Store the fail-secure values so a restart without any save stays secure. Never
+            // overwrite the unreadable file when it could not be kept aside.
+            if (preserved) this.saveSettings();
+            this.privacyUnreadable = true;
+            return;
+        }
+        this.migrateLegacySettings();
+        console.log('[SettingsManager] Settings loaded successfully', { keys: Object.keys(this.settings).length });
+    }
+
+    // Keep the unreadable file beside settings.json so the next write cannot destroy it.
+    private preserveUnreadableFile(): boolean {
+        const backup = `${this.settingsPath}.corrupt-${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
+        try { fs.renameSync(this.settingsPath, backup); return true; } catch (error) {
+            console.error('[SettingsManager] Could not move the unreadable settings file aside:', error);
+        }
+        try { fs.copyFileSync(this.settingsPath, backup, fs.constants.COPYFILE_EXCL); return true; } catch (error) {
+            console.error('[SettingsManager] Could not copy the unreadable settings file:', error);
+            return false;
         }
     }
 
@@ -206,6 +248,7 @@ export class SettingsManager {
             const tmpPath = this.settingsPath + '.tmp';
             fs.writeFileSync(tmpPath, JSON.stringify(this.settings, null, 2));
             fs.renameSync(tmpPath, this.settingsPath);
+            this.privacyUnreadable = false;
         } catch (e) {
             console.error('[SettingsManager] Failed to save settings:', e);
         }

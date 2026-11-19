@@ -51,7 +51,10 @@ export class MeetingPersistence {
         let skip: MeetingSaveSkipReason | null = null;
         try {
             const { SettingsManager } = require('./services/SettingsManager');
-            const retention = SettingsManager.getInstance().get('meetingRetention');
+            const settings = SettingsManager.getInstance();
+            // A present but unreadable settings.json: the user's choice is unknown.
+            if (settings.privacySettingsUnreadable?.()) throw new Error('settings.json could not be read at startup');
+            const retention = settings.get('meetingRetention');
             if (retention === 'never') skip = 'privacy-setting';
             // Per-meeting toggle is read from SessionTracker meeting metadata
             // (e.g. set via the renderer "Do not persist this meeting" toggle).
