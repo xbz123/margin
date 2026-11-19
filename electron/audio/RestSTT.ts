@@ -92,6 +92,8 @@ export class RestSTT extends EventEmitter {
     private readonly batches = new RestBatches('rest');
     private termPrompt = '';
     private uploadEpoch = 0;
+    /** Resolves when the current upload has emitted its result (or failed); see finalize(). */
+    private uploadSettled: Promise<void> = Promise.resolve();
 
     // Audio config (must match SystemAudioCapture output)
     private sampleRate = 16000;
@@ -225,10 +227,19 @@ export class RestSTT extends EventEmitter {
         this.flushAndUpload();
     }
 
-    public finalize(): void {
+    /**
+     * Flushes the tail and resolves once every upload it depends on — one already in flight and the
+     * tail queued behind it — has emitted its transcript or failed. A meeting drain awaits this
+     * before stop(), which would otherwise discard the last sentence's late result.
+     */
+    public async finalize(): Promise<void> {
         if (!this.isActive) return;
         console.log(`[RestSTT] Finalize — flushing buffer immediately`);
-        this.flushAndUpload();
+        const epoch = this.uploadEpoch;
+        await this.flushAndUpload();
+        // A chained re-entry starts its upload synchronously in the previous upload's finally,
+        // so isUploading is already true again when this loop resumes.
+        while (this.isActive && this.uploadEpoch === epoch && this.isUploading) await this.uploadSettled;
     }
 
     /** Seals audio received so far into its own upload batch; recording continues. */
@@ -316,6 +327,8 @@ export class RestSTT extends EventEmitter {
         const wavBuffer = this.addWavHeader(pcm16k, TARGET_RATE);
 
         this.isUploading = true;
+        let settled!: () => void;
+        this.uploadSettled = new Promise<void>(resolve => { settled = resolve; });
         const epoch = this.uploadEpoch;
         this.batches.start(batch);
         let outcome: 'complete' | 'failed' = 'complete';
@@ -341,6 +354,7 @@ export class RestSTT extends EventEmitter {
             console.error(`[RestSTT] Upload error:`, err);
             this.emit('error', err instanceof Error ? err : new Error(String(err)));
         } finally {
+            settled();
             if (!this.isActive || this.uploadEpoch !== epoch) { this.batches.finish(batch, 'unknown'); return; }
             this.isUploading = false;
             this.batches.finish(batch, outcome);
