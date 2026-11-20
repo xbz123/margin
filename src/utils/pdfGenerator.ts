@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { flowLines, keepPunctuationOffLineStart, type TextFlowTarget } from '../lib/pdfTextFlow.mjs';
+import { flowLines, wrapParagraphs, type TextFlowTarget } from '../lib/pdfTextFlow.mjs';
 import { formatTranscriptTime, visibleTranscriptRows } from '../lib/meetingTranscriptView.mjs';
 import { usageExportBlocks } from '../lib/meetingUsageExport.mjs';
 
@@ -76,8 +76,11 @@ export const buildMeetingPDF = (meeting: Meeting, options: MeetingPDFOptions = {
     // Lines are spaced as one doc.text(lines) call spaces them: the font size (pt) times the
     // line height factor, in mm. Lines that do not fit continue on new pages (flowLines), so a
     // block longer than a page is never cut off or repeated.
-    const flow = (lines: string[], fontSize: number, isBold: boolean, x: number, bulletX?: number) => {
-        y = flowLines(target(isBold, bulletX), keepPunctuationOffLineStart(lines), {
+    // Text is wrapped one paragraph at a time (wrapParagraphs), so every hard line break stays
+    // where it was and a paragraph starting with "." or ")" is not joined to the one before.
+    const flow = (text: string, width: number, fontSize: number, isBold: boolean, x: number, bulletX?: number) => {
+        const lines = wrapParagraphs(text, paragraph => doc.splitTextToSize(paragraph, width));
+        y = flowLines(target(isBold, bulletX), lines, {
             x, y, lineHeight: fontSize * doc.getLineHeightFactor() / doc.internal.scaleFactor,
             top: 20, bottom: doc.internal.pageSize.getHeight() - margin,
         });
@@ -85,7 +88,7 @@ export const buildMeetingPDF = (meeting: Meeting, options: MeetingPDFOptions = {
 
     const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: string = '#000000') => {
         setStyle(fontSize, isBold, color);
-        flow(doc.splitTextToSize(text, contentWidth), fontSize, isBold, margin);
+        flow(text, contentWidth, fontSize, isBold, margin);
         y += 2; // Add some spacing
     };
 
@@ -93,7 +96,7 @@ export const buildMeetingPDF = (meeting: Meeting, options: MeetingPDFOptions = {
     const addBullet = (text: string, fontSize: number = 10, color: string = '#444444') => {
         const indent = 5;
         setStyle(fontSize, false, color);
-        flow(doc.splitTextToSize(text, contentWidth - indent), fontSize, false, margin + indent, margin + 1);
+        flow(text, contentWidth - indent, fontSize, false, margin + indent, margin + 1);
         y += 1;
     };
 

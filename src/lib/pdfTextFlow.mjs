@@ -26,6 +26,8 @@ const NO_LINE_START = /^[，。、；：？！）》」』】〕…,.;:?!)\]]+/u
 /**
  * Wrapped lines with closing punctuation moved from the start of a line to the end of the line
  * before it (it then overhangs the right margin by that mark). Text and order are unchanged.
+ * The lines must be the soft-wrapped lines of ONE paragraph: across a hard line break the mark
+ * would be moved into the previous paragraph. Use wrapParagraphs for text with line breaks.
  */
 export function keepPunctuationOffLineStart(lines) {
   const out = [];
@@ -39,4 +41,14 @@ export function keepPunctuationOffLineStart(lines) {
     }
   }
   return out;
+}
+
+/**
+ * Text wrapped for the page, paragraph by paragraph: the text is split at its own line breaks,
+ * each paragraph is wrapped with split (e.g. doc.splitTextToSize) and its closing punctuation is
+ * kept off its soft line starts. A paragraph that starts with "." or ")" (".NET", a closing
+ * bracket in code) keeps it; every hard line break stays where it was.
+ */
+export function wrapParagraphs(text, split) {
+  return String(text ?? '').split(/\r?\n/).flatMap(paragraph => keepPunctuationOffLineStart(split(paragraph)));
 }

@@ -10,3 +10,5 @@ export function flowLines(
 ): number;
 
 export function keepPunctuationOffLineStart(lines: string | readonly string[]): string[];
+
+export function wrapParagraphs(text: string, split: (paragraph: string) => string | readonly string[]): string[];

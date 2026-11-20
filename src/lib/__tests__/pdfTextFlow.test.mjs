@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { jsPDF } from 'jspdf';
 
-import { flowLines } from '../pdfTextFlow.mjs';
+import { flowLines, wrapParagraphs } from '../pdfTextFlow.mjs';
 
 const MM_TO_PT = 72 / 25.4;
 
@@ -91,9 +91,11 @@ test('a short block that fits stays on its page; one that does not continues on 
 
 test('pdfGenerator writes text through flowLines', () => {
   const source = readFileSync(fileURLToPath(new URL('../../utils/pdfGenerator.ts', import.meta.url)), 'utf8');
-  assert.match(source, /import \{ flowLines, keepPunctuationOffLineStart, type TextFlowTarget \} from '\.\.\/lib\/pdfTextFlow\.mjs'/);
-  // Every block (text and list items) goes through one flowLines call.
-  assert.match(source, /y = flowLines\(target\(isBold, bulletX\), keepPunctuationOffLineStart\(lines\), \{/);
+  assert.match(source, /import \{ flowLines, wrapParagraphs, type TextFlowTarget \} from '\.\.\/lib\/pdfTextFlow\.mjs'/);
+  // Every block (text and list items) is wrapped paragraph by paragraph and goes through one
+  // flowLines call.
+  assert.match(source, /const lines = wrapParagraphs\(text, paragraph => doc\.splitTextToSize\(paragraph, width\)\);\n\s*y = flowLines\(target\(isBold, bulletX\), lines, \{/);
+  assert.equal(source.match(/splitTextToSize\(/g).length, 1, 'no block is wrapped as a whole');
   assert.equal(source.match(/flowLines\(/g).length, 1);
   assert.doesNotMatch(source, /doc\.text\(lines, margin, y\)/, 'no single draw of a whole block');
 });
@@ -172,4 +174,48 @@ test('expanded answers and follow-up question lists are exported, through the sa
     assert.ok(line, `${question} is drawn as its own line`);
     assert.ok(line.x > 20 + 1, 'list items are indented');
   }
+});
+
+/** The drawn text of a PDF line: jsPDF escapes "\", "(" and ")" in its Tj strings. */
+const unescapePdf = text => text.replace(/\\([\\()])/g, '$1');
+
+test('hard line breaks stay where they are: a paragraph starting with "." or ")" is not joined to the one before', async () => {
+  const { buildMeetingPDF } = await loadPdfGenerator();
+  const paragraphs = [
+    'Install the runtime first',
+    '.NET 8 is required for this service',
+    'result = compute(',
+    '    a,',
+    '), cache',
+    'First part done',
+    ': trailing colon line',
+    '',
+    'last line',
+  ];
+  const doc = buildMeetingPDF({ id: 'm4', title: 'T', date: 'D', duration: '1 min', usage: [
+    { type: 'assist', timestamp: 1, answer: paragraphs.join('\n') },
+    { type: 'followup_questions', timestamp: 2, answer: '1. Why .NET?\n2. ), then what?' },
+  ] });
+  const drawn = drawnLines(doc).flat().map(line => unescapePdf(line.text));
+  const start = drawn.indexOf('Install the runtime first');
+  assert.ok(start > 0, 'the answer is drawn');
+  // jsPDF writes no text operator for the blank line, so it is not read back.
+  const visible = paragraphs.filter(Boolean);
+  assert.deepEqual(drawn.slice(start, start + visible.length), visible, 'each paragraph unchanged, on its own line');
+  // List items are wrapped the same way.
+  assert.ok(drawn.includes('Why .NET?'));
+  assert.ok(drawn.includes('), then what?'));
+});
+
+test('wrapParagraphs wraps like jsPDF does, keeping closing punctuation off soft line starts only', () => {
+  const doc = new jsPDF();
+  doc.setFontSize(10);
+  const text = 'Install the runtime first\n.NET 8 is required\n\n\nresult = compute(\r\n    a,\n), cache ' + 'word '.repeat(80) + '\nend';
+  const split = paragraph => doc.splitTextToSize(paragraph, 170);
+  // Same lines as one splitTextToSize of the whole text, which splits at line breaks itself.
+  assert.deepEqual(wrapParagraphs(text, split), doc.splitTextToSize(text.replace(/\r\n/g, '\n'), 170));
+  // Within a paragraph a soft wrap still moves the mark; across a hard break it does not.
+  const fake = paragraph => paragraph === '第一行文字，第二行' ? ['第一行文字', '，第二行'] : [paragraph];
+  assert.deepEqual(wrapParagraphs('第一行文字，第二行\n。开头的段落\n）补充说明', fake), ['第一行文字，', '第二行', '。开头的段落', '）补充说明']);
+  assert.deepEqual(wrapParagraphs('', split), ['']);
 });
