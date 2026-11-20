@@ -176,6 +176,18 @@ test('expanded answers and follow-up question lists are exported, through the sa
   }
 });
 
+test('a refined answer is labelled with its refinement, and a typed request is shown as typed', async () => {
+  const { buildMeetingPDF } = await loadPdfGenerator();
+  const doc = buildMeetingPDF({ id: 'm5', title: 'T', date: 'D', duration: '1 min', usage: [
+    { type: 'followup', timestamp: 1, question: 'Simplify Answer', answer: 'simple text' },
+    { type: 'followup', timestamp: 2, question: 'Make it more casual please', answer: 'casual text' },
+  ] });
+  const texts = drawnLines(doc).flat().map(line => line.text);
+  assert.deepEqual(texts.slice(texts.indexOf('AI Usage & Interactions') + 1),
+    ['Simplify Answer:', 'simple text', 'Requested change: Make it more casual please', 'casual text']);
+  assert.ok(!texts.includes('Expanded answer:'));
+});
+
 /** The drawn text of a PDF line: jsPDF escapes "\", "(" and ")" in its Tj strings. */
 const unescapePdf = text => text.replace(/\\([\\()])/g, '$1');
 

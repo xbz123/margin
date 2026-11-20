@@ -20,6 +20,22 @@ export function followUpQuestionList(entry) {
     .filter(Boolean);
 }
 
+// The refinements IntelligenceEngine.runFollowUp records as the question of a 'followup' entry
+// (its intentMap); each is an i18n key. Expanding, or no stored question, is "Expanded answer".
+const EXPANDED = new Set(['', 'Follow-up', 'Expand Answer']);
+const REFINEMENTS = new Set(['Rephrase Answer', 'Add Example', 'Make More Confident', 'Make More Casual', 'Make More Formal', 'Simplify Answer']);
+
+/**
+ * The label of a 'followup' entry and, for a refinement the user typed, their request as typed
+ * (it is shown after the label, not translated).
+ */
+export function followUpLabel(question) {
+  const asked = typeof question === 'string' ? question.trim() : '';
+  if (EXPANDED.has(asked)) return { label: 'Expanded answer' };
+  if (REFINEMENTS.has(asked)) return { label: asked };
+  return { label: 'Requested change', request: asked };
+}
+
 /** The usage blocks of a meeting export, in stored order; entries with nothing to show are left out. */
 export function usageExportBlocks(usage) {
   const blocks = [];
@@ -30,7 +46,7 @@ export function usageExportBlocks(usage) {
     } else if (entry?.type === 'assist' && answer) {
       blocks.push({ kind: 'assist', label: 'Assist', answer });
     } else if (entry?.type === 'followup' && answer) {
-      blocks.push({ kind: 'followup', label: 'Expanded answer', answer });
+      blocks.push({ kind: 'followup', ...followUpLabel(entry.question), answer });
     } else if (entry?.type === 'followup_questions') {
       const bullets = followUpQuestionList(entry);
       if (bullets.length) blocks.push({ kind: 'followup_questions', label: 'Follow-Up Questions', bullets });

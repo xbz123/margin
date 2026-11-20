@@ -139,7 +139,8 @@ export const buildMeetingPDF = (meeting: Meeting, options: MeetingPDFOptions = {
                 addText(`Q: ${block.question}`, 10, true, '#222222');
                 addText(`A: ${block.answer}`, 10, false, '#444444');
             } else {
-                addText(`${hasCjkFont ? t(block.label!) : block.label}:`, 10, true, '#222222');
+                const label = hasCjkFont ? t(block.label!) : block.label;
+                addText(block.request ? `${label}: ${block.request}` : `${label}:`, 10, true, '#222222');
                 if (block.answer) addText(block.answer, 10, false, '#444444');
                 block.bullets?.forEach(question => addBullet(question));
             }
