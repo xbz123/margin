@@ -65,7 +65,8 @@ if pdftotext:
 # --- Glyph coverage -------------------------------------------------------------------------
 cmap = TTFont(font_file).getBestCmap()
 all_text = ''.join(expected['headings'] + expected['speakerLabels'] + expected['transcript']
-                   + expected['assistSentences'] + expected['followupSentences'] + expected['questions'])
+                   + expected['assistSentences'] + expected['followupSentences'] + expected['questions']
+                   + [expected.get('shownQuestion', ''), expected.get('screenshotAnswer', '')])
 missing = sorted({ch for ch in all_text if not ch.isspace() and ord(ch) not in cmap})
 check(not missing, f'every character of the meeting text has a glyph in the export font (missing: {missing})')
 
@@ -100,6 +101,11 @@ for name, pages in extractors.items():
     order = [expected['headings'][0]] + expected['headings'][1:3] + [expected['headings'][3], expected['assistSentences'][0],
              expected['headings'][4], expected['followupSentences'][0], expected['headings'][5], expected['questions'][0]]
     once_in_order(order, 'sections in order')
+    if 'shownQuestion' in expected:
+        once_in_order([expected['questions'][-1], expected['shownQuestion'], expected['screenshotAnswer']],
+                      'screenshot question as shown, after the follow-up questions')
+        check(squash(expected['hiddenQuestion']) not in full,
+              f'[{name}] the English screenshot prompt is not printed')
 
     # Where the assist answer falls, page by page (first and last sentence number on each page).
     numbers = [[int(n) for n in re.findall(r'第(\d{3})句', page)] for page in flat]

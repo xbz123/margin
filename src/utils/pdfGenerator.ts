@@ -17,6 +17,8 @@ interface Meeting {
         type: 'assist' | 'followup' | 'chat' | 'followup_questions';
         timestamp: number;
         question?: string;
+        // The localized text the user saw for the question; printed in place of `question`.
+        displayQuestion?: string;
         answer?: string;
         items?: string[];
     }>;

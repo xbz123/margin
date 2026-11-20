@@ -12,9 +12,13 @@ export function followUpLabel(question: unknown): { label: string; request?: str
 
 export function followUpQuestionList(entry: { items?: unknown; answer?: unknown } | null | undefined): string[];
 
+export function shownQuestion(entry: { question?: unknown; displayQuestion?: unknown } | null | undefined): string;
+
 export function usageExportBlocks(usage: ReadonlyArray<{
   type: string;
   question?: string;
+  /** The localized question the user saw; exported in place of `question` for chat entries. */
+  displayQuestion?: string;
   answer?: unknown;
   items?: unknown;
 }> | null | undefined): UsageExportBlock[];

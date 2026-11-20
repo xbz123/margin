@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { followUpLabel, followUpQuestionList, usageExportBlocks } from '../meetingUsageExport.mjs';
+import { followUpLabel, followUpQuestionList, shownQuestion, usageExportBlocks } from '../meetingUsageExport.mjs';
 import { keepPunctuationOffLineStart } from '../pdfTextFlow.mjs';
 
 test('follow-up questions come from the streamed answer text as SQLite returns it', () => {
@@ -45,6 +45,37 @@ test('every usage type with content becomes a block, in stored order', () => {
     { kind: 'followup_questions', label: 'Follow-Up Questions', bullets: ['丙？'] },
   ]);
   assert.deepEqual(usageExportBlocks(undefined), []);
+});
+
+test('a chat question is exported as the user saw it (displayQuestion), as MeetingDetails shows it', async () => {
+  const blocks = usageExportBlocks([
+    // A screenshot sent with no typed text in the Chinese UI, as SQLite returns it.
+    { type: 'chat', timestamp: 1, question: 'Solve the question in this screenshot directly', displayQuestion: '直接解答截图中的题目', answer: '答案' },
+    { type: 'chat', timestamp: 2, question: '我自己输入的问题', answer: '回答' },
+    { type: 'chat', timestamp: 3, question: 'typed', displayQuestion: '   ', answer: 'x' },
+    // Only displayQuestion survives (no stored question): still exported.
+    { type: 'chat', timestamp: 4, displayQuestion: '只有显示文本', answer: 'y' },
+    // A followup keeps its label from the stored question key; displayQuestion does not rename it.
+    { type: 'followup', timestamp: 5, question: 'Simplify Answer', displayQuestion: '简化回答', answer: 'z' },
+  ]);
+  assert.deepEqual(blocks, [
+    { kind: 'chat', question: '直接解答截图中的题目', answer: '答案' },
+    { kind: 'chat', question: '我自己输入的问题', answer: '回答' },
+    { kind: 'chat', question: 'typed', answer: 'x' },
+    { kind: 'chat', question: '只有显示文本', answer: 'y' },
+    { kind: 'followup', label: 'Simplify Answer', answer: 'z' },
+  ]);
+  assert.equal(shownQuestion({ question: 'q' }), 'q');
+  assert.equal(shownQuestion(undefined), '');
+
+  // The PDF prints block.question, and MeetingDetails shows the same `displayQuestion || question`.
+  const { readFileSync } = await import('node:fs');
+  const pdf = readFileSync(new URL('../../utils/pdfGenerator.ts', import.meta.url), 'utf8');
+  assert.match(pdf, /usageExportBlocks\(meeting\.usage\)/);
+  assert.match(pdf, /`Q: \$\{block\.question\}`/);
+  assert.doesNotMatch(pdf, /item\.question/);
+  const details = readFileSync(new URL('../../components/MeetingDetails.tsx', import.meta.url), 'utf8');
+  assert.match(details, /interaction\.displayQuestion \|\| interaction\.question/);
 });
 
 test('a followup entry is labelled by what was asked: expand, a named refinement, or the request as typed', () => {

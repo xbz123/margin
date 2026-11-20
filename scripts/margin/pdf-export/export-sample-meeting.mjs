@@ -74,6 +74,8 @@ const questions = [
   '网关限流和服务限流的阈值如何协同配置？',
   '跨机房切换时如何避免数据丢失？',
 ];
+const SCREENSHOT_QUESTION = 'Solve the question in this screenshot directly';
+const screenshotAnswer = '截图中的题目要求设计一个限流器：用令牌桶实现，桶容量对应突发流量，补充速率对应平均流量。';
 const start = Date.UTC(2026, 10, 20, 2, 0, 0);
 const meeting = {
   id: 'sample-zh-meeting',
@@ -91,6 +93,9 @@ const meeting = {
     { type: 'followup', timestamp: start + 300_000, question: 'Follow-up', answer: followupAnswer },
     // As the engine records it and SQLite returns it: the streamed list as the answer text.
     { type: 'followup_questions', timestamp: start + 400_000, question: 'Generate Follow-up Questions', answer: questions.map((q, i) => `${i + 1}. ${q}`).join('\n') },
+    // A screenshot sent with no typed text: the model got the English prompt, the user saw the
+    // Chinese one (stored as displayQuestion), and the export prints what the user saw.
+    { type: 'chat', timestamp: start + 500_000, question: SCREENSHOT_QUESTION, displayQuestion: '直接解答截图中的题目', answer: screenshotAnswer },
   ],
 };
 
@@ -108,6 +113,11 @@ const expected = {
   assistSentences,
   followupSentences,
   questions,
+  // The screenshot-only chat entry: the question line as the user saw it, and the prompt text
+  // that must not appear.
+  shownQuestion: `Q: ${meeting.usage[3].displayQuestion}`,
+  hiddenQuestion: SCREENSHOT_QUESTION,
+  screenshotAnswer: `A: ${screenshotAnswer}`,
 };
 fs.writeFileSync(path.join(outDir, 'meeting-zh.expected.json'), JSON.stringify(expected, null, 2));
 fs.rmSync(bundleDir, { recursive: true, force: true });

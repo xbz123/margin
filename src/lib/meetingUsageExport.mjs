@@ -36,13 +36,22 @@ export function followUpLabel(question) {
   return { label: 'Requested change', request: asked };
 }
 
+/**
+ * The question as the user saw it, as MeetingDetails shows it: the stored localized text
+ * (displayQuestion, e.g. the Chinese screenshot prompt) when there is one, else the question sent.
+ */
+export function shownQuestion(entry) {
+  const shown = typeof entry?.displayQuestion === 'string' ? entry.displayQuestion.trim() : '';
+  return shown || (typeof entry?.question === 'string' ? entry.question : '');
+}
+
 /** The usage blocks of a meeting export, in stored order; entries with nothing to show are left out. */
 export function usageExportBlocks(usage) {
   const blocks = [];
   for (const entry of usage ?? []) {
     const answer = typeof entry?.answer === 'string' ? entry.answer.trim() : '';
-    if (entry?.type === 'chat' && entry.question && answer) {
-      blocks.push({ kind: 'chat', question: entry.question, answer });
+    if (entry?.type === 'chat' && shownQuestion(entry) && answer) {
+      blocks.push({ kind: 'chat', question: shownQuestion(entry), answer });
     } else if (entry?.type === 'assist' && answer) {
       blocks.push({ kind: 'assist', label: 'Assist', answer });
     } else if (entry?.type === 'followup' && answer) {
