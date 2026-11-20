@@ -9,6 +9,7 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useI18n } from '../i18n';
+import { formatTranscriptCopy, visibleTranscriptRows } from '../lib/meetingTranscriptView.mjs';
 
 const formatTime = (ms: number) => {
     const date = new Date(ms);
@@ -67,11 +68,15 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
     // A version per field: only the response to the latest edit of a field acts.
     const editVersions = useRef(new Map<EditField, number>());
 
+    // The transcript page and its copy share these rows: spoken lines only, AI answers
+    // stay in the usage history.
+    const transcriptRows = visibleTranscriptRows(meeting.transcript, formatTime);
+
     const handleCopy = async () => {
         let textToCopy = '';
 
-        if (activeTab === 'transcript' && meeting.transcript) {
-            textToCopy = meeting.transcript.map(entry => `[${formatTime(entry.timestamp)}] ${t(entry.speaker === 'user' ? 'Me' : 'Them')}: ${entry.text}`).join('\n');
+        if (activeTab === 'transcript') {
+            textToCopy = formatTranscriptCopy(transcriptRows, t);
         } else if (activeTab === 'usage' && meeting.usage) {
             textToCopy = meeting.usage.map(u => `Q: ${u.question || ''}\nA: ${u.answer || ''}`).join('\n\n');
         }
@@ -222,28 +227,19 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                         {activeTab === 'transcript' && (
                             <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                                 <div className="space-y-6">
-                                    {(() => {
-                                        const filteredTranscript = meeting.transcript?.filter(entry => {
-                                            const isHidden = ['system', 'ai', 'assistant', 'model'].includes(entry.speaker?.toLowerCase());
-                                            return !isHidden;
-                                        }) || [];
-
-                                        if (filteredTranscript.length === 0) {
-                                            return <p className="text-text-tertiary">{t('No transcript available.')}</p>;
-                                        }
-
-                                        return filteredTranscript.map((entry, i) => (
+                                    {transcriptRows.length === 0
+                                        ? <p className="text-text-tertiary">{t('No transcript available.')}</p>
+                                        : transcriptRows.map((row, i) => (
                                             <div key={i} className="group">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="text-xs font-semibold text-text-secondary">
-                                                        {t(entry.speaker === 'user' ? 'Me' : 'Them')}
+                                                        {t(row.speakerKey)}
                                                     </span>
-                                                    <span className="text-xs text-text-tertiary font-mono">{entry.timestamp ? formatTime(entry.timestamp) : '0:00'}</span>
+                                                    <span className="text-xs text-text-tertiary font-mono">{row.time}</span>
                                                 </div>
-                                                <p className="text-text-secondary text-[15px] leading-relaxed transition-colors select-text cursor-text">{entry.text}</p>
+                                                <p className="text-text-secondary text-[15px] leading-relaxed transition-colors select-text cursor-text">{row.text}</p>
                                             </div>
-                                        ));
-                                    })()}
+                                        ))}
                                 </div>
                             </motion.section>
                         )}

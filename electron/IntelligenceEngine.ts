@@ -83,6 +83,36 @@ export class IntelligenceEngine extends EventEmitter {
         this.session.pushUsage({ ...entry, ...this.generationMetadata() });
     }
 
+    // The history label of each question, by question id, set when the question is first
+    // issued. A retry keeps the question id, so its answer is listed under the words the
+    // user saw rather than the id; the assembled prompt is never a label (it can carry
+    // meeting context or reference material).
+    private static readonly QUESTION_LABEL_LIMIT = 64;
+    private readonly questionLabels = new Map<string, { type: string; question: string }>();
+    private rememberQuestion(type: string, question: string): void {
+        const id = this.llmHelper.getCurrentGenerationTask()?.questionId;
+        if (!id || !question) return;
+        this.questionLabels.delete(id);
+        this.questionLabels.set(id, { type, question });
+        while (this.questionLabels.size > IntelligenceEngine.QUESTION_LABEL_LIMIT) {
+            this.questionLabels.delete(this.questionLabels.keys().next().value!);
+        }
+    }
+    // The action name of each entry point, for a question whose label is not held.
+    private static readonly ENTRY_POINT_LABELS: Record<string, { type: string; question: string }> = {
+        'what-to-say': { type: 'assist', question: 'What to Answer' },
+        'follow-up': { type: 'followup', question: 'Follow-up' },
+        recap: { type: 'chat', question: 'Recap Meeting' },
+        clarify: { type: 'chat', question: 'Clarify Question' },
+        'follow-up-questions': { type: 'followup_questions', question: 'Generate Follow-up Questions' },
+        'code-hint': { type: 'assist', question: 'Code Hint' },
+    };
+    private retryLabel(task: GenerationTask<any>): { type: string; question: string } {
+        return this.questionLabels.get(task.questionId)
+            ?? IntelligenceEngine.ENTRY_POINT_LABELS[task.entryPoint]
+            ?? { type: 'assist', question: 'Retry' };
+    }
+
     override emit(event: string | symbol, ...args: any[]): boolean {
         const task = this.llmHelper?.getCurrentGenerationTask();
         if (task) {
@@ -159,7 +189,8 @@ export class IntelligenceEngine extends EventEmitter {
                 if (held) this.emit(tokenEvent, held, 'retry', 1);
                 if (answer.trim()) {
                     this.session.addAssistantMessage(answer, this.generationMetadata());
-                    this.recordUsage({ type: 'assist', timestamp: Date.now(), question: task.questionId, answer });
+                    const label = this.retryLabel(task);
+                    this.recordUsage({ type: label.type, timestamp: Date.now(), question: label.question, answer });
                     this.emit(resultEvent, answer, 'retry', 1);
                 }
                 return answer;
@@ -292,6 +323,7 @@ export class IntelligenceEngine extends EventEmitter {
 
         this.setMode('what_to_say');
         this.lastTriggerTime = now;
+        this.rememberQuestion('assist', question || 'What to Answer');
 
         try {
             if (!this.whatToAnswerLLM) {
@@ -335,6 +367,7 @@ export class IntelligenceEngine extends EventEmitter {
             const interviewerQuestion = options?.manual && !question
                 ? latestInterviewerQuestion(contextItems) : undefined;
             const shownQuestion = question || interviewerQuestion;
+            if (shownQuestion) this.rememberQuestion('assist', shownQuestion);
 
             const transcriptTurns = contextItems.map(item => ({
                 role: item.role,
@@ -469,6 +502,18 @@ export class IntelligenceEngine extends EventEmitter {
 
         this.setMode('follow_up');
 
+        const intentMap: Record<string, string> = {
+            'expand': 'Expand Answer',
+            'rephrase': 'Rephrase Answer',
+            'add_example': 'Add Example',
+            'more_confident': 'Make More Confident',
+            'more_casual': 'Make More Casual',
+            'more_formal': 'Make More Formal',
+            'simplify': 'Simplify Answer'
+        };
+        const displayQuestion = userRequest || intentMap[intent] || `Refining: ${intent}`;
+        this.rememberQuestion('followup', displayQuestion);
+
         try {
             if (!this.followUpLLM) {
                 console.error('[IntelligenceEngine] FollowUpLLM not initialized');
@@ -503,18 +548,6 @@ export class IntelligenceEngine extends EventEmitter {
                 this.session.addAssistantMessage(fullRefined, this.generationMetadata());
                 this.emit('refined_answer', fullRefined, intent);
 
-                const intentMap: Record<string, string> = {
-                    'expand': 'Expand Answer',
-                    'rephrase': 'Rephrase Answer',
-                    'add_example': 'Add Example',
-                    'more_confident': 'Make More Confident',
-                    'more_casual': 'Make More Casual',
-                    'more_formal': 'Make More Formal',
-                    'simplify': 'Simplify Answer'
-                };
-
-                const displayQuestion = userRequest || intentMap[intent] || `Refining: ${intent}`;
-
                 this.recordUsage({
                     type: 'followup',
                     timestamp: Date.now(),
@@ -544,6 +577,7 @@ export class IntelligenceEngine extends EventEmitter {
     async runRecapInner(view: TranscriptView = this.session): Promise<string | null> {
         console.log('[IntelligenceEngine] runRecap called');
         this.setMode('recap');
+        this.rememberQuestion('chat', 'Recap Meeting');
 
         try {
             if (!this.recapLLM) {
@@ -614,6 +648,7 @@ export class IntelligenceEngine extends EventEmitter {
     async runClarifyInner(view: TranscriptView = this.session): Promise<string | null> {
         console.log('[IntelligenceEngine] runClarify called');
         this.setMode('clarify');
+        this.rememberQuestion('chat', 'Clarify Question');
 
         try {
             if (!this.clarifyLLM) {
@@ -682,6 +717,7 @@ export class IntelligenceEngine extends EventEmitter {
     async runFollowUpQuestionsInner(view: TranscriptView = this.session): Promise<string | null> {
         console.log('[IntelligenceEngine] runFollowUpQuestions called');
         this.setMode('follow_up_questions');
+        this.rememberQuestion('followup_questions', 'Generate Follow-up Questions');
 
         try {
             if (!this.followUpQuestionsLLM) {
@@ -753,6 +789,7 @@ export class IntelligenceEngine extends EventEmitter {
 
     async runCodeHintInner(imagePaths?: string[], problemStatement?: string, view: TranscriptView = this.session): Promise<string | null> {
         this.setMode('code_hint');
+        this.rememberQuestion('assist', 'Code Hint');
 
         try {
             if (!this.codeHintLLM) {

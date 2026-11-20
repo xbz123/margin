@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { flowLines } from '../lib/pdfTextFlow.mjs';
 
 interface Meeting {
     id: string;
@@ -34,14 +35,13 @@ export const generateMeetingPDF = (meeting: Meeting) => {
 
         const lines = doc.splitTextToSize(text, contentWidth);
 
-        // Check if we need a new page
-        if (y + (lines.length * fontSize * 0.5) > doc.internal.pageSize.getHeight() - margin) {
-            doc.addPage();
-            y = 20;
-        }
-
-        doc.text(lines, margin, y);
-        y += (lines.length * fontSize * 0.5) + 2; // Add some spacing
+        // Write the lines that fit on this page, then continue on new pages: a block
+        // longer than a page is never cut off.
+        y = flowLines(doc, lines, {
+            x: margin, y, lineHeight: fontSize * 0.5,
+            top: 20, bottom: doc.internal.pageSize.getHeight() - margin,
+        });
+        y += 2; // Add some spacing
     };
 
     const addVerticalSpace = (amount: number) => {
