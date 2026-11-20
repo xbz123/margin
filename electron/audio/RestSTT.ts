@@ -77,6 +77,13 @@ const SAFETY_NET_INTERVAL_MS = 10000;
 // Silence threshold - if RMS is below this, skip the upload
 const SILENCE_RMS_THRESHOLD = 50;
 
+/** Appends zero samples so 16-bit PCM is at least `minBytes` long. */
+export function padWithSilence(pcm: Buffer, minBytes: number): Buffer {
+    const length = pcm.length - (pcm.length % 2);
+    if (length >= minBytes) return length === pcm.length ? pcm : pcm.subarray(0, length);
+    return Buffer.concat([pcm.subarray(0, length), Buffer.alloc(minBytes - length)]);
+}
+
 export class RestSTT extends EventEmitter {
     private provider: RestSttProvider;
     private apiKey: string;
@@ -99,6 +106,10 @@ export class RestSTT extends EventEmitter {
     private uploadSettled: Promise<void> = Promise.resolve();
     /** Uploads of the current epoch that failed; finalize() compares it to report a failed tail. */
     private failedUploads = 0;
+    /** failedUploads when the user clicked End (markEnding), for that epoch; finalize() counts failures from here. */
+    private endBaseline: { epoch: number; failed: number } | null = null;
+    /** Set by finalize(): the tail is the last audio, so a short voiced remainder is uploaded too. */
+    private finalizing = false;
 
     // Audio config (must match SystemAudioCapture output)
     private sampleRate = 16000;
@@ -188,6 +199,8 @@ export class RestSTT extends EventEmitter {
         this.uploadEpoch++;
         this.isUploading = false;
         this.flushPending = false;
+        this.endBaseline = null;
+        this.finalizing = false;
         this.chunks = [];
         this.totalBufferedBytes = 0;
 
@@ -208,6 +221,8 @@ export class RestSTT extends EventEmitter {
         console.log(`[RestSTT] Stopping (${this.provider})...`);
         this.isActive = false;
         this.uploadEpoch++;
+        this.endBaseline = null;
+        this.finalizing = false;
 
         if (this.safetyNetTimer) {
             clearInterval(this.safetyNetTimer);
@@ -253,8 +268,10 @@ export class RestSTT extends EventEmitter {
         if (!this.isActive) return;
         console.log(`[RestSTT] Finalize — flushing buffer immediately`);
         const epoch = this.uploadEpoch;
-        // An upload already in flight is one this drain waits for; one that failed earlier was reported live.
-        const failedBefore = this.failedUploads;
+        // Uploads in flight when End was clicked belong to the tail: one that failed while capture
+        // devices were being released counts. One that failed before End was reported live.
+        const failedBefore = this.endBaseline?.epoch === epoch ? this.endBaseline.failed : this.failedUploads;
+        this.finalizing = true;
         await this.flushAndUpload();
         // A chained re-entry starts its upload synchronously in the previous upload's finally,
         // so isUploading is already true again when this loop resumes.
@@ -262,6 +279,15 @@ export class RestSTT extends EventEmitter {
         if (this.uploadEpoch === epoch && this.failedUploads > failedBefore) {
             throw new Error('REST STT tail upload failed');
         }
+    }
+
+    /**
+     * The user clicked End: failures of uploads still in flight (or started) from now on are part of
+     * the tail finalize() reports, even when they fail before finalize() is called.
+     */
+    public markEnding(): void {
+        if (!this.isActive || this.endBaseline?.epoch === this.uploadEpoch) return;
+        this.endBaseline = { epoch: this.uploadEpoch, failed: this.failedUploads };
     }
 
     /** Seals audio received so far into its own upload batch; recording continues. */
@@ -288,8 +314,9 @@ export class RestSTT extends EventEmitter {
         // non-null in some race window. Bailing here closes both holes.
         if (!this.isActive) return;
 
-        // Skip if no data
-        if (!this.batches.waiting && (this.chunks.length === 0 || this.totalBufferedBytes < MIN_BUFFER_BYTES)) return;
+        // Skip if no data. The final tail is sent however short it is (padded below when voiced).
+        const minBytes = this.finalizing ? 1 : MIN_BUFFER_BYTES;
+        if (!this.batches.waiting && (this.chunks.length === 0 || this.totalBufferedBytes < minBytes)) return;
 
         // Bug #2 fix: if currently uploading, queue a flush for when it completes
         if (this.isUploading) {
@@ -311,7 +338,7 @@ export class RestSTT extends EventEmitter {
 
         // Sealed batches go first; otherwise grab current buffer and reset
         let batch: RestBatch | undefined = this.batches.next();
-        if (batch && batch.bytes < MIN_BUFFER_BYTES) {
+        if (batch && batch.bytes < minBytes) {
             // Too short to send alone: not empty, so its result stays unknown and the audio waits.
             this.chunks = [...batch.chunks, ...this.chunks];
             this.totalBufferedBytes += batch.bytes;
@@ -341,9 +368,12 @@ export class RestSTT extends EventEmitter {
         // 6x smaller WAV file, reducing upload latency and keeping file sizes well
         // under the Groq/OpenAI 25MB limit even for 10-second safety-net flushes.
         const TARGET_RATE = 16_000;
-        const pcm16k = this.sampleRate === TARGET_RATE && this.numChannels === 1
+        const resampled = this.sampleRate === TARGET_RATE && this.numChannels === 1
             ? rawPcm
             : this.resampleTo16kHz(rawPcm);
+        // A voiced remainder shorter than the minimum (e.g. the last word before End) is padded
+        // with trailing silence instead of being dropped; providers reject very short files.
+        const pcm16k = padWithSilence(resampled, MIN_BUFFER_BYTES);
 
         // Add WAV header — stamp with actual rate/channel after resampling (always 16kHz mono)
         const wavBuffer = this.addWavHeader(pcm16k, TARGET_RATE);

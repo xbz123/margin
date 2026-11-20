@@ -14,4 +14,6 @@ export type AudioCaptureFailedPayload = {
   failedChannels?: ('user' | 'interviewer')[];
   /** The drain ran out of its time budget (transcript-tail-incomplete only). */
   timedOut?: boolean;
+  /** How each STT lane's tail ended (transcript-tail-incomplete only). */
+  channelOutcomes?: Partial<Record<'user' | 'interviewer', 'success' | 'failed' | 'timed-out'>>;
 };

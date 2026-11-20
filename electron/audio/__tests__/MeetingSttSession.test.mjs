@@ -644,7 +644,7 @@ test('stop accepts trailing finals, releases listeners, and restart excludes sta
   const drainPromise = session.drain(200, 50);
   oldProvider.emit('transcript', { text: 'trailing final', isFinal: true });
   oldProvider.emit('transcript', { text: 'ignored interim', isFinal: false });
-  assert.deepEqual(serialize(await drainPromise), { timedOut: false, failedChannels: [] });
+  assert.deepEqual(serialize(await drainPromise), { timedOut: false, failedChannels: [], channels: { user: 'success' } });
   assert.equal(events.length, 1);
   assert.equal(events[0].text, 'trailing final');
   assert.equal(oldProvider.listenerCount('transcript'), 0);
@@ -724,7 +724,7 @@ test('drain reports provider failure without inventing a timeout', async () => {
   session.begin('meeting-1');
   session.ensure('user');
   const outcome = await session.drain(100, 0);
-  assert.deepEqual(serialize(outcome), { timedOut: false, failedChannels: ['user'] });
+  assert.deepEqual(serialize(outcome), { timedOut: false, failedChannels: ['user'], channels: { user: 'failed' } });
 });
 
 test('stable IDs accept final corrections while duplicate and stale interim events are ignored', () => {

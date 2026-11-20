@@ -30,6 +30,8 @@ const methods = names.map(name => {
   if (!method) throw new Error('Missing production method ' + name);
   return method.getText(tree);
 });
+// main.ts's own notice text, as endMeeting sends it.
+const TRANSCRIPT_TAIL_INCOMPLETE = /const TRANSCRIPT_TAIL_INCOMPLETE = '([^']+)'/.exec(source)[1];
 const js = ts.transpileModule('class AppState {' + methods.join('\n') + '}\nreturn AppState;', {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
 }).outputText;
@@ -41,13 +43,13 @@ export function mainFixture(options = {}) {
   const settings = { getWrittenExamSettings: () => ({ ...examSettings }), saveWrittenExamSettings: value => {
     options.saveExam?.(value); examSettings = { ...value }; return { ...value };
   } };
-  const Class = new Function('ensureMacMicrophoneAccess', 'formatPermissionMessage', 'crypto', 'CredentialsManager', 'console', 'SettingsManager', 'validExamSettings', js)(
+  const Class = new Function('ensureMacMicrophoneAccess', 'formatPermissionMessage', 'crypto', 'CredentialsManager', 'console', 'SettingsManager', 'validExamSettings', 'TRANSCRIPT_TAIL_INCOMPLETE', js)(
     options.microphonePermission ?? (async () => true), () => 'permission denied',
     { randomUUID: () => 'meeting-' + providers.length + '-' + order.length },
     { getInstance: () => ({ getDefaultModel: () => 'synthetic-model', getSttProvider: () => 'synthetic',
       requireSttConfigured: options.requireSttConfigured ?? (() => {}) }) },
     options.console ?? { log() {}, warn() {}, error() {} },
-    { getInstance: () => settings }, validExamSettings,
+    { getInstance: () => settings }, validExamSettings, TRANSCRIPT_TAIL_INCOMPLETE,
   );
   const state = new Class();
   const audio = fixture({ ...options, querySnapshot: () => ({
@@ -55,6 +57,9 @@ export function mainFixture(options = {}) {
   }) });
   const session = new MeetingSttSession({
     create: channel => {
+      // A test may supply a real STT provider (e.g. RestSTT with a stub upload client).
+      const supplied = options.sttProvider?.(channel);
+      if (supplied) { providers.push(supplied); return supplied; }
       const provider = new EventEmitter();
       Object.assign(provider, {
         channel, writes: [], start() { order.push('stt-start:' + channel); },
@@ -90,7 +95,7 @@ export function mainFixture(options = {}) {
     },
     stopAudioTest: async () => { order.push('audio-test-stop'); },
     sendToMeetingSurfaces() {}, broadcastMeetingState() {}, sendModelChanged() {}, broadcastAnswerReasoning() {},
-    broadcast() {}, sendAudioCaptureFailed: () => order.push('audio-error'),
+    broadcast() {}, sendAudioCaptureFailed: payload => { order.push('audio-error'); options.captureFailed?.(payload); },
   });
   const clear = state.transcriptDisplay.clear.bind(state.transcriptDisplay);
   state.transcriptDisplay.clear = () => { order.push('display-clear'); clear(); };

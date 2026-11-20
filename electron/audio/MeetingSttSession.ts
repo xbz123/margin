@@ -1,9 +1,14 @@
 import type { EventEmitter } from 'node:events';
 
 export type SttChannel = 'user' | 'interviewer';
+/** How one channel's drain ended: its tail completed, it reported a lost tail, or the budget ran out first. */
+export type ChannelOutcome = 'success' | 'failed' | 'timed-out';
 export interface DrainResult {
+  /** Some channel was still finishing when the time budget ran out. */
   timedOut: boolean;
+  /** Channels whose outcome is 'failed' or 'timed-out'; a channel that succeeded is never listed. */
   failedChannels: SttChannel[];
+  channels: Partial<Record<SttChannel, ChannelOutcome>>;
 }
 // Provider media time as reported, with the provider/epoch it is relative to. Never a wall clock.
 export interface SttMedia {
@@ -126,6 +131,11 @@ export interface ManagedSttProvider extends EventEmitter {
   start?(): void;
   stop(flush?: boolean): Promise<void> | void;
   finalize?(): Promise<void> | void | boolean;
+  /**
+   * The user ended the meeting: from now on an upload that fails (including one already in flight
+   * while capture devices are released) belongs to the tail that finalize() reports.
+   */
+  markEnding?(): void;
   /**
    * Non-terminating flush for a manual action; providers without one (or returning none for this
    * channel) stay unknown. `channel` is the lane the provider serves.
@@ -537,6 +547,16 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     };
   }
 
+  /**
+   * Called when the user clicks End, before capture devices are released: each provider starts
+   * tracking its in-flight uploads as part of the tail its finalize() will report.
+   */
+  markEnding(): void {
+    for (const { provider } of this.bindings.values()) {
+      try { provider.markEnding?.(); } catch { /* a provider without tail tracking keeps the old behaviour */ }
+    }
+  }
+
   async drain(timeoutMs = 5000, graceMs = 1500): Promise<DrainResult> {
     this.abortCollectors();
     this.draining = true;
@@ -558,37 +578,41 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
   }
 
   private async finish(flush: boolean, timeoutMs: number, graceMs: number, owned = [...this.bindings]): Promise<DrainResult> {
-    const failed = new Set<SttChannel>();
+    // Each channel finishes on its own: one channel's slow or failed tail never decides another's
+    // outcome. All channels share one total time budget.
+    const outcomes = new Map<SttChannel, ChannelOutcome>();
     const waiting = new Set(owned.map(([channel]) => channel));
     let deadline: ReturnType<typeof setTimeout> | undefined;
     let grace: ReturnType<typeof setTimeout> | undefined;
     let timedOut = false;
-    const invoke = async (channel: SttChannel, call: () => unknown) => {
-      try { await call(); } catch { failed.add(channel); }
+    const succeeded = async (call: () => unknown) => {
+      try { await call(); return true; } catch { return false; }
     };
-    const stopping = (async () => {
+    const graceOver = flush ? new Promise<void>(resolve => { grace = setTimeout(resolve, graceMs); }) : Promise.resolve();
+    const stopping = Promise.all(owned.map(async ([channel, { provider }]) => {
+      let ok = true;
       if (flush) {
-        await Promise.all([
-          ...owned.map(([channel, { provider }]) => invoke(channel, () => provider.finalize?.())),
-          new Promise<void>(resolve => { grace = setTimeout(resolve, graceMs); }),
-        ]);
+        const [finalized] = await Promise.all([succeeded(() => provider.finalize?.()), graceOver]);
+        ok = finalized;
       }
       if (timedOut) return;
-      await Promise.all(owned.map(async ([channel, { provider }]) => {
-        await invoke(channel, () => provider.stop(flush));
-        waiting.delete(channel);
-      }));
-    })();
+      if (!(await succeeded(() => provider.stop(flush)))) ok = false;
+      if (timedOut) return;
+      outcomes.set(channel, ok ? 'success' : 'failed');
+      waiting.delete(channel);
+    }));
     try {
       await Promise.race([stopping, new Promise<void>(resolve => {
         deadline = setTimeout(() => { timedOut = true; resolve(); }, Math.max(0, timeoutMs));
       })]);
       if (timedOut) {
-        for (const channel of waiting) failed.add(channel);
+        for (const channel of waiting) outcomes.set(channel, 'timed-out');
         // A graceful provider may be stuck; revoke its send path without waiting again.
         for (const [channel, { provider }] of owned) {
-          if (waiting.has(channel)) void invoke(channel, () => provider.stop(false));
+          if (waiting.has(channel)) void succeeded(() => provider.stop(false));
         }
+        // Only the channels still finishing at the deadline ran out of time.
+        timedOut = waiting.size > 0;
       }
     } finally {
       clearTimeout(deadline);
@@ -597,6 +621,9 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
         if (this.bindings.get(channel) === binding) this.set(channel, null);
       }
     }
-    return { timedOut, failedChannels: [...failed] };
+    const channels: DrainResult['channels'] = {};
+    for (const [channel] of owned) channels[channel] = outcomes.get(channel);
+    const failedChannels = owned.map(([channel]) => channel).filter(channel => channels[channel] !== 'success');
+    return { timedOut, failedChannels, channels };
   }
 }

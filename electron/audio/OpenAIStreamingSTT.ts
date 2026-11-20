@@ -78,6 +78,13 @@ const NUM_CHANNELS        = 1;
 
 type Mode = 'ws' | 'rest';
 
+/** Appends zero samples so 16-bit PCM is at least `minBytes` long. */
+function padWithSilence(pcm: Buffer, minBytes: number): Buffer {
+    const length = pcm.length - (pcm.length % 2);
+    if (length >= minBytes) return length === pcm.length ? pcm : pcm.subarray(0, length);
+    return Buffer.concat([pcm.subarray(0, length), Buffer.alloc(minBytes - length)]);
+}
+
 // ─── Class ────────────────────────────────────────────────────────────────────
 
 export class OpenAIStreamingSTT extends EventEmitter {
@@ -136,6 +143,10 @@ export class OpenAIStreamingSTT extends EventEmitter {
     private restUploadSettled: Promise<void> = Promise.resolve();
     /** REST uploads of the current epoch that failed; finalize() compares it to report a failed tail. */
     private restFailedUploads      = 0;
+    /** restFailedUploads when the user clicked End (markEnding), for that epoch; finalize() counts failures from here. */
+    private restEndBaseline: { epoch: number; failed: number } | null = null;
+    /** Set by finalize() in REST mode: the tail is the last audio, so a short voiced remainder is uploaded too. */
+    private restFinalizing = false;
     private readonly restBatches   = new RestBatches('openai-rest');
 
     // Custom OpenAI-compatible endpoint (e.g. self-hosted Speaches). When set, the
@@ -235,6 +246,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // after restart isn't surprise-deferred by an orphaned axios promise.
         this.restIsUploading  = false;
         this.restFlushPending = false;
+        this.restEndBaseline  = null;
+        this.restFinalizing   = false;
         this.turn = null;
         this.itemTurns.clear();
 
@@ -304,6 +317,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // but it's cleaner to flip the latch here so future readers don't
         // wonder why the entry guard exists at all.
         this.restFlushPending = false;
+        this.restEndBaseline  = null;
+        this.restFinalizing   = false;
         // Note: restIsUploading is NOT reset to false synchronously — there
         // may be an in-flight axios POST whose finally needs to observe the
         // true value to take its early-return branch. The axios timeout caps
@@ -365,6 +380,15 @@ export class OpenAIStreamingSTT extends EventEmitter {
     }
 
     /**
+     * The user clicked End: failures of REST uploads still in flight (or started) from now on are
+     * part of the tail finalize() reports, even when they fail before finalize() is called.
+     */
+    public markEnding(): void {
+        if (!this.isActive || this.restEndBaseline?.epoch === this.restEpoch) return;
+        this.restEndBaseline = { epoch: this.restEpoch, failed: this.restFailedUploads };
+    }
+
+    /**
      * REST mode flushes the tail and settles once every upload it depends on (one already in flight
      * and the tail queued behind it) has emitted its transcript or failed; it rejects when one of
      * those uploads failed, so a meeting drain reports this channel incomplete. An upload that failed
@@ -375,7 +399,10 @@ export class OpenAIStreamingSTT extends EventEmitter {
         if (this.mode === 'rest') {
             console.log('[OpenAIStreaming][REST] Finalize — flushing buffer');
             const epoch = this.restEpoch;
-            const failedBefore = this.restFailedUploads;
+            // Uploads in flight when End was clicked belong to the tail: one that failed while capture
+            // devices were being released counts. One that failed before End was reported live.
+            const failedBefore = this.restEndBaseline?.epoch === epoch ? this.restEndBaseline.failed : this.restFailedUploads;
+            this.restFinalizing = true;
             await this._restFlushAndUpload();
             // A chained re-entry starts its upload synchronously in the previous upload's finally,
             // so restIsUploading is already true again when this loop resumes.
@@ -1045,7 +1072,9 @@ export class OpenAIStreamingSTT extends EventEmitter {
         // it on the OpenAI provider too.
         if (!this.isActive) return;
 
-        if (!this.restBatches.waiting && (this.restChunks.length === 0 || this.restTotalBytes < REST_MIN_UPLOAD_BYTES)) return;
+        // The final tail is sent however short it is (padded below when voiced).
+        const minBytes = this.restFinalizing ? 1 : REST_MIN_UPLOAD_BYTES;
+        if (!this.restBatches.waiting && (this.restChunks.length === 0 || this.restTotalBytes < minBytes)) return;
         if (this.restIsUploading) {
             this.restFlushPending = true;
             return;
@@ -1056,7 +1085,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
 
         // Sealed batches go first; a too-short one is not empty, so it stays unknown and waits.
         let batch: RestBatch | undefined = this.restBatches.next();
-        if (batch && batch.bytes < REST_MIN_UPLOAD_BYTES) {
+        if (batch && batch.bytes < minBytes) {
             this.restChunks = [...batch.chunks, ...this.restChunks];
             this.restTotalBytes += batch.bytes;
             this.restBatches.finish(batch, 'unknown', false);
@@ -1080,7 +1109,9 @@ export class OpenAIStreamingSTT extends EventEmitter {
         }
 
         // Downsample to 16kHz mono before creating WAV (input may be 48kHz)
-        const pcm16k = this._resamplePcm16(rawPcm, REST_SAMPLE_RATE);
+        // A voiced remainder shorter than the minimum (e.g. the last word before End) is padded
+        // with trailing silence instead of being dropped; providers reject very short files.
+        const pcm16k = padWithSilence(this._resamplePcm16(rawPcm, REST_SAMPLE_RATE), REST_MIN_UPLOAD_BYTES);
         const wavBuffer = this._addWavHeader(pcm16k, REST_SAMPLE_RATE);
         this.restIsUploading = true;
         let settled!: () => void;

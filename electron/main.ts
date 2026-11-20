@@ -1568,6 +1568,9 @@ export class AppState {
     this.processingHelper.getLLMHelper().cancelGenerationTasks('Session ended');
     this.intelligenceManager.resetEngine();
     return this.meetingLifecycle.stop(async () => {
+      // From the End click on, uploads already in flight count toward the tail: one that fails while
+      // the capture devices are still being released is reported below instead of lost.
+      this.meetingStt.markEnding();
       if (this.overlayMousePassthrough) this.setOverlayMousePassthrough(false);
       this.windowHelper.setWindowMode('launcher');
       this.isMeetingActive = false;
@@ -1588,7 +1591,9 @@ export class AppState {
         const result = await this.meetingStt.drain(5000);
         if (result.timedOut || result.failedChannels.length) {
           // The window is already the launcher here; `kind` lets it show this after the meeting ends.
-          this.sendAudioCaptureFailed({ channel: 'audio', kind: 'transcript-tail-incomplete', message: TRANSCRIPT_TAIL_INCOMPLETE, terminal: true, failedChannels: result.failedChannels, timedOut: result.timedOut });
+          // Only the channels that failed or ran out of time are named; a channel that finished keeps its text.
+          this.sendAudioCaptureFailed({ channel: 'audio', kind: 'transcript-tail-incomplete', message: TRANSCRIPT_TAIL_INCOMPLETE, terminal: true,
+            failedChannels: result.failedChannels, timedOut: result.timedOut, channelOutcomes: result.channels });
         }
         const stopped = await this.intelligenceManager.stopMeeting();
         // An unsaved meeting is still pending; its session override stays until it is saved or discarded.

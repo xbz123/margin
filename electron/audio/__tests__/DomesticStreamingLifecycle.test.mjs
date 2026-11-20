@@ -893,7 +893,7 @@ test('S42-03 Doubao: the meeting drain does not wait out a seal; the tail behind
   await advance(500);
   two.respond([said('尾音', true, 0, 300)], true);
   await advance(0);
-  assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: [] });
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: [], channels: { user: 'success', interviewer: 'success' } });
   assert.ok(Date.now() - started < 5000);
   assert.equal(rows.at(-1).text, '尾音');
 });
@@ -919,7 +919,7 @@ test('S42-03 Doubao: a seal that answers while the drain waits hands the tail ov
   await advance(600);
   two.respond([said('尾音', true, 0, 300)], true);
   await advance(0);
-  assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: [] });
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: [], channels: { user: 'success', interviewer: 'success' } });
   assert.ok(Date.now() - started < 5000);
   assert.ok(rows.some(row => row.final && row.text === '最后一个问题。'), 'the sealed request\'s last result is not lost');
   assert.equal(rows.at(-1).text, '尾音');
@@ -1042,13 +1042,13 @@ for (const tail of ['answers', 'never answers']) test(`S42-03 Doubao: the meetin
     await advance(1500);
     respondTo(two)([said('尾音', true, 0, 300)], true);
     await advance(0);
-    assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: [] });
+    assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: [], channels: { user: 'success', interviewer: 'success' } });
   } else {
     await advance(1999);
     assert.equal(result, undefined);
     await advance(1);
     assert.equal(Date.now() - started, 4500, 'the tail request gets what is left of the budget, not a fresh 4.5 s');
-    assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: ['user'] }, 'only the microphone failed; the session did not time out');
+    assert.deepEqual(JSON.parse(JSON.stringify(result)), { timedOut: false, failedChannels: ['user'], channels: { user: 'failed', interviewer: 'success' } }, 'only the microphone failed; the session did not time out');
   }
   assert.ok(Date.now() - started < 5000);
 });
