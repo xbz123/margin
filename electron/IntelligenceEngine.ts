@@ -88,15 +88,15 @@ export class IntelligenceEngine extends EventEmitter {
     // user saw rather than the id; the assembled prompt is never a label (it can carry
     // meeting context or reference material).
     private static readonly QUESTION_LABEL_LIMIT = 64;
-    private readonly questionLabels = new Map<string, { type: string; question: string }>();
+    // Created on first use: mode methods are also run on engine-shaped objects.
+    private questionLabels?: Map<string, { type: string; question: string }>;
     private rememberQuestion(type: string, question: string): void {
-        const id = this.llmHelper.getCurrentGenerationTask()?.questionId;
+        const id = this.llmHelper?.getCurrentGenerationTask?.()?.questionId;
         if (!id || !question) return;
-        this.questionLabels.delete(id);
-        this.questionLabels.set(id, { type, question });
-        while (this.questionLabels.size > IntelligenceEngine.QUESTION_LABEL_LIMIT) {
-            this.questionLabels.delete(this.questionLabels.keys().next().value!);
-        }
+        const labels = this.questionLabels ??= new Map();
+        labels.delete(id);
+        labels.set(id, { type, question });
+        while (labels.size > IntelligenceEngine.QUESTION_LABEL_LIMIT) labels.delete(labels.keys().next().value!);
     }
     // The action name of each entry point, for a question whose label is not held.
     private static readonly ENTRY_POINT_LABELS: Record<string, { type: string; question: string }> = {
@@ -108,7 +108,7 @@ export class IntelligenceEngine extends EventEmitter {
         'code-hint': { type: 'assist', question: 'Code Hint' },
     };
     private retryLabel(task: GenerationTask<any>): { type: string; question: string } {
-        return this.questionLabels.get(task.questionId)
+        return this.questionLabels?.get(task.questionId)
             ?? IntelligenceEngine.ENTRY_POINT_LABELS[task.entryPoint]
             ?? { type: 'assist', question: 'Retry' };
     }
