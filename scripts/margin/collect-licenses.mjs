@@ -309,7 +309,10 @@ export async function collect({ root = ROOT, cargoRoot, fetchMissing = false, fe
     if (!component.texts.length) component.texts.push(...embeddedNotices(dir, addText, `${item.name}-${item.version}`));
     components.push(component);
   }
-  for (const [name, version, file, license] of [['Inter', '4.1', 'src/font/Inter-4.1/LICENSE.txt', 'OFL-1.1']]) {
+  for (const [name, version, file, license] of [
+    ['Inter', '4.1', 'src/font/Inter-4.1/LICENSE.txt', 'OFL-1.1'],
+    ['Noto Sans SC', '2.004', 'src/font/NotoSansSC-2.004/OFL.txt', 'OFL-1.1'],
+  ]) {
     components.push({ id: `asset:${name}@${version}`, kind: 'asset', name, version, license, texts: [addText(fs.readFileSync(path.join(root, file)), { sourcePath: file, origin: 'repository asset' })], basis: 'bundled font' });
   }
   const attachments = [];

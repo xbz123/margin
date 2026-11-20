@@ -25,6 +25,7 @@ function fixture(t) {
   write(root, 'node_modules/electron/dist/LICENSE', 'Synthetic Electron LICENSE\n');
   write(root, 'node_modules/electron/dist/LICENSES.chromium.html', 'Synthetic complete-notice stand-in, tests only\n');
   write(root, 'src/font/Inter-4.1/LICENSE.txt', 'Synthetic OFL fixture\n');
+  write(root, 'src/font/NotoSansSC-2.004/OFL.txt', 'Synthetic export font OFL fixture\n');
   write(root, 'native-module/Cargo.lock', 'version = 4\n');
   write(root, 'dist-electron/main.js.map', { sources: ['../node_modules/example/index.js'] });
   fs.mkdirSync(path.join(root, 'dist'));
@@ -189,11 +190,11 @@ test('summary regeneration preserves legal prose, ignores unlisted leftovers and
   const end = '<!-- margin-license-inventory:end -->';
   for (const file of ['NOTICE', 'licenses/README.md']) write(options.root, file, prefix + start + '\nSTALE inventory\n' + end + suffix);
   const first = await collect(options);
-  assert.deepEqual(first.components.map((item) => item.name), ['example', 'Inter']);
+  assert.deepEqual(first.components.map((item) => item.name), ['example', 'Inter', 'Noto Sans SC']);
   for (const file of ['NOTICE', 'licenses/README.md']) assert.equal(fs.readFileSync(path.join(options.root, file), 'utf8'), prefix + start + '\n' + inventorySummary(first) + '\n' + end + suffix);
   write(options.root, 'dist-electron/main.js.map', { sources: ['../node_modules/dev-only/index.js'] });
   const mapped = await collect(options);
-  assert.deepEqual(mapped.components.map((item) => item.name), ['dev-only', 'example', 'Inter']);
+  assert.deepEqual(mapped.components.map((item) => item.name), ['dev-only', 'example', 'Inter', 'Noto Sans SC']);
   assert.equal(mapped.components[0].basis, 'embedded in current main bundle source maps');
   assert.equal(fs.readFileSync(path.join(options.root, 'NOTICE'), 'utf8'), prefix + start + '\n' + inventorySummary(mapped) + '\n' + end + suffix);
 });

@@ -3,7 +3,7 @@
 `manifest.json` is a **candidate inventory**, not a package SBOM or completed
 legal review. It includes installed non-dev lock candidates, dependencies in
 current main-bundle source maps, registry Cargo.lock entries across platforms,
-and Inter. It does not claim every candidate is linked or distributed.
+Inter and Noto Sans SC. It does not claim every candidate is linked or distributed.
 
 `texts/` retains original bytes and copyright statements. Each text entry records
 its component/version, original path, SHA-256 and, for remote files, immutable
@@ -23,7 +23,9 @@ The fixed Electron distribution's full LICENSE and LICENSES.chromium.html are
 copied during packaging to Resources/licenses/electron. Version, release source
 and hashes are under `deferred`. These large notices are not stored twice here;
 the package hook rejects absent or altered copies, so placeholders cannot pass.
-Inter's OFL and React Icons' package/icon-set notices are separate. Shipping more
+Inter's OFL, the OFL of the Noto Sans SC subset used for PDF export (origin,
+hashes and subsetting in src/font/NotoSansSC-2.004/README.md) and React Icons'
+package/icon-set notices are separate. Shipping more
 icon sets than the renderer uses requires their terms too.
 
 ## Native and copyleft boundary
@@ -82,7 +84,7 @@ license files. Collector/hook tests alone do not establish those obligations.
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-542 candidates; 320 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
+543 candidates; 321 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0

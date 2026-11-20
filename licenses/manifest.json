@@ -11999,6 +11999,22 @@
         }
       ],
       "basis": "bundled font"
+    },
+    {
+      "id": "asset:Noto Sans SC@2.004",
+      "kind": "asset",
+      "name": "Noto Sans SC",
+      "version": "2.004",
+      "license": "OFL-1.1",
+      "texts": [
+        {
+          "file": "texts/1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9.txt",
+          "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+          "sourcePath": "src/font/NotoSansSC-2.004/OFL.txt",
+          "origin": "repository asset"
+        }
+      ],
+      "basis": "bundled font"
     }
   ],
   "attachments": [

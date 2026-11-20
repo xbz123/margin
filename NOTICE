@@ -24,6 +24,9 @@ licenses. licenses/manifest.json records versions, original sources and hashes.
 Full fixed-version Electron/Chromium notices are copied into licenses/electron
 inside packaged Resources and hash-checked, not replaced by an MIT summary.
 Inter 4.1 retains SIL OFL; React Icons retains package/icon-set notices.
+Noto Sans SC 2.004 (a subset of the official Google Fonts release, used for PDF
+export; origin and subsetting in src/font/NotoSansSC-2.004/README.md) retains
+SIL OFL.
 
 Historical SPDX attribution from checkpoints 45b11c5b and 3ac02ece follows.
 S18 removes these packages and their supplemental sources from the current
@@ -113,7 +116,7 @@ Current complete terms: https://www.unicode.org/license.txt
 
 <!-- margin-license-inventory:start -->
 Generated from licenses/manifest.json; candidate inventory, not distribution acceptance.
-542 candidates; 320 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
+543 candidates; 321 unique stored texts; 0 excluded paths; 0 unresolved candidates; 2 deferred notices.
 
 Current supplemental notice bindings:
 - npm:highlightjs-vue@1.0.0: CC0-1.0
