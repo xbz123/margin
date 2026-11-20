@@ -8,3 +8,5 @@ export function flowLines(
   lines: string | readonly string[],
   layout: { x: number; y: number; lineHeight: number; top: number; bottom: number },
 ): number;
+
+export function keepPunctuationOffLineStart(lines: string | readonly string[]): string[];

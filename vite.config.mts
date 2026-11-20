@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { version } from './package.json'
 import identityConfig from './scripts/margin/app-identity.cjs'
+import { viteBase64Assets } from './scripts/margin/base64-asset.mjs'
 
 // Inject version so the React frontend can read it via import.meta.env.VITE_APP_VERSION
 process.env.VITE_APP_VERSION = version;
@@ -12,7 +13,7 @@ process.env.VITE_APP_NAME = identity.name;
 // https://vitejs.dev/config/
 export default defineConfig({
     define: { __MARGIN_APP_NAME__: JSON.stringify(identity.name) },
-    plugins: [react()],
+    plugins: [viteBase64Assets(), react()],
     base: './', // Use relative paths for Electron
     resolve: {
         alias: {

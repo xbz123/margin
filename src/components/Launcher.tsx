@@ -608,20 +608,19 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                                                 onClick={async () => {
                                                                                     setActiveMenuId(null);
                                                                                     // Fetch full details if needed
+                                                                                    let exported = m;
                                                                                     if (window.electronAPI && window.electronAPI.getMeetingDetails) {
                                                                                         try {
                                                                                             const fullMeeting = await window.electronAPI.getMeetingDetails(m.id);
-                                                                                            if (fullMeeting) {
-                                                                                                generateMeetingPDF(fullMeeting);
-                                                                                            } else {
-                                                                                                generateMeetingPDF(m);
-                                                                                            }
+                                                                                            if (fullMeeting) exported = fullMeeting;
                                                                                         } catch (e) {
                                                                                             console.error("Failed to fetch details for PDF", e);
-                                                                                            generateMeetingPDF(m);
                                                                                         }
-                                                                                    } else {
-                                                                                        generateMeetingPDF(m);
+                                                                                    }
+                                                                                    try {
+                                                                                        await generateMeetingPDF(exported, t);
+                                                                                    } catch (e) {
+                                                                                        console.error("Failed to export PDF", e);
                                                                                     }
                                                                                 }}
                                                                             >

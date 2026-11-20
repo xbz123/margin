@@ -91,8 +91,10 @@ test('a short block that fits stays on its page; one that does not continues on 
 
 test('pdfGenerator writes text through flowLines', () => {
   const source = readFileSync(fileURLToPath(new URL('../../utils/pdfGenerator.ts', import.meta.url)), 'utf8');
-  assert.match(source, /import \{ flowLines \} from '\.\.\/lib\/pdfTextFlow\.mjs'/);
-  assert.match(source, /y = flowLines\(doc, lines, \{/);
+  assert.match(source, /import \{ flowLines, keepPunctuationOffLineStart, type TextFlowTarget \} from '\.\.\/lib\/pdfTextFlow\.mjs'/);
+  // Every block (text and list items) goes through one flowLines call.
+  assert.match(source, /y = flowLines\(target\(isBold, bulletX\), keepPunctuationOffLineStart\(lines\), \{/);
+  assert.equal(source.match(/flowLines\(/g).length, 1);
   assert.doesNotMatch(source, /doc\.text\(lines, margin, y\)/, 'no single draw of a whole block');
 });
 
@@ -105,6 +107,7 @@ async function loadPdfGenerator() {
   const modules = {
     '../lib/pdfTextFlow.mjs': await import('../pdfTextFlow.mjs'),
     '../lib/meetingTranscriptView.mjs': await import('../meetingTranscriptView.mjs'),
+    '../lib/meetingUsageExport.mjs': await import('../meetingUsageExport.mjs'),
   };
   const source = readFileSync(fileURLToPath(new URL('../../utils/pdfGenerator.ts', import.meta.url)), 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
@@ -144,4 +147,29 @@ test('the PDF transcript lists the rows the transcript page and copy show, at th
   const expected = 10 * long.getLineHeightFactor() / long.internal.scaleFactor;
   for (let i = 1; i < answer.length; i++) assert.ok(Math.abs(answer[i].y - answer[i - 1].y - expected) < 1e-3);
   assert.ok(Math.abs(expected - 11.5 / MM_TO_PT) < 1e-9, 'jsPDF default: 10pt x 1.15, in mm');
+});
+
+test('expanded answers and follow-up question lists are exported, through the same page flow', async () => {
+  const { buildMeetingPDF } = await loadPdfGenerator();
+  const at = Date.UTC(2026, 10, 20, 9, 30, 0);
+  const expanded = Array.from({ length: 1500 }, (_, i) => `exp${i}`).join(' ');
+  const questions = ['How is the cache invalidated?', 'What if a message is delivered twice?', 'How was the pool size chosen?'];
+  const doc = buildMeetingPDF({ id: 'm3', title: 'T', date: 'D', duration: '1 min', usage: [
+    { type: 'followup', timestamp: at, question: 'Follow-up', answer: expanded },
+    { type: 'followup_questions', timestamp: at + 1, question: 'Generate Follow-up Questions', answer: questions.map((q, i) => `${i + 1}. ${q}`).join('\n') },
+    { type: 'followup_questions', timestamp: at + 2, answer: null, items: ['Stored item question?'] },
+  ] });
+  const drawn = drawnLines(doc).flat();
+  const texts = drawn.map(line => line.text);
+  assert.ok(texts.includes('Expanded answer:'));
+  const words = drawn.filter(line => /exp\d/.test(line.text));
+  assert.ok(new Set(words.map(line => line.page)).size >= 2, 'the expanded answer continues on the next page');
+  assert.deepEqual(words.map(line => line.text).join(' ').split(' '), expanded.split(' '), 'every word once, in order');
+  assert.ok(texts.lastIndexOf('Follow-Up Questions:') > texts.indexOf('Expanded answer:'));
+  // Each question is its own line, indented past its bullet.
+  for (const question of [...questions, 'Stored item question?']) {
+    const line = drawn.find(item => item.text === question);
+    assert.ok(line, `${question} is drawn as its own line`);
+    assert.ok(line.x > 20 + 1, 'list items are indented');
+  }
 });

@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
-import { flowLines } from '../lib/pdfTextFlow.mjs';
+import { flowLines, keepPunctuationOffLineStart, type TextFlowTarget } from '../lib/pdfTextFlow.mjs';
 import { formatTranscriptTime, visibleTranscriptRows } from '../lib/meetingTranscriptView.mjs';
+import { usageExportBlocks } from '../lib/meetingUsageExport.mjs';
 
 interface Meeting {
     id: string;
@@ -21,30 +22,79 @@ interface Meeting {
     }>;
 }
 
+export interface MeetingPDFOptions {
+    /** Base64 TrueType font covering Chinese; without it the PDF falls back to Helvetica (Latin only). */
+    fontBase64?: string;
+    fontFile?: string;
+    /** UI translation for labels and headings (English keys). */
+    translate?: (key: string) => string;
+}
+
+const FONT_NAME = 'MarginExport';
+
 /** The meeting PDF, not yet saved. */
-export const buildMeetingPDF = (meeting: Meeting): jsPDF => {
+export const buildMeetingPDF = (meeting: Meeting, options: MeetingPDFOptions = {}): jsPDF => {
     const doc = new jsPDF();
+    const t = options.translate ?? ((key: string) => key);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
     let y = 20;
 
-    // Helper for adding text with auto-page break
-    const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: string = '#000000') => {
+    // One font for every line: Noto Sans SC covers Chinese and Latin. It has a single weight, so
+    // "bold" text is filled and outlined in its own colour.
+    const hasCjkFont = Boolean(options.fontBase64);
+    if (hasCjkFont) {
+        const file = options.fontFile ?? 'MarginExport.ttf';
+        doc.addFileToVFS(file, options.fontBase64!);
+        doc.addFont(file, FONT_NAME, 'normal');
+    }
+
+    const setStyle = (fontSize: number, isBold: boolean, color: string) => {
         doc.setFontSize(fontSize);
-        doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+        doc.setFont(hasCjkFont ? FONT_NAME : 'helvetica', hasCjkFont || !isBold ? 'normal' : 'bold');
         doc.setTextColor(color);
+        doc.setDrawColor(color);
+        doc.setLineWidth(fontSize * 0.012);
+    };
 
-        const lines = doc.splitTextToSize(text, contentWidth);
+    const target = (isBold: boolean, bulletX?: number): TextFlowTarget => {
+        let bulletPending = bulletX !== undefined;
+        const fauxBold = isBold && hasCjkFont;
+        return {
+            text: (line: string, x: number, lineY: number) => {
+                if (bulletPending) {
+                    doc.text('•', bulletX!, lineY);
+                    bulletPending = false;
+                }
+                return fauxBold ? doc.text(line, x, lineY, { renderingMode: 'fillThenStroke' }) : doc.text(line, x, lineY);
+            },
+            addPage: () => doc.addPage(),
+        };
+    };
 
-        // Write the lines that fit on this page, then continue on new pages: a block
-        // longer than a page is never cut off. Lines are spaced as one doc.text(lines) call
-        // spaces them: the font size (pt) times the line height factor, in mm.
-        y = flowLines(doc, lines, {
-            x: margin, y, lineHeight: fontSize * doc.getLineHeightFactor() / doc.internal.scaleFactor,
+    // Lines are spaced as one doc.text(lines) call spaces them: the font size (pt) times the
+    // line height factor, in mm. Lines that do not fit continue on new pages (flowLines), so a
+    // block longer than a page is never cut off or repeated.
+    const flow = (lines: string[], fontSize: number, isBold: boolean, x: number, bulletX?: number) => {
+        y = flowLines(target(isBold, bulletX), keepPunctuationOffLineStart(lines), {
+            x, y, lineHeight: fontSize * doc.getLineHeightFactor() / doc.internal.scaleFactor,
             top: 20, bottom: doc.internal.pageSize.getHeight() - margin,
         });
+    };
+
+    const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: string = '#000000') => {
+        setStyle(fontSize, isBold, color);
+        flow(doc.splitTextToSize(text, contentWidth), fontSize, isBold, margin);
         y += 2; // Add some spacing
+    };
+
+    /** One list item: a bullet, then the item wrapped with a hanging indent. */
+    const addBullet = (text: string, fontSize: number = 10, color: string = '#444444') => {
+        const indent = 5;
+        setStyle(fontSize, false, color);
+        flow(doc.splitTextToSize(text, contentWidth - indent), fontSize, false, margin + indent, margin + 1);
+        y += 1;
     };
 
     const addVerticalSpace = (amount: number) => {
@@ -59,16 +109,15 @@ export const buildMeetingPDF = (meeting: Meeting): jsPDF => {
 
     // --- Transcript ---
     // The rows the transcript page and its copy show: spoken lines only, with the same
-    // speakers and times. AI answers are listed under AI Usage below. The PDF font has no
-    // CJK glyphs, so speaker labels stay in English.
+    // speakers and times. AI answers are listed under AI Usage below.
     const transcriptRows = visibleTranscriptRows(meeting.transcript, formatTranscriptTime);
     if (transcriptRows.length > 0) {
-        addText('Transcript', 14, true, '#000000');
+        addText(t('Transcript'), 14, true, '#000000');
         addVerticalSpace(2);
 
         transcriptRows.forEach(row => {
-            // Speaker line
-            addText(`${row.speakerKey} [${row.time}]`, 10, true, '#444444');
+            // Speaker line; without the Chinese font the label stays in English.
+            addText(`${hasCjkFont ? t(row.speakerKey) : row.speakerKey} [${row.time}]`, 10, true, '#444444');
             // Text line
             addText(row.text, 10, false, '#333333');
             addVerticalSpace(2);
@@ -77,30 +126,37 @@ export const buildMeetingPDF = (meeting: Meeting): jsPDF => {
     }
 
     // --- Usage (Q&A / AI Interactions) ---
-    if (meeting.usage && meeting.usage.length > 0) {
-        addText('AI Usage & Interactions', 14, true, '#000000');
+    const blocks = usageExportBlocks(meeting.usage);
+    if (blocks.length > 0) {
+        addText(t('AI Usage & Interactions'), 14, true, '#000000');
         addVerticalSpace(2);
 
-        meeting.usage.forEach(item => {
-            if (item.type === 'chat' && item.question && item.answer) {
-                addText(`Q: ${item.question}`, 10, true, '#222222');
-                addText(`A: ${item.answer}`, 10, false, '#444444');
-                addVerticalSpace(3);
+        blocks.forEach(block => {
+            if (block.kind === 'chat') {
+                addText(`Q: ${block.question}`, 10, true, '#222222');
+                addText(`A: ${block.answer}`, 10, false, '#444444');
+            } else {
+                addText(`${hasCjkFont ? t(block.label!) : block.label}:`, 10, true, '#222222');
+                if (block.answer) addText(block.answer, 10, false, '#444444');
+                block.bullets?.forEach(question => addBullet(question));
             }
-            else if (item.type === 'assist' && item.answer) {
-                addText('Assist:', 10, true, '#222222');
-                addText(item.answer, 10, false, '#444444');
-                addVerticalSpace(3);
-            }
+            addVerticalSpace(3);
         });
     }
 
     return doc;
 };
 
-export const generateMeetingPDF = (meeting: Meeting) => {
-    const doc = buildMeetingPDF(meeting);
+/** Builds the meeting PDF with the Chinese-capable font (loaded on first export) and saves it. */
+export const generateMeetingPDF = async (meeting: Meeting, translate?: (key: string) => string) => {
+    let font: { PDF_FONT_BASE64: string; PDF_FONT_FILE: string } | undefined;
+    try {
+        font = await import('./pdfCjkFont');
+    } catch (error) {
+        console.error('[pdfGenerator] Export font failed to load; exporting with Helvetica', error);
+    }
+    const doc = buildMeetingPDF(meeting, { fontBase64: font?.PDF_FONT_BASE64, fontFile: font?.PDF_FONT_FILE, translate });
     // Save
-    const safeTitle = meeting.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const safeTitle = meeting.title.replace(/[^\p{L}\p{N}]/gu, '_').toLowerCase() || 'meeting';
     doc.save(`${safeTitle}.pdf`);
 };
