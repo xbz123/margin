@@ -4,6 +4,7 @@ import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, Ans
 import type { GenerationPolicy } from '../src/types/generationPolicy';
 import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
+import type { AudioCaptureFailedPayload } from '../src/types/audioCaptureFailed';
 import { matchesDirectAssistAnswer } from '../src/lib/directAssistAnswerState';
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from '../src/types/domesticStt';
 import { contextBridge, ipcRenderer } from 'electron';
@@ -171,14 +172,7 @@ interface ElectronAPI {
     }) => void,
   ) => () => void;
   onAudioCaptureFailed: (
-    callback: (payload: {
-      channel: 'system' | 'mic';
-      message: string;
-      attempt: number;
-      maxAttempts: number;
-      terminal?: boolean;
-      stuck?: boolean;
-    }) => void,
+    callback: (payload: AudioCaptureFailedPayload) => void,
   ) => () => void;
 
   // STT Status Events
@@ -742,14 +736,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
   onAudioCaptureFailed: (
-    callback: (payload: {
-      channel: 'system' | 'mic';
-      message: string;
-      attempt: number;
-      maxAttempts: number;
-      terminal?: boolean;
-      stuck?: boolean;
-    }) => void,
+    callback: (payload: AudioCaptureFailedPayload) => void,
   ) => {
     const subscription = (_: any, payload: any) => callback(payload);
     ipcRenderer.on('audio-capture-failed', subscription);

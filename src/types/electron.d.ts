@@ -9,6 +9,7 @@ import type { PendingUnsavedMeetingCode, UnsavedMeeting, UnsavedMeetingCommandRe
 import type { KeybindResult, WindowPreferenceResult } from './windowPreferences';
 
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from './domesticStt';
+import type { AudioCaptureFailedPayload } from './audioCaptureFailed';
 export interface ElectronAPI {
   getPromptSettings: () => Promise<import('./promptSettings').PromptSettingsResult>;
   savePromptSettings: (input: { scene: import('./promptSettings').PromptScene; skillId: string | null; additional: string }) => Promise<import('./promptSettings').PromptSettingsResult>;
@@ -125,7 +126,7 @@ export interface ElectronAPI {
   getAiResponseLanguage: () => Promise<string>
   onSystemAudioPermissionDenied: (callback: (message: string) => void) => () => void
   onDeviceSelectionApplied: (callback: (payload: { kind: 'input' | 'output'; requested: string | null; actual: string | null; fellBack: boolean; reason?: string }) => void) => () => void
-  onAudioCaptureFailed: (callback: (payload: { channel: 'system' | 'mic'; message: string; attempt: number; maxAttempts: number; terminal?: boolean; stuck?: boolean }) => void) => () => void
+  onAudioCaptureFailed: (callback: (payload: AudioCaptureFailedPayload) => void) => () => void
 
   // STT Status Events
   onSttStatusChanged: (callback: (data: { state: 'connected' | 'reconnecting' | 'failed' | 'awaiting-audio'; provider: string; error?: string; channel: 'user' | 'interviewer'; reconnectAttempts?: number }) => void) => () => void

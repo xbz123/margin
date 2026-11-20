@@ -95,6 +95,7 @@ import { GROUNDED_ANSWER_RULES, INTERVIEW_ANSWER_SHAPE } from '../types/answerGu
 import { hasVisibleAnswer } from '../lib/visibleGeneration';
 import { ReasoningSelect } from './ReasoningSelect';
 import type { AnswerReasoningState, ReasoningChoice } from '../types/answerReasoning';
+import { isMeetingEndNotice } from '../lib/meetingEndNotice';
 
 // PERF: hoisted plugin arrays. ReactMarkdown receives `remarkPlugins` and
 // `rehypePlugins` as new array literals if defined inline at the call site —
@@ -900,11 +901,14 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       // Only surface terminal failures or the stuck signal — transient
       // recovery attempts shouldn't spam the banner since recovery
       // typically succeeds within ~1.5s.
+      // The end-of-meeting notice belongs to the launcher; shown here, the hidden
+      // overlay would keep it and show it again in the next meeting.
+      if (isMeetingEndNotice(payload)) return;
       if (payload.terminal || payload.stuck) {
         setSystemAudioWarning({
           kind: 'audio-capture-failure',
           message: payload.message,
-          channel: payload.channel,
+          channel: payload.channel === 'audio' ? undefined : payload.channel,
         });
         setIsExpanded(true);
       }

@@ -15,6 +15,7 @@ import WindowControls from './WindowControls';
 import { useI18n, type UiLanguage } from '../i18n';
 import { SetupChecklist } from './onboarding/SetupChecklist';
 import { UnsavedMeetingBanner } from './UnsavedMeetingBanner';
+import { MeetingEndNotice } from './MeetingEndNotice';
 import { StartMeetingFailureNotice } from './StartMeetingFailureNotice';
 import { describeStartFailure, type StartFailure } from '../lib/startMeetingFailure';
 
@@ -355,8 +356,9 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                     <div className={`absolute inset-1 border-2 border-dashed rounded-2xl pointer-events-none z-[100] ${isLight ? 'border-black/15' : 'border-white/20'}`} />
                 )}
                 {/* Shared by the list and a meeting's details, so an unsaved meeting stays visible until resolved. */}
-                <div className="shrink-0 px-8 pt-4 empty:hidden *:max-w-4xl *:mx-auto">
+                <div className="shrink-0 px-8 pt-4 space-y-3 empty:hidden *:max-w-4xl *:mx-auto">
                     <UnsavedMeetingBanner startRefusals={startRefusals} />
+                    <MeetingEndNotice />
                 </div>
                 <AnimatePresence mode="wait">
                     {selectedMeeting ? (

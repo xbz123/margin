@@ -251,13 +251,33 @@ test('slow tails on both channels inside the budget drain with no failure', asyn
   assert.deepEqual(texts, [['interviewer', 'their last sentence'], ['user', 'my last sentence']]);
 });
 
-test('an error event emitted while the drain flushes marks that channel incomplete', async t => {
-  const { session, stts } = meetingTwoChannels(t);
+test('an error event during the drain whose finalize completes does not mark the channel incomplete', async t => {
+  // Only a lost tail (finalize rejects) is reported; an unrelated provider error while the
+  // drain flushes is not a missing last sentence.
+  const { session, stts, texts, errors } = meetingTwoChannels(t);
   stts.interviewer.write(speech());
   const draining = session.drain(1000, 20);
   await settle();
   stts.user.emit('error', new Error('synthetic provider error'));
   uploads[0].reply('their last sentence');
   const result = await draining;
-  assert.deepEqual([...result.failedChannels], ['user']);
+  assert.equal(result.timedOut, false);
+  assert.deepEqual([...result.failedChannels], []);
+  assert.deepEqual(texts, [['interviewer', 'their last sentence']]);
+  assert.deepEqual(errors, [], 'no live error notice while the meeting ends');
+});
+
+test('a provider whose finalize rejects while flushing its tail is reported incomplete', async t => {
+  const { EventEmitter } = await import('node:events');
+  const provider = (fail) => Object.assign(new EventEmitter(), {
+    write() {}, stop() {},
+    async finalize() { if (fail) { this.emit('error', new Error('tail lost')); throw new Error('tail lost'); } },
+  });
+  const session = new MeetingSttSession({ create: channel => provider(channel === 'interviewer'), onTranscript() {} });
+  session.begin('meeting-3');
+  session.ensure('user');
+  session.ensure('interviewer');
+  const result = await session.drain(5000, 0);
+  assert.equal(result.timedOut, false);
+  assert.deepEqual([...result.failedChannels], ['interviewer']);
 });
