@@ -155,6 +155,11 @@ export class IntelligenceManager extends EventEmitter {
         return this.engine.runClarify(view);
     }
 
+    /** The user-visible message of a typed or spoken question, which a Retry of it is listed under. */
+    rememberQuestion(task: import('./llm/generateTask').GenerationTask<any> | undefined, type: string, question: string): void {
+        this.engine.rememberQuestionFor(task, type, question);
+    }
+
     runPreparedRetry(input: import('./llm/preparedInput').PreparedInput): Promise<string | null> {
         return this.engine.runPreparedRetry(input);
     }

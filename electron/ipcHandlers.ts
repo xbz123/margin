@@ -549,6 +549,9 @@ export function initializeIpcHandlers(appState: AppState): void {
           chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal, undefined, Math.min(clickedAt ?? Date.now(), Date.now()));
         }
         llmHelper.attachPresentation(chatTask, event.sender, speechAction ? 'answer' : 'text', visibleOwners.has(event.sender.id) && (!options?.owner || options.owner === 'natively'));
+        // A Retry of this question is listed under the message the user sent, as a first-try
+        // success is below; never the assembled prompt (context, reference material).
+        appState.getIntelligenceManager().rememberQuestion(chatTask, 'chat', message);
         llmHelper.dependPreparedImages(chatTask, imagePaths ?? []);
         chatTask.deferVisibleText = true;
 

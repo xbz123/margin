@@ -91,8 +91,16 @@ export class IntelligenceEngine extends EventEmitter {
     // Created on first use: mode methods are also run on engine-shaped objects.
     private questionLabels?: Map<string, { type: string; question: string }>;
     private rememberQuestion(type: string, question: string): void {
-        const id = this.llmHelper?.getCurrentGenerationTask?.()?.questionId;
-        if (!id || !question) return;
+        this.rememberQuestionFor(this.llmHelper?.getCurrentGenerationTask?.(), type, question);
+    }
+    /**
+     * Records the history label of a question issued outside the mode methods (typed or spoken
+     * chat). `question` is the user-visible message, the one a first-try success logs; never the
+     * assembled prompt.
+     */
+    rememberQuestionFor(task: GenerationTask<any> | undefined, type: string, question: string): void {
+        const id = task?.questionId;
+        if (!id || typeof question !== 'string' || !question.trim()) return;
         const labels = this.questionLabels ??= new Map();
         labels.delete(id);
         labels.set(id, { type, question });
@@ -106,6 +114,9 @@ export class IntelligenceEngine extends EventEmitter {
         clarify: { type: 'chat', question: 'Clarify Question' },
         'follow-up-questions': { type: 'followup_questions', question: 'Generate Follow-up Questions' },
         'code-hint': { type: 'assist', question: 'Code Hint' },
+        // Typed and spoken chat log their message; this applies only when it was not held.
+        text: { type: 'chat', question: 'Retry' },
+        answer: { type: 'chat', question: 'Retry' },
     };
     private retryLabel(task: GenerationTask<any>): { type: string; question: string } {
         return this.questionLabels?.get(task.questionId)
@@ -367,7 +378,6 @@ export class IntelligenceEngine extends EventEmitter {
             const interviewerQuestion = options?.manual && !question
                 ? latestInterviewerQuestion(contextItems) : undefined;
             const shownQuestion = question || interviewerQuestion;
-            if (shownQuestion) this.rememberQuestion('assist', shownQuestion);
 
             const transcriptTurns = contextItems.map(item => ({
                 role: item.role,

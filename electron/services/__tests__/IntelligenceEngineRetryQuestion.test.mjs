@@ -100,3 +100,69 @@ test('a Retry whose question label is not held falls back to the entry point nam
   assert.equal(row.question, 'Code Hint');
   assert.notEqual(row.question, retry.questionId);
 });
+
+const { IntelligenceManager } = require('../../../dist-electron/electron/IntelligenceManager.js');
+
+// gemini-chat-stream (typed 'text' and spoken 'answer' entry points) registers the message the
+// user sent; a failed first attempt logs it as a 'chat' row, and so must a successful Retry.
+for (const entryPoint of ['text', 'answer']) {
+  test(`a ${entryPoint} chat question: fails, Retry succeeds, history shows the original message and the retry answer`, async () => {
+    const helper = new StubLLMHelper(['CHAT ', 'RETRY']);
+    const manager = new IntelligenceManager(helper);
+    const message = 'What is the difference between a mutex and a semaphore?';
+    const first = helper.beginGenerationTask(); first.entryPoint = entryPoint;
+    // As ipcHandlers does right after attachPresentation.
+    manager.rememberQuestion(first, 'chat', message);
+    // The handler's failure path logs the question with the (empty) partial answer.
+    manager.logUsage('chat', message, '', helper.getTaskMetadata(first));
+
+    const retry = retryTask(helper, first);
+    const answer = await helper.runGeneration(() => manager.runPreparedRetry({ userContent: PROMPT + message }), 'written', undefined, retry);
+    assert.equal(answer, 'CHAT RETRY');
+    const row = endMeeting(manager.session).find(entry => entry.answer === 'CHAT RETRY');
+    // The same type and question a first-try success records: logUsage('chat', message, answer).
+    assert.equal(row.type, 'chat');
+    assert.equal(row.question, message);
+    assert.equal(row.retryOf, first.requestId);
+    assert.doesNotMatch(row.question, /private reference material|meeting context/);
+  });
+}
+
+test('the chat stream handler registers the user message for its retry label', async () => {
+  const fs = await import('node:fs');
+  const source = fs.readFileSync(new URL('../../ipcHandlers.ts', import.meta.url), 'utf8');
+  const handler = source.slice(source.indexOf("'gemini-chat-stream',"), source.indexOf("safeOn('gemini-chat-stream-stop'"));
+  assert.match(handler, /rememberQuestion\(chatTask, 'chat', message\)/);
+  // The success path logs the same type and message.
+  assert.match(handler, /logUsage\('chat', message, fullResponse/);
+});
+
+test('manual What to Answer without a question: the Retry row matches what a success records', async () => {
+  const session = new SessionTracker();
+  session.handleTranscript({ speaker: 'interviewer', text: 'How would you shard this table?', timestamp: Date.now() - 2000, final: true });
+  const helper = new StubLLMHelper(['RETRY SHARD']);
+  const engine = new IntelligenceEngine(helper, session);
+  engine.whatToAnswerLLM = { async *generateStream() { yield 'FIRST SHARD'; } };
+
+  // A manual press checks that an answer model is configured.
+  const manualTask = () => {
+    const task = new GenerationTask({ kind: 'api', client: {}, target: { provider: 'synthetic', model: 'stub' } });
+    task.entryPoint = 'what-to-say';
+    return task;
+  };
+  const success = manualTask();
+  await helper.runGeneration(() => engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, skipCooldown: true, errorDelivery: 'caller' }), 'interview', undefined, success);
+  const succeeded = endMeeting(session).find(entry => entry.answer === 'FIRST SHARD');
+  assert.ok(succeeded, 'the success path recorded a row');
+
+  engine.whatToAnswerLLM = { async *generateStream() { throw Object.assign(new Error('provider down'), { status: 500 }); } };
+  const first = manualTask();
+  await assert.rejects(() => helper.runGeneration(
+    () => engine.runWhatShouldISay(undefined, 0.8, undefined, { manual: true, skipCooldown: true, errorDelivery: 'caller' }), 'interview', undefined, first), /provider down/);
+  const retry = retryTask(helper, first);
+  await helper.runGeneration(() => engine.runPreparedRetry({ userContent: PROMPT }), 'interview', undefined, retry);
+  const retried = endMeeting(session).find(entry => entry.answer === 'RETRY SHARD');
+  assert.equal(retried.type, succeeded.type);
+  assert.equal(retried.question, succeeded.question);
+  assert.equal(retried.question, 'What to Answer');
+});
