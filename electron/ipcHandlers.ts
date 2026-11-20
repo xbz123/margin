@@ -1467,7 +1467,10 @@ export function initializeIpcHandlers(appState: AppState): void {
           provider === 'groq'
             ? 'https://api.groq.com/openai/v1/audio/transcriptions'
             : openAiEndpoint;
-        const model = provider === 'groq' ? 'whisper-large-v3-turbo' : 'whisper-1';
+        // Groq tests the saved model, the same one a meeting's RestSTT sends.
+        const model = provider === 'groq'
+          ? require('./services/CredentialsManager').CredentialsManager.getInstance().getGroqSttModel()
+          : 'whisper-1';
 
         const form = new FormData();
         form.append('file', testWav, { filename: 'test.wav', contentType: 'audio/wav' });

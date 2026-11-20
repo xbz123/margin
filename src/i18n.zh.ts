@@ -883,4 +883,5 @@ export const chinese: Readonly<Record<string, string>> = {
     'Discard': '丢弃',
     'Discard this meeting? Its transcript will be permanently lost.': '确定丢弃这场会议吗？其转写将永久丢失。',
     'Discard permanently': '永久丢弃',
+    'The last part of the transcript was not completed.': '最后一段转写未完成。',
 };

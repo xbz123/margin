@@ -82,6 +82,9 @@ export class RestSTT extends EventEmitter {
     private apiKey: string;
     private region?: string;
     private config: RestSttProviderConfig;
+    /** The saved model; every config rebuild (key or language change) keeps it. */
+    private readonly modelOverride?: string;
+    private languageKey?: string;
 
     private chunks: Buffer[] = [];
     private totalBufferedBytes = 0;
@@ -94,6 +97,8 @@ export class RestSTT extends EventEmitter {
     private uploadEpoch = 0;
     /** Resolves when the current upload has emitted its result (or failed); see finalize(). */
     private uploadSettled: Promise<void> = Promise.resolve();
+    /** Uploads of the current epoch that failed; finalize() compares it to report a failed tail. */
+    private failedUploads = 0;
 
     // Audio config (must match SystemAudioCapture output)
     private sampleRate = 16000;
@@ -105,10 +110,8 @@ export class RestSTT extends EventEmitter {
         this.provider = provider;
         this.apiKey = apiKey;
         this.region = region;
-        this.config = PROVIDER_CONFIGS[provider](apiKey, region);
-        if (modelOverride) {
-            this.config.model = modelOverride;
-        }
+        this.modelOverride = modelOverride?.trim() || undefined;
+        this.config = this.buildConfig();
         console.log(`[RestSTT] Initialized for provider: ${provider}, model: ${this.config.model || '(default)'}`);
     }
 
@@ -117,7 +120,7 @@ export class RestSTT extends EventEmitter {
      */
     public setApiKey(apiKey: string): void {
         this.apiKey = apiKey;
-        this.config = PROVIDER_CONFIGS[this.provider](apiKey, this.region);
+        this.config = this.buildConfig(this.languageKey);
         console.log(`[RestSTT] API key updated for ${this.provider}`);
     }
 
@@ -144,7 +147,19 @@ export class RestSTT extends EventEmitter {
      */
     public setRecognitionLanguage(key: string): void {
         console.log(`[RestSTT] Updating recognition language to: ${key}`);
-        this.config = PROVIDER_CONFIGS[this.provider](this.apiKey, this.region, key);
+        this.languageKey = key;
+        this.config = this.buildConfig(key);
+    }
+
+    /** The model sent with each upload: the saved one, else the provider default. */
+    public getModel(): string {
+        return this.config.model;
+    }
+
+    private buildConfig(languageKey?: string): RestSttProviderConfig {
+        const config = PROVIDER_CONFIGS[this.provider](this.apiKey, this.region, languageKey);
+        if (this.modelOverride) config.model = this.modelOverride;
+        return config;
     }
 
     /**
@@ -228,18 +243,25 @@ export class RestSTT extends EventEmitter {
     }
 
     /**
-     * Flushes the tail and resolves once every upload it depends on — one already in flight and the
+     * Flushes the tail and settles once every upload it depends on — one already in flight and the
      * tail queued behind it — has emitted its transcript or failed. A meeting drain awaits this
-     * before stop(), which would otherwise discard the last sentence's late result.
+     * before stop(), which would otherwise discard the last sentence's late result. Rejects when any
+     * of those uploads failed, so the drain reports this channel incomplete; transcripts already
+     * emitted (earlier batches, other channels) are kept.
      */
     public async finalize(): Promise<void> {
         if (!this.isActive) return;
         console.log(`[RestSTT] Finalize — flushing buffer immediately`);
         const epoch = this.uploadEpoch;
+        // An upload already in flight is one this drain waits for; one that failed earlier was reported live.
+        const failedBefore = this.failedUploads;
         await this.flushAndUpload();
         // A chained re-entry starts its upload synchronously in the previous upload's finally,
         // so isUploading is already true again when this loop resumes.
         while (this.isActive && this.uploadEpoch === epoch && this.isUploading) await this.uploadSettled;
+        if (this.uploadEpoch === epoch && this.failedUploads > failedBefore) {
+            throw new Error('REST STT tail upload failed');
+        }
     }
 
     /** Seals audio received so far into its own upload batch; recording continues. */
@@ -351,6 +373,7 @@ export class RestSTT extends EventEmitter {
         } catch (err) {
             outcome = 'failed';
             if (!this.isActive || this.uploadEpoch !== epoch) return;
+            this.failedUploads++;
             console.error(`[RestSTT] Upload error:`, err);
             this.emit('error', err instanceof Error ? err : new Error(String(err)));
         } finally {

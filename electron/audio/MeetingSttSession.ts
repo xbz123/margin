@@ -172,6 +172,8 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
   private readonly serial = { user: 0, interviewer: 0 };
   private session: string | null = null;
   private draining = false;
+  /** Channels whose provider reported an error while a drain flushed their tail; null outside that phase. */
+  private flushErrors: Set<SttChannel> | null = null;
   private generation = 0;
   private readonly retiredError = () => {};
   private readonly ledger = new Map<string, SegmentRecord>();
@@ -277,7 +279,12 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       if (final) this.options.onFinal?.(channel);
       this.notify(record);
     });
-    listen('error', (error: Error) => { if (current() && !this.draining) this.options.onError?.(channel, error); });
+    listen('error', (error: Error) => {
+      if (!current()) return;
+      // While draining, an error can mean the last speech was lost: it marks the channel incomplete.
+      if (this.draining) this.flushErrors?.add(channel);
+      else this.options.onError?.(channel, error);
+    });
     listen('warning', (warning: unknown) => { if (current() && !this.draining) this.options.onWarning?.(channel, warning); });
     listen('endpoint', (event: unknown) => { if (current() && !this.draining) this.options.onEndpoint?.(channel, event); });
     this.bindings.set(channel, binding);
@@ -563,12 +570,17 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     const invoke = async (channel: SttChannel, call: () => unknown) => {
       try { await call(); } catch { failed.add(channel); }
     };
+    const flushErrors = new Set<SttChannel>();
     const stopping = (async () => {
       if (flush) {
-        await Promise.all([
-          ...owned.map(([channel, { provider }]) => invoke(channel, () => provider.finalize?.())),
-          new Promise<void>(resolve => { grace = setTimeout(resolve, graceMs); }),
-        ]);
+        this.flushErrors = flushErrors;
+        try {
+          await Promise.all([
+            ...owned.map(([channel, { provider }]) => invoke(channel, () => provider.finalize?.())),
+            new Promise<void>(resolve => { grace = setTimeout(resolve, graceMs); }),
+          ]);
+        } finally { if (this.flushErrors === flushErrors) this.flushErrors = null; }
+        for (const channel of flushErrors) failed.add(channel);
       }
       if (timedOut) return;
       await Promise.all(owned.map(async ([channel, { provider }]) => {

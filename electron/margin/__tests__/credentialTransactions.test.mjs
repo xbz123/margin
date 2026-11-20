@@ -1112,6 +1112,23 @@ test('STT Test Connection with the pre-filled preview or an empty box sends the 
   assert.deepEqual(sockets, []);
 });
 
+test('Groq STT Test Connection sends the saved model, the same one a meeting uses', async () => {
+  const disk = storage(), manager = disk.boot();
+  const models = [];
+  const form = class { constructor() { this.fields = {}; } append(key, value) { this.fields[key] = value; } getHeaders() { return {}; } };
+  const context = sttIpc(manager, { axios: { post: async (_url, sent) => { models.push(sent.fields.model); return { data: {} }; } } });
+  const baseRequire = context.require;
+  context.require = id => id === 'form-data' ? form : baseRequire(id);
+  assert.equal((await handler('set-groq-stt-api-key', context)({}, 'gsk_synthetic_saved_groq_9f9f')).ok, true);
+  const testStt = handler('test-stt-connection', context);
+  assert.deepEqual(plain(await testStt({}, 'groq', '')), { success: true });
+  assert.equal(manager.setGroqSttModel('whisper-large-v3').ok, true);
+  assert.deepEqual(plain(await testStt({}, 'groq', '')), { success: true });
+  assert.equal(manager.setGroqSttModel('whisper-large-v3-turbo').ok, true);
+  assert.deepEqual(plain(await testStt({}, 'groq', '')), { success: true });
+  assert.deepEqual(models, ['whisper-large-v3-turbo', 'whisper-large-v3', 'whisper-large-v3-turbo'], 'default, plain V3, Turbo');
+});
+
 test('saving the pre-filled STT preview keeps the saved key; with nothing saved it is refused without a write', async () => {
   const disk = storage(), manager = disk.boot();
   for (const [channel, getter, saved] of [['set-groq-stt-api-key', 'getGroqSttApiKey', 'gsk_synthetic_groq_7a1b'],

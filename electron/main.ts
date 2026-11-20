@@ -280,6 +280,8 @@ import type { AnswerReasoningState } from "../src/types/answerReasoning"
 import type { CredentialSaveResult } from '../src/types/credentialSave';
 import { SettingsManager } from "./services/SettingsManager"
 import { mainText } from "./services/mainStrings"
+/** English key; the renderer shows it through t() as 最后一段转写未完成。 */
+const TRANSCRIPT_TAIL_INCOMPLETE = 'The last part of the transcript was not completed.'
 import { setVerboseLoggingFlag } from "./verboseLog"
 import { decideToggle } from './services/toggleStateReducer'
 import { isDisguiseMode, type WindowPreferenceKind, type WindowPreferenceResult } from '../src/types/windowPreferences';
@@ -1585,7 +1587,8 @@ export class AppState {
         }
         const result = await this.meetingStt.drain(5000);
         if (result.timedOut || result.failedChannels.length) {
-          this.sendAudioCaptureFailed({ channel: 'audio', message: 'Transcription tail could not be completely drained', terminal: true });
+          // The window is already the launcher here; `kind` lets it show this after the meeting ends.
+          this.sendAudioCaptureFailed({ channel: 'audio', kind: 'transcript-tail-incomplete', message: TRANSCRIPT_TAIL_INCOMPLETE, terminal: true, failedChannels: result.failedChannels, timedOut: result.timedOut });
         }
         const stopped = await this.intelligenceManager.stopMeeting();
         // An unsaved meeting is still pending; its session override stays until it is saved or discarded.
