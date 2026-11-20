@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import { EventEmitter, once } from 'node:events';
 import { build } from 'esbuild';
+import { esbuildBase64Assets } from '../../scripts/margin/base64-asset.mjs';
 import ts from 'typescript';
 import vm from 'node:vm';
 import os from 'node:os';
@@ -140,7 +141,7 @@ test('AG62 mounted Launcher checks local setup, refreshes on return and cleans u
     }));
     window.returnFromSettings = () => { settingsOpen = false; mount(); };
     window.changeLanguage = setUiLanguage; window.unmountConsumer = () => root.unmount(); mount();
-  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('ag62-setup'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
@@ -254,7 +255,7 @@ test('AG62 mounted App cancels permission guidance on meeting start and ignores 
     const root = createRoot(document.getElementById('root'));
     window.showToaster = isOpen => root.render(React.createElement(PermissionsToaster, { isOpen, onDismiss() { window.showToaster(false); } }));
     window.unmountConsumer = () => root.unmount(); root.render(React.createElement(App));
-  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.webp': 'dataurl', '.webm': 'dataurl', '.otf': 'dataurl', '.woff2': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.webp': 'dataurl', '.webm': 'dataurl', '.otf': 'dataurl', '.woff2': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('ag62-permissions'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
@@ -332,7 +333,7 @@ test('AG61 mounted production consumers reconcile save/apply failures and ignore
       root.render(React.createElement(React.Fragment, { key: name + tab }, component));
     };
     window.mountConsumer('settings', 'privacy');
-  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('ag61-consumers'); let app;
   const saveError = 'The window preference could not be saved.';
   const applyError = 'The window preference could not be fully applied. Retry the setting.';
@@ -405,7 +406,7 @@ test('AG60a mounted Skills settings switch language without resetting controls o
       getPromptSettings: async () => { window.refreshes++; return { ok: true, settings: { skills: [], scenes: { interview: { skillId: null, additional: '' }, written: { skillId: null, additional: '' } } } }; }
     };
     createRoot(document.getElementById('root')).render(React.createElement(PromptSettings));
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('ag60a-settings');
   let app;
   try {
@@ -566,7 +567,7 @@ test('AG60 mounted help, meeting history and a visible error fallback switch lan
       : surface === 'error' ? React.createElement(ErrorBoundary, { context: 'Launcher' }, React.createElement(Crash))
       : React.createElement(MeetingDetails, { meeting, onBack() {}, onOpenSettings() {} })));
     window.show('history');
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"Margin"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"Margin"' } });
   const sandbox = makeSandbox('ag60-retained-surfaces'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
@@ -655,7 +656,7 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
       getGroqFastTextMode: async () => ({ enabled: false }), getDefaultModel: async () => ({ model: 'gemini-3.1-flash-lite-preview' }), getProviderDataScopes: async () => ({}),
       getCodexCliConfig: () => window.invokeCodex('getCodexCliConfig', []), setCodexCliConfig: config => window.invokeCodex('setCodexCliConfig', [config]), testCodexCli: () => window.invokeCodex('testCodexCli', []) };
     const root = createRoot(document.getElementById('root')); window.show = () => flushSync(() => root.render(React.createElement(Settings)));
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('ag34-consent-components'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
@@ -724,7 +725,7 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
     };
     const root = createRoot(document.getElementById('root')); window.show = () => flushSync(() => root.render(React.createElement(Settings)));
     window.language = setUiLanguage;
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('s45-provider-settings'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
@@ -867,7 +868,7 @@ test('S49 mounted provider discards a late list after an external protocol updat
         onSave={async () => ({ ok: true })} onRemoveKey={async () => {}} />;
     }
     createRoot(document.getElementById('root')).render(<ExternalProtocolFixture />);
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('s49-external-protocol'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
@@ -987,7 +988,7 @@ test('S47 mounted settings and session selector share saved candidates through t
     let settings, selector;
     window.mountSettings = () => { settings?.unmount(); const node = document.getElementById('settings'); settings = createRoot(node); flushSync(() => settings.render(React.createElement(Settings))); };
     window.mountSelector = () => { selector?.unmount(); selector = createRoot(document.getElementById('selector')); flushSync(() => selector.render(React.createElement(Selector))); };
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('s47-candidates'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
@@ -1207,7 +1208,7 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
     window.language = setUiLanguage;
     createRoot(document.getElementById('settings')).render(React.createElement(Settings));
     createRoot(document.getElementById('overlay')).render(React.createElement(NativelyInterface));
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('s48-reasoning'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
@@ -1383,7 +1384,7 @@ test('S42-01 mounted domestic STT settings save, reload and test the chosen work
       saveDomesticStt: (provider, input) => window.invokeStt('saveDomesticStt', [provider, input]), testDomesticStt: provider => window.invokeStt('testDomesticStt', [provider]) };
     const root = createRoot(document.getElementById('root')); let mount = 0;
     window.show = provider => flushSync(() => root.render(React.createElement(SpeechProviderSettings, { key: mount++, provider })));
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('s42-domestic-stt'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
@@ -1588,7 +1589,7 @@ test('AG33 real Global React overlay preserves partial failure, fences closed ca
     window.show = (kind, query = '', isOpen = true) => flushSync(() => root.render(React.createElement(Global,
       { key: kind, isOpen, initialQuery: query, onClose: () => {} })));
     window.emit = (kind, value, metadata, force = false) => { for (const item of [...listeners].filter(item => item.kind === kind && (force || item.live))) item.callback(value, metadata); };
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
   const sandbox = makeSandbox('ag33-components'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
@@ -1688,7 +1689,7 @@ test('all seven Markdown callers and streaming sanitize block image loads in a r
     const root = createRoot(document.getElementById('markdown'));
     window.render = (text, unsafe = false) => flushSync(() => root.render(React.createElement(unsafe ? Markdown : SafeMarkdown, { children: text, remarkPlugins: [gfm, math], rehypePlugins: [katex] })));
     window.stream = text => { const rawHtml = marked.parse(text); document.getElementById('stream').innerHTML = ${sanitizer}; };
-  ` }, bundle: true, write: false, platform: 'browser', format: 'iife' });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife' });
   let requests = 0;
   const server = http.createServer((req, res) => { requests++; res.end('synthetic image'); });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -1872,7 +1873,7 @@ test('mounted Launcher unsaved meeting banner orders query and events, guards co
       async onStartMeeting() { window.starts++; return { success: false, error: 'refused', code: 'pending-unsaved-meeting' }; }
     }));
     window.unmountConsumer = () => root.unmount();
-  ` }, bundle: true, write: false, loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
+  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], loader: { '.png': 'dataurl', '.jpg': 'dataurl', '.svg': 'dataurl', '.css': 'empty' }, platform: 'browser', format: 'iife', define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}', __MARGIN_APP_NAME__: '"temp"' } });
   const sandbox = makeSandbox('unsaved-meeting-banner'); let app;
   try {
     ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));

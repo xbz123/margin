@@ -11,7 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
-import { BASE64_QUERY, base64AssetModule } from '../base64-asset.mjs';
+import { esbuildBase64Assets } from '../base64-asset.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const outDir = path.resolve(process.argv[2] ?? '.');
@@ -29,14 +29,7 @@ await build({
     resolveDir: ROOT, loader: 'ts',
   },
   bundle: true, format: 'esm', platform: 'node', outfile: bundleFile, logLevel: 'warning',
-  plugins: [{
-    // "?base64" imports, loaded by the same function as the app's Vite plugin.
-    name: 'margin-base64-asset',
-    setup(b) {
-      b.onResolve({ filter: /\?base64$/ }, args => ({ path: path.resolve(args.resolveDir, args.path.slice(0, -BASE64_QUERY.length)), namespace: 'base64' }));
-      b.onLoad({ filter: /.*/, namespace: 'base64' }, args => ({ contents: base64AssetModule(args.path), loader: 'js' }));
-    },
-  }],
+  plugins: [esbuildBase64Assets()],
 });
 const app = await import(pathToFileURL(bundleFile).href);
 
