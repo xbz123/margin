@@ -33,6 +33,7 @@ interface Meeting {
         type: 'assist' | 'followup' | 'chat' | 'followup_questions';
         timestamp: number;
         question?: string;
+        displayQuestion?: string;
         answer?: string;
         items?: string[];
     }>;

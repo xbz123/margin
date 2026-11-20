@@ -18,6 +18,9 @@ export interface Meeting {
         type: 'assist' | 'followup' | 'chat' | 'followup_questions';
         timestamp: number;
         question?: string;
+        // The localized text the user saw in place of `question` (a screenshot-only question in
+        // the Chinese UI). Stored in metadata_json; history shows it before `question`.
+        displayQuestion?: string;
         answer?: string;
         items?: string[];
         generation?: import('../../src/types/generationMetadata').GenerationMetadata;
@@ -412,13 +415,18 @@ export class DatabaseManager {
                         }
                     }
 
+                    // questionId links a Retry to its question; retryOf names the request it retried.
                     const generation = usage.requestId ? {
-                        requestId: usage.requestId, provider: usage.provider, model: usage.model, status: usage.status, attempts: usage.attempts, partial: usage.partial, timeout: usage.timeout,
+                        requestId: usage.requestId, questionId: usage.questionId, retryOf: usage.retryOf,
+                        provider: usage.provider, model: usage.model, status: usage.status, attempts: usage.attempts, partial: usage.partial, timeout: usage.timeout,
                         codeOutputFormat: usage.codeOutputFormat,
                     } : usage.generation;
-                    if (generation?.requestId) metadata = JSON.stringify({
-                        generation,
+                    const displayQuestion = typeof usage.displayQuestion === 'string' && usage.displayQuestion.trim() ? usage.displayQuestion : undefined;
+                    // Rows with neither keep the earlier shape (a bare items array or null).
+                    if (generation?.requestId || displayQuestion) metadata = JSON.stringify({
+                        generation: generation?.requestId ? generation : undefined,
                         items: usage.items ?? (Array.isArray(usage.answer) ? usage.answer : undefined),
+                        displayQuestion,
                     });
 
                     // Normalization
@@ -518,6 +526,7 @@ export class DatabaseManager {
         const usage = usageRows.map(row => {
             let items: string[] | undefined;
             let generation: import('../../src/types/generationMetadata').GenerationMetadata | undefined;
+            let displayQuestion: string | undefined;
             let answer = row.ai_response;
 
             if (row.metadata_json) {
@@ -528,7 +537,10 @@ export class DatabaseManager {
                         // Special case: for 'followup_questions', earlier we treated 'answer' as the array in memory
                         // UI expects appropriate field. If type is 'followup_questions', usually answer is null and items has the questions.
                     }
-                    else if (parsed && typeof parsed === 'object') { items = parsed.items; generation = parsed.generation; }
+                    else if (parsed && typeof parsed === 'object') {
+                        items = parsed.items; generation = parsed.generation;
+                        if (typeof parsed.displayQuestion === 'string' && parsed.displayQuestion.trim()) displayQuestion = parsed.displayQuestion;
+                    }
                 } catch (e) { console.warn('[DatabaseManager] Failed to parse metadata_json for interaction:', row?.id, e); }
             }
 
@@ -536,6 +548,7 @@ export class DatabaseManager {
                 type: row.type,
                 timestamp: row.timestamp,
                 question: row.user_query,
+                ...(displayQuestion ? { displayQuestion } : {}),
                 answer: answer,
                 items: items,
                 generation,

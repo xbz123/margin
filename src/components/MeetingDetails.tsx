@@ -33,6 +33,8 @@ interface Meeting {
         type: 'assist' | 'followup' | 'chat' | 'followup_questions';
         timestamp: number;
         question?: string;
+        // The localized text the user saw for the question; shown in place of `question`.
+        displayQuestion?: string;
         answer?: string;
         items?: string[];
         generation?: import('../types/generationMetadata').GenerationMetadata;
@@ -75,7 +77,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
         if (activeTab === 'transcript') {
             textToCopy = formatTranscriptCopy(transcriptRows, t);
         } else if (activeTab === 'usage' && meeting.usage) {
-            textToCopy = meeting.usage.map(u => `Q: ${u.question || ''}\nA: ${u.answer || ''}`).join('\n\n');
+            textToCopy = meeting.usage.map(u => `Q: ${u.displayQuestion || u.question || ''}\nA: ${u.answer || ''}`).join('\n\n');
         }
 
         if (!textToCopy) return;
@@ -246,10 +248,10 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                 {meeting.usage?.map((interaction, i) => (
                                     <div key={i} className="space-y-4">
                                         {/* User Question */}
-                                        {interaction.question && (
+                                        {(interaction.displayQuestion || interaction.question) && (
                                             <div className="flex justify-end">
                                                 <div className="bg-accent-primary text-on-accent px-5 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed shadow-sm">
-                                                    {interaction.question}
+                                                    {interaction.displayQuestion || interaction.question}
                                                 </div>
                                             </div>
                                         )}

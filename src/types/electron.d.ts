@@ -195,7 +195,7 @@ export interface ElectronAPI {
   onSessionReset: (callback: () => void) => () => void;
 
   // Streaming listeners
-  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string, clickedAt?: number; examGeneration?: number }) => Promise<void>
+  streamGeminiChat: (message: string, imagePaths?: string[], context?: string, options?: { skipSystemPrompt?: boolean, ignoreKnowledgeMode?: boolean, owner?: string, generationKind?: 'interview' | 'written', speechActionId?: string, clickedAt?: number; examGeneration?: number; displayQuestion?: string }) => Promise<void>
   onGeminiStreamToken: (callback: (token: string, metadata?: import('./generationMetadata').GenerationMetadata) => void, owner?: string) => () => void
   enableGenerationPresentation: () => Promise<void>;
   reportFirstVisible: (requestId: string) => void;

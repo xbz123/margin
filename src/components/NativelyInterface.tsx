@@ -2563,7 +2563,8 @@ Provide only the answer, nothing else.`;
         userText || SCREENSHOT_QUESTION,
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         automatic ? undefined : conversationContext, // Automatic frames are independent practice questions.
-        { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation },
+        // A screenshot-only question is shown with the localized line; history keeps that text.
+        { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation, ...(userText ? {} : { displayQuestion: t(SCREENSHOT_QUESTION) }) },
       );
       if (!automatic) {
         submittedChatRef.current = { text: inputValue, paths: currentAttachments.map(item => item.path) };

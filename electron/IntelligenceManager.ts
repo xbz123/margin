@@ -122,8 +122,8 @@ export class IntelligenceManager extends EventEmitter {
         return this.session.getLastInterviewerTurn();
     }
 
-    logUsage(type: string, question: string, answer: string, generation?: import('../src/types/generationMetadata').GenerationMetadata): void {
-        this.session.logUsage(type, question, answer, generation);
+    logUsage(type: string, question: string, answer: string, generation?: import('../src/types/generationMetadata').GenerationMetadata, displayQuestion?: string): void {
+        this.session.logUsage(type, question, answer, generation, displayQuestion);
     }
 
     // ============================================
@@ -155,9 +155,12 @@ export class IntelligenceManager extends EventEmitter {
         return this.engine.runClarify(view);
     }
 
-    /** The user-visible message of a typed or spoken question, which a Retry of it is listed under. */
-    rememberQuestion(task: import('./llm/generateTask').GenerationTask<any> | undefined, type: string, question: string): void {
-        this.engine.rememberQuestionFor(task, type, question);
+    /**
+     * The user-visible message of a typed or spoken question, which a Retry of it is listed under,
+     * and the localized text shown in its place when it differs (a screenshot-only question).
+     */
+    rememberQuestion(task: import('./llm/generateTask').GenerationTask<any> | undefined, type: string, question: string, displayQuestion?: string): void {
+        this.engine.rememberQuestionFor(task, type, question, displayQuestion);
     }
 
     runPreparedRetry(input: import('./llm/preparedInput').PreparedInput): Promise<string | null> {

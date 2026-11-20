@@ -132,9 +132,10 @@ test('the chat stream handler registers the user message for its retry label', a
   const fs = await import('node:fs');
   const source = fs.readFileSync(new URL('../../ipcHandlers.ts', import.meta.url), 'utf8');
   const handler = source.slice(source.indexOf("'gemini-chat-stream',"), source.indexOf("safeOn('gemini-chat-stream-stop'"));
-  assert.match(handler, /rememberQuestion\(chatTask, 'chat', message\)/);
-  // The success path logs the same type and message.
-  assert.match(handler, /logUsage\('chat', message, fullResponse/);
+  // The message, plus the localized text the window showed for it (screenshot-only questions).
+  assert.match(handler, /rememberQuestion\(chatTask, 'chat', message, displayQuestion\)/);
+  // The success path logs the same type, message and display text.
+  assert.match(handler, /logUsage\('chat', message, fullResponse, llmHelper\.getTaskMetadata\(chatTask\), displayQuestion\)/);
 });
 
 test('manual What to Answer without a question: the Retry row matches what a success records', async () => {

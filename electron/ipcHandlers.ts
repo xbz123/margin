@@ -503,7 +503,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string; examGeneration?: number },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string; examGeneration?: number; displayQuestion?: string },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
@@ -549,9 +549,14 @@ export function initializeIpcHandlers(appState: AppState): void {
           chatTask = llmHelper.beginGenerationTask(generationKind, myController.signal, undefined, Math.min(clickedAt ?? Date.now(), Date.now()));
         }
         llmHelper.attachPresentation(chatTask, event.sender, speechAction ? 'answer' : 'text', visibleOwners.has(event.sender.id) && (!options?.owner || options.owner === 'natively'));
+        // The text the window showed for this question when it differs from `message` (the
+        // localized "solve the screenshot" line of a screenshot-only question). History lists it;
+        // it is never sent to the model and never carries the assembled context.
+        const displayQuestion = typeof options?.displayQuestion === 'string' && options.displayQuestion.trim() && options.displayQuestion !== message
+          ? options.displayQuestion.trim().slice(0, 500) : undefined;
         // A Retry of this question is listed under the message the user sent, as a first-try
         // success is below; never the assembled prompt (context, reference material).
-        appState.getIntelligenceManager().rememberQuestion(chatTask, 'chat', message);
+        appState.getIntelligenceManager().rememberQuestion(chatTask, 'chat', message, displayQuestion);
         llmHelper.dependPreparedImages(chatTask, imagePaths ?? []);
         chatTask.deferVisibleText = true;
 
@@ -687,7 +692,7 @@ export function initializeIpcHandlers(appState: AppState): void {
             if (fullResponse.trim().length > 0) {
               intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
               // Log Usage for streaming chat
-              intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
+              intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask), displayQuestion);
             }
           }
         } catch (streamError: any) {
@@ -698,7 +703,7 @@ export function initializeIpcHandlers(appState: AppState): void {
           }
           if (chatTask) {
             if (fullResponse.trim()) intelligenceManager.addAssistantMessage(fullResponse, llmHelper.getTaskMetadata(chatTask));
-            intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask));
+            intelligenceManager.logUsage('chat', message, fullResponse, llmHelper.getTaskMetadata(chatTask), displayQuestion);
           }
           if (_chatStreamsBySender.get(senderId)?.streamId === myStreamId) {
             event.sender.send(

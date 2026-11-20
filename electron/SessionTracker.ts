@@ -548,11 +548,13 @@ export class SessionTracker {
     /**
      * Public method to log usage from external sources (e.g. IPC direct chat)
      */
-    logUsage(type: string, question: string, answer: string, generation?: GenerationMetadata): void {
+    logUsage(type: string, question: string, answer: string, generation?: GenerationMetadata, displayQuestion?: string): void {
         this.fullUsage.push({
             type,
             timestamp: Date.now(),
             question,
+            // The localized text the user saw in place of `question`, when it differs.
+            ...(typeof displayQuestion === 'string' && displayQuestion.trim() ? { displayQuestion } : {}),
             answer,
             ...generation,
         });

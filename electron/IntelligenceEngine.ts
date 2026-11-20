@@ -89,21 +89,22 @@ export class IntelligenceEngine extends EventEmitter {
     // meeting context or reference material).
     private static readonly QUESTION_LABEL_LIMIT = 64;
     // Created on first use: mode methods are also run on engine-shaped objects.
-    private questionLabels?: Map<string, { type: string; question: string }>;
+    private questionLabels?: Map<string, { type: string; question: string; displayQuestion?: string }>;
     private rememberQuestion(type: string, question: string): void {
         this.rememberQuestionFor(this.llmHelper?.getCurrentGenerationTask?.(), type, question);
     }
     /**
      * Records the history label of a question issued outside the mode methods (typed or spoken
      * chat). `question` is the user-visible message, the one a first-try success logs; never the
-     * assembled prompt.
+     * assembled prompt. `displayQuestion` is the localized text the user saw in place of the
+     * message (a screenshot-only question in the Chinese UI), kept for the history row.
      */
-    rememberQuestionFor(task: GenerationTask<any> | undefined, type: string, question: string): void {
+    rememberQuestionFor(task: GenerationTask<any> | undefined, type: string, question: string, displayQuestion?: string): void {
         const id = task?.questionId;
         if (!id || typeof question !== 'string' || !question.trim()) return;
         const labels = this.questionLabels ??= new Map();
         labels.delete(id);
-        labels.set(id, { type, question });
+        labels.set(id, typeof displayQuestion === 'string' && displayQuestion.trim() ? { type, question, displayQuestion } : { type, question });
         while (labels.size > IntelligenceEngine.QUESTION_LABEL_LIMIT) labels.delete(labels.keys().next().value!);
     }
     // The action name of each entry point, for a question whose label is not held.
@@ -118,7 +119,7 @@ export class IntelligenceEngine extends EventEmitter {
         text: { type: 'chat', question: 'Retry' },
         answer: { type: 'chat', question: 'Retry' },
     };
-    private retryLabel(task: GenerationTask<any>): { type: string; question: string } {
+    private retryLabel(task: GenerationTask<any>): { type: string; question: string; displayQuestion?: string } {
         return this.questionLabels?.get(task.questionId)
             ?? IntelligenceEngine.ENTRY_POINT_LABELS[task.entryPoint]
             ?? { type: 'assist', question: 'Retry' };
@@ -201,7 +202,7 @@ export class IntelligenceEngine extends EventEmitter {
                 if (answer.trim()) {
                     this.session.addAssistantMessage(answer, this.generationMetadata());
                     const label = this.retryLabel(task);
-                    this.recordUsage({ type: label.type, timestamp: Date.now(), question: label.question, answer });
+                    this.recordUsage({ type: label.type, timestamp: Date.now(), question: label.question, ...(label.displayQuestion ? { displayQuestion: label.displayQuestion } : {}), answer });
                     this.emit(resultEvent, answer, 'retry', 1);
                 }
                 return answer;
