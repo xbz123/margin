@@ -884,4 +884,9 @@ export const chinese: Readonly<Record<string, string>> = {
     'Discard this meeting? Its transcript will be permanently lost.': '确定丢弃这场会议吗？其转写将永久丢失。',
     'Discard permanently': '永久丢弃',
     'The last part of the transcript was not completed.': '最后一段转写未完成。',
+    'The meeting could not start because no speech provider is set up. Choose a speech provider and save its key in Speech & Audio settings, then start again.': '未配置语音服务，会议无法开始。请在“设置 → 语音与音频”中选择语音服务商并保存其 key，然后重新开始。',
+    'The meeting could not start because microphone access is blocked. Allow it in System Settings → Privacy & Security → Microphone, then start again.': '麦克风权限被拒绝，会议无法开始。请在“系统设置 → 隐私与安全性 → 麦克风”中允许访问，然后重新开始。',
+    'The meeting could not start because microphone access is blocked. Allow it in Windows Settings → Privacy & security → Microphone, then start again.': '麦克风权限被拒绝，会议无法开始。请在“Windows 设置 → 隐私和安全性 → 麦克风”中允许访问，然后重新开始。',
+    'The meeting could not start.': '会议无法开始。',
+    'Open Speech & Audio settings': '打开语音与音频设置',
 };

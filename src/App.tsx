@@ -182,11 +182,14 @@ const App: React.FC = () => {
         // meeting-state broadcast) to avoid a blue→green CTA flash on the
         // launcher. No follow-up setWindowMode IPC needed here.
       } else {
+        // The launcher shows the reason next to its Start button.
         console.error("Failed to start meeting:", result.error);
       }
       return result;
     } catch (err) {
       console.error("Failed to start meeting:", err);
+      // The launcher shows this next to its Start button.
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
   };
 

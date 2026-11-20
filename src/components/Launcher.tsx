@@ -15,6 +15,8 @@ import WindowControls from './WindowControls';
 import { useI18n, type UiLanguage } from '../i18n';
 import { SetupChecklist } from './onboarding/SetupChecklist';
 import { UnsavedMeetingBanner } from './UnsavedMeetingBanner';
+import { StartMeetingFailureNotice } from './StartMeetingFailureNotice';
+import { describeStartFailure, type StartFailure } from '../lib/startMeetingFailure';
 
 interface Meeting {
     id: string;
@@ -38,7 +40,7 @@ interface Meeting {
 }
 
 interface LauncherProps {
-    onStartMeeting: () => void | Promise<{ success: boolean; code?: string } | void>;
+    onStartMeeting: () => void | Promise<{ success: boolean; error?: string; code?: string } | void>;
     onOpenSettings: (tab?: string) => void;
     onPageChange?: (isMain: boolean) => void;
     settingsOpen?: boolean;
@@ -80,6 +82,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
     const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [startRefusals, setStartRefusals] = useState(0);
+    const [startFailure, setStartFailure] = useState<StartFailure | null>(null);
 
     // Global search state (for AI chat overlay)
     const [isGlobalChatOpen, setIsGlobalChatOpen] = useState(false);
@@ -124,6 +127,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
         if (window.electronAPI?.onMeetingStateChanged) {
             removeMeetingStateListener = window.electronAPI.onMeetingStateChanged(({ isActive }) => {
                 setIsMeetingActive(isActive);
+                if (isActive) setStartFailure(null);
             });
         }
 
@@ -453,8 +457,11 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                                     window.electronAPI?.setWindowMode?.('overlay', true);
                                                 } else {
                                                     // A pending unsaved meeting refuses start; point the user to it.
+                                                    // Any other refusal is explained under this button until the next attempt.
+                                                    setStartFailure(null);
                                                     void Promise.resolve(onStartMeeting()).then(result => {
                                                         if (result && result.code === 'pending-unsaved-meeting') setStartRefusals(n => n + 1);
+                                                        setStartFailure(describeStartFailure(result, { isMac }));
                                                     }).catch(() => { /* App logs start failures. */ });
                                                 }
                                             }}
@@ -521,6 +528,9 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                             </div>
                                         </motion.button>
                                     </div>
+                                    {startFailure && !isMeetingActive && (
+                                        <StartMeetingFailureNotice failure={startFailure} isMac={isMac} onOpenSettings={onOpenSettings} />
+                                    )}
                                 </div>
                             </section>
 
