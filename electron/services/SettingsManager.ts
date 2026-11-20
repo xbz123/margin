@@ -16,6 +16,31 @@ const failSecurePrivacy = (): Pick<AppSettings, 'meetingRetention' | 'providerDa
     providerDataScopes: { transcript: false, screenshots: false, profile_history: false },
 });
 
+const PRIVACY_SCOPE_KEYS = ['transcript', 'screenshots', 'profile_history'] as const;
+// Values a user could have saved; older builds also stored '7d'/'30d' (read as 'forever').
+const STORED_RETENTION_VALUES: readonly unknown[] = ['forever', 'never', '7d', '30d'];
+
+// Recovery merge: keep every privacy value the user explicitly stored and fill only the missing
+// (or malformed) fields with the fail-secure value: retention 'never', each cloud scope off.
+// `retentionMissing` is true when no retention choice was stored at all.
+const fillPrivacyGaps = (kept: AppSettings): { candidate: AppSettings; complete: boolean; retentionMissing: boolean } => {
+    const secure = failSecurePrivacy();
+    const retentionMissing = !STORED_RETENTION_VALUES.includes(kept.meetingRetention);
+    const storedScopes = kept.providerDataScopes && typeof kept.providerDataScopes === 'object' && !Array.isArray(kept.providerDataScopes)
+        ? kept.providerDataScopes : undefined;
+    const scopes: Record<string, unknown> = { ...(storedScopes || {}) };
+    let scopesComplete = !!storedScopes;
+    for (const key of PRIVACY_SCOPE_KEYS) {
+        if (typeof scopes[key] !== 'boolean') { scopes[key] = false; scopesComplete = false; }
+    }
+    return {
+        candidate: { ...kept, meetingRetention: retentionMissing ? secure.meetingRetention : kept.meetingRetention,
+            providerDataScopes: scopes as AppSettings['providerDataScopes'] },
+        complete: !retentionMissing && scopesComplete,
+        retentionMissing,
+    };
+};
+
 export const PRIVACY_SAVE_FAILED = 'The privacy setting could not be saved. The previous setting was kept.';
 
 export interface AppSettings {
@@ -198,9 +223,10 @@ export class SettingsManager {
     private loadSettings(): void {
         if (!fs.existsSync(this.settingsPath)) {
             // A missing file is a first run and keeps the defaults, unless an older build moved an
-            // unreadable settings.json aside and then failed to write the replacement.
-            if (this.hasUnreadableBackup()) {
-                console.error('[SettingsManager] settings.json is missing but an unreadable copy was kept aside; privacy settings fail secure until saved again');
+            // unreadable settings.json aside and then failed to write the replacement, or the
+            // folder cannot be listed to rule that out.
+            if (this.inRecoveryState()) {
+                console.error('[SettingsManager] settings.json is missing but an unreadable copy may have been kept aside; privacy settings fail secure until saved again');
                 this.recoverFailSecure();
             }
             return;
@@ -216,42 +242,51 @@ export class SettingsManager {
             else { this.settings = failSecurePrivacy(); this.privacyUnreadable = true; }
             return;
         }
+        const migrated = this.applyLegacyMigration();
         // An older build treated a missing settings.json (moved aside as unreadable) as a first
-        // install and later wrote UI-only preferences to a new one. With an unreadable copy kept
-        // aside and no privacy setting stored, privacy fails secure until saved again.
-        if (!this.hasPrivacySettings() && this.hasUnreadableBackup()) {
-            console.error('[SettingsManager] settings.json has no privacy settings but an unreadable copy was kept aside; privacy settings fail secure until saved again');
+        // install and later wrote some preferences to a new one, possibly only part of the privacy
+        // settings. With an unreadable copy kept aside (or a folder that cannot be listed), every
+        // privacy field the file does not store fails secure; stored fields are kept as they are.
+        if (this.inRecoveryState() && !fillPrivacyGaps(this.settings).complete) {
+            console.error('[SettingsManager] settings.json is missing privacy settings and an unreadable copy may have been kept aside; missing privacy settings fail secure until saved again');
             this.recoverFailSecure(this.settings);
             return;
         }
-        this.migrateLegacySettings();
+        if (migrated) this.saveSettings();
         console.log('[SettingsManager] Settings loaded successfully', { keys: Object.keys(this.settings).length });
     }
 
     // Store the fail-secure values so a restart without any save stays secure. The replacement is
     // written beside settings.json and renamed over it, so a failed write leaves the unreadable
     // file (or nothing, in the legacy state) in place and the next boot fails secure again.
-    // `kept` holds readable non-privacy settings to carry over.
+    // `kept` holds readable settings to carry over; privacy values it stores are kept per field.
+    // Meetings stay unsaved (privacyUnreadable) only when no retention choice was stored, so a
+    // stored choice behaves the same on this boot and every later one.
     private recoverFailSecure(kept: AppSettings = {}): void {
-        const candidate = { ...kept, ...failSecurePrivacy() };
+        const { candidate, retentionMissing } = fillPrivacyGaps(kept);
         try { this.writeCandidate(candidate, 'recovery', 'The fail-secure settings could not be written.'); }
         catch (error) { console.error('[SettingsManager] Failed to write fail-secure settings:', error); }
         this.settings = candidate;
-        this.privacyUnreadable = true;
-    }
-
-    private hasPrivacySettings(): boolean {
-        return Object.hasOwn(this.settings, 'meetingRetention') || Object.hasOwn(this.settings, 'providerDataScopes');
+        this.privacyUnreadable = retentionMissing;
     }
 
     private unreadableBackups(): string[] {
-        const prefix = `${path.basename(this.settingsPath)}.corrupt-`;
-        try { return fs.readdirSync(path.dirname(this.settingsPath)).filter(name => name.startsWith(prefix)); }
+        try { return this.listUnreadableBackups(); }
         catch { return []; }
     }
 
-    private hasUnreadableBackup(): boolean {
-        return this.unreadableBackups().length > 0;
+    private listUnreadableBackups(): string[] {
+        const prefix = `${path.basename(this.settingsPath)}.corrupt-`;
+        return fs.readdirSync(path.dirname(this.settingsPath)).filter(name => name.startsWith(prefix));
+    }
+
+    // An unreadable copy was kept aside, or the folder could not be listed to rule that out.
+    private inRecoveryState(): boolean {
+        try { return this.listUnreadableBackups().length > 0; }
+        catch (error) {
+            console.error('[SettingsManager] Could not list the settings folder; treating privacy settings as unrecovered:', error);
+            return true;
+        }
     }
 
     // Copy the unreadable file beside settings.json so the next write cannot destroy it. The
@@ -275,10 +310,11 @@ export class SettingsManager {
         }
     }
 
-    // Preserve the legacy ban on screenshot egress before retiring the unused setting.
-    private migrateLegacySettings(): void {
+    // Preserve the legacy ban on screenshot egress before retiring the unused setting. Changes
+    // memory only; returns true when the caller must save.
+    private applyLegacyMigration(): boolean {
         const legacy = this.settings as AppSettings & { screenUnderstandingMode?: string };
-        if (!Object.hasOwn(legacy, 'screenUnderstandingMode')) return;
+        if (!Object.hasOwn(legacy, 'screenUnderstandingMode')) return false;
         const raw = legacy.screenUnderstandingMode;
         if (raw === 'private' || raw === 'private_vision') {
             // The user asked never to send screenshots to cloud vision. Local vision
@@ -287,7 +323,7 @@ export class SettingsManager {
             this.settings.providerDataScopes = { ...(this.settings.providerDataScopes || {}), screenshots: false };
         }
         delete legacy.screenUnderstandingMode;
-        this.saveSettings();
+        return true;
     }
 
     private saveSettings(): void {
