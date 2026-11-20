@@ -22,7 +22,9 @@ function disk(initial = {}) {
   const boundary = { existsSync: file => files.has(file), readFileSync: file => files.get(file),
     writeFileSync(file, data, options) { writes.push(['write', options]); if (failure === 'write') throw Error('disk'); files.set(file, data); },
     renameSync(from, to) { writes.push(['rename']); if (failure === 'rename') throw Error('disk'); files.set(to, files.get(from)); files.delete(from); },
-    unlinkSync: file => files.delete(file) };
+    unlinkSync: file => files.delete(file),
+    // A readable folder: SettingsManager lists it for unreadable settings copies kept aside.
+    readdirSync: dir => [...files.keys()].filter(file => path.dirname(file) === dir).map(file => path.basename(file)) };
   return { files, writes, boundary, fail: value => { failure = value; } };
 }
 function settingsFixture(storage) {

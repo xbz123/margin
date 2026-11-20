@@ -283,7 +283,9 @@ export class SettingsManager {
     // An unreadable copy was kept aside, or the folder could not be listed to rule that out.
     private inRecoveryState(): boolean {
         try { return this.listUnreadableBackups().length > 0; }
-        catch (error) {
+        catch (error: any) {
+            // A folder that does not exist holds no copy; any other failure could hide one.
+            if (error?.code === 'ENOENT') return false;
             console.error('[SettingsManager] Could not list the settings folder; treating privacy settings as unrecovered:', error);
             return true;
         }
