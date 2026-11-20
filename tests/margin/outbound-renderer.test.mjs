@@ -620,7 +620,8 @@ test('AG34 actual Settings React + preload + IPC fence consent saves, local chec
         if (id === '../../src/types/codexSource') return shared.exports;
         if (id === '../../src/types/writtenExam') return written.exports;
         if (id === 'fs') return { existsSync: p => files.has(p), readFileSync: p => files.get(p),
-          writeFileSync(p, value) { if (fault.active) throw Error('synthetic save failure'); files.set(p, value); }, renameSync(a, b) { files.set(b, files.get(a)); files.delete(a); }, unlinkSync: p => files.delete(p) };
+          writeFileSync(p, value) { if (fault.active) throw Error('synthetic save failure'); files.set(p, value); }, renameSync(a, b) { files.set(b, files.get(a)); files.delete(a); }, unlinkSync: p => files.delete(p),
+          readdirSync: dir => [...files.keys()].filter(p => path.posix.dirname(p) === dir.replace(/\\/g, '/')).map(p => path.posix.basename(p)) };
         return require(id);
       } });
     return module.exports.SettingsManager.getInstance();

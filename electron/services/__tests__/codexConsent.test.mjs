@@ -21,7 +21,8 @@ function boot(files, fail = false) {
       }
       if (id === 'fs') return { existsSync: p => files.has(p), readFileSync: p => files.get(p),
         writeFileSync(p, value) { if (fail === true || fail?.active) throw Error('synthetic disk failure'); files.set(p, value); },
-        renameSync(a, b) { if (fail?.rename) throw Error('synthetic rename'); files.set(b, files.get(a)); files.delete(a); }, unlinkSync: p => files.delete(p) };
+        renameSync(a, b) { if (fail?.rename) throw Error('synthetic rename'); files.set(b, files.get(a)); files.delete(a); }, unlinkSync: p => files.delete(p),
+        readdirSync: dir => [...files.keys()].filter(p => path.posix.dirname(p) === dir.replace(/\\/g, '/')).map(p => path.posix.basename(p)) };
       return require(id);
     },
   });
