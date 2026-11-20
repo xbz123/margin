@@ -1,6 +1,6 @@
 """Checks the sample meeting PDF from export-sample-meeting.mjs as a reader sees it.
 
-    uv run --isolated --no-project --with pypdfium2==4.30.0 --with fonttools==4.55.3 \
+    uv run --isolated --no-project --with pypdfium2==4.30.0 --with fonttools==4.55.3 --with pillow==11.0.0 \
         python -I scripts/margin/pdf-export/verify-meeting-pdf.py <out-dir> <export font .ttf>
 
 Renders every page to <out-dir>/meeting-zh-page-N.png with PDFium (Chromium's PDF engine),

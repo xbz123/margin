@@ -83,6 +83,8 @@ const meeting = {
   transcript: [
     { speaker: 'interviewer', text: '请介绍一下你最近负责的系统，以及你在其中做的关键设计决策。', timestamp: start + 60_000 },
     { speaker: 'user', text: '我负责订单服务的重构，重点是缓存、消息队列和灰度发布三个部分。', timestamp: start + 90_000 },
+    // Common characters outside GB2312 (in the general-standard table) and a check mark.
+    { speaker: 'interviewer', text: '不用啰嗦，直接说结论 ✓ 王喆和李堃负责的模块也讲一下。', timestamp: start + 100_000 },
   ],
   usage: [
     { type: 'assist', timestamp: start + 120_000, answer: assistAnswer },

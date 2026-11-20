@@ -27,17 +27,34 @@ SIL Open Font License 1.1 (see `OFL.txt`). Copyright 2014-2021 Adobe, with Reser
 
 `scripts/margin/fonts/subset-noto-sans-sc.py`, with fontTools 4.55.3:
 
-    python -I scripts/margin/fonts/subset-noto-sans-sc.py "NotoSansSC[wght].ttf" NotoSansSC-Regular-subset.ttf 400
+    python -I scripts/margin/fonts/subset-noto-sans-sc.py "NotoSansSC[wght].ttf" NotoSansSC-Regular-subset.ttf 400 Unihan_OtherMappings.txt
 
 1. The variable font is instanced at `wght=400` (its default instance is Thin).
 2. Glyphs are kept for every GB2312 character (6,763 hanzi plus GB2312 symbols, kana, Greek and
-   Cyrillic), ASCII, Latin-1 and Latin Extended-A, general punctuation, arrows, maths,
-   enclosed numerals, box drawing and shapes, CJK symbols and punctuation, and full-width forms.
+   Cyrillic), every character of the Table of General Standard Chinese Characters
+   (通用规范汉字表, 2013; 8,105 characters, all present in the font), ASCII, Latin-1 and Latin
+   Extended-A, general punctuation, arrows, maths, enclosed numerals, box drawing and shapes,
+   miscellaneous symbols, Dingbats, CJK symbols and punctuation, and full-width forms.
 3. Layout (GSUB/GPOS/GDEF/BASE/STAT), vertical metrics and hinting are dropped: jsPDF does no
    shaping.
 
-Result: 8,208 glyphs, 2,297,196 bytes, SHA-256
-`9e7bbb5694ead76d13a80c0daa2936e060d61cf210c889afe014c83b63c2eea1`.
+The general-standard list is the `kTGH` field of `Unihan_OtherMappings.txt` in the Unicode 16.0.0
+Unihan database, https://www.unicode.org/Public/16.0.0/ucd/Unihan.zip (SHA-256
+`b8f000df69de7828d21326a2ffea462b04bc7560022989f7cc704f10521ef3e0`, 8,382,485 bytes). It is
+used only to choose glyphs and is not shipped.
 
-Characters outside the subset (rare hanzi beyond GB2312, emoji) are drawn as the .notdef box.
+Result: 9,693 glyphs, 2,845,832 bytes, SHA-256
+`d922ffef339c23e36aaf7ee6451fa03ed36f65d831780c2a60b35fbcf8ae57d2`.
+
+## Known gaps
+
+Characters the subset has no glyph for are drawn as the .notdef box:
+
+- Hanzi outside both GB2312 and the general-standard table, for example 碁 (a variant of 棋).
+  Common names and words such as 啰 喆 堃 玥 镕 赟 昇 犇 祎 旸 偲 are covered.
+- Check marks and crosses that Noto Sans SC itself does not have: ✔ (U+2714), ✗ (U+2717),
+  ✘ (U+2718), and the emoji ✅ (U+2705) and ❌ (U+274C). ✓ (U+2713) is covered. Of the
+  Dingbats block the font has 38 glyphs, all kept.
+- Other emoji.
+
 There is a single weight: headings and labels are drawn bolder with a thin text outline.
