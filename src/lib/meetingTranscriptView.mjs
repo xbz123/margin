@@ -1,5 +1,5 @@
 // The transcript a saved meeting shows: spoken lines only, each with its speaker and time.
-// The transcript page and "Copy full transcript" both read these rows, so the copy has the
+// The transcript page, "Copy full transcript" and the PDF export all read these rows, so the copy has the
 // same lines, order, times and speakers as the page. AI answers and system lines stay in the
 // stored meeting (the usage history lists the answers); they are only left out of this view.
 
@@ -12,6 +12,11 @@ export function isSpokenEntry(entry) {
 /** The i18n key of the speaker label. */
 export function speakerLabelKey(speaker) {
   return speaker === 'user' ? 'Me' : 'Them';
+}
+
+/** The time shown beside a transcript line (page, copy and PDF). */
+export function formatTranscriptTime(ms) {
+  return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
 }
 
 /** Rows of the transcript page, in stored order. */

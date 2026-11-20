@@ -10,6 +10,8 @@ export interface TranscriptRow {
   text: string;
 }
 
+export function formatTranscriptTime(ms: number): string;
+
 export function isSpokenEntry(entry: Partial<TranscriptEntryLike> | null | undefined): boolean;
 
 export function speakerLabelKey(speaker: string | undefined): 'Me' | 'Them';

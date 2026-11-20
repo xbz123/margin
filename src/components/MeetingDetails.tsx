@@ -9,12 +9,9 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useI18n } from '../i18n';
-import { formatTranscriptCopy, visibleTranscriptRows } from '../lib/meetingTranscriptView.mjs';
+import { formatTranscriptCopy, formatTranscriptTime, visibleTranscriptRows } from '../lib/meetingTranscriptView.mjs';
 
-const formatTime = (ms: number) => {
-    const date = new Date(ms);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
-};
+const formatTime = formatTranscriptTime;
 
 const cleanMarkdown = (content: string) => {
     if (!content) return '';
