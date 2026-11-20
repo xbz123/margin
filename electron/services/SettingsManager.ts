@@ -196,32 +196,50 @@ export class SettingsManager {
     }
 
     private loadSettings(): void {
-        // A missing file is a first run and keeps the defaults.
-        if (!fs.existsSync(this.settingsPath)) return;
+        if (!fs.existsSync(this.settingsPath)) {
+            // A missing file is a first run and keeps the defaults, unless an older build moved an
+            // unreadable settings.json aside and then failed to write the replacement.
+            if (this.hasUnreadableBackup()) {
+                console.error('[SettingsManager] settings.json is missing but an unreadable copy was kept aside; privacy settings fail secure until saved again');
+                this.recoverFailSecure();
+            }
+            return;
+        }
         try {
             const parsed = JSON.parse(fs.readFileSync(this.settingsPath, 'utf8'));
             if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('Settings JSON is not a valid object');
             this.settings = parsed;
         } catch (error) {
             console.error('[SettingsManager] settings.json could not be read; privacy settings fail secure until saved again:', error);
-            const preserved = this.preserveUnreadableFile();
-            this.settings = failSecurePrivacy();
-            // Store the fail-secure values so a restart without any save stays secure. Never
-            // overwrite the unreadable file when it could not be kept aside.
-            if (preserved) this.saveSettings();
-            this.privacyUnreadable = true;
+            // Never overwrite the unreadable file when it could not be kept aside.
+            if (this.preserveUnreadableFile()) this.recoverFailSecure();
+            else { this.settings = failSecurePrivacy(); this.privacyUnreadable = true; }
             return;
         }
         this.migrateLegacySettings();
         console.log('[SettingsManager] Settings loaded successfully', { keys: Object.keys(this.settings).length });
     }
 
-    // Keep the unreadable file beside settings.json so the next write cannot destroy it.
+    // Store the fail-secure values so a restart without any save stays secure. The replacement is
+    // written beside settings.json and renamed over it, so a failed write leaves the unreadable
+    // file (or nothing, in the legacy state) in place and the next boot fails secure again.
+    private recoverFailSecure(): void {
+        try { this.writeCandidate(failSecurePrivacy(), 'recovery', 'The fail-secure settings could not be written.'); }
+        catch (error) { console.error('[SettingsManager] Failed to write fail-secure settings:', error); }
+        this.settings = failSecurePrivacy();
+        this.privacyUnreadable = true;
+    }
+
+    private hasUnreadableBackup(): boolean {
+        const prefix = `${path.basename(this.settingsPath)}.corrupt-`;
+        try { return fs.readdirSync(path.dirname(this.settingsPath)).some(name => name.startsWith(prefix)); }
+        catch { return false; }
+    }
+
+    // Copy the unreadable file beside settings.json so the next write cannot destroy it. The
+    // original stays at settings.json until the fail-secure replacement is fully written.
     private preserveUnreadableFile(): boolean {
         const backup = `${this.settingsPath}.corrupt-${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
-        try { fs.renameSync(this.settingsPath, backup); return true; } catch (error) {
-            console.error('[SettingsManager] Could not move the unreadable settings file aside:', error);
-        }
         try { fs.copyFileSync(this.settingsPath, backup, fs.constants.COPYFILE_EXCL); return true; } catch (error) {
             console.error('[SettingsManager] Could not copy the unreadable settings file:', error);
             return false;
