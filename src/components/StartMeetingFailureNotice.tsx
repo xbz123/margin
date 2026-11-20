@@ -10,13 +10,15 @@ export const StartMeetingFailureNotice: React.FC<{
     failure: StartFailure;
     isMac: boolean;
     onOpenSettings: (tab?: string) => void;
-}> = ({ failure, isMac, onOpenSettings }) => {
+    /** Fills {name} in the message (the app the user restarts). */
+    appName: string;
+}> = ({ failure, isMac, onOpenSettings, appName }) => {
     const { t } = useI18n();
     const buttonClass = 'shrink-0 px-3 py-1 rounded-full text-xs font-medium border border-red-400/40 text-red-400 hover:bg-red-500/10 transition-colors';
     return (
         <div role="alert" className="flex items-center justify-end gap-3 text-xs text-red-400">
             <p className="text-right leading-snug">
-                {t(failure.message)}
+                {t(failure.message, { name: appName })}
                 {failure.reason ? ` ${failure.reason}` : ''}
             </p>
             {failure.kind === 'stt-not-configured' && (

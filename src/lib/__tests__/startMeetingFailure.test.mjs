@@ -72,7 +72,7 @@ test('every start-failure message has a Chinese entry', () => {
 
 function renderNotice(props) {
   const { StartMeetingFailureNotice } = sourceModule('src/components/StartMeetingFailureNotice.tsx', { window: {} });
-  return renderToStaticMarkup(React.createElement(StartMeetingFailureNotice, { onOpenSettings: () => {}, ...props }));
+  return renderToStaticMarkup(React.createElement(StartMeetingFailureNotice, { onOpenSettings: () => {}, appName: 'Margin', ...props }));
 }
 
 test('the notice offers audio settings for missing credentials and the mic pane on macOS only', () => {
@@ -83,8 +83,25 @@ test('the notice offers audio settings for missing credentials and the mic pane 
   assert.match(mac, /Privacy_Microphone/);
   assert.doesNotMatch(mac, /Open Speech/);
   const win = renderNotice({ failure: describeStartFailure({ success: false, error: MIC_ERROR_WIN }, { isMac: false }), isMac: false });
-  assert.match(win, /Windows Settings/);
+  assert.match(win, /Settings → Privacy → Microphone, then restart Margin\./);
   assert.doesNotMatch(win, /<button/);
   const other = renderNotice({ failure: describeStartFailure({ success: false, error: 'Audio device busy' }, { isMac: false }), isMac: false });
   assert.match(other, /The meeting could not start\. Audio device busy/);
+});
+
+test('the microphone guidance asks for a restart, as main does', () => {
+  // main: formatPermissionMessage('mic-denied') ends with 'then restart <app name>'.
+  const main = fs.readFileSync(`${REPO}/electron/main.ts`, 'utf8');
+  assert.match(main, /Privacy & Security → Microphone, then restart \$\{APP_IDENTITY\.name\}/);
+  assert.match(failure.START_FAILURE_MIC_DENIED_MAC, /System Settings → Privacy & Security → Microphone, then restart \{name\}\.$/);
+  assert.match(failure.START_FAILURE_MIC_DENIED_OTHER, /then restart \{name\}\.$/);
+  for (const message of [failure.START_FAILURE_MIC_DENIED_MAC, failure.START_FAILURE_MIC_DENIED_OTHER]) assert.doesNotMatch(message, /start again/);
+  const mac = renderNotice({ failure: describeStartFailure({ success: false, error: MIC_ERROR_MAC }, { isMac: true }), isMac: true });
+  assert.match(mac, /then restart Margin\./);
+  const { chinese } = sourceModule('src/i18n.zh.ts');
+  assert.match(chinese[failure.START_FAILURE_MIC_DENIED_MAC], /重新启动 \{name\}/);
+  assert.match(chinese[failure.START_FAILURE_MIC_DENIED_OTHER], /重新启动 \{name\}/);
+  const i18n = sourceModule('src/i18n.tsx', { window: {}, localStorage: { getItem: () => null, setItem() {} } });
+  assert.equal(i18n.translate('zh-CN', failure.START_FAILURE_MIC_DENIED_MAC, { name: 'Margin' }),
+    '麦克风权限被拒绝，会议无法开始。请在“系统设置 → 隐私与安全性 → 麦克风”中允许访问，然后重新启动 Margin。');
 });

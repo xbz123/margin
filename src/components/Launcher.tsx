@@ -531,7 +531,7 @@ const Launcher: React.FC<LauncherProps> = ({ onStartMeeting, onOpenSettings, onP
                                         </motion.button>
                                     </div>
                                     {startFailure && !isMeetingActive && (
-                                        <StartMeetingFailureNotice failure={startFailure} isMac={isMac} onOpenSettings={onOpenSettings} />
+                                        <StartMeetingFailureNotice failure={startFailure} isMac={isMac} onOpenSettings={onOpenSettings} appName={APP_NAME} />
                                     )}
                                 </div>
                             </section>

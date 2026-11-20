@@ -14,8 +14,11 @@ export interface StartFailure {
 }
 
 export const START_FAILURE_STT_NOT_CONFIGURED = 'The meeting could not start because no speech provider is set up. Choose a speech provider and save its key in Speech & Audio settings, then start again.';
-export const START_FAILURE_MIC_DENIED_MAC = 'The meeting could not start because microphone access is blocked. Allow it in System Settings → Privacy & Security → Microphone, then start again.';
-export const START_FAILURE_MIC_DENIED_OTHER = 'The meeting could not start because microphone access is blocked. Allow it in Windows Settings → Privacy & security → Microphone, then start again.';
+// Like main's message, these ask for a restart: macOS applies a microphone grant after the app restarts.
+// {name} is the app name, filled in by the launcher.
+export const START_FAILURE_MIC_DENIED_MAC = 'The meeting could not start because microphone access is blocked. Allow it in System Settings → Privacy & Security → Microphone, then restart {name}.';
+// Main only checks microphone access on macOS today; this is the same guidance should it ever report one elsewhere.
+export const START_FAILURE_MIC_DENIED_OTHER = 'The meeting could not start because microphone access is blocked. Allow it in Settings → Privacy → Microphone, then restart {name}.';
 export const START_FAILURE_OTHER = 'The meeting could not start.';
 
 // Null means nothing to show here: the meeting started, the unsaved-meeting banner
