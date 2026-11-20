@@ -278,8 +278,8 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
       this.notify(record);
     });
     // While draining, an error event alone does not mark the channel incomplete: a provider whose
-    // tail was lost says so by rejecting finalize() (RestSTT when a tail upload fails, a streaming
-    // drain that is cut off), which the drain reports.
+    // tail was lost says so by rejecting finalize() (RestSTT or OpenAIStreamingSTT in REST mode when a
+    // tail upload fails, a streaming drain that is cut off), which the drain reports.
     listen('error', (error: Error) => { if (current() && !this.draining) this.options.onError?.(channel, error); });
     listen('warning', (warning: unknown) => { if (current() && !this.draining) this.options.onWarning?.(channel, warning); });
     listen('endpoint', (event: unknown) => { if (current() && !this.draining) this.options.onEndpoint?.(channel, event); });

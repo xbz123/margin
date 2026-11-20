@@ -132,6 +132,10 @@ export class OpenAIStreamingSTT extends EventEmitter {
     private restSafetyTimer: NodeJS.Timeout | null = null;
     private restIsUploading        = false;
     private restFlushPending       = false;
+    /** Resolves when the current REST upload has emitted its result (or failed); see finalize(). */
+    private restUploadSettled: Promise<void> = Promise.resolve();
+    /** REST uploads of the current epoch that failed; finalize() compares it to report a failed tail. */
+    private restFailedUploads      = 0;
     private readonly restBatches   = new RestBatches('openai-rest');
 
     // Custom OpenAI-compatible endpoint (e.g. self-hosted Speaches). When set, the
@@ -360,11 +364,25 @@ export class OpenAIStreamingSTT extends EventEmitter {
         return seal;
     }
 
-    public finalize(): void {
+    /**
+     * REST mode flushes the tail and settles once every upload it depends on (one already in flight
+     * and the tail queued behind it) has emitted its transcript or failed; it rejects when one of
+     * those uploads failed, so a meeting drain reports this channel incomplete. An upload that failed
+     * before finalize() was reported live and does not count. The WS path commits and resolves.
+     */
+    public async finalize(): Promise<void> {
         if (!this.isActive) return;
         if (this.mode === 'rest') {
             console.log('[OpenAIStreaming][REST] Finalize — flushing buffer');
-            this._restFlushAndUpload();
+            const epoch = this.restEpoch;
+            const failedBefore = this.restFailedUploads;
+            await this._restFlushAndUpload();
+            // A chained re-entry starts its upload synchronously in the previous upload's finally,
+            // so restIsUploading is already true again when this loop resumes.
+            while (this.isActive && this.restEpoch === epoch && this.restIsUploading) await this.restUploadSettled;
+            if (this.restEpoch === epoch && this.restFailedUploads > failedBefore) {
+                throw new Error('REST STT tail upload failed');
+            }
             return;
         }
         if (this.ws?.readyState !== WebSocket.OPEN || !this.isSessionReady) return;
@@ -1065,6 +1083,8 @@ export class OpenAIStreamingSTT extends EventEmitter {
         const pcm16k = this._resamplePcm16(rawPcm, REST_SAMPLE_RATE);
         const wavBuffer = this._addWavHeader(pcm16k, REST_SAMPLE_RATE);
         this.restIsUploading = true;
+        let settled!: () => void;
+        this.restUploadSettled = new Promise<void>(resolve => { settled = resolve; });
         const epoch = this.restEpoch;
         this.restBatches.start(batch);
         let outcome: 'complete' | 'failed' = 'complete';
@@ -1085,9 +1105,11 @@ export class OpenAIStreamingSTT extends EventEmitter {
         } catch (err) {
             outcome = 'failed';
             if (!this.isActive || this.restEpoch !== epoch) return;
+            this.restFailedUploads++;
             console.error('[OpenAIStreaming][REST] Upload error:', err);
             this.emit('error', err instanceof Error ? err : new Error(String(err)));
         } finally {
+            settled();
             if (!this.isActive || this.restEpoch !== epoch) { this.restBatches.finish(batch, 'unknown'); return; }
             this.restIsUploading = false;
             this.restBatches.finish(batch, outcome);
