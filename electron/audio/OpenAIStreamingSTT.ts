@@ -388,6 +388,11 @@ export class OpenAIStreamingSTT extends EventEmitter {
         this.restEndBaseline = { epoch: this.restEpoch, failed: this.restFailedUploads };
     }
 
+    /** Forgets the End mark: a new meeting begins on this provider without a stop in between. */
+    public clearEnding(): void {
+        this.restEndBaseline = null;
+    }
+
     /**
      * REST mode flushes the tail and settles once every upload it depends on (one already in flight
      * and the tail queued behind it) has emitted its transcript or failed; it rejects when one of

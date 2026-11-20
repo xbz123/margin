@@ -147,6 +147,61 @@ for (const name of Object.keys(PROVIDERS)) {
     assert.equal(uploads.length, 2, 'nothing else to upload');
   });
 
+  test(`${name} (e): an in-flight upload failing after the End click but before the queued stop runs is reported`, async t => {
+    const m = await meeting(t, name);
+    m.stts.user.write(speech());
+    m.stts.user.notifySpeechEnded();
+    await flush();
+    assert.deepEqual(uploads.map(upload => upload.channel), ['user'], 'the last batch is uploading before End');
+    // The lifecycle queue is busy (e.g. a settings change), so the stop callback waits behind it.
+    let release;
+    const busy = m.f.state.meetingLifecycle.change(() => new Promise(resolve => { release = resolve; }));
+    const end = m.ending();
+    await m.advance(0);
+    assert.equal(m.f.state.isMeetingActive, true, 'the stop callback has not run yet');
+    uploads[0].fail(new Error('synthetic upload failure'));
+    await flush();
+    assert.equal(m.notices.length, 0, 'not reported as a live error after End');
+    release();
+    await busy;
+    await m.settled(end);
+    assert.equal(m.notices.length, 1, 'the launcher is told after the drain');
+    const [notice] = m.notices;
+    assert.equal(notice.kind, 'transcript-tail-incomplete');
+    assert.deepEqual([...notice.failedChannels], ['user']);
+    assert.equal(notice.channelOutcomes.user, 'failed');
+    assert.equal(notice.channelOutcomes.interviewer, 'success');
+    assert.deepEqual(m.text('user'), []);
+  });
+
+  test(`${name} (f): an End mark is not left behind: no meeting, or a stop that never drained`, async t => {
+    const m = await meeting(t, name);
+    // A stop that fails before the drain leaves the providers bound with the click's mark.
+    const abortInit = m.f.state.meetingAudio.abortInit;
+    m.f.state.meetingAudio.abortInit = async () => { throw new Error('synthetic abort failure'); };
+    await assert.rejects(m.ending().promise, /synthetic abort failure/);
+    m.f.state.meetingAudio.abortInit = abortInit;
+    // The next meeting begins on the same providers: their marks are cleared.
+    m.f.session.begin('next-meeting');
+    const field = name === 'Groq' ? 'endBaseline' : 'restEndBaseline';
+    assert.equal(m.stts.user[field], null);
+    assert.equal(m.stts.interviewer[field], null);
+    // A failure before this meeting's End is reported live and is not part of its tail.
+    m.stts.user.write(speech());
+    m.stts.user.notifySpeechEnded();
+    await flush();
+    uploads.at(-1).fail(new Error('synthetic live failure'));
+    await flush();
+    await assert.doesNotReject(Promise.resolve(m.stts.user.finalize()), 'the earlier failure is not counted as tail');
+
+    // End with no meeting running marks nothing.
+    const idle = mainFixture({ sttProvider: () => null });
+    let marked = 0;
+    idle.session.markEnding = () => { marked++; };
+    await idle.state.endMeeting();
+    assert.equal(marked, 0, 'no running meeting, no mark');
+  });
+
   test(`${name} (b): one side succeeds, the other exceeds the 5 s budget: only the late side is reported`, async t => {
     const m = await meeting(t, name);
     m.stts.user.write(speech());

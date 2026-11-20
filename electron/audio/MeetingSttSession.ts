@@ -136,6 +136,8 @@ export interface ManagedSttProvider extends EventEmitter {
    * while capture devices are released) belongs to the tail that finalize() reports.
    */
   markEnding?(): void;
+  /** Forgets a markEnding() whose meeting was not drained (a new meeting begins on this provider). */
+  clearEnding?(): void;
   /**
    * Non-terminating flush for a manual action; providers without one (or returning none for this
    * channel) stay unknown. `channel` is the lane the provider serves.
@@ -233,6 +235,9 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
     this.evictedThrough.user = this.evictedThrough.interviewer = -Infinity;
     this.session = id;
     ++this.generation;
+    // A provider kept from the previous meeting starts without its End mark: only this meeting's
+    // End click decides where this meeting's tail begins.
+    this.clearEnding();
     for (const [channel, binding] of this.bindings) {
       binding.dispose();
       this.bind(channel, binding.provider, this.serial[channel]);
@@ -548,12 +553,20 @@ export class MeetingSttSession<P extends ManagedSttProvider = ManagedSttProvider
   }
 
   /**
-   * Called when the user clicks End, before capture devices are released: each provider starts
-   * tracking its in-flight uploads as part of the tail its finalize() will report.
+   * Called when the user clicks End (synchronously, before the lifecycle queue runs the stop) and
+   * again when the stop runs: each provider starts tracking its in-flight uploads as part of the
+   * tail its finalize() will report. Idempotent per provider and upload epoch.
    */
   markEnding(): void {
     for (const { provider } of this.bindings.values()) {
       try { provider.markEnding?.(); } catch { /* a provider without tail tracking keeps the old behaviour */ }
+    }
+  }
+
+  /** Drops every provider's End mark (begin() calls it, so no mark outlives its meeting). */
+  clearEnding(): void {
+    for (const { provider } of this.bindings.values()) {
+      try { provider.clearEnding?.(); } catch { /* nothing to clear */ }
     }
   }
 

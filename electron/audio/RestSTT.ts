@@ -290,6 +290,11 @@ export class RestSTT extends EventEmitter {
         this.endBaseline = { epoch: this.uploadEpoch, failed: this.failedUploads };
     }
 
+    /** Forgets the End mark: a new meeting begins on this provider without a stop in between. */
+    public clearEnding(): void {
+        this.endBaseline = null;
+    }
+
     /** Seals audio received so far into its own upload batch; recording continues. */
     public seal(cutoffAt: number): SttSeal | undefined {
         if (!this.isActive) return undefined;

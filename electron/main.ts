@@ -1562,14 +1562,18 @@ export class AppState {
 
 
   public async endMeeting(): Promise<void> {
+    // From the End click on, uploads already in flight count toward the tail: one that fails before
+    // the stop below runs (the lifecycle queue may still be busy) or while the capture devices are
+    // being released is reported after the drain instead of lost. Only a running meeting is marked;
+    // the next meeting's begin() clears any mark a stop that did not drain left behind.
+    if (this.isMeetingActive) this.meetingStt.markEnding();
     this.endingMeeting = true;
     if (this.syncWrittenExam) this.syncWrittenExam(false);
     else this.pauseWrittenExam?.();
     this.processingHelper.getLLMHelper().cancelGenerationTasks('Session ended');
     this.intelligenceManager.resetEngine();
     return this.meetingLifecycle.stop(async () => {
-      // From the End click on, uploads already in flight count toward the tail: one that fails while
-      // the capture devices are still being released is reported below instead of lost.
+      // Again here (idempotent): a provider created or restarted after the click is marked too.
       this.meetingStt.markEnding();
       if (this.overlayMousePassthrough) this.setOverlayMousePassthrough(false);
       this.windowHelper.setWindowMode('launcher');
