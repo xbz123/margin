@@ -167,3 +167,104 @@ test('manual What to Answer without a question: the Retry row matches what a suc
   assert.equal(retried.question, succeeded.question);
   assert.equal(retried.question, 'What to Answer');
 });
+
+// A failed or cancelled Retry is listed under the same label a successful Retry records, with
+// the localized text the user saw, never under the internal 'generation outcome' label.
+const SHOWN = '直接解答截图中的题目';
+const SCREENSHOT_MESSAGE = 'Solve the question in this screenshot directly';
+
+async function failingRetry(outcome) {
+  const helper = new StubLLMHelper([]);
+  const manager = new IntelligenceManager(helper);
+  const first = helper.beginGenerationTask(); first.entryPoint = 'text';
+  manager.rememberQuestion(first, 'chat', SCREENSHOT_MESSAGE, SHOWN);
+  first.terminalStatus = 'failed';
+  manager.logUsage('chat', SCREENSHOT_MESSAGE, '', helper.getTaskMetadata(first), SHOWN);
+
+  const retry = retryTask(helper, first);
+  helper.replayPrepared = async function* () {
+    if (outcome === 'cancelled') {
+      retry.controller.abort(new DOMException('Generation cancelled', 'AbortError'));
+      throw new DOMException('Generation cancelled', 'AbortError');
+    }
+    throw Object.assign(new Error('provider down'), { status: 500 });
+  };
+  await assert.rejects(() => helper.runGeneration(() => manager.runPreparedRetry({ userContent: PROMPT + SCREENSHOT_MESSAGE }), 'written', undefined, retry));
+  const usage = endMeeting(manager.session);
+  return { first, retry, usage, rows: usage.filter(entry => entry.requestId === retry.requestId) };
+}
+
+for (const outcome of ['failed', 'cancelled']) {
+  test(`screenshot only in the Chinese UI: a ${outcome} Retry is listed under the question the user saw`, async () => {
+    const { first, rows, usage } = await failingRetry(outcome);
+    assert.equal(rows.length, 1, 'one row for the Retry, no duplicate');
+    const [row] = rows;
+    assert.equal(row.type, 'chat');
+    assert.equal(row.question, SCREENSHOT_MESSAGE);
+    assert.equal(row.displayQuestion, SHOWN);
+    assert.equal(row.retryOf, first.requestId);
+    assert.equal(row.questionId, first.questionId);
+    assert.equal(row.status, outcome);
+    assert.equal(row.answer, '');
+    assert.equal(usage.some(entry => entry.question === 'generation outcome'), false);
+  });
+}
+
+// LLMHelper.runGeneration waits for the renderer's visible receipt after the replay settles. If
+// that wait times out, the task aborts as failed after runPreparedRetry recorded its success;
+// the abort must not list the same answer a second time.
+test('a successful Retry whose visible receipt times out is recorded once', async () => {
+  const { GenerationTimeoutError, awaitGeneration } = require('../../../dist-electron/electron/llm/generateTask.js');
+  const session = new SessionTracker();
+  const helper = new StubLLMHelper(['RETRY ', 'ANSWER']);
+  // Mirrors LLMHelper.runGeneration; the receipt deadline expires while it waits.
+  helper.runGeneration = async function (factory, _kind, _signal, supplied) {
+    const inherited = generationTasks.getStore();
+    const task = supplied ?? inherited ?? this.beginGenerationTask();
+    try {
+      const result = await awaitGeneration(task, Promise.resolve().then(() => generationTasks.run(task, factory)));
+      if (task !== inherited) {
+        const waiting = task.waitForVisible();
+        task.controller.abort(new GenerationTimeoutError('total', task.hasText));
+        await waiting;
+      }
+      return result;
+    } catch (error) {
+      if (!task.signal.aborted && !['refused', 'incomplete', 'empty'].includes(task.terminalStatus ?? '')) task.terminalStatus = 'failed';
+      throw error;
+    } finally { if (task !== inherited) task.close(); }
+  };
+  const manager = new IntelligenceManager(helper);
+  const first = helper.beginGenerationTask(); first.entryPoint = 'text';
+  manager.rememberQuestion(first, 'chat', SCREENSHOT_MESSAGE, SHOWN);
+  first.close();
+
+  const retry = retryTask(helper, first);
+  retry.requireVisibleReceipt = true;
+  await assert.rejects(() => helper.runGeneration(() => manager.runPreparedRetry({ userContent: PROMPT + SCREENSHOT_MESSAGE }), 'written', undefined, retry),
+    error => error?.name === 'GenerationTimeoutError');
+  assert.equal(retry.terminalStatus, 'failed', 'the receipt timeout failed the task after the success row');
+
+  const rows = endMeeting(manager.session).filter(entry => entry.requestId === retry.requestId);
+  assert.equal(rows.length, 1, 'one usage row for the Retry');
+  assert.equal(rows[0].answer, 'RETRY ANSWER');
+  assert.equal(rows[0].question, SCREENSHOT_MESSAGE);
+  const messages = manager.session.getFullTranscript().filter(segment => segment.speaker === 'assistant' && segment.generation?.requestId === retry.requestId);
+  assert.equal(messages.length, 1, 'one assistant message for the Retry');
+});
+
+test('a failed first attempt (not a Retry) still records the generation outcome row', async () => {
+  const session = new SessionTracker();
+  const helper = new StubLLMHelper([]);
+  const engine = new IntelligenceEngine(helper, session);
+  engine.whatToAnswerLLM = { async *generateStream() { throw Object.assign(new Error('provider down'), { status: 500 }); } };
+  const first = helper.beginGenerationTask(); first.entryPoint = 'what-to-say';
+  await assert.rejects(() => helper.runGeneration(
+    () => engine.runWhatShouldISay('如何设计一个分布式限流器？', 0.8, undefined, { skipCooldown: true, errorDelivery: 'caller' }), 'interview', undefined, first), /provider down/);
+  const rows = endMeeting(session).filter(entry => entry.requestId === first.requestId);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].type, 'assist');
+  assert.equal(rows[0].question, 'generation outcome');
+  assert.equal(rows[0].displayQuestion, undefined);
+  assert.equal(rows[0].retryOf, undefined);
+});

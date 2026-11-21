@@ -190,3 +190,58 @@ test('older rows read back unchanged: a bare items array and generation metadata
   assert.equal(usage[2].generation.requestId, 'r0');
   assert.equal(usage[2].generation.questionId, undefined);
 });
+
+test('Chinese UI: screenshot only, first attempt and Retry both fail, the Retry row keeps the Chinese question after save', async t => {
+  const displayQuestion = zh[SCREENSHOT_QUESTION];
+  const message = SCREENSHOT_QUESTION;
+  const helper = new StubLLMHelper([]);
+  helper.replayPrepared = async function* () { throw Object.assign(new Error('provider down'), { status: 500 }); };
+  const intelligence = new IntelligenceManager(helper);
+
+  const first = helper.beginGenerationTask(); first.entryPoint = 'text';
+  intelligence.rememberQuestion(first, 'chat', message, displayQuestion);
+  first.terminalStatus = 'failed';
+  intelligence.logUsage('chat', message, '', helper.getTaskMetadata(first), displayQuestion);
+
+  const retry = helper.beginGenerationTask();
+  retry.entryPoint = first.entryPoint; retry.questionId = first.questionId; retry.retryOf = first.requestId;
+  await assert.rejects(() => helper.runGeneration(() => intelligence.runPreparedRetry({ userContent: PROMPT + message }), 'written', undefined, retry), /provider down/);
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-retry-history-failed-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const writer = openManager(dir);
+  const { MeetingPersistence } = run('electron/MeetingPersistence.ts', {
+    crypto: require('node:crypto'),
+    electron: { BrowserWindow: { getAllWindows: () => [] } },
+    './db/DatabaseManager': { DatabaseManager: { getInstance: () => writer.manager } },
+    './services/SettingsManager': { SettingsManager: { getInstance: () => ({ get: () => 'forever' }) } },
+  });
+  const session = intelligence.session;
+  const saved = await new MeetingPersistence({
+    flushInterimTranscript() {}, getSessionStartTime: () => Date.now() - 5_000,
+    getFullTranscript: () => session.getFullTranscript(), getFullUsage: () => session.getFullUsage(),
+    getMeetingMetadata: () => null, reset() {},
+  }).stopMeeting();
+  assert.equal(saved.status, 'saved');
+  writer.close();
+
+  const reader = openManager(dir);
+  const meeting = reader.manager.getMeetingDetails(saved.id);
+  reader.close();
+  assert.equal(meeting.usage.length, 2, 'one row per attempt, no duplicate');
+  const [failed, retried] = meeting.usage;
+  for (const row of [failed, retried]) {
+    assert.equal(row.type, 'chat');
+    assert.equal(row.question, message);
+    assert.equal(row.displayQuestion, '直接解答截图中的题目');
+    assert.equal(row.answer, null);
+    assert.equal(row.generation.status, 'failed');
+  }
+  assert.equal(retried.generation.retryOf, first.requestId);
+  assert.equal(retried.generation.questionId, first.questionId);
+  assert.equal(meeting.usage.some(row => row.question === 'generation outcome'), false);
+
+  // The export leaves out entries with no answer, as for the failed first attempt.
+  const { usageExportBlocks } = await import('../../../src/lib/meetingUsageExport.mjs');
+  assert.deepEqual(usageExportBlocks(meeting.usage), []);
+});

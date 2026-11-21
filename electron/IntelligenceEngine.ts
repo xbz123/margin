@@ -137,6 +137,10 @@ export class IntelligenceEngine extends EventEmitter {
         return super.emit(event, ...args);
     }
 
+    // Retry tasks whose success row runPreparedRetry has recorded. Created on first use, like
+    // questionLabels, since mode methods also run on engine-shaped objects.
+    private retrySuccessRecorded?: WeakSet<GenerationTask<any>>;
+
     private runGenerationRequest(factory: () => Promise<string | null>): Promise<string | null> {
         const inherited = this.llmHelper.getCurrentGenerationTask();
         if (inherited && this.activeGenerationTask === inherited) return this.llmHelper.runGeneration(factory);
@@ -147,10 +151,15 @@ export class IntelligenceEngine extends EventEmitter {
         let recordedPartial = false;
         const recordPartial = () => {
             if (recordedPartial || !task.terminalStatus || task.terminalStatus === 'completed') return;
+            // runPreparedRetry already recorded this task's answer; a later abort (e.g. the
+            // visible-receipt timeout) must not list it a second time.
+            if (this.retrySuccessRecorded?.has(task)) return;
             recordedPartial = true;
             const metadata = this.llmHelper.getTaskMetadata(task);
             if (task.displayedText.trim()) this.session.addAssistantMessage(task.displayedText, metadata);
-            this.session.pushUsage({ type: 'assist', timestamp: Date.now(), question: 'generation outcome', answer: task.displayedText, ...metadata });
+            // A failed or cancelled Retry keeps the label a successful Retry records (runPreparedRetry).
+            const label = task.retryOf ? this.retryLabel(task) : { type: 'assist', question: 'generation outcome' } as { type: string; question: string; displayQuestion?: string };
+            this.session.pushUsage({ type: label.type, timestamp: Date.now(), question: label.question, ...(label.displayQuestion ? { displayQuestion: label.displayQuestion } : {}), answer: task.displayedText, ...metadata });
         };
         task.signal.addEventListener('abort', recordPartial, { once: true });
         super.emit('generation_started', this.llmHelper.getTaskMetadata(task), task.rendererOwner);
@@ -203,6 +212,7 @@ export class IntelligenceEngine extends EventEmitter {
                     this.session.addAssistantMessage(answer, this.generationMetadata());
                     const label = this.retryLabel(task);
                     this.recordUsage({ type: label.type, timestamp: Date.now(), question: label.question, ...(label.displayQuestion ? { displayQuestion: label.displayQuestion } : {}), answer });
+                    (this.retrySuccessRecorded ??= new WeakSet()).add(task);
                     this.emit(resultEvent, answer, 'retry', 1);
                 }
                 return answer;
