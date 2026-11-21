@@ -307,7 +307,7 @@ interface ElectronAPI {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; examGeneration?: number; displayQuestion?: string },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; examGeneration?: number; displayQuestion?: string; screenshotOnly?: boolean },
   ) => Promise<void>;
   onGeminiStreamToken: (callback: (token: string, metadata?: GenerationMetadata) => void, owner?: string) => () => void;
   enableGenerationPresentation: () => Promise<void>;
@@ -914,7 +914,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     message: string,
     imagePaths?: string[],
     context?: string,
-    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; examGeneration?: number; displayQuestion?: string },
+    options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; owner?: string; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; examGeneration?: number; displayQuestion?: string; screenshotOnly?: boolean },
   ) => {
     const clickedAt = options?.clickedAt ?? Date.now();
     const clientStreamId = ++chatStreamSeq;

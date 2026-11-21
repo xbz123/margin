@@ -2564,7 +2564,9 @@ Provide only the answer, nothing else.`;
         currentAttachments.length > 0 ? currentAttachments.map((s) => s.path) : undefined,
         automatic ? undefined : conversationContext, // Automatic frames are independent practice questions.
         // A screenshot-only question is shown with the localized line; history keeps that text.
-        { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation, ...(userText ? {} : { displayQuestion: t(SCREENSHOT_QUESTION) }) },
+        // screenshotOnly marks the input source (a screenshot with nothing typed), so main does not
+        // store the default instruction as a transcript line; typed text is always recorded.
+        { generationKind, clickedAt: nowMs, examGeneration: automatic?.generation, screenshotOnly: !userText && currentAttachments.length > 0, ...(userText ? {} : { displayQuestion: t(SCREENSHOT_QUESTION) }) },
       );
       if (!automatic) {
         submittedChatRef.current = { text: inputValue, paths: currentAttachments.map(item => item.path) };

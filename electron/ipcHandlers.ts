@@ -503,7 +503,7 @@ export function initializeIpcHandlers(appState: AppState): void {
       message: string,
       imagePaths?: string[],
       context?: string,
-      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string; examGeneration?: number; displayQuestion?: string },
+      options?: { skipSystemPrompt?: boolean; ignoreKnowledgeMode?: boolean; clientStreamId?: number; generationKind?: 'interview' | 'written'; speechActionId?: string; clickedAt?: number; owner?: string; examGeneration?: number; displayQuestion?: string; screenshotOnly?: boolean },
     ) => {
       let myController: AbortController | null = null;
       let chatTask: GenerationTask<any> | undefined;
@@ -532,6 +532,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         if (automaticPath) examController = myController;
         if (options?.owner !== undefined && !['natively', 'global', 'meeting'].includes(options.owner)) throw new Error('Invalid question owner.');
         if (options?.generationKind !== undefined && !['interview', 'written'].includes(options.generationKind)) throw new Error('Invalid question mode');
+        if (options?.screenshotOnly !== undefined && typeof options.screenshotOnly !== 'boolean') throw new Error('Invalid question source.');
         // Stop sends the question main froze for its action and reuses that action's interview task.
         const speechAction = options?.speechActionId === undefined ? undefined
           : speechActions.take(event.sender, { speechActionId: options.speechActionId }, 'answer');
@@ -628,7 +629,11 @@ export function initializeIpcHandlers(appState: AppState): void {
         // A dictated question whose STT finals are already stored is not added twice; a
         // single-segment one is a provisional stand-in under its segment id, so a late final
         // (or the next stand-in for a still-open segment) replaces it instead.
-        if (!intelligenceManager.hasFinalUserSegments(dictationKeys)) {
+        // A screenshot sent with nothing typed carries the default instruction as `message`; the
+        // user never said or typed it, so it is not a transcript line (the model still gets it, and
+        // history lists the displayQuestion). Typed or dictated text is always recorded.
+        const screenshotOnly = options?.screenshotOnly === true && !!imagePaths?.length && !speechAction;
+        if (!screenshotOnly && !intelligenceManager.hasFinalUserSegments(dictationKeys)) {
           intelligenceManager.addTranscript(
             {
               text: message,
