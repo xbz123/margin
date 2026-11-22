@@ -12,7 +12,9 @@ export function followUpLabel(question: unknown): { label: string; request?: str
 
 export function followUpQuestionList(entry: { items?: unknown; answer?: unknown } | null | undefined): string[];
 
-export function shownQuestion(entry: { question?: unknown; displayQuestion?: unknown } | null | undefined): string;
+export const UNLABELLED_QUESTION_LABEL: string;
+
+export function shownQuestion(entry: { question?: unknown; displayQuestion?: unknown } | null | undefined, translate?: (key: string) => string): string;
 
 export function usageExportBlocks(usage: ReadonlyArray<{
   type: string;

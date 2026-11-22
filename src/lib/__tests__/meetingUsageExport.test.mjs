@@ -75,7 +75,29 @@ test('a chat question is exported as the user saw it (displayQuestion), as Meeti
   assert.match(pdf, /`Q: \$\{block\.question\}`/);
   assert.doesNotMatch(pdf, /item\.question/);
   const details = readFileSync(new URL('../../components/MeetingDetails.tsx', import.meta.url), 'utf8');
-  assert.match(details, /interaction\.displayQuestion \|\| interaction\.question/);
+  assert.match(details, /shownQuestion\(interaction, t\)/);
+  assert.match(details, /`Q: \$\{shownQuestion\(u, t\)\}/);
+});
+
+test('a row saved with the old generation outcome placeholder shows the localized label', async () => {
+  const legacy = { type: 'assist', timestamp: 1, question: 'generation outcome', answer: '' };
+  assert.equal(shownQuestion(legacy), 'Question not recorded');
+  assert.equal(shownQuestion(legacy, key => (key === 'Question not recorded' ? '未记录问题' : key)), '未记录问题');
+  // The stored localized text still wins, and other questions are unchanged.
+  assert.equal(shownQuestion({ ...legacy, displayQuestion: '直接解答截图中的题目' }), '直接解答截图中的题目');
+  assert.equal(shownQuestion({ question: 'Recap Meeting' }), 'Recap Meeting');
+  // A chat message the user typed as 'generation outcome' keeps its text, on screen and in the export.
+  const typed = { type: 'chat', timestamp: 3, question: 'generation outcome', answer: 'x' };
+  assert.equal(shownQuestion(typed, key => (key === 'Question not recorded' ? '未记录问题' : key)), 'generation outcome');
+  assert.deepEqual(usageExportBlocks([typed]), [{ kind: 'chat', question: 'generation outcome', answer: 'x' }]);
+  // The export lists a legacy row (type 'assist') under its Assist label, never the placeholder.
+  const blocks = usageExportBlocks([legacy, { ...legacy, timestamp: 2, answer: '部分回答' }]);
+  assert.deepEqual(blocks, [{ kind: 'assist', label: 'Assist', answer: '部分回答' }]);
+  assert.doesNotMatch(JSON.stringify(blocks), /generation outcome/);
+  // The label key is in the Chinese dictionary.
+  const { readFileSync } = await import('node:fs');
+  const zh = readFileSync(new URL('../../i18n.zh.ts', import.meta.url), 'utf8');
+  assert.match(zh, /'Question not recorded': '未记录问题'/);
 });
 
 test('a followup entry is labelled by what was asked: expand, a named refinement, or the request as typed', () => {

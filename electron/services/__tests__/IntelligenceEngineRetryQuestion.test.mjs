@@ -253,18 +253,153 @@ test('a successful Retry whose visible receipt times out is recorded once', asyn
   assert.equal(messages.length, 1, 'one assistant message for the Retry');
 });
 
-test('a failed first attempt (not a Retry) still records the generation outcome row', async () => {
+// A failed, cancelled or empty first attempt is listed under the label a successful answer from
+// the same entry point records, never under the internal 'generation outcome' placeholder.
+test('What to Answer: a failed first attempt is listed under the typed question, as a success is', async () => {
   const session = new SessionTracker();
   const helper = new StubLLMHelper([]);
   const engine = new IntelligenceEngine(helper, session);
+  const question = '如何设计一个分布式限流器？';
   engine.whatToAnswerLLM = { async *generateStream() { throw Object.assign(new Error('provider down'), { status: 500 }); } };
   const first = helper.beginGenerationTask(); first.entryPoint = 'what-to-say';
   await assert.rejects(() => helper.runGeneration(
-    () => engine.runWhatShouldISay('如何设计一个分布式限流器？', 0.8, undefined, { skipCooldown: true, errorDelivery: 'caller' }), 'interview', undefined, first), /provider down/);
+    () => engine.runWhatShouldISay(question, 0.8, undefined, { skipCooldown: true, errorDelivery: 'caller' }), 'interview', undefined, first), /provider down/);
+  const usage = endMeeting(session);
+  const rows = usage.filter(entry => entry.requestId === first.requestId);
+  assert.equal(rows.length, 1);
+  // runWhatShouldISayInner's success records { type: 'assist', question: question || 'What to Answer' }.
+  assert.equal(rows[0].type, 'assist');
+  assert.equal(rows[0].question, question);
+  assert.equal(rows[0].status, 'failed');
+  assert.equal(rows[0].answer, '');
+  assert.equal(rows[0].retryOf, undefined);
+  assert.equal(usage.some(entry => entry.question === 'generation outcome'), false);
+});
+
+test('Recap: a cancelled first attempt is listed under Recap Meeting with its partial answer', async () => {
+  const session = new SessionTracker();
+  session.handleTranscript({ speaker: 'interviewer', text: 'Tell me about your last project', timestamp: Date.now() - 2000, final: true });
+  const helper = new StubLLMHelper([]);
+  const engine = new IntelligenceEngine(helper, session);
+  engine.on('error', () => {});
+  const first = helper.beginGenerationTask(); first.entryPoint = 'recap';
+  engine.recapLLM = { async *generateStream() {
+    yield 'Partial recap';
+    first.controller.abort(new DOMException('Generation cancelled', 'AbortError'));
+    throw new DOMException('Generation cancelled', 'AbortError');
+  } };
+  await helper.runGeneration(() => engine.runRecap(), 'interview', undefined, first).catch(() => {});
+  const usage = endMeeting(session);
+  const rows = usage.filter(entry => entry.requestId === first.requestId);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].type, 'chat');
+  assert.equal(rows[0].question, 'Recap Meeting');
+  assert.equal(rows[0].status, 'cancelled');
+  assert.equal(rows[0].answer, 'Partial recap');
+  assert.equal(usage.some(entry => entry.question === 'generation outcome'), false);
+});
+
+test('a first attempt with no label and no named entry point is never called a Retry', async () => {
+  const session = new SessionTracker();
+  const helper = new StubLLMHelper([]);
+  const engine = new IntelligenceEngine(helper, session);
+  for (const entryPoint of ['internal', 'text']) {
+    const first = helper.beginGenerationTask(); first.entryPoint = entryPoint;
+    assert.equal(await helper.runGeneration(() => engine.runGenerationRequest(async () => null), 'interview', undefined, first), null);
+    const [row] = endMeeting(session).filter(entry => entry.requestId === first.requestId);
+    assert.equal(row.status, 'empty');
+    // The placeholder the renderer shows as "Question not recorded" (meetingUsageExport).
+    assert.equal(row.question, 'generation outcome');
+  }
+});
+
+// gemini-chat-stream streams through LLMHelper, not IntelligenceEngine.runGenerationRequest, so
+// a failed first chat attempt is logged once, by the handler.
+test('a failed first chat attempt records exactly one row', async () => {
+  const helper = new StubLLMHelper([]);
+  const manager = new IntelligenceManager(helper);
+  const message = 'What is the difference between a mutex and a semaphore?';
+  const first = helper.beginGenerationTask(); first.entryPoint = 'text';
+  manager.rememberQuestion(first, 'chat', message);
+  // The stream is cancelled; the handler's catch path logs the question with the empty answer.
+  first.controller.abort(new DOMException('Generation cancelled', 'AbortError'));
+  manager.logUsage('chat', message, '', helper.getTaskMetadata(first));
+  first.close();
+  const rows = endMeeting(manager.session).filter(entry => entry.requestId === first.requestId);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].type, 'chat');
+  assert.equal(rows[0].question, message);
+
+  const fs = await import('node:fs');
+  const source = fs.readFileSync(new URL('../../ipcHandlers.ts', import.meta.url), 'utf8');
+  const handler = source.slice(source.indexOf("'gemini-chat-stream',"), source.indexOf("safeOn('gemini-chat-stream-stop'"));
+  assert.match(handler, /llmHelper\.runGenerationStream\(/);
+  assert.doesNotMatch(handler, /intelligenceManager\.run|getIntelligenceManager\(\)\.run/, 'no mode method, so no second row from recordPartial');
+});
+
+// A first attempt whose mode method recorded its success row, and whose visible receipt then
+// times out (the task aborts as failed), is listed once: recordPartial skips a recorded success.
+for (const [entryPoint, setup, run, expected] of [
+  ['recap', engine => { engine.recapLLM = { async *generateStream() { yield 'Full recap'; } }; }, engine => engine.runRecap(), { type: 'chat', question: 'Recap Meeting', answer: 'Full recap' }],
+  ['code-hint', engine => { engine.codeHintLLM = { async *generateStream() { yield 'Full hint'; } }; }, engine => engine.runCodeHint(), { type: 'assist', question: 'Code Hint', answer: 'Full hint' }],
+]) {
+  test(`a successful first-attempt ${entryPoint} whose visible receipt times out is recorded once`, async () => {
+    const { GenerationTimeoutError, awaitGeneration } = require('../../../dist-electron/electron/llm/generateTask.js');
+    const session = new SessionTracker();
+    session.handleTranscript({ speaker: 'interviewer', text: 'Tell me about your last project', timestamp: Date.now() - 2000, final: true });
+    const helper = new StubLLMHelper([]);
+    // Mirrors LLMHelper.runGeneration; the receipt deadline expires while it waits.
+    helper.runGeneration = async function (factory, _kind, _signal, supplied) {
+      const inherited = generationTasks.getStore();
+      const task = supplied ?? inherited ?? this.beginGenerationTask();
+      try {
+        const result = await awaitGeneration(task, Promise.resolve().then(() => generationTasks.run(task, factory)));
+        if (task !== inherited) {
+          task.terminalStatus ??= 'completed';
+          const waiting = task.waitForVisible();
+          task.controller.abort(new GenerationTimeoutError('total', task.hasText));
+          await waiting;
+        }
+        return result;
+      } catch (error) {
+        if (!task.signal.aborted && !['refused', 'incomplete', 'empty'].includes(task.terminalStatus ?? '')) task.terminalStatus = 'failed';
+        throw error;
+      } finally { if (task !== inherited) task.close(); }
+    };
+    const engine = new IntelligenceEngine(helper, session);
+    engine.on('error', () => {});
+    setup(engine);
+    const first = helper.beginGenerationTask(); first.entryPoint = entryPoint; first.requireVisibleReceipt = true;
+    await assert.rejects(() => helper.runGeneration(() => run(engine), 'interview', undefined, first),
+      error => error?.name === 'GenerationTimeoutError');
+    assert.equal(first.terminalStatus, 'failed', 'the receipt timeout failed the task after the success row');
+
+    const rows = endMeeting(session).filter(entry => entry.requestId === first.requestId);
+    assert.equal(rows.length, 1, 'one usage row for the first attempt');
+    assert.equal(rows[0].type, expected.type);
+    assert.equal(rows[0].question, expected.question);
+    assert.equal(rows[0].answer, expected.answer);
+    const messages = session.getFullTranscript().filter(segment => segment.speaker === 'assistant' && segment.generation?.requestId === first.requestId);
+    assert.equal(messages.length, 1, 'one assistant message for the first attempt');
+  });
+}
+
+// A manual What to Answer freezes the transcript and checks the model before runWhatShouldISayInner
+// runs; a cancel there is listed under the typed question, as a success would be.
+test('manual What to Answer cancelled while the transcript is frozen is listed under the typed question', async () => {
+  const session = new SessionTracker();
+  const helper = new StubLLMHelper([]);
+  const engine = new IntelligenceEngine(helper, session);
+  const question = '如何设计一个分布式限流器？';
+  const first = new GenerationTask({ kind: 'api', client: {}, target: { provider: 'synthetic', model: 'stub' } });
+  first.entryPoint = 'what-to-say';
+  await assert.rejects(() => helper.runGeneration(() => engine.runWhatShouldISay(question, 0.8, undefined, {
+    manual: true, errorDelivery: 'caller',
+    beforeGenerate: async () => { first.controller.abort(new DOMException('Generation cancelled', 'AbortError')); },
+  }), 'interview', undefined, first));
   const rows = endMeeting(session).filter(entry => entry.requestId === first.requestId);
   assert.equal(rows.length, 1);
   assert.equal(rows[0].type, 'assist');
-  assert.equal(rows[0].question, 'generation outcome');
-  assert.equal(rows[0].displayQuestion, undefined);
-  assert.equal(rows[0].retryOf, undefined);
+  assert.equal(rows[0].question, question);
+  assert.equal(rows[0].status, 'cancelled');
 });

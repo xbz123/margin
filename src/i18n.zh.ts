@@ -216,6 +216,7 @@ export const chinese: Readonly<Record<string, string>> = {
     'Usage': '使用记录',
     'AI Usage & Interactions': 'AI 使用记录',
     'Assist': '辅助回答',
+    'Question not recorded': '未记录问题',
     'Expanded answer': '展开回答',
     'Rephrase Answer': '换个说法',
     'Add Example': '补充示例',

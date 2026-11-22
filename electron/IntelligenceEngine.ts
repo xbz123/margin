@@ -79,8 +79,15 @@ export class IntelligenceEngine extends EventEmitter {
         const task = this.llmHelper.getCurrentGenerationTask();
         return task ? this.llmHelper.getTaskMetadata(task) : undefined;
     }
+    // Every recordUsage call is a success row; the task is marked so a later abort (e.g. the
+    // visible-receipt timeout) does not list it a second time (runGenerationRequest recordPartial).
     private recordUsage(entry: any): void {
         this.session.pushUsage({ ...entry, ...this.generationMetadata() });
+        this.markSuccessRecorded();
+    }
+    private markSuccessRecorded(): void {
+        const task = this.llmHelper?.getCurrentGenerationTask?.();
+        if (task) (this.successRecorded ??= new WeakSet()).add(task);
     }
 
     // The history label of each question, by question id, set when the question is first
@@ -119,10 +126,22 @@ export class IntelligenceEngine extends EventEmitter {
         text: { type: 'chat', question: 'Retry' },
         answer: { type: 'chat', question: 'Retry' },
     };
-    private retryLabel(task: GenerationTask<any>): { type: string; question: string; displayQuestion?: string } {
-        return this.questionLabels?.get(task.questionId)
-            ?? IntelligenceEngine.ENTRY_POINT_LABELS[task.entryPoint]
-            ?? { type: 'assist', question: 'Retry' };
+    // The label of a first attempt with no held label and no named entry point (an 'internal'
+    // task). Typed and spoken chat log their own rows and never get here; 'Retry' would be
+    // wrong for a first attempt, so it keeps the placeholder older meetings stored, which the
+    // renderer shows as "question not recorded" (meetingUsageExport shownQuestion).
+    private static readonly UNLABELLED_QUESTION = 'generation outcome';
+    /**
+     * The history label a successful answer of this task records: the label its mode method
+     * remembered, else the entry point's action name. A Retry with neither is "Retry"; a first
+     * attempt is never called a Retry.
+     */
+    private questionLabel(task: GenerationTask<any>): { type: string; question: string; displayQuestion?: string } {
+        const held = this.questionLabels?.get(task.questionId);
+        if (held) return held;
+        const named = IntelligenceEngine.ENTRY_POINT_LABELS[task.entryPoint];
+        if (task.retryOf) return named ?? { type: 'assist', question: 'Retry' };
+        return named && named.question !== 'Retry' ? named : { type: 'assist', question: IntelligenceEngine.UNLABELLED_QUESTION };
     }
 
     override emit(event: string | symbol, ...args: any[]): boolean {
@@ -137,9 +156,10 @@ export class IntelligenceEngine extends EventEmitter {
         return super.emit(event, ...args);
     }
 
-    // Retry tasks whose success row runPreparedRetry has recorded. Created on first use, like
-    // questionLabels, since mode methods also run on engine-shaped objects.
-    private retrySuccessRecorded?: WeakSet<GenerationTask<any>>;
+    // Tasks whose success (usage row or assistant message) a mode method or runPreparedRetry has
+    // recorded. Created on first use, like questionLabels, since mode methods also run on
+    // engine-shaped objects.
+    private successRecorded?: WeakSet<GenerationTask<any>>;
 
     private runGenerationRequest(factory: () => Promise<string | null>): Promise<string | null> {
         const inherited = this.llmHelper.getCurrentGenerationTask();
@@ -151,14 +171,15 @@ export class IntelligenceEngine extends EventEmitter {
         let recordedPartial = false;
         const recordPartial = () => {
             if (recordedPartial || !task.terminalStatus || task.terminalStatus === 'completed') return;
-            // runPreparedRetry already recorded this task's answer; a later abort (e.g. the
-            // visible-receipt timeout) must not list it a second time.
-            if (this.retrySuccessRecorded?.has(task)) return;
+            // A mode method or runPreparedRetry already recorded this task's answer; a later abort
+            // (e.g. the visible-receipt timeout) must not list it a second time.
+            if (this.successRecorded?.has(task)) return;
             recordedPartial = true;
             const metadata = this.llmHelper.getTaskMetadata(task);
             if (task.displayedText.trim()) this.session.addAssistantMessage(task.displayedText, metadata);
-            // A failed or cancelled Retry keeps the label a successful Retry records (runPreparedRetry).
-            const label = task.retryOf ? this.retryLabel(task) : { type: 'assist', question: 'generation outcome' } as { type: string; question: string; displayQuestion?: string };
+            // A failed, cancelled or empty answer is listed under the label its success records:
+            // the mode method's question for a first attempt, the Retry label (runPreparedRetry) for a Retry.
+            const label = this.questionLabel(task);
             this.session.pushUsage({ type: label.type, timestamp: Date.now(), question: label.question, ...(label.displayQuestion ? { displayQuestion: label.displayQuestion } : {}), answer: task.displayedText, ...metadata });
         };
         task.signal.addEventListener('abort', recordPartial, { once: true });
@@ -210,9 +231,9 @@ export class IntelligenceEngine extends EventEmitter {
                 if (held) this.emit(tokenEvent, held, 'retry', 1);
                 if (answer.trim()) {
                     this.session.addAssistantMessage(answer, this.generationMetadata());
-                    const label = this.retryLabel(task);
+                    const label = this.questionLabel(task);
                     this.recordUsage({ type: label.type, timestamp: Date.now(), question: label.question, ...(label.displayQuestion ? { displayQuestion: label.displayQuestion } : {}), answer });
-                    (this.retrySuccessRecorded ??= new WeakSet()).add(task);
+                    (this.successRecorded ??= new WeakSet()).add(task);
                     this.emit(resultEvent, answer, 'retry', 1);
                 }
                 return answer;
@@ -318,6 +339,9 @@ export class IntelligenceEngine extends EventEmitter {
     runWhatShouldISay(...args: Parameters<IntelligenceEngine['runWhatShouldISayInner']>): Promise<string | null> {
         return this.runGenerationRequest(async () => {
             const task = this.llmHelper.getCurrentGenerationTask();
+            // Remembered before preparation, so a failure or cancel while the transcript is frozen
+            // is listed under the label the success path records.
+            this.rememberQuestion('assist', args[0] || 'What to Answer');
             try {
                 const view = args[3]?.manual ? await prepareManualAnswer(this.llmHelper, args[3].beforeGenerate) : undefined;
                 return await this.runWhatShouldISayInner(args[0], args[1], args[2], view ? { ...args[3], view } : args[3]);
@@ -358,6 +382,7 @@ export class IntelligenceEngine extends EventEmitter {
                 if (answer) {
                     task?.markVisible(answer);
                     this.session.addAssistantMessage(answer, this.generationMetadata());
+                    this.markSuccessRecorded();
                     this.emit('suggested_answer', answer, question || 'inferred', confidence);
                 }
                 this.setMode('idle');

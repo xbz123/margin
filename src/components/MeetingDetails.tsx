@@ -10,6 +10,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useI18n } from '../i18n';
 import { formatTranscriptCopy, formatTranscriptTime, visibleTranscriptRows } from '../lib/meetingTranscriptView.mjs';
+import { shownQuestion } from '../lib/meetingUsageExport.mjs';
 
 const formatTime = formatTranscriptTime;
 
@@ -77,7 +78,7 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
         if (activeTab === 'transcript') {
             textToCopy = formatTranscriptCopy(transcriptRows, t);
         } else if (activeTab === 'usage' && meeting.usage) {
-            textToCopy = meeting.usage.map(u => `Q: ${u.displayQuestion || u.question || ''}\nA: ${u.answer || ''}`).join('\n\n');
+            textToCopy = meeting.usage.map(u => `Q: ${shownQuestion(u, t)}\nA: ${u.answer || ''}`).join('\n\n');
         }
 
         if (!textToCopy) return;
@@ -248,10 +249,10 @@ const MeetingDetails: React.FC<MeetingDetailsProps> = ({ meeting: initialMeeting
                                 {meeting.usage?.map((interaction, i) => (
                                     <div key={i} className="space-y-4">
                                         {/* User Question */}
-                                        {(interaction.displayQuestion || interaction.question) && (
+                                        {shownQuestion(interaction, t) && (
                                             <div className="flex justify-end">
                                                 <div className="bg-accent-primary text-on-accent px-5 py-2.5 rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed shadow-sm">
-                                                    {interaction.displayQuestion || interaction.question}
+                                                    {shownQuestion(interaction, t)}
                                                 </div>
                                             </div>
                                         )}

@@ -36,13 +36,22 @@ export function followUpLabel(question) {
   return { label: 'Requested change', request: asked };
 }
 
+// The placeholder IntelligenceEngine stored, in place of the question, for a failed, cancelled
+// or empty first attempt (meetings saved before the question label was kept); shown as this key.
+const UNLABELLED_QUESTION = 'generation outcome';
+export const UNLABELLED_QUESTION_LABEL = 'Question not recorded';
+
 /**
  * The question as the user saw it, as MeetingDetails shows it: the stored localized text
  * (displayQuestion, e.g. the Chinese screenshot prompt) when there is one, else the question sent.
+ * The unlabelled placeholder of an 'assist' row is shown as the translated
+ * UNLABELLED_QUESTION_LABEL; any other row (a chat message the user typed) keeps its text.
  */
-export function shownQuestion(entry) {
+export function shownQuestion(entry, translate = key => key) {
   const shown = typeof entry?.displayQuestion === 'string' ? entry.displayQuestion.trim() : '';
-  return shown || (typeof entry?.question === 'string' ? entry.question : '');
+  const question = typeof entry?.question === 'string' ? entry.question : '';
+  if (shown) return shown;
+  return entry?.type === 'assist' && question === UNLABELLED_QUESTION ? translate(UNLABELLED_QUESTION_LABEL) : question;
 }
 
 /** The usage blocks of a meeting export, in stored order; entries with nothing to show are left out. */
