@@ -86,6 +86,16 @@ test('AG34 failed withdrawal stays closed live; later partial saves cannot silen
 test('AG34 rename failure keeps old consent/model memory and disk', () => {
   const files = new Map(), fault = {}, manager = boot(files, fault); manager.saveCodexSourceConfig({ enabled: true, acceptRisk: true });
   const previous = files.get('/synthetic/settings.json'); fault.rename = true;
-  assert.throws(() => manager.saveCodexSourceConfig({ model: 'changed' })); assert.equal(manager.getCodexSourceConfig().model, 'gpt-5.4'); assert.equal(files.get('/synthetic/settings.json'), previous);
+  assert.throws(() => manager.saveCodexSourceConfig({ model: 'changed' })); assert.equal(manager.getCodexSourceConfig().model, 'gpt-6.1-sol'); assert.equal(files.get('/synthetic/settings.json'), previous);
   assert.equal(files.size, 1);
+});
+test('Codex default model is gpt-6.1-sol; a saved or legacy model is kept without rewriting settings', () => {
+  const settingsPath = path.join('/synthetic', 'settings.json'); // the path SettingsManager builds on this platform
+  assert.equal(boot(new Map()).getCodexSourceConfig().model, 'gpt-6.1-sol');
+  assert.equal(boot(new Map()).getCodexSourceConfig().fastModel, 'gpt-5.3-codex-spark');
+  const saved = JSON.stringify({ codexSource: { enabled: false, model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', serviceTier: 'default' } });
+  const files = new Map([[settingsPath, saved]]);
+  assert.equal(boot(files).getCodexSourceConfig().model, 'gpt-5.4');
+  assert.equal(files.get(settingsPath), saved, 'reading does not rewrite the stored model');
+  assert.equal(boot(new Map([[settingsPath, JSON.stringify({ codexCliModel: 'gpt-5.5' })]])).getCodexSourceConfig().model, 'gpt-5.5');
 });

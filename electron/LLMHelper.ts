@@ -241,7 +241,7 @@ export class LLMHelper {
         const request = attachLocalContext({ protocol: target.protocol, model: target.model, purpose, contents,
           systemInstruction, stream, signal, dataScopes,
           maxOutputTokens: outputLimit ?? Math.min(getModelCapabilities(target.model).tier === 'local-small' ? getModelCapabilities(target.model).outputBudgetTokens : Infinity,
-            target.protocol === 'messages' ? self.getClaudeMaxOutput(target.model) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
+            target.protocol === 'messages' ? self.getClaudeMaxOutput(target) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
         }, localContext);
         const imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0) + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
         if (snapshot.kind === 'codex') {
@@ -617,12 +617,17 @@ export class LLMHelper {
   }
 
   /**
-   * Per-model max output token ceiling. Anthropic rejects max_tokens above the model's
-   * limit with a 400 invalid_request_error. claude-3.5/3.7 cap at 8K, opus-4 at 32K,
-   * sonnet-4/haiku-4.5/mythos at 64K. Unknown models fall back to a safe 8192.
+   * Per-model max output token ceiling for the Messages protocol. Anthropic rejects max_tokens
+   * above the model's limit with a 400 invalid_request_error, and adaptive thinking tokens count
+   * toward max_tokens. An exact official record (modelCapabilities) gives its documented output
+   * limit, capped at MAX_OUTPUT_TOKENS. Gateways, development endpoints and unlisted models use
+   * the prefix table: claude-3.5/3.7 cap at 8K, opus-4 at 32K, sonnet-4/haiku-4.5/mythos at 64K,
+   * anything else falls back to a safe 8192.
    */
-  private getClaudeMaxOutput(modelId: string): number {
-    const id = modelId.toLowerCase();
+  private getClaudeMaxOutput(target: Pick<ModelTarget, 'provider' | 'protocol' | 'baseUrl' | 'model'>): number {
+    const capacity = officialCapability(target)?.capacity;
+    if (capacity) return Math.min(capacity.outputTokens, MAX_OUTPUT_TOKENS);
+    const id = target.model.toLowerCase();
     if (id.startsWith("claude-3-5-") || id.startsWith("claude-3-7-") || id.startsWith("claude-3-haiku")) return 8192;
     if (id.startsWith("claude-opus-4-")) return 32000;
     if (id.startsWith("claude-sonnet-4-") || id.startsWith("claude-haiku-4-5") || id.startsWith("claude-mythos")) return 64000;

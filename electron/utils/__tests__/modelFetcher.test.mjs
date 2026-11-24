@@ -106,3 +106,19 @@ test('repeated cursors fail instead of publishing an incomplete upstream list', 
     assert.equal(f.calls.length, 2);
   }
 });
+
+test('2026-11-24 records survive discovery; retired Sonnet 4.5 is filtered but keeps its record', async () => {
+  const sorted = models => Array.from(models, m => m.id).sort();
+  const cases = [
+    ['claude', ['claude-fable-5-2', 'claude-mythos-5-2', 'claude-sonnet-4-5', 'claude-sonnet-4-5-20250929', 'claude-sonnet-5-5'], ['claude-fable-5-2', 'claude-mythos-5-2', 'claude-sonnet-5-5']],
+    ['openai', ['gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6.1-terra', 'gpt-6-cyber', 'gpt-5.6'], ['gpt-5.6', 'gpt-6-cyber', 'gpt-6.1-terra', 'gpt-6.2-astra', 'gpt-6.2-sol']],
+  ];
+  for (const [provider, ids, expected] of cases) {
+    assert.deepEqual(sorted(await fixture([{ data: ids.map(id => ({ id })), has_more: false }]).fetch(provider)), expected, provider);
+  }
+  const gemini = fixture([{ models: ['gemini-4-carbon', 'gemini-4-neon', 'gemini-4-hydrogen'].map(id => ({ name: `models/${id}`, supportedGenerationMethods: ['generateContent'] })) }]);
+  assert.deepEqual(sorted(await gemini.fetch('gemini')), ['gemini-4-carbon', 'gemini-4-hydrogen', 'gemini-4-neon']);
+  for (const model of ['claude-sonnet-4-5', 'claude-sonnet-4-5-20250929']) {
+    assert.match(capabilities.officialCapability({ provider: 'claude', protocol: 'messages', model }).retired, /retires it on 2026-11-30/, model);
+  }
+});

@@ -856,6 +856,7 @@ export const chinese: Readonly<Record<string, string>> = {
     'Backup image input has not been verified for this model yet; image questions are not sent to it.': '备用模型图片能力暂未核实，带图片的提问不会发给它。',
     'Image input for this model has not been verified yet, so images are not sent. Select another model; your attachments were kept.': '此模型的图片能力暂未核实，因此不发送图片。请改选其他模型；附件已保留。',
     'Google shut down Gemini 3.1 Flash-Lite Preview on 2026-05-25. Choose gemini-3.1-flash-lite instead.': 'Google 已于 2026-05-25 停用 Gemini 3.1 Flash-Lite Preview，请改用 gemini-3.1-flash-lite。',
+    'Anthropic deprecated Claude Sonnet 4.5 and retires it on 2026-11-30. Choose claude-sonnet-5-5 instead.': 'Anthropic 已弃用 Claude Sonnet 4.5，将于 2026-11-30 停用，请改用 claude-sonnet-5-5。',
     'Edit saved model': '编辑已保存的模型',
     'Add a fetched model': '添加获取到的模型',
     '{provider} model to add': '要添加的 {provider} 模型',

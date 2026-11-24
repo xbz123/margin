@@ -86,13 +86,15 @@ test('S48 each model offers its own native levels: default first, off only where
 test('S49 coverage: reviewed model families and exact aliases have image facts and native choices', () => {
   const groups = [
     ['gemini', 'gemini', ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools'], ['low', 'medium', 'high']],
+    ['gemini', 'gemini', ['gemini-4-carbon'], ['low', 'medium', 'high']],
+    ['gemini', 'gemini', ['gemini-4-neon', 'gemini-4-hydrogen'], ['low', 'medium', 'high', 'xhigh']],
     ['gemini', 'gemini', ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'], ['minimal', 'low', 'medium', 'high']],
     ['openai', 'responses', ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-nano', 'gpt-5.5', 'gpt-5.4-2026-03-05', 'gpt-5.4-mini-2026-03-17', 'gpt-5.4-nano-2026-03-17', 'gpt-5.5-2026-04-23'], ['none', 'low', 'medium', 'high', 'xhigh']],
     ['openai', 'responses', ['gpt-5.4-pro', 'gpt-5.5-pro', 'gpt-5.4-pro-2026-03-05', 'gpt-5.5-pro-2026-04-23'], ['medium', 'high', 'xhigh']],
-    ['openai', 'responses', ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-6-sol', 'gpt-6-luna'], ['none', 'low', 'medium', 'high', 'xhigh', 'max']],
-    ['openai', 'responses', ['gpt-6-astra', 'gpt-6.1-sol'], ['low', 'medium', 'high', 'xhigh', 'max']],
-    ['openai', 'responses', ['gpt-5.6-cyber'], []],
-    ['claude', 'messages', ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-fable-5', 'claude-fable-5-1', 'claude-mythos-5', 'claude-mythos-5-1'], ['low', 'medium', 'high', 'xhigh', 'max']],
+    ['openai', 'responses', ['gpt-5.6', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-6-sol', 'gpt-6-luna', 'gpt-6.1-terra'], ['none', 'low', 'medium', 'high', 'xhigh', 'max']],
+    ['openai', 'responses', ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6.2-astra', 'gpt-6.2-sol'], ['low', 'medium', 'high', 'xhigh', 'max']],
+    ['openai', 'responses', ['gpt-5.6-cyber', 'gpt-6-cyber'], []],
+    ['claude', 'messages', ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-fable-5', 'claude-fable-5-1', 'claude-fable-5-2', 'claude-mythos-5', 'claude-mythos-5-1', 'claude-mythos-5-2'], ['low', 'medium', 'high', 'xhigh', 'max']],
     ['claude', 'messages', ['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-5-5', 'claude-opus-4-8', 'claude-opus-4-7'], ['off', 'low', 'medium', 'high', 'xhigh', 'max']],
     ['claude', 'messages', ['claude-opus-4-6', 'claude-sonnet-4-6'], ['off', 'low', 'medium', 'high', 'max']],
     ['claude', 'messages', ['claude-opus-4-5', 'claude-opus-4-5-20251101'], ['off', 'low', 'medium', 'high']],
@@ -104,13 +106,18 @@ test('S49 coverage: reviewed model families and exact aliases have image facts a
     assert.equal(record?.images, true, id);
     assert.ok(record.sources.every(source => source.startsWith('https://')), id);
     assert.deepEqual(plain(caps.reasoningChoices(target)), ['default', ...choices], id);
-    assert.equal(caps.isOfficialAnswerCandidate(target), !id.startsWith('gpt-5.5-pro'), id);
+    assert.equal(caps.isOfficialAnswerCandidate(target), !id.startsWith('gpt-5.5-pro') && !id.startsWith('claude-sonnet-4-5'), id);
     images.assertModelImageSupport(target);
   }
   assert.equal(caps.isOfficialAnswerCandidate(V4_PRO), true);
   assert.equal(caps.officialCapability(V4_PRO).images, false);
   assert.equal(caps.isOfficialAnswerCandidate(PREVIEW), false, 'saved retired preview retains facts but is not offered for new selections');
   assert.equal(caps.isOfficialAnswerCandidate(official('openai', 'responses', 'gpt-5.4-cyber')), false);
+  assert.equal(caps.officialCapability(official('openai', 'responses', 'gpt-5.6')), caps.officialCapability(official('openai', 'responses', 'gpt-5.6-sol')), 'documented alias');
+  assert.equal(caps.officialCapability(official('openai', 'chat-completions', 'gpt-6-cyber'))?.images, true, 'gpt-6-cyber supports Chat Completions too');
+  for (const id of ['claude-sonnet-4-5', 'claude-sonnet-4-5-20250929']) {
+    assert.match(caps.officialCapability(official('claude', 'messages', id)).retired, /retires it on 2026-11-30.*claude-sonnet-5-5/, id);
+  }
   for (const target of [official('openai', 'chat-completions', 'gpt-5.4-pro'), official('openai', 'responses', 'gpt-5.4-mini-2099-01-01'),
     official('gemini', 'gemini', 'gemini-3-flash-preview'), official('gemini', 'gemini', 'gemini-2.5-pro'),
     official('openai', 'responses', 'gpt-5.3-codex'), official('claude', 'messages', 'claude-sonnet-4-20250514')]) {
@@ -194,6 +201,7 @@ test('S48 mock wire fields are exact per model and absent for the provider defau
     [GPT54, 'xhigh', { reasoning: { effort: 'xhigh' } }],
     [LUNA, 'none', { reasoning_effort: 'none' }],
     [official('gemini', 'gemini', 'gemini-3.8-flash'), 'medium', { thinkingConfig: { thinkingLevel: 'MEDIUM' } }],
+    [official('gemini', 'gemini', 'gemini-4-neon'), 'xhigh', { thinkingConfig: { thinkingLevel: 'XHIGH' } }],
     [official('openai', 'responses', 'gpt-5.4-pro-2026-03-05'), 'xhigh', { reasoning: { effort: 'xhigh' } }],
     [official('openai', 'chat-completions', 'gpt-5.4-mini'), 'none', { reasoning_effort: 'none' }],
     [official('claude', 'messages', 'claude-opus-4-7'), 'xhigh', { thinking: { type: 'adaptive' }, output_config: { effort: 'xhigh' } }],
@@ -210,6 +218,25 @@ test('S48 mock wire fields are exact per model and absent for the provider defau
       assert.deepEqual(wire(body), expected, `${target.model} ${choice}`);
     }
   }
+});
+
+test('Claude max_tokens follows the official output limit; gateways keep the prefix table', async t => {
+  const r = runtime(t);
+  for (const [model, expected] of [['claude-fable-5-2', 65536], ['claude-opus-5-5', 65536], ['claude-sonnet-4-5', 64000]]) {
+    r.select(official('claude', 'messages', model));
+    const sent = await r.ask();
+    assert.ok(sent.length >= 1, model);
+    for (const body of sent) assert.equal(body.max_tokens, expected, model);
+  }
+  r.helper.configureGateway({ id: 'gw-claude', protocol: 'messages', baseUrl: 'https://gateway.invalid/v1', model: 'claude-fable-5-2' }, 'synthetic-gateway');
+  const send = async body => { r.bodies.push(body); throw Error(SEND_STUB); };
+  r.helper.gatewayClients.set('gw-claude', { messages: { create: send, stream: send } });
+  r.helper.setModel('llm-gateway:gw-claude:messages:claude-fable-5-2');
+  const before = r.bodies.length;
+  await assert.rejects(async () => { for await (const _ of r.helper.streamChat('QUESTION')) { /* drain */ } }, /Gateway request failed/);
+  const sent = r.bodies.slice(before);
+  assert.ok(sent.length >= 1);
+  for (const body of sent) assert.equal(body.max_tokens, 8192, 'a gateway with an official ID is not the vendor');
 });
 
 test('S48 image refusals happen before any send and the text path still works', async t => {

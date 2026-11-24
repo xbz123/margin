@@ -41,7 +41,7 @@ export interface ModelCapability {
   sources: readonly string[];
 }
 
-export const VERIFIED_ON = '2026-10-23';
+export const VERIFIED_ON = '2026-11-24';
 const OPENAI = ['chat-completions', 'responses'] as const;
 const OPENAI_CAPACITY = { contextTokens: 1_050_000, outputTokens: 128_000 };
 const CLAUDE_CAPACITY = { contextTokens: 1_000_000, outputTokens: 128_000 };
@@ -52,6 +52,15 @@ const DEEPSEEK_SOURCES = ['https://api-docs.deepseek.com/quick_start/pricing/', 
 const DEEPSEEK_REASONING = { levels: ['low', 'high', 'max'], withThinking: 'enabled', off: { thinking: 'disabled' }, reasonsByDefault: true } as const;
 
 const MODELS: Record<string, ModelCapability> = {
+  'gemini/gemini-4-carbon': { provider: 'gemini', protocols: ['gemini'], images: true,
+    reasoning: { levels: ['low', 'medium', 'high'], reasonsByDefault: true }, capacity: { contextTokens: 1_048_576, outputTokens: 65_536 },
+    sources: ['https://ai.google.dev/gemini-api/docs/models/gemini-4-carbon', GEMINI_THINKING] },
+  'gemini/gemini-4-neon': { provider: 'gemini', protocols: ['gemini'], images: true,
+    reasoning: { levels: ['low', 'medium', 'high', 'xhigh'], reasonsByDefault: true }, capacity: { contextTokens: 1_048_576, outputTokens: 65_536 },
+    sources: ['https://ai.google.dev/gemini-api/docs/models/gemini-4-neon', GEMINI_THINKING] },
+  'gemini/gemini-4-hydrogen': { provider: 'gemini', protocols: ['gemini'], images: true,
+    reasoning: { levels: ['low', 'medium', 'high', 'xhigh'], reasonsByDefault: true }, capacity: { contextTokens: 1_048_576, outputTokens: 65_536 },
+    sources: ['https://ai.google.dev/gemini-api/docs/models/gemini-4-hydrogen', GEMINI_THINKING] },
   'gemini/gemini-4-argon': { provider: 'gemini', protocols: ['gemini'], images: true,
     reasoning: { levels: ['low', 'medium', 'high'], reasonsByDefault: true }, capacity: { contextTokens: 1_048_576, outputTokens: 65_536 },
     sources: ['https://ai.google.dev/gemini-api/docs/models/gemini-4-argon', GEMINI_THINKING] },
@@ -76,6 +85,16 @@ const MODELS: Record<string, ModelCapability> = {
     sources: ['https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview', 'https://ai.google.dev/gemini-api/docs/gemini-3'] },
   'openai/gpt-5.4': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['none', 'low', 'medium', 'high', 'xhigh'], reasonsByDefault: false },
     capacity: OPENAI_CAPACITY, sources: ['https://developers.openai.com/api/docs/models/gpt-5.4'] },
+  'openai/gpt-6.2-astra': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true },
+    capacity: OPENAI_CAPACITY, sources: ['https://developers.openai.com/api/docs/models/gpt-6.2-astra'] },
+  'openai/gpt-6.2-sol': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true },
+    capacity: OPENAI_CAPACITY, sources: ['https://developers.openai.com/api/docs/models/gpt-6.2-sol'] },
+  'openai/gpt-6.1-terra': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['none', 'low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true },
+    capacity: OPENAI_CAPACITY, sources: ['https://developers.openai.com/api/docs/models/gpt-6.1-terra'] },
+  // Restricted-access specialist (Daybreak Red): the model page verifies images but does not enumerate effort values.
+  'openai/gpt-6-cyber': { provider: 'openai', protocols: OPENAI, images: true,
+    reasoning: { levels: [], reasonsByDefault: true }, capacity: OPENAI_CAPACITY,
+    sources: ['https://developers.openai.com/api/docs/models/gpt-6-cyber'] },
   'openai/gpt-6-astra': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true },
     capacity: OPENAI_CAPACITY, sources: ['https://developers.openai.com/api/docs/models/gpt-6-astra'] },
   'openai/gpt-6.1-sol': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true },
@@ -108,12 +127,14 @@ const MODELS: Record<string, ModelCapability> = {
   // Deprecated does not mean shut down: nano remains available until 2027-04-01.
   'openai/gpt-5.4-nano': { provider: 'openai', protocols: OPENAI, images: true, reasoning: { levels: ['none', 'low', 'medium', 'high', 'xhigh'], reasonsByDefault: false },
     capacity: { contextTokens: 400_000, outputTokens: 128_000 }, sources: ['https://developers.openai.com/api/docs/models/gpt-5.4-nano', 'https://developers.openai.com/api/docs/deprecations'] },
-  // Opus 5.5, Sonnet 5.5 and Fable 5.1 think adaptively with no thinking field and reject "disabled".
+  // Opus 5.5, Sonnet 5.5, Fable 5.1 and Fable 5.2 think adaptively with no thinking field and reject "disabled".
   'claude/claude-opus-5-5': { provider: 'claude', protocols: ['messages'], images: true,
     reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true }, capacity: CLAUDE_CAPACITY, sources: CLAUDE_SOURCES },
   'claude/claude-sonnet-5-5': { provider: 'claude', protocols: ['messages'], images: true,
     reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true }, capacity: CLAUDE_CAPACITY, sources: CLAUDE_SOURCES },
   'claude/claude-fable-5-1': { provider: 'claude', protocols: ['messages'], images: true,
+    reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true }, capacity: CLAUDE_CAPACITY, sources: CLAUDE_SOURCES },
+  'claude/claude-fable-5-2': { provider: 'claude', protocols: ['messages'], images: true,
     reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true }, capacity: CLAUDE_CAPACITY, sources: CLAUDE_SOURCES },
   // Haiku 5.5 accepts "disabled" at high effort or below; the off choice sends no effort (default medium).
   'claude/claude-haiku-5-5': { provider: 'claude', protocols: ['messages'], images: true,
@@ -143,7 +164,8 @@ const MODELS: Record<string, ModelCapability> = {
     sources: ['https://platform.claude.com/docs/en/models/opus-4-5/overview', ...CLAUDE_SOURCES] },
   'claude/claude-sonnet-4-5': { provider: 'claude', protocols: ['messages'], images: true,
     reasoning: { levels: [], off: { thinking: 'disabled' }, reasonsByDefault: false }, capacity: { contextTokens: 200_000, outputTokens: 64_000 },
-    sources: ['https://platform.claude.com/docs/en/models/sonnet-4-5/overview', ...CLAUDE_SOURCES] },
+    retired: 'Anthropic deprecated Claude Sonnet 4.5 and retires it on 2026-11-30. Choose claude-sonnet-5-5 instead.',
+    sources: ['https://platform.claude.com/docs/en/models/sonnet-4-5/overview', 'https://platform.claude.com/docs/en/about-claude/model-deprecations', ...CLAUDE_SOURCES] },
   'claude/claude-haiku-4-5': { provider: 'claude', protocols: ['messages'], images: true,
     reasoning: { levels: [], off: { thinking: 'disabled' }, reasonsByDefault: false }, capacity: { contextTokens: 200_000, outputTokens: 64_000 },
     sources: ['https://platform.claude.com/docs/en/models/haiku-4-5/overview', ...CLAUDE_SOURCES] },
@@ -156,6 +178,9 @@ const MODELS: Record<string, ModelCapability> = {
   'claude/claude-mythos-5-1': { provider: 'claude', protocols: ['messages'], images: true,
     reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true }, capacity: CLAUDE_CAPACITY,
     sources: ['https://platform.claude.com/docs/en/models/mythos-5-1/overview', ...CLAUDE_SOURCES] },
+  'claude/claude-mythos-5-2': { provider: 'claude', protocols: ['messages'], images: true,
+    reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'], reasonsByDefault: true }, capacity: CLAUDE_CAPACITY,
+    sources: ['https://platform.claude.com/docs/en/models/mythos-5-2/overview', ...CLAUDE_SOURCES] },
   'deepseek/deepseek-flash': { provider: 'deepseek', protocols: ['chat-completions'], images: true, reasoning: DEEPSEEK_REASONING,
     capacity: { contextTokens: 1_000_000, outputTokens: 384_000 }, sources: DEEPSEEK_SOURCES },
   // Documented legacy name, still accepted and served by DeepSeek-V4.1-Flash (the deepseek-flash model).
@@ -173,6 +198,7 @@ const MODEL_ALIASES: Record<string, string> = {
   'gemini/gemini-3.7-flash': 'gemini/gemini-3.8-flash',
   'gemini/gemini-3.5-flash': 'gemini/gemini-3.6-flash',
   'gemini/gemini-3.1-pro-preview-customtools': 'gemini/gemini-3.1-pro-preview',
+  'openai/gpt-5.6': 'openai/gpt-5.6-sol',
   'openai/gpt-5.4-2026-03-05': 'openai/gpt-5.4',
   'openai/gpt-5.4-pro-2026-03-05': 'openai/gpt-5.4-pro',
   'openai/gpt-5.4-mini-2026-03-17': 'openai/gpt-5.4-mini',

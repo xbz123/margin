@@ -5,6 +5,7 @@ export const CODEX_CLI_MODEL = {
 };
 
 export const CODEX_CLI_MODEL_PRESETS = [
+    { id: 'gpt-6.1-sol', name: 'ChatGPT 6.1 Sol' },
     { id: 'gpt-5.5', name: 'ChatGPT 5.5' },
     { id: 'gpt-5.3-codex', name: 'Codex 5.3' },
     { id: 'gpt-5.3-codex-spark', name: 'Codex Spark 5.3' },

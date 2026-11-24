@@ -34,7 +34,7 @@ function run(options = {}) {
 // process timeout/abort → the shared task/reader lifecycle. No executable is invoked.
 test('migration 01 defaults retain main/fast models and disabled source (no path/sandbox/timeout)', async () => {
   assert.deepEqual(validateCodexSourceConfig({}), DEFAULT_CODEX_SOURCE_CONFIG);
-  assert.equal(DEFAULT_CODEX_SOURCE_CONFIG.enabled, false); assert.equal(DEFAULT_CODEX_SOURCE_CONFIG.model, 'gpt-5.4'); assert.equal(DEFAULT_CODEX_SOURCE_CONFIG.fastModel, 'gpt-5.3-codex-spark');
+  assert.equal(DEFAULT_CODEX_SOURCE_CONFIG.enabled, false); assert.equal(DEFAULT_CODEX_SOURCE_CONFIG.model, 'gpt-6.1-sol'); assert.equal(DEFAULT_CODEX_SOURCE_CONFIG.fastModel, 'gpt-5.3-codex-spark');
   for (const key of ['path', 'sandboxMode', 'timeoutMs']) assert.equal(key in DEFAULT_CODEX_SOURCE_CONFIG, false);
 });
 test('enabled is strict boolean and current risk version is not inferred', () => { for (const enabled of [1, 'yes', null]) assert.throws(() => validateCodexSourceConfig({ enabled })); assert.equal(validateCodexSourceConfig({ enabled: true }).riskConfirmedVersion, undefined); });

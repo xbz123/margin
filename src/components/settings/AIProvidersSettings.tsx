@@ -550,7 +550,7 @@ export const AIProvidersSettings: React.FC = () => {
                             <CodexCliModelField
                                 label={t('Normal Model')}
                                 value={codexCliConfig.model}
-                                placeholder="gpt-5.5"
+                                placeholder="gpt-6.1-sol"
                                 onChange={(model) => setCodexCliConfig(prev => ({ ...prev, model }))}
                                 onSelect={(model) => saveCodexCliConfig({ ...codexCliConfig, model })}
                                 onSave={() => saveCodexCliConfig()}

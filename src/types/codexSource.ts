@@ -15,7 +15,7 @@ export interface CodexSourceConfig {
 export type CodexSourceUpdate = Partial<Omit<CodexSourceConfig, 'riskConfirmedVersion'>> & { acceptRisk?: boolean };
 export type CodexSourceStatus = { success: boolean; status: 'disabled' | 'confirmation-required' | 'file-unavailable' | 'invalid' | 'expired' | 'locally-valid'; message: string };
 export const DEFAULT_CODEX_SOURCE_CONFIG: CodexSourceConfig = {
-  enabled: false, model: 'gpt-5.4', fastModel: 'gpt-5.3-codex-spark', serviceTier: 'default',
+  enabled: false, model: 'gpt-6.1-sol', fastModel: 'gpt-5.3-codex-spark', serviceTier: 'default',
 };
 export function codexImageTarget(model: string): string { return JSON.stringify(['codex', 'responses', CODEX_ENDPOINT, model]); }
 export function isCodexSelection(id: string): boolean { return id === 'codex-cli' || id.startsWith('codex-cli:'); }
