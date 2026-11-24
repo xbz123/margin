@@ -31,7 +31,7 @@ function handlers(root, queue = []) {
   const manager = { getFormattedContext: () => '', getLastAssistantMessage: () => null, addTranscript() {}, hasFinalUserSegments: () => false, addAssistantMessage() {}, logUsage() {}, rememberQuestion() {},
     getDetectedCodingQuestion: () => ({ question: null, source: null }), captureBase: () => ({}),
     frozenView: () => ({ frozen: true, getLastAssistantMessage: () => null, getContext: () => [] }),
-    resetEngine() { resets.push('engine'); }, reset() { resets.push('session'); },
+    resetEngine() { resets.push('engine'); }, reset() { resets.push('session'); }, resetConversation() { resets.push('conversation'); },
     runWhatShouldISay: async (...args) => { sends.push(args); return 'answer'; },
     runCodeHint: async (...args) => { sends.push(args); return 'hint'; },
   };
@@ -124,7 +124,7 @@ test('R3-2 what-to-say canonicalizes explicit images and never selects the scree
 test('AG33 actual registered cancellation uses engine-only reset and keeps explicit reset semantics distinct', async () => {
   const { callbacks, resets } = handlers(os.tmpdir());
   await callbacks.get('cancel-intelligence-generation')({ sender: {} }); assert.deepEqual(resets, ['engine']);
-  await callbacks.get('reset-intelligence')({ sender: {} }); assert.deepEqual(resets, ['engine', 'session']);
+  await callbacks.get('reset-intelligence')({ sender: {} }); assert.deepEqual(resets, ['engine', 'conversation']);
 });
 
 test('AG33 actual registered chat handler fixes written/interview task budgets and refuses unknown modes', async () => {

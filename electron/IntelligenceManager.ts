@@ -255,6 +255,16 @@ export class IntelligenceManager extends EventEmitter {
         this.engine.reset();
     }
 
+    /**
+     * resetConversation: the user-facing Reset. Cancels in-flight generation and clears the AI
+     * conversation, but keeps the meeting record (transcript, usage, start time) intact.
+     */
+    resetConversation(): void {
+        this.engine.reset();
+        this.session.resetConversation();
+    }
+
+    /** Full reset: meeting start / teardown only — wipes the meeting record. */
     reset(): void {
         this.session.reset();
         this.engine.reset();

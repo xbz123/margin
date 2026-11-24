@@ -600,6 +600,20 @@ export class SessionTracker {
         this.recentInterviewerBuffer = [];
     }
 
+    /**
+     * User-facing Reset during a meeting: forget the AI conversation (answers and the coding
+     * question they were about) but keep the meeting record — transcript, usage rows, start time,
+     * metadata — and the transcript context, so the next answer still sees the live question.
+     */
+    resetConversation(): void {
+        this.contextItems = this.contextItems.filter(item => item.role !== 'assistant');
+        this.lastAssistantMessage = null;
+        this.assistantResponseHistory = [];
+        this.detectedCodingQuestion = null;
+        this.codingQuestionSource = null;
+        this.codingQuestionSetAt = null;
+    }
+
     // ============================================
     // Private Helpers
     // ============================================

@@ -2129,7 +2129,8 @@ export function initializeIpcHandlers(appState: AppState): void {
     try {
       speechActions.cancel();
       const intelligenceManager = appState.getIntelligenceManager();
-      intelligenceManager.reset();
+      // Clears the AI conversation only; the meeting's transcript and usage rows are kept.
+      intelligenceManager.resetConversation();
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
