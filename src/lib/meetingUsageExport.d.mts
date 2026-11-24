@@ -14,7 +14,14 @@ export function followUpQuestionList(entry: { items?: unknown; answer?: unknown 
 
 export const UNLABELLED_QUESTION_LABEL: string;
 
-export function shownQuestion(entry: { question?: unknown; displayQuestion?: unknown } | null | undefined, translate?: (key: string) => string): string;
+export function shownQuestion(entry: {
+  type?: string;
+  question?: unknown;
+  displayQuestion?: unknown;
+  /** Where the question was asked; 'text' and 'answer' chat rows are the user's own words. */
+  entryPoint?: string;
+  generation?: { entryPoint?: string } | null;
+} | null | undefined, translate?: (key: string) => string): string;
 
 export function usageExportBlocks(usage: ReadonlyArray<{
   type: string;
@@ -23,4 +30,6 @@ export function usageExportBlocks(usage: ReadonlyArray<{
   displayQuestion?: string;
   answer?: unknown;
   items?: unknown;
-}> | null | undefined): UsageExportBlock[];
+  entryPoint?: string;
+  generation?: { entryPoint?: string } | null;
+}> | null | undefined, translate?: (key: string) => string): UsageExportBlock[];

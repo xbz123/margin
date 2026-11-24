@@ -138,6 +138,11 @@ export function initializeIpcHandlers(appState: AppState): void {
         // The action began at the click; its task and speech cut are reused exactly once.
         const action = speechActions.take(event.sender, args[speech[1]], speech[0]);
         task = action.task;
+        // Labelled before runGeneration: its check() can abort an expired task before the listener
+        // runs, and the unrun row must still list the follow-up's intent.
+        if (channel === 'generate-follow-up') {
+          try { appState.getIntelligenceManager().rememberFollowUpQuestion(task, args[0], args[1]); } catch { /* No engine: nothing to label. */ }
+        }
         const fixed = Array.from({ length: speech[1] }, (_, index) => args[index]);
         const run = () => helper.withDeclaredScopes(declare => listener(event, ...fixed, () => frozenView(action, declare)));
         helper.attachPresentation(task, event.sender, speech[0], visibleOwners.has(event.sender.id));
@@ -153,7 +158,14 @@ export function initializeIpcHandlers(appState: AppState): void {
         if (channel !== 'generate-what-to-say') throw error;
         return { answer: null, ...(task ? helper.getTaskMetadata(task) : { status: 'failed' }),
           error: !task && !(error instanceof SpeechActionError) ? MANUAL_ANSWER_UNCONFIGURED : task?.terminalStatus === 'cancelled' ? MANUAL_ANSWER_CANCELLED : manualAnswerError(error) };
-      } finally { task?.close(); }
+      } finally {
+        // An action cancelled or failed while its speech was frozen never reached its mode method;
+        // it is still listed once. What to say freezes inside its mode method and lists itself.
+        if (task && channel !== 'generate-what-to-say') {
+          try { appState.getIntelligenceManager().recordUnrunTask(task); } catch { /* No engine: nothing to list. */ }
+        }
+        task?.close();
+      }
     });
   };
 
@@ -2074,6 +2086,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   registerGenerationHandler('generate-follow-up', async (_, intent: string, userRequest: string | undefined, freeze: () => Promise<TranscriptView>) => {
     try {
       const intelligenceManager = appState.getIntelligenceManager();
+      // Its label was remembered by registerGenerationHandler before the task ran.
       const refined = await intelligenceManager.runFollowUp(intent, userRequest, await freeze());
       return { refined, intent };
     } catch (error: any) {

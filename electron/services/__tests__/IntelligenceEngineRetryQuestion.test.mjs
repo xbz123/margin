@@ -403,3 +403,55 @@ test('manual What to Answer cancelled while the transcript is frozen is listed u
   assert.equal(rows[0].question, question);
   assert.equal(rows[0].status, 'cancelled');
 });
+
+// recordUnrunTask lists a speech action whose mode method never ran (ipcHandlers
+// registerGenerationHandler); a task the engine ran, or one already listed, adds nothing.
+test('a task that ended before its mode method ran is listed once; a task the engine ran is never listed again', async () => {
+  const session = new SessionTracker();
+  session.handleTranscript({ speaker: 'interviewer', text: 'Tell me about your last project', timestamp: Date.now() - 2000, final: true });
+  const helper = new StubLLMHelper([]);
+  const engine = new IntelligenceEngine(helper, session);
+  engine.on('error', () => {});
+
+  const unrun = helper.beginGenerationTask(); unrun.entryPoint = 'clarify';
+  unrun.controller.abort(new DOMException('Generation cancelled', 'AbortError'));
+  engine.recordUnrunTask(unrun);
+  engine.recordUnrunTask(unrun);
+  // A mode method reached after the abort lists nothing more.
+  await helper.runGeneration(() => engine.runClarify(), 'interview', undefined, unrun).catch(() => {});
+  let rows = endMeeting(session).filter(entry => entry.requestId === unrun.requestId);
+  assert.equal(rows.length, 1);
+  assert.deepEqual([rows[0].type, rows[0].question, rows[0].status, rows[0].answer], ['chat', 'Clarify Question', 'cancelled', '']);
+  assert.equal(rows[0].questionId, unrun.questionId);
+
+  // The engine ran and failed this one: its own row only.
+  engine.recapLLM = { async *generateStream() { throw new Error('recap failed'); } };
+  const ran = helper.beginGenerationTask(); ran.entryPoint = 'recap';
+  await helper.runGeneration(() => engine.runRecap(), 'interview', undefined, ran).catch(() => {});
+  ran.terminalStatus ??= 'failed';
+  engine.recordUnrunTask(ran);
+  rows = endMeeting(session).filter(entry => entry.requestId === ran.requestId);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].question, 'Recap Meeting');
+
+  // A completed or still running task is not listed.
+  const done = helper.beginGenerationTask(); done.entryPoint = 'recap'; done.terminalStatus = 'completed';
+  engine.recordUnrunTask(done);
+  const running = helper.beginGenerationTask(); running.entryPoint = 'recap';
+  engine.recordUnrunTask(running);
+  assert.equal(endMeeting(session).filter(entry => [done.requestId, running.requestId].includes(entry.requestId)).length, 0);
+});
+
+test('a follow-up with no answer to refine is listed under its intent label, not the entry point fallback', async () => {
+  const session = new SessionTracker();
+  const helper = new StubLLMHelper([]);
+  const engine = new IntelligenceEngine(helper, session);
+  for (const [intent, request, label] of [['simplify', undefined, 'Simplify Answer'], ['shorten', 'two lines please', 'two lines please'], ['shorten', undefined, 'Refining: shorten']]) {
+    const first = helper.beginGenerationTask(); first.entryPoint = 'follow-up';
+    assert.equal(await helper.runGeneration(() => engine.runFollowUp(intent, request), 'interview', undefined, first), null);
+    const rows = endMeeting(session).filter(entry => entry.requestId === first.requestId);
+    assert.equal(rows.length, 1);
+    assert.deepEqual([rows[0].type, rows[0].question, rows[0].status], ['followup', label, 'empty']);
+  }
+  assert.equal(IntelligenceEngine.followUpQuestion('expand'), 'Expand Answer');
+});

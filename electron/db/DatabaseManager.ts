@@ -420,6 +420,8 @@ export class DatabaseManager {
                         requestId: usage.requestId, questionId: usage.questionId, retryOf: usage.retryOf,
                         provider: usage.provider, model: usage.model, status: usage.status, attempts: usage.attempts, partial: usage.partial, timeout: usage.timeout,
                         codeOutputFormat: usage.codeOutputFormat,
+                        // The entry point tells a typed or spoken chat message from an action name (history labels).
+                        entryPoint: usage.entryPoint,
                     } : usage.generation;
                     const displayQuestion = typeof usage.displayQuestion === 'string' && usage.displayQuestion.trim() ? usage.displayQuestion : undefined;
                     // Rows with neither keep the earlier shape (a bare items array or null).

@@ -1237,3 +1237,116 @@ test('silent Stop fallback still running is cancelled and released when the next
   assert.equal(c.sender.listenerCount('destroyed'), 1, 'the replaced fallback entry is gone; only the new dictation mark listens');
   assert.doesNotMatch(JSON.stringify(c.intelligence.getContext(Number.MAX_SAFE_INTEGER)), /LATE OLD/);
 });
+
+// History of a speech action that ends before its mode method runs: cancelled while its speech is
+// being frozen, or failed before freezing. It is listed once, under the label its success records.
+const actionRows = (c, task) => ({
+  usage: c.intelligence.session.getFullUsage().filter(entry => entry.requestId === task.requestId),
+  messages: c.intelligence.session.getFullTranscript().filter(segment => segment.speaker === 'assistant' && segment.generation?.requestId === task.requestId),
+});
+const UNRUN_ACTIONS = [
+  ['clarify', 'generate-clarify', [], { type: 'chat', question: 'Clarify Question' }],
+  ['recap', 'generate-recap', [], { type: 'chat', question: 'Recap Meeting' }],
+  ['follow-up-questions', 'generate-follow-up-questions', [], { type: 'followup_questions', question: 'Generate Follow-up Questions' }],
+  ['code-hint', 'generate-code-hint', [undefined, undefined], { type: 'assist', question: 'Code Hint' }],
+  ['follow-up', 'generate-follow-up', ['simplify', undefined], { type: 'followup', question: 'Simplify Answer' }],
+  ['follow-up', 'generate-follow-up', ['shorten', 'make it two sentences'], { type: 'followup', question: 'make it two sentences' }],
+  ['follow-up', 'generate-follow-up', ['shorten', undefined], { type: 'followup', question: 'Refining: shorten' }],
+];
+for (const [kind, channel, args, expected] of UNRUN_ACTIONS) test(`history: ${kind} cancelled while its speech is frozen is listed once as "${expected.question}"`, async () => {
+  const c = chain(), tasks = trackTasks(c);
+  c.interviewer.emit('transcript', { segmentId: 'pending', text: 'Unfinished question before cancel', isFinal: false });
+  const ref = await c.begin(kind);
+  const rejected = assert.rejects(c.invoke(channel, ...args, ref), { name: 'AbortError' });
+  await tick();
+  await c.invoke('cancel-intelligence-generation');
+  await rejected;
+  // A freeze that settles after the cancel must not add a second row.
+  c.releaseSeals();
+  await tick(); await tick();
+  assert.equal(c.sent.length, 0, 'the provider is never called');
+  const { usage, messages } = actionRows(c, tasks[0]);
+  assert.equal(usage.length, 1, 'exactly one history row');
+  assert.equal(usage[0].type, expected.type);
+  assert.equal(usage[0].question, expected.question);
+  assert.equal(usage[0].status, 'cancelled');
+  assert.equal(usage[0].answer, '');
+  assert.equal(usage[0].questionId, tasks[0].questionId);
+  assert.equal(usage[0].entryPoint, kind);
+  assert.equal(messages.length, 0, 'nothing was generated, so no assistant message');
+});
+
+test('history: a code hint that fails before freezing (invalid image) is listed once as failed', async () => {
+  const c = chain(), tasks = trackTasks(c);
+  const ref = await c.begin('code-hint');
+  c.releaseSeals();
+  await assert.rejects(() => c.invoke('generate-code-hint', ['   '], undefined, ref), /Invalid image path/);
+  await tick();
+  const { usage, messages } = actionRows(c, tasks[0]);
+  assert.equal(usage.length, 1);
+  assert.equal(usage[0].question, 'Code Hint');
+  assert.equal(usage[0].status, 'failed');
+  assert.equal(messages.length, 0);
+});
+
+for (const outcome of ['failed', 'completed']) test(`history: a clarify whose mode method ran and ${outcome} is listed once`, async () => {
+  const c = chain(), tasks = trackTasks(c);
+  c.interviewer.emit('transcript', { segmentId: 'q', text: 'How would you shard a write-heavy table?', isFinal: true });
+  if (outcome === 'failed') c.helper.openaiClient.chat.completions.create = async body => { c.sent.push(body); throw new Error('synthetic failure'); };
+  const ref = await c.begin('clarify');
+  c.releaseSeals();
+  await c.invoke('generate-clarify', ref).catch(() => {});
+  await tick();
+  const { usage } = actionRows(c, tasks[0]);
+  assert.equal(usage.length, 1, 'the row the engine recorded, and no other');
+  assert.equal(usage[0].question, 'Clarify Question');
+  assert.equal(usage[0].status, outcome);
+});
+
+test('history: a follow-up with no answer to refine is listed under its intent, as empty', async () => {
+  const c = chain(), tasks = trackTasks(c);
+  const ref = await c.begin('follow-up');
+  c.releaseSeals();
+  await c.invoke('generate-follow-up', 'more_formal', undefined, ref);
+  const { usage } = actionRows(c, tasks[0]);
+  assert.equal(usage.length, 1);
+  assert.equal(usage[0].type, 'followup');
+  assert.equal(usage[0].question, 'Make More Formal');
+  assert.equal(usage[0].status, 'empty');
+  assert.equal(c.sent.length, 0);
+});
+
+test('history: a follow-up whose deadline passed before its listener ran is listed under its intent, as failed', async t => {
+  const c = chain(), tasks = trackTasks(c);
+  const ref = await c.begin('follow-up');
+  // The clock passes every deadline after the action is taken, so runGeneration's check() aborts it.
+  const attach = c.helper.attachPresentation.bind(c.helper), now = Date.now;
+  c.helper.attachPresentation = (...args) => { attach(...args); t.mock.method(Date, 'now', () => now() + 600_000); };
+  await assert.rejects(c.invoke('generate-follow-up', 'simplify', undefined, ref), { name: 'GenerationTimeoutError' });
+  c.releaseSeals();
+  await tick();
+  const { usage, messages } = actionRows(c, tasks[0]);
+  assert.equal(usage.length, 1, 'exactly one history row');
+  assert.equal(usage[0].type, 'followup');
+  assert.equal(usage[0].question, 'Simplify Answer');
+  assert.equal(usage[0].status, 'failed');
+  assert.equal(messages.length, 0, 'nothing was generated, so no assistant message');
+  assert.equal(c.sent.length, 0);
+});
+
+test('history: What to answer cancelled while frozen still lists only its own row', async () => {
+  const c = chain(), tasks = trackTasks(c);
+  c.interviewer.emit('transcript', { segmentId: 'pending', text: 'Unfinished question before cancel', isFinal: false });
+  const ref = await c.begin('what-to-say');
+  const pending = c.invoke('generate-what-to-say', undefined, undefined, ref);
+  await tick();
+  await c.invoke('cancel-intelligence-generation');
+  await pending;
+  c.releaseSeals();
+  await tick(); await tick();
+  const { usage } = actionRows(c, tasks[0]);
+  assert.equal(usage.length, 1);
+  assert.equal(usage[0].type, 'assist');
+  assert.equal(usage[0].question, 'What to Answer');
+  assert.equal(usage[0].status, 'cancelled');
+});

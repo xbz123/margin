@@ -41,26 +41,55 @@ export function followUpLabel(question) {
 const UNLABELLED_QUESTION = 'generation outcome';
 export const UNLABELLED_QUESTION_LABEL = 'Question not recorded';
 
+// The action names IntelligenceEngine records as the question of a row with no asked text
+// (its ENTRY_POINT_LABELS); each is an i18n key, shown translated.
+const ASSIST_LABELS = new Set(['What to Answer', 'Code Hint', 'Retry']);
+const CHAT_LABELS = new Set(['Recap Meeting', 'Clarify Question']);
+const FOLLOW_UP_QUESTIONS_LABEL = 'Generate Follow-up Questions';
+// Entry points whose chat row is a message the user typed or spoke, kept as is.
+const USER_TEXT_ENTRY_POINTS = new Set(['text', 'answer']);
+
 /**
  * The question as the user saw it, as MeetingDetails shows it: the stored localized text
  * (displayQuestion, e.g. the Chinese screenshot prompt) when there is one, else the question sent.
- * The unlabelled placeholder of an 'assist' row is shown as the translated
- * UNLABELLED_QUESTION_LABEL; any other row (a chat message the user typed) keeps its text.
+ * An action name stored in place of a question (and the unlabelled placeholder of an 'assist'
+ * row, as UNLABELLED_QUESTION_LABEL) is shown translated; text the user asked is kept as is.
+ * A chat row is the user's message when its entry point says so; a row saved before the entry
+ * point was kept is matched by its text.
  */
 export function shownQuestion(entry, translate = key => key) {
   const shown = typeof entry?.displayQuestion === 'string' ? entry.displayQuestion.trim() : '';
   const question = typeof entry?.question === 'string' ? entry.question : '';
   if (shown) return shown;
-  return entry?.type === 'assist' && question === UNLABELLED_QUESTION ? translate(UNLABELLED_QUESTION_LABEL) : question;
+  switch (entry?.type) {
+    case 'assist':
+      if (question === UNLABELLED_QUESTION) return translate(UNLABELLED_QUESTION_LABEL);
+      return ASSIST_LABELS.has(question) ? translate(question) : question;
+    case 'followup': {
+      const { label, request } = followUpLabel(question);
+      return request === undefined ? translate(label) : question;
+    }
+    case 'followup_questions':
+      return question === FOLLOW_UP_QUESTIONS_LABEL ? translate(question) : question;
+    case 'chat': {
+      const entryPoint = entry.generation?.entryPoint ?? entry.entryPoint;
+      return CHAT_LABELS.has(question) && !USER_TEXT_ENTRY_POINTS.has(entryPoint) ? translate(question) : question;
+    }
+    default:
+      return question;
+  }
 }
 
-/** The usage blocks of a meeting export, in stored order; entries with nothing to show are left out. */
-export function usageExportBlocks(usage) {
+/**
+ * The usage blocks of a meeting export, in stored order; entries with nothing to show are left out.
+ * A chat question is shown as shownQuestion shows it, with the same `translate`.
+ */
+export function usageExportBlocks(usage, translate = key => key) {
   const blocks = [];
   for (const entry of usage ?? []) {
     const answer = typeof entry?.answer === 'string' ? entry.answer.trim() : '';
     if (entry?.type === 'chat' && shownQuestion(entry) && answer) {
-      blocks.push({ kind: 'chat', question: shownQuestion(entry), answer });
+      blocks.push({ kind: 'chat', question: shownQuestion(entry, translate), answer });
     } else if (entry?.type === 'assist' && answer) {
       blocks.push({ kind: 'assist', label: 'Assist', answer });
     } else if (entry?.type === 'followup' && answer) {

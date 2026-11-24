@@ -131,7 +131,8 @@ export const buildMeetingPDF = (meeting: Meeting, options: MeetingPDFOptions = {
     }
 
     // --- Usage (Q&A / AI Interactions) ---
-    const blocks = usageExportBlocks(meeting.usage);
+    // Labels are translated only with the Chinese font, as the other labels here.
+    const blocks = usageExportBlocks(meeting.usage, hasCjkFont ? t : undefined);
     if (blocks.length > 0) {
         addText(t('AI Usage & Interactions'), 14, true, '#000000');
         addVerticalSpace(2);

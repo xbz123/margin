@@ -144,6 +144,35 @@ export class IntelligenceEngine extends EventEmitter {
         return named && named.question !== 'Retry' ? named : { type: 'assist', question: IntelligenceEngine.UNLABELLED_QUESTION };
     }
 
+    // The history label of a follow-up, the one place its intents are named: shared by the mode
+    // method and the IPC action, which remembers it before the speech is frozen.
+    private static readonly FOLLOW_UP_INTENT_LABELS: Record<string, string> = {
+        'expand': 'Expand Answer',
+        'rephrase': 'Rephrase Answer',
+        'add_example': 'Add Example',
+        'more_confident': 'Make More Confident',
+        'more_casual': 'Make More Casual',
+        'more_formal': 'Make More Formal',
+        'simplify': 'Simplify Answer'
+    };
+    static followUpQuestion(intent: string, userRequest?: string): string {
+        return userRequest || IntelligenceEngine.FOLLOW_UP_INTENT_LABELS[intent] || `Refining: ${intent}`;
+    }
+
+    /**
+     * Records the history row of a task that ended (cancelled or failed while its speech was being
+     * frozen) before any mode method ran it, so nothing was generated and runGenerationRequest never
+     * saw it. A task the engine ran records its own row there; this never adds a second one.
+     */
+    recordUnrunTask(task: GenerationTask<any>): void {
+        if (!task.terminalStatus || task.terminalStatus === 'completed') return;
+        if (this.generationRequested?.has(task) || this.successRecorded?.has(task)) return;
+        // Marked as recorded, so a mode method still reached after the abort lists nothing more.
+        (this.successRecorded ??= new WeakSet()).add(task);
+        const label = this.questionLabel(task);
+        this.session.pushUsage({ type: label.type, timestamp: Date.now(), question: label.question, ...(label.displayQuestion ? { displayQuestion: label.displayQuestion } : {}), answer: '', ...this.llmHelper.getTaskMetadata(task) });
+    }
+
     override emit(event: string | symbol, ...args: any[]): boolean {
         const task = this.llmHelper?.getCurrentGenerationTask();
         if (task) {
@@ -160,9 +189,12 @@ export class IntelligenceEngine extends EventEmitter {
     // recorded. Created on first use, like questionLabels, since mode methods also run on
     // engine-shaped objects.
     private successRecorded?: WeakSet<GenerationTask<any>>;
+    // Tasks that reached runGenerationRequest, which records their failure itself (recordUnrunTask).
+    private generationRequested?: WeakSet<GenerationTask<any>>;
 
     private runGenerationRequest(factory: () => Promise<string | null>): Promise<string | null> {
         const inherited = this.llmHelper.getCurrentGenerationTask();
+        if (inherited) (this.generationRequested ??= new WeakSet()).add(inherited);
         if (inherited && this.activeGenerationTask === inherited) return this.llmHelper.runGeneration(factory);
         this.activeGenerationTask?.controller.abort(new DOMException('Superseded generation', 'AbortError'));
         this.activeGenerationController?.abort(new DOMException('Superseded generation', 'AbortError'));
@@ -540,6 +572,9 @@ export class IntelligenceEngine extends EventEmitter {
 
     async runFollowUpInner(intent: string, userRequest?: string, view: TranscriptView = this.session): Promise<string | null> {
         console.log(`[IntelligenceEngine] runFollowUp called with intent: ${intent}`);
+        // Remembered first, so a follow-up with no answer to refine is listed under its intent.
+        const displayQuestion = IntelligenceEngine.followUpQuestion(intent, userRequest);
+        this.rememberQuestion('followup', displayQuestion);
         const lastMsg = view.getLastAssistantMessage();
         if (!lastMsg) {
             console.warn('[IntelligenceEngine] No lastAssistantMessage found for follow-up');
@@ -547,18 +582,6 @@ export class IntelligenceEngine extends EventEmitter {
         }
 
         this.setMode('follow_up');
-
-        const intentMap: Record<string, string> = {
-            'expand': 'Expand Answer',
-            'rephrase': 'Rephrase Answer',
-            'add_example': 'Add Example',
-            'more_confident': 'Make More Confident',
-            'more_casual': 'Make More Casual',
-            'more_formal': 'Make More Formal',
-            'simplify': 'Simplify Answer'
-        };
-        const displayQuestion = userRequest || intentMap[intent] || `Refining: ${intent}`;
-        this.rememberQuestion('followup', displayQuestion);
 
         try {
             if (!this.followUpLLM) {

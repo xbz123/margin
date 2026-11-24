@@ -71,7 +71,7 @@ test('a chat question is exported as the user saw it (displayQuestion), as Meeti
   // The PDF prints block.question, and MeetingDetails shows the same `displayQuestion || question`.
   const { readFileSync } = await import('node:fs');
   const pdf = readFileSync(new URL('../../utils/pdfGenerator.ts', import.meta.url), 'utf8');
-  assert.match(pdf, /usageExportBlocks\(meeting\.usage\)/);
+  assert.match(pdf, /usageExportBlocks\(meeting\.usage, hasCjkFont \? t : undefined\)/);
   assert.match(pdf, /`Q: \$\{block\.question\}`/);
   assert.doesNotMatch(pdf, /item\.question/);
   const details = readFileSync(new URL('../../components/MeetingDetails.tsx', import.meta.url), 'utf8');
@@ -125,7 +125,7 @@ test('every followup label the export can show has a Chinese translation, and so
   const { readFileSync } = await import('node:fs');
   const zh = readFileSync(new URL('../../i18n.zh.ts', import.meta.url), 'utf8');
   const engine = readFileSync(new URL('../../../electron/IntelligenceEngine.ts', import.meta.url), 'utf8');
-  const intentMap = engine.match(/const intentMap: Record<string, string> = \{([\s\S]*?)\};/)[1];
+  const intentMap = engine.match(/FOLLOW_UP_INTENT_LABELS: Record<string, string> = \{([\s\S]*?)\};/)[1];
   const refinements = [...intentMap.matchAll(/:\s*'([^']+)'/g)].map(match => match[1]);
   assert.ok(refinements.includes('Simplify Answer'));
   for (const question of refinements) {
@@ -134,6 +134,71 @@ test('every followup label the export can show has a Chinese translation, and so
     assert.ok(zh.includes(`'${label}': '`), `${label} has a Chinese translation`);
   }
   assert.ok(zh.includes(`'Requested change': '`));
+});
+
+// The Chinese dictionary, as the renderer's translate() reads it.
+async function chineseTranslate() {
+  const { readFileSync } = await import('node:fs');
+  const zh = readFileSync(new URL('../../i18n.zh.ts', import.meta.url), 'utf8');
+  const entries = new Map([...zh.matchAll(/^\s*'([^']*)':\s*'([^']*)',?$/gm)].map(match => [match[1], match[2]]));
+  return key => entries.get(key) ?? key;
+}
+
+test('history labels are shown translated by row type; text the user asked is kept as typed', async () => {
+  const zh = await chineseTranslate();
+  const cases = [
+    // assist: the action names and the Retry label, never a real question.
+    [{ type: 'assist', question: 'What to Answer' }, '该怎么回答'],
+    [{ type: 'assist', question: 'Code Hint' }, '代码提示'],
+    [{ type: 'assist', question: 'Retry' }, '重试'],
+    [{ type: 'assist', question: 'How would you shard this table?' }, 'How would you shard this table?'],
+    [{ type: 'assist', question: 'generation outcome' }, '未记录问题'],
+    // followup: intent labels as followUpLabel names them; a typed request as typed.
+    [{ type: 'followup', question: '' }, '展开回答'],
+    [{ type: 'followup', question: 'Follow-up' }, '展开回答'],
+    [{ type: 'followup', question: 'Expand Answer' }, '展开回答'],
+    [{ type: 'followup', question: 'Rephrase Answer' }, '换个说法'],
+    [{ type: 'followup', question: 'Add Example' }, '补充示例'],
+    [{ type: 'followup', question: 'Make More Confident' }, '更自信'],
+    [{ type: 'followup', question: 'Make More Casual' }, '更口语'],
+    [{ type: 'followup', question: 'Make More Formal' }, '更正式'],
+    [{ type: 'followup', question: 'Simplify Answer' }, '简化回答'],
+    [{ type: 'followup', question: 'make it shorter' }, 'make it shorter'],
+    [{ type: 'followup_questions', question: 'Generate Follow-up Questions' }, '生成追问建议'],
+    // chat: action rows translated, by entry point (new rows) or by text (older rows).
+    [{ type: 'chat', question: 'Recap Meeting', generation: { entryPoint: 'recap' } }, '会议回顾'],
+    [{ type: 'chat', question: 'Clarify Question', entryPoint: 'clarify' }, '澄清问题'],
+    [{ type: 'chat', question: 'Recap Meeting' }, '会议回顾'],
+    [{ type: 'chat', question: 'Clarify Question', generation: { requestId: 'r0' } }, '澄清问题'],
+    // A message the user typed or spoke keeps its text, even when it reads like an action name.
+    [{ type: 'chat', question: 'Recap Meeting', generation: { entryPoint: 'text' } }, 'Recap Meeting'],
+    [{ type: 'chat', question: 'Clarify Question', entryPoint: 'answer' }, 'Clarify Question'],
+    [{ type: 'chat', question: 'generation outcome' }, 'generation outcome'],
+    [{ type: 'chat', question: '我自己输入的问题' }, '我自己输入的问题'],
+    // displayQuestion still wins.
+    [{ type: 'chat', question: 'Recap Meeting', displayQuestion: '直接解答截图中的题目' }, '直接解答截图中的题目'],
+    [{ type: 'assist', question: 'Code Hint', displayQuestion: '自定义' }, '自定义'],
+  ];
+  for (const [entry, expected] of cases) {
+    assert.equal(shownQuestion(entry, zh), expected, JSON.stringify(entry));
+    // The English UI shows the English key unchanged.
+    if (!entry.displayQuestion && expected !== entry.question && entry.question !== 'generation outcome') {
+      assert.equal(shownQuestion(entry), ['', 'Follow-up', 'Expand Answer'].includes(entry.question) ? 'Expanded answer' : entry.question);
+    }
+  }
+});
+
+test('the export lists a chat action under the same translated label as the bubble', async () => {
+  const zh = await chineseTranslate();
+  const usage = [
+    { type: 'chat', timestamp: 1, question: 'Recap Meeting', answer: '回顾正文', generation: { entryPoint: 'recap' } },
+    { type: 'chat', timestamp: 2, question: 'Clarify Question', answer: '澄清正文' },
+    { type: 'chat', timestamp: 3, question: 'Recap Meeting', answer: '用户自己输入', generation: { entryPoint: 'text' } },
+  ];
+  assert.deepEqual(usageExportBlocks(usage, zh).map(block => block.question), ['会议回顾', '澄清问题', 'Recap Meeting']);
+  assert.deepEqual(usageExportBlocks(usage, zh).map(block => block.question), usage.map(entry => shownQuestion(entry, zh)));
+  // Without a translation (English UI, or the PDF without its Chinese font) the keys stay English.
+  assert.deepEqual(usageExportBlocks(usage).map(block => block.question), ['Recap Meeting', 'Clarify Question', 'Recap Meeting']);
 });
 
 test('closing punctuation never starts a wrapped line and no text is lost or reordered', () => {

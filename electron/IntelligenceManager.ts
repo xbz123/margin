@@ -163,6 +163,16 @@ export class IntelligenceManager extends EventEmitter {
         this.engine.rememberQuestionFor(task, type, question, displayQuestion);
     }
 
+    /** The follow-up's history label, remembered before its speech is frozen. */
+    rememberFollowUpQuestion(task: import('./llm/generateTask').GenerationTask<any> | undefined, intent: string, userRequest?: string): void {
+        this.engine.rememberQuestionFor(task, 'followup', IntelligenceEngine.followUpQuestion(intent, userRequest));
+    }
+
+    /** Lists a speech action that ended before its mode method ran (see IntelligenceEngine.recordUnrunTask). */
+    recordUnrunTask(task: import('./llm/generateTask').GenerationTask<any>): void {
+        this.engine.recordUnrunTask(task);
+    }
+
     runPreparedRetry(input: import('./llm/preparedInput').PreparedInput): Promise<string | null> {
         return this.engine.runPreparedRetry(input);
     }

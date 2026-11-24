@@ -245,3 +245,27 @@ test('Chinese UI: screenshot only, first attempt and Retry both fail, the Retry 
   const { usageExportBlocks } = await import('../../../src/lib/meetingUsageExport.mjs');
   assert.deepEqual(usageExportBlocks(meeting.usage), []);
 });
+
+// The history labels tell a typed or spoken chat message from an action name by its entry point,
+// so the entry point is saved with the generation metadata and read back.
+test('the entry point is saved with the generation metadata, and the Chinese history labels follow it', async t => {
+  const { shownQuestion } = await import('../../../src/lib/meetingUsageExport.mjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'margin-entry-point-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const writer = openManager(dir);
+  const generation = (requestId, entryPoint) => ({ requestId, questionId: `q-${requestId}`, entryPoint, provider: 'p', model: 'm', status: 'completed', attempts: 1, partial: false });
+  writer.manager.saveMeeting({ id: 'm1', title: 'T', date: '2026-11-01T00:00:00.000Z', duration: '0:05', transcript: [], isProcessed: true, usage: [
+    // As the session holds them: generation metadata spread on the row.
+    { type: 'chat', timestamp: 1, question: 'Recap Meeting', answer: 'a', ...generation('r1', 'recap') },
+    { type: 'chat', timestamp: 2, question: 'Recap Meeting', answer: 'b', ...generation('r2', 'text') },
+    { type: 'chat', timestamp: 3, question: 'Clarify Question', answer: 'c', ...generation('r3', 'answer') },
+    { type: 'followup_questions', timestamp: 4, question: 'Generate Follow-up Questions', answer: '1. x?', ...generation('r4', 'follow-up-questions') },
+  ] }, 0, 5_000);
+  writer.close();
+  const reader = openManager(dir);
+  const usage = reader.manager.getMeetingDetails('m1').usage;
+  reader.close();
+  assert.deepEqual(usage.map(row => row.generation.entryPoint), ['recap', 'text', 'answer', 'follow-up-questions']);
+  const translate = key => (Object.hasOwn(zh, key) ? zh[key] : key);
+  assert.deepEqual(usage.map(row => shownQuestion(row, translate)), ['会议回顾', 'Recap Meeting', 'Clarify Question', '生成追问建议']);
+});
