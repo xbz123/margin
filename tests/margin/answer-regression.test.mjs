@@ -272,7 +272,9 @@ test('after cancel, and after a new stream has started, events of the old stream
   mock.setScript({ chunks: ['Fresh ', 'answer ', 'arrives ', 'intact.'], delayMs: 50, afterChunk: newHold.afterChunk });
   try {
     await overlay.evaluate(() => { window.electronAPI.streamGeminiChat('Fresh question'); });
-    await waitPage(overlay, () => window.__marginDelivered.tokens.includes('Fresh '), null, { timeoutMs: 15_000 });
+    // The dash filter holds a chunk's trailing whitespace until the next chunk, so the
+    // first token is "Fresh" while the stream is held after it.
+    await waitPage(overlay, () => window.__marginDelivered.tokens.join('').startsWith('Fresh'), null, { timeoutMs: 15_000 });
     const newId = (await streamIds()).at(-1);
     assert.notEqual(newId, oldId, 'the new stream must have its own id');
     await sendOverlayEvent('gemini-stream-token', 'STALE-INJECTED', oldId);
