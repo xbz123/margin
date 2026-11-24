@@ -118,8 +118,8 @@ export class LLMHelper {
     const replay = copyPreparedInput(input);
     const source = this.selectedGeneration(replay.userContent, undefined, replay.systemInstruction, replay.stream, replay.purpose, undefined, undefined, replay.outputLimit, replay);
     return (async function* () {
-      const { reduceDashesInChunk } = await import('./llm/postProcessor');
-      for await (const token of source) yield reduceDashesInChunk(token);
+      const { filterStreamDashes } = await import('./llm/postProcessor');
+      yield* filterStreamDashes(source);
     })();
   }
   private generationPolicy: GenerationPolicy = { ...DEFAULT_GENERATION_POLICY };
@@ -936,17 +936,19 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   /**
    * Public streaming entry point. Wraps the inner streamChat generator with
-   * a token-level dash filter (em / en / sentence-connector hyphen → comma)
-   * so the renderer never displays the AI-tell punctuation that the prompt
-   * rules ban but providers emit anyway. Single-place backstop.
+   * a per-stream dash filter (em / en dash in prose → comma; the ASCII
+   * hyphen is never touched) so the renderer never displays the AI-tell
+   * punctuation that the prompt rules ban but providers emit anyway. The
+   * filter tracks fenced and inline code across chunks, best effort, so
+   * em / en dashes inside code are kept (see StreamDashFilter).
    */
   public streamChat(...args: Parameters<LLMHelper['_streamChatInner']>): AsyncGenerator<string, void, unknown> {
     const inherited = generationTasks.getStore();
     const task = inherited ?? this.beginGenerationTask('interview', args[7]);
     const source = this._streamChatInner(...args);
     const processed = (async function* () {
-      const { reduceDashesInChunk } = await import('./llm/postProcessor');
-      for await (const chunk of source) yield reduceDashesInChunk(chunk);
+      const { filterStreamDashes } = await import('./llm/postProcessor');
+      yield* filterStreamDashes(source);
     })();
     return withGenerationTask(task, processed, !inherited);
   }

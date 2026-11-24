@@ -38,18 +38,19 @@ const PREFIXES = [
  * the deterministic backstop that strips them before the user ever sees them.
  *
  * Rules (in order):
- * - Em dash (—) with any surrounding whitespace → ", "
- * - En dash (–) with any surrounding whitespace → ", "
- * - ASCII hyphen used as a sentence connector ("text - more text") → ", "
- *   (Negative lookahead/lookbehind preserves compound words like "well-known",
- *   numeric ranges like "10-15", and line-start bullets like "- item".)
- * - Cleanup: double commas, comma-then-period, lowercase-after-comma fixes.
+ * - Em dash (—) with surrounding spaces / tabs → ", "
+ * - En dash (–) with surrounding spaces / tabs → ", "
+ *   (Line breaks around the dash are kept, so a following fence or list
+ *   line is never glued onto the prose line.)
+ * - Cleanup of the commas that swap leaves: double commas, comma before a
+ *   terminator, a comma orphaned at line start.
  *
- * Preserves:
- * - Anything inside fenced code blocks (```...```)
- * - Anything inside inline code (`...`)
- * - Bullet markers at line start
- * - Compound words ("real-time"), numeric ranges ("3-5"), command flags ("--flag")
+ * The ASCII hyphen-minus ("-") is never touched: it is the subtraction
+ * operator in code and math ("$a - b$"), a list marker and a thematic break
+ * ("- - -"), and the code detection here is too shallow to tell those apart.
+ *
+ * Em / en dashes are kept, best effort, inside fenced code blocks
+ * (```...```) and inline code (`...`).
  *
  * Safe to call on already-clean text (idempotent).
  */
@@ -68,44 +69,174 @@ export function reduceDashes(text: string): string {
         return `INL${inlineCodes.length - 1}`;
     });
 
-    // Em + en dash → comma. Eat any surrounding whitespace.
-    result = result.replace(/\s*[—–]\s*/g, ", ");
-
-    // ASCII hyphen as a sentence connector: space-hyphen-space mid-line,
-    // not at line start (which is bullet), not as a command-line flag prefix.
-    result = result.replace(/(?<=\S) - (?=\S)/g, ", ");
+    // Em + en dash → comma. Eat surrounding spaces / tabs, never line breaks.
+    result = result.replace(/[ \t]*[—–][ \t]*/g, ", ");
 
     // Tidy up artifacts
-    result = result.replace(/,\s*,+/g, ",");      // double commas
-    result = result.replace(/,\s*([.!?])/g, "$1"); // comma-then-terminator
-    result = result.replace(/^,\s*/gm, "");        // line-start orphan comma
+    // Same line only, so line breaks stay as they were.
+    result = result.replace(/,[ \t]*,+/g, ",");      // double commas
+    result = result.replace(/,[ \t]*([.!?])/g, "$1"); // comma-then-terminator
+    result = result.replace(/^,[ \t]*/gm, "");        // line-start orphan comma
 
-    // Restore code
+    // Restore code. Function replacement, so "$&" / "$$" inside code stay literal.
     inlineCodes.forEach((c, i) => {
-        result = result.replace(`INL${i}`, c);
+        result = result.replace(`INL${i}`, () => c);
     });
     codeBlocks.forEach((c, i) => {
-        result = result.replace(`CODE${i}`, c);
+        result = result.replace(`CODE${i}`, () => c);
     });
 
     return result;
 }
 
 /**
- * Streaming-safe variant. Operates on one streamed chunk at a time.
- * For chunk-level cleanup we accept that a dash split across chunk boundaries
- * may slip through; the FULL post-stream string can be re-cleaned via
- * `reduceDashes` for cases that require it.
+ * Prose-only dash swap, as `reduceDashes` does outside code: an em / en
+ * dash with the spaces / tabs around it inside this segment (never line
+ * breaks) becomes ", ". Whitespace already emitted in an earlier chunk
+ * stays. The ASCII hyphen is never touched.
  */
-export function reduceDashesInChunk(chunk: string): string {
-    if (!chunk) return chunk;
-    // Only do the cheap, boundary-stable swaps. No code-block stashing — code
-    // blocks are usually emitted as their own chunks by the providers we use
-    // and any dash inside a code chunk happens to be inside a ``` boundary
-    // that we don't break.
-    return chunk
-        .replace(/\s*[—–]\s*/g, ", ")
-        .replace(/(?<=\S) - (?=\S)/g, ", ");
+function swapProseDashes(segment: string): string {
+    return segment.replace(/[ \t]*[—–][ \t]*/g, ", ");
+}
+
+type FenceChar = "`" | "~";
+type DashFilterState =
+    | { kind: "prose" }
+    | { kind: "inline"; ticks: number }
+    | {
+        kind: "fence";
+        char: FenceChar;
+        length: number;
+        /** Indentation (columns) of the opening fence line. */
+        indent: number;
+        /** A closing-fence candidate was seen; only whitespace may follow it on its line. */
+        pendingClose: boolean;
+    };
+
+/**
+ * Streaming dash filter: the per-stream counterpart of `reduceDashes`.
+ *
+ * It rewrites only em dash (—) and en dash (–) in prose, to ", ". The ASCII
+ * hyphen-minus is never touched anywhere, so code, math ("$a - b$"), list
+ * markers and thematic breaks ("- - -") pass through byte for byte whatever
+ * the code tracking below gets wrong.
+ *
+ * Providers split code anywhere (mid-line, mid-fence-marker), so each chunk
+ * is not self-describing. One instance follows the markdown code state
+ * across every chunk of ONE stream so that em / en dashes inside code are
+ * kept. The tracking is best effort, not a Markdown parser, and it only
+ * protects em / en dashes. Rules loosely follow CommonMark, erring toward
+ * "code" where they are ambiguous:
+ * - Opening fence: a run of 3+ backticks or 3+ tildes with only whitespace
+ *   before it on its line (any indentation, so fences nested in lists
+ *   count). It opens from prose and also from inside an unclosed inline
+ *   span (a fence interrupts the paragraph).
+ * - Closing fence: at line start, indented at most 3 columns more than the
+ *   opening fence, the same character, a run at least as long as the
+ *   opener, and only whitespace after it until the end of the line. After
+ *   such a run the filter stays in code ("pending close"): whitespace and
+ *   the newline confirm the close, any other character cancels it and the
+ *   block continues. Either way those characters are emitted unchanged.
+ * - Inline code: a backtick run of any length that is not an opening fence
+ *   (mid-line, or 1-2 backticks at line start) opens an inline span, closed
+ *   by a run of exactly the same length, or by a blank line (inline code
+ *   never spans paragraphs). Mid-line tildes are plain text.
+ * - Not supported: fences inside `>` blockquotes. The `>` makes the run
+ *   mid-line, so it is read as an inline span; em / en dashes there may be
+ *   kept or converted depending on the markers that follow.
+ * Marker characters are emitted immediately; a marker split across chunks
+ * is resolved when the next chunk shows how long the run is, before any of
+ * that chunk's text is rewritten. Nothing is held back, so there is nothing
+ * to flush at the end or lose on cancel. Spaces before an em / en dash
+ * that were emitted in an earlier chunk stay as they are.
+ */
+export class StreamDashFilter {
+    private state: DashFilterState = { kind: "prose" };
+    /** Whitespace only since the last newline (or stream start). */
+    private lineStart = true;
+    /** Indentation (columns) of the current line so far, while `lineStart`. */
+    private indent = 0;
+    /** The pending marker run: its character, length so far, and where it began. */
+    private run: { char: FenceChar; length: number; atLineStart: boolean; indent: number } | null = null;
+
+    push(chunk: string): string {
+        if (!chunk) return chunk;
+        let out = "";
+        let prose = "";
+        const flushProse = () => {
+            if (!prose) return;
+            out += swapProseDashes(prose);
+            prose = "";
+        };
+        const emit = (ch: string) => { out += ch; };
+
+        for (const ch of chunk) {
+            if (this.run) {
+                if (ch === this.run.char) { this.run.length++; emit(ch); continue; }
+                this.resolveRun();
+            }
+            const state = this.state;
+            if (state.kind === "fence" && state.pendingClose) {
+                if (ch === "\n") {
+                    this.state = { kind: "prose" };
+                    this.lineStart = true;
+                    this.indent = 0;
+                    emit(ch);
+                    continue;
+                }
+                if (/\s/.test(ch)) { emit(ch); continue; }
+                // Text after the fence run: not a close, the block goes on.
+                state.pendingClose = false;
+            }
+            const isMarker = ch === "`" || (ch === "~" && this.lineStart);
+            if (isMarker) {
+                flushProse();
+                this.run = { char: ch as FenceChar, length: 1, atLineStart: this.lineStart, indent: this.indent };
+                this.lineStart = false;
+                emit(ch);
+                continue;
+            }
+            if (ch === "\n") {
+                if (this.lineStart && this.state.kind === "inline") this.state = { kind: "prose" };
+                this.lineStart = true;
+                this.indent = 0;
+            } else if (this.lineStart && (ch === " " || ch === "\t")) {
+                this.indent += ch === "\t" ? 4 : 1;
+            } else if (!/\s/.test(ch)) {
+                this.lineStart = false;
+            }
+            if (this.state.kind === "prose") prose += ch;
+            else emit(ch);
+        }
+        flushProse();
+        return out;
+    }
+
+    private resolveRun(): void {
+        const run = this.run!;
+        this.run = null;
+        const state = this.state;
+        if (state.kind === "fence") {
+            const closes = run.atLineStart && run.char === state.char && run.length >= state.length
+                && run.indent <= state.indent + 3;
+            if (closes) state.pendingClose = true;
+        } else if (run.atLineStart && run.length >= 3) {
+            this.state = { kind: "fence", char: run.char, length: run.length, indent: run.indent, pendingClose: false };
+        } else if (state.kind === "inline") {
+            if (run.char === "`" && run.length === state.ticks) this.state = { kind: "prose" };
+        } else if (run.char === "`") {
+            this.state = { kind: "inline", ticks: run.length };
+        }
+    }
+}
+
+/**
+ * Wraps a token stream with a fresh `StreamDashFilter` (one per stream).
+ * Closing the returned generator early closes `source` too.
+ */
+export async function* filterStreamDashes(source: AsyncIterable<string>): AsyncGenerator<string, void, unknown> {
+    const filter = new StreamDashFilter();
+    for await (const chunk of source) yield filter.push(chunk);
 }
 
 /**
@@ -126,7 +257,7 @@ export function clampResponse(
 
     let result = text.trim();
 
-    // Step 0: Reduce dashes (em/en/connector hyphen → comma). Backstop for
+    // Step 0: Reduce dashes (em/en dash → comma; ASCII hyphen untouched). Backstop for
     // the prompt-level anti-tell rule that providers don't fully respect.
     result = reduceDashes(result);
 
