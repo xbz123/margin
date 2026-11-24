@@ -32,8 +32,10 @@ const TWO_SUM_CODE = [
 const TWO_SUM = `Use a hash map — one pass is enough.\n\n${TWO_SUM_CODE}\n\nIt runs in O(n) time - each element is seen once.`;
 const TWO_SUM_OUT = TWO_SUM.replace('map — one', 'map, one');
 
-/** Feeds `chunks` through one filter and returns the joined output. */
-const run = (chunks, filter = new StreamDashFilter()) => chunks.map(chunk => filter.push(chunk)).join('');
+/** Feeds `chunks` through one filter and returns the joined output, held trailing whitespace included. */
+const run = (chunks, filter = new StreamDashFilter()) => chunks.map(chunk => filter.push(chunk)).join('') + filter.finish();
+/** The output of each push() in turn (no finish()). */
+const pushes = (chunks, filter = new StreamDashFilter()) => chunks.map(chunk => filter.push(chunk));
 /** Splits text into chunks of `size` characters. */
 const every = (text, size) => Array.from({ length: Math.ceil(text.length / size) }, (_, i) => text.slice(i * size, (i + 1) * size));
 /** Splits text before each occurrence of `marker` and right after it. */
@@ -184,7 +186,7 @@ test('The ASCII hyphen is untouched in the hardest Markdown cases, byte for byte
   }
 });
 
-test('filterStreamDashes yields every chunk, holds nothing back, and closes the source on early return', async () => {
+test('filterStreamDashes yields each chunk as it arrives and closes the source on early return', async () => {
   let closed = false;
   async function* source() { try { yield '```js\n'; yield 'a — b'; yield '\n```'; yield '\nx — y - z'; } finally { closed = true; } }
   const got = [];
@@ -196,6 +198,13 @@ test('filterStreamDashes yields every chunk, holds nothing back, and closes the 
   assert.deepEqual((await early.next()).value, 'a — b', 'text is yielded as soon as it arrives');
   await early.return();
   assert.ok(closed, 'stopping early closes the provider stream');
+});
+
+test('filterStreamDashes skips empty outputs and yields held trailing whitespace at the normal end', async () => {
+  async function* source() { yield 'word '; yield '  '; yield '— next'; yield ''; yield ' \t'; }
+  const got = [];
+  for await (const chunk of filterStreamDashes(source())) got.push(chunk);
+  assert.deepEqual(got, ['word', ', next', ' \t']);
 });
 
 const packet = (text, finishReason = 'STOP') => ({ text, candidates: [{ content: { parts: [{ text }] }, ...(finishReason ? { finishReason } : {}) }] });
@@ -243,8 +252,101 @@ test('Two LLMHelper.streamChat calls interleaved do not share filter state', asy
   assert.ok(outB.endsWith(' simple, yes - ok'), outB);
 });
 
-test('reduceDashes restores code literally and keeps line breaks during comma cleanup', () => {
+test('reduceDashes keeps code literally, keeps line breaks and never removes commas already in the text', () => {
   assert.equal(reduceDashes('Use `$&` and `a$$b` here — ok\n```\nx = "$$" - y\n```\n'), 'Use `$&` and `a$$b` here, ok\n```\nx = "$$" - y\n```\n');
   assert.equal(reduceDashes('a —\n— b'), 'a, \nb');
-  assert.equal(reduceDashes('a,\n, b'), 'a,\nb');
+  assert.equal(reduceDashes('a,\n, b'), 'a,\n, b');
+  assert.equal(reduceDashes('甲, , 乙'), '甲, , 乙');
+  assert.equal(reduceDashes(''), '');
+  assert.equal(reduceDashes(undefined), '');
+});
+
+test('A dash run gives one separator: "，" after CJK, ", " otherwise, one space after ASCII punctuation, nothing at line start or after CJK punctuation, dropped before punctuation', () => {
+  const cases = [
+    ['两个数值——这种方法', '两个数值，这种方法'], ['甲———乙', '甲，乙'], ['甲 — 乙', '甲，乙'], ['句。——下句', '句。下句'],
+    ['甲，——乙', '甲，乙'], ['word — next', 'word, next'], ['word —\nnext', 'word, \nnext'], ['  — item', '  item'],
+    ['A—中', 'A, 中'], ['中—A', '中，A'], ['word.—Next', 'word. Next'], ['word, — next', 'word, next'],
+    ['“好”——他说', '“好”，他说'], ['"no"—then', '"no", then'], ['`甲——乙` —ok', '`甲——乙`, ok'],
+    ['x - y\n- - -\n--flag', 'x - y\n- - -\n--flag'], ['word   ', 'word   '],
+    ['word —.', 'word.'], ['a —, b', 'a, b'], ['甲——，乙', '甲，乙'], ['甲——。', '甲。'], ['a—`x`', 'a, `x`'], ['甲—', '甲，'],
+    ['Done… — ok', 'Done… ok'], ['好的…——下一步', '好的…下一步'], ['甲\u3000——乙', '甲，乙'], ['x\u00A0— y', 'x, y'],
+    ['甲\u3000乙\u00A0丙', '甲\u3000乙\u00A0丙'], ['\u3000— x', '\u3000x'], ['x — !', 'x!'], ['a—…', 'a…'],
+  ];
+  for (const [raw, expected] of cases) assert.equal(reduceDashes(raw), expected, JSON.stringify(raw));
+  assert.equal(run(['word ', '— next']), 'word, next');
+  assert.equal(run(['word', ' ', '—', ' ', 'next']), 'word, next');
+  assert.equal(run(['a ', 'b']), 'a b');
+});
+
+test('Each push() emits only what is settled: held spaces and dropped dashes give ""', () => {
+  assert.deepEqual(pushes(['两个数值—', '—', '这种方法']), ['两个数值', '', '，这种方法']);
+  assert.deepEqual(pushes(['甲', '—', ' \t', '–—', '乙']), ['甲', '', '', '', '，乙']);
+  // The separator is held until the next character; finish() emits it (a cancelled stream loses it).
+  assert.deepEqual(pushes(['甲—']), ['甲']);
+  const cut = new StreamDashFilter();
+  assert.deepEqual(pushes(['甲—'], cut), ['甲']);
+  assert.equal(cut.finish(), '，');
+  // The held separator is dropped before clause punctuation, emitted before anything else.
+  assert.deepEqual(pushes(['word —', '.']), ['word', '.']);
+  assert.deepEqual(pushes(['a—', '`x`']), ['a', ', `x`']);
+  // The space before the dash was held, then dropped.
+  assert.deepEqual(pushes(['a ', '—', ' b']), ['a', '', ', b']);
+  // A surrogate pair split across chunks still counts as Han (U+20000).
+  assert.deepEqual(pushes(['\uD840', '\uDC00', '—乙']), ['\uD840', '\uDC00', '，乙']);
+  assert.deepEqual(pushes(['句。', '——下句；', '–', '末']), ['句。', '下句；', '', '末']);
+  const filter = new StreamDashFilter();
+  assert.deepEqual(pushes(['a ', '\t'], filter), ['a', '']);
+  assert.equal(filter.finish(), ' \t');
+  assert.equal(filter.finish(), '', 'finish() clears what it returned');
+});
+
+test('Split invariance: every chunking gives exactly reduceDashes(raw)', () => {
+  const samples = [
+    ['两个数值——这种方法', '两个数值，这种方法'],
+    ['甲 — – 乙', '甲，乙'],
+    ['word — next', 'word, next'],
+    ['word.—Next; ok, — go', 'word. Next; ok, go'],
+    ['句。——下句、—末', '句。下句、末'],
+    ['Done… — ok！—好', 'Done… ok！好'],
+    ['word —.', 'word.'],
+    ['a —, b', 'a, b'],
+    ['甲——，乙', '甲，乙'],
+    ['甲——。', '甲。'],
+    ['a—`x`', 'a, `x`'],
+    ['甲—', '甲，'],
+    ['Done… — ok', 'Done… ok'],
+    ['好的…——下一步', '好的…下一步'],
+    ['甲\u3000——乙', '甲，乙'],
+    ['x\u00A0— y', 'x, y'],
+    ['甲\u3000乙\u00A0丙 \u3000', '甲\u3000乙\u00A0丙 \u3000'],
+    ['x — !\n“好” —？', 'x!\n“好”？'],
+    ['“好”——他说', '“好”，他说'],
+    ['"no"—then', '"no", then'],
+    ['  — item\n\t— two', '  item\n\ttwo'],
+    ['a —\n— b', 'a, \nb'],
+    ['word —\nnext', 'word, \nnext'],
+    ['trail  \t', 'trail  \t'],
+    ['a  b\t\tc ', 'a  b\t\tc '],
+    ['A—中 中—A', 'A, 中 中，A'],
+    ['`甲——乙` —ok', '`甲——乙`, ok'],
+    ['x `a` — b ~~~ c', 'x `a`, b ~~~ c'],
+    ['```\nx — y\n```\n甲 — 乙', '```\nx — y\n```\n甲，乙'],
+    ['one ~~~\n~~~\na — b\n~~~\nc — d', 'one ~~~\n~~~\na — b\n~~~\nc, d'],
+    ['𠀀—乙 😀 — x', '𠀀，乙 😀，x'],
+    ['x - y\n- - -\n--flag', 'x - y\n- - -\n--flag'],
+    ['a,\n, b', 'a,\n, b'],
+    ['甲, , 乙', '甲, , 乙'],
+  ];
+  for (const [raw, expected] of samples) {
+    const whole = reduceDashes(raw);
+    assert.equal(whole, expected, JSON.stringify(raw));
+    assert.equal(run([raw]), whole, `${JSON.stringify(raw)} whole chunk`);
+    assert.equal(run(every(raw, 1)), whole, `${JSON.stringify(raw)} per UTF-16 code unit`);
+    for (let i = 0; i <= raw.length; i++) {
+      for (let j = i; j <= raw.length; j++) {
+        const chunks = [raw.slice(0, i), raw.slice(i, j), raw.slice(j)];
+        assert.equal(run(chunks), whole, `${JSON.stringify(raw)} cut at ${i}, ${j}`);
+      }
+    }
+  }
 });

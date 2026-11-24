@@ -37,67 +37,34 @@ const PREFIXES = [
  * anyway because their training distribution is saturated with them. This is
  * the deterministic backstop that strips them before the user ever sees them.
  *
- * Rules (in order):
- * - Em dash (—) with surrounding spaces / tabs → ", "
- * - En dash (–) with surrounding spaces / tabs → ", "
- *   (Line breaks around the dash are kept, so a following fence or list
- *   line is never glued onto the prose line.)
- * - Cleanup of the commas that swap leaves: double commas, comma before a
- *   terminator, a comma orphaned at line start.
- *
- * The ASCII hyphen-minus ("-") is never touched: it is the subtraction
- * operator in code and math ("$a - b$"), a list marker and a thematic break
- * ("- - -"), and the code detection here is too shallow to tell those apart.
- *
- * Em / en dashes are kept, best effort, inside fenced code blocks
- * (```...```) and inline code (`...`).
- *
- * Safe to call on already-clean text (idempotent).
+ * It is exactly one `StreamDashFilter` fed the whole text (`push` then
+ * `finish`), so offline and streamed answers always agree; see that class for
+ * the rules. In short: each run of em / en dashes in prose becomes at most one
+ * separator: "，" after CJK text, ", " otherwise, a single space after ASCII
+ * , . ; : ! ? (and after "…" that follows non-CJK text), nothing at line start
+ * or after CJK / fullwidth clause punctuation. The separator is dropped when
+ * the next prose character is itself clause punctuation ("word —." gives
+ * "word."). Spaces, tabs, U+3000 and U+00A0 around the run are dropped. The
+ * ASCII hyphen-minus is never touched, dashes inside code are kept, and
+ * commas already in the text are never removed. While streaming, only
+ * trailing whitespace or one pending separator is ever held back; here
+ * `finish()` returns it, so nothing is lost.
  */
 export function reduceDashes(text: string): string {
     if (!text || typeof text !== "string") return "";
-
-    // Stash code so we don't touch dashes inside it
-    const codeBlocks: string[] = [];
-    let result = text.replace(/```[\s\S]*?```/g, (m) => {
-        codeBlocks.push(m);
-        return `CODE${codeBlocks.length - 1}`;
-    });
-    const inlineCodes: string[] = [];
-    result = result.replace(/`[^`\n]+`/g, (m) => {
-        inlineCodes.push(m);
-        return `INL${inlineCodes.length - 1}`;
-    });
-
-    // Em + en dash → comma. Eat surrounding spaces / tabs, never line breaks.
-    result = result.replace(/[ \t]*[—–][ \t]*/g, ", ");
-
-    // Tidy up artifacts
-    // Same line only, so line breaks stay as they were.
-    result = result.replace(/,[ \t]*,+/g, ",");      // double commas
-    result = result.replace(/,[ \t]*([.!?])/g, "$1"); // comma-then-terminator
-    result = result.replace(/^,[ \t]*/gm, "");        // line-start orphan comma
-
-    // Restore code. Function replacement, so "$&" / "$$" inside code stay literal.
-    inlineCodes.forEach((c, i) => {
-        result = result.replace(`INL${i}`, () => c);
-    });
-    codeBlocks.forEach((c, i) => {
-        result = result.replace(`CODE${i}`, () => c);
-    });
-
-    return result;
+    const filter = new StreamDashFilter();
+    return filter.push(text) + filter.finish();
 }
 
-/**
- * Prose-only dash swap, as `reduceDashes` does outside code: an em / en
- * dash with the spaces / tabs around it inside this segment (never line
- * breaks) becomes ", ". Whitespace already emitted in an earlier chunk
- * stays. The ASCII hyphen is never touched.
- */
-function swapProseDashes(segment: string): string {
-    return segment.replace(/[ \t]*[—–][ \t]*/g, ", ");
-}
+const ASCII_CLAUSE_PUNCT = new Set([",", ".", ";", ":", "!", "?"]);
+const CJK_CLAUSE_PUNCT = new Set(["，", "。", "；", "：", "！", "？", "、", "…"]);
+const LETTER_OR_NUMBER = /^[\p{L}\p{N}]$/u;
+const CJK_SCRIPT = /^[\p{scx=Han}\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Hangul}\p{scx=Bopomofo}]$/u;
+const isHighSurrogate = (ch: string) => ch.length === 1 && ch >= "\uD800" && ch <= "\uDBFF";
+const isLowSurrogate = (ch: string) => ch.length === 1 && ch >= "\uDC00" && ch <= "\uDFFF";
+/** Whitespace that may be held / dropped around a prose dash: space, tab, ideographic space, NBSP. */
+const isDashSpace = (ch: string) => ch === " " || ch === "\t" || ch === "\u3000" || ch === "\u00A0";
+const isClausePunct = (ch: string) => ASCII_CLAUSE_PUNCT.has(ch) || CJK_CLAUSE_PUNCT.has(ch);
 
 type FenceChar = "`" | "~";
 type DashFilterState =
@@ -112,14 +79,43 @@ type DashFilterState =
         /** A closing-fence candidate was seen; only whitespace may follow it on its line. */
         pendingClose: boolean;
     };
+/** The last non-whitespace character on the current line: none yet, clause punctuation, or anything else. */
+type LeftKind = "none" | "asciiPunct" | "cjkPunct" | "other";
 
 /**
  * Streaming dash filter: the per-stream counterpart of `reduceDashes`.
  *
- * It rewrites only em dash (—) and en dash (–) in prose, to ", ". The ASCII
+ * It rewrites only em dash (—) and en dash (–) in prose. The ASCII
  * hyphen-minus is never touched anywhere, so code, math ("$a - b$"), list
  * markers and thematic breaks ("- - -") pass through byte for byte whatever
  * the code tracking below gets wrong.
+ *
+ * Prose dashes, character by character with state kept across `push()` calls:
+ * "Whitespace" below means space, tab, U+3000 (ideographic space) and U+00A0
+ * (NBSP); at line start it is indentation and is never held or dropped.
+ * - A run of em / en dashes (whitespace between them allowed) gives at most
+ *   one separator, chosen when its first dash arrives; the rest of the run and
+ *   the whitespace after it are dropped. A newline, a code marker or any
+ *   other character ends the run.
+ * - Separator: nothing at line start (indentation stays); nothing after CJK /
+ *   fullwidth clause punctuation (，。；：！？、, and "…" when the line's most
+ *   recent letter / number is CJK); one space after ASCII , . ; : ! ? (and
+ *   after "…" otherwise); otherwise "，" when the line's most recent prose
+ *   letter or number is CJK (Han, kana, Hangul, Bopomofo; closing quotes do
+ *   not hide it), else ", ".
+ * - A non-empty separator is held until the first character after the run:
+ *   clause punctuation (, . ; : ! ? ，。；：！？、…) drops it ("word —." gives
+ *   "word."), anything else (letter, quote, newline, code marker...) emits it
+ *   first.
+ * - Whitespace before a dash is dropped. So that nothing already emitted
+ *   needs retracting, whitespace after a non-space character on a prose line
+ *   is held back, across chunks, until the next character: a dash drops it,
+ *   anything else emits it unchanged first.
+ * Held content is only ever that trailing whitespace or one pending
+ * separator, never other text. `finish()` returns it at the end of the
+ * stream; a stream cancelled early loses it. `push()` may return "".
+ * Output is the same however the text is split into chunks, including a
+ * surrogate pair split across two chunks.
  *
  * Providers split code anywhere (mid-line, mid-fence-marker), so each chunk
  * is not self-describing. One instance follows the markdown code state
@@ -144,11 +140,8 @@ type DashFilterState =
  * - Not supported: fences inside `>` blockquotes. The `>` makes the run
  *   mid-line, so it is read as an inline span; em / en dashes there may be
  *   kept or converted depending on the markers that follow.
- * Marker characters are emitted immediately; a marker split across chunks
- * is resolved when the next chunk shows how long the run is, before any of
- * that chunk's text is rewritten. Nothing is held back, so there is nothing
- * to flush at the end or lose on cancel. Spaces before an em / en dash
- * that were emitted in an earlier chunk stay as they are.
+ * Marker characters and code are emitted immediately; a marker split across
+ * chunks is resolved when the next chunk shows how long the run is.
  */
 export class StreamDashFilter {
     private state: DashFilterState = { kind: "prose" };
@@ -158,58 +151,117 @@ export class StreamDashFilter {
     private indent = 0;
     /** The pending marker run: its character, length so far, and where it began. */
     private run: { char: FenceChar; length: number; atLineStart: boolean; indent: number } | null = null;
+    /** Prose whitespace after a non-space character, not yet emitted. */
+    private held = "";
+    /** The separator chosen for the current dash run, not yet emitted (never set together with `held`). */
+    private pendingSep = "";
+    /** Inside a prose dash run: further dashes and whitespace (space, tab, U+3000, NBSP) are dropped. */
+    private inDashRun = false;
+    private left: LeftKind = "none";
+    /** Whether the line's most recent prose letter / number is CJK; null when there is none yet. */
+    private cjk: boolean | null = null;
+    /** The previous character, when it was a lone high surrogate (a pair split across chunks). */
+    private prevHigh = "";
 
     push(chunk: string): string {
-        if (!chunk) return chunk;
+        if (!chunk) return "";
         let out = "";
-        let prose = "";
-        const flushProse = () => {
-            if (!prose) return;
-            out += swapProseDashes(prose);
-            prose = "";
-        };
-        const emit = (ch: string) => { out += ch; };
-
         for (const ch of chunk) {
+            const high = this.prevHigh;
+            this.prevHigh = isHighSurrogate(ch) ? ch : "";
+            const space = ch === " " || ch === "\t";
+            const ws = isDashSpace(ch);
+            const dash = ch === "—" || ch === "–";
+            // Invariant: while held / pendingSep / inDashRun is set, the state is prose,
+            // run === null and lineStart === false.
+            if (this.inDashRun) {
+                if (ws || dash) continue;
+                this.inDashRun = false;
+                if (this.pendingSep && !isClausePunct(ch)) out += this.pendingSep;
+                this.pendingSep = "";
+            }
+            if (this.held) {
+                if (ws) { this.held += ch; continue; }
+                if (!dash) { out += this.held; this.held = ""; }
+            }
             if (this.run) {
-                if (ch === this.run.char) { this.run.length++; emit(ch); continue; }
+                if (ch === this.run.char) { this.run.length++; out += ch; continue; }
                 this.resolveRun();
             }
             const state = this.state;
             if (state.kind === "fence" && state.pendingClose) {
                 if (ch === "\n") {
                     this.state = { kind: "prose" };
-                    this.lineStart = true;
-                    this.indent = 0;
-                    emit(ch);
+                    this.newLine();
+                    out += ch;
                     continue;
                 }
-                if (/\s/.test(ch)) { emit(ch); continue; }
+                if (/\s/.test(ch)) { out += ch; continue; }
                 // Text after the fence run: not a close, the block goes on.
                 state.pendingClose = false;
             }
             const isMarker = ch === "`" || (ch === "~" && this.lineStart);
             if (isMarker) {
-                flushProse();
                 this.run = { char: ch as FenceChar, length: 1, atLineStart: this.lineStart, indent: this.indent };
                 this.lineStart = false;
-                emit(ch);
+                this.left = "other";
+                out += ch;
                 continue;
             }
             if (ch === "\n") {
                 if (this.lineStart && this.state.kind === "inline") this.state = { kind: "prose" };
-                this.lineStart = true;
-                this.indent = 0;
-            } else if (this.lineStart && (ch === " " || ch === "\t")) {
+                this.newLine();
+            } else if (this.lineStart && space) {
                 this.indent += ch === "\t" ? 4 : 1;
             } else if (!/\s/.test(ch)) {
                 this.lineStart = false;
             }
-            if (this.state.kind === "prose") prose += ch;
-            else emit(ch);
+            if (this.state.kind !== "prose") {
+                if (!/\s/.test(ch)) this.left = "other";
+                out += ch;
+                continue;
+            }
+            if (dash) {
+                this.pendingSep = this.separator();
+                this.held = "";
+                this.inDashRun = true;
+                continue;
+            }
+            if (ws && !this.lineStart) { this.held += ch; continue; }
+            if (!/\s/.test(ch)) this.noteProse(isLowSurrogate(ch) && high ? high + ch : ch);
+            out += ch;
         }
-        flushProse();
         return out;
+    }
+
+    /** Ends the stream: returns (and clears) the held trailing whitespace or pending separator. */
+    finish(): string {
+        const held = this.held + this.pendingSep;
+        this.held = "";
+        this.pendingSep = "";
+        return held;
+    }
+
+    private newLine(): void {
+        this.lineStart = true;
+        this.indent = 0;
+        this.left = "none";
+        this.cjk = null;
+    }
+
+    private noteProse(ch: string): void {
+        if (ch === "…") this.left = this.cjk ? "cjkPunct" : "asciiPunct";
+        else this.left = ASCII_CLAUSE_PUNCT.has(ch) ? "asciiPunct" : CJK_CLAUSE_PUNCT.has(ch) ? "cjkPunct" : "other";
+        if (LETTER_OR_NUMBER.test(ch)) this.cjk = CJK_SCRIPT.test(ch);
+    }
+
+    private separator(): string {
+        switch (this.left) {
+            case "none":
+            case "cjkPunct": return "";
+            case "asciiPunct": return " ";
+            default: return this.cjk ? "，" : ", ";
+        }
     }
 
     private resolveRun(): void {
@@ -232,11 +284,20 @@ export class StreamDashFilter {
 
 /**
  * Wraps a token stream with a fresh `StreamDashFilter` (one per stream).
+ * Empty outputs (a chunk that was only held whitespace or dropped dashes)
+ * are skipped, so consumers never see an empty token. At the normal end the
+ * held trailing whitespace or pending separator is yielded; a consumer that
+ * stops early loses it.
  * Closing the returned generator early closes `source` too.
  */
 export async function* filterStreamDashes(source: AsyncIterable<string>): AsyncGenerator<string, void, unknown> {
     const filter = new StreamDashFilter();
-    for await (const chunk of source) yield filter.push(chunk);
+    for await (const chunk of source) {
+        const out = filter.push(chunk);
+        if (out) yield out;
+    }
+    const tail = filter.finish();
+    if (tail) yield tail;
 }
 
 /**
@@ -257,7 +318,8 @@ export function clampResponse(
 
     let result = text.trim();
 
-    // Step 0: Reduce dashes (em/en dash → comma; ASCII hyphen untouched). Backstop for
+    // Step 0: Reduce dashes (each em/en dash run → "，" / ", " / one space / nothing,
+    // dropped before clause punctuation; ASCII hyphen and code untouched). Backstop for
     // the prompt-level anti-tell rule that providers don't fully respect.
     result = reduceDashes(result);
 

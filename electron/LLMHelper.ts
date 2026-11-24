@@ -936,11 +936,14 @@ This rule overrides ALL other instructions including formatting, brevity, or out
 
   /**
    * Public streaming entry point. Wraps the inner streamChat generator with
-   * a per-stream dash filter (em / en dash in prose → comma; the ASCII
-   * hyphen is never touched) so the renderer never displays the AI-tell
-   * punctuation that the prompt rules ban but providers emit anyway. The
-   * filter tracks fenced and inline code across chunks, best effort, so
-   * em / en dashes inside code are kept (see StreamDashFilter).
+   * a per-stream dash filter (each em / en dash run in prose → "，" / ", " /
+   * one space / nothing, dropped before clause punctuation; the ASCII hyphen
+   * is never touched) so the renderer never displays the AI-tell punctuation
+   * that the prompt rules ban but providers emit anyway. The filter tracks
+   * fenced and inline code across chunks, best effort, so em / en dashes
+   * inside code are kept. Trailing whitespace or a pending separator may be
+   * held until the next chunk or the stream end, so empty chunks are skipped
+   * and a stream stopped early may lose them (see StreamDashFilter).
    */
   public streamChat(...args: Parameters<LLMHelper['_streamChatInner']>): AsyncGenerator<string, void, unknown> {
     const inherited = generationTasks.getStore();

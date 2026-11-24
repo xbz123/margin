@@ -453,7 +453,8 @@ for (const visible of [false, true]) test(`actual Engine TTFT clears only at dis
   const pending = self.runGeneration(() => engine.runWhatShouldISay('QUESTION', 0.8, undefined, { skipCooldown: true }), 'interview', undefined, task);
   await waiting.promise;
   assert.equal(task.hasText, true, 'received content conservatively prevents retry');
-  assert.deepEqual(tokens, visible ? ['Actual answer body '] : []);
+  // The dash filter holds trailing whitespace until the next chunk or stream end.
+  assert.deepEqual(tokens, visible ? ['Actual answer body'] : []);
   t.mock.timers.tick(10_001);
   if (visible) {
     task.check(); assert.equal(task.signal.aborted, false, 'displayed body disables only TTFT');
