@@ -474,7 +474,7 @@ export class OpenAIStreamingSTT extends EventEmitter {
         console.log(`[OpenAIStreaming] Connecting WebSocket (model=${model}, attempt=${this.reconnectAttempts + 1})...`);
 
         // streamingStttWsOptions: IPv4-only DNS + 15s handshake cap (dnsHelpers.ts).
-        this.ws = new WebSocket(REALTIME_WS_URL, streamingStttWsOptions({
+        this.ws = new WebSocket(REALTIME_WS_URL, streamingStttWsOptions(REALTIME_WS_URL, {
             headers: {
                 Authorization: `Bearer ${this.apiKey}`,
             },

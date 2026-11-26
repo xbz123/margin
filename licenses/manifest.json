@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "scope": "Candidate notice inventory, not an actual app package or legal-compliance verdict. Native vendored dependencies and copyleft obligations require the documented package review.",
-  "packageLockSHA256": "101b75cc2f240d6d243e4b74f60f7a4c56cbdeba0ca0d177ce9ba41a049909cf",
+  "packageLockSHA256": "1b8cb81300809bbdac328ea09b372dcc2936732f75de0c0dd314e28fde7a4fc9",
   "cargoLockSHA256": "6cad1864b56bf18bc9ba3d8ec263fcdb7f31862f0642c4094bf3f7a137dc2ad2",
   "sourceConfigSHA256": "066cf486622b2d420027747f564673c30f41b580c8eeb9a68bc8566be9193314",
   "electronVersion": "43.1.0",
@@ -5446,25 +5446,6 @@
       "basis": "installed non-dev lock candidate"
     },
     {
-      "id": "npm:safer-buffer@2.1.2:node_modules/safer-buffer",
-      "kind": "npm",
-      "name": "safer-buffer",
-      "version": "2.1.2",
-      "location": "node_modules/safer-buffer",
-      "license": "MIT",
-      "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==",
-      "repo": "ChALkeR/safer-buffer",
-      "texts": [
-        {
-          "file": "texts/4bc935e71be198c67ddf3c2b5fddb195f6edc182bfc155a96a6db61b44b494b9.txt",
-          "sha256": "4bc935e71be198c67ddf3c2b5fddb195f6edc182bfc155a96a6db61b44b494b9",
-          "sourcePath": "node_modules/safer-buffer/LICENSE",
-          "origin": "installed package"
-        }
-      ],
-      "basis": "installed non-dev lock candidate"
-    },
-    {
       "id": "npm:scheduler@0.27.0:node_modules/scheduler",
       "kind": "npm",
       "name": "scheduler",
@@ -5899,6 +5880,25 @@
           "file": "texts/d446a8c73d7bbe4872d6524b15ae206f9a2d7eb53f8c9cb6e6c893a43acc5276.txt",
           "sha256": "d446a8c73d7bbe4872d6524b15ae206f9a2d7eb53f8c9cb6e6c893a43acc5276",
           "sourcePath": "node_modules/tunnel-agent/LICENSE",
+          "origin": "installed package"
+        }
+      ],
+      "basis": "installed non-dev lock candidate"
+    },
+    {
+      "id": "npm:undici@7.30.2:node_modules/undici",
+      "kind": "npm",
+      "name": "undici",
+      "version": "7.30.2",
+      "location": "node_modules/undici",
+      "license": "MIT",
+      "integrity": "sha512-mLyPQnHwUxaM/rideoK/+KL8DaAJLRl4aBCfmX444aCSLnIaomqPLtNRe2jdCYcsk5wZzXrDIQC8ZeYNRAYyIA==",
+      "repo": "nodejs/undici",
+      "texts": [
+        {
+          "file": "texts/a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27.txt",
+          "sha256": "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27",
+          "sourcePath": "node_modules/undici/LICENSE",
           "origin": "installed package"
         }
       ],

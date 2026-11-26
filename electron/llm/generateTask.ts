@@ -208,6 +208,16 @@ function isImageRejection(error: any): boolean {
         || /(?:does not support|doesn't support|cannot process|unable to process) (?:image|vision)|image (?:input|processing) (?:is )?not supported/i.test(info?.message ?? '');
 }
 
+/** The network proxy's ProxyError in a cause chain, matched by name so this module needs no proxy import. */
+function proxyFailureIn(error: any): Error | undefined {
+    const seen = new Set();
+    for (let cause = error; cause && typeof cause === 'object' && !seen.has(cause); cause = cause.cause) {
+        seen.add(cause);
+        if (cause.name === 'ProxyError') return cause;
+    }
+    return undefined;
+}
+
 export function classifyGenerationFailure(error: any): 'transient' | 'model-unavailable' | 'cache-invalid' | 'terminal' {
     const info = details(error);
     const code = info?.code ?? error?.code;
@@ -261,6 +271,8 @@ export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T
         task.endSend();
         failure ??= new GenerationResultError('incomplete', task.hasText);
         task.check(); rethrowProviderScopeError(failure);
+        // A proxy failure keeps its fixed text (SDKs wrap it as a generic connection error) and is terminal.
+        failure = proxyFailureIn(failure) ?? failure;
         if (task.hasText && (failure as any)?.name !== 'GenerationResultError') failure = Object.assign(new GenerationResultError('failed', true), { cause: failure });
         const category = classifyGenerationFailure(failure);
         const terminalFailure = () => {

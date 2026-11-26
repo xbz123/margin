@@ -908,6 +908,7 @@ test('S47 mounted settings and session selector share saved candidates through t
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage: { isEncryptionAvailable: () => true, encryptString: text => Buffer.from('cipher:' + text), decryptString: bytes => bytes.toString().slice(7) } };
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require(`${REPO}/dist-electron/electron/services/outbound.js`);
+        if (id === './proxy/settings') return require(`${REPO}/dist-electron/electron/services/proxy/settings.js`);
         if (id === '../utils/validateSttBaseUrl') return require(`${REPO}/dist-electron/electron/utils/validateSttBaseUrl.js`);
         if (id === '../config/languages') return require(`${REPO}/dist-electron/electron/config/languages.js`);
         if (id === '../../src/types/llmTarget') return types;
@@ -1123,6 +1124,7 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage: { isEncryptionAvailable: () => true, encryptString: text => Buffer.from('cipher:' + text), decryptString: bytes => bytes.toString().slice(7) } };
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require(`${REPO}/dist-electron/electron/services/outbound.js`);
+        if (id === './proxy/settings') return require(`${REPO}/dist-electron/electron/services/proxy/settings.js`);
         if (id === '../utils/validateSttBaseUrl') return require(`${REPO}/dist-electron/electron/utils/validateSttBaseUrl.js`);
         if (id === '../config/languages') return require(`${REPO}/dist-electron/electron/config/languages.js`);
         if (id === '../../src/types/llmTarget') return types;

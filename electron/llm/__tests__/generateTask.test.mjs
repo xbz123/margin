@@ -113,6 +113,16 @@ for (const [name, failure, backup, expected] of [
   } finally { task.close(); }
 });
 
+test('a proxy failure inside an SDK connection error surfaces with its fixed text and never retries or uses the backup', async () => {
+  const proxyError = Object.assign(new Error('The proxy server rejected the proxy credentials.'), { name: 'ProxyError', code: 'PROXY_AUTH_FAILED' });
+  const sdkError = Object.assign(new Error('Connection error.'), { cause: Object.assign(new TypeError('fetch failed'), { cause: proxyError }) });
+  const task = new GenerationTask('A', 'B'); const sent = [];
+  try {
+    await assert.rejects(() => drain(generateTask(task, async function* (target) { task.claimSend(); sent.push(target); throw sdkError; })), error => error === proxyError);
+    assert.deepEqual(sent, ['A']);
+  } finally { task.close(); }
+});
+
 for (const status of ['empty', 'refused', 'incomplete']) test(`${status} never retries`, async () => {
   const task = new GenerationTask('A', 'B'); let sends = 0;
   try {

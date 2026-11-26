@@ -70,6 +70,7 @@ function chain() {
       if (id === './services/WrittenExamMode') return dist('services/WrittenExamMode');
       if (['./llm/scenarioPrompts', './services/PromptSettingsStore', './direct-assist/errors', './utils/imagePathValidation', './ipc/speechActions', './SessionTracker'].includes(id)) return dist(id.substring(2));
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+      if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'temp' } };
       if (['fs', 'os', 'path', 'crypto'].includes(id)) return require(id);

@@ -43,6 +43,7 @@ function handlers(root, queue = []) {
       if (id === './direct-assist/errors') return require('../../../dist-electron/electron/direct-assist/errors.js');
       if (id === './llm/scenarioPrompts') return require('../../../dist-electron/electron/llm/scenarioPrompts.js');
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+      if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './ipc/speechActions') return require('../../../dist-electron/electron/ipc/speechActions.js');
       if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'Synthetic' } };

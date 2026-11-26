@@ -36,6 +36,7 @@ import { requestUiLanguage, useI18n, type UiLanguage } from '../i18n';
 import { resolveSettingsTab, SETTINGS_TABS, type SettingsTab } from './settings/settingsTabs';
 import { WrittenExamSettings } from './settings/WrittenExamSettings';
 import { SentScreenshotsSetting } from './settings/SentScreenshotsSetting';
+import { NetworkProxySettings } from './settings/NetworkProxySettings';
 import { SettingsGroup, SettingsHeading, SettingsRow, SettingsSwitch, settingsButtonClass } from './settings/SettingsKit';
 
 // ---------------------------------------------------------------------------
@@ -378,6 +379,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
         general: { label: 'General', icon: Monitor },
         'ai-providers': { label: 'AI Providers', icon: FlaskConical },
         audio: { label: 'Speech & Audio', icon: Mic },
+        network: { label: 'Network & Proxy', icon: Globe },
         'written-exam': { label: 'Written exam mode', icon: Keyboard },
         context: { label: 'Context & Skills', icon: Sparkles },
         'meeting-records': { label: 'Meeting records', icon: Archive },
@@ -1681,6 +1683,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                 </div>
                             )}
 
+                            {activeTab === 'network' && <NetworkProxySettings />}
                             {activeTab === 'ai-providers' && (
                                 <AIProvidersSettings />
                             )}

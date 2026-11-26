@@ -30,6 +30,9 @@ import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 import { sttKeyPreview, isSttKeyPreview, sttKeyToTest, sttPreviewSaveResult } from './utils/sttKeyPreview';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
+import { registerNetworkProxyHandlers } from './ipc/networkProxyHandlers';
+import { proxyErrorIn } from './services/proxy';
+import { streamingStttWsOptions } from './audio/dnsHelpers';
 import { registerLocalContextHandlers } from './ipc/localContextHandlers';
 import { SpeechActions, SpeechActionError, type SpeechAction, type SpeechActionKind } from './ipc/speechActions';
 import { formatTranscriptItems, type TranscriptView } from './SessionTracker';
@@ -1236,7 +1239,7 @@ export function initializeIpcHandlers(appState: AppState): void {
         return { success: true, models };
       } catch (error: any) {
         console.error(`[IPC] Failed to fetch ${provider} models`);
-        return { success: false, error: 'Failed to fetch models' };
+        return { success: false, error: proxyErrorIn(error)?.message ?? 'Failed to fetch models' };
       }
     },
   );
@@ -1252,9 +1255,9 @@ export function initializeIpcHandlers(appState: AppState): void {
       if (!key) return { success: false, error: 'No API key available. Please save a key first.' };
       const { fetchGatewayModels } = require('./utils/modelFetcher');
       return { success: true, models: await fetchGatewayModels(gateway, key) };
-    } catch {
+    } catch (error) {
       console.error('[IPC] Failed to fetch gateway models');
-      return { success: false, error: 'Failed to fetch models' };
+      return { success: false, error: proxyErrorIn(error)?.message ?? 'Failed to fetch models' };
     }
   });
 
@@ -1273,6 +1276,8 @@ export function initializeIpcHandlers(appState: AppState): void {
   // ==========================================
   // STT Provider Management Handlers
   // ==========================================
+
+  registerNetworkProxyHandlers(safeHandle);
 
   registerDomesticSttHandlers(safeHandle, async () => {
     await appState.reconfigureSttProvider();
@@ -1407,7 +1412,8 @@ export function initializeIpcHandlers(appState: AppState): void {
               resolve(result);
             };
 
-            const ws = new WebSocket('wss://stt-rt.soniox.com/transcribe-websocket');
+            const sonioxUrl = 'wss://stt-rt.soniox.com/transcribe-websocket';
+            const ws = new WebSocket(sonioxUrl, streamingStttWsOptions(sonioxUrl));
 
             // Hard connect timeout — server unreachable
             const connectTimeout = setTimeout(() => {
@@ -1511,6 +1517,8 @@ export function initializeIpcHandlers(appState: AppState): void {
 
         return { success: true };
       } catch (error: any) {
+        const proxyFailure = proxyErrorIn(error);
+        if (proxyFailure) return { success: false, error: proxyFailure.message };
         const respData = error?.response?.data;
         const rawMsg =
           respData?.error?.message ||
@@ -1583,6 +1591,8 @@ export function initializeIpcHandlers(appState: AppState): void {
           responseError: error?.response?.data?.error?.message || error?.response?.data?.message,
         };
         console.error('LLM connection test failed:', safeInfo);
+        const proxyFailure = proxyErrorIn(error);
+        if (proxyFailure) return { success: false, error: proxyFailure.message };
         const rawMsg =
           error?.response?.data?.error?.message ||
           error?.response?.data?.message ||
@@ -1611,6 +1621,8 @@ export function initializeIpcHandlers(appState: AppState): void {
       return { success: !!text.trim(), ...(text.trim() ? {} : { error: 'The provider returned an empty response.' }) };
     } catch (error: any) {
       console.error('Gateway connection test failed:', { status: error?.response?.status ?? error?.status, code: error?.code });
+      const proxyFailure = proxyErrorIn(error);
+      if (proxyFailure) return { success: false, error: proxyFailure.message };
       const rawMsg = error?.response?.data?.error?.message || error?.error?.message || error?.message || 'Connection failed';
       let secret: string | undefined;
       try { secret = require('./services/CredentialsManager').CredentialsManager.getInstance().getGatewayApiKey(id); } catch { secret = undefined; }

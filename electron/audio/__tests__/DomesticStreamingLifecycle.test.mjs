@@ -28,7 +28,9 @@ function load(name) {
   const js = ts.transpileModule(source, { compilerOptions: {
     target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true,
   } }).outputText;
-  new Function('require', 'exports', js)(id => id === 'ws' ? Socket : id.startsWith('./') ? load(id.substring(2)) : require(id), exports);
+  // dnsHelpers asks the network proxy for a ws agent; these local sockets always connect directly.
+  const directProxy = { webSocketAgentFor: () => undefined };
+  new Function('require', 'exports', js)(id => id === 'ws' ? Socket : id === '../services/proxy' ? directProxy : id.startsWith('./') ? load(id.substring(2)) : require(id), exports);
   return exports;
 }
 

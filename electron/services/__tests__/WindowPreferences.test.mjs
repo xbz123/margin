@@ -142,6 +142,7 @@ function ipcCallbacks(state) {
       require(id) {
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, BrowserWindow: { getAllWindows: () => [] }, ipcMain: { removeHandler() {}, handle: (name, fn) => callbacks.set(name, fn), removeAllListeners() {}, on() {} } };
         if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+        if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
         if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
         if (id === './ipc/speechActions') return { SpeechActions: class {} };
         if (id === './services/mainStrings') return { mainText: value => value };

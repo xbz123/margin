@@ -290,15 +290,17 @@ test('AG60 requesting a language never applies it unless main saved it', async (
 
 test('AG60 settings keep every section and old tab names open the moved sections', () => {
   const { resolveSettingsTab, SETTINGS_TABS } = sourceModule('src/components/settings/settingsTabs.ts');
-  const tabs = ['general', 'ai-providers', 'audio', 'written-exam', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about'];
+  const tabs = ['general', 'ai-providers', 'audio', 'network', 'written-exam', 'context', 'meeting-records', 'privacy', 'keybinds', 'help', 'about'];
   assert.deepEqual([...SETTINGS_TABS], tabs);
   for (const tab of tabs) assert.equal(resolveSettingsTab(tab), tab);
   assert.equal(resolveSettingsTab('skills'), 'context');
   assert.equal(resolveSettingsTab('local-context'), 'context');
   assert.equal(resolveSettingsTab('window-privacy'), 'privacy');
+  assert.equal(resolveSettingsTab('proxy'), 'network');
   for (const unknown of ['constructor', '__proto__', 'Skills', undefined, null, 3]) assert.equal(resolveSettingsTab(unknown), 'general');
   const overlay = fs.readFileSync(`${REPO}/src/components/SettingsOverlay.tsx`, 'utf8');
   assert.match(overlay, /activeTab === 'context'[\s\S]{0,200}<LocalContextSettings \/>[\s\S]{0,200}<PromptSettings \/>/);
+  assert.match(overlay, /activeTab === 'network' && <NetworkProxySettings \/>/);
 });
 
 test('S44 reasoning validation messages and option values are bounded and have Chinese entries', () => {

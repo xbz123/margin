@@ -277,7 +277,7 @@ export class SonioxStreamingSTT extends EventEmitter {
         // streamingStttWsOptions: forces IPv4-only DNS lookup (sidesteps Node's
         // macOS dual-stack ENOTFOUND on IPv4-only CNAME chains) and caps the
         // TLS+upgrade handshake at 15s. See dnsHelpers.ts.
-        const socket = new WebSocket(SONIOX_WEBSOCKET_URL, streamingStttWsOptions() as any);
+        const socket = new WebSocket(SONIOX_WEBSOCKET_URL, streamingStttWsOptions(SONIOX_WEBSOCKET_URL) as any);
         this.ws = socket;
 
         this.ws.on('open', () => {

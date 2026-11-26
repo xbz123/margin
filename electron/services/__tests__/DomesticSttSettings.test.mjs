@@ -147,7 +147,9 @@ test('S42-01 connection test and meeting capture open the same saved endpoint an
     const source = fs.readFileSync(new URL('../../audio/' + name + '.ts', import.meta.url), 'utf8');
     new Function('require', 'exports', ts.transpileModule(source, { compilerOptions: {
       module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText)(
-      id => id === 'ws' ? Socket : id.startsWith('./') ? loadAudio(id.substring(2)) : createRequire(import.meta.url)(id), exports);
+      id => id === 'ws' ? Socket : id.startsWith('./') ? loadAudio(id.substring(2))
+        : id === '../services/proxy' ? createRequire(import.meta.url)('../../../dist-electron/electron/services/proxy/index.js')
+        : createRequire(import.meta.url)(id), exports);
     return exports;
   };
   const store = new Manager();

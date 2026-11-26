@@ -24,10 +24,12 @@ for (const protectedStartup of [true, false]) test(`AG61: ${protectedStartup ? '
       AppState: { getInstance: () => state }, SettingsManager: { getInstance: () => ({ get: () => protectedStartup, getWrittenExamSettings: () => ({ codeOutputFormat: 'markdown' }) }) },
       KeybindManager: { getInstance: () => ({ registerGlobalShortcuts() {} }) }, initializeIpcHandlers() {}, logAppEvent() {}, screen: {},
       registerOsEventSubscriptions: () => () => {}, setTimeout() {},
-      require(id) { if (id === './services/CredentialsManager') return { CredentialsManager: { getInstance: () => ({ init: () => ({ ok: true }) }) } }; if (id === 'electron') return { powerMonitor: {} }; throw Error(`Unexpected import: ${id}`); } });
+      require(id) { if (id === './services/CredentialsManager') return { CredentialsManager: { getInstance: () => ({ init: () => ({ ok: true }), getNetworkProxySettings: () => ({ mode: 'system' }) }) } };
+        if (id === './services/proxy') return { setSystemProxyResolver() {}, configureNetworkProxy() { calls.push('proxy'); } }; if (id === 'electron') return { powerMonitor: {} }; throw Error(`Unexpected import: ${id}`); } });
   await module.exports.initializeApp();
   assert.equal(calls.includes('first-paint'), false);
   assert.ok(calls.indexOf('ready') < calls.indexOf('identity'));
+  assert.ok(calls.indexOf('ready') < calls.indexOf('proxy') && calls.indexOf('proxy') < calls.indexOf('construct'), 'proxy settings apply before any window or provider work');
   assert.ok(calls.indexOf('ready') < calls.indexOf('format:markdown'));
   assert.ok(calls.indexOf('format:markdown') < calls.indexOf('construct'));
   assert.ok(calls.indexOf('identity') < calls.indexOf('construct'));

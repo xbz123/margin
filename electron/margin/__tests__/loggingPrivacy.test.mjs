@@ -69,6 +69,7 @@ function runtime({ redactorFault, fileFault, terminalFault, verbose = false } = 
     const localRequire = id => {
       if (id === 'electron') return electron;
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+      if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './ipc/speechActions') return { SpeechActions: class {} };
       if (id === 'fs' || id === 'node:fs') return fakeFs;

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, systemPreferences, screen, desktopCapturer } from "electron"
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, systemPreferences, screen, desktopCapturer, session as electronSession } from "electron"
 import * as crypto from "crypto"
 import path from "path"
 import fs from "fs"
@@ -2492,6 +2492,17 @@ async function initializeApp() {
   const { CredentialsManager } = require('./services/CredentialsManager');
   const credentialLoad = CredentialsManager.getInstance().init();
   if (!credentialLoad.ok) console.warn('[Init] Credentials unavailable:', credentialLoad.message);
+
+  // 3a. Network proxy: applied before any outbound request. "Follow system" asks Chromium
+  // (system settings, PAC, WPAD), which is only possible after app ready.
+  const { configureNetworkProxy, setSystemProxyResolver } = require('./services/proxy');
+  setSystemProxyResolver((url: string) => electronSession.defaultSession.resolveProxy(url));
+  try {
+    configureNetworkProxy(CredentialsManager.getInstance().getNetworkProxySettings());
+  } catch {
+    console.warn('[Init] Saved proxy settings are invalid; following the system proxy.');
+    configureNetworkProxy(undefined);
+  }
 
   // 4. Initialize State
   const appState = AppState.getInstance()
