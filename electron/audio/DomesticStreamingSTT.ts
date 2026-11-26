@@ -286,7 +286,7 @@ export abstract class DomesticStreamingSTT extends EventEmitter {
       const id = this.nextScope ?? randomUUID();
       this.nextScope = undefined;
       const config = this.connection(id);
-      const ws = new WebSocket(config.url, { ...streamingStttWsOptions(), headers: config.headers, maxPayload: 1024 * 1024 });
+      const ws = new WebSocket(config.url, streamingStttWsOptions(config.url, { headers: config.headers, maxPayload: 1024 * 1024 }));
       this.socket = ws;
       this.current = id;
       if (this.drain) this.armDrainDeadline();

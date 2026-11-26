@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { axiosAgentsFor, fetchDispatcherFor, proxyDecisionSync, resolveProxyFor, type ProxyDecision } from './proxy';
 
 // Explicit user endpoints (including env and HTTP-compatible STT servers) remain
 // supported. Reject URL syntax that can conceal a different authority.
@@ -17,8 +18,14 @@ const guardedFetch = Symbol.for('margin.outbound.fetch');
 export function createOutboundFetch(transport: typeof fetch): typeof fetch {
   if ((transport as any)[guardedFetch]) return transport;
   const wrapped: typeof fetch = function (input, init) {
-    validateHttpEndpoint(input instanceof Request ? input.url : String(input));
-    return transport.call(this ?? globalThis, input, { ...init, redirect: 'error' });
+    const href = validateHttpEndpoint(input instanceof Request ? input.url : String(input));
+    const receiver = this ?? globalThis;
+    // The proxy decision comes after the endpoint check; a direct decision passes no dispatcher.
+    const send = (decision: ProxyDecision) => transport.call(receiver, input, decision === 'direct'
+      ? { ...init, redirect: 'error' }
+      : { ...init, redirect: 'error', dispatcher: fetchDispatcherFor(decision) } as RequestInit);
+    const known = proxyDecisionSync(href);
+    return known ? send(known) : resolveProxyFor(href).then(send);
   };
   Object.defineProperty(wrapped, guardedFetch, { value: true });
   return wrapped;
@@ -33,8 +40,12 @@ export const outboundFetch: typeof fetch = (input, init) => createOutboundFetch(
 
 export const outboundAxios = axios.create({ maxRedirects: 0 });
 outboundAxios.interceptors.request.use(config => {
-  validateHttpEndpoint(config.baseURL ? new URL(config.url!, config.baseURL) : config.url!);
+  const href = validateHttpEndpoint(config.baseURL ? new URL(config.url!, config.baseURL) : config.url!);
   config.maxRedirects = 0;
+  // axios never reads proxy environment variables itself; the shared resolver decides per target.
+  config.proxy = false;
+  const agents = axiosAgentsFor(href);
+  if (agents) Object.assign(config, agents);
   return config;
 }, error => { throw error; }, { synchronous: true });
 

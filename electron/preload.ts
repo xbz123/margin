@@ -7,6 +7,7 @@ import type { GenerationMetadata } from '../src/types/generationMetadata';
 import type { AudioCaptureFailedPayload } from '../src/types/audioCaptureFailed';
 import { matchesDirectAssistAnswer } from '../src/lib/directAssistAnswerState';
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from '../src/types/domesticStt';
+import type { NetworkProxyPublicConfig, NetworkProxySaveInput } from '../src/types/networkProxy';
 import { contextBridge, ipcRenderer } from 'electron';
 import { installConsoleLogging } from './utils/consoleLogging';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from '../src/types/credentialSave';
@@ -67,6 +68,8 @@ interface ElectronAPI {
   getDomesticStt: (provider: DomesticSttProvider) => Promise<DomesticSttPublicConfig>;
   saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
   testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
+  getNetworkProxy: () => Promise<NetworkProxyPublicConfig>;
+  saveNetworkProxy: (input: NetworkProxySaveInput) => Promise<CredentialSaveResult>;
   updateContentDimensions: (dimensions: { width: number; height: number }) => Promise<void>;
   updateContentDimensionsCentered: (dimensions: { width: number; height: number }) => Promise<void>;
   getRecognitionLanguages: () => Promise<Record<string, any>>;
@@ -660,6 +663,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDomesticStt: provider => ipcRenderer.invoke('get-domestic-stt', provider),
   saveDomesticStt: (provider, input) => ipcRenderer.invoke('save-domestic-stt', provider, input),
   testDomesticStt: provider => ipcRenderer.invoke('test-domestic-stt', provider),
+  getNetworkProxy: () => ipcRenderer.invoke('get-network-proxy'),
+  saveNetworkProxy: input => ipcRenderer.invoke('save-network-proxy', input),
   setSttProvider: (
     provider:
       | 'none'

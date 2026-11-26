@@ -111,6 +111,7 @@ function storage() {
         if (id === 'electron') return { app: { getPath: () => '/synthetic' }, safeStorage };
         if (id === 'fs') return fakeFs;
         if (id === './outbound') return require('../../../dist-electron/electron/services/outbound.js');
+        if (id === './proxy/settings') return require('../../../dist-electron/electron/services/proxy/settings.js');
         if (id === '../utils/validateSttBaseUrl') return require('../../../dist-electron/electron/utils/validateSttBaseUrl.js');
         if (id === '../../src/types/llmTarget') return targetModule.exports;
         if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
@@ -373,15 +374,16 @@ test('all credential setters commit only after persistence and can be read after
     setSonioxApiKey: 'sonioxApiKey',
     setDomesticStt: 'domesticStt',
     setSttLanguage: 'sttLanguage', setAiResponseLanguage: 'aiResponseLanguage', setDefaultModel: 'defaultModel', setPreferredModel: 'geminiPreferredModel', setProviderConfiguration: 'providerConfigurations', setGenerationPolicy: 'generationPolicy',
-    setGatewayConfiguration: 'gateways', setSavedReasoning: 'answerReasoning',
+    setGatewayConfiguration: 'gateways', setSavedReasoning: 'answerReasoning', setNetworkProxy: 'networkProxy',
   };
-  assert.equal(names.length, 21);
+  assert.equal(names.length, 22);
   assert.deepEqual(names.sort(), Object.keys(fields).sort());
   for (const name of names) {
     const before = plain(manager.getAllCredentials());
     disk.setFault('write');
     const args = name === 'setGenerationPolicy' ? [{ interviewFirstTokenSeconds: 12, interviewTotalSeconds: 75, writtenTotalSeconds: 190 }] : name === 'setProviderConfiguration' ? [{ ...targets.openai, protocol: 'responses', model: 'opaque', models: [{ model: 'gpt-5.4' }], apiKey: 'synthetic-old' }] : name === 'setGatewayConfiguration' ? [{ protocol: 'responses', baseUrl: 'https://synthetic.invalid/v1', model: 'opaque', apiKey: 'synthetic-gateway' }] : name === 'setDefaultModel' ? ['gpt-5.4'] : name === 'setSavedReasoning' ? [targetModule.exports.modelTargetId(manager.resolveSelection(manager.getDefaultModel())), 'high'] : name === 'setPreferredModel' ? ['gemini', 'synthetic-model'] : [name === 'setSttProvider' ? 'groq' : name === 'setOpenAiSttBaseUrl' ? 'https://synthetic.invalid/v1' : name === 'setSttLanguage' ? 'chinese' : name === 'setAiResponseLanguage' ? 'Chinese' : 'synthetic-value'];
     if (name === 'setDomesticStt') args.splice(0, args.length, 'aliyun', { key: 'synthetic-key', workspaceId: 'workspace', appId: '' });
+    if (name === 'setNetworkProxy') args.splice(0, args.length, { mode: 'manual', protocol: 'http', host: 'proxy.synthetic.test', port: 8080, bypass: [] });
     assert.equal(manager[name](...args).ok, false, name);
     assert.deepEqual(plain(manager.getAllCredentials()), before, name);
     disk.setFault(undefined);
@@ -390,6 +392,7 @@ test('all credential setters commit only after persistence and can be read after
     else if (name === 'setGatewayConfiguration') { const { apiKey, ...config } = args[0]; assert.deepEqual(plain(Object.values(manager.getAllCredentials().gateways)).map(({ id, ...rest }) => rest), [plain(config)]); }
     else if (name === 'setGenerationPolicy') assert.deepEqual(plain(manager.getAllCredentials().generationPolicy), plain(args[0]));
     else if (name === 'setDomesticStt') assert.deepEqual(plain(manager.getDomesticStt('aliyun')), plain(args[1]));
+    else if (name === 'setNetworkProxy') assert.deepEqual(plain(manager.getAllCredentials().networkProxy), plain(args[0]));
     else assert.equal(manager.getAllCredentials()[fields[name]], args.at(-1), name + ': correct field');
     assert.deepEqual(plain(disk.boot().getAllCredentials()), plain(manager.getAllCredentials()), name);
   }
@@ -1838,4 +1841,93 @@ test('S48 P2 a pending legacy setting follows a provider protocol save exactly a
     assert.deepEqual(disk.files.get(disk.filename), stored); assert.equal(applied, 0);
     assert.equal(live.getCurrentModelSelection(), CHAT); assert.deepEqual(control(live), before); assert.deepEqual(primaryReasoning(live), { effort: 'high' });
   } finally { runtime.cleanup(); }
+});
+
+test('network proxy settings: password kept, cleared and never returned; invalid input is refused whole', () => {
+  const disk = storage(), manager = disk.boot();
+  const base = { mode: 'manual', protocol: 'socks5', host: 'proxy.synthetic.test', port: 1080, username: 'synthetic-user', bypass: ['*.corp.synthetic.test', '10.1.2.3'] };
+  assert.equal(manager.setNetworkProxy({ ...base, password: 'synthetic-proxy-secret' }).ok, true);
+  const view = plain(manager.getNetworkProxy());
+  assert.deepEqual(view, { mode: 'manual', protocol: 'socks5', host: 'proxy.synthetic.test', port: 1080, username: 'synthetic-user',
+    bypass: ['.corp.synthetic.test', '10.1.2.3'], hasPassword: true });
+  assert.ok(!JSON.stringify(view).includes('synthetic-proxy-secret'));
+  assert.ok(disk.files.get(disk.filename).toString().startsWith('cipher:'), 'stored only through safeStorage');
+  // An omitted or empty password keeps the saved one for the same proxy, also after a restart.
+  for (const password of [undefined, '']) {
+    assert.equal(manager.setNetworkProxy({ ...base, bypass: [], ...(password === undefined ? {} : { password }) }).ok, true);
+    assert.equal(manager.getNetworkProxySettings().password, 'synthetic-proxy-secret');
+  }
+  assert.equal(manager.setNetworkProxy({ ...base, mode: 'system' }).ok, true);
+  assert.equal(disk.boot().getNetworkProxySettings().password, 'synthetic-proxy-secret');
+  // The saved password is never reused for another proxy: protocol, host, port or user name changes need it again.
+  const kept = disk.files.get(disk.filename).toString();
+  for (const change of [{ protocol: 'http' }, { host: 'other.synthetic.test' }, { port: 1081 }, { username: 'synthetic-other' }]) {
+    for (const password of [undefined, '']) {
+      const result = manager.setNetworkProxy({ ...base, ...change, ...(password === undefined ? {} : { password }) });
+      assert.equal(result.ok, false);
+      assert.match(result.message, /Enter the proxy password again/);
+      assert.equal(disk.files.get(disk.filename).toString(), kept);
+      assert.equal(manager.getNetworkProxySettings().password, 'synthetic-proxy-secret');
+    }
+  }
+  assert.equal(manager.setNetworkProxy({ ...base, port: 1081, password: 'synthetic-proxy-secret' }).ok, true);
+  assert.equal(manager.setNetworkProxy({ ...base, host: 'other.synthetic.test', clearPassword: true }).ok, true);
+  assert.equal(manager.getNetworkProxySettings().password, undefined);
+  assert.equal(manager.setNetworkProxy({ ...base, password: 'synthetic-proxy-secret' }).ok, true);
+  assert.equal(manager.setNetworkProxy({ ...base, password: 'synthetic-replaced' }).ok, true);
+  assert.equal(manager.getNetworkProxySettings().password, 'synthetic-replaced');
+  assert.equal(manager.setNetworkProxy({ ...base, clearPassword: true }).ok, true);
+  assert.equal(manager.getNetworkProxySettings().password, undefined);
+  assert.equal(manager.getNetworkProxy().hasPassword, false);
+  assert.equal(manager.setNetworkProxy({ ...base, password: 'synthetic-proxy-secret' }).ok, true);
+  const before = disk.files.get(disk.filename).toString(), previous = plain(manager.getNetworkProxySettings());
+  for (const invalid of [
+    { ...base, host: 'http://proxy.synthetic.test' }, { ...base, host: 'proxy.synthetic.test/path' }, { ...base, host: 'user@proxy.synthetic.test' },
+    { ...base, host: 'proxy.synthetic.test?x' }, { ...base, host: 'proxy.synthetic.test#x' }, { ...base, host: 'proxy synthetic' }, { ...base, host: '' },
+    { ...base, host: ' proxy.synthetic.test' }, { ...base, host: 'proxy.synthetic.test:3128' },
+    { ...base, port: 0 }, { ...base, port: 65536 }, { ...base, port: 1.5 }, { ...base, port: '8080' },
+    { ...base, username: 'a\r\nX-Injected: 1' }, { ...base, password: 'a\nb' }, { ...base, password: 'a\0b' },
+    { ...base, mode: 'pac' }, { ...base, protocol: 'socks4' }, { ...base, bypass: ['https://x.test'] }, { ...base, bypass: ['*'] },
+    { ...base, bypass: new Array(65).fill('a.test') }, { ...base, bypass: 'a.test' }, { ...base, username: '', password: 'orphan' },
+    { ...base, clearPassword: 'yes' }, null, 'manual',
+  ]) {
+    assert.throws(() => manager.setNetworkProxy(invalid));
+    assert.equal(disk.files.get(disk.filename).toString(), before);
+    assert.deepEqual(plain(manager.getNetworkProxySettings()), previous);
+  }
+  // A failed encrypted write keeps memory and disk unchanged.
+  disk.setFault('rename');
+  assert.equal(manager.setNetworkProxy({ ...base, mode: 'off' }).ok, false);
+  assert.deepEqual(plain(manager.getNetworkProxySettings()), previous);
+  assert.equal(disk.files.get(disk.filename).toString(), before);
+  disk.setFault(undefined);
+  // Clearing the user name drops a saved password; IPv6 literals are stored without brackets.
+  assert.equal(manager.setNetworkProxy({ ...base, username: '', host: '[::1]' }).ok, true);
+  assert.deepEqual(plain(manager.getNetworkProxySettings()), { mode: 'manual', protocol: 'socks5', host: '::1', port: 1080, bypass: ['.corp.synthetic.test', '10.1.2.3'] });
+  // Defaults when nothing is saved.
+  assert.deepEqual(plain(storage().boot().getNetworkProxy()), { mode: 'system', protocol: 'http', host: '', port: 0, bypass: [], hasPassword: false });
+});
+
+test('network proxy IPC switches the runtime only after a committed save and never returns the password', async () => {
+  const disk = storage(), manager = disk.boot();
+  const handlers = new Map(), configured = [];
+  const module = { exports: {} };
+  vm.runInNewContext(compile(read('electron/ipc/networkProxyHandlers.ts')), { module, exports: module.exports, require(id) {
+    if (id === '../services/CredentialsManager') return { CredentialsManager: { getInstance: () => manager } };
+    if (id === '../services/proxy') return { configureNetworkProxy: settings => configured.push(plain(settings)) };
+    throw Error('unexpected ' + id);
+  } });
+  module.exports.registerNetworkProxyHandlers((channel, listener) => handlers.set(channel, listener));
+  const input = { mode: 'manual', protocol: 'http', host: 'proxy.synthetic.test', port: 3128, username: 'synthetic-user', password: 'synthetic-proxy-secret', bypass: [] };
+  assert.deepEqual(plain(await handlers.get('save-network-proxy')({}, input)), { ok: true });
+  assert.equal(configured.length, 1);
+  assert.equal(configured[0].password, 'synthetic-proxy-secret', 'the main-process runtime receives the saved password');
+  const view = await handlers.get('get-network-proxy')({});
+  assert.equal(view.hasPassword, true);
+  assert.ok(!JSON.stringify(view).includes('synthetic-proxy-secret'));
+  const invalid = await handlers.get('save-network-proxy')({}, { ...input, host: 'proxy.synthetic.test:3128' });
+  assert.equal(invalid.ok, false);
+  disk.setFault('write');
+  assert.equal((await handlers.get('save-network-proxy')({}, { ...input, mode: 'off' })).ok, false);
+  assert.equal(configured.length, 1, 'failed or invalid saves leave the runtime unchanged');
 });

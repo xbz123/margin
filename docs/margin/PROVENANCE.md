@@ -21,6 +21,30 @@ Notes:
 
 ## Ledger
 
+### Configurable network proxy (2026-11-24)
+
+Written for this branch from the approved proxy plan (follow system by default,
+manual HTTP/HTTPS/SOCKS5, off; built-in domestic services and local addresses
+always direct; a separate Settings → Network & Proxy page). `electron/services/proxy/`
+(settings validation, resolver, HTTP CONNECT and SOCKS5 tunnel), the fetch, axios
+and ws wiring, the credential field, IPC, settings page, Chinese text and
+`NetworkProxy.test.mjs` with its local CONNECT/SOCKS5 proxies and in-test
+self-signed certificate are new code. The CONNECT and SOCKS5 handshakes follow
+RFC 9110 and RFC 1928/1929; no code was copied from `https-proxy-agent`, `socks`,
+`proxy-agent` or another proxy library, and none of those is a dependency.
+
+New runtime dependency: `undici` 7 (MIT, Node.js project), used only for its
+`Agent` as the fetch `dispatcher`; esbuild bundles it into the main-process
+files. `package.json` and `package-lock.json` were updated with
+`npm install undici@^7.28.0 --save --package-lock-only` (undici 7.30.2; node-gyp's
+dev-only undici moved to a nested 6.29.1; `safer-buffer` is now dev-only).
+`licenses/manifest.json` was updated by hand to what the collector derives from
+that lock: an `npm:undici@7.30.2` component with its installed MIT `LICENSE`
+(identical bytes to an existing MIT text), the dev-only `safer-buffer` component
+and its now unreferenced text removed, and the new `packageLockSHA256`. The
+collector itself was not rerun on this machine, whose shared `node_modules`
+does not match the lock; rerun it and the license gate on a clean `npm ci` tree.
+
 ### Concise software-interview prompt (2026-10-26)
 
 The English contract in `electron/llm/scenarioPrompts.ts` is the independently

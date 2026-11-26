@@ -1,4 +1,5 @@
 import dns from 'dns';
+import { webSocketAgentFor } from '../services/proxy';
 
 /**
  * IPv4-only DNS resolver for STT WebSocket connections.
@@ -59,7 +60,7 @@ export const ipv4OnlyLookup = (hostname: string, options: any, callback?: any): 
 };
 
 /**
- * Standard `ws` options for every streaming-STT WebSocket. Adds:
+ * Standard `ws` options for every streaming-STT WebSocket, for the target `url`. Adds:
  *   - lookup: ipv4OnlyLookup        (avoids the macOS dual-stack ENOTFOUND)
  *   - family: 4                     (defense-in-depth — `ws` forwards this to
  *                                    https.request → tls.connect)
@@ -67,12 +68,18 @@ export const ipv4OnlyLookup = (hostname: string, options: any, callback?: any): 
  *                                    handshake before giving up; without this
  *                                    a stuck handshake hangs on the kernel TCP
  *                                    keepalive timer, which can be minutes)
+ *   - agent                         (only when the network proxy may apply to the
+ *                                    target: the shared routing agent tunnels through
+ *                                    the proxy, or connects directly with the lookup
+ *                                    above when the resolver says DIRECT)
  */
-export function streamingStttWsOptions(extra?: Record<string, unknown>): Record<string, unknown> {
+export function streamingStttWsOptions(url: string, extra?: Record<string, unknown>): Record<string, unknown> {
+    const agent = webSocketAgentFor(url);
     return {
         lookup: ipv4OnlyLookup,
         family: 4,
         handshakeTimeout: 15_000,
+        ...(agent ? { agent } : {}),
         ...(extra || {}),
     };
 }

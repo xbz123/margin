@@ -9,6 +9,7 @@ import type { PendingUnsavedMeetingCode, UnsavedMeeting, UnsavedMeetingCommandRe
 import type { KeybindResult, WindowPreferenceResult } from './windowPreferences';
 
 import type { DomesticSttProvider, DomesticSttPublicConfig, DomesticSttSettings } from './domesticStt';
+import type { NetworkProxyPublicConfig, NetworkProxySaveInput } from './networkProxy';
 import type { AudioCaptureFailedPayload } from './audioCaptureFailed';
 export interface ElectronAPI {
   getPromptSettings: () => Promise<import('./promptSettings').PromptSettingsResult>;
@@ -23,6 +24,8 @@ export interface ElectronAPI {
   getDomesticStt: (provider: DomesticSttProvider) => Promise<DomesticSttPublicConfig>;
   saveDomesticStt: (provider: DomesticSttProvider, input: DomesticSttSettings) => Promise<CredentialSaveResult>;
   testDomesticStt: (provider: DomesticSttProvider) => Promise<{ success: boolean; error?: string }>;
+  getNetworkProxy: () => Promise<NetworkProxyPublicConfig>;
+  saveNetworkProxy: (input: NetworkProxySaveInput) => Promise<CredentialSaveResult>;
   updateContentDimensions: (dimensions: {
     width: number
     height: number

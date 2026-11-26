@@ -147,6 +147,86 @@ OpenAI STT base URL save uses validateSttBaseUrl (AG-41b); runtime and connectio
 tests share openAiSttEndpoint. Both reuse the branch's HTTP authority validation
 and reject query strings. Aliyun's workspace identifier is validated before socket creation.
 
+## Network proxy
+
+Settings → Network & Proxy stores `networkProxy` (`mode`, `protocol`, `host`,
+`port`, optional `username`/`password`, `bypass`) inside the safeStorage-encrypted
+`credentials.enc`; the renderer only ever receives `hasPassword`. An empty
+password keeps the saved one, `clearPassword` removes it, and invalid input
+(host with scheme, path, user info, query, fragment, port or whitespace; port
+outside 1–65535; CR/LF/NUL in credentials; malformed or too many bypass entries)
+is refused whole. As R3-1 does for API keys, a saved password is kept only for the
+same proxy: a save that changes the protocol, host, port or user name without
+entering the password again (or clearing it) is refused, so the password never
+reaches a proxy it was not entered for. The runtime switches only after the
+encrypted save succeeded.
+`main.ts` loads the setting right after the credentials and before any outbound
+request; until then (and in standalone tests) the default "follow system" mode
+has no system resolver and only honours proxy environment variables.
+
+Resolution order for every outbound URL (`electron/services/proxy/index.ts`):
+
+1. Always direct, in every mode: loopback (`localhost`, 127.0.0.0/8, ::1),
+   private address literals (10/8, 172.16/12, 192.168/16, 169.254/16, fc00::/7,
+   fe80::/10), the built-in domestic services `dashscope.aliyuncs.com`,
+   `*.aliyuncs.com` (covers Bailian workspace hosts) and `openspeech.bytedance.com`,
+   and the user's bypass list (`host`, `*.domain` / `.domain` = domain and its
+   subdomains, IP literal). Only foreign traffic is meant to use the proxy.
+2. `off`: direct.
+3. `manual`: the configured HTTP, HTTPS or SOCKS5 proxy.
+4. `system` (default): `HTTPS_PROXY`/`https_proxy` (https, wss), `HTTP_PROXY`/
+   `http_proxy` (http, ws) or `ALL_PROXY`/`all_proxy`, honouring `NO_PROXY`/
+   `no_proxy` (`*`, host or domain with subdomains, `.domain`, `:port`, IP,
+   CIDR); `http://`, `https://`, `socks5://` and `socks5h://` URLs, credentials
+   from the URL user info. Without such a variable the URL's origin is passed to
+   `session.defaultSession.resolveProxy` (system settings, PAC, WPAD). Only the
+   first entry is used: `DIRECT`, `PROXY` (HTTP), `HTTPS`, `SOCKS5`/`SOCKS`
+   (SOCKS5). SOCKS4 and unknown entries connect directly with a fixed log line.
+   There is no failover between PAC entries. Results are cached per origin for
+   30 seconds and the cache is cleared whenever the settings change.
+
+One tunnel serves all three channels. Fetch (OpenAI, Anthropic, Groq, DeepSeek,
+gateways, Codex file login and Gemini through the global wrapper) adds an undici
+`Agent` as `dispatcher` after `validateHttpEndpoint`; a direct decision passes no
+dispatcher, so that path is unchanged. Axios always sets `proxy: false` (it no
+longer reads environment variables itself) and gets routing `http.Agent`/
+`https.Agent` subclasses for targets that may be proxied. Every `ws` connection
+takes its options from `streamingStttWsOptions(url)`, which adds the same routing
+agent only when the target may be proxied and otherwise keeps the IPv4 lookup;
+proxied WebSocket targets are not resolved locally. A settings change clears the
+cache, closes old dispatchers gracefully and drops old agents (keep-alive off);
+connections already open are not interrupted, and transcription picks up the new
+setting on its next connection.
+
+The tunnel is HTTP `CONNECT host:port` (over verified TLS to the proxy for the
+HTTPS protocol) or SOCKS5 (RFC 1928, host names sent as names so the proxy
+resolves DNS, RFC 1929 user/password; without credentials only "no auth" is
+offered). Only a 2xx CONNECT reply succeeds: 3xx, 407 and every other status,
+an oversized (16 KiB) or malformed reply, a SOCKS failure, a 15 s timeout or an
+abort destroy the socket and raise a `ProxyError` with a fixed code and message
+(`PROXY_UNREACHABLE`, `PROXY_AUTH_REQUIRED`, `PROXY_AUTH_FAILED`, `PROXY_REFUSED`,
+`PROXY_PROTOCOL`) that never echoes proxy output, credentials or the target query.
+Redirects are not followed by the proxy layer either, and a proxy failure is
+never retried directly: there is no fallback to a direct connection.
+
+For https/wss targets TLS runs end to end inside the tunnel: the certificate and
+host name verified are the target's, with normal verification (no
+`rejectUnauthorized: false`; tests add a trust anchor through a test-only hook).
+The proxy sees the target host and port but not API keys, headers or bodies.
+Plain `http://` targets (for example an HTTP-compatible STT server that is not
+local) also go through CONNECT, so their plaintext bytes pass through the proxy
+exactly as they would cross the network directly. `Proxy-Authorization` (or the
+SOCKS credentials) is sent only to the proxy, never into the tunnel or to the
+target. Logs carry fixed text only.
+
+The bundled `undici` 7 `Agent` must stay on the same major version as the undici
+inside Electron's Node (Electron 43 / Node 24: undici 7.28); a newer major in the
+runtime's `fetch` can pass request headers the older dispatcher rejects. Check
+this when upgrading Electron. `NetworkProxy.test.mjs` covers the resolver order,
+local CONNECT (with and without auth) and SOCKS5 proxies for fetch, axios and ws,
+the real OpenAI/Anthropic/Groq/Gemini SDKs refusing 307 through the proxy, target
+certificate verification and ciphertext-only relaying, and the fixed failures.
+
 ## Actual STT audio
 
 | Provider | Endpoint / transport | Deferred sends |

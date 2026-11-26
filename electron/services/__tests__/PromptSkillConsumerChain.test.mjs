@@ -160,6 +160,7 @@ test('AG51 import -> install -> select -> manual answer -> mock protocol, append
         if (id === './services/SkillsManager') return { SkillsManager };
         if (['./llm/scenarioPrompts', './services/PromptSettingsStore', './direct-assist/errors', './utils/imagePathValidation'].includes(id)) return require(`../../../dist-electron/electron/${id.substring(2)}.js`);
         if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+        if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
         if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
         if (id === './ipc/speechActions') return require('../../../dist-electron/electron/ipc/speechActions.js');
         if (id === './margin/appIdentity') return { APP_IDENTITY: { name: 'temp' } };

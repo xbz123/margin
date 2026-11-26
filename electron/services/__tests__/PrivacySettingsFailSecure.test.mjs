@@ -53,6 +53,7 @@ function privacyHandlers(settings) {
       if (id === 'electron') return { app: { getPath: () => os.tmpdir() }, BrowserWindow: { getAllWindows: () => [win] }, ipcMain: { removeHandler() {}, handle: (name, callback) => callbacks.set(name, callback), removeAllListeners() {}, on() {} } };
       if (id === './services/SettingsManager') return { SettingsManager: { getInstance: () => settings } };
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+      if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './ipc/speechActions') return require(path.join(dist, 'ipc/speechActions.js'));
       if (id === './direct-assist/errors') return require(path.join(dist, 'direct-assist/errors.js'));

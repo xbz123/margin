@@ -98,6 +98,7 @@ function languageHandlers({ saved = 'en', saveError = null, windows = [], refres
       if (id === '../src/types/uiLanguage') return { isUiLanguage: value => value === 'en' || value === 'zh-CN' };
       if (id === './services/mainStrings') return { mainText: english => english };
       if (id === './ipc/sttHandlers') return { registerDomesticSttHandlers() {} };
+      if (id === './ipc/networkProxyHandlers') return { registerNetworkProxyHandlers() {} };
       if (id === './ipc/localContextHandlers') return { registerLocalContextHandlers() {} };
       if (id === './ipc/speechActions') return require('../../../dist-electron/electron/ipc/speechActions.js');
       if (id === './direct-assist/errors') return require('../../../dist-electron/electron/direct-assist/errors.js');

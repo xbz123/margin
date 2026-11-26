@@ -30,6 +30,8 @@ import { APP_IDENTITY } from './margin/appIdentity';
 import { validateImagePath } from './utils/imagePathValidation';
 import { sttKeyPreview, isSttKeyPreview, sttKeyToTest, sttPreviewSaveResult } from './utils/sttKeyPreview';
 import { registerDomesticSttHandlers } from './ipc/sttHandlers';
+import { registerNetworkProxyHandlers } from './ipc/networkProxyHandlers';
+import { streamingStttWsOptions } from './audio/dnsHelpers';
 import { registerLocalContextHandlers } from './ipc/localContextHandlers';
 import { SpeechActions, SpeechActionError, type SpeechAction, type SpeechActionKind } from './ipc/speechActions';
 import { formatTranscriptItems, type TranscriptView } from './SessionTracker';
@@ -1274,6 +1276,8 @@ export function initializeIpcHandlers(appState: AppState): void {
   // STT Provider Management Handlers
   // ==========================================
 
+  registerNetworkProxyHandlers(safeHandle);
+
   registerDomesticSttHandlers(safeHandle, async () => {
     await appState.reconfigureSttProvider();
     for (const win of BrowserWindow.getAllWindows()) {
@@ -1407,7 +1411,8 @@ export function initializeIpcHandlers(appState: AppState): void {
               resolve(result);
             };
 
-            const ws = new WebSocket('wss://stt-rt.soniox.com/transcribe-websocket');
+            const sonioxUrl = 'wss://stt-rt.soniox.com/transcribe-websocket';
+            const ws = new WebSocket(sonioxUrl, streamingStttWsOptions(sonioxUrl));
 
             // Hard connect timeout — server unreachable
             const connectTimeout = setTimeout(() => {

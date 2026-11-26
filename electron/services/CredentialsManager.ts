@@ -16,6 +16,8 @@ import { validateProviderConfiguration, validateGatewayConfiguration, resolveMod
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
 import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
 import type { DomesticSttSettings, DoubaoResourceId } from '../../src/types/domesticStt';
+import type { NetworkProxyPublicConfig, NetworkProxySaveInput, NetworkProxySettings } from '../../src/types/networkProxy';
+import { DEFAULT_NETWORK_PROXY, PROXY_PASSWORD_REENTRY, normalizeNetworkProxySettings } from './proxy/settings';
 import { isReasoningChoice, type ReasoningChoice } from '../../src/types/modelCapabilities';
 import { NOT_AVAILABLE_NOTICE, reasoningApplies, savedFromLegacy, type SavedReasoning } from '../llm/answerReasoning';
 
@@ -56,6 +58,8 @@ export interface StoredCredentials {
     openaiPreferredModel?: string;
     claudePreferredModel?: string;
     deepseekPreferredModel?: string;
+    /** Network proxy; the password is stored only inside this encrypted file. */
+    networkProxy?: NetworkProxySettings;
 }
 
 export class CredentialsManager {
@@ -153,6 +157,42 @@ export class CredentialsManager {
         const config = provider === 'doubao' ? { key, workspaceId, appId, resourceId } : { key, workspaceId, appId };
         return this.saveCredentials({ domesticStt: { ...this.credentials.domesticStt,
             [provider]: key ? config : undefined } });
+    }
+
+    /** Saved proxy settings for the main process (including the password); defaults when unset or unreadable. */
+    public getNetworkProxySettings(): NetworkProxySettings {
+        try {
+            return this.credentials.networkProxy ? normalizeNetworkProxySettings(this.credentials.networkProxy) : { ...DEFAULT_NETWORK_PROXY, bypass: [] };
+        } catch {
+            return { ...DEFAULT_NETWORK_PROXY, bypass: [] };
+        }
+    }
+
+    /** Renderer view: never the password, only whether one is saved. */
+    public getNetworkProxy(): NetworkProxyPublicConfig {
+        const { password, ...rest } = this.getNetworkProxySettings();
+        return { ...rest, bypass: [...rest.bypass], hasPassword: !!password };
+    }
+
+    /** One transaction: an undefined password keeps the saved one, clearPassword removes it; invalid input throws and changes nothing. */
+    public setNetworkProxy(input: NetworkProxySaveInput): CredentialSaveResult {
+        if (!input || typeof input !== 'object' || Array.isArray(input)) throw Error('Invalid proxy settings');
+        const { clearPassword, password, ...rest } = input;
+        if (clearPassword !== undefined && typeof clearPassword !== 'boolean') throw Error('Invalid proxy settings');
+        if (password !== undefined && typeof password !== 'string') throw Error('Invalid proxy settings');
+        const previous = this.credentials.networkProxy?.password;
+        // A password needs a user name; clearing the user name also drops a saved password.
+        if (password && !rest.username) throw Error('Invalid proxy settings');
+        const reused = !clearPassword && !password && !!previous && !!rest.username;
+        const kept = clearPassword ? undefined : password ? password : previous;
+        const settings = normalizeNetworkProxySettings({ ...rest, password: rest.username ? kept : undefined });
+        // A saved password is only ever sent to the proxy it was entered for (as R3-1 does for API keys):
+        // a changed protocol, host, port or user name needs it entered again or cleared.
+        const old = this.credentials.networkProxy;
+        if (reused && (!old || old.protocol !== settings.protocol || old.host !== settings.host || old.port !== settings.port || old.username !== settings.username)) {
+            return { ok: false, code: 'write_failed', message: PROXY_PASSWORD_REENTRY };
+        }
+        return this.saveCredentials({ networkProxy: settings });
     }
 
     public requireSttConfigured(): void {
