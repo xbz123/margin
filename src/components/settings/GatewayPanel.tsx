@@ -5,6 +5,7 @@ import { imageSupportTarget } from '../../types/modelImageSupport';
 import { reasoningOptions, validateReasoning } from '../../types/modelReasoning';
 import { PROTOCOL_NAMES, gatewayLabel } from '../../utils/answerModelOptions';
 import { useI18n } from '../../i18n';
+import { localizeErrorText } from '../../lib/localizedErrorText.mjs';
 
 type Draft = Omit<GatewayConfiguration, 'id'>;
 const EMPTY: Draft = { protocol: 'chat-completions', baseUrl: '', model: '' };
@@ -213,7 +214,7 @@ export const GatewayPanel: React.FC<GatewayPanelProps> = ({ gateway, onSaved, on
                     <Trash2 size={12} />{t('Remove gateway')}
                 </button>}
             </div>
-            {notice && <p role={notice.tone === 'error' ? 'alert' : 'status'} className={`text-[11px] ${notice.tone === 'error' ? 'text-red-400' : 'text-text-secondary'}`}>{t(notice.text)}</p>}
+            {notice && <p role={notice.tone === 'error' ? 'alert' : 'status'} className={`text-[11px] ${notice.tone === 'error' ? 'text-red-400' : 'text-text-secondary'}`}>{localizeErrorText(notice.text, t)}</p>}
             <p className="text-[10px] text-text-tertiary">{t('The gateway receives your requests and its own key. Save is local; Save and test sends one short test request to the saved gateway. Changing the address origin requires entering the key again.')}</p>
         </section>
     );

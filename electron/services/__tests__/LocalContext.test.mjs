@@ -97,6 +97,20 @@ test('S44 large Local Context is attached whole for a small model, with no capac
   assert.doesNotMatch(manualAnswerError({ name: 'LocalContextError', message: 'UNTRUSTED' }), /UNTRUSTED/);
 });
 
+test('manual answer errors keep the fixed proxy reason chosen by code, through the cause chain', () => {
+  const { manualAnswerError, MANUAL_ANSWER_FAILED } = require('../../../dist-electron/electron/direct-assist/errors.js');
+  assert.equal(manualAnswerError({ name: 'ProxyError', code: 'PROXY_AUTH_REQUIRED', message: 'UNTRUSTED' }), 'The proxy server requires authentication.');
+  const wrapped = { name: 'GenerationResultError', message: 'UNTRUSTED', cause: { name: 'TypeError', message: 'fetch failed', cause: { name: 'ProxyError', code: 'PROXY_UNREACHABLE', message: 'UNTRUSTED' } } };
+  assert.equal(manualAnswerError(wrapped), 'The proxy server could not be reached.');
+  assert.equal(manualAnswerError({ name: 'ProxyError', code: 'PROXY_UNKNOWN', message: 'UNTRUSTED' }), MANUAL_ANSWER_FAILED);
+  assert.equal(manualAnswerError({ name: 'ProxyError', code: 'constructor', message: 'UNTRUSTED' }), MANUAL_ANSWER_FAILED);
+  const loop = { name: 'Error', message: 'UNTRUSTED' }; loop.cause = loop;
+  assert.equal(manualAnswerError(loop), MANUAL_ANSWER_FAILED);
+  assert.equal(manualAnswerError({ name: 'LocalContextError', message: 'UNTRUSTED' }), 'Local Context could not be read. Check its local storage.');
+  assert.equal(manualAnswerError(new Error('UNTRUSTED')), MANUAL_ANSWER_FAILED);
+  assert.equal(manualAnswerError(undefined), MANUAL_ANSWER_FAILED);
+});
+
 test('AG50 shared generation covers manual answer and text chat; existing scope denial stays terminal', async () => {
   const electronId = require.resolve('electron');
   const previous = require.cache[electronId];

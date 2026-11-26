@@ -33,6 +33,7 @@ import { getMeetingInterfaceTheme, setMeetingInterfaceTheme, type MeetingInterfa
 import { KeyRecorder } from './ui/KeyRecorder';
 import icon from './icon.png';
 import { requestUiLanguage, useI18n, type UiLanguage } from '../i18n';
+import { localizeErrorText } from '../lib/localizedErrorText.mjs';
 import { resolveSettingsTab, SETTINGS_TABS, type SettingsTab } from './settings/settingsTabs';
 import { WrittenExamSettings } from './settings/WrittenExamSettings';
 import { SentScreenshotsSetting } from './settings/SentScreenshotsSetting';
@@ -1305,7 +1306,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                             </button>
                             <div className="h-full overflow-y-auto px-8 pt-12 pb-10">
                             <CredentialLoadBanner />
-                            {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{t(credentialNotice)}</p>}
+                            {credentialNotice && <p role="alert" className="mb-4 text-xs text-amber-500">{localizeErrorText(credentialNotice, t)}</p>}
 
                             {activeTab === 'written-exam' && <WrittenExamSettings />}
                             {activeTab === 'general' && (
@@ -1940,7 +1941,7 @@ const SettingsOverlay: React.FC<SettingsOverlayProps> = ({ isOpen, onClose, init
                                                         <ExternalLink size={12} />
                                                     </button>
                                                     {sttTestStatus === 'error' && (
-                                                        <span className="text-xs text-red-400">{t(sttTestError)}</span>
+                                                        <span className="text-xs text-red-400">{localizeErrorText(sttTestError, t)}</span>
                                                     )}
                                                 </div>
                                             </div>

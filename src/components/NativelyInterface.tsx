@@ -50,6 +50,7 @@ import {
   shouldDedupeOverlayAction,
 } from '../lib/overlayActionDedup.mjs';
 import { shouldDedupeManualSubmit } from '../lib/overlaySubmitDedup.mjs';
+import { localizeErrorText } from '../lib/localizedErrorText.mjs';
 import {
   applyWhatToAnswerNullFeedbackMessages,
   finalizeStreamingByIntentMessages,
@@ -1867,7 +1868,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
           {
             id: genMessageId(),
             role: 'system',
-            text: `❌ Error (${data.mode}): ${data.error}`,
+            text: `❌ ${tRef.current('Error ({mode}): {message}', { mode: data.mode, message: localizeErrorText(data.error, tRef.current) })}`,
           },
         ]);
       }),
@@ -1963,7 +1964,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       if (result.answer == null) {
         if (streamingTextRef.current) flushToken();
         const feedback =
-          (result.error ? `❌ Error (what_to_say): ${t(result.error)}` : undefined) ??
+          (result.error ? `❌ ${t('Error ({mode}): {message}', { mode: 'what_to_say', message: localizeErrorText(result.error, t) })}` : undefined) ??
           'Could not generate an answer yet. Wait a few seconds after speech and try again.';
         // CRITICAL ORDERING: clear streaming refs and wipe imperative DOM
         // BEFORE the `setMessages` that commits the null-feedback. The old
@@ -1997,7 +1998,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${t('Answer failed. Check the model configuration and try again.')}`,
+          text: t('Error: {message}', { message: t('Answer failed. Check the model configuration and try again.') }),
         },
       ]);
       pinAnswerPanel();
@@ -2027,7 +2028,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${err}`,
+          text: t('Error: {message}', { message: localizeErrorText(err, t) }),
         },
       ]);
     } finally {
@@ -2054,7 +2055,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${err}`,
+          text: t('Error: {message}', { message: localizeErrorText(err, t) }),
         },
       ]);
     } finally {
@@ -2081,7 +2082,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${err}`,
+          text: t('Error: {message}', { message: localizeErrorText(err, t) }),
         },
       ]);
     } finally {
@@ -2108,7 +2109,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${err}`,
+          text: t('Error: {message}', { message: localizeErrorText(err, t) }),
         },
       ]);
     } finally {
@@ -2157,7 +2158,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
         {
           id: genMessageId(),
           role: 'system',
-          text: `Error: ${err}`,
+          text: t('Error: {message}', { message: localizeErrorText(err, t) }),
         },
       ]);
     } finally {
@@ -2239,7 +2240,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
               ...prev[index],
               isStreaming: false,
               generation,
-              text: (prev[index].text || partialText) + `\n\n[Error: ${error}]`,
+              text: (prev[index].text || partialText) + `\n\n[${tRef.current('Error: {message}', { message: localizeErrorText(error, tRef.current) })}]`,
             };
             return updated;
           }
@@ -2248,7 +2249,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
             {
               id: genMessageId(),
               role: 'system',
-              text: `❌ Error: ${error}`,
+              text: `❌ ${tRef.current('Error: {message}', { message: localizeErrorText(error, tRef.current) })}`,
             },
           ];
         });
@@ -2275,10 +2276,10 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
       setRetryGeneration(result.retryable ? result : undefined);
       if (result.error) {
         flushToken();
-        setMessages(prev => [...prev, { id: genMessageId(), role: 'system', text: `❌ Error: ${result.error}`, generation: result }]);
+        setMessages(prev => [...prev, { id: genMessageId(), role: 'system', text: `❌ ${t('Error: {message}', { message: localizeErrorText(result.error, t) })}`, generation: result }]);
       }
     } catch (error) {
-      if (generationEpochRef.current === epoch) setMessages(prev => [...prev, { id: genMessageId(), role: 'system', text: `❌ Error: ${error}` }]);
+      if (generationEpochRef.current === epoch) setMessages(prev => [...prev, { id: genMessageId(), role: 'system', text: `❌ ${t('Error: {message}', { message: localizeErrorText(error, t) })}` }]);
     } finally { if (generationEpochRef.current === epoch) setIsProcessing(false); }
   };
 
@@ -2327,7 +2328,7 @@ const NativelyInterface: React.FC<NativelyInterfaceProps> = ({
               {
                 id: genMessageId(),
                 role: 'system',
-                text: `❌ STT Error: ${sttUserError}`,
+                text: `❌ ${t('STT Error: {message}', { message: localizeErrorText(sttUserError, t) })}`,
               },
             ]);
           } else if (sttUserStatus === 'reconnecting') {
@@ -2429,7 +2430,7 @@ Provide only the answer, nothing else.`;
               return prev.slice(0, -1).concat({
                 id: genMessageId(),
                 role: 'system',
-                text: `❌ Error starting stream: ${err}`,
+                text: `❌ ${t('Error starting stream: {message}', { message: localizeErrorText(err, t) })}`,
               });
             }
             return [
@@ -2437,7 +2438,7 @@ Provide only the answer, nothing else.`;
               {
                 id: genMessageId(),
                 role: 'system',
-                text: `❌ Error: ${err}`,
+                text: `❌ ${t('Error: {message}', { message: localizeErrorText(err, t) })}`,
               },
             ];
           });
@@ -2589,7 +2590,7 @@ Provide only the answer, nothing else.`;
           return prev.slice(0, -1).concat({
             id: genMessageId(),
             role: 'system',
-            text: `❌ Error starting stream: ${err}`,
+            text: `❌ ${t('Error starting stream: {message}', { message: localizeErrorText(err, t) })}`,
           });
         }
         return [
@@ -2597,7 +2598,7 @@ Provide only the answer, nothing else.`;
           {
             id: genMessageId(),
             role: 'system',
-            text: `❌ Error: ${err}`,
+            text: `❌ ${t('Error: {message}', { message: localizeErrorText(err, t) })}`,
           },
         ];
       });

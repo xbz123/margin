@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '../../i18n';
+import { localizeErrorText } from '../../lib/localizedErrorText.mjs';
 import type { DomesticSttProvider, DoubaoResourceId } from '../../types/domesticStt';
 import { SettingsCard, SettingsHeading } from './SettingsKit';
 
@@ -42,7 +43,7 @@ export function SpeechProviderSettings({ provider }: { provider: DomesticSttProv
         setBusy(true);
         try {
             const result = await window.electronAPI.testDomesticStt(provider);
-            setMessage(result.success ? t('Connected') : t(result.error ?? 'STT connection failed. Check credentials and network.'));
+            setMessage(result.success ? t('Connected') : (result.error ? localizeErrorText(result.error, t) : t('STT connection failed. Check credentials and network.')));
         } catch { setMessage(t('STT connection failed. Check credentials and network.')); }
         finally { setBusy(false); }
     };

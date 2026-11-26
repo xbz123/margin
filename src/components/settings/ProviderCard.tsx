@@ -4,6 +4,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import type { CredentialSaveResult } from '../../types/credentialSave';
 import { ChevronDown, ExternalLink, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useI18n } from '../../i18n';
+import { localizeErrorText } from '../../lib/localizedErrorText.mjs';
 
 interface FetchedModel { id: string; label: string }
 
@@ -224,8 +225,8 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
                     {hasStoredKey && <button type="button" disabled={busy === 'saving'} onClick={handleRemove} title={t('Remove API Key')} aria-label={t('Remove API Key')}
                         className="ml-auto px-2.5 py-1.5 rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-500/10"><Trash2 size={14} strokeWidth={1.5} /></button>}
                 </div>
-                {notice && <p role={notice.tone === 'error' ? 'alert' : 'status'} className={`text-[11px] ${notice.tone === 'error' ? 'text-red-400' : 'text-text-secondary'}`}>{t(notice.text)}</p>}
-                {fetchError && <p role="status" className="text-[11px] text-amber-500">{t('Model fetch error:')} {t(fetchError)}</p>}
+                {notice && <p role={notice.tone === 'error' ? 'alert' : 'status'} className={`text-[11px] ${notice.tone === 'error' ? 'text-red-400' : 'text-text-secondary'}`}>{localizeErrorText(notice.text, t)}</p>}
+                {fetchError && <p role="status" className="text-[11px] text-amber-500">{t('Model fetch error:')} {localizeErrorText(fetchError, t)}</p>}
                 <p className="text-[10px] text-text-tertiary">{t('Official API only. Save is local; Save and test sends one short test request to the edited saved model. Model lists use the saved key; fetching never selects or saves a model, and a listed model is not proof of access. Added models appear in the answer model lists after saving.')}</p>
             </div>
         </div>

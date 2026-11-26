@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { genMessageId } from '../utils/messageId';
 import nativelyIcon from './icon.png';
 import { useI18n } from '../i18n';
+import { localizeErrorText } from '../lib/localizedErrorText.mjs';
 
 // ============================================
 // Types
@@ -357,7 +358,7 @@ const GlobalChatOverlay: React.FC<GlobalChatOverlayProps> = ({
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-[#FF6B6B] text-[13px] py-2"
                                 >
-                                    {t(errorMessage)}
+                                    {localizeErrorText(errorMessage, t)}
                                 </motion.div>
                             )}
 

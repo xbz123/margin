@@ -25,6 +25,9 @@ const MESSAGES: Record<ProxyErrorCode, string> = {
   PROXY_PROTOCOL: 'The proxy server returned an invalid response.',
 };
 
+/** The fixed message for each code, for callers that turn a ProxyError into UI text by its code. */
+export const PROXY_ERROR_MESSAGES: Readonly<Record<ProxyErrorCode, string>> = Object.freeze({ ...MESSAGES });
+
 /** Fixed messages only: never proxy response text, credentials or target paths. */
 export class ProxyError extends Error {
   readonly code: ProxyErrorCode;

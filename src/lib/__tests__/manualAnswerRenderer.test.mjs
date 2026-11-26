@@ -6,6 +6,7 @@ import ts from 'typescript';
 import { createRequire } from 'node:module';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { localizeErrorText } from '../localizedErrorText.mjs';
 
 const require = createRequire(import.meta.url);
 function translationModule(file) {
@@ -164,9 +165,9 @@ test('S42-03 a Stop while the previous round is still freezing or answering is n
 test('AG42 real answer row and feedback callback use shared translations and show one scope error', async () => {
   const Row = handler('MessageRow', { React, useI18n: i18n.useI18n, Copy: () => null });
   try {
-    for (const [language, cancelled, denied] of [
-      ['en', 'Cancelled', 'Data scope denied. Check Data Scopes in Settings.'],
-      ['zh-CN', '已取消', '数据范围已禁用，请检查设置中的数据范围。'],
+    for (const [language, cancelled, denied, prefix] of [
+      ['en', 'Cancelled', 'Data scope denied. Check Data Scopes in Settings.', '❌ Error (what_to_say): '],
+      ['zh-CN', '已取消', '数据范围已禁用，请检查设置中的数据范围。', '❌ 错误（what_to_say）：'],
     ]) {
       i18n.setUiLanguage(language);
       const markup = renderToStaticMarkup(React.createElement(Row, {
@@ -185,13 +186,13 @@ test('AG42 real answer row and feedback callback use shared translations and sho
         setMessages: update => { messages.splice(0, messages.length, ...update(messages)); },
         applyWhatToAnswerNullFeedbackMessages: (prev, feedback) => [...prev, { text: feedback }],
         pinAnswerPanel() {}, endOverlayAction() {}, genMessageId: () => 'error',
-        t: english => i18n.translate(language, english),
+        t: (english, values) => i18n.translate(language, english, values), localizeErrorText,
         window: { electronAPI: { cancelChatStream() {}, generateWhatToSay: async () => ({
           answer: null, error: 'Data scope denied. Check Data Scopes in Settings.',
         }) } },
       })();
       assert.equal(messages.length, 1);
-      assert.equal(messages[0].text, '❌ Error (what_to_say): ' + denied);
+      assert.equal(messages[0].text, prefix + denied);
     }
   } finally { i18n.setUiLanguage('en'); }
 });

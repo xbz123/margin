@@ -1,3 +1,5 @@
+import { PROXY_ERROR_MESSAGES, proxyErrorIn } from '../services/proxy/tunnel';
+
 export const MANUAL_ANSWER_FAILED = 'Answer failed. Check the model configuration and try again.';
 export const MANUAL_ANSWER_UNCONFIGURED = 'Configure an answer model and its credentials first.';
 export const MANUAL_ANSWER_CANCELLED = 'Cancelled';
@@ -12,6 +14,9 @@ export class InvalidImagePathError extends Error {
 
 // Only locally assigned error types select UI text; provider messages are never inspected.
 export function manualAnswerError(error: unknown): string {
+  // A proxy failure keeps its reason: the fixed text is chosen by the local code, never read from .message.
+  const code = proxyErrorIn(error)?.code;
+  if (typeof code === 'string' && Object.prototype.hasOwnProperty.call(PROXY_ERROR_MESSAGES, code)) return PROXY_ERROR_MESSAGES[code];
   // Separate Electron bundles have separate class identities, so use the local error names.
   switch ((error as Error)?.name) {
     case 'ManualAnswerConfigurationError': return MANUAL_ANSWER_UNCONFIGURED;
