@@ -420,6 +420,36 @@ test('OpenAI, Anthropic, Groq and Gemini SDKs reach the service through the prox
   }
 }));
 
+test('a rejected proxy password reaches every SDK caller as the fixed proxy error, not a generic connection failure', () => isolated(async () => {
+  const target = await httpTarget();
+  const local = await connectProxy({ auth: 'synthetic-user:synthetic-proxy-secret' });
+  const oldFetch = globalThis.fetch, oldGeminiBase = process.env.GOOGLE_GEMINI_BASE_URL;
+  const fixed = 'The proxy server rejected the proxy credentials.';
+  try {
+    proxy.configureNetworkProxy(manual('http', local.port, { username: 'synthetic-user', password: 'synthetic-wrong' }));
+    globalThis.fetch = electronFetch();
+    outbound.installOutboundFetchPolicy();
+    const base = `http://sdk.synthetic.test:${target.port}`;
+    const { GoogleGenAI } = require('@google/genai');
+    process.env.GOOGLE_GEMINI_BASE_URL = base;
+    const gemini = await new GoogleGenAI({ apiKey: 'synthetic-only' }).models.generateContent({ model: 'test', contents: 'synthetic' }).then(() => undefined, error => error);
+    assert.equal(gemini?.message, fixed, 'Gemini passes the fixed text through');
+    for (const [pkg, call] of [['openai', c => c.chat.completions.create({ model: 'test', messages: [{ role: 'user', content: 'synthetic' }] })],
+      ['@anthropic-ai/sdk', c => c.messages.create({ model: 'test', max_tokens: 1, messages: [{ role: 'user', content: 'synthetic' }] })]]) {
+      const Client = require(pkg).default;
+      const error = await call(new Client({ apiKey: 'synthetic-only', baseURL: base, maxRetries: 0, fetch: outbound.outboundFetch })).then(() => undefined, e => e);
+      assert.equal(proxy.proxyErrorIn(error)?.code, 'PROXY_AUTH_FAILED', `${pkg}: the ProxyError stays in the cause chain`);
+    }
+    const axiosError = await outbound.outboundAxios.get(base + '/models').then(() => undefined, e => e);
+    assert.equal(proxy.proxyErrorIn(axiosError)?.message ?? axiosError?.message, fixed);
+    assert.equal(target.log.length, 0, 'nothing reached the service and nothing went direct');
+  } finally {
+    globalThis.fetch = oldFetch;
+    if (oldGeminiBase === undefined) delete process.env.GOOGLE_GEMINI_BASE_URL; else process.env.GOOGLE_GEMINI_BASE_URL = oldGeminiBase;
+    await close(local.server, target.server);
+  }
+}));
+
 // ---- 4. TLS to the target is verified end to end -----------------------------------------------
 
 test('HTTPS targets through a CONNECT proxy verify the target certificate and the proxy sees only ciphertext', () => isolated(async () => {
@@ -494,6 +524,7 @@ test('407, wrong credentials, unreachable proxies and proxy redirects fail with 
       const url = `http://svc.synthetic.test:${target.port}/must-not-arrive?key=synthetic-query-secret`;
       const fetchError = await outbound.outboundFetch(url).then(() => undefined, error => error);
       assert.equal(proxyCode(fetchError), code, `${label}: fetch`);
+      assert.equal(fetchError.name, 'ProxyError', `${label}: fetch rejects with the ProxyError itself, not "fetch failed"`);
       const axiosError = await outbound.outboundAxios.get(url).then(() => undefined, error => error);
       assert.equal(proxyCode(axiosError) ?? axiosError?.code, code, `${label}: axios`);
       const wsError = await wsFailure(`ws://svc.synthetic.test:${socket.port}/`);

@@ -35,6 +35,16 @@ export class ProxyError extends Error {
   }
 }
 
+/** The ProxyError anywhere in an error's cause chain (fetch reports it as "fetch failed", SDKs as connection errors). */
+export function proxyErrorIn(error: unknown): ProxyError | undefined {
+  const seen = new Set<unknown>();
+  for (let cause: any = error; cause && typeof cause === 'object' && !seen.has(cause); cause = cause.cause) {
+    seen.add(cause);
+    if (cause instanceof ProxyError || cause.name === 'ProxyError') return cause as ProxyError;
+  }
+  return undefined;
+}
+
 export const PROXY_CONNECT_TIMEOUT_MS = 15_000;
 const MAX_CONNECT_RESPONSE_BYTES = 16 * 1024;
 

@@ -208,6 +208,11 @@ abort destroy the socket and raise a `ProxyError` with a fixed code and message
 `PROXY_PROTOCOL`) that never echoes proxy output, credentials or the target query.
 Redirects are not followed by the proxy layer either, and a proxy failure is
 never retried directly: there is no fallback to a direct connection.
+The fixed message is what the user sees: the fetch wrapper rejects with the
+`ProxyError` itself instead of undici's "fetch failed", the generation scheduler
+replaces an SDK connection error whose cause chain holds one with that
+`ProxyError` (terminal, so no retry or backup), and the connection-test and
+model-list handlers return its message.
 
 For https/wss targets TLS runs end to end inside the tunnel: the certificate and
 host name verified are the target's, with normal verification (no

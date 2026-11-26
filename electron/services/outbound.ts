@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { axiosAgentsFor, fetchDispatcherFor, proxyDecisionSync, resolveProxyFor, type ProxyDecision } from './proxy';
+import { axiosAgentsFor, fetchDispatcherFor, proxyDecisionSync, proxyErrorIn, resolveProxyFor, type ProxyDecision } from './proxy';
 
 // Explicit user endpoints (including env and HTTP-compatible STT servers) remain
 // supported. Reject URL syntax that can conceal a different authority.
@@ -21,9 +21,11 @@ export function createOutboundFetch(transport: typeof fetch): typeof fetch {
     const href = validateHttpEndpoint(input instanceof Request ? input.url : String(input));
     const receiver = this ?? globalThis;
     // The proxy decision comes after the endpoint check; a direct decision passes no dispatcher.
-    const send = (decision: ProxyDecision) => transport.call(receiver, input, decision === 'direct'
-      ? { ...init, redirect: 'error' }
-      : { ...init, redirect: 'error', dispatcher: fetchDispatcherFor(decision) } as RequestInit);
+    // A proxy failure surfaces as the fixed ProxyError, not undici's generic "fetch failed".
+    const send = (decision: ProxyDecision) => decision === 'direct'
+      ? transport.call(receiver, input, { ...init, redirect: 'error' })
+      : transport.call(receiver, input, { ...init, redirect: 'error', dispatcher: fetchDispatcherFor(decision) } as RequestInit)
+        .catch((error: unknown) => { throw proxyErrorIn(error) ?? error; });
     const known = proxyDecisionSync(href);
     return known ? send(known) : resolveProxyFor(href).then(send);
   };

@@ -491,6 +491,7 @@ function handler(channel, context) {
       ANSWER_APPLY_WARNING: expression('electron/ipcHandlers.ts', node => ts.isStringLiteral(node) && ts.isVariableDeclaration(node.parent)
         && node.parent.name.getText() === 'ANSWER_APPLY_WARNING', {}),
       ANSWER_PROVIDERS: targetModule.exports.ANSWER_PROVIDERS, sanitizeErrorMessage: message => message,
+      proxyErrorIn: require('../../../dist-electron/electron/services/proxy/tunnel.js').proxyErrorIn,
       boundedProviderError: expression('electron/ipcHandlers.ts', node => ts.isArrowFunction(node) && ts.isVariableDeclaration(node.parent) && node.parent.name.getText() === 'boundedProviderError', { sanitizeErrorMessage: message => message }),
       ...require('../../../dist-electron/electron/llm/llmTarget.js'), ...context });
 }

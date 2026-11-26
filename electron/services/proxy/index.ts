@@ -6,7 +6,7 @@ import type { NetworkProxySettings } from '../../../src/types/networkProxy';
 import { DEFAULT_NETWORK_PROXY, alwaysDirect, normalizeNetworkProxySettings, normalizeProxyHost, normalizeProxyPort, urlHost } from './settings';
 import { authority, connectTargetTls, openTunnel, ProxyError, type ProxyEndpoint } from './tunnel';
 
-export { ProxyError, openTunnel } from './tunnel';
+export { ProxyError, openTunnel, proxyErrorIn } from './tunnel';
 export type { ProxyEndpoint } from './tunnel';
 
 // Network proxy runtime: one resolver and one tunnel shared by fetch (undici dispatcher), axios

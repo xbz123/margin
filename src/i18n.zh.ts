@@ -931,6 +931,12 @@ export const chinese: Readonly<Record<string, string>> = {
     'Encrypted (HTTPS/WSS) traffic stays end-to-end encrypted: the proxy only sees the destination host. Proxy credentials are sent only to the proxy. A failing proxy is reported as an error; requests never fall back to a direct connection.': '加密（HTTPS/WSS）流量保持端到端加密，代理只能看到目标主机。代理凭据只发送给代理。代理出错时直接报错，不会改为直连。',
     'Proxy settings could not be saved. Check the values and try again.': '代理设置未能保存，请检查后重试。',
     'The proxy address or user name changed. Enter the proxy password again, or clear it; nothing was saved.': '代理地址或用户名已更改，请重新输入代理密码或清除密码；本次未保存。',
+    // Fixed proxy errors from the main process (electron/services/proxy/tunnel.ts)
+    'The proxy server could not be reached.': '无法连接代理服务器。',
+    'The proxy server requires authentication.': '代理服务器需要用户名和密码。',
+    'The proxy server rejected the proxy credentials.': '代理服务器拒绝了代理用户名或密码。',
+    'The proxy server refused the connection to the destination.': '代理服务器拒绝连接目标地址。',
+    'The proxy server returned an invalid response.': '代理服务器返回了无效响应。',
     'Proxy settings could not be loaded.': '代理设置未能加载。',
     'Saved; restart to apply the proxy settings.': '已保存，重启后生效。',
 };
