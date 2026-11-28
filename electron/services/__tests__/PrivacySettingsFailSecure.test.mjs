@@ -1,6 +1,5 @@
-// Privacy settings never look saved when they are not, and an unreadable settings.json fails
-// secure: the bad file is kept aside, meetings are not saved and cloud data scopes are denied
-// until the user saves a setting again. A missing settings.json (first run) keeps the defaults.
+// Privacy settings never look saved when they are not. A missing settings.json (first run) and
+// an unreadable one both start with the default settings; nothing is kept aside.
 // Runs the real SettingsManager (built), MeetingPersistence and ipcHandlers in a temp userData.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -70,50 +69,25 @@ function privacyHandlers(settings) {
 
 const tempDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'privacy-settings-'));
 
-test('a corrupt settings.json is kept aside, meetings are not saved and every data scope is denied', async () => {
-  const dir = tempDir();
-  const corrupt = '{"meetingRetention": "forever", "providerDataScopes": {"transcript": tr';
-  fs.writeFileSync(path.join(dir, 'settings.json'), corrupt);
-  const settings = bootSettings(dir);
+test('an unreadable settings.json starts with the defaults, keeps no copy and is replaced by the next save', async () => {
+  for (const unreadable of ['{"meetingRetention": "never", "providerDataScopes": {"transcript": fa', 'not json', '[]']) {
+    const dir = tempDir();
+    fs.writeFileSync(path.join(dir, 'settings.json'), unreadable);
+    const settings = bootSettings(dir);
+    assert.deepEqual(fs.readdirSync(dir), ['settings.json'], 'no copy is kept aside and nothing is written at boot');
+    assert.equal(fs.readFileSync(path.join(dir, 'settings.json'), 'utf8'), unreadable);
+    assert.equal(settings.getMeetingRetention(), 'forever');
+    assert.deepEqual(getDeniedDataScopes(SCOPES, settings.get('providerDataScopes')), []);
+    const { result, saved } = await stopMeeting(settings);
+    assert.equal(result.status, 'saved', 'meetings are saved as with the defaults');
+    assert.equal(saved.length, 1);
 
-  const backups = fs.readdirSync(dir).filter(name => name.startsWith('settings.json.corrupt-'));
-  assert.equal(backups.length, 1, 'the unreadable file is preserved');
-  assert.equal(fs.readFileSync(path.join(dir, backups[0]), 'utf8'), corrupt);
-
-  const { result, saved } = await stopMeeting(settings);
-  assert.deepEqual(result, { status: 'skipped', reason: 'privacy-settings-unreadable' });
-  assert.equal(saved.length, 0);
-  assert.equal(settings.getMeetingRetention(), 'never');
-  assert.deepEqual(getDeniedDataScopes(SCOPES, settings.get('providerDataScopes')), SCOPES);
-
-  // An unrelated save writes the fail-secure values explicitly and leaves the backup alone.
-  settings.saveUiLanguage('zh-CN');
-  assert.equal(fs.readFileSync(path.join(dir, backups[0]), 'utf8'), corrupt);
-  const restarted = bootSettings(dir);
-  assert.equal(restarted.getMeetingRetention(), 'never', 'a restart stays fail secure');
-  assert.deepEqual(getDeniedDataScopes(SCOPES, restarted.get('providerDataScopes')), SCOPES);
-  assert.equal((await stopMeeting(restarted)).saved.length, 0);
-});
-
-test('a restart after a corrupt boot without any save stays fail secure', async () => {
-  const dir = tempDir();
-  fs.writeFileSync(path.join(dir, 'settings.json'), 'not json');
-  bootSettings(dir);
-  const restarted = bootSettings(dir);
-  assert.equal(restarted.getMeetingRetention(), 'never');
-  assert.deepEqual(getDeniedDataScopes(SCOPES, restarted.get('providerDataScopes')), SCOPES);
-  assert.equal((await stopMeeting(restarted)).saved.length, 0);
-});
-
-test('saving a privacy setting after a corrupt boot is kept and lifts the unreadable state', async () => {
-  const dir = tempDir();
-  fs.writeFileSync(path.join(dir, 'settings.json'), '[]');
-  const settings = bootSettings(dir);
-  const ipc = privacyHandlers(settings);
-  assert.deepEqual(await ipc.call('get-provider-data-scopes'), { transcript: false, screenshots: false, profile_history: false });
-  assert.deepEqual(await ipc.call('set-meeting-retention', 'forever'), { success: true });
-  assert.equal((await stopMeeting(settings)).result.status, 'saved');
-  assert.equal(bootSettings(dir).getMeetingRetention(), 'forever');
+    settings.saveUiLanguage('zh-CN');
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, 'settings.json'), 'utf8')), { uiLanguage: 'zh-CN' });
+    const restarted = bootSettings(dir);
+    assert.equal(restarted.getUiLanguage(), 'zh-CN');
+    assert.equal(restarted.getMeetingRetention(), 'forever');
+  }
 });
 
 test('a failed write on set-meeting-retention reports failure and keeps the previous value', async () => {

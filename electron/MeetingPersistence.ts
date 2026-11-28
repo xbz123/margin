@@ -52,8 +52,6 @@ export class MeetingPersistence {
         try {
             const { SettingsManager } = require('./services/SettingsManager');
             const settings = SettingsManager.getInstance();
-            // A present but unreadable settings.json: the user's choice is unknown.
-            if (settings.privacySettingsUnreadable?.()) throw new Error('settings.json could not be read at startup');
             const retention = settings.get('meetingRetention');
             if (retention === 'never') skip = 'privacy-setting';
             // Per-meeting toggle is read from SessionTracker meeting metadata
