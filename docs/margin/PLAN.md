@@ -91,14 +91,13 @@
 
 只列还没完成的票。已完成和已取消的票见 [Wayfinder](../wayfinder.md) 和[归档](archive/PLAN-2026-10.md)；2026-11-28 整理时删去了 10 月各票的逐项实测，面试精简提示的回答质量确认完成。
 
-- **2026-11-28 决定的代码改动**（待出测试包）
+- **2026-11-28 决定的代码改动**（待实测）
   - 删除 Codex 登录回答来源，取代原来的 AG-34-REAL 真实登录验证。
   - Reset/Cancel（Ctrl+R，Mac 上 Cmd+R）只取消正在生成的回答；没有回答在生成时什么都不做（[U2](../product.md#u2)）。
   - 去掉设置文件读不出时的特殊处理，原来的 fail-secure 条款不再保留。
   - DeepSeek（`api.deepseek.com`）和阿里云、豆包语音一样始终直连（[网络与代理](../product.md#network-proxy)）。
   - 另外删除了快速回答模式。
-  - 现状：代码已推送到 `1182c0d76`，[OUTBOUND](OUTBOUND.md) 已同步，公开 CI gates 通过（run 46150067737）；还没出测试包。
-  - 下一步按 R14 出测试包。
+  - 现状：代码已推送到 `1182c0d76`，[OUTBOUND](OUTBOUND.md) 已同步，公开 CI gates 通过（run 46150067737）。test.25（`7bbf55493`）两个平台已构建并发布为预发布版，还没实测。
 - **PROXY-CN · 代理国内实测**（等用户的朋友试用）
   - 已完成：test.24 在 Windows 上测过手动 HTTP 代理和中文错误提示。
   - 还没测：在国内用 Clash 等工具实际使用、带密码的代理、SOCKS5 和 HTTPS 代理、转写经代理、英文界面、macOS。

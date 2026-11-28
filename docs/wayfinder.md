@@ -4,14 +4,14 @@
 
 **Current answer:** Mac 线与 Windows 线已于 2026-11-10 合并到 `codex/margin-unified`，两条旧分支保留作回退。之后的改动都在统一分支上，用测试包交付；正式发布、正式 Margin 身份和签名仍未决定。
 
-**Current focus:** 最新测试包 test.24（`7b2c4a439`，2026-11-26），公开 CI gates 15/15 通过。test.10–test.24 主要是清理退役代码、修复历史/重试/PDF 导出/转写收尾、破折号处理、模型列表更新，以及新增网络代理。代理功能在 Windows 安装版上实测通过，见[记录](margin/evidence/network-proxy/README.md)。下一步是用户的朋友在国内实际使用代理。
+**Current focus:** 最新测试包 test.25（`7bbf55493`，2026-11-28），公开 CI gates 通过，包含 2026-11-28 决定的代码改动。test.10–test.24 主要是清理退役代码、修复历史/重试/PDF 导出/转写收尾、破折号处理、模型列表更新，以及新增网络代理。代理功能在 Windows 安装版上实测通过，见[记录](margin/evidence/network-proxy/README.md)。下一步是用户的朋友在国内实际使用代理。
 
 ## Waiting
 
 - **代理国内实测** — test.24 已装在 Windows 本机并测过手动代理和中文错误提示；待用户的朋友在国内用 Clash 等工具实际使用。带密码的代理、SOCKS5/HTTPS 代理和转写经代理仍未实测；resume：[记录](margin/evidence/network-proxy/README.md)。
 - **Mac 实测** — Mac 上还没有实测统一分支的测试包，包括 Answer / Stop 口述（test.9 起）和代理；resume：[口述记录](margin/evidence/answer-dictation/README.md)。
 - **阶段 6 用户签收** — 实际采集、Zoom/腾讯会议共享接收端和真实服务质量仍待实测；只测核心场景，不做 SHA256 核对；resume：[阶段 6 清单](margin/STAGE6-CHECKLIST.md)、[Windows 最小清单](margin/WINDOWS-TEST-CHECKLIST.md)。
-- **2026-11-28 决定的代码改动** — 删除 Codex 登录来源；Reset 只在生成中取消回答；去掉设置文件损坏的特殊处理；DeepSeek 始终直连；另删除快速回答模式。代码已推送到 `1182c0d76`，公开 CI 通过，还没出测试包。
+- **2026-11-28 决定的代码改动** — 删除 Codex 登录来源；Reset 只在生成中取消回答；去掉设置文件损坏的特殊处理；DeepSeek 始终直连；另删除快速回答模式。已出测试包 test.25（`7bbf55493`，两个平台构建成功），还没实测。
 - **正式身份、图标与发布** — AG-62 正式 Margin 身份、S42-06 图标与平台交付、AG-74 发布都待用户决定；见 [PLAN](margin/PLAN.md)。
 
 ## Watching
