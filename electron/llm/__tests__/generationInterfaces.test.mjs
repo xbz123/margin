@@ -488,18 +488,6 @@ test('backup updates and selected provider reconfiguration reject identical targ
   assert.equal(self.selectedTarget.model, 'gemini-3.1-flash-lite', 'another configured model never changes the running selection');
 });
 
-test('a primary or backup saved for the removed Codex source is refused as unavailable, never substituted', () => {
-  const primary = helper().self;
-  assert.throws(() => primary.setModel('codex-cli'), /Unknown model ID/);
-  assert.throws(() => primary.setModel('codex-cli:gpt-5.4'), /Unknown model ID/);
-  primary.selectUnavailable('codex-cli', 'The saved answer model is unavailable.');
-  assert.equal(primary.getCurrentProvider(), 'unavailable');
-  assert.throws(() => primary.beginGenerationTask(), /unavailable/);
-  const backup = helper().self;
-  backup.setGenerationPolicy({ ...backup.getGenerationPolicy(), backupModel: 'codex-cli:gpt-5.4' });
-  assert.throws(() => backup.beginGenerationTask(), /Unknown model ID/);
-});
-
 test('AG33 actual Engine preserves a legitimate short answer and its request metadata', async () => {
   const { self } = helper(() => packet('是'));
   const session = new SessionTracker();

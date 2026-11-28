@@ -498,7 +498,7 @@ export class CredentialsManager {
     public setDefaultModel(model: string): CredentialSaveResult {
         const target = this.resolveSelection(model);
         const backup = this.getGenerationPolicy().backupModel;
-        // An unavailable saved backup (for example a removed source) compares as written and never blocks a new primary.
+        // An unavailable saved backup (for example a removed gateway) compares as written and never blocks a new primary.
         if (backup && modelTargetId(target) === this.comparableSelection(backup, this.getProviderConfigurations(), this.getGateways())) throw new Error('Primary and backup model must differ. Change the backup first.');
         const saved = this.getSavedReasoning();
         let answerReasoning: ReasoningChoice | undefined, warning: string | undefined;

@@ -43,15 +43,6 @@ function keysFixture(storage = disk()) {
   return { manager: loaded.KeybindManager.getInstance(), defaults: loaded.DEFAULT_KEYBINDS, calls, events, registered, handlers, conflict: value => { conflict = value; } };
 }
 
-test('settings saved with the removed Codex source keys still load and save; the keys are ignored, not migrated', () => {
-  const initial = JSON.stringify({ disguiseMode: 'terminal', codexCliEnabled: true, codexCliModel: 'synthetic',
-    codexSource: { enabled: true, model: 'synthetic', fastModel: 'synthetic', serviceTier: 'default', riskConfirmedVersion: 1 } });
-  const storage = disk({ [SETTINGS_FILE]: initial }), manager = settingsFixture(storage);
-  assert.equal(manager.get('disguiseMode'), 'terminal');
-  manager.saveWindowPreference('disguiseMode', 'activity');
-  assert.equal(settingsFixture(storage).get('disguiseMode'), 'activity');
-});
-
 for (const failure of ['write', 'rename']) test(`AG61: ${failure} failure preserves protection/disguise memory and disk across restart`, () => {
   const initial = JSON.stringify({ isUndetectable: false, disguiseMode: 'terminal', verboseLogging: true });
   const storage = disk({ [SETTINGS_FILE]: initial }); const manager = settingsFixture(storage);

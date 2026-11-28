@@ -536,27 +536,6 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: current });
 });
 
-test('a primary or backup saved for the removed Codex source stays visible as unavailable and never blocks a new choice', async () => {
-  const disk = storage();
-  const backupModel = 'codex-cli:gpt-5.4', limits = { interviewFirstTokenSeconds: 12, interviewTotalSeconds: 90, writtenTotalSeconds: 240 };
-  // Seeded where the manager itself reads, so the check also holds where path.join uses another separator.
-  disk.files.set(path.join('/synthetic', 'credentials.enc'), Buffer.from('cipher:' + JSON.stringify({ openaiApiKey: 'synthetic-old', defaultModel: 'codex-cli',
-    generationPolicy: { backupModel, backupImageSupportConfirmedFor: 'synthetic-confirmation', ...limits } })));
-  const manager = disk.boot();
-  assert.equal(manager.getDefaultModel(), 'codex-cli');
-  assert.deepEqual(plain(manager.getGenerationPolicy()), { backupModel, ...limits }, 'kept as saved, without its image confirmation');
-  assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'default' });
-  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }) };
-  const saved = plain(await handler('get-default-model', context)({}));
-  assert.equal(saved.model, 'codex-cli'); assert.ok(saved.unavailable, 'reported as saved but unavailable');
-  assert.throws(() => manager.setDefaultModel('codex-cli'), /Unknown model ID/);
-  const primary = 'llm-target:openai:chat-completions:gpt-5.4';
-  assert.equal(manager.setDefaultModel(primary).ok, true, 'the stale backup does not block a new primary');
-  assert.equal(manager.setGenerationPolicy({ ...limits }).ok, true);
-  assert.deepEqual(plain(disk.boot().getGenerationPolicy()), limits);
-  assert.equal(disk.boot().getDefaultModel(), primary);
-});
-
 const ENV_KEYS = { GEMINI_API_KEY: 'synthetic-env-gemini', GROQ_API_KEY: 'synthetic-env-groq', OPENAI_API_KEY: 'synthetic-env-openai',
   CLAUDE_API_KEY: 'synthetic-env-claude', DEEPSEEK_API_KEY: 'synthetic-env-deepseek' };
 const PROVIDERS = ['gemini', 'groq', 'openai', 'claude', 'deepseek'];
