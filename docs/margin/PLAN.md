@@ -12,13 +12,13 @@
 ## 执行规则
 
 - **R1 · PLAN 管执行，Spec 管产品**：产品行为只写在 Spec。用户的新决定先改 Spec，再改这里的规则或 ticket。归档里的历史决定和验收记录不改写。
-- **R3 · 来源边界**：不引入 2026-06-01（IST）及以后公开的上游代码、测试、提示词或资源。旧线 `windows-support` 不合并、不 cherry-pick。旧 Margin 代码要按 [PROVENANCE](PROVENANCE.md) 逐文件审查并登记后才能用。基线证据见 [BASELINE](BASELINE.md)。
+- **R3 · 来源边界**：不引入 2026-06-01（IST）及以后公开的上游代码、测试、提示词或资源。旧 ai-assistant 线（见 R16 的标签）不合并、不 cherry-pick。旧 Margin 代码要按 [PROVENANCE](PROVENANCE.md) 逐文件审查并登记后才能用。基线证据见 [BASELINE](BASELINE.md)。
 - **R5 · 引用其他项目**：只要确认是开源协议，并记下项目名和协议，不做逐项许可分析。许可清单要和锁文件一致（`scripts/margin/collect-licenses.mjs`）。
 - **R7 · 真实服务和实机逐项授权（D2）**：调用真实 API、用真实设备、做共享测试，每次都要用户明确授权，并写清服务、模型、次数和费用。D2 的整体测试组合还没定，见下面的 D2 ticket。
 - **R8 · 实测时的凭据和系统权限**：实测只用用户在应用里保存的 Key，不输出、不复制密钥。不重置系统权限，不改 TCC、证书和钥匙串。
 - **R9 · 需要用户同意的动作**：提交、推送（包括推送公开仓库）、打标签和出测试包、安装或替换本机应用、正式发布、建 PR、建远程 issue、联系上游。用户可以按任务一次授权，例如“自动提交并出测试包”，范围只到这个任务。修改文档本身不算授权。
 - **R10 · 正式 Margin 身份只在 CI**：`Margin` / `io.github.xbz123.margin` 只在 GitHub Actions 里构建和运行，`scripts/margin/app-identity.cjs` 和 `electron/margin/appIdentity.ts` 会拒绝在 CI 外使用。本机不启动正式包，也不伪造 CI 环境绕过打包守卫。发现读写真实 Margin 数据就立即停下。何时放开见 AG-62。
-- **R16 · 主线与工作分支**：唯一主线是 `main`（2026-11-28 前叫 `codex/margin-unified`，该名称已停用），测试包、公开 CI 和发布都只从它出。改动在从主线开出的短期工作分支上做，当天推送到 `origin`，门禁和公开 CI 通过后用合并提交合回主线并删除分支，细则见 [CONTRIBUTING](../../CONTRIBUTING.md#branches)。旧 ai-assistant 线（分支 `old`，标签 `v1.0.0-macos`、`v1.0.0-windows`）与 Margin 没有共同历史，只读保留。Mac 线和 Windows 线已于 2026-11-10 合并到这里（`1ce0a7172`）。旧分支 `codex/margin-agpl-migration`、`codex/windows-parity` 已从远端删除；需要回退时用合并提交的两个父提交：Mac 线 `1dab212b`、Windows 线 `a5ac933c`。
+- **R16 · 主线与工作分支**：唯一主线是 `main`（2026-11-28 前叫 `codex/margin-unified`，该名称已停用），测试包、公开 CI 和发布都只从它出。改动在从主线开出的短期工作分支上做，当天推送到 `origin`，门禁和公开 CI 通过后用合并提交合回主线并删除分支，细则见 [CONTRIBUTING](../../CONTRIBUTING.md#branches)。私有仓库只保留 `main` 一个分支。旧 ai-assistant 线与 Margin 没有共同历史，只以标签只读保留：`archive/old`、`archive/ai-assistant-main`、`archive/ai-assistant-refactor`、`v1.0.0-macos`、`v1.0.0-windows`（原 `windows-support`）。Mac 线和 Windows 线已于 2026-11-10 合并到这里（`1ce0a7172`）。旧分支 `codex/margin-agpl-migration`、`codex/windows-parity` 已从远端删除；需要回退时用合并提交的两个父提交：Mac 线 `1dab212b`、Windows 线 `a5ac933c`。
 - **R21 · 精简测试**：人工和实机测试只覆盖两个核心场景：笔试截图提问、面试双路语音。不核对安装包、源码包或原生产物的 SHA256。归档里的哈希核对要求都不再执行。
 - **R22 · 测试增删**：源码字符串测试，要等新代码有同类行为测试后才能删，删除时写明替代测试。优先看端到端行为，验证层次见 [U13](../product.md#u13)。
 - **R23 · 技术验收不代替用户签收**：CI、门禁或子代理验收通过，都不能代替用户签收。
