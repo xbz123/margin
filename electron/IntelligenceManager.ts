@@ -256,7 +256,8 @@ export class IntelligenceManager extends EventEmitter {
     }
 
     /**
-     * resetConversation: the user-facing Reset. Cancels in-flight generation and clears the AI
+     * resetConversation (IPC 'reset-intelligence', used by the regression harness between cases;
+     * the Ctrl+R shortcut only cancels). Cancels in-flight generation and clears the AI
      * conversation, but keeps the meeting record (transcript, usage, start time) intact.
      */
     resetConversation(): void {

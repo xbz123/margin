@@ -47,3 +47,16 @@ test('main routes global-shortcut events only to launcher and overlay surfaces',
   assert.ok(/this\.sendToMeetingSurfaces\s*\(\s*['"]global-shortcut['"]/.test(resetRegion), 'BUG: reset-cancel shortcut must use targeted meeting-surface dispatch.');
   assert.ok(!/BrowserWindow\.getAllWindows\s*\(\s*\)/.test(processRegion + resetRegion), 'BUG: general global shortcuts must not broadcast to every BrowserWindow.');
 });
+
+test('Reset / Cancel in the overlay only cancels an answer being generated; idle it does nothing', () => {
+  const interfaceSource = readFileSync(path.resolve(__dirname, '../../../src/components/NativelyInterface.tsx'), 'utf8');
+  const starts = [...interfaceSource.matchAll(/resetCancel: async \(\) => \{/g)].map(m => m.index);
+  assert.equal(starts.length, 2, 'the initial handler and its per-render update');
+  for (const start of starts) {
+    const body = interfaceSource.slice(start, interfaceSource.indexOf('\n    },', start));
+    assert.match(body, /^resetCancel: async \(\) => \{\s*if \(!isProcessing\) return;/, 'idle Reset / Cancel must return before touching any state');
+    assert.match(body, /cancelIntelligenceGeneration\(\)/);
+    for (const forbidden of ['resetIntelligence', 'setMessages', 'setAttachedContext', 'setInputValue', 'setAnswerPanelPinned'])
+      assert.ok(!body.includes(forbidden), `Reset / Cancel must not call ${forbidden}`);
+  }
+});

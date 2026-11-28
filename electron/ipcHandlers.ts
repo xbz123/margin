@@ -2102,6 +2102,8 @@ export function initializeIpcHandlers(appState: AppState): void {
     appState.getIntelligenceManager().resetEngine();
   });
 
+  // Not reached from the Reset / Cancel shortcut, which only cancels an answer being generated;
+  // the regression harness uses it to clear the AI conversation between cases.
   safeHandle('reset-intelligence', async () => {
     appState.processingHelper.getLLMHelper().clearPreparedInput();
     try {

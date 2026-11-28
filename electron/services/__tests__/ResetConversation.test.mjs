@@ -1,4 +1,5 @@
-// The user-facing Reset (Ctrl+R, IPC 'reset-intelligence') during a meeting clears the AI
+// The conversation reset (IPC 'reset-intelligence'; Ctrl+R itself only cancels an answer being
+// generated) during a meeting clears the AI
 // conversation but never the meeting record: the usage rows, transcript and start time logged
 // before the reset are what the meeting save uses, and a refine right after the reset has no
 // prior answer to refine.

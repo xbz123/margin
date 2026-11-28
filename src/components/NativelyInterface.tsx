@@ -3133,22 +3133,16 @@ Provide only the answer, nothing else.`;
   const generalHandlersRef = useRef({
     toggleVisibility: () => window.electronAPI.toggleWindow(),
     processScreenshots: handleWhatToSay,
+    // Reset / Cancel only cancels an answer being generated; with nothing generating it does nothing
+    // (the conversation, attachments and input are kept).
     resetCancel: async () => {
+      if (!isProcessing) return;
       setRetryGeneration(undefined);
-      if (isProcessing) {
-        window.electronAPI.cancelChatStream('natively');
-        generationEpochRef.current++;
-        manualSubmitInFlightRef.current = false;
-        await window.electronAPI.cancelIntelligenceGeneration();
-        setIsProcessing(false);
-      } else {
-        await window.electronAPI.resetIntelligence();
-        setMessages([]);
-        answerPanelPinnedRef.current = false;
-        setAnswerPanelPinned(false);
-        setAttachedContext([]);
-        setInputValue('');
-      }
+      window.electronAPI.cancelChatStream('natively');
+      generationEpochRef.current++;
+      manualSubmitInFlightRef.current = false;
+      await window.electronAPI.cancelIntelligenceGeneration();
+      setIsProcessing(false);
     },
     toggleMousePassthrough: () => {
       void setPassthrough(!isMousePassthrough);
@@ -3179,22 +3173,16 @@ Provide only the answer, nothing else.`;
   generalHandlersRef.current = {
     toggleVisibility: () => window.electronAPI.toggleWindow(),
     processScreenshots: handleWhatToSay,
+    // Reset / Cancel only cancels an answer being generated; with nothing generating it does nothing
+    // (the conversation, attachments and input are kept).
     resetCancel: async () => {
+      if (!isProcessing) return;
       setRetryGeneration(undefined);
-      if (isProcessing) {
-        window.electronAPI.cancelChatStream('natively');
-        generationEpochRef.current++;
-        manualSubmitInFlightRef.current = false;
-        await window.electronAPI.cancelIntelligenceGeneration();
-        setIsProcessing(false);
-      } else {
-        await window.electronAPI.resetIntelligence();
-        setMessages([]);
-        answerPanelPinnedRef.current = false;
-        setAnswerPanelPinned(false);
-        setAttachedContext([]);
-        setInputValue('');
-      }
+      window.electronAPI.cancelChatStream('natively');
+      generationEpochRef.current++;
+      manualSubmitInFlightRef.current = false;
+      await window.electronAPI.cancelIntelligenceGeneration();
+      setIsProcessing(false);
     },
     toggleMousePassthrough: () => {
       void setPassthrough(!isMousePassthrough);
