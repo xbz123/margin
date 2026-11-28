@@ -234,11 +234,12 @@ test('settings validation canonicalises hosts and bypass entries and rejects amb
 
 test('built-in domestic services, loopback, private literals and bypass are direct in every mode; off is direct', () => isolated(async () => {
   const direct = ['https://dashscope.aliyuncs.com/api', 'wss://dashscope.aliyuncs.com/api-ws/v1/inference', 'wss://ws1.cn-beijing.maas.aliyuncs.com/api-ws/v1/inference',
-    'wss://openspeech.bytedance.com/api/v3/sauc', 'http://localhost:1234/v1', 'http://127.9.9.9/', 'http://[::1]:8/', 'http://10.2.3.4/',
+    'wss://openspeech.bytedance.com/api/v3/sauc', 'https://api.deepseek.com/chat/completions', 'https://api.deepseek.com/models', 'http://localhost:1234/v1', 'http://127.9.9.9/', 'http://[::1]:8/', 'http://10.2.3.4/',
     'http://172.16.0.1/', 'http://172.31.255.1/', 'http://192.168.1.1/', 'http://169.254.1.1/', 'http://[fd12::1]/', 'https://corp.synthetic.test/',
     'https://a.b.corp.synthetic.test/', 'https://exact.synthetic.test/'];
   const proxied = ['https://api.openai.com/v1', 'wss://stt-rt.soniox.com/x', 'http://172.32.0.1/', 'http://11.0.0.1/', 'https://xcorp.synthetic.test/',
-    'https://sub.exact.synthetic.test/', 'https://bytedance.com/', 'https://aliyuncs.com.evil.test/'];
+    'https://sub.exact.synthetic.test/', 'https://bytedance.com/', 'https://aliyuncs.com.evil.test/', 'https://deepseek.com/', 'https://x.api.deepseek.com/',
+    'https://api.deepseek.com.evil.test/'];
   proxy.setSystemProxyResolver(async () => 'PROXY sys.synthetic.test:3128');
   for (const mode of ['manual', 'system']) {
     proxy.configureNetworkProxy({ ...manual('http', 8080), host: 'proxy.synthetic.test', mode, bypass: ['.corp.synthetic.test', 'exact.synthetic.test'] });

@@ -11,7 +11,7 @@ export const DEFAULT_NETWORK_PROXY: Readonly<NetworkProxySettings> = Object.free
 });
 
 /** Domestic services that always connect directly, in every mode (the proxy is for foreign traffic only). */
-export const BUILT_IN_DIRECT: readonly string[] = Object.freeze(['dashscope.aliyuncs.com', '.aliyuncs.com', 'openspeech.bytedance.com']);
+export const BUILT_IN_DIRECT: readonly string[] = Object.freeze(['dashscope.aliyuncs.com', '.aliyuncs.com', 'openspeech.bytedance.com', 'api.deepseek.com']);
 
 export const MAX_BYPASS_ENTRIES = 64;
 const MAX_BYPASS_LENGTH = 255;

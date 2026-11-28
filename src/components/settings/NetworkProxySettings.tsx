@@ -153,7 +153,7 @@ export function NetworkProxySettings() {
 
             <SettingsGroup title={t('Direct connections')}>
                 <SettingsRow icon={ShieldCheck} title={t('Always direct')} align="start"
-                    description={t('Built-in domestic services (Alibaba Cloud Bailian, Doubao) and local or LAN addresses (localhost, 127.x, 10.x, 172.16–31.x, 192.168.x) always connect directly, in every mode.')} />
+                    description={t('Built-in domestic services (Alibaba Cloud Bailian, Doubao, DeepSeek) and local or LAN addresses (localhost, 127.x, 10.x, 172.16–31.x, 192.168.x) always connect directly, in every mode.')} />
                 <SettingsRow icon={Network} title={t('Bypass list')} align="start"
                     description={t('Additional hosts that connect directly, separated by commas or new lines: example.com, *.example.com, .example.com or an IP address.')}>
                     <textarea value={bypass} disabled={disabled} rows={4} spellCheck={false} aria-label={t('Bypass list')}

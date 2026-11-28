@@ -890,7 +890,7 @@ export const chinese: Readonly<Record<string, string>> = {
     'The saved password will be removed when you save.': '保存后将删除已保存的密码。',
     'Direct connections': '直连',
     'Always direct': '始终直连',
-    'Built-in domestic services (Alibaba Cloud Bailian, Doubao) and local or LAN addresses (localhost, 127.x, 10.x, 172.16–31.x, 192.168.x) always connect directly, in every mode.': '内置的国内服务（阿里云百炼、豆包）以及本机和局域网地址（localhost、127.x、10.x、172.16–31.x、192.168.x）在任何模式下都直接连接。',
+    'Built-in domestic services (Alibaba Cloud Bailian, Doubao, DeepSeek) and local or LAN addresses (localhost, 127.x, 10.x, 172.16–31.x, 192.168.x) always connect directly, in every mode.': '内置的国内服务（阿里云百炼、豆包、DeepSeek）以及本机和局域网地址（localhost、127.x、10.x、172.16–31.x、192.168.x）在任何模式下都直接连接。',
     'Bypass list': '直连列表',
     'Additional hosts that connect directly, separated by commas or new lines: example.com, *.example.com, .example.com or an IP address.': '其他需要直连的主机，用逗号或换行分隔：example.com、*.example.com、.example.com 或 IP 地址。',
     'How it works': '工作方式',

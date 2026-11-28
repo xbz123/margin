@@ -169,7 +169,8 @@ Resolution order for every outbound URL (`electron/services/proxy/index.ts`):
 1. Always direct, in every mode: loopback (`localhost`, 127.0.0.0/8, ::1),
    private address literals (10/8, 172.16/12, 192.168/16, 169.254/16, fc00::/7,
    fe80::/10), the built-in domestic services `dashscope.aliyuncs.com`,
-   `*.aliyuncs.com` (covers Bailian workspace hosts) and `openspeech.bytedance.com`,
+   `*.aliyuncs.com` (covers Bailian workspace hosts), `openspeech.bytedance.com` and
+   `api.deepseek.com` (exact host; DeepSeek answers),
    and the user's bypass list (`host`, `*.domain` / `.domain` = domain and its
    subdomains, IP literal). Only foreign traffic is meant to use the proxy.
 2. `off`: direct.
