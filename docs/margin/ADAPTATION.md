@@ -1,6 +1,6 @@
 # Margin adaptation checklist
 
-What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. Current behavior is owned solely by the [product spec](../product.md), including S43/S44 decisions; checked implementation gaps and incremental tickets remain in [PLAN S42](PLAN.md#tickets-20261013). The earlier Margin plan (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`) is a historical behavior reference only, not the current specification or a source of code.
+What Margin must do, what the AGPL baseline (`a786910e`) already does, and what has to be built. Current behavior is owned solely by the [product spec](../product.md), including S43/S44 decisions; checked implementation gaps and incremental tickets remain in [PLAN S42](archive/PLAN-2026-10.md#tickets-20261013). The earlier Margin plan (`docs/fresh-release-implementation-plan.md` at `b8ade3f7`) is a historical behavior reference only, not the current specification or a source of code.
 
 Status values: `todo`, `doing`, `done`, `blocked`. "Not verified" lists anything not yet checked for real. Product expectations belong to the spec; tickets, acceptance checks and execution order belong to [PLAN.md](PLAN.md). This comparison table does not override either owner.
 
@@ -46,7 +46,7 @@ Removed outright: code, UI entry points, IPC, preload, dependencies, build steps
 
 | Phase | Items | Baseline has |
 | --- | --- | --- |
-| 3 Answers | Text and screenshot questions, written-exam mode, streaming, cancel; OpenAI Chat, OpenAI Responses, Anthropic Messages and Gemini protocols; fallback model; errors; Codex CLI login as a separate source | Multi-provider LLMHelper, Codex CLI provider, screenshots, streaming |
+| 3 Answers | Text and screenshot questions, written-exam mode, streaming, cancel; OpenAI Chat, OpenAI Responses, Anthropic Messages and Gemini protocols; fallback model; errors (Codex CLI login was removed on 2026-11-28) | Multi-provider LLMHelper, Codex CLI provider, screenshots, streaming |
 | 4 Audio | Mic and system audio; OpenAI, Soniox, Groq, Aliyun and Doubao STT; retained manual actions with the S41/S43 dual-channel input contract (D8=A, keep connections); no automatic answers or Judge | Native capture, Deepgram, Soniox, ElevenLabs, OpenAI, Google and REST STT; "what to answer" path |
 | 5 Context and meetings | Full-text Local Context without prewarming; append-only prompt Skills and interview/written scenarios; local transcript list/detail/copy only, no automatic summaries, title generation, startup recovery or meeting chat | SkillsManager, MeetingPersistence |
 | 6 Settings and release | Settings pages, English and Simplified Chinese UI, window protection, shortcuts, click-through, onboarding, README and PRIVACY | Content protection, disguise, stealth keyboard, keybinds, click-through |

@@ -1,6 +1,6 @@
 # 阶段 6 实机复测清单
 
-用于本机已安装的 Natively Local。清单最初对应 `9247cc19`（S47–S49，[安装回执](evidence/S49/README.md)），当前已安装 `b7f57addf`（含 S50 保存/输入与模式修订，[回执](evidence/S50-mode-controls/README.md)）。A 部分是设置页走查，B 部分是阶段 6 复测，要用真实服务和设备。验收标准见 [PLAN 阶段 6](PLAN.md#阶段-6-验收标准与当前结果)，产品要求见 [Spec](../product.md)。
+用于本机已安装的 Natively Local。清单最初对应 `9247cc19`（S47–S49，[安装回执](evidence/S49/README.md)），当前已安装 `b7f57addf`（含 S50 保存/输入与模式修订，[回执](evidence/S50-mode-controls/README.md)）。A 部分是设置页走查，B 部分是阶段 6 复测，要用真实服务和设备。验收标准见 [PLAN 阶段 6](archive/PLAN-2026-10.md#阶段-6-验收标准与当前结果)，产品要求见 [Spec](../product.md)。
 
 **2026-11-01 精简**：用户同意只测笔试截图提问和面试双路语音回答两个核心场景用得到的项。外观、偏好、很少使用或已由自动测试覆盖的项从人工测试中删除，见文末[已删除项](#已删除项)；不再做安装包或 asar 的 SHA256 核对。删除项不算通过，也不写成支持。
 
@@ -130,5 +130,5 @@ Windows 不在本清单内，见 Windows 开发分支的 `docs/margin/WINDOWS-TE
 | 推理强度重启保持、会中临时强度、换模型再换回、两个模型各发图 | 测不出参数是否真正生效；只保留能选档位并出结果 |
 | 移除正在用作主模型的候选被拒绝 | 已由自动测试覆盖 |
 | GPT-5.5 Pro 非流式接入 | 未实现的功能，不是测试项 |
-| 未使用的服务：OpenAI/Soniox/阿里云/豆包转写，OpenAI/Anthropic/DeepSeek 回答，自定义网关，Codex 登录 | 实际只用 Groq 和 Gemini |
+| 未使用的服务：OpenAI/Soniox/阿里云/豆包转写，OpenAI/Anthropic/DeepSeek 回答，自定义网关 | 实际只用 Groq 和 Gemini |
 | 安装包、asar 的 SHA256 核对 | 用户 2026-11-01 要求不再进行 |
