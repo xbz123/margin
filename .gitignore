@@ -214,6 +214,9 @@ docs/superpowers/
 # Agent documentation patterns
 **/AGENTS.md
 **/CLAUDE.md
+!/AGENTS.md
+!/CLAUDE.md
+.worktrees/
 **/.claude/
 
 # Temporary working files

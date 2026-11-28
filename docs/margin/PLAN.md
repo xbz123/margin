@@ -18,11 +18,11 @@
 - **R8 · 实测时的凭据和系统权限**：实测只用用户在应用里保存的 Key，不输出、不复制密钥。不重置系统权限，不改 TCC、证书和钥匙串。
 - **R9 · 需要用户同意的动作**：提交、推送（包括推送公开仓库）、打标签和出测试包、安装或替换本机应用、正式发布、建 PR、建远程 issue、联系上游。用户可以按任务一次授权，例如“自动提交并出测试包”，范围只到这个任务。修改文档本身不算授权。
 - **R10 · 正式 Margin 身份只在 CI**：`Margin` / `io.github.xbz123.margin` 只在 GitHub Actions 里构建和运行，`scripts/margin/app-identity.cjs` 和 `electron/margin/appIdentity.ts` 会拒绝在 CI 外使用。本机不启动正式包，也不伪造 CI 环境绕过打包守卫。发现读写真实 Margin 数据就立即停下。何时放开见 AG-62。
-- **R16 · 工作分支**：所有改动都在 `codex/margin-unified` 上。Mac 线和 Windows 线已于 2026-11-10 合并到这里（`1ce0a7172`）。旧分支 `codex/margin-agpl-migration`、`codex/windows-parity` 只留作回退，不再提交。
+- **R16 · 主线与工作分支**：唯一主线是 `main`（2026-11-28 前叫 `codex/margin-unified`，该名称已停用），测试包、公开 CI 和发布都只从它出。改动在从主线开出的短期工作分支上做，当天推送到 `origin`，门禁和公开 CI 通过后用合并提交合回主线并删除分支，细则见 [CONTRIBUTING](../../CONTRIBUTING.md#branches)。旧 ai-assistant 线（分支 `old`，标签 `v1.0.0-macos`、`v1.0.0-windows`）与 Margin 没有共同历史，只读保留。Mac 线和 Windows 线已于 2026-11-10 合并到这里（`1ce0a7172`）。旧分支 `codex/margin-agpl-migration`、`codex/windows-parity` 已从远端删除；需要回退时用合并提交的两个父提交：Mac 线 `1dab212b`、Windows 线 `a5ac933c`。
 - **R21 · 精简测试**：人工和实机测试只覆盖两个核心场景：笔试截图提问、面试双路语音。不核对安装包、源码包或原生产物的 SHA256。归档里的哈希核对要求都不再执行。
 - **R22 · 测试增删**：源码字符串测试，要等新代码有同类行为测试后才能删，删除时写明替代测试。优先看端到端行为，验证层次见 [U13](../product.md#u13)。
 - **R23 · 技术验收不代替用户签收**：CI、门禁或子代理验收通过，都不能代替用户签收。
-- **R24 · 执行人分工**：主线程定范围、写计划、审 diff、做最终验收。实现和测试交给 Claude Opus 5.5 medium 子代理。需要独立审查时，另派一个只读审查者，审查者不改代码。
+- **R24 · 执行人分工**：主线程定范围、写计划、审 diff、做最终验收。实现和测试默认交给 Sonnet 子代理；只有用户明确开启性能模式时才改用 Opus 5.5 medium。需要独立审查时，另派一个只读审查者，审查者不改代码。
 - **R25 · 单一写入者**：同一工作树同一时间只有一个写入者。并行开发要用不同的工作树或分支，由主线程合并。
 
 ## 门禁与 CI
@@ -62,7 +62,7 @@
 - **R18 · 每票公开 CI**：每票本地验收、提交并推送后，在公开仓库手动触发 gates：
 
   ```
-  gh workflow run margin-gates.yml -R xbz123/margin --ref codex/margin-unified
+  gh workflow run margin-gates.yml -R xbz123/margin --ref main
   gh run list -R xbz123/margin -w margin-gates.yml -L 3 --json databaseId,headSha,event,status,conclusion
   ```
 
@@ -76,11 +76,11 @@
 
 ## 测试包与发布
 
-- **R15 · 公开与私有仓库**：私有仓库 `xbz123/AI-for-AI-Interview-Tests`（远端 `origin`）是唯一真源。公开仓库 `xbz123/margin` 只跑 CI：不建 Release，不上传正式身份的包；只有手动开启 `package_apps` 时，才把 `temp` 包 zip 作为保留 14 天的 workflow artifact 上传。本机没有配置公开仓库的远端，推送时用 `git push git@github.com:xbz123/margin.git codex/margin-unified`，推送与私有仓库相同的提交。推送公开仓库要用户同意（R9）。
+- **R15 · 公开与私有仓库**：私有仓库 `xbz123/AI-for-AI-Interview-Tests`（远端 `origin`）是唯一真源。公开仓库 `xbz123/margin` 只跑 CI：不建 Release，不上传正式身份的包；只有手动开启 `package_apps` 时，才把 `temp` 包 zip 作为保留 14 天的 workflow artifact 上传。本机没有配置公开仓库的远端，推送时用 `git push git@github.com:xbz123/margin.git main`，推送与私有仓库相同的提交。推送公开仓库要用户同意（R9）。
 - **R14 · 测试包**：在 `origin` 推送轻量标签 `margin-v2.7.0-test.<n>-windows` 和 `margin-v2.7.0-test.<n>-macos`，由 `.github/workflows/margin-test-release.yml` 构建未签名的 `temp` 身份包（`io.github.xbz123.temp`），发成该标签的预发布：
   - Windows：x64 NSIS 安装包。
   - macOS：arm64 的 zip 和 dmg。
-  - `<n>` 每次加 1，目前最新是 test.24（`7b2c4a439`）。
+  - `<n>` 每次加 1，目前最新是 test.25（`7bbf55493`）。
   - 这个工作流不重跑门禁。打标签前，这个提交的公开 CI 要已经通过（R18）。
   - `temp` 测试包不代替正式身份，也不算发布。
 - **R12 · 签名（D6）**：不做 Developer ID 签名和 Apple 公证，允许 ad hoc。`scripts/build-local.cjs` 会拒绝 `CSC_`、`APPLE_` 等签名变量。未签名的包要如实说明 Gatekeeper / SmartScreen 警告。以后的签名凭据只放 GitHub Secrets，只在打发布标签时使用。
@@ -106,7 +106,6 @@
   - 已完成：技术验收（`f35f7b3f`，CI `38492031013`）。
   - 还没做：Mac 上没有实测过统一分支的任何测试包，包括 test.9 起的口述和代理。
   - 下一步：在 Mac 上装最新 `temp` 测试包，按 [STAGE6-CHECKLIST](STAGE6-CHECKLIST.md) 测两个核心场景（R21），再由用户签收（R23）。
-  - 清单里还写着 Natively Local，测试前要改成 `temp` 测试包。
   - 详情：[归档的阶段 6 记录](archive/PLAN-2026-10.md#阶段-6-验收标准与当前结果)、[口述记录](evidence/answer-dictation/README.md)。
 - **WIN-DEVICE · Windows 实机验收**
   - 已完成：软件、双平台 CI 和 `temp` 安装包；真机测过口述（test.8）和代理（test.24）。
@@ -133,3 +132,7 @@
   - 用户提出“减少永久需要输入的内容”，具体字段还没给。
   - 在此之前不据此删配置项。
   - 详情：[Spec 未决项](../product.md#open-questions)。
+- **PRACTICE · 练习模式**（2026-11-28 用户确认设计）
+  - 产品行为见 [Spec 练习模式](../product.md#practice)，结构与四步路线见[架构](../architecture.md#练习模式的接入)。
+  - 还没做：实现未开始，也还没授权。剧本内容、练习记录去留、彩排录音的播放方式待用户决定（[Spec 未决项](../product.md#open-questions)）。
+  - 执行时按架构路线逐步交付，每步单独跑门禁和公开 CI（R17、R18）；彩排一步调用真实服务，按 R7 逐次授权。

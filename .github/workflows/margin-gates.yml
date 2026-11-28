@@ -1,5 +1,5 @@
 # Margin ticket gates on a clean macOS runner (PLAN.md §8, "CI 门禁").
-# Runs only when a push to the migration branch says "[gates]" in its head commit
+# Runs only when a push to main says "[gates]" in its head commit
 # message, or by hand. It uses no secrets and keeps the raw gate output as a run
 # artifact. The provenance check is not part of the gates; run
 # scripts/margin/provenance-check.mjs by hand before a release. A green run is a reference for a
@@ -12,7 +12,7 @@ name: Margin gates
 
 on:
   push:
-    branches: [codex/margin-unified]
+    branches: [main]
   workflow_dispatch:
     inputs:
       no_cache:

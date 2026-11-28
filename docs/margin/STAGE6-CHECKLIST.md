@@ -1,6 +1,6 @@
 # 阶段 6 实机复测清单
 
-用于本机已安装的 Natively Local。清单最初对应 `9247cc19`（S47–S49，[安装回执](evidence/S49/README.md)），当前已安装 `b7f57addf`（含 S50 保存/输入与模式修订，[回执](evidence/S50-mode-controls/README.md)）。A 部分是设置页走查，B 部分是阶段 6 复测，要用真实服务和设备。验收标准见 [PLAN 阶段 6](archive/PLAN-2026-10.md#阶段-6-验收标准与当前结果)，产品要求见 [Spec](../product.md)。
+用于主线 `main` 最新的 `temp` 测试包（`io.github.xbz123.temp`，测试包说明见 [PLAN R14](PLAN.md#测试包与发布)）；测试前在“记录”里写下实际安装的测试包编号。清单最初为 Natively Local `9247cc19`（S47–S49，[安装回执](evidence/S49/README.md)）编写，下面已勾选的项都是在那个版本上测的。A 部分是设置页走查，B 部分是阶段 6 复测，要用真实服务和设备。验收标准见 [PLAN 阶段 6](archive/PLAN-2026-10.md#阶段-6-验收标准与当前结果)，产品要求见 [Spec](../product.md)。
 
 **2026-11-01 精简**：用户同意只测笔试截图提问和面试双路语音回答两个核心场景用得到的项。外观、偏好、很少使用或已由自动测试覆盖的项从人工测试中删除，见文末[已删除项](#已删除项)；不再做安装包或 asar 的 SHA256 核对。删除项不算通过，也不写成支持。
 
@@ -101,10 +101,10 @@
 ## 签收
 
 - [ ] A 部分全部通过，或不通过的项已记录、已决定处理方式
-- [ ] B 部分按第 0 节确定的组合测完，结果写入 PLAN §8 和 README 的共享实测表
+- [ ] B 部分按第 0 节确定的组合测完，结果写入 PLAN 的 STAGE6 票和 README 的共享实测表
 - [ ] 用户签收阶段 6：＿＿（日期）
 
-Windows 不在本清单内，见 Windows 开发分支的 `docs/margin/WINDOWS-TEST-CHECKLIST.md`。
+Windows 不在本清单内，见 [WINDOWS-TEST-CHECKLIST](WINDOWS-TEST-CHECKLIST.md)。
 
 ## 已删除项
 
