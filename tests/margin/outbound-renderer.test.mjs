@@ -580,7 +580,7 @@ test('AG60 mounted help, meeting history and a visible error fallback switch lan
 
     await page.evaluate(() => { window.changeLanguage('zh-CN'); window.show('help'); });
     await page.getByRole('heading', { name: '帮助与设置指南', exact: true }).waitFor();
-    for (const title of ['1. 应用权限设置', '2. 语音转写服务商设置（麦克风）', '3. AI 服务商与提示词引擎', '4. Margin 界面操作', '5. 会议记录', '6. 全局搜索与快捷键', '7. 其他', '8. 隐身与窗口控制']) {
+    for (const title of ['1. 应用权限设置', '2. 语音转写服务商设置（麦克风）', '3. AI 服务商与提示词引擎', '4. Margin 界面操作', '5. 会议记录', '6. 全局搜索与快捷键', '7. 隐身与窗口控制']) {
       await page.getByRole('button', { name: title, exact: true }).click();
     }
     const help = await page.locator('body').innerText();
@@ -625,7 +625,7 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
     window.electronAPI = { getGenerationPolicy: async () => structuredClone(window.policy),
       setGenerationPolicy: async policy => { window.policy = structuredClone(policy); return { ok: true }; },
       getStoredCredentials: async () => structuredClone(window.creds),
-      getGroqFastTextMode: async () => ({ enabled: false }), getDefaultModel: async () => ({ model: 'llm-target:openai:chat-completions:gpt-5.4' }), getProviderDataScopes: async () => ({}),
+      getDefaultModel: async () => ({ model: 'llm-target:openai:chat-completions:gpt-5.4' }), getProviderDataScopes: async () => ({}),
       fetchProviderModels: async () => { window.events.push('fetch'); if (window.deferModels) return new Promise(resolve => window.resolveModels = resolve); return { success: true, models: window.models }; },
       setProviderConfiguration: async value => { window.events.push('save'); if (window.failSave) return { ok: false, message: 'synthetic save failure' }; window.creds.providerConfigurations[value.provider] = value; return { ok: true }; },
       testLlmConnection: async (provider, unused, expected) => { window.events.push('test'); window.tested = expected; if (window.deferTest) return new Promise(resolve => window.resolveTest = resolve); return { success: true }; },
@@ -900,7 +900,7 @@ test('S47 mounted settings and session selector share saved candidates through t
     // The component gets the same promise; settledCalls(name) counts calls whose result has reached the page.
     const settled = {}; window.settledCalls = name => settled[name] ?? 0;
     const bridge = name => (...args) => { const result = window.invokeMain(name, args); result.then(() => {}, () => {}).finally(() => { settled[name] = (settled[name] ?? 0) + 1; }); return result; };
-    window.electronAPI = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}),
+    window.electronAPI = { getProviderDataScopes: async () => ({}),
       onModelChanged: () => () => {}, onThemeChanged: () => () => {} };
     for (const name of ${JSON.stringify(Object.keys(preload))}) window.electronAPI[name] = bridge(name);
     let settings, selector;
@@ -1119,7 +1119,7 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
     const memory = new Map(); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)), removeItem: key => memory.delete(key) } });
     const reasoning = new Set(); window.emitReasoning = state => { for (const listener of reasoning) listener(state); };
     window.reasoningWrites = [];
-    const api = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}),
+    const api = { getProviderDataScopes: async () => ({}),
       onAnswerReasoningChanged: listener => { reasoning.add(listener); return () => reasoning.delete(listener); }, getMeetingActive: async () => true };
     for (const name of ${JSON.stringify(Object.keys(preload))}) api[name] = (...args) => { if (/Reasoning$/.test(name) && name.startsWith('set')) window.reasoningWrites.push([name, ...args]); return window.invokeMain(name, args); };
     window.electronAPI = new Proxy(api, { get(target, name) { if (name in target) return target[name]; if (String(name).startsWith('on')) return () => () => {}; return async () => undefined; } });

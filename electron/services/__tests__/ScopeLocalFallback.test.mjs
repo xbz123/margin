@@ -204,7 +204,6 @@ function helperWith(policy, fields) {
     processImage: async () => ({ mimeType: 'image/png', data: 'AAAA' }),
     geminiPromptCache: { getOrCreate: async () => null, invalidate() {} },
     processResponse: text => text,
-    groqFastTextMode: false,
     rateLimiters: { claude: noLimit, groq: noLimit, gemini: noLimit, openai: noLimit, deepseek: noLimit },
     withRetry: (fn) => fn(),
     withTimeout: (promise) => promise,

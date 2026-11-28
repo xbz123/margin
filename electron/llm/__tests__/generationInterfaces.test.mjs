@@ -316,10 +316,10 @@ test('model switch cannot select configured backup and preserves previous primar
   finally { task.close(); }
 });
 
-test('Groq fast mode preserves the explicitly selected model for both text and images', async () => {
+test('a selected Groq model answers text with that model; an unlisted one sends no images', async () => {
   const { self } = helper(); const requests = [];
   self.groqClient = { chat: { completions: { create: async args => { requests.push(args); return { choices: [{ message: { content: 'fast' }, finish_reason: 'stop' }] }; } } } };
-  self.selectedTarget = { provider: 'groq', protocol: 'chat-completions', model: 'groq-other', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'groq-other']) }; self.currentModelId = 'groq-other'; self.groqFastTextMode = true;
+  self.selectedTarget = { provider: 'groq', protocol: 'chat-completions', model: 'groq-other', imageSupportConfirmedFor: JSON.stringify(['groq', 'chat-completions', 'https://api.groq.com/openai/v1', 'groq-other']) }; self.currentModelId = 'groq-other';
   assert.equal(await self.chatWithGemini('QUESTION'), 'fast');
   assert.equal(requests[0].model, 'groq-other');
   assert.equal(requests[0].max_tokens, 8192); assert.equal(requests[0].temperature, 0.4);

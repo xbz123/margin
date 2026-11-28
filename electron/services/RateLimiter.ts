@@ -5,7 +5,7 @@
  *
  * BUG-4 fixes:
  *   1. MAX_QUEUE_DEPTH cap — prevents unbounded memory growth under sustained load
- *      (e.g. fast-text mode at 1 req/s with a 6 req/min limit → 54 waiters in 60s).
+ *      (e.g. 1 req/s with a 6 req/min limit → 54 waiters in 60s).
  *   2. destroy() now rejects waiters instead of resolving them — the old behaviour
  *      called resolve() with no token, silently bypassing the rate limit on shutdown.
  */

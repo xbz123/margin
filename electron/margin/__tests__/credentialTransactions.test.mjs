@@ -524,7 +524,7 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   const context = {
     require: () => ({ CredentialsManager: { getInstance: () => manager } }),
     appState: { processingHelper: { getLLMHelper: () => ({ setModel: () => {}, getCurrentModelSelection: () => current,
-      validateGenerationTargets() {}, getGroqFastTextMode: () => false,
+      validateGenerationTargets() {},
       setSavedReasoning() {}, reconcileSessionReasoning: () => undefined }) },
       sendModelChanged: value => events.push(value), modelSelectorWindowHelper: { hideWindow: () => events.push('hide') } },
   };
@@ -1203,7 +1203,7 @@ test('all saving IPC handlers return storage failure before runtime, events or w
     const effects = [];
     const effect = () => { effects.push('runtime'); };
     const manager = new Proxy({}, { get: () => () => failure });
-    const llm = new Proxy({}, { get: (_, key) => ['validateGenerationTargets', 'getGroqFastTextMode', 'getCurrentModelSelection'].includes(key)
+    const llm = new Proxy({}, { get: (_, key) => ['validateGenerationTargets', 'getCurrentModelSelection'].includes(key)
       ? () => key === 'getCurrentModelSelection' ? 'gpt-5.4' : undefined : effect });
     const appState = {
       processingHelper: { getLLMHelper: () => llm, applyStoredProvider: effect, applyStoredGateway: effect, refreshAnswerRuntime: effect },

@@ -227,8 +227,6 @@ export interface ElectronAPI {
   toggleSettingsWindow: (coords?: { x: number; y: number }) => Promise<void>;
 
   // Groq Fast Text Mode
-  getGroqFastTextMode: () => Promise<{ enabled: boolean }>;
-  setGroqFastTextMode: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;
@@ -239,7 +237,6 @@ export interface ElectronAPI {
   onAudioTestSystemLevel: (callback: (level: number) => void) => () => void;
   onAudioTestSystemError: (callback: (errorMessage: string) => void) => () => void;
 
-  onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
   onModelChanged: (callback: (modelId: string) => void) => () => void;
 
   onMeetingsUpdated: (callback: () => void) => () => void

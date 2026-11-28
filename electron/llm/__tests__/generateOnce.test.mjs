@@ -34,7 +34,7 @@ const helper = (client, policy = {}, extra = {}) => Object.assign(Object.create(
   // A listed model (S48): image sends need the capability table, not an older manual confirmation.
   selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite' },
   currentModelId: 'gemini-3.1-flash-lite', aiResponseLanguage: 'auto',
-  groqFastTextMode: false, rateLimiters: { gemini: { acquire: async () => {} } },
+  rateLimiters: { gemini: { acquire: async () => {} } },
   geminiPromptCache: new GeminiPromptCache(), withTimeout: value => value,
   injectLanguageInstruction: text => text, processResponse: text => text, logScopeFallback: () => {},
   ...extra,

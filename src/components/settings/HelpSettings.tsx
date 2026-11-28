@@ -2,7 +2,7 @@ import { APP_NAME } from '../../appIdentity';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Command, Monitor, Mic, Settings, Zap, Key, Play, Image, ArrowUp, FileText, Sparkles, Search, ChevronUp,
+    Command, Monitor, Mic, Zap, Key, Play, Image, ArrowUp, FileText, Sparkles, Search, ChevronUp,
     Copy, MessageSquare, Briefcase, Eye, EyeOff, Ghost, ChevronDown, ChevronRight, HelpCircle, RefreshCw,
     Trash2, Check, ExternalLink, Volume2, Globe, Cpu, Calendar, Pencil, SlidersHorizontal,
     PointerOff, ArrowRight
@@ -481,34 +481,6 @@ const MockPillControlsAnim = () => {
                 </div>
             </div>
 
-        </div>
-    );
-};
-
-const MockFastModeAnim = () => {
-    const { t } = useI18n();
-    return (
-        <div className="flex justify-center items-center py-8 bg-bg-card rounded-xl border border-border-subtle relative overflow-hidden h-[240px]">
-            <div className="flex flex-col items-center gap-4 z-10">
-                <motion.div
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.4)]"
-                    animate={{ rotate: 360 }}
-                    transition={{ ease: "linear", duration: 8, repeat: Infinity }}
-                >
-                    <Zap className="w-8 h-8 text-white" />
-                </motion.div>
-                <div className="text-center">
-                    <div className="font-bold text-lg text-text-primary">{t('Fast Mode Enabled')}</div>
-                    <div className="text-xs text-text-secondary mt-1">{t('Uses the selected Groq model.')}</div>
-                </div>
-            </div>
-
-            {/* Background pulses */}
-            <motion.div
-                className="absolute inset-0 border-[6px] border-orange-500/20 rounded-xl"
-                animate={{ scale: [1, 1.05, 1], opacity: [0, 1, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-            />
         </div>
     );
 };
@@ -1262,27 +1234,7 @@ export const HelpSettings: React.FC = () => {
 
 
 
-                <AccordionSection title="7. Miscellaneous" icon={<Settings className="w-4 h-4" />}>
-                    <div className="space-y-6">
-                        {/* Fast Mode */}
-                        <div className="space-y-4">
-                            <h4 className="font-bold text-sm text-text-primary flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-orange-500" /> {t('Fast Mode (Hardware LPU)')}
-                            </h4>
-                            <MockFastModeAnim />
-                            <div className="p-4 rounded-xl border bg-orange-500/10 border-orange-500/20">
-                                <h4 className="font-semibold text-sm mb-2 text-orange-500 flex items-center gap-2">
-                                    <Zap className="w-4 h-4" /> {t('How Fast Mode Works')}
-                                </h4>
-                                <p className="text-xs text-orange-400/80 m-0">
-                                    {withParts(t('Fast Response applies to selected Groq models and keeps your selected model. Turn it on with {popup} in the quick settings popup.'), { popup: <strong>{t('Fast Response')}</strong> })}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </AccordionSection>
-
-                <AccordionSection title="8. Stealth & Window Control" icon={<Ghost className="w-4 h-4" />}>
+                <AccordionSection title="7. Stealth & Window Control" icon={<Ghost className="w-4 h-4" />}>
                     <div className="space-y-4">
                         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl mb-4">
                             <h4 className="text-[13px] font-semibold text-indigo-400 flex items-center gap-2 mb-1">

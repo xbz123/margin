@@ -505,7 +505,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   });
 
   // Matches narrow identity/meta probes only. Kept tight so coding/normal asks don't trip it.
-  // Prevents the small fast-mode model from over-firing the "I'm Margin" canned reply
+  // Prevents a small model from over-firing the "I'm Margin" canned reply
   // (which used to escape the prompt's hard rule for any ambiguous input).
   const IDENTITY_PROBE_RE =
     /^\s*(who\s+(are|r)\s+(you|u|this|margin)|what\s+(are|r)\s+(you|u)|are\s+you\s+(chatgpt|gpt[-\s]?\d?|claude|gemini|llama|an?\s+(ai|bot|llm|model|assistant))|what('?s|\s+is)\s+your\s+(name|model)|which\s+(ai|model|llm)\s+are\s+you|who\s+(made|built|created|developed|trained)\s+(you|this|margin)|what\s+model\s+(are\s+you|do\s+you\s+use)|introduce\s+yourself)\s*\??\s*$/i;
@@ -1626,35 +1626,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       let secret: string | undefined;
       try { secret = require('./services/CredentialsManager').CredentialsManager.getInstance().getGatewayApiKey(id); } catch { secret = undefined; }
       return { success: false, error: boundedProviderError(rawMsg, secret) };
-    }
-  });
-
-  safeHandle('get-groq-fast-text-mode', () => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      return { enabled: llmHelper.getGroqFastTextMode() };
-    } catch (error: any) {
-      return { enabled: false };
-    }
-  });
-
-  // Set Groq Fast Text Mode
-  safeHandle('set-groq-fast-text-mode', (_, enabled: boolean) => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      llmHelper.setGroqFastTextMode(enabled);
-
-      const { SettingsManager } = require('./services/SettingsManager');
-      SettingsManager.getInstance().set('groqFastTextMode', enabled);
-
-      // Broadcast to all windows
-      BrowserWindow.getAllWindows().forEach((win) => {
-        win.webContents.send('groq-fast-text-changed', enabled);
-      });
-
-      return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
     }
   });
 

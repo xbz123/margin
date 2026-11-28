@@ -275,8 +275,6 @@ interface ElectronAPI {
   toggleSettingsWindow: (coords?: { x: number; y: number }) => Promise<void>;
 
   // Groq Fast Text Mode
-  getGroqFastTextMode: () => Promise<{ enabled: boolean }>;
-  setGroqFastTextMode: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;
@@ -318,7 +316,6 @@ interface ElectronAPI {
   cancelIntelligenceGeneration: () => Promise<void>;
   onIntelligenceGenerationTerminal: (callback: (metadata: GenerationMetadata & { error?: string }) => void) => () => void;
 
-  onGroqFastTextChanged: (callback: (enabled: boolean) => void) => () => void;
   onModelChanged: (callback: (modelId: string) => void) => () => void;
 
   // Theme API
@@ -975,8 +972,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('toggle-settings-window', coords),
 
   // Groq Fast Text Mode
-  getGroqFastTextMode: () => ipcRenderer.invoke('get-groq-fast-text-mode'),
-  setGroqFastTextMode: (enabled: boolean) => ipcRenderer.invoke('set-groq-fast-text-mode', enabled),
 
   // Audio Test
   startAudioTest: (deviceId?: string) => ipcRenderer.invoke('start-audio-test', deviceId),
@@ -1006,13 +1001,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     };
   },
 
-  onGroqFastTextChanged: (callback: (enabled: boolean) => void) => {
-    const subscription = (_: any, enabled: boolean) => callback(enabled);
-    ipcRenderer.on('groq-fast-text-changed', subscription);
-    return () => {
-      ipcRenderer.removeListener('groq-fast-text-changed', subscription);
-    };
-  },
 
   onModelChanged: (callback: (modelId: string) => void) => {
     const subscription = (_: any, modelId: string) => callback(modelId);

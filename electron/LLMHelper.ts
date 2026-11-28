@@ -37,7 +37,7 @@ import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPol
 import { assertModelImageSupport } from '../src/types/modelImageSupport';
 import { PreparedInputs, copyPreparedInput, type PreparedInput, type PresentationOwner } from './llm/preparedInput';
 
-type SnapshotContext = { language: string; customNotes: string; fastMode: boolean };
+type SnapshotContext = { language: string; customNotes: string };
 type GenerationTargetSnapshot = SnapshotContext & { kind: 'api'; target: ModelTarget; client: any; custom: boolean };
 
 // Data scopes of the request being served, beyond what each payload shows: the scopes
@@ -164,7 +164,7 @@ export class LLMHelper {
   public beginGenerationTask(kind: GenerationKind = 'interview', signal?: AbortSignal, primary?: ModelTarget, startedAt?: number): GenerationTask<GenerationTargetSnapshot> {
     if (this.generationClosed) throw new DOMException('Application quit', 'AbortError');
     const configs = this.providerConfigurations ?? LLM_PRESETS;
-    const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '', fastMode: this.groqFastTextMode };
+    const context = { language: this.aiResponseLanguage ?? 'auto', customNotes: this.customNotes ?? '' };
     // A gateway target only ever uses its own client; a missing gateway or key fails, never an official client.
     // Reasoning is fixed here for the whole task (S48 C3): the selected primary takes the session or saved
     // default; an official backup or an explicit target (connection test) takes the provider default.
@@ -297,7 +297,6 @@ export class LLMHelper {
   // Kept as a separate client so credentials/scope/telemetry stay provider-specific.
   private deepseekClient: OpenAI | null = null
   private geminiModel: string = GEMINI_FLASH_MODEL
-  private groqFastTextMode: boolean = false;
   private customNotes: string = '';
   private aiResponseLanguage: string = 'auto';
 
@@ -528,23 +527,12 @@ export class LLMHelper {
     this.rateLimiters = createProviderRateLimiters();
   }
 
-  public setGroqFastTextMode(enabled: boolean) {
-    if (typeof enabled !== 'boolean') throw new Error('Invalid fast-mode flag');
-    if (this.groqFastTextMode !== enabled) this.cancelGenerationTasks('Fast model changed');
-    this.groqFastTextMode = enabled;
-    console.log(`[LLMHelper] Groq Fast Text Mode: ${enabled}`);
-  }
-
   public scrubKeys(): void {
     this.generationClosed = true;
     for (const task of this.activeGenerationTasks) task.controller.abort(new DOMException('Application quit', 'AbortError'));
     this.gatewayClients?.clear();
     this.client = null; this.groqClient = null; this.openaiClient = null; this.claudeClient = null; this.deepseekClient = null;
     if (this.rateLimiters) Object.values(this.rateLimiters).forEach(limiter => limiter.destroy());
-  }
-
-  public getGroqFastTextMode(): boolean {
-    return this.groqFastTextMode;
   }
 
   public cancelGenerationTasks(reason = 'Generation configuration changed'): void {

@@ -591,10 +591,6 @@ export class AppState {
     // This MUST happen here so that it runs unconditionally.
     {
       const llmHelper = this.processingHelper.getLLMHelper();
-      if (settingsManager.get('groqFastTextMode')) {
-        llmHelper.setGroqFastTextMode(true);
-        console.log('[AppState] Fast mode restored from settings');
-      }
       // Restore custom notes
       try {
         const savedNotes = DatabaseManager.getInstance().getCustomNotes();
