@@ -69,7 +69,7 @@ test('DeepSeek discovery never substitutes preset models for errors or empty res
 
 test('S49 official discovery intersects account access, exact reviewed IDs and the selected protocol', async () => {
   const cases = [
-    ['openai', ['gpt-5.3-codex', 'gpt-5.4', 'gpt-5.4-pro', 'gpt-5.4-mini-2026-03-17', 'gpt-image-2', 'gpt-99-future'], ['gpt-5.4', 'gpt-5.4-mini-2026-03-17']],
+    ['openai', ['gpt-5.4', 'gpt-5.4-pro', 'gpt-5.4-mini-2026-03-17', 'gpt-image-2', 'gpt-99-future'], ['gpt-5.4', 'gpt-5.4-mini-2026-03-17']],
     ['claude', ['claude-sonnet-4-20250514', 'claude-haiku-4-5-20251001', 'claude-opus-4-5', 'claude-sonnet-5-5', 'claude-opus-99'], ['claude-haiku-4-5-20251001', 'claude-opus-4-5', 'claude-sonnet-5-5']],
     ['deepseek', ['deepseek-chat', 'deepseek-reasoner', 'deepseek-flash', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp', 'deepseek-v4-pro'], ['deepseek-flash', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp', 'deepseek-v4-pro']],
   ];

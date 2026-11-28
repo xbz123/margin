@@ -14,7 +14,6 @@ import { validateSttBaseUrl } from '../utils/validateSttBaseUrl';
 import { LLM_PRESETS, candidateConfiguration, modelTargetId, parseModelSelection, providerCandidates, withCandidates, type LlmProvider, type ProviderConfiguration, type ProviderConfigurationSave, type GatewayConfiguration, type GatewayConfigurationSave, type GatewaySummary, type ModelTarget } from '../../src/types/llmTarget';
 import { validateProviderConfiguration, validateGatewayConfiguration, resolveModelTarget, followSelection, removedCandidatesInUse, GROQ_ANSWERS_RETIRED } from '../llm/llmTarget';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../../src/types/generationPolicy';
-import { isCodexSelection, validateCodexModel, codexImageTarget, DEFAULT_CODEX_SOURCE_CONFIG, type CodexSourceConfig } from '../../src/types/codexSource';
 import type { DomesticSttSettings, DoubaoResourceId } from '../../src/types/domesticStt';
 import type { NetworkProxyPublicConfig, NetworkProxySaveInput, NetworkProxySettings } from '../../src/types/networkProxy';
 import { DEFAULT_NETWORK_PROXY, PROXY_PASSWORD_REENTRY, normalizeNetworkProxySettings } from './proxy/settings';
@@ -287,24 +286,14 @@ export class CredentialsManager {
     public getGenerationPolicy(): GenerationPolicy {
         const policy = validateGenerationPolicy(this.credentials.generationPolicy ?? DEFAULT_GENERATION_POLICY);
         if (policy.backupImageSupportConfirmedFor) {
-            if (policy.backupModel && isCodexSelection(policy.backupModel)) {
-                if (policy.backupModel.startsWith('codex-cli:') && policy.backupImageSupportConfirmedFor !== codexImageTarget(validateCodexModel(policy.backupModel.slice(10)))) delete policy.backupImageSupportConfirmedFor;
-                return policy;
-            }
             // An unavailable backup (retired Groq, removed gateway) stays visible as saved; it is refused when used.
             if (!policy.backupModel || !this.backupConfirmationValid(policy)) delete policy.backupImageSupportConfirmedFor;
         }
         return policy;
     }
 
-    private generationSelectionId(selection: string, config: CodexSourceConfig, fast = false): string {
-        return isCodexSelection(selection) ? `codex-cli:${fast ? config.fastModel : selection.startsWith('codex-cli:') ? validateCodexModel(selection.slice(10)) : config.model}`
-            : modelTargetId(this.resolveSelection(selection));
-    }
-
     /** The selection unchanged when it is unavailable, so comparisons never invent a target. */
     private comparableSelection(selection: string, configs: Record<LlmProvider, ProviderConfiguration>, gateways: Record<string, GatewayConfiguration>): string {
-        if (isCodexSelection(selection)) return selection;
         try { return modelTargetId(this.resolveSelection(selection, configs, gateways)); } catch { return selection; }
     }
 
@@ -314,7 +303,7 @@ export class CredentialsManager {
      * Other selections are left exactly as they were.
      */
     private followSavedTarget(selection: string | undefined, previous: ModelTarget, next: ModelTarget): string | undefined {
-        if (!selection || isCodexSelection(selection)) return selection;
+        if (!selection) return selection;
         // A legacy bare ID is compared through its canonical form, and kept as written when untouched.
         const canonical = parseModelSelection(selection) ? selection : this.comparableSelection(selection, this.getProviderConfigurations(), this.getGateways());
         const followed = followSelection(canonical, previous, next);
@@ -322,22 +311,16 @@ export class CredentialsManager {
     }
 
     private assertDistinctSelections(primary: string, backup: string | undefined, configs: Record<LlmProvider, ProviderConfiguration>, gateways: Record<string, GatewayConfiguration>): void {
-        if (backup && !isCodexSelection(backup) && !primary.startsWith('codex-cli')
-            && this.comparableSelection(primary, configs, gateways) === this.comparableSelection(backup, configs, gateways)) {
+        if (backup && this.comparableSelection(primary, configs, gateways) === this.comparableSelection(backup, configs, gateways)) {
             throw new Error('Primary and backup model must differ. Change the backup first.');
         }
     }
 
-    public setGenerationPolicy(value: GenerationPolicy, codexConfig = DEFAULT_CODEX_SOURCE_CONFIG, fast = false): CredentialSaveResult {
+    public setGenerationPolicy(value: GenerationPolicy): CredentialSaveResult {
         const policy = validateGenerationPolicy(value);
         if (policy.backupModel) {
-            if (isCodexSelection(policy.backupModel)) {
-                if (policy.backupModel.startsWith('codex-cli:')) validateCodexModel(policy.backupModel.slice(10));
-                if (this.generationSelectionId(policy.backupModel, codexConfig) === this.generationSelectionId(this.getDefaultModel(), codexConfig, fast && isCodexSelection(this.getDefaultModel()))) throw new Error('Primary and backup model must differ.');
-                return this.saveCredentials({ generationPolicy: policy });
-            }
             const backup = this.resolveSelection(policy.backupModel);
-            if (!this.getDefaultModel().startsWith('codex-cli') && modelTargetId(backup) === this.comparableSelection(this.getDefaultModel(), this.getProviderConfigurations(), this.getGateways())) throw new Error('Primary and backup model must differ.');
+            if (modelTargetId(backup) === this.comparableSelection(this.getDefaultModel(), this.getProviderConfigurations(), this.getGateways())) throw new Error('Primary and backup model must differ.');
         }
         return this.saveCredentials({ generationPolicy: policy });
     }
@@ -358,15 +341,15 @@ export class CredentialsManager {
         if (providerCandidates(config).some(candidate => candidate.reasoning && stored.get(candidate.model) !== JSON.stringify(candidate.reasoning))) {
             throw new Error('Reasoning is chosen with the answer model, not saved per model.');
         }
-        const inUse = removedCandidatesInUse(previous, config, [this.getDefaultModel(), this.getGenerationPolicy().backupModel ?? '', ...running].filter(Boolean)
-            .filter(selection => !isCodexSelection(selection)), selection => this.comparableSelection(selection, configs, gateways));
+        const inUse = removedCandidatesInUse(previous, config, [this.getDefaultModel(), this.getGenerationPolicy().backupModel ?? '', ...running].filter(Boolean),
+            selection => this.comparableSelection(selection, configs, gateways));
         if (inUse.length) return { ok: false, code: 'write_failed', message: CANDIDATE_IN_USE };
         const nextConfigurations = { ...configs, [config.provider]: config };
         const followed = this.followSavedTarget(this.getDefaultModel(), previous, config);
         const defaultModel = followed !== this.getDefaultModel() ? followed : this.credentials.defaultModel;
         const generationPolicy = this.getGenerationPolicy();
         generationPolicy.backupModel = this.followSavedTarget(generationPolicy.backupModel, previous, config);
-        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel && !isCodexSelection(generationPolicy.backupModel)
+        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel
             && !this.backupConfirmationValid(generationPolicy, nextConfigurations, gateways)) delete generationPolicy.backupImageSupportConfirmedFor;
         this.assertDistinctSelections(defaultModel ?? this.getDefaultModel(), generationPolicy.backupModel, nextConfigurations, gateways);
         return this.saveCredentials({
@@ -403,7 +386,7 @@ export class CredentialsManager {
             if (followed !== this.getDefaultModel()) defaultModel = followed;
             generationPolicy.backupModel = this.followSavedTarget(generationPolicy.backupModel, before, after);
         }
-        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel && !isCodexSelection(generationPolicy.backupModel)
+        if (generationPolicy.backupImageSupportConfirmedFor && generationPolicy.backupModel
             && !this.backupConfirmationValid(generationPolicy, configs, nextGateways)) delete generationPolicy.backupImageSupportConfirmedFor;
         this.assertDistinctSelections(defaultModel ?? this.getDefaultModel(), generationPolicy.backupModel, configs, nextGateways);
         const result = this.saveCredentials({
@@ -512,11 +495,11 @@ export class CredentialsManager {
      * offers is kept; otherwise the provider default is saved and the result says so. An older pending
      * per-model setting stays only while the primary model is unchanged.
      */
-    public setDefaultModel(model: string, codexConfig = DEFAULT_CODEX_SOURCE_CONFIG, fast = false): CredentialSaveResult {
+    public setDefaultModel(model: string): CredentialSaveResult {
+        const target = this.resolveSelection(model);
         const backup = this.getGenerationPolicy().backupModel;
-        if (backup && this.generationSelectionId(backup, codexConfig) === this.generationSelectionId(model, codexConfig, fast && isCodexSelection(model))) throw new Error('Primary and backup model must differ. Change the backup first.');
-        if (isCodexSelection(model) && model.startsWith('codex-cli:')) validateCodexModel(model.slice(10));
-        const target = isCodexSelection(model) ? undefined : this.resolveSelection(model);
+        // An unavailable saved backup (for example a removed source) compares as written and never blocks a new primary.
+        if (backup && modelTargetId(target) === this.comparableSelection(backup, this.getProviderConfigurations(), this.getGateways())) throw new Error('Primary and backup model must differ. Change the backup first.');
         const saved = this.getSavedReasoning();
         let answerReasoning: ReasoningChoice | undefined, warning: string | undefined;
         if ('legacy' in saved) {
@@ -534,7 +517,6 @@ export class CredentialsManager {
         const stored = this.credentials.answerReasoning;
         if (stored !== undefined) return { choice: isReasoningChoice(stored) ? stored : 'default' };
         const selection = this.getDefaultModel();
-        if (isCodexSelection(selection)) return { choice: 'default' };
         let target: ModelTarget;
         try { target = this.resolveSelection(selection); } catch { return { choice: 'default' }; }
         if (target.provider === 'gateway') return { choice: 'default' };
@@ -547,8 +529,8 @@ export class CredentialsManager {
         const selection = this.getDefaultModel();
         const current = this.comparableSelection(selection, this.getProviderConfigurations(), this.getGateways());
         if (expected !== current) return { ok: false, code: 'write_failed', message: 'The primary model changed. Choose the reasoning level again.' };
-        const target = isCodexSelection(selection) ? undefined : this.resolveSelection(selection);
-        if (!target || target.provider === 'gateway') return { ok: false, code: 'write_failed', message: 'This answer model sets reasoning in its own configuration.' };
+        const target = this.resolveSelection(selection);
+        if (target.provider === 'gateway') return { ok: false, code: 'write_failed', message: 'This answer model sets reasoning in its own configuration.' };
         if (!reasoningApplies(target, choice)) throw new Error('This reasoning level is not available for the selected model.');
         return this.saveCredentials({ answerReasoning: choice });
     }

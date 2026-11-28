@@ -43,7 +43,7 @@ export const PINNED_NODE_TEST_STEPS = [
   { id: 'regression', file: 'tests/margin/answer-regression.test.mjs', minTests: 24 },
   { id: 'storage', file: 'tests/margin/meeting-storage.test.mjs', minTests: 4 },
   { id: 'startup', file: 'tests/margin/startup-smoke.test.mjs', minTests: 2 },
-  { id: 'outbound-renderer', file: 'tests/margin/outbound-renderer.test.mjs', minTests: 17 },
+  { id: 'outbound-renderer', file: 'tests/margin/outbound-renderer.test.mjs', minTests: 15 },
 ];
 export const OUTBOUND_RENDERER_MIN_TESTS = PINNED_NODE_TEST_STEPS.find((s) => s.id === 'outbound-renderer').minTests;
 

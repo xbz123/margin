@@ -1,7 +1,6 @@
 import type { LLMHelper } from '../LLMHelper';
 import type { TranscriptView } from '../SessionTracker';
 import { ManualAnswerConfigurationError } from '../direct-assist/errors';
-import { codexSourceAvailable } from '../../src/types/codexSource';
 
 export function isPendingAnswerSentinel(text: string): boolean {
   const normalized = text.trim().toLowerCase().replace(/[.!?]+$/g, '');
@@ -29,8 +28,8 @@ export async function prepareManualAnswer(helper: LLMHelper, freeze?: (signal: A
   const task = helper.getCurrentGenerationTask();
   if (!task) throw new ManualAnswerConfigurationError();
   const selected = task.primary;
-  if (!selected.target.model.trim() || (selected.kind === 'api' ? !selected.client
-    : !codexSourceAvailable(selected.codex))) throw new ManualAnswerConfigurationError();
+  if (!selected.target.model.trim() || !selected.client) throw new ManualAnswerConfigurationError();
+
   task.check();
   const view = await freeze?.(task.signal);
   // Cancellation while freezing must not fall through into a fresh generation.

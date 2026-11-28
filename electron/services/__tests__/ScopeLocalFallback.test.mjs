@@ -30,45 +30,6 @@ function loadBuiltLLMHelper() {
   }
 }
 
-// Both Codex entry points check scopes before reading the synthetic login or sending.
-
-async function codexWith(entry, policy) {
-  const LLMHelper = loadBuiltLLMHelper();
-  const { CodexAuthSource } = createRequire(import.meta.url)('../../../dist-electron/electron/services/CodexAuthSource.js');
-  const reads = [], spawned = [];
-  const token = `e30.${Buffer.from(JSON.stringify({ exp: Date.now() / 1000 + 3600 })).toString('base64url')}.synthetic`;
-  const self = Object.assign(Object.create(LLMHelper.prototype), {
-    codexCliConfig: { enabled: true, riskConfirmedVersion: 1, model: 'gpt-5.4', fastModel: 'gpt-5.3-codex', serviceTier: 'default' },
-    codexAuthSource: new CodexAuthSource(async () => { reads.push(1); return JSON.stringify({ tokens: { access_token: token, account_id: 'synthetic-account' } }); }, async url => { spawned.push(url); return new Response('data: {"type":"response.output_text.delta","delta":"allowed"}\n\ndata: {"type":"response.completed"}\n\n', { headers: { 'content-type': 'text/event-stream' } }); }),
-    currentModelId: 'codex-cli:gpt-5.4',
-    getProviderScopePolicy: () => policy, aiResponseLanguage: 'auto',
-  });
-  try {
-    if (entry === 'stream') {
-      for await (const _ of self.streamChat('TRANSCRIPT_SENTINEL said hello')) { /* drain */ }
-    } else {
-      await self.chatWithGemini('TRANSCRIPT_SENTINEL said hello');
-    }
-    return { error: null, spawned, reads };
-  } catch (error) {
-    return { error, spawned, reads };
-  }
-}
-
-for (const entry of ['generate', 'stream']) {
-  test(`Codex login source (${entry}) refuses auth reads and sends when transcript scope is denied`, async () => {
-    const allowed = await codexWith(entry, {});
-    assert.equal(allowed.error, null, 'positive control reaches the fixed source');
-    assert.equal(allowed.reads.length, 1);
-    assert.deepEqual(allowed.spawned, ['https://chatgpt.com/backend-api/codex/responses']);
-
-    const denied = await codexWith(entry, { transcript: false });
-    assert.equal(denied.error?.name, 'ProviderScopeError', `expected a scope error, got ${denied.error}`);
-    assert.deepEqual(denied.spawned, [], 'no request may be sent');
-    assert.deepEqual(denied.reads, [], 'no auth file may be read');
-  });
-}
-
 // Third review (PLAN.md AG-17): the non-streaming Claude and Groq multimodal sends had
 // no scope check of their own, and Gemini requests with inline images were not seen as
 // screenshots. Each send below is replaced by a stub that records the request and
@@ -238,7 +199,7 @@ function helperWith(policy, fields) {
   const LLMHelper = loadBuiltLLMHelper();
   const noLimit = { acquire: async () => {} };
   return Object.assign(Object.create(LLMHelper.prototype), {
-    codexCliConfig: { enabled: false }, customNotes: '', aiResponseLanguage: 'auto',
+    customNotes: '', aiResponseLanguage: 'auto',
     currentModelId: 'gemini-test', selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-test' },
     processImage: async () => ({ mimeType: 'image/png', data: 'AAAA' }),
     geminiPromptCache: { getOrCreate: async () => null, invalidate() {} },

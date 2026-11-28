@@ -2,7 +2,7 @@
 
 This is an implementation inventory, not an AG-24 acceptance record. AG-41a retired
 Google, Deepgram, ElevenLabs, Azure and IBM STT (S35/S39). No live credentials, services,
-audio devices, keychain or Codex CLI are used by the synthetic checks.
+audio devices or keychain are used by the synthetic checks.
 
 ## Application HTTP
 
@@ -186,7 +186,7 @@ Resolution order for every outbound URL (`electron/services/proxy/index.ts`):
    30 seconds and the cache is cleared whenever the settings change.
 
 One tunnel serves all three channels. Fetch (OpenAI, Anthropic, Groq, DeepSeek,
-gateways, Codex file login and Gemini through the global wrapper) adds an undici
+gateways and Gemini through the global wrapper) adds an undici
 `Agent` as `dispatcher` after `validateHttpEndpoint`; a direct decision passes no
 dispatcher, so that path is unchanged. Axios always sets `proxy: false` (it no
 longer reads environment variables itself) and gets routing `http.Agent`/
@@ -319,7 +319,7 @@ finite consistency check, not whole-program alias/data-flow analysis or proof
 about arbitrary future SDK internals. Behavioral redirect and explicit-config
 controls remain in OutboundBoundary and ProviderGatewayPolicy tests.
 
-## Renderer, active links, native and Codex
+## Renderer, active links and native
 
 Nine ReactMarkdown call sites use SafeMarkdown to reject img. The imperative
 streaming marked/DOMPurify path rejects img and SVG image. CSP limits images to
@@ -382,49 +382,3 @@ open the URL the clicked control declares, as the app's own handler does, and a
 script that can change the page could change a declared URL, as it could change a
 link's href. Without a real click on that control nothing opens.
 Native sources have no application-owned HTTP after the retired functionality.
-
-### Codex file-login source (AG-34 local verification)
-
-The new generation route replaces the opaque CLI subprocess with an independent
-file-login source. It sends only to
-`https://chatgpt.com/backend-api/codex/responses`, through the shared no-redirect
-fetch policy. API-key slots, compatible URLs, SDK credentials and API request
-parameters are not reused. No official-client identity headers are added.
-The retained reasoning and service-tier options use a source-specific body with
-`stream: true` and `store: false`; neither real model availability nor acceptance
-of these parameters has been verified. No server-side output-token cap is claimed.
-
-Startup, configuration getters and model selectors do not inspect auth files.
-Explicit local status inspection or generation requires enabled state and the
-current main-owned risk confirmation. The main process chooses `CODEX_HOME` or
-the default Codex home; the renderer cannot supply a path, URL or headers.
-The supported file shape is ChatGPT `tokens.access_token` as a JWT carrying a
-finite future `exp`, plus `tokens.account_id`; a token account claim, when present,
-must agree. Local JWT decoding checks format/expiry/consistency, not signatures,
-account entitlement or service authorization. Files are bounded to 64 KiB and
-must be regular files; leaf symlinks, malformed or unsupported auth, API-key auth,
-missing/expired tokens and unsafe header values fail closed. Keyring, ephemeral,
-opaque-token and expiry-less forms are unsupported; users are not asked to
-downgrade credential storage.
-
-Tokens remain in a logical request's private context, never renderer state,
-ordinary settings or surfaced errors. No refresh or writeback is performed;
-request cleanup releases the references, without claiming secure memory erasure.
-Local status checks are also cancellable: withdrawal or shutdown stops a delayed
-file open from proceeding to read, and discards a superseded result.
-The account is pinned for that request. A source-specific 401 may cause one
-read-only recovery only if the file now contains a different token for the same
-account, no answer text exists, and the shared time/two-send budget remains.
-Ordinary API 401, 403, unchanged tokens, account switches, partial answers and
-revocation do not authorize extra sends. Each attempt rechecks live consent,
-all data scopes, image admission and the common send budget. A completed SSE
-event, not EOF, establishes completion. Cancellation releases the reader and
-stops later attempts; it cannot recall already submitted content.
-
-HTTP failures expose only bounded allowlisted classifications and Retry-After,
-not remote error bodies or credentials. Missing local files mean no supported
-readable file was found, not proof that the user chose a particular credential
-store. A passing local status check does not establish live service connectivity.
-The third-party interface is not publicly promised for this use; risk acceptance
-is not provider authorization. Synthetic verification and remaining limitations
-are recorded separately in `evidence/AG-34/`.

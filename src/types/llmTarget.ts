@@ -99,7 +99,7 @@ export type ParsedSelection =
   | { kind: 'official'; provider: LlmProvider; protocol: LlmProtocol; model: string }
   | { kind: 'gateway'; gatewayId: string; protocol: LlmProtocol; model: string };
 
-/** Parses a canonical selector; undefined for Codex, bare legacy IDs and malformed input. */
+/** Parses a canonical selector; undefined for bare legacy IDs and malformed input. */
 export function parseModelSelection(id: string): ParsedSelection | undefined {
   const official = /^llm-target:(gemini|groq|openai|claude|deepseek):(gemini|chat-completions|responses|messages):(.+)$/.exec(id);
   const gateway = /^llm-gateway:([a-z0-9][a-z0-9-]{0,63}):(gemini|chat-completions|responses|messages):(.+)$/.exec(id);

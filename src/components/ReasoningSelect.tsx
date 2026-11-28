@@ -26,7 +26,7 @@ export const ReasoningSelect: React.FC<ReasoningSelectProps> = ({ state, label, 
             disabled={!state || state.mode !== 'official'} className={className} style={style}
             onChange={event => { if (event.target.value !== 'legacy') onChange(event.target.value as ReasoningChoice); }}>
             {state?.value === 'legacy' && <option value="legacy">{t('Earlier setting (confirm): {setting}', { setting: state.pendingLegacy ?? '' })}</option>}
-            {state?.mode === 'source' ? <option value="default">{t('Set in the gateway or Codex configuration')}</option>
+            {state?.mode === 'source' ? <option value="default">{t('Set in the gateway configuration')}</option>
                 : state?.mode === 'unavailable' ? <option value="default">{t('Unavailable')}</option>
                     : (state?.options ?? ['default']).map(option => <option key={option} value={option}>{t(LABELS[option])}</option>)}
         </select>

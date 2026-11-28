@@ -43,7 +43,7 @@ export const describeLegacy = (setting: ReasoningSetting): string =>
 
 export const NOT_AVAILABLE_NOTICE = 'The selected reasoning level is not available for this model, so the provider default is used.';
 
-/** Control state for one selection; `target` undefined means Codex (source) or an unusable selection. */
+/** Control state for one selection; `target` undefined means an unusable selection. */
 export function controlState(selection: string, target: ModelTarget | undefined, source: SavedReasoning | ReasoningChoice, unavailable = false): ReasoningControlState {
   if (unavailable) return { target: selection, mode: 'unavailable', options: ['default'], value: 'default' };
   if (!target || target.provider === 'gateway') return { target: selection, mode: 'source', options: ['default'], value: 'default' };
@@ -64,7 +64,8 @@ export function answerReasoningState(manager: { getDefaultModel(): string; resol
   const selection = manager.getDefaultModel();
   let saved: ReasoningControlState;
   try {
-    const target = selection.startsWith('codex-cli') ? undefined : manager.resolveSelection(selection);
+    const target = manager.resolveSelection(selection);
+
     saved = controlState(target ? modelTargetId(target) : selection, target, manager.getSavedReasoning());
   } catch { saved = controlState(selection, undefined, { choice: 'default' }, true); }
   return { saved, session: notice ? { ...session, notice } : session };

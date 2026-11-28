@@ -63,7 +63,7 @@ export function SetupChecklist({ active, onOpenSettings, onReviewPermissions }: 
         <section aria-label={t('Setup checklist')}>
             <SettingsCard>
                 <div className="flex items-start justify-between gap-4">
-                    <SettingsHeading title={t('Setup checklist')} description={t('Local configuration only. Connections, Codex login and actual capture or sharing are not tested. Text use is not blocked.')} />
+                    <SettingsHeading title={t('Setup checklist')} description={t('Local configuration only. Connections and actual capture or sharing are not tested. Text use is not blocked.')} />
                     <button className={`${buttonClass} shrink-0`} onClick={() => setHidden(true)}>{t('Hide for now')}</button>
                 </div>
                 <ul className="mt-4 space-y-3">

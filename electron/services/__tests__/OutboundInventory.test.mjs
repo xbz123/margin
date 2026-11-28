@@ -14,7 +14,6 @@ const registered = {
   'electron/audio/OpenAIStreamingSTT.ts': { 'new WebSocket': 1, 'axios.post': 1 },
   'electron/audio/RestSTT.ts': { 'axios.post': 1 },
   'electron/ipcHandlers.ts': { 'new WebSocket': 1, 'axios.post': 1 },
-  'electron/services/CodexAuthSource.ts': { createOutboundFetch: 1 },
   'electron/services/outbound.ts': { createOutboundFetch: 2 },
   // Network proxy: one undici dispatcher for fetch, routing agents for axios/ws, one tunnel.
   'electron/services/proxy/index.ts': { 'new UndiciAgent': 1, 'new RoutingHttpAgent': 1, 'new RoutingHttpsAgent': 1 },
@@ -51,7 +50,7 @@ test('fixed endpoint origins in transport modules match the documented provider 
   const origins = new Set();
   const dynamicAuthorities = [];
   const sortedAuthorities = () => dynamicAuthorities.sort();
-  for (const file of [...Object.keys(registered), 'electron/audio/AliyunStreamingSTT.ts', 'electron/audio/DoubaoStreamingSTT.ts', 'electron/llm/llmTarget.ts', 'src/types/codexSource.ts']) {
+  for (const file of [...Object.keys(registered), 'electron/audio/AliyunStreamingSTT.ts', 'electron/audio/DoubaoStreamingSTT.ts', 'electron/llm/llmTarget.ts']) {
     const ast = ts.createSourceFile(file, fs.readFileSync(path.join(REPO, file), 'utf8'), ts.ScriptTarget.Latest, true);
     function visit(node) {
       if (ts.isStringLiteralLike(node) && /^(?:https?|wss?):\/\//.test(node.text)) origins.add(new URL(node.text).origin);
@@ -71,7 +70,7 @@ test('fixed endpoint origins in transport modules match the documented provider 
   ].sort());
   assert.deepEqual([...origins].sort(), [
     'https://api.anthropic.com', 'https://api.deepseek.com', 'https://api.groq.com', 'https://api.openai.com',
-    'https://generativelanguage.googleapis.com', 'https://chatgpt.com', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
+    'https://generativelanguage.googleapis.com', 'wss://api.openai.com', 'wss://stt-rt.soniox.com',
     'wss://openspeech.bytedance.com', 'wss://dashscope.aliyuncs.com',
   ].sort());
 });

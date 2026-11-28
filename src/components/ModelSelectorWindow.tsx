@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Check, Loader2 } from 'lucide-react';
-import { CODEX_CLI_MODEL, CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, getCodexCliModelDisplayName, prettifyModelId } from '../utils/modelUtils';
 import { answerModelOptions } from '../utils/answerModelOptions';
-import { codexSourceAvailable } from '../types/codexSource';
 import { useResolvedTheme } from '../hooks/useResolvedTheme';
 import { useI18n } from '../i18n';
 
@@ -10,7 +8,7 @@ import { useI18n } from '../i18n';
 interface ModelOption {
     id: string;
     name: string;
-    type: 'cloud' | 'codex-cli';
+    type: 'cloud';
     provider?: string;
 }
 
@@ -44,28 +42,16 @@ const ModelSelectorWindow = () => {
                 // 1. Get Stored Credentials (to know which Cloud providers are active)
                 const creds = await window.electronAPI?.getStoredCredentials?.();
 
-                // 2. Codex CLI
-                const codexCliConfig = await window.electronAPI?.getCodexCliConfig?.();
-
                 // Build the list
                 const models: ModelOption[] = [];
 
                 // Official providers with a saved key and saved gateways; Groq is not an answer source.
                 for (const option of answerModelOptions(creds)) models.push({ id: option.id, name: option.name, type: 'cloud', provider: option.source });
 
-                // Codex CLI
-                if (codexCliConfig && codexSourceAvailable(codexCliConfig)) {
-                    models.push({ id: CODEX_CLI_MODEL.id, name: `${CODEX_CLI_MODEL.name} (${prettifyModelId(codexCliConfig.model)})`, type: 'codex-cli', provider: 'codex-cli' });
-                    CODEX_CLI_MODEL_PRESETS.forEach(model => {
-                        const id = codexCliSelectorId(model.id);
-                        models.push({ id, name: getCodexCliModelDisplayName(id) || model.name, type: 'codex-cli', provider: 'codex-cli' });
-                    });
-                }
-
                 localStorage.setItem('cached-models', JSON.stringify(models));
                 setAvailableModels(models);
 
-                // 3. Get Current Active Model
+                // 2. Get Current Active Model
                 const config = await window.electronAPI?.getCurrentLlmConfig?.(); // Get runtime model
                 if (config && config.model) {
                     setCurrentModel(config.model);

@@ -595,7 +595,6 @@ export class AppState {
         llmHelper.setGroqFastTextMode(true);
         console.log('[AppState] Fast mode restored from settings');
       }
-      llmHelper.setCodexCliConfig(settingsManager.getCodexSourceConfig());
       // Restore custom notes
       try {
         const savedNotes = DatabaseManager.getInstance().getCustomNotes();

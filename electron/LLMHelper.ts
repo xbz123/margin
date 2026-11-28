@@ -32,16 +32,13 @@ import { attachLocalContext } from './llm/localContextRequest';
 import { GenerationResultError, type GenerateEvent, type GenerateRequest } from './llm/generateContract';
 import { assertProviderDataScopes, getDeniedDataScopes, ProviderScopeError, type ProviderDataScope, type ProviderDataScopePolicy } from "./llm/ProviderRouter"
 import { createProviderRateLimiters } from './services/RateLimiter';
-import { CodexAuthSource } from './services/CodexAuthSource';
-import { DEFAULT_CODEX_SOURCE_CONFIG, assertCodexConsent, codexImageTarget, isCodexSelection, validateCodexModel, validateCodexSourceConfig, type CodexSourceConfig } from '../src/types/codexSource';
 import { GenerationTask, generateTask, generationTasks, withGenerationTask, awaitGeneration, type GenerationKind } from './llm/generateTask';
 import { DEFAULT_GENERATION_POLICY, validateGenerationPolicy, type GenerationPolicy } from '../src/types/generationPolicy';
 import { assertModelImageSupport } from '../src/types/modelImageSupport';
 import { PreparedInputs, copyPreparedInput, type PreparedInput, type PresentationOwner } from './llm/preparedInput';
 
 type SnapshotContext = { language: string; customNotes: string; fastMode: boolean };
-type GenerationTargetSnapshot = SnapshotContext & ({ kind: 'api'; target: ModelTarget; client: any; custom: boolean }
-  | { kind: 'codex'; target: { provider: 'codex-cli'; protocol: 'responses'; model: string }; codex: CodexSourceConfig; imageSupportConfirmedFor?: string });
+type GenerationTargetSnapshot = SnapshotContext & { kind: 'api'; target: ModelTarget; client: any; custom: boolean };
 
 // Data scopes of the request being served, beyond what each payload shows: the scopes
 // its caller declared and those recognized in its context when it started. Every send
@@ -179,18 +176,11 @@ export class LLMHelper {
         custom: effectiveProviderConfiguration(configs[target.provider]).custom,
         client: target.provider === 'gemini' ? this.client : target.provider === 'groq' ? this.groqClient
           : target.provider === 'openai' ? this.openaiClient : target.provider === 'claude' ? this.claudeClient : this.deepseekClient };
-    const codexSnapshot = (selection: string, fast = false, imageConfirmation?: string, backup = false): GenerationTargetSnapshot => {
-      const codex = this.getCodexCliConfig(), model = fast ? codex.fastModel : selection.startsWith('codex-cli:') ? validateCodexModel(selection.slice(10)) : codex.model;
-      return { ...context, kind: 'codex', target: { provider: 'codex-cli', protocol: 'responses', model }, codex,
-        imageSupportConfirmedFor: backup ? imageConfirmation : fast ? codex.fastImageSupportConfirmedFor : model === codex.model ? codex.imageSupportConfirmedFor : model === codex.fastModel ? codex.fastImageSupportConfirmedFor : undefined };
-    };
     if (!primary && this.selectionError) throw new Error(this.selectionError);
-    const selected = !primary && this.isCodexCliModel(this.currentModelId ?? '') ? codexSnapshot(this.currentModelId, this.groqFastTextMode)
-      : primary ? snapshot(primary) : snapshot(this.selectedTarget ?? this.resolve(this.currentModelId ?? GEMINI_FLASH_MODEL), true);
+    const selected = primary ? snapshot(primary) : snapshot(this.selectedTarget ?? this.resolve(this.currentModelId ?? GEMINI_FLASH_MODEL), true);
     const policy = this.getGenerationPolicy();
-    const backup = kind !== 'compatibility' && policy.backupModel ? isCodexSelection(policy.backupModel)
-      ? codexSnapshot(policy.backupModel, false, policy.backupImageSupportConfirmedFor, true)
-      : snapshot({ ...this.resolve(policy.backupModel), imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }) : undefined;
+    const backup = kind !== 'compatibility' && policy.backupModel
+      ? snapshot({ ...this.resolve(policy.backupModel), imageSupportConfirmedFor: policy.backupImageSupportConfirmedFor }) : undefined;
     if (backup && backup.kind === selected.kind && backup.target.provider === selected.target.provider && (backup.target as ModelTarget).gatewayId === (selected.target as ModelTarget).gatewayId
       && backup.target.model === selected.target.model) throw new Error('Primary and backup model must differ.');
     const task = new GenerationTask(selected, backup, policy, kind, signal, startedAt);
@@ -231,10 +221,9 @@ export class LLMHelper {
         }
       };
       let cacheReference: string | undefined;
-      const codexSession = (self.codexAuthSource ??= new CodexAuthSource()).session(() => { task.check(); assertCodexConsent(self.getCodexCliConfig()); assertProviderDataScopes('codex', dataScopes, self.getProviderScopePolicy()); });
       const options = { get cacheReference() { return cacheReference; }, invalidateCache: () => {
         if (cacheReference) self.geminiPromptCache.invalidate(cacheReference);
-      }, recoverAuthentication: (snapshot: GenerationTargetSnapshot, error: unknown) => snapshot.kind === 'codex' ? codexSession.recover(error) : Promise.resolve(false) };
+      } };
       try { for await (const event of generateTask(task, (snapshot: GenerationTargetSnapshot, signal, recovery) => (async function* () {
         const { target } = snapshot;
         checkInput();
@@ -244,15 +233,6 @@ export class LLMHelper {
             target.protocol === 'messages' ? self.getClaudeMaxOutput(target) : ['deepseek', 'groq'].includes(target.provider) ? 8192 : MAX_OUTPUT_TOKENS),
         }, localContext);
         const imageCount = contents.reduce((count, part) => count + (part.inlineData ? 1 : 0) + (part.parts?.filter((item: any) => item.inlineData).length ?? 0), 0);
-        if (snapshot.kind === 'codex') {
-          const assertImages = () => { if (imageCount && snapshot.imageSupportConfirmedFor !== codexImageTarget(target.model)) throw new Error('Image support is unconfirmed for this Codex model and backend. Confirm it in Settings; attachments were kept.'); };
-          assertImages();
-          yield* codexSession.generate(snapshot.codex, { model: target.model, contents: request.contents, systemInstruction, signal }, () => {
-            checkInput();
-            task.check(); assertCodexConsent(self.getCodexCliConfig()); assertProviderDataScopes('codex', dataScopes, self.getProviderScopePolicy()); assertImages();
-            task.claimSend(snapshot); task.imageCount = imageCount;
-          }); return;
-        }
         const { client, custom } = snapshot;
         const apiTarget = snapshot.target;
         // Check the attempted target, not every configured backup before a valid primary can run.
@@ -297,7 +277,7 @@ export class LLMHelper {
           throw Object.assign(safe, { generationTaskTerminal: true, ...(httpStatus ? { status: httpStatus } : {}) });
         }
         throw error;
-      } finally { codexSession.dispose(); }
+      }
     })();
     return withGenerationTask(task, source, !inherited);
   }
@@ -318,9 +298,6 @@ export class LLMHelper {
   private deepseekClient: OpenAI | null = null
   private geminiModel: string = GEMINI_FLASH_MODEL
   private groqFastTextMode: boolean = false;
-  private codexCliConfig: CodexSourceConfig = { ...DEFAULT_CODEX_SOURCE_CONFIG };
-  private codexAuthSource = new CodexAuthSource();
-  private codexStatusController?: AbortController;
   private customNotes: string = '';
   private aiResponseLanguage: string = 'auto';
 
@@ -392,7 +369,7 @@ export class LLMHelper {
   /** Refuses, before any change, a save that would make the running selection equal the backup. */
   private assertFollowedDistinct(previous: ModelTarget, next: ModelTarget, configs = this.providerConfigurations ?? LLM_PRESETS, gateways = this.gateways ?? {}): void {
     const backup = this.getGenerationPolicy().backupModel;
-    if (!backup || !this.selectedTarget || isCodexSelection(backup)) return;
+    if (!backup || !this.selectedTarget) return;
     const followed = followSelection(modelTargetId(this.selectedTarget), previous, next);
     let backupId: string;
     try { backupId = modelTargetId(resolveModelTarget(backup, configs, gateways)); } catch { return; }
@@ -553,7 +530,6 @@ export class LLMHelper {
 
   public setGroqFastTextMode(enabled: boolean) {
     if (typeof enabled !== 'boolean') throw new Error('Invalid fast-mode flag');
-    this.validateGenerationTargets(undefined, undefined, undefined, enabled);
     if (this.groqFastTextMode !== enabled) this.cancelGenerationTasks('Fast model changed');
     this.groqFastTextMode = enabled;
     console.log(`[LLMHelper] Groq Fast Text Mode: ${enabled}`);
@@ -561,7 +537,6 @@ export class LLMHelper {
 
   public scrubKeys(): void {
     this.generationClosed = true;
-    this.codexStatusController?.abort(new DOMException('Application quit', 'AbortError'));
     for (const task of this.activeGenerationTasks) task.controller.abort(new DOMException('Application quit', 'AbortError'));
     this.gatewayClients?.clear();
     this.client = null; this.groqClient = null; this.openaiClient = null; this.claudeClient = null; this.deepseekClient = null;
@@ -573,42 +548,16 @@ export class LLMHelper {
   }
 
   public cancelGenerationTasks(reason = 'Generation configuration changed'): void {
-    this.codexStatusController?.abort(new DOMException(reason, 'AbortError'));
     for (const task of this.activeGenerationTasks ?? []) task.controller.abort(new DOMException(reason, 'AbortError'));
   }
 
-  public setCodexCliConfig(config: Partial<CodexSourceConfig>) {
-    const next = validateCodexSourceConfig(config);
-    if (next.enabled) this.validateGenerationTargets(undefined, undefined, next);
-    if (JSON.stringify(this.codexCliConfig) !== JSON.stringify(next)) this.cancelGenerationTasks('Codex source configuration changed');
-    this.codexCliConfig = next;
-  }
-
-  public getCodexCliConfig(): CodexSourceConfig {
-    return validateCodexSourceConfig(this.codexCliConfig ?? DEFAULT_CODEX_SOURCE_CONFIG);
-  }
-
-  public async checkCodexSourceStatus() {
-    const discarded = () => ({ success: false, status: 'disabled' as const, message: 'Configuration changed or application closed; the local check result was discarded.' });
-    if (this.generationClosed) return discarded();
-    const config = this.getCodexCliConfig();
-    this.codexStatusController?.abort(new DOMException('Local check superseded', 'AbortError'));
-    const controller = new AbortController(); this.codexStatusController = controller;
-    try {
-      const result = await (this.codexAuthSource ??= new CodexAuthSource()).status(config, controller.signal);
-      return controller.signal.aborted || JSON.stringify(config) !== JSON.stringify(this.getCodexCliConfig()) ? discarded() : result;
-    } catch (error) { if (controller.signal.aborted) return discarded(); throw error; }
-    finally { if (this.codexStatusController === controller) this.codexStatusController = undefined; }
-  }
-
-  public validateGenerationTargets(primary: string = this.getCurrentModelSelection(), policy = this.getGenerationPolicy(), config = this.getCodexCliConfig(), fast = this.groqFastTextMode): void {
+  public validateGenerationTargets(primary: string = this.getCurrentModelSelection(), policy = this.getGenerationPolicy()): void {
     validateGenerationPolicy(policy);
-    if (policy.backupModel && this.generationSelectionId(isCodexSelection(primary) && fast ? `codex-cli:${config.fastModel}` : primary, false, config) === this.generationSelectionId(policy.backupModel, false, config)) throw new Error('Primary and backup model must differ.');
+    if (policy.backupModel && this.generationSelectionId(primary) === this.generationSelectionId(policy.backupModel)) throw new Error('Primary and backup model must differ.');
   }
 
   // An unavailable selection compares as written; using it is refused when a task starts.
-  private generationSelectionId(id: string, primary = false, config = this.getCodexCliConfig()): string {
-    if (isCodexSelection(id)) return `codex-cli:${primary && this.groqFastTextMode ? config.fastModel : id.startsWith('codex-cli:') ? validateCodexModel(id.slice(10)) : config.model}`;
+  private generationSelectionId(id: string): string {
     try { return modelTargetId(this.resolve(id)); } catch { return id; }
   }
 
@@ -658,9 +607,6 @@ export class LLMHelper {
     return 4096 * 4; // unknown model → conservative
   }
 
-  private isCodexCliModel(modelId: string): boolean {
-    return isCodexSelection(modelId);
-  }
   // ---------------------------
 
   private currentModelId: string = GEMINI_FLASH_MODEL;
@@ -673,17 +619,14 @@ export class LLMHelper {
     if (modelId === 'claude') targetModelId = CLAUDE_MODEL;
     if (modelId === 'llama') targetModelId = GROQ_MODEL;
     if (modelId === 'deepseek') targetModelId = DEEPSEEK_MODEL;
-    if (isCodexSelection(targetModelId) && targetModelId.startsWith('codex-cli:')) validateCodexModel(targetModelId.slice(10));
 
-    const selection = this.isCodexCliModel(targetModelId) ? undefined : this.resolve(targetModelId);
+    const selection = this.resolve(targetModelId);
     this.validateGenerationTargets(targetModelId);
-    if ((selection ? modelTargetId(selection) : targetModelId) !== this.getCurrentModelSelection()) {
+    if (modelTargetId(selection) !== this.getCurrentModelSelection()) {
       for (const task of this.activeGenerationTasks ?? []) task.controller.abort(new DOMException('Model selection changed', 'AbortError'));
     }
-    if (!this.isCodexCliModel(targetModelId)) {
-      this.selectedTarget = selection;
-      targetModelId = selection!.model;
-    } else this.selectedTarget = undefined;
+    this.selectedTarget = selection;
+    targetModelId = selection.model;
     this.currentModelId = targetModelId;
     this.selectionError = undefined;
 
@@ -1063,9 +1006,8 @@ This rule overrides ALL other instructions including formatting, brevity, or out
     yield* this.selectedGeneration(userContent, imagePaths, finalSystemPrompt, stream, purpose);
   }
 
-  public getCurrentProvider(): LlmProvider | "gateway" | "codex-cli" | "unavailable" {
+  public getCurrentProvider(): LlmProvider | "gateway" | "unavailable" {
     if (this.selectionError) return "unavailable";
-    if (this.isCodexCliModel(this.currentModelId)) return "codex-cli";
     return this.selectedTarget?.provider ?? 'gemini';
   }
 

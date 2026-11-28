@@ -13,7 +13,6 @@ import * as path from 'path';
 import { AudioDevices } from './audio/AudioDevices';
 import { DatabaseManager } from './db/DatabaseManager'; // Import Database Manager
 import { AppState } from './main';
-import { DEFAULT_CODEX_SOURCE_CONFIG } from '../src/types/codexSource';
 import { SettingsManager } from './services/SettingsManager';
 import { mainText } from './services/mainStrings';
 import { isUiLanguage, type UiLanguageResult } from '../src/types/uiLanguage';
@@ -1140,7 +1139,7 @@ export function initializeIpcHandlers(appState: AppState): void {
   safeHandle('set-generation-policy', async (_, value) => {
     const manager = require('./services/CredentialsManager').CredentialsManager.getInstance();
     const helper = appState.processingHelper.getLLMHelper();
-    return persistCredentials(() => { helper.validateGenerationTargets(helper.getCurrentModelSelection(), value); return manager.setGenerationPolicy(value, helper.getCodexCliConfig(), helper.getGroqFastTextMode()); }, () => helper.setGenerationPolicy(manager.getGenerationPolicy()));
+    return persistCredentials(() => { helper.validateGenerationTargets(helper.getCurrentModelSelection(), value); return manager.setGenerationPolicy(value); }, () => helper.setGenerationPolicy(manager.getGenerationPolicy()));
   });
 
   // Get stored API keys (masked for UI display)
@@ -1659,38 +1658,6 @@ export function initializeIpcHandlers(appState: AppState): void {
     }
   });
 
-  safeHandle('get-codex-cli-config', () => {
-    try {
-      const llmHelper = appState.processingHelper.getLLMHelper();
-      return llmHelper.getCodexCliConfig();
-    } catch {
-      return { ...DEFAULT_CODEX_SOURCE_CONFIG };
-    }
-  });
-
-  safeHandle('set-codex-cli-config', (_, config: any) => {
-    try {
-      const helper = appState.processingHelper.getLLMHelper();
-      const sm = SettingsManager.getInstance();
-      // Withdrawal closes the live gate even if persistence fails.
-      if (config?.enabled === false) { sm.withdrawCodexSourceConsent(); helper.setCodexCliConfig(sm.getCodexSourceConfig()); }
-      const normalized = sm.saveCodexSourceConfig(config, candidate => helper.validateGenerationTargets(undefined, undefined, candidate));
-      helper.setCodexCliConfig(normalized);
-      appState.sendModelChanged(helper.getCurrentModelSelection());
-      return { success: true, config: normalized };
-    } catch (error: any) {
-      return { success: false, error: 'Unable to save Codex configuration. If withdrawing consent, this session is disabled; restart persistence is unconfirmed.', config: appState.processingHelper.getLLMHelper().getCodexCliConfig() };
-    }
-  });
-
-  safeHandle('test-codex-cli', async () => {
-    try {
-      return await appState.processingHelper.getLLMHelper().checkCodexSourceStatus();
-    } catch {
-      return { success: false, status: 'file-unavailable', message: 'Local Codex file check failed. Service connectivity is unverified.' };
-    }
-  });
-
   safeHandle('set-model', async (_, modelId: string) => {
     try {
       const llmHelper = appState.processingHelper.getLLMHelper();
@@ -1714,7 +1681,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     const { CredentialsManager } = require('./services/CredentialsManager');
     return persistCredentials(() => {
       const helper = appState.processingHelper.getLLMHelper(); helper.validateGenerationTargets(modelId);
-      return CredentialsManager.getInstance().setDefaultModel(modelId, helper.getCodexCliConfig(), helper.getGroqFastTextMode());
+      return CredentialsManager.getInstance().setDefaultModel(modelId);
     }, () => {
       const helper = appState.processingHelper.getLLMHelper();
       helper.setSavedReasoning(CredentialsManager.getInstance().getSavedReasoning());
@@ -1751,7 +1718,6 @@ export function initializeIpcHandlers(appState: AppState): void {
       const { CredentialsManager } = require('./services/CredentialsManager');
       const cm = CredentialsManager.getInstance();
       const model = cm.getDefaultModel();
-      if (model.startsWith('codex-cli')) return { model };
       // An unusable saved choice is reported as saved, never replaced by another model.
       try { return { model: modelTargetId(resolveModelTarget(model, cm.getProviderConfigurations(), cm.getGateways())) }; }
       catch (error: any) { return { model, unavailable: error instanceof Error ? error.message : 'The saved answer model is unavailable.' }; }

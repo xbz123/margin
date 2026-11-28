@@ -38,7 +38,7 @@ function streamingHelper(stream) {
     client, selectedTarget: { provider: 'gemini', protocol: 'gemini', model: 'gemini-3.1-flash-lite' },
     currentModelId: 'gemini-3.1-flash-lite', geminiModel: 'gemini-3.1-flash-lite',
     generationPolicy: { interviewFirstTokenSeconds: 10, interviewTotalSeconds: 60, writtenTotalSeconds: 180 },
-    customNotes: '', aiResponseLanguage: 'auto', codexCliConfig: { enabled: false },
+    customNotes: '', aiResponseLanguage: 'auto',
     rateLimiters: { gemini: { acquire: async () => {} } }, getProviderScopePolicy: () => ({}),
     injectLanguageInstruction: value => value, processResponse: value => value, logScopeFallback: () => {},
     geminiPromptCache: { getOrCreate: async () => null, invalidate() {} },

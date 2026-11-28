@@ -1,9 +1,8 @@
 import type { ElectronAPI } from '../../types/electron';
-import { codexSourceAvailable, type CodexSourceConfig } from '../../types/codexSource';
 
 export type SetupState = 'configured' | 'missing' | 'unknown' | 'reported-allowed';
 export interface SetupChecklistStatus { answer: SetupState; speech: SetupState; permissions: SetupState }
-export type SetupMetadataApi = Pick<ElectronAPI, 'getCurrentLlmConfig' | 'getStoredCredentials' | 'getDomesticStt' | 'getCodexCliConfig' | 'checkPermissions'>;
+export type SetupMetadataApi = Pick<ElectronAPI, 'getCurrentLlmConfig' | 'getStoredCredentials' | 'getDomesticStt' | 'checkPermissions'>;
 export const UNCHECKED_SETUP: SetupChecklistStatus = { answer: 'unknown', speech: 'unknown', permissions: 'unknown' };
 
 function object(value: unknown): Record<string, unknown> | undefined {
@@ -25,12 +24,7 @@ export async function readSetupChecklist(api: SetupMetadataApi | undefined): Pro
     const keyFields: Record<string, string> = { gemini: 'hasGeminiKey', groq: 'hasGroqKey', openai: 'hasOpenaiKey', claude: 'hasClaudeKey', deepseek: 'hasDeepseekKey' };
     if (selection && typeof selection.model === 'string' && selection.model.trim()) {
         const provider = selection.provider;
-        if (provider === 'codex-cli') {
-            const config = await readLocal(() => api.getCodexCliConfig());
-            if (config && typeof config.enabled === 'boolean' && typeof config.model === 'string' && config.model.trim()) {
-                result.answer = codexSourceAvailable(config as unknown as CodexSourceConfig) ? 'configured' : 'missing';
-            }
-        } else if (provider === 'gateway') {
+        if (provider === 'gateway') {
             const id = /^llm-gateway:([a-z0-9-]+):/.exec(selection.model)?.[1];
             const gateways = Array.isArray(credentials?.gateways) ? credentials.gateways as Record<string, unknown>[] : undefined;
             const gateway = gateways?.find(item => item?.id === id);

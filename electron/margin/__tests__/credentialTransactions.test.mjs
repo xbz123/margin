@@ -18,8 +18,6 @@ vm.runInNewContext(compile(read('src/types/llmTarget.ts')), { module: targetModu
 const { LLM_PRESETS: targets } = targetModule.exports;
 const generationPolicyModule = { exports: {} };
 vm.runInNewContext(compile(read('src/types/generationPolicy.ts')), { module: generationPolicyModule, exports: generationPolicyModule.exports });
-const codexModule = { exports: {} };
-vm.runInNewContext(compile(read('src/types/codexSource.ts')), { module: codexModule, exports: codexModule.exports });
 const capabilityModule = { exports: {} };
 vm.runInNewContext(compile(read('src/types/modelCapabilities.ts')), { module: capabilityModule, exports: capabilityModule.exports, URL });
 const quiet = { log() {}, warn() {}, error() {} };
@@ -58,21 +56,6 @@ test('generation policy failed atomic save keeps old memory and disk deadlines',
   assert.deepEqual(plain(manager.getGenerationPolicy()), previous);
   assert.equal(disk.files.get(disk.filename).toString(), before);
 });
-test('AG34 Codex alias and actual fast target equality are rejected before credential persistence', () => {
-  const config = { ...codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG, model: 'configured', fastModel: 'fast' };
-  const disk = storage(), manager = disk.boot(); manager.setDefaultModel('codex-cli', config);
-  const before = disk.files.get(disk.filename).toString(), previous = plain(manager.getGenerationPolicy());
-  for (const [backup, fast] of [['codex-cli:configured', false], ['codex-cli:fast', true]]) {
-    assert.throws(() => manager.setGenerationPolicy({ ...previous, backupModel: backup }, config, fast), /must differ/);
-    assert.equal(disk.files.get(disk.filename).toString(), before); assert.deepEqual(plain(manager.getGenerationPolicy()), previous);
-  }
-  assert.equal(manager.setGenerationPolicy({ ...previous, backupModel: 'codex-cli:configured' }, config, true).ok, true);
-  const stored = disk.files.get(disk.filename).toString();
-  assert.throws(() => manager.setDefaultModel('codex-cli', config, false), /must differ/);
-  assert.equal(disk.files.get(disk.filename).toString(), stored);
-  assert.equal(manager.getDefaultModel(), 'codex-cli');
-});
-
 function storage() {
   const filename = '/synthetic/credentials.enc';
   const files = new Map([[filename, Buffer.from('cipher:' + JSON.stringify({ openaiApiKey: 'synthetic-old' }))]]);
@@ -115,7 +98,6 @@ function storage() {
         if (id === '../utils/validateSttBaseUrl') return require('../../../dist-electron/electron/utils/validateSttBaseUrl.js');
         if (id === '../../src/types/llmTarget') return targetModule.exports;
         if (id === '../../src/types/generationPolicy') return generationPolicyModule.exports;
-        if (id === '../../src/types/codexSource') return codexModule.exports;
         if (id === '../llm/llmTarget') return require('../../../dist-electron/electron/llm/llmTarget.js');
         if (id === '../../src/types/modelCapabilities') return capabilityModule.exports;
         if (id === '../llm/answerReasoning') return require('../../../dist-electron/electron/llm/answerReasoning.js');
@@ -542,7 +524,7 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   const context = {
     require: () => ({ CredentialsManager: { getInstance: () => manager } }),
     appState: { processingHelper: { getLLMHelper: () => ({ setModel: () => {}, getCurrentModelSelection: () => current,
-      validateGenerationTargets() {}, getCodexCliConfig: () => codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG, getGroqFastTextMode: () => false,
+      validateGenerationTargets() {}, getGroqFastTextMode: () => false,
       setSavedReasoning() {}, reconcileSessionReasoning: () => undefined }) },
       sendModelChanged: value => events.push(value), modelSelectorWindowHelper: { hideWindow: () => events.push('hide') } },
   };
@@ -552,9 +534,27 @@ test('legacy default and raw switch input reach model UI as the canonical runtim
   assert.equal((await handler('set-default-model', context)({}, 'gpt-5.4')).ok, true);
   assert.deepEqual(events.splice(0), [current, 'hide']);
   assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: current });
-  current = 'codex-cli:synthetic-model';
-  manager.setDefaultModel(current);
-  assert.deepEqual(plain(await handler('get-default-model', context)({})), { model: current });
+});
+
+test('a primary or backup saved for the removed Codex source stays visible as unavailable and never blocks a new choice', async () => {
+  const disk = storage();
+  const backupModel = 'codex-cli:gpt-5.4', limits = { interviewFirstTokenSeconds: 12, interviewTotalSeconds: 90, writtenTotalSeconds: 240 };
+  // Seeded where the manager itself reads, so the check also holds where path.join uses another separator.
+  disk.files.set(path.join('/synthetic', 'credentials.enc'), Buffer.from('cipher:' + JSON.stringify({ openaiApiKey: 'synthetic-old', defaultModel: 'codex-cli',
+    generationPolicy: { backupModel, backupImageSupportConfirmedFor: 'synthetic-confirmation', ...limits } })));
+  const manager = disk.boot();
+  assert.equal(manager.getDefaultModel(), 'codex-cli');
+  assert.deepEqual(plain(manager.getGenerationPolicy()), { backupModel, ...limits }, 'kept as saved, without its image confirmation');
+  assert.deepEqual(plain(manager.getSavedReasoning()), { choice: 'default' });
+  const context = { require: () => ({ CredentialsManager: { getInstance: () => manager } }) };
+  const saved = plain(await handler('get-default-model', context)({}));
+  assert.equal(saved.model, 'codex-cli'); assert.ok(saved.unavailable, 'reported as saved but unavailable');
+  assert.throws(() => manager.setDefaultModel('codex-cli'), /Unknown model ID/);
+  const primary = 'llm-target:openai:chat-completions:gpt-5.4';
+  assert.equal(manager.setDefaultModel(primary).ok, true, 'the stale backup does not block a new primary');
+  assert.equal(manager.setGenerationPolicy({ ...limits }).ok, true);
+  assert.deepEqual(plain(disk.boot().getGenerationPolicy()), limits);
+  assert.equal(disk.boot().getDefaultModel(), primary);
 });
 
 const ENV_KEYS = { GEMINI_API_KEY: 'synthetic-env-gemini', GROQ_API_KEY: 'synthetic-env-groq', OPENAI_API_KEY: 'synthetic-env-openai',
@@ -1203,8 +1203,8 @@ test('all saving IPC handlers return storage failure before runtime, events or w
     const effects = [];
     const effect = () => { effects.push('runtime'); };
     const manager = new Proxy({}, { get: () => () => failure });
-    const llm = new Proxy({}, { get: (_, key) => ['validateGenerationTargets', 'getCodexCliConfig', 'getGroqFastTextMode', 'getCurrentModelSelection'].includes(key)
-      ? () => key === 'getCodexCliConfig' ? codexModule.exports.DEFAULT_CODEX_SOURCE_CONFIG : key === 'getCurrentModelSelection' ? 'gpt-5.4' : undefined : effect });
+    const llm = new Proxy({}, { get: (_, key) => ['validateGenerationTargets', 'getGroqFastTextMode', 'getCurrentModelSelection'].includes(key)
+      ? () => key === 'getCurrentModelSelection' ? 'gpt-5.4' : undefined : effect });
     const appState = {
       processingHelper: { getLLMHelper: () => llm, applyStoredProvider: effect, applyStoredGateway: effect, refreshAnswerRuntime: effect },
       getIntelligenceManager: () => ({ resetEngine: effect, initializeLLMs: effect }),
@@ -1745,7 +1745,7 @@ test('S48 changing the primary keeps a level the new model takes, otherwise save
     assert.equal(plain(await primary({}, OPUS)).ok, false);
     disk.setFault(undefined);
     assert.deepEqual(disk.files.get(disk.filename), stored); assert.equal(live.getCurrentModelSelection(), SONNET);
-    // A gateway or Codex primary sets reasoning in its own configuration.
+    // A gateway primary sets reasoning in its own configuration.
     const gateway = newGateway(manager); assert.equal(gateway.ok, true);
     assert.equal(manager.setDefaultModel(`llm-gateway:${gateway.gatewayId}:chat-completions:primary`).ok, true);
     assert.match(plain(await save({}, `llm-gateway:${gateway.gatewayId}:chat-completions:primary`, 'high')).message, /own configuration/);

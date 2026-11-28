@@ -2,7 +2,6 @@ import type { AnswerReasoningState, ReasoningChoice } from './answerReasoning';
 import type { WrittenExamSettings, WrittenExamStatus, WrittenExamCapture } from './writtenExam';
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from './llmTarget';
 import type { GenerationPolicy } from './generationPolicy';
-import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from './codexSource';
 import type { CredentialDiscardResult, CredentialLoadStatus, CredentialSaveResult } from './credentialSave';
 import type { UiLanguage, UiLanguageResult } from './uiLanguage';
 import type { PendingUnsavedMeetingCode, UnsavedMeeting, UnsavedMeetingCommandResult } from './meetingSave';
@@ -85,7 +84,7 @@ export interface ElectronAPI {
   onOpenSettingsTab: (callback: (tab: string) => void) => () => void
 
   // LLM Model Management
-  getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "gateway" | "codex-cli" | "unavailable"; model: string }>
+  getCurrentLlmConfig: () => Promise<{ provider: LlmProvider | "gateway" | "unavailable"; model: string }>
   testLlmConnection: (provider: 'gemini' | 'groq' | 'openai' | 'claude' | 'deepseek', apiKey?: string, expected?: ProviderConfiguration, model?: string) => Promise<{ success: boolean; error?: string }>
   testGatewayConnection: (id: string, expected?: GatewayConfiguration) => Promise<{ success: boolean; error?: string }>
 
@@ -230,9 +229,6 @@ export interface ElectronAPI {
   // Groq Fast Text Mode
   getGroqFastTextMode: () => Promise<{ enabled: boolean }>;
   setGroqFastTextMode: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  getCodexCliConfig: () => Promise<CodexSourceConfig>;
-  setCodexCliConfig: (config: CodexSourceUpdate) => Promise<{ success: boolean; error?: string; config?: CodexSourceConfig }>;
-  testCodexCli: () => Promise<CodexSourceStatus>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;

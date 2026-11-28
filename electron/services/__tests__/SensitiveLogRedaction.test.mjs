@@ -52,7 +52,7 @@ test('LLMHelper actual chat and stream paths never log prompt, context, system o
   const helper = Object.assign(Object.create(LLMHelper.prototype), {
     selectedTarget: { provider: 'openai', protocol: 'chat-completions', model: 'synthetic-model' },
     currentModelId: 'synthetic-model', customNotes: '', aiResponseLanguage: 'English',
-    codexCliConfig: { enabled: false }, getProviderScopePolicy: () => ({}),
+    getProviderScopePolicy: () => ({}),
     openaiClient: { chat: { completions: { create: async body => {
       sends++;
       return body.stream ? (async function* () {

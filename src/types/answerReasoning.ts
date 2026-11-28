@@ -8,9 +8,9 @@ export type { ReasoningChoice } from './modelCapabilities';
  * shows an older model is refused.
  */
 export interface ReasoningControlState {
-  /** Canonical selection (or Codex selector) the state applies to. */
+  /** Canonical selection the state applies to. */
   target: string;
-  /** official: choices from the capability record; source: a gateway or Codex sets reasoning in its own configuration; unavailable: the model cannot be used. */
+  /** official: choices from the capability record; source: a gateway sets reasoning in its own configuration; unavailable: the model cannot be used. */
   mode: 'official' | 'source' | 'unavailable';
   options: ReasoningChoice[];
   /** 'legacy' while an older per-model setting is still applied and awaits the user's choice. */

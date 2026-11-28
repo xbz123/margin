@@ -2,7 +2,6 @@ import type { AnswerReasoningState, ReasoningChoice } from '../src/types/answerR
 import type { WrittenExamSettings, WrittenExamStatus, WrittenExamCapture } from '../src/types/writtenExam';
 import type { ProviderConfiguration, ProviderConfigurationSave, LlmProvider, AnswerProvider, GatewayConfiguration, GatewayConfigurationSave, GatewaySummary } from '../src/types/llmTarget';
 import type { GenerationPolicy } from '../src/types/generationPolicy';
-import type { CodexSourceConfig, CodexSourceUpdate, CodexSourceStatus } from '../src/types/codexSource';
 import type { GenerationMetadata } from '../src/types/generationMetadata';
 import type { AudioCaptureFailedPayload } from '../src/types/audioCaptureFailed';
 import { matchesDirectAssistAnswer } from '../src/lib/directAssistAnswerState';
@@ -91,7 +90,7 @@ interface ElectronAPI {
 
   // LLM Model Management
   getCurrentLlmConfig: () => Promise<{
-    provider: LlmProvider | 'gateway' | 'codex-cli' | 'unavailable';
+    provider: LlmProvider | 'gateway' | 'unavailable';
     model: string;
   }>;
   testLlmConnection: (
@@ -278,9 +277,6 @@ interface ElectronAPI {
   // Groq Fast Text Mode
   getGroqFastTextMode: () => Promise<{ enabled: boolean }>;
   setGroqFastTextMode: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
-  getCodexCliConfig: () => Promise<CodexSourceConfig>;
-  setCodexCliConfig: (config: CodexSourceUpdate) => Promise<{ success: boolean; error?: string; config?: CodexSourceConfig }>;
-  testCodexCli: () => Promise<CodexSourceStatus>;
 
   // Audio Test
   startAudioTest: (deviceId?: string) => Promise<{ success: boolean }>;
@@ -981,9 +977,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Groq Fast Text Mode
   getGroqFastTextMode: () => ipcRenderer.invoke('get-groq-fast-text-mode'),
   setGroqFastTextMode: (enabled: boolean) => ipcRenderer.invoke('set-groq-fast-text-mode', enabled),
-  getCodexCliConfig: () => ipcRenderer.invoke('get-codex-cli-config'),
-  setCodexCliConfig: (config: CodexSourceUpdate) => ipcRenderer.invoke('set-codex-cli-config', config),
-  testCodexCli: () => ipcRenderer.invoke('test-codex-cli'),
 
   // Audio Test
   startAudioTest: (deviceId?: string) => ipcRenderer.invoke('start-audio-test', deviceId),

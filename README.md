@@ -107,14 +107,6 @@ sentence followed by silence is finalized only when speech resumes or the reques
 ends, so words spoken just before Answer can join the next question when new
 speech continues the same sentence.
 
-The optional **Codex login source** is separate from API-key providers. It reads
-a supported local auth file only after explicit enablement/risk confirmation and
-a local status check or generation action. It sends directly to a fixed Codex
-Responses endpoint; it does not run the Codex CLI to generate answers. It does not
-refresh or write credentials. Local file validity does not establish account
-entitlement, model availability or service compatibility. Do not downgrade secure
-credential storage to use this experimental source.
-
 ### Platform and sharing status
 
 This is a development branch, not a signed-off distributable release. macOS is

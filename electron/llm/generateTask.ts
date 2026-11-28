@@ -246,10 +246,8 @@ function retryAfterMs(error: any): number {
 }
 
 export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T, signal: AbortSignal, cacheRecovery: boolean) => AsyncIterable<GenerateEvent>,
-    options: { cacheReference?: string; invalidateCache?: () => void; onAttempt?: (target: T, attempt: number) => void;
-      recoverAuthentication?: (target: T, error: unknown) => Promise<boolean> } = {}): AsyncGenerator<GenerateEvent> {
+    options: { cacheReference?: string; invalidateCache?: () => void; onAttempt?: (target: T, attempt: number) => void } = {}): AsyncGenerator<GenerateEvent> {
     let target = task.primary, cacheRecovery = false;
-    let authRecovery = false;
     for (let attempt = 1; attempt <= task.sendLimit; attempt++) {
         task.check();
         task.terminalStatus = undefined;
@@ -282,12 +280,6 @@ export async function* generateTask<T>(task: GenerationTask<T>, open: (target: T
             return failure;
         };
         if (task.hasText || attempt === task.sendLimit || task.sends >= task.sendLimit) throw terminalFailure();
-        if (!authRecovery && options.recoverAuthentication) {
-            authRecovery = true;
-            const recovered = await awaitGeneration(task, options.recoverAuthentication(target, failure));
-            task.check();
-            if (recovered) continue;
-        }
         if (category === 'terminal') throw terminalFailure();
         if (category === 'cache-invalid') {
             if (!options.cacheReference || !options.invalidateCache || cacheRecovery) throw terminalFailure();

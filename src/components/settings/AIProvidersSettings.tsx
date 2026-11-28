@@ -1,8 +1,7 @@
 import { ANSWER_PROVIDERS, LLM_PRESETS, gatewayTarget, parseModelSelection, type AnswerProvider, type GatewaySummary, type ProviderConfiguration, type LlmProvider } from '../../types/llmTarget';
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, ChevronDown, Check, Loader2, Cloud, Server, Eye, Sparkles, Info } from 'lucide-react';
+import { Cloud, Server, Eye, Sparkles, Info } from 'lucide-react';
 import { SiAnthropic, SiGooglegemini, SiOpenai } from 'react-icons/si';
-import { CODEX_CLI_MODEL_PRESETS, codexCliSelectorId, prettifyModelId } from '../../utils/modelUtils';
 import { PROVIDER_NAMES, answerModelLabel, answerModelOptions } from '../../utils/answerModelOptions';
 import { ProviderCard } from './ProviderCard';
 import { ReasoningSelect } from '../ReasoningSelect';
@@ -13,114 +12,11 @@ import type { CredentialSaveResult } from '../../types/credentialSave';
 import { DEFAULT_GENERATION_POLICY, type GenerationPolicy } from '../../types/generationPolicy';
 import { imageSupportTarget } from '../../types/modelImageSupport';
 import { officialCapability } from '../../types/modelCapabilities';
-import { CODEX_RISK_VERSION, DEFAULT_CODEX_SOURCE_CONFIG, codexImageTarget, codexSourceAvailable, type CodexSourceConfig, type CodexSourceUpdate } from '../../types/codexSource';
-
-const CODEX_SERVICE_TIERS = ['default', 'fast', 'flex'] as const;
-const CODEX_MODEL_REASONING_EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
 
 interface ModelOption {
     id: string;
     name: string;
 }
-
-interface ModelSelectProps {
-    value: string;
-    options: ModelOption[];
-    onChange: (value: string) => void;
-    placeholder?: string;
-    className?: string;
-}
-
-const ModelSelect: React.FC<ModelSelectProps> = ({ value, options, onChange, placeholder = "Select model", className = "" }) => {
-    const { t } = useI18n();
-    const [isOpen, setIsOpen] = useState(false);
-    const containerRef = React.useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const selectedOption = options.find(o => o.id === value);
-
-    const paddingClass = className.includes('py-') ? '' : 'py-1.5';
-
-    return (
-        <div className="relative" ref={containerRef}>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`w-40 bg-bg-input border border-border-subtle rounded-lg px-3 ${paddingClass} ${className} text-xs text-text-primary focus:outline-none focus:border-accent-primary flex items-center justify-between hover:bg-bg-elevated transition-colors`}
-                type="button"
-            >
-                <span className="truncate pr-2">{selectedOption ? selectedOption.name : t(placeholder)}</span>
-                <ChevronDown size={14} className={`text-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <div className="absolute top-full right-0 mt-1 w-full bg-bg-elevated border border-border-subtle rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto animated fadeIn">
-                    <div className="p-1 space-y-0.5">
-                        {options.map((option) => (
-                            <button
-                                key={option.id}
-                                onClick={() => {
-                                    onChange(option.id);
-                                    setIsOpen(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 text-xs rounded-md flex items-center justify-between group transition-colors ${value === option.id ? 'bg-bg-input hover:bg-bg-elevated text-text-primary' : 'text-text-secondary hover:bg-bg-input hover:text-text-primary'}`}
-                                type="button"
-                            >
-                                <span className="truncate">{option.name}</span>
-                                {value === option.id && <Check size={14} className="text-accent-primary shrink-0 ml-2" />}
-                            </button>
-                        ))}
-                        {options.length === 0 && (
-                            <div className="px-3 py-2 text-xs text-gray-500 italic">{t('No models available')}</div>
-                        )}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const CodexCliModelField: React.FC<{
-    label: string;
-    value: string;
-    placeholder: string;
-    onChange: (value: string) => void;
-    onSelect: (value: string) => void;
-    onSave: () => void;
-}> = ({ label, value, placeholder, onChange, onSelect, onSave }) => (
-    <label className="space-y-1">
-        <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">{label}</span>
-        <div className="flex gap-2">
-            <input
-                value={value}
-                onChange={e => onChange(e.target.value)}
-                onBlur={onSave}
-                className="min-w-0 flex-1 bg-bg-input border border-border-subtle rounded-lg px-3 py-2 text-xs text-text-primary font-mono focus:outline-none focus:border-accent-primary"
-                placeholder={placeholder}
-            />
-            <ModelSelect
-                value={value}
-                options={value && !CODEX_CLI_MODEL_PRESETS.some(option => option.id === value)
-                    ? [{ id: value, name: prettifyModelId(value) }, ...CODEX_CLI_MODEL_PRESETS]
-                    : CODEX_CLI_MODEL_PRESETS}
-                onChange={(modelId) => {
-                    onChange(modelId);
-                    onSelect(modelId);
-                }}
-                placeholder="Preset"
-                className="py-2"
-            />
-        </div>
-    </label>
-);
 
 export const AIProvidersSettings: React.FC = () => {
     const { t } = useI18n();
@@ -138,22 +34,11 @@ export const AIProvidersSettings: React.FC = () => {
     const [credentialNotice, setCredentialNotice] = useState('');
     const [activeTab, setActiveTab] = useState<'cloud' | 'gateway' | 'privacy'>('cloud');
 
-    // --- Codex CLI ---
-    const [codexCliConfig, setCodexCliConfig] = useState<CodexSourceConfig>({ ...DEFAULT_CODEX_SOURCE_CONFIG });
-    const [codexRiskAccepted, setCodexRiskAccepted] = useState(false);
-    const [codexCliStatus, setCodexCliStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-    const [codexCliError, setCodexCliError] = useState('');
-    const codexOperation = React.useRef(0);
-
     // --- Default Model ---
     const [defaultModel, setDefaultModel] = useState<string>('');
     const [defaultUnavailable, setDefaultUnavailable] = useState('');
     const [answerReasoning, setAnswerReasoning] = useState<AnswerReasoningState | undefined>();
     const refreshAnswerReasoning = async () => { const state = await window.electronAPI?.getAnswerReasoning?.(); if (state) setAnswerReasoning(state); };
-    const [fastResponseMode, setFastResponseMode] = useState(false);
-    const [credentialsLoaded, setCredentialsLoaded] = useState(false);
-    // Fast mode now only switches the Codex login source to its configured fast model.
-    const canUseFastMode = codexSourceAvailable(codexCliConfig);
 
     const [providerDataScopes, setProviderDataScopes] = useState<{ transcript?: boolean; screenshots?: boolean; profile_history?: boolean }>({});
     const [dataScopeError, setDataScopeError] = useState('');
@@ -196,35 +81,13 @@ export const AIProvidersSettings: React.FC = () => {
                 const policy = await window.electronAPI.getGenerationPolicy();
                 savedPolicy.current = policy; setGenerationPolicy(policy);
                 await refreshCredentials();
-                const cliConfig = await window.electronAPI?.getCodexCliConfig?.();
-                if (cliConfig) { setCodexCliConfig(cliConfig); setCodexRiskAccepted(codexSourceAvailable(cliConfig)); }
-                const fastMode = await window.electronAPI?.getGroqFastTextMode();
-                if (fastMode) setFastResponseMode(fastMode.enabled);
-                setCredentialsLoaded(true);
                 await refreshDefaultModel();
             } catch (e) {
                 console.error("Failed to load settings:", e);
-                setCredentialsLoaded(true);
             }
         };
         loadCredentials();
-        if (window.electronAPI?.onGroqFastTextChanged) {
-            const unsubscribe = window.electronAPI.onGroqFastTextChanged((enabled: boolean) => {
-                setFastResponseMode(enabled);
-                localStorage.setItem('natively_groq_fast_text', String(enabled));
-            });
-            return () => unsubscribe();
-        }
     }, []);
-
-    useEffect(() => {
-        if (!credentialsLoaded) return;
-        if (!canUseFastMode && fastResponseMode) {
-            setFastResponseMode(false);
-            localStorage.setItem('natively_groq_fast_text', 'false');
-            window.electronAPI?.setGroqFastTextMode(false);
-        }
-    }, [credentialsLoaded, canUseFastMode, fastResponseMode]);
 
     useEffect(() => {
         window.electronAPI?.getProviderDataScopes?.().then(setProviderDataScopes).catch(() => { });
@@ -242,39 +105,6 @@ export const AIProvidersSettings: React.FC = () => {
             return () => unsubscribe();
         }
     }, []);
-
-    const saveCodexCliConfig = async (next: CodexSourceUpdate = codexCliConfig) => {
-        const operation = ++codexOperation.current;
-        const { riskConfirmedVersion: _ignored, ...update } = next as CodexSourceConfig & CodexSourceUpdate;
-        const result = await window.electronAPI?.setCodexCliConfig?.(update);
-        if (operation !== codexOperation.current) return result;
-        if (result?.config) setCodexCliConfig(result.config as typeof codexCliConfig);
-        if (result?.config) setCodexRiskAccepted(codexSourceAvailable(result.config));
-        setCodexCliStatus(result?.success ? 'idle' : 'error');
-        setCodexCliError(result?.error ?? '');
-        if (!result?.success && !result?.config) { const saved = await window.electronAPI?.getCodexCliConfig?.(); if (saved) setCodexCliConfig(saved); }
-        return result;
-    };
-
-    const handleTestCodexCli = async () => {
-        const operation = ++codexOperation.current;
-        setCodexCliStatus('testing');
-        setCodexCliError('');
-        try {
-            const result = await window.electronAPI?.testCodexCli?.();
-            if (operation !== codexOperation.current) return;
-            if (result?.success) {
-                setCodexCliStatus('success');
-            } else {
-                setCodexCliStatus('error');
-                setCodexCliError(result?.message || 'Local file check failed');
-            }
-        } catch (e: any) {
-            if (operation !== codexOperation.current) return;
-            setCodexCliStatus('error');
-            setCodexCliError('Local file check failed. Service connectivity is unverified.');
-        }
-    };
 
     /** Saves the complete official configuration atomically; the key field is cleared only after success. */
     const handleSaveKey = async (provider: string, key: string, setter: (val: string) => void, draft?: ProviderConfiguration): Promise<CredentialSaveResult> => {
@@ -355,12 +185,6 @@ export const AIProvidersSettings: React.FC = () => {
 
     const cloudModelOptions: ModelOption[] = answerModelOptions({ providerConfigurations, gateways, providerAddressOverrides: addressOverrides,
         hasGeminiKey: hasStoredKey.gemini, hasOpenaiKey: hasStoredKey.openai, hasClaudeKey: hasStoredKey.claude, hasDeepseekKey: hasStoredKey.deepseek });
-    if (codexSourceAvailable(codexCliConfig)) {
-        cloudModelOptions.push({ id: 'codex-cli', name: t('Codex login source (configured model)') });
-        for (const model of new Set([codexCliConfig.model, codexCliConfig.fastModel, ...CODEX_CLI_MODEL_PRESETS.map(preset => preset.id)])) {
-            cloudModelOptions.push({ id: codexCliSelectorId(model), name: t('{model} (Codex login source, unverified availability)', { model }) });
-        }
-    }
     // A saved choice that is no longer offered stays visible as unavailable; it is never replaced silently.
     const withSaved = (value: string | undefined, options: ModelOption[]) => value && !options.some(option => option.id === value)
         ? [{ id: value, name: `${answerModelLabel(value, gateways)} — ${t('unavailable')}` }, ...options] : options;
@@ -368,13 +192,12 @@ export const AIProvidersSettings: React.FC = () => {
     const backupBinding = (() => {
         const backup = generationPolicy.backupModel;
         if (!backup) return undefined;
-        if (backup.startsWith('codex-cli')) return { binding: codexImageTarget(backup.startsWith('codex-cli:') ? backup.slice(10) : codexCliConfig.model), codex: true };
         const parsed = parseModelSelection(backup);
         try {
             // Official backups follow the capability record; there is no manual confirmation for them.
             if (parsed?.kind === 'official') return undefined;
             const gateway = parsed && gateways.find(item => item.id === parsed.gatewayId);
-            return gateway ? { binding: imageSupportTarget(gatewayTarget(gateway, parsed!.model)), codex: false } : undefined;
+            return gateway ? { binding: imageSupportTarget(gatewayTarget(gateway, parsed!.model)) } : undefined;
         } catch { return undefined; }
     })();
 
@@ -436,8 +259,8 @@ export const AIProvidersSettings: React.FC = () => {
                     </label>
                     {backupBinding && <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Backup model supports images')}
                         checked={generationPolicy.backupImageSupportConfirmedFor === backupBinding.binding}
-                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? backupBinding.binding : undefined })} /> {t(backupBinding.codex ? 'Backup Codex model supports images' : 'Backup model supports images')}
-                        <span className="block text-[10px]">{t(backupBinding.codex ? 'Independent backend/model confirmation; not inferred from the OpenAI API. Verify capability yourself.' : "Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.")}</span>
+                        onChange={event => setGenerationPolicy({ ...generationPolicy, backupImageSupportConfirmedFor: event.target.checked ? backupBinding.binding : undefined })} /> {t('Backup model supports images')}
+                        <span className="block text-[10px]">{t("Check this backup model's provider documentation yourself. This confirmation is independent of the primary model and resets for a changed target.")}</span>
                     </label>}
                     {(() => {
                         const parsed = generationPolicy.backupModel ? parseModelSelection(generationPolicy.backupModel) : undefined;
@@ -492,140 +315,6 @@ export const AIProvidersSettings: React.FC = () => {
                         keyPlaceholder={keyMeta[provider].placeholder} keyUrl={keyMeta[provider].url}
                         onSave={(draft, key, clearKey) => handleSaveKey(provider, key, clearKey, draft)}
                         onRemoveKey={() => handleRemoveKey(provider, () => {})} />)}
-                </div>
-                {/* Existing CLI login file only; generation never invokes the CLI. */}
-                <div className="space-y-5">
-                    <div>
-                        <h3 className="text-sm font-bold text-text-primary mb-1">{t('Codex login source (file only)')}</h3>
-                        <p className="text-xs text-text-secondary">{t('Reads an existing CLI login file without executing the CLI, refreshing or writing tokens. Keyring and ephemeral storage are unsupported; do not downgrade storage. Requests use a fixed third-party-unpromised ChatGPT backend, not the public API. No real-service verification has been performed.')}</p>
-                    </div>
-
-                    <div className="bg-bg-item-surface rounded-xl p-5 border border-border-subtle space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">{t('Enable Codex login source')}</label>
-                                <p className="text-[10px] text-text-secondary">{t('Selecting a model does not check or read the login file.')}</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    const next = { ...codexCliConfig, enabled: !codexCliConfig.enabled, ...(!codexCliConfig.enabled ? { acceptRisk: codexRiskAccepted } : {}) };
-                                    await saveCodexCliConfig(next);
-                                }}
-                                aria-label={t('Enable Codex login source')}
-                                disabled={!codexCliConfig.enabled && !codexRiskAccepted}
-                                className={`w-11 h-6 rounded-full relative transition-colors ${codexCliConfig.enabled ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}
-                            >
-                                <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${codexCliConfig.enabled ? 'translate-x-5' : 'translate-x-0'}`} />
-                            </button>
-                        </div>
-
-                        <label className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t('Accept Codex login-source risks')} checked={codexRiskAccepted}
-                            onChange={async event => { setCodexRiskAccepted(event.target.checked); if (!event.target.checked && codexCliConfig.enabled) await saveCodexCliConfig({ enabled: false }); }} /> {t('I explicitly accept risk version {version}.', { version: CODEX_RISK_VERSION })} {codexCliConfig.riskConfirmedVersion === CODEX_RISK_VERSION ? t('Current version is saved; disabling withdraws consent.') : ''}</label>
-                        <ul className="list-disc pl-5 space-y-1 text-[10px] text-text-secondary">
-                            <li>{t('OpenAI has not explicitly authorized this third-party use. The interface may change or fail; the account may be rate-limited, restricted or suspended. Your consent is not provider authorization.')}</li>
-                            <li>{t('Requests consume plan quota and remain subject to your plan terms. Prompts, transcripts, screenshots and reference context go to the cloud under current data scopes; an invisible window does not prevent uploads.')}</li>
-                            <li>{t('Credentials never enter ordinary settings or logs. Margin does not refresh or write them. Expired login requires external sign-in; a supported API-key source is the alternative.')}</li>
-                        </ul>
-                        <p className="text-[10px] text-text-secondary">{t('Uses the shared Generation limits above. No server output-token cap is claimed. Model availability, service tier and reasoning settings are unverified; the backend may reject them. Rejected settings are never silently removed or rerouted.')}</p>
-
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-text-primary uppercase tracking-wide mb-0">{t('Fast Response Mode')}</label>
-                                <p className="text-[10px] text-text-secondary">{t('Uses the Codex Fast Model instead of the Normal Model. Other model selections are not affected.')}</p>
-                            </div>
-                            <button type="button" role="switch" aria-checked={fastResponseMode} aria-label={t('Fast Response Mode')} disabled={!canUseFastMode}
-                                onClick={async () => {
-                                    const newState = !fastResponseMode;
-                                    setFastResponseMode(newState);
-                                    localStorage.setItem('natively_groq_fast_text', String(newState));
-                                    await window.electronAPI?.setGroqFastTextMode(newState);
-                                }}
-                                className={`shrink-0 w-11 h-6 rounded-full relative transition-colors disabled:opacity-50 ${fastResponseMode ? 'bg-accent-primary' : 'bg-bg-toggle-switch border border-border-muted'}`}>
-                                <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${fastResponseMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <CodexCliModelField
-                                label={t('Normal Model')}
-                                value={codexCliConfig.model}
-                                placeholder="gpt-6.1-sol"
-                                onChange={(model) => setCodexCliConfig(prev => ({ ...prev, model }))}
-                                onSelect={(model) => saveCodexCliConfig({ ...codexCliConfig, model })}
-                                onSave={() => saveCodexCliConfig()}
-                            />
-                            <CodexCliModelField
-                                label={t('Fast Model')}
-                                value={codexCliConfig.fastModel}
-                                placeholder="gpt-5.3-codex-spark"
-                                onChange={(fastModel) => setCodexCliConfig(prev => ({ ...prev, fastModel }))}
-                                onSelect={(fastModel) => saveCodexCliConfig({ ...codexCliConfig, fastModel })}
-                                onSave={() => saveCodexCliConfig()}
-                            />
-                        </div>
-                        {(['model', 'fastModel'] as const).map((key, index) => {
-                            const confirmationKey = index ? 'fastImageSupportConfirmedFor' : 'imageSupportConfirmedFor';
-                            const binding = codexImageTarget(codexCliConfig[key]);
-                            return <label key={key} className="block text-xs text-text-secondary"><input type="checkbox" aria-label={t(index ? 'Fast Codex model supports images' : 'Normal Codex model supports images')}
-                                checked={codexCliConfig[confirmationKey] === binding}
-                                onChange={event => saveCodexCliConfig({ ...codexCliConfig, [confirmationKey]: event.target.checked ? binding : undefined })} /> {t(index ? 'Fast Codex model supports images' : 'Normal Codex model supports images')}
-                                <span className="block text-[10px]">{t('Verify this exact backend/model yourself. API image support does not confirm Codex backend support.')}</span></label>;
-                        })}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <label className="space-y-1">
-                                <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">{t('Service Tier')}</span>
-                                <ModelSelect
-                                    value={codexCliConfig.serviceTier ?? 'default'}
-                                    options={CODEX_SERVICE_TIERS.map(tier => ({ id: tier, name: tier.charAt(0).toUpperCase() + tier.slice(1) }))}
-                                    onChange={(serviceTier) => saveCodexCliConfig({ ...codexCliConfig, serviceTier: serviceTier as typeof CODEX_SERVICE_TIERS[number] })}
-                                    placeholder="default"
-                                />
-                                <p className="text-[9px] text-text-tertiary">{t('Unverified backend parameter; it may be rejected without silent removal.')}</p>
-                            </label>
-                            <label className="space-y-1">
-                                <span className="text-[10px] font-medium text-text-secondary uppercase tracking-wide">{t('Reasoning Effort')}</span>
-                                <ModelSelect
-                                    value={codexCliConfig.modelReasoningEffort ?? ''}
-                                    options={[
-                                        { id: '', name: t('Default / Unspecified') },
-                                        ...CODEX_MODEL_REASONING_EFFORTS.map(e => ({ id: e, name: e.charAt(0).toUpperCase() + e.slice(1) })),
-                                    ]}
-                                    onChange={(effort) => saveCodexCliConfig({ ...codexCliConfig, modelReasoningEffort: effort as CodexSourceConfig['modelReasoningEffort'] || undefined })}
-                                    placeholder="Default / Unspecified"
-                                />
-                                <p className="text-[9px] text-text-tertiary">{t('How much reasoning effort the model uses. Model-dependent.')}</p>
-                            </label>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="min-h-5">
-                                {codexCliStatus === 'success' && (
-                                    <div className="flex items-center gap-2 text-xs text-green-400">
-                                        <CheckCircle size={14} />
-                                        <span>{t('Local file checks passed; service, models and entitlement unverified.')}</span>
-                                    </div>
-                                )}
-                                {codexCliStatus === 'error' && (
-                                    <div className="flex items-center gap-2 text-xs text-red-400">
-                                        <AlertCircle size={14} />
-                                        <span>{t(codexCliError)}</span>
-                                    </div>
-                                )}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleTestCodexCli}
-                                disabled={codexCliStatus === 'testing' || !codexSourceAvailable(codexCliConfig)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-bg-input hover:bg-bg-elevated border border-border-subtle rounded-lg text-xs font-medium text-text-primary transition-colors disabled:opacity-60"
-                            >
-                                {codexCliStatus === 'testing' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                                {t('Check saved local login file')}
-                            </button>
-                        </div>
-                        {codexCliStatus === 'error' && <button type="button" className="text-xs text-accent-primary" onClick={() => saveCodexCliConfig()}>{t('Retry saving source settings')}</button>}
-                    </div>
                 </div>
             </div>
 

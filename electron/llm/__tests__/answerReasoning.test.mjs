@@ -120,7 +120,7 @@ test('S49 coverage: reviewed model families and exact aliases have image facts a
   }
   for (const target of [official('openai', 'chat-completions', 'gpt-5.4-pro'), official('openai', 'responses', 'gpt-5.4-mini-2099-01-01'),
     official('gemini', 'gemini', 'gemini-3-flash-preview'), official('gemini', 'gemini', 'gemini-2.5-pro'),
-    official('openai', 'responses', 'gpt-5.3-codex'), official('claude', 'messages', 'claude-sonnet-4-20250514')]) {
+    official('claude', 'messages', 'claude-sonnet-4-20250514')]) {
     assert.equal(caps.isOfficialAnswerCandidate(target), false, target.model);
     assert.equal(caps.officialCapability(target), undefined, target.model);
   }

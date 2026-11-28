@@ -61,7 +61,7 @@ function helper(provider = 'gemini', onSend = () => complete(), policy = {}) {
   const self = Object.assign(Object.create(LLMHelper.prototype), {
     // Listed models (S48): image sends follow the capability table, not an older manual confirmation.
     selectedTarget: { provider, protocol, model }, currentModelId: model, aiResponseLanguage: 'auto',
-    customNotes: '', codexCliConfig: { enabled: false },
+    customNotes: '',
     getProviderScopePolicy: () => policy, logScopeFallback: () => {}, processResponse: text => text,
     rateLimiters: { [provider]: { acquire: async () => {} } },
     processImage: async () => ({ mimeType: 'image/png', data: 'AAAA' }),

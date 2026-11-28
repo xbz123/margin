@@ -499,7 +499,7 @@ const MockFastModeAnim = () => {
                 </motion.div>
                 <div className="text-center">
                     <div className="font-bold text-lg text-text-primary">{t('Fast Mode Enabled')}</div>
-                    <div className="text-xs text-text-secondary mt-1">{t('Uses the selected Groq model or configured Codex CLI Fast Model.')}</div>
+                    <div className="text-xs text-text-secondary mt-1">{t('Uses the selected Groq model.')}</div>
                 </div>
             </div>
 
@@ -1275,7 +1275,7 @@ export const HelpSettings: React.FC = () => {
                                     <Zap className="w-4 h-4" /> {t('How Fast Mode Works')}
                                 </h4>
                                 <p className="text-xs text-orange-400/80 m-0">
-                                    {withParts(t('Fast Response applies to selected Groq and Codex CLI models: Groq keeps your selected model, and Codex CLI uses its configured Fast Model. Turn it on with {popup} in the quick settings popup or {mode} under Settings → AI Providers.'), { popup: <strong>{t('Fast Response')}</strong>, mode: <strong>{t('Fast Response Mode')}</strong> })}
+                                    {withParts(t('Fast Response applies to selected Groq models and keeps your selected model. Turn it on with {popup} in the quick settings popup.'), { popup: <strong>{t('Fast Response')}</strong> })}
                                 </p>
                             </div>
                         </div>

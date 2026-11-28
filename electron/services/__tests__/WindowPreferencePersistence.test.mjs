@@ -30,7 +30,7 @@ function disk(initial = {}) {
 function settingsFixture(storage) {
   return load('electron/services/SettingsManager.ts', { electron: { app: { isReady: () => true, getPath: () => '/synthetic' } }, fs: storage.boundary, path,
     '../../src/types/writtenExam': load('src/types/writtenExam.ts', {}),
-    'node:crypto': { randomUUID: () => 'unique' }, '../../src/types/codexSource': { DEFAULT_CODEX_SOURCE_CONFIG: {}, validateCodexSourceConfig: value => value } }).SettingsManager.getInstance();
+    'node:crypto': { randomUUID: () => 'unique' } }).SettingsManager.getInstance();
 }
 function keysFixture(storage = disk()) {
   const registered = new Set(), calls = [], handlers = new Map(), events = []; let conflict = false;
@@ -43,6 +43,15 @@ function keysFixture(storage = disk()) {
       ipcMain: { handle: (channel, fn) => handlers.set(channel, fn) } }, path, fs: storage.boundary, 'node:crypto': { randomUUID: () => 'unique' }, './mainStrings': { mainText: value => value } });
   return { manager: loaded.KeybindManager.getInstance(), defaults: loaded.DEFAULT_KEYBINDS, calls, events, registered, handlers, conflict: value => { conflict = value; } };
 }
+
+test('settings saved with the removed Codex source keys still load and save; the keys are ignored, not migrated', () => {
+  const initial = JSON.stringify({ disguiseMode: 'terminal', codexCliEnabled: true, codexCliModel: 'synthetic',
+    codexSource: { enabled: true, model: 'synthetic', fastModel: 'synthetic', serviceTier: 'default', riskConfirmedVersion: 1 } });
+  const storage = disk({ [SETTINGS_FILE]: initial }), manager = settingsFixture(storage);
+  assert.equal(manager.get('disguiseMode'), 'terminal');
+  manager.saveWindowPreference('disguiseMode', 'activity');
+  assert.equal(settingsFixture(storage).get('disguiseMode'), 'activity');
+});
 
 for (const failure of ['write', 'rename']) test(`AG61: ${failure} failure preserves protection/disguise memory and disk across restart`, () => {
   const initial = JSON.stringify({ isUndetectable: false, disguiseMode: 'terminal', verboseLogging: true });

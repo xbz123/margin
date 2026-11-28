@@ -74,21 +74,6 @@ separate user action. Custom endpoints and environment configuration can permit
 HTTP, so **not all communication is guaranteed to use TLS**. Use trusted HTTPS
 endpoints for sensitive data.
 
-The optional Codex file-login source is independent of API-key providers and does
-not launch the CLI for generation. Startup and ordinary configuration getters do
-not inspect auth files. After enablement and explicit risk confirmation, a local
-status check or generation can read the supported `auth.json` from the configured
-Codex home. Tokens remain in the main process's private request context, not the
-renderer, ordinary settings or surfaced error text. Margin does not refresh,
-rewrite or migrate that credential file and does not support every credential
-store. A passing local format/expiry check is not service authorization.
-
-This source sends only to `https://chatgpt.com/backend-api/codex/responses`, with
-`store: false`; that request field is not a universal provider-retention promise.
-Its consent, scope and retry checks are described in
-[OUTBOUND](docs/margin/OUTBOUND.md#codex-file-login-source-ag-34-local-verification).
-Actual account, model and service compatibility remain unverified.
-
 Cancellation and scope revocation stop or drop covered future work, not data
 already submitted. Queued SDK connection/authentication attempts have different
 cancellation behavior from application-owned audio writes; not every SDK-owned

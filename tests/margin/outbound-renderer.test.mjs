@@ -114,7 +114,6 @@ test('AG62 mounted Launcher checks local setup, refreshes on return and cleans u
     window.selection = { provider: 'openai', model: 'synthetic' };
     window.credentials = { providerConfigurations: { openai: { provider: 'openai', protocol: 'chat-completions', model: 'synthetic' } }, hasOpenaiKey: false, hasClaudeKey: true, sttProvider: 'none', hasSonioxKey: false };
     window.permissions = { platform: 'darwin', microphone: 'denied', screen: 'not-determined' };
-    window.codex = { enabled: false, model: 'synthetic', riskConfirmedVersion: 1 };
     window.reads = []; window.forbidden = []; window.pending = []; window.tabs = []; window.permissionReviews = 0;
     const forbid = name => { window.forbidden.push(name); throw Error('Forbidden setup action: ' + name); };
     window.fetch = () => forbid('fetch'); window.WebSocket = function() { forbid('WebSocket'); }; window.EventSource = function() { forbid('EventSource'); };
@@ -123,7 +122,6 @@ test('AG62 mounted Launcher checks local setup, refreshes on return and cleans u
       getStoredCredentials: () => { window.reads.push('credentials'); if (window.deferCredentials) return new Promise(resolve => window.pending.push(resolve)); if (window.failCredentials) return Promise.reject(Error('synthetic read failure')); return Promise.resolve(structuredClone(window.credentials)); },
       checkPermissions: async () => { window.reads.push('permissions'); return { ...window.permissions }; },
       getDomesticStt: async provider => { window.reads.push('domestic:' + provider); return { hasKey: true, workspaceId: '', resourceId: 'volc.seedasr.sauc.concurrent' }; },
-      getCodexCliConfig: async () => { window.reads.push('codex'); return { ...window.codex }; },
       getWindowPreferences: async () => [], getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
       getRecentMeetings: async () => [], getMeetingActive: async () => false
     };
@@ -184,11 +182,6 @@ test('AG62 mounted Launcher checks local setup, refreshes on return and cleans u
     await status('Answer source and model', 'Needs checking'); await status('Speech provider', 'Needs checking');
     await page.evaluate(() => { window.failCredentials = false; window.credentials.hasOpenaiKey = false; window.emit('onCredentialsChanged'); });
     await status('Answer source and model', 'Needs configuration');
-    // Codex consent is a local configuration check, not a login or connection probe.
-    await page.evaluate(() => { window.selection = { provider: 'codex-cli', model: 'codex-cli' }; window.codex = { enabled: true, model: 'synthetic' }; window.emit('onModelChanged', 'codex-cli'); });
-    await status('Answer source and model', 'Needs configuration');
-    await page.evaluate(() => { window.codex.riskConfirmedVersion = 1; window.emit('onModelChanged', 'codex-cli'); });
-    await status('Answer source and model', 'Configured');
     await page.evaluate(() => { window.credentials.sttProvider = 'aliyun'; window.emit('onSttConfigChanged', { provider: 'aliyun', configured: true }); });
     await status('Speech provider', 'Configured');
     assert.equal(await page.evaluate(() => window.reads.includes('domestic:aliyun')), true);
@@ -608,80 +601,6 @@ test('AG60 mounted help, meeting history and a visible error fallback switch lan
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
 
-test('AG34 actual Settings React + preload + IPC fence consent saves, local checks and failed withdrawal', async () => {
-  const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
-  const shared = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/src/types/codexSource.ts`, 'utf8')), { module: shared, exports: shared.exports });
-  const written = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/src/types/writtenExam.ts`, 'utf8')), { module: written, exports: written.exports });
-  const files = new Map([['/synthetic/settings.json', JSON.stringify({ codexCliEnabled: true })]]), fault = { active: false };
-  const boot = () => {
-    const module = { exports: {} };
-    vm.runInNewContext(compile(fs.readFileSync(`${REPO}/electron/services/SettingsManager.ts`, 'utf8')), { module, exports: module.exports, console: { log() {}, error() {}, warn() {} },
-      require(id) {
-        if (id === 'electron') return { app: { isReady: () => true, getPath: () => '/synthetic' } };
-        if (id === '../../src/types/codexSource') return shared.exports;
-        if (id === '../../src/types/writtenExam') return written.exports;
-        if (id === 'fs') return { existsSync: p => files.has(p), readFileSync: p => files.get(p),
-          writeFileSync(p, value) { if (fault.active) throw Error('synthetic save failure'); files.set(p, value); }, renameSync(a, b) { files.set(b, files.get(a)); files.delete(a); }, unlinkSync: p => files.delete(p),
-          readdirSync: dir => [...files.keys()].filter(p => path.posix.dirname(p) === dir.replace(/\\/g, '/')).map(p => path.posix.basename(p)) };
-        return require(id);
-      } });
-    return module.exports.SettingsManager.getInstance();
-  };
-  const manager = boot(), electronId = require.resolve('electron'), previous = require.cache[electronId];
-  require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => os.tmpdir(), isPackaged: true, getVersion: () => 'synthetic' } } };
-  let LLMHelper;
-  try { ({ LLMHelper } = require(`${REPO}/dist-electron/electron/LLMHelper.js`)); }
-  finally { if (previous) require.cache[electronId] = previous; else delete require.cache[electronId]; }
-  const { CodexAuthSource } = require(`${REPO}/dist-electron/electron/services/CodexAuthSource.js`);
-  let reads = 0, sends = 0;
-  const helper = Object.assign(Object.create(LLMHelper.prototype), { currentModelId: 'gemini-3.1-flash-lite-preview', activeGenerationTasks: new Set(), getProviderScopePolicy: () => ({}) });
-  helper.setCodexCliConfig(manager.getCodexSourceConfig());
-  helper.codexAuthSource = new CodexAuthSource(async () => { reads++; return JSON.stringify({ tokens: { account_id: 'synthetic-account', access_token: `e30.${Buffer.from(JSON.stringify({ exp: 4_000_000_000 })).toString('base64url')}.synthetic` } }); }, async () => { sends++; throw Error('Unexpected real-service request'); });
-  const arrow = (file, predicate, context) => {
-    const source = fs.readFileSync(`${REPO}/${file}`, 'utf8'), ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true); let found;
-    const visit = node => { if (!found && ts.isArrowFunction(node) && predicate(node)) found = node.getText(ast); ts.forEachChild(node, visit); }; visit(ast); assert.ok(found);
-    const module = { exports: {} }; vm.runInNewContext(compile(`module.exports = (${found});`), { module, exports: module.exports, ...context }); return module.exports;
-  };
-  const handlers = {};
-  for (const channel of ['get-codex-cli-config', 'set-codex-cli-config', 'test-codex-cli']) handlers[channel] = arrow('electron/ipcHandlers.ts', node => ts.isCallExpression(node.parent) && node.parent.expression.getText() === 'safeHandle' && node.parent.arguments[0]?.text === channel,
-    { DEFAULT_CODEX_SOURCE_CONFIG: shared.exports.DEFAULT_CODEX_SOURCE_CONFIG, SettingsManager: { getInstance: () => manager }, appState: { processingHelper: { getLLMHelper: () => helper }, sendModelChanged() {} } });
-  const bridge = {};
-  for (const name of ['getCodexCliConfig', 'setCodexCliConfig', 'testCodexCli']) bridge[name] = arrow('electron/preload.ts', node => ts.isPropertyAssignment(node.parent) && node.parent.name.getText() === name,
-    { ipcRenderer: { invoke: (channel, ...args) => handlers[channel]({}, ...args) } });
-  assert.equal((await bridge.getCodexCliConfig()).enabled, false); assert.equal(reads, 0);
-  const bundle = await build({ stdin: { resolveDir: REPO, loader: 'tsx', contents: `
-    import React from 'react'; import { createRoot } from 'react-dom/client'; import { flushSync } from 'react-dom';
-    import { AIProvidersSettings as Settings } from './src/components/settings/AIProvidersSettings'; import { DEFAULT_GENERATION_POLICY } from './src/types/generationPolicy';
-    window.electronAPI = { getGenerationPolicy: async () => DEFAULT_GENERATION_POLICY, getStoredCredentials: async () => ({}),
-      getGroqFastTextMode: async () => ({ enabled: false }), getDefaultModel: async () => ({ model: 'gemini-3.1-flash-lite-preview' }), getProviderDataScopes: async () => ({}),
-      getCodexCliConfig: () => window.invokeCodex('getCodexCliConfig', []), setCodexCliConfig: config => window.invokeCodex('setCodexCliConfig', [config]), testCodexCli: () => window.invokeCodex('testCodexCli', []) };
-    const root = createRoot(document.getElementById('root')); window.show = () => flushSync(() => root.render(React.createElement(Settings)));
-  ` }, bundle: true, write: false, plugins: [esbuildBase64Assets()], platform: 'browser', format: 'iife', loader: { '.svg': 'dataurl', '.png': 'dataurl', '.css': 'empty' }, define: { 'process.env.NODE_ENV': '"production"' } });
-  const sandbox = makeSandbox('ag34-consent-components'); let app;
-  try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' })); await findWindow(app, 'window=launcher', 30_000);
-    const page = await openTestWindow(app); await page.exposeFunction('invokeCodex', (name, args) => bridge[name](...args)); await page.addScriptTag({ content: bundle.outputFiles[0].text }); await page.evaluate(() => window.show());
-    const enable = page.getByRole('button', { name: 'Enable Codex login source', exact: true }), risk = page.getByRole('checkbox', { name: 'Accept Codex login-source risks', exact: true });
-    await page.waitForFunction(() => document.body.innerText.includes('Codex login source (file only)')); assert.equal(await enable.isDisabled(), true); assert.equal(reads, 0); assert.equal(sends, 0);
-    assert.match(await page.locator('body').innerText(), /consent is not provider authorization|Your consent is not provider authorization/);
-    await risk.check(); fault.active = true; await enable.click(); await page.waitForFunction(() => document.body.innerText.includes('Unable to save Codex configuration'));
-    assert.equal(helper.getCodexCliConfig().enabled, false); assert.equal(boot().getCodexSourceConfig().enabled, false); assert.equal(reads, 0);
-    fault.active = false; await risk.check(); await enable.click(); await page.waitForFunction(() => document.body.innerText.includes('Current version is saved'));
-    assert.equal(boot().getCodexSourceConfig().enabled, true); assert.equal(reads, 0);
-    await page.getByRole('button', { name: 'Check saved local login file', exact: true }).click(); await page.waitForFunction(() => document.body.innerText.includes('Local file checks passed'));
-    assert.equal(reads, 1); assert.equal(sends, 0);
-    helper.setModel('codex-cli'); const task = helper.beginGenerationTask('written'); fault.active = true;
-    await risk.uncheck(); await page.waitForFunction(() => document.body.innerText.includes('restart persistence is unconfirmed'));
-    assert.equal(task.signal.aborted, true); task.close(); assert.equal(helper.getCodexCliConfig().enabled, false); assert.equal(manager.getCodexSourceConfig().enabled, false);
-    assert.equal((await bridge.testCodexCli({ enabled: true, acceptRisk: true })).status, 'disabled'); assert.equal(reads, 1); assert.equal(sends, 0);
-    // Failed persistence is explicitly not claimed to survive restart; retry closes disk too.
-    assert.equal(boot().getCodexSourceConfig().enabled, true); fault.active = false;
-    await page.getByRole('button', { name: 'Retry saving source settings', exact: true }).click(); await page.waitForFunction(() => !document.body.innerText.includes('Unable to save Codex configuration'));
-    assert.equal(boot().getCodexSourceConfig().enabled, false); assert.equal(reads, 1); assert.equal(sends, 0); await page.close();
-  } finally { if (app) await app.close(); }
-  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
-});
-
 test('S45 mounted settings preserve drafts, order save/test and pass gateway reasoning to the real protocol; S48 no official per-model reasoning', async () => {
   const require = createRequire(import.meta.url), electronId = require.resolve('electron'), previous = require.cache[electronId];
   require.cache[electronId] = { id: electronId, filename: electronId, loaded: true, exports: { app: { getPath: () => fs.mkdtempSync(path.join(os.tmpdir(), 's45-ui-')), isPackaged: true, getVersion: () => 'synthetic' } } };
@@ -707,7 +626,6 @@ test('S45 mounted settings preserve drafts, order save/test and pass gateway rea
       setGenerationPolicy: async policy => { window.policy = structuredClone(policy); return { ok: true }; },
       getStoredCredentials: async () => structuredClone(window.creds),
       getGroqFastTextMode: async () => ({ enabled: false }), getDefaultModel: async () => ({ model: 'llm-target:openai:chat-completions:gpt-5.4' }), getProviderDataScopes: async () => ({}),
-      getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
       fetchProviderModels: async () => { window.events.push('fetch'); if (window.deferModels) return new Promise(resolve => window.resolveModels = resolve); return { success: true, models: window.models }; },
       setProviderConfiguration: async value => { window.events.push('save'); if (window.failSave) return { ok: false, message: 'synthetic save failure' }; window.creds.providerConfigurations[value.provider] = value; return { ok: true }; },
       testLlmConnection: async (provider, unused, expected) => { window.events.push('test'); window.tested = expected; if (window.deferTest) return new Promise(resolve => window.resolveTest = resolve); return { success: true }; },
@@ -895,7 +813,7 @@ test('S49 mounted provider discards a late list after an external protocol updat
 test('S47 mounted settings and session selector share saved candidates through the real manager, IPC callbacks and LLMHelper', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const load = file => { const module = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/${file}`, 'utf8')), { module, exports: module.exports, URL }); return module.exports; };
-  const types = load('src/types/llmTarget.ts'), policyTypes = load('src/types/generationPolicy.ts'), codexTypes = load('src/types/codexSource.ts');
+  const types = load('src/types/llmTarget.ts'), policyTypes = load('src/types/generationPolicy.ts');
   const targetApi = require(`${REPO}/dist-electron/electron/llm/llmTarget.js`);
   // Synthetic encrypted store in memory; nothing touches a real profile or keychain.
   const filename = '/synthetic/credentials.enc', files = new Map([[filename, Buffer.from('cipher:{}')]]), fault = { rename: false };
@@ -913,7 +831,6 @@ test('S47 mounted settings and session selector share saved candidates through t
         if (id === '../config/languages') return require(`${REPO}/dist-electron/electron/config/languages.js`);
         if (id === '../../src/types/llmTarget') return types;
         if (id === '../../src/types/generationPolicy') return policyTypes;
-        if (id === '../../src/types/codexSource') return codexTypes;
         if (id === '../llm/llmTarget') return targetApi;
         if (id === '../../src/types/modelCapabilities') return load('src/types/modelCapabilities.ts');
         if (id === '../llm/answerReasoning') return require(`${REPO}/dist-electron/electron/llm/answerReasoning.js`);
@@ -983,7 +900,7 @@ test('S47 mounted settings and session selector share saved candidates through t
     // The component gets the same promise; settledCalls(name) counts calls whose result has reached the page.
     const settled = {}; window.settledCalls = name => settled[name] ?? 0;
     const bridge = name => (...args) => { const result = window.invokeMain(name, args); result.then(() => {}, () => {}).finally(() => { settled[name] = (settled[name] ?? 0) + 1; }); return result; };
-    window.electronAPI = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}), getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
+    window.electronAPI = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}),
       onModelChanged: () => () => {}, onThemeChanged: () => () => {} };
     for (const name of ${JSON.stringify(Object.keys(preload))}) window.electronAPI[name] = bridge(name);
     let settings, selector;
@@ -1111,7 +1028,7 @@ test('S47 mounted settings and session selector share saved candidates through t
 test('S48 mounted settings and overlay show each model\'s own levels from the main process; default, session override and A→B→A stay honest', async () => {
   const require = createRequire(import.meta.url), compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
   const load = file => { const module = { exports: {} }; vm.runInNewContext(compile(fs.readFileSync(`${REPO}/${file}`, 'utf8')), { module, exports: module.exports, URL }); return module.exports; };
-  const types = load('src/types/llmTarget.ts'), policyTypes = load('src/types/generationPolicy.ts'), codexTypes = load('src/types/codexSource.ts'), capTypes = load('src/types/modelCapabilities.ts');
+  const types = load('src/types/llmTarget.ts'), policyTypes = load('src/types/generationPolicy.ts'), capTypes = load('src/types/modelCapabilities.ts');
   const targetApi = require(`${REPO}/dist-electron/electron/llm/llmTarget.js`), reasoningApi = require(`${REPO}/dist-electron/electron/llm/answerReasoning.js`);
   // Synthetic encrypted store in memory; nothing touches a real profile or keychain.
   const filename = '/synthetic/credentials.enc', files = new Map([[filename, Buffer.from('cipher:{}')]]);
@@ -1129,7 +1046,6 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
         if (id === '../config/languages') return require(`${REPO}/dist-electron/electron/config/languages.js`);
         if (id === '../../src/types/llmTarget') return types;
         if (id === '../../src/types/generationPolicy') return policyTypes;
-        if (id === '../../src/types/codexSource') return codexTypes;
         if (id === '../../src/types/modelCapabilities') return capTypes;
         if (id === '../llm/llmTarget') return targetApi;
         if (id === '../llm/answerReasoning') return reasoningApi;
@@ -1203,7 +1119,7 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
     const memory = new Map(); Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)), removeItem: key => memory.delete(key) } });
     const reasoning = new Set(); window.emitReasoning = state => { for (const listener of reasoning) listener(state); };
     window.reasoningWrites = [];
-    const api = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}), getCodexCliConfig: async () => ({ enabled: false, model: 'synthetic', fastModel: 'synthetic' }),
+    const api = { getGroqFastTextMode: async () => ({ enabled: false }), getProviderDataScopes: async () => ({}),
       onAnswerReasoningChanged: listener => { reasoning.add(listener); return () => reasoning.delete(listener); }, getMeetingActive: async () => true };
     for (const name of ${JSON.stringify(Object.keys(preload))}) api[name] = (...args) => { if (/Reasoning$/.test(name) && name.startsWith('set')) window.reasoningWrites.push([name, ...args]); return window.invokeMain(name, args); };
     window.electronAPI = new Proxy(api, { get(target, name) { if (name in target) return target[name]; if (String(name).startsWith('on')) return () => () => {}; return async () => undefined; } });
@@ -1273,7 +1189,7 @@ test('S48 mounted settings and overlay show each model\'s own levels from the ma
 
     // Gateways set reasoning in their own configuration: the shared control is disabled and explains why.
     await primarySelect.selectOption(GATEWAY);
-    await page.waitForFunction(() => { const node = document.querySelector('#settings select[aria-label="Default reasoning"]'); return node.disabled && node.options[0].textContent === 'Set in the gateway or Codex configuration'; });
+    await page.waitForFunction(() => { const node = document.querySelector('#settings select[aria-label="Default reasoning"]'); return node.disabled && node.options[0].textContent === 'Set in the gateway configuration'; });
     assert.equal(await sessionControl.isDisabled(), true);
     // A gateway does not take the shared level, so it is neither applied nor reset; back on Sonnet it applies again.
     assert.deepEqual(JSON.parse(JSON.stringify(boot().getSavedReasoning())), { choice: 'high' });
@@ -1486,94 +1402,6 @@ test('S42-01 mounted domestic STT settings save, reload and test the chosen work
     if (app) await app.close();
     fs.rmSync(userData, { recursive: true, force: true });
     if (previousManagerModule) require.cache[managerId] = previousManagerModule; else delete require.cache[managerId];
-  }
-  assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
-});
-
-test('AG34 native launcher preload and IPC gate synthetic local auth and cancel delayed file reads', async () => {
-  const sandbox = makeSandbox('ag34-native-ipc'), authFile = path.join(sandbox.home, '.codex', 'auth.json');
-  fs.mkdirSync(path.dirname(authFile), { recursive: true });
-  fs.writeFileSync(authFile, JSON.stringify({ tokens: { account_id: 'synthetic-account', access_token: `e30.${Buffer.from(JSON.stringify({ exp: 4_000_000_000 })).toString('base64url')}.synthetic` } }), { mode: 0o600 });
-  let app;
-  try {
-    ({ app } = await launchApp(sandbox, { NODE_ENV: 'production' }));
-    const page = await findWindow(app, 'window=launcher', 30_000);
-    await dumpOnTimeout('AG34 launcher preload', { page }, () => page.waitForFunction(() => Boolean(window.electronAPI?.getCodexCliConfig)));
-    // Repeatable (mainRead): a second run finds the probe installed and leaves it alone.
-    await mainRead(app, (_electron, filename) => {
-      if (globalThis.__ag34AuthProbe) return;
-      const fs = process.getBuiltinModule('fs'), original = fs.promises.open;
-      const probe = { opens: 0, bytes: 0, closes: 0, delayed: false, started: false, release: undefined };
-      fs.promises.open = async function (...args) {
-        if (String(args[0]) !== filename) return original.apply(this, args);
-        probe.opens++;
-        if (probe.delayed) { probe.started = true; await new Promise(resolve => { probe.release = resolve; }); }
-        const file = await original.apply(this, args), read = file.read.bind(file), close = file.close.bind(file);
-        file.read = async (...values) => { const result = await read(...values); probe.bytes += result.bytesRead; return result; };
-        file.close = async () => { probe.closes++; return close(); };
-        return file;
-      };
-      globalThis.__ag34AuthProbe = { probe, restore: () => { fs.promises.open = original; } };
-    }, authFile, 'AG34 install auth probe');
-    const counts = () => mainRead(app, () => { const { opens, bytes, closes, started } = globalThis.__ag34AuthProbe.probe; return { opens, bytes, closes, started }; }, undefined, 'AG34 probe counts');
-    assert.equal((await page.evaluate(() => window.electronAPI.getCodexCliConfig())).enabled, false);
-    assert.equal((await page.evaluate(() => window.electronAPI.testCodexCli())).status, 'disabled');
-    assert.equal((await counts()).opens, 0);
-    assert.equal((await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: true }))).success, false);
-    assert.equal((await counts()).opens, 0);
-    const enabled = await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: true, acceptRisk: true }));
-    assert.equal(enabled.success, true); assert.equal(enabled.config.riskConfirmedVersion, 1);
-    assert.equal((await counts()).opens, 0);
-    const status = await page.evaluate(() => window.electronAPI.testCodexCli());
-    assert.equal(status.status, 'locally-valid'); assert.match(status.message, /unverified/);
-    const baseline = await counts(); assert.equal(baseline.opens, 1); assert.ok(baseline.bytes > 0); assert.equal(baseline.closes, 1);
-    // Select from the mounted overlay after its own default-model reset, which could otherwise land later.
-    const overlay = await findWindow(app, 'window=overlay', 30_000);
-    await dumpOnTimeout('AG34 overlay input', { page: overlay }, () => overlay.locator('input[type="text"]').last().waitFor({ state: 'attached', timeout: 20_000 }));
-    const selected = await overlay.evaluate(async () => {
-      await window.electronAPI.getDefaultModel();
-      await window.electronAPI.getDefaultModel();
-      const result = await window.electronAPI.setModel('codex-cli');
-      await window.electronAPI.getDefaultModel();
-      return result;
-    });
-    assert.equal(selected.success, true);
-    assert.equal((await overlay.evaluate(() => window.electronAPI.getCurrentLlmConfig()))?.model, 'codex-cli');
-    await mainRead(app, () => { globalThis.__ag34AuthProbe.probe.delayed = true; }, undefined, 'AG34 delay auth reads');
-    await page.evaluate(() => {
-      window.ag34Errors = [];
-      window.ag34Unsubscribe = window.electronAPI.onGeminiStreamError((error, metadata) => window.ag34Errors.push({ error, metadata }));
-      window.ag34Pending = window.electronAPI.streamGeminiChat('Synthetic cancellation control', undefined, undefined, { generationKind: 'written', ignoreKnowledgeMode: true })
-        .then(() => { window.ag34Finished = true; }, () => { window.ag34Finished = true; });
-    });
-    const deadline = Date.now() + 10_000;
-    while (!(await counts()).started && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
-    assert.equal((await counts()).started, true, 'native generation must reach the exact synthetic auth file');
-    assert.equal((await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: false }))).success, true);
-    await page.waitForFunction(() => window.ag34Finished && window.ag34Errors.length === 1);
-    const metadata = await page.evaluate(() => window.ag34Errors[0].metadata);
-    assert.equal(metadata.status, 'cancelled'); assert.equal(metadata.attempts, 0);
-    await mainDo(app, () => { globalThis.__ag34AuthProbe.probe.release(); }, undefined, 'AG34 release delayed read');
-    const closeDeadline = Date.now() + 10_000;
-    while ((await counts()).closes !== 2 && Date.now() < closeDeadline) await new Promise(resolve => setTimeout(resolve, 25));
-    const after = await counts(); assert.equal(after.opens, 2); assert.equal(after.closes, 2); assert.equal(after.bytes, baseline.bytes);
-    assert.equal((await page.evaluate(() => window.electronAPI.getCodexCliConfig())).enabled, false);
-    assert.equal((await page.evaluate(() => window.electronAPI.testCodexCli())).status, 'disabled');
-    assert.equal((await counts()).opens, 2);
-    assert.equal((await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: true, acceptRisk: true }))).success, true);
-    await mainRead(app, () => { const probe = globalThis.__ag34AuthProbe.probe; probe.started = false; probe.release = undefined; }, undefined, 'AG34 reset probe');
-    await page.evaluate(() => { window.ag34LocalCheck = window.electronAPI.testCodexCli().then(result => { window.ag34LocalResult = result; }); });
-    const statusDeadline = Date.now() + 10_000;
-    while (!(await counts()).started && Date.now() < statusDeadline) await new Promise(resolve => setTimeout(resolve, 25));
-    assert.equal((await counts()).started, true, 'local status must reach the same exact synthetic auth file');
-    assert.equal((await page.evaluate(() => window.electronAPI.setCodexCliConfig({ enabled: false }))).success, true);
-    await mainDo(app, () => { globalThis.__ag34AuthProbe.probe.release(); }, undefined, 'AG34 release local status read');
-    await page.waitForFunction(() => Boolean(window.ag34LocalResult));
-    assert.equal((await page.evaluate(() => window.ag34LocalResult)).status, 'disabled');
-    const statusAfter = await counts(); assert.equal(statusAfter.opens, 3); assert.equal(statusAfter.closes, 3); assert.equal(statusAfter.bytes, baseline.bytes);
-    await page.evaluate(() => window.ag34Unsubscribe());
-  } finally {
-    if (app) { await mainDo(app, () => { globalThis.__ag34AuthProbe?.probe.release?.(); globalThis.__ag34AuthProbe?.restore(); }, undefined, 'AG34 release and restore probe').catch(() => {}); await app.close(); }
   }
   assert.deepEqual(readBlocked(sandbox).filter(record => !['permission', 'device', 'local-exec'].includes(record.kind)), []);
 });
@@ -1859,7 +1687,7 @@ test('mounted Launcher unsaved meeting banner orders query and events, guards co
       getCurrentLlmConfig: async () => ({ provider: 'openai', model: 'synthetic' }),
       getStoredCredentials: async () => ({ providerConfigurations: {}, sttProvider: 'none' }),
       checkPermissions: async () => ({ platform: 'darwin', microphone: 'granted', screen: 'granted' }),
-      getCodexCliConfig: async () => ({ enabled: false }), getWindowPreferences: async () => [],
+      getWindowPreferences: async () => [],
       getKeybindStatus: async () => ({ success: true, keybinds: [], failedActions: [] }),
       getRecentMeetings: async () => [], getMeetingActive: async () => false
     };
