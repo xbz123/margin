@@ -13,7 +13,7 @@
 - **阶段 6 用户签收** — 实际采集、Zoom/腾讯会议共享接收端和真实服务质量仍待实测；只测核心场景，不做 SHA256 核对；resume：[阶段 6 清单](margin/STAGE6-CHECKLIST.md)、[Windows 最小清单](margin/WINDOWS-TEST-CHECKLIST.md)。
 - **2026-11-28 决定的代码改动** — 删除 Codex 登录来源；Reset 只在生成中取消回答；去掉设置文件损坏的特殊处理；DeepSeek 始终直连；另删除快速回答模式。已出测试包 test.25（`7bbf55493`，两个平台构建成功），还没实测。
 - **正式身份、图标与发布** — AG-62 正式 Margin 身份、S42-06 图标与平台交付、AG-74 发布都待用户决定；见 [PLAN](margin/PLAN.md)。
-- **主线改名收尾** — 私有仓库的 `main` 已指向主线；还差同事在公开仓库 `xbz123/margin` 推送 `main`、把默认分支改为 `main`，然后删除两边的 `codex/margin-unified`。在此之前公开 CI 不会因推送触发；resume：[PLAN R15、R16](margin/PLAN.md#执行规则)。
+- **主线改名收尾** — 私有仓库已只剩 `main` 一个分支，旧线改存为标签；还差同事在公开仓库 `xbz123/margin` 推送 `main`、把默认分支改为 `main`，然后删除那边的 `codex/margin-unified`。在此之前公开 CI 不会因推送触发；resume：[PLAN R15、R16](margin/PLAN.md#执行规则)。
 - **练习模式** — 2026-11-28 确认设计：Margin 扮演面试官，从开始会议走到会后回顾，分“演示”和“彩排”两档。待用户决定剧本内容、记录去留和彩排录音的播放方式，并授权实现；resume：[PLAN PRACTICE](margin/PLAN.md#未完成的-ticket)、[架构](architecture.md#练习模式的接入)。
 
 ## Watching

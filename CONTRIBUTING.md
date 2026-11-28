@@ -48,8 +48,9 @@ matching spec entry is not finished.
   `origin` and locally, and remove its worktree.
 - **Never** force-push the mainline, rewrite pushed history, or push any branch
   other than the mainline to the public repository `xbz123/margin` (PLAN R15).
-- **The old ai-assistant line is read-only history.** The branch `old` and the
-  tags `v1.0.0-macos` / `v1.0.0-windows` have no common history with Margin. Do not merge or cherry-pick from them (PLAN R3); if
+- **The old ai-assistant line is read-only history.** It has no common history
+  with Margin and lives only in tags: `archive/old`, `archive/ai-assistant-main`,
+  `archive/ai-assistant-refactor`, `v1.0.0-macos` and `v1.0.0-windows`. Do not merge or cherry-pick from them (PLAN R3); if
   something there is still wanted, write it into the spec and implement it
   again.
 
