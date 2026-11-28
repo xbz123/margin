@@ -76,7 +76,7 @@
 
 ## 测试包与发布
 
-- **R15 · 公开与私有仓库**：私有仓库 `xbz123/Assessment-Assistant`（远端 `origin`）是唯一真源。公开仓库 `xbz123/margin` 只跑 CI：不建 Release，不上传正式身份的包；只有手动开启 `package_apps` 时，才把 `temp` 包 zip 作为保留 14 天的 workflow artifact 上传。本机没有配置公开仓库的远端，推送时用 `git push git@github.com:xbz123/margin.git codex/margin-unified`，推送与私有仓库相同的提交。推送公开仓库要用户同意（R9）。
+- **R15 · 公开与私有仓库**：私有仓库 `xbz123/AI-for-AI-Interview-Tests`（远端 `origin`）是唯一真源。公开仓库 `xbz123/margin` 只跑 CI：不建 Release，不上传正式身份的包；只有手动开启 `package_apps` 时，才把 `temp` 包 zip 作为保留 14 天的 workflow artifact 上传。本机没有配置公开仓库的远端，推送时用 `git push git@github.com:xbz123/margin.git codex/margin-unified`，推送与私有仓库相同的提交。推送公开仓库要用户同意（R9）。
 - **R14 · 测试包**：在 `origin` 推送轻量标签 `margin-v2.7.0-test.<n>-windows` 和 `margin-v2.7.0-test.<n>-macos`，由 `.github/workflows/margin-test-release.yml` 构建未签名的 `temp` 身份包（`io.github.xbz123.temp`），发成该标签的预发布：
   - Windows：x64 NSIS 安装包。
   - macOS：arm64 的 zip 和 dmg。

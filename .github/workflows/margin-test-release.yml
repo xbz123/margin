@@ -1,6 +1,6 @@
 # Test release (user request 2026-11-03): pushing a test tag builds the unsigned temp
 # identity app on GitHub Actions and attaches it, with its BUILD-INFO, to that tag's
-# prerelease in the private xbz123/Assessment-Assistant, for download onto the user's
+# prerelease in the private xbz123/AI-for-AI-Interview-Tests, for download onto the user's
 # own test devices.
 #   margin-v*-windows  tag a Windows-line commit: x64 NSIS installer
 #   margin-v*-macos    tag a Mac-line commit: Apple Silicon zip and dmg (dmg added at the
@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   windows:
-    if: github.repository == 'xbz123/Assessment-Assistant' && endsWith(github.ref_name, '-windows')
+    if: github.repository == 'xbz123/AI-for-AI-Interview-Tests' && endsWith(github.ref_name, '-windows')
     runs-on: windows-2025
     timeout-minutes: 120
     defaults:
@@ -67,7 +67,7 @@ jobs:
           gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/Margin-temp-$GITHUB_REF_NAME-x64-setup.exe" "$RUNNER_TEMP/BUILD-INFO-windows.txt" --clobber
 
   macos:
-    if: github.repository == 'xbz123/Assessment-Assistant' && endsWith(github.ref_name, '-macos')
+    if: github.repository == 'xbz123/AI-for-AI-Interview-Tests' && endsWith(github.ref_name, '-macos')
     runs-on: macos-15
     timeout-minutes: 75
     steps:

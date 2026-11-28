@@ -6,7 +6,7 @@
 //   node scripts/margin/download-ci-artifact.mjs --run <id> --name <artifact> --out <dir>
 //     [--commit <sha>] [--install-native] [--repo <owner/name>]
 // CI runs in the public xbz123/margin since S25; runs before it are in the private
-// xbz123/Assessment-Assistant (--repo).
+// xbz123/AI-for-AI-Interview-Tests, formerly Assessment-Assistant (--repo).
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
